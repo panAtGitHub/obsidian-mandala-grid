@@ -1,4 +1,6 @@
-const mdWithHtmlElement = `# <span data-section="1"/>heading 1
+const mdWithHtmlElement = `<span data-section="1"/>
+
+# heading 1
 # heading 2
 
 - <span data-section="2"/>1

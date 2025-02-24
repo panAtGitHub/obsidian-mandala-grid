@@ -17,8 +17,8 @@ export const jsonToHtmlElement = (
 
         const marker = createHtmlElementMarker(parentNumber, index);
         if (content.match(/^#+ /)) {
-            const headingLevel = content.match(/^#+/)?.[0];
-            content = `${headingLevel} ${marker}${content.slice(headingLevel!.length).trim()}`;
+            // an additional '\n' is needed as a workaround for a bug in obsidian
+            content = `${marker}\n\n${content}`;
         } else if (content.match(/^#[^\s#\uFEFF\u200B]+/)) {
             // BOM (\uFEFF) and zero-width spaces (\u200B) are matched to avoid issues with emojis
             const tag = content.match(/^#[^\s#\uFEFF\u200B]+/)?.[0];
