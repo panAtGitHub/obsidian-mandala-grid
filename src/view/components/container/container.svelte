@@ -78,7 +78,7 @@
         }
         if (textIsSelected()) return;
         const editingState = view.viewStore.getValue().document.editing;
-        if (editingState.activeNodeId && !editingState.isInSidebar) {
+        if (editingState.activeNodeId) {
             saveNodeContent(view,true);
         }
     };
