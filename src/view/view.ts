@@ -47,6 +47,7 @@ import { StyleRulesProcessor } from 'src/stores/view/subscriptions/effects/style
 import { AlignBranch } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
 import { lang } from 'src/lang/lang';
 import { logger } from 'src/helpers/logger';
+import { DebouncedMinimapEffects } from 'src/stores/minimap/subscriptions/effects/debounced-minimap-effects';
 
 export const LINEAGE_VIEW_TYPE = 'lineage';
 
@@ -59,6 +60,7 @@ export class LineageView extends TextFileView {
     documentStore: DocumentStore;
     viewStore: ViewStore;
     minimapStore: MinimapStore | null;
+    minimapEffects: DebouncedMinimapEffects;
     container: HTMLElement | null;
     inlineEditor: InlineEditor;
     documentSearch: DocumentSearch;
@@ -91,6 +93,7 @@ export class LineageView extends TextFileView {
         this.documentSearch = new DocumentSearch(this);
         this.rulesProcessor = new StyleRulesProcessor(this);
         this.alignBranch = new AlignBranch(this);
+        this.minimapEffects = new DebouncedMinimapEffects();
     }
 
     get isActive() {

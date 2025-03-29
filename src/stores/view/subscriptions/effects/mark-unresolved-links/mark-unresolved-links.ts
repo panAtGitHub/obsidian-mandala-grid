@@ -1,5 +1,4 @@
 import { LineageView } from 'src/view/view';
-import { debounce } from 'obsidian';
 import { getNonExistentLinks } from 'src/stores/view/subscriptions/effects/mark-unresolved-links/helpers/get-non-existent-links';
 import { getFileLinkElements } from 'src/stores/view/subscriptions/effects/mark-unresolved-links/helpers/get-file-link-elements';
 
@@ -7,7 +6,7 @@ enum Classes {
     'unresolved' = 'is-unresolved',
 }
 
-const markUnresolvedLinks = (view: LineageView) => {
+export const markUnresolvedLinks = (view: LineageView) => {
     const file = view.file;
     if (!file) return;
 
@@ -27,6 +26,3 @@ const markUnresolvedLinks = (view: LineageView) => {
         }
     }
 };
-
-const debounced = debounce(markUnresolvedLinks, 100);
-export { debounced as markUnresolvedLinks };

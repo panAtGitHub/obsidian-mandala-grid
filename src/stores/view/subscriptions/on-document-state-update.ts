@@ -11,7 +11,6 @@ import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-cont
 import { persistPinnedNodes } from 'src/stores/view/subscriptions/actions/persist-pinned-nodes';
 import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actions/update-stale-active-pinned-node';
 import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-active-pinned-node';
-import { debouncedDrawDocument } from 'src/stores/minimap/subscriptions/effects/draw-document';
 import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/update-selected-nodes';
 
 export const onDocumentStateUpdate = (
@@ -91,7 +90,7 @@ export const onDocumentStateUpdate = (
 
     if (e.content || structuralChange) {
         if (view.minimapStore) {
-            debouncedDrawDocument(view);
+            view.minimapEffects.drawDocument(view);
         }
 
         view.documentSearch.resetIndex();

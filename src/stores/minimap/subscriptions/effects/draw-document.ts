@@ -1,4 +1,3 @@
-import { debounce } from 'src/helpers/debounce';
 import { LineageView } from 'src/view/view';
 import { minimapWorker } from 'src/workers/worker-instances';
 import invariant from 'tiny-invariant';
@@ -29,4 +28,3 @@ export const drawDocument = async (view: LineageView) => {
         });
     }
 };
-export const debouncedDrawDocument = debounce(drawDocument, 100);
