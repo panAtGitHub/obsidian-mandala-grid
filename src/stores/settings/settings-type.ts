@@ -39,6 +39,8 @@ export type DocumentPreferences = {
 
 export type LeftSidebarTab = 'pinned-cards' | 'recent-cards';
 
+export type RulesTab = 'global-rules' | 'document-rules';
+
 export type Settings = {
     documents: Record<string, DocumentPreferences>;
     hotkeys: {
@@ -69,5 +71,11 @@ export type Settings = {
     };
     styleRules: {
         documents: { [path: string]: { rules: StyleRule[] } };
+        global: {
+            rules: StyleRule[];
+        };
+        settings: {
+            activeTab: RulesTab;
+        };
     };
 };

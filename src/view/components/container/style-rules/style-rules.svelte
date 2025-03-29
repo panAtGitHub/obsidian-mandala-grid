@@ -1,17 +1,32 @@
 <script lang="ts">
-    import { DocumentStyleRulesStore } from '../../../../stores/settings/derived/style-rules';
+    import {
+        ActiveStyleRulesTab,
+        DocumentStyleRulesStore,
+        GlobalStyleRulesStore
+    } from '../../../../stores/settings/derived/style-rules';
     import { getView } from '../context';
     import StyleRulesList from './components/style-rules-list/style-rules-list.svelte';
     import StyleRulesFooter from './components/style-rules-footer.svelte';
     import DraggableModal from '../shared/draggable-modal/draggable-modal.svelte';
 
+    import TabHeader from './components/tab-header/tab-header.svelte';
+
     const view = getView();
-    const rulesStore = DocumentStyleRulesStore(view);
+
+    const activeTab = ActiveStyleRulesTab(view);
+    const documentRules = DocumentStyleRulesStore(view);
+    const globalRules = GlobalStyleRulesStore(view);
+
 </script>
 
 <DraggableModal>
+    <TabHeader />
     <div class="modal-content">
-        <StyleRulesList rules={$rulesStore} />
+        {#if $activeTab === 'document-rules'}
+            <StyleRulesList rules={$documentRules} />
+        {:else}
+            <StyleRulesList rules={$globalRules} />
+        {/if}
     </div>
     <StyleRulesFooter />
 </DraggableModal>

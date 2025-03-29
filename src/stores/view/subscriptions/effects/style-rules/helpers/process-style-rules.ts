@@ -2,12 +2,12 @@ import {
     basicOperator,
     ConditionNode,
     NodeStyle,
-    StyleRule,
 } from 'src/stores/settings/types/style-rules-types';
 import { LineageDocument } from 'src/stores/document/document-state-type';
 import { evaluateCondition } from 'src/stores/view/subscriptions/effects/style-rules/helpers/evaluate-condition';
 import { TargetNodeResolver } from 'src/stores/view/subscriptions/effects/style-rules/helpers/resolvers/target-node-resolver';
 import { NodePropertyResolver } from 'src/stores/view/subscriptions/effects/style-rules/helpers/resolvers/node-property-resolver/node-property-resolver';
+import { ExtendedStyleRule } from 'src/stores/view/subscriptions/effects/style-rules/style-rules-processor';
 
 export type StyleRulesResult = {
     nodeStyles: Map<string, NodeStyle>;
@@ -16,7 +16,7 @@ export type StyleRulesResult = {
 
 export const processStyleRules = (
     doc: LineageDocument,
-    rules: StyleRule[],
+    rules: ExtendedStyleRule[],
     nodeResolver: NodePropertyResolver,
     propertyResolver: TargetNodeResolver,
 ) => {
@@ -25,7 +25,10 @@ export const processStyleRules = (
         allMatches: new Map(),
     };
     // ascending order
-    const sortedRules = [...rules].sort((a, b) => a.priority - b.priority);
+    const sortedRules = [...rules].sort((a, b) => {
+        // prioritize non global rules
+        return a.global && !b.global ? 1 : a.priority - b.priority;
+    });
 
     for (const column of doc.columns) {
         for (const group of column.groups) {

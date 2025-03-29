@@ -1,7 +1,9 @@
 import { Settings } from 'src/stores/settings/settings-type';
 
 export const filterStaleDocuments = (
-    settings: Pick<Settings, 'documents' | 'styleRules'>,
+    settings: Pick<Settings, 'documents'> & {
+        styleRules: Pick<Settings['styleRules'], 'documents'>;
+    },
     allFiles: Set<string>,
 ) => {
     if (allFiles.size === 0) return 0;

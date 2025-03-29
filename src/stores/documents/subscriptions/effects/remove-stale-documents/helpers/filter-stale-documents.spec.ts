@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { filterStaleDocuments } from './filter-stale-documents';
 import {
     DocumentPreferences,
-    Settings as TSettings,
+    Settings,
 } from 'src/stores/settings/settings-type';
 
-type Settings = Pick<TSettings, 'documents' | 'styleRules'>;
+type PartialSettings = Pick<Settings, 'documents'> & {
+    styleRules: Pick<Settings['styleRules'], 'documents'>;
+};
 const sample: DocumentPreferences = {
     documentFormat: 'sections',
     viewType: 'lineage',
@@ -15,7 +17,7 @@ const sample: DocumentPreferences = {
 };
 describe('filterStaleDocuments', () => {
     it('should return 0 if allFiles is empty', () => {
-        const settings: Settings = {
+        const settings: PartialSettings = {
             documents: {},
             styleRules: { documents: {} },
         };
@@ -25,7 +27,7 @@ describe('filterStaleDocuments', () => {
     });
 
     it('should remove stale documents and return the count of deleted documents', () => {
-        const settings: Settings = {
+        const settings: PartialSettings = {
             documents: {
                 path1: sample,
                 path2: sample,
@@ -57,7 +59,7 @@ describe('filterStaleDocuments', () => {
     });
 
     it('should not delete any documents if all paths exist in allFiles', () => {
-        const settings: Settings = {
+        const settings: PartialSettings = {
             documents: {
                 path1: sample,
                 path2: sample,
@@ -87,7 +89,7 @@ describe('filterStaleDocuments', () => {
     });
 
     it('should delete all documents if none of the paths exist in allFiles', () => {
-        const settings: Settings = {
+        const settings: PartialSettings = {
             documents: {
                 path1: sample,
                 path2: sample,

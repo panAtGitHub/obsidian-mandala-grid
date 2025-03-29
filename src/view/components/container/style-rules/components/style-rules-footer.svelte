@@ -13,14 +13,14 @@
 </script>
 
 <div class="modal-footer">
-
-<button class="add-rule" on:click={addRule}>{lang.modals_rules_add_rule}</button
->
+    <button class="add-rule" on:click={addRule}
+        >{lang.modals_rules_add_rule}</button
+    >
 </div>
 
 <style>
-    .modal-footer{
-        width:100%;
+    .modal-footer {
+        width: 100%;
         padding-bottom: 10px;
         display: flex;
         justify-content: end;

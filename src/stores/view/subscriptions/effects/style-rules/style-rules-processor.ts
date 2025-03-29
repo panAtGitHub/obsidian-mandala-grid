@@ -6,9 +6,11 @@ import { LineageView } from 'src/view/view';
 import invariant from 'tiny-invariant';
 import { StyleRulesResult } from 'src/stores/view/subscriptions/effects/style-rules/helpers/process-style-rules';
 
+export type ExtendedStyleRule = StyleRule & { global?: boolean };
+
 export class StyleRulesProcessor {
     private view: LineageView;
-    private rules: StyleRule[] = [];
+    private rules: ExtendedStyleRule[] = [];
 
     constructor(view: LineageView) {
         this.view = view;
@@ -66,8 +68,15 @@ export class StyleRulesProcessor {
     private setRules = () => {
         const path = this.view.file?.path;
         invariant(path);
-        const rules =
-            this.view.plugin.settings.getValue().styleRules.documents[path];
-        this.rules = rules?.rules ?? [];
+        const settings = this.view.plugin.settings.getValue();
+        const documentRules = settings.styleRules.documents[path];
+        const globalRules = settings.styleRules.global;
+        this.rules = [];
+        if (documentRules) {
+            this.rules.push(...documentRules.rules);
+        }
+        this.rules.push(
+            ...globalRules.rules.map((r) => ({ ...r, global: true })),
+        );
     };
 }

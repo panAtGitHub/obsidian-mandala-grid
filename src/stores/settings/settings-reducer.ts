@@ -3,6 +3,7 @@ import {
     DocumentPreferences,
     LeftSidebarTab,
     LineageDocumentFormat,
+    RulesTab,
     Settings,
     ViewType,
 } from './settings-type';
@@ -144,6 +145,10 @@ export type SettingsActions =
       }
     | { type: 'view/modes/gap-between-cards/toggle' }
     | { type: 'settings/view/modes/toggle-outline-mode' }
+    | {
+          type: 'settings/style-rules/set-active-tab';
+          payload: { tab: RulesTab };
+      }
     | StyleRulesAction
     | {
           type: 'settings/view/set-node-indentation-width';
@@ -437,6 +442,8 @@ const updateState = (store: Settings, action: SettingsActions) => {
                     (b) => b !== action.payload.id,
                 );
         }
+    } else if (action.type === 'settings/style-rules/set-active-tab') {
+        store.styleRules.settings.activeTab = action.payload.tab;
     } else if (action.type.startsWith('settings/style-rules')) {
         updateStyleRules(store, action);
     }

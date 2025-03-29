@@ -281,6 +281,10 @@ export const lang = {
     controls_rules: 'Rule-based styles',
     modals_rules_matches: 'Number of matches',
     modals_rules_drag_handle: 'Change priority',
+    modals_rules_tab_global_rules: 'Global rules',
+    modals_rules_tab_document_rules: 'Document rules',
+    modals_rules_rule_cm_move_to_document: 'Move to document rules',
+    modals_rules_rule_cm_move_to_global: 'Move to global rules',
 
     // settings
     controls_settings: 'Settings',

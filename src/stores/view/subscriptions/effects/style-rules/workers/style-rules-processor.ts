@@ -1,5 +1,4 @@
 import { LineageDocument } from 'src/stores/document/document-state-type';
-import { StyleRule } from 'src/stores/settings/types/style-rules-types';
 import { NodePropertyResolver } from 'src/stores/view/subscriptions/effects/style-rules/helpers/resolvers/node-property-resolver/node-property-resolver';
 import { TargetNodeResolver } from 'src/stores/view/subscriptions/effects/style-rules/helpers/resolvers/target-node-resolver';
 import {
@@ -7,6 +6,7 @@ import {
     StyleRulesResult,
 } from '../helpers/process-style-rules';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { ExtendedStyleRule } from 'src/stores/view/subscriptions/effects/style-rules/style-rules-processor';
 
 export class StyleRulesProcessor {
     private propertyResolver: NodePropertyResolver;
@@ -16,7 +16,7 @@ export class StyleRulesProcessor {
 
     processStyleRules = (
         document: LineageDocument,
-        rules: StyleRule[],
+        rules: ExtendedStyleRule[],
         action: DocumentStoreAction | null,
     ): StyleRulesResult => {
         if (!this.propertyResolver || !this.targetResolver) {

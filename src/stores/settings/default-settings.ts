@@ -38,5 +38,11 @@ export const DEFAULT_SETTINGS = (): Settings => ({
     },
     styleRules: {
         documents: {},
+        global: {
+            rules: [],
+        },
+        settings: {
+            activeTab: 'global-rules',
+        },
     },
 });

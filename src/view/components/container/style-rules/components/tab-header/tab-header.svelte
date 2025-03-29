@@ -1,39 +1,39 @@
 <script lang="ts">
-    import { Clock, Pin } from 'lucide-svelte';
+    import { FileText, Globe } from 'lucide-svelte';
     import ClickableIcon from '../../../shared/clickable-icon.svelte';
-    import { LeftSidebarActiveTabStore } from '../../../../../../stores/settings/derived/view-settings-store';
-    import { LeftSidebarTab } from '../../../../../../stores/settings/settings-type';
-    import { getView } from '../../../context';
     import { lang } from 'src/lang/lang';
+    import { ActiveStyleRulesTab } from 'src/stores/settings/derived/style-rules';
+    import { getView } from 'src/view/components/container/context';
+    import { RulesTab } from 'src/stores/settings/settings-type';
 
     const view = getView();
-    const activeTab = LeftSidebarActiveTabStore(view);
-    const setActiveTab = (tab: LeftSidebarTab) => {
+    const activeTab = ActiveStyleRulesTab(view);
+
+    const setActiveTab = (tab: RulesTab) => {
         view.plugin.settings.dispatch({
-            type: 'view/left-sidebar/set-active-tab',
+            type: 'settings/style-rules/set-active-tab',
             payload: { tab },
         });
-    };
-
+    }
 </script>
 
 <div class="sidebar-tabs-header">
     <div class="tab-header-buttons">
         <ClickableIcon
             hasEnabledItems={false}
-            isActive={$activeTab==="pinned-cards"}
-            label={lang.sidebar_tab_pinned_cards}
-            onClick={() => setActiveTab("pinned-cards")}
+            isActive={$activeTab === 'global-rules'}
+            label={lang.modals_rules_tab_global_rules}
+            onClick={() => setActiveTab('global-rules')}
         >
-            <Pin class="svg-icon" />
+            <Globe class="svg-icon" />
         </ClickableIcon>
         <ClickableIcon
             hasEnabledItems={false}
-            isActive={$activeTab==="recent-cards"}
-            label={lang.sidebar_tab_recent_cards}
-            onClick={() => setActiveTab("recent-cards")}
+            isActive={$activeTab === 'document-rules'}
+            label={lang.modals_rules_tab_document_rules}
+            onClick={() => setActiveTab('document-rules')}
         >
-            <Clock class="svg-icon" />
+            <FileText class="svg-icon" />
         </ClickableIcon>
     </div>
 </div>
@@ -43,7 +43,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: start;
 
         width: 100%;
         align-self: center;

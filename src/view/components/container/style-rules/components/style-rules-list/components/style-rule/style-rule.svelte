@@ -10,6 +10,9 @@
     import { getView } from '../../../../../context';
     import RuleActions from './components/rule-actions.svelte';
     import { lang } from 'src/lang/lang';
+    import { Menu } from 'obsidian';
+    import { get } from 'svelte/store';
+    import { ActiveStyleRulesTab } from 'src/stores/settings/derived/style-rules';
 
     export let setDraggedRule: (rule: StyleRule) => void;
     export let setDropTarget: (
@@ -21,6 +24,40 @@
     export let results: string[] | undefined;
 
     const view = getView();
+
+    const showContextMenu = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        if (target.localName === 'input') return;
+        const menu = new Menu();
+        const activeTab = get(ActiveStyleRulesTab(view));
+        menu.addItem((item) => {
+            const activeTabIsGlobal = activeTab === 'global-rules';
+            item.setTitle(
+                activeTabIsGlobal
+                    ? lang.modals_rules_rule_cm_move_to_document
+                    : lang.modals_rules_rule_cm_move_to_global,
+            );
+            item.setIcon(activeTabIsGlobal ? 'file-text' : 'globe');
+            item.onClick(() => {
+                view.plugin.settings.dispatch({
+                    type: 'settings/style-rules/toggle-global',
+                    payload: {
+                        id: rule.id,
+                        documentPath: view.file!.path,
+                    },
+                });
+                view.plugin.settings.dispatch({
+                    type: 'settings/style-rules/set-active-tab',
+                    payload: {
+                        tab: activeTabIsGlobal
+                            ? 'document-rules'
+                            : 'global-rules',
+                    },
+                });
+            });
+        });
+        menu.showAtMouseEvent(e);
+    };
 </script>
 
 <div
@@ -33,13 +70,14 @@
         view,
     }}
     draggable="true"
+    on:contextmenu={showContextMenu}
 >
     <div class="drag-handle" aria-label={lang.modals_rules_drag_handle}>
         <GripVertical class="svg-icon" />
     </div>
     <RuleInfo {rule} {results} />
     <RuleEditor {rule} />
-    <RuleStyleEditor {rule}/>
+    <RuleStyleEditor {rule} />
     <RuleActions {rule} />
 </div>
 

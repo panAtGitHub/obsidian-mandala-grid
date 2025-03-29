@@ -87,7 +87,8 @@ export const onPluginSettingsUpdate = (
         type === 'settings/style-rules/enable-rule' ||
         type === 'settings/style-rules/disable-rule' ||
         type === 'settings/style-rules/move' ||
-        type === 'settings/style-rules/update-style';
+        type === 'settings/style-rules/update-style' ||
+        type === 'settings/style-rules/toggle-global';
     if (shouldUpdateStyleRules) {
         view.rulesProcessor.onRulesUpdate();
     }
