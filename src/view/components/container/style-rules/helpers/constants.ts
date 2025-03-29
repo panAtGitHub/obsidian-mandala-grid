@@ -9,6 +9,10 @@ import {
 
 export const targets: StyleRuleTarget[] = [
     'self',
+    'self-or-direct-parent',
+    'self-or-any-parent',
+    'self-or-direct-children',
+    'self-or-any-children',
     'direct-parent',
     'any-parent',
     'direct-children',

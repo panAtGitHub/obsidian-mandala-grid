@@ -10,13 +10,18 @@ import {
     STRUCTURE_ONLY,
 } from 'src/stores/view/helpers/get-document-event-type';
 
-const defaultCache = () => ({
-    self: {},
-    'direct-parent': {},
-    'any-parent': {},
-    'direct-children': {},
-    'any-children': {},
-});
+const defaultCache = () =>
+    ({
+        self: {},
+        'direct-parent': {},
+        'any-parent': {},
+        'direct-children': {},
+        'any-children': {},
+        'self-or-any-parent': {},
+        'self-or-direct-parent': {},
+        'self-or-any-children': {},
+        'self-or-direct-children': {},
+    }) satisfies Cache;
 
 type Cache = {
     [scope in StyleRuleTarget]: {
@@ -63,22 +68,43 @@ export class TargetNodeResolver {
                 break;
             }
 
-            case 'any-parent':
-                result = traverseUp(this.columns, nodeId);
-                break;
-
-            case 'direct-children': {
-                const childGroup = findChildGroup(this.columns, nodeId);
-                result = childGroup?.nodes ?? [];
+            case 'self-or-direct-parent': {
+                const group = findGroupByNodeId(this.columns, nodeId);
+                result = group ? [group.parentId, nodeId] : [nodeId];
                 break;
             }
 
-            case 'any-children':
+            case 'any-parent': {
+                result = traverseUp(this.columns, nodeId);
+                break;
+            }
+
+            case 'self-or-any-parent': {
+                result = [...traverseUp(this.columns, nodeId), nodeId];
+                break;
+            }
+
+            case 'direct-children': {
+                const childGroup = findChildGroup(this.columns, nodeId);
+                result = childGroup ? childGroup.nodes : [];
+                break;
+            }
+
+            case 'self-or-direct-children': {
+                const childGroup = findChildGroup(this.columns, nodeId);
+                result = childGroup ? [nodeId, ...childGroup.nodes] : [nodeId];
+                break;
+            }
+
+            case 'any-children': {
                 result = getAllChildren(this.columns, nodeId);
                 break;
+            }
 
-            default:
-                result = [];
+            case 'self-or-any-children': {
+                result = [nodeId, ...getAllChildren(this.columns, nodeId)];
+                break;
+            }
         }
 
         this.cacheResult(nodeId, scope, result);

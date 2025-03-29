@@ -27,6 +27,10 @@ export type ComparisonOperator = StringOperator | NumericOperator;
 
 export type StyleRuleTarget =
     | 'self'
+    | 'self-or-any-parent'
+    | 'self-or-direct-parent'
+    | 'self-or-direct-children'
+    | 'self-or-any-children'
     | 'direct-parent'
     | 'any-parent'
     | 'direct-children'
