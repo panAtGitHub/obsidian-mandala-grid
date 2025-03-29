@@ -1,11 +1,29 @@
+.lineage-view {
+    --lng-box-shadow-dnd-above: inset 2px 51px 19px -28px var(--lineage-accent);
+    --lng-box-shadow-dnd-below: inset 2px -51px 19px -28px var(--lineage-accent);
+    --lng-box-shadow-dnd-under: inset -51px 2px 19px -28px var(--lineage-accent)
+}
+
 .lineage__drop-node-above {
-    box-shadow: inset 2px 51px 19px -28px var(--lineage-accent) !important;
+    box-shadow: var(--lng-box-shadow-dnd-above) !important;
+    & .card-background-style{
+        box-shadow: var(--lng-box-shadow-dnd-above) !important;
+    }
 }
+
 .lineage__drop-node-below {
-    box-shadow: inset 2px -51px 19px -28px var(--lineage-accent) !important;
+    box-shadow: var(--lng-box-shadow-dnd-below) !important;
+    & .card-background-style{
+        box-shadow: var(--lng-box-shadow-dnd-below) !important;
+    }
 }
+
 .lineage__drop-node-under {
-    box-shadow: inset -51px 2px 19px -28px var(--lineage-accent) !important;
+    box-shadow: var(--lng-box-shadow-dnd-under) !important;
+
+    & .card-background-style{
+        box-shadow: var(--lng-box-shadow-dnd-under) !important;
+    }
 }
 
 .inactive-node-hover {
