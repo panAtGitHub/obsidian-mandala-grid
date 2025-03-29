@@ -236,6 +236,9 @@ export class InlineEditor {
     };
 
     fixVimWhenZooming = () => {
+        const viewState = this.view.viewStore.getValue();
+        if (viewState.document.editing.isInSidebar) return;
+
         const unsub = fixVimCursorWhenZooming(this.view);
         if (unsub) {
             this.subscriptions.add(unsub);
