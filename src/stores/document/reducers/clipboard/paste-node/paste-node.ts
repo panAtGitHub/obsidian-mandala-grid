@@ -38,6 +38,6 @@ export const pasteNode = (
     invariant(nextNode);
     return {
         nextNode,
-        rootNodes: branches.map((b) => b.nodeId),
+        rootNodes: branches.map((b) => b.nodeId).reverse(),
     };
 };
