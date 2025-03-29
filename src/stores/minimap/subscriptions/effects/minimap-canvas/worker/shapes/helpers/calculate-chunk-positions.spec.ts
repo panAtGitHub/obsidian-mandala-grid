@@ -1460,6 +1460,25 @@ describe('calculate-chunk-position', () => {
         const actual = calculateChunkPositions(input, N_CHARS_PER_LINE, '', '');
         expect(actual).toEqual(output);
     });
+
+    test('case: heading wikilink', () => {
+        const input = '[[file#heading]]';
+        const output = {
+            chunks: [
+                {
+                    chunk: '[[file#heading]]',
+                    line: 0,
+                    x_chars: 0,
+                    length_chars: 16,
+                    type: 'wikilink',
+                },
+            ],
+            totalLines: 1,
+            empty: false,
+        };
+        const actual = calculateChunkPositions(input, N_CHARS_PER_LINE, '', '');
+        expect(actual).toEqual(output);
+    });
 });
 
 describe('performance-test: calculate-chunk-position', () => {

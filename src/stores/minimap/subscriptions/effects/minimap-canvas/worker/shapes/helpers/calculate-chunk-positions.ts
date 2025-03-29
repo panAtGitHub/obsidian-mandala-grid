@@ -149,7 +149,7 @@ export const calculateChunkPositions = (
             }
         } else if (
             !state.elementMeta ||
-            state.elementMeta?.scope !== ElementScope.full_line
+            state.elementMeta.scope !== ElementScope.full_line
         ) {
             const elementName = charToElementName[character];
             if (elementName) {
@@ -168,7 +168,10 @@ export const calculateChunkPositions = (
                 // tag
                 else if (
                     character === '#' &&
-                    !illegalObsidianTagCharacters.has(nextCharacter)
+                    !illegalObsidianTagCharacters.has(nextCharacter) &&
+                    (!state.elementMeta ||
+                        state.elementMeta.canBeParent ||
+                        state.elementMeta.elementName === elementName)
                 ) {
                     if (state.elementMeta?.canBeParent) {
                         state.parentElementMeta = state.elementMeta;
@@ -242,7 +245,11 @@ export const calculateChunkPositions = (
                     }
                 }
                 // double tag blocks
-                else {
+                else if (
+                    !state.elementMeta ||
+                    state.elementMeta.canBeParent ||
+                    state.elementMeta.elementName === elementName
+                ) {
                     const isHighlight = character === '=';
                     const isDoubleCharacterTag =
                         (isHighlight && nextCharacter === '=') ||
