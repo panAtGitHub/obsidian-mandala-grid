@@ -6,13 +6,9 @@ import { lang } from 'src/lang/lang';
 import {
     HistoryIcon,
     Keyboard,
-    Minus as ZoomOut,
     Palette,
     PanelRightInactive as PanelRight,
-    Plus as ZoomIn,
     Redo2 as RedoIcon,
-    RotateCcw,
-    ScanSearch,
     Settings,
     Undo2 as UndoIcon,
 } from 'lucide-svelte';
@@ -29,11 +25,7 @@ export type ToolbarButtonsGroup = {
     }[];
 };
 
-export const VerticalToolbarButtonsList = (
-    view: LineageView,
-    restoreZoom: () => void,
-    showZoomPopupMenu: (event: MouseEvent) => void,
-) => {
+export const VerticalToolbarButtonsList = (view: LineageView) => {
     const hiddenControlsBarButtons = HiddenVerticalToolbarButtons(view.plugin);
     const h = new VerticalToolbarActions(view);
 
@@ -128,35 +120,6 @@ export const VerticalToolbarButtonsList = (
                         onClick: h.handleNextClick,
                         icon: RedoIcon,
                         id: 'redo',
-                    },
-                ],
-            },
-            {
-                id: 'zoom',
-                buttons: [
-                    {
-                        label: lang.controls_zoom_in,
-                        onClick: h.zoomIn,
-                        icon: ZoomIn,
-                        id: 'zoom-in',
-                    },
-                    {
-                        label: lang.controls_zoom_reset,
-                        onClick: restoreZoom,
-                        icon: RotateCcw,
-                        id: 'zoom-reset',
-                    },
-                    {
-                        label: lang.controls_zoom_presets,
-                        onClick: showZoomPopupMenu,
-                        icon: ScanSearch,
-                        id: 'zoom-presets',
-                    },
-                    {
-                        label: lang.controls_zoom_out,
-                        onClick: h.zoomOut,
-                        icon: ZoomOut,
-                        id: 'zoom-out',
                     },
                 ],
             },

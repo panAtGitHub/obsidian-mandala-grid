@@ -1,5 +1,6 @@
 <script lang="ts">
     import VerticalToolbar from './toolbar-vertical/vertical-toolbar.svelte';
+    import ZoomButtons from './toolbar-vertical/zoom-buttons/zoom-buttons.svelte';
     import Container from './container-wrapper.svelte';
     import Breadcrumbs from './breadcrumbs/breadcrumbs.svelte';
     import Toolbar from './toolbar/toolbar.svelte';
@@ -39,6 +40,7 @@
         <Toolbar />
         <Breadcrumbs />
         <VerticalToolbar />
+        <ZoomButtons/>
         {#if $controls.showHistorySidebar}
             <FileHistory />
         {:else if $controls.showHelpSidebar}

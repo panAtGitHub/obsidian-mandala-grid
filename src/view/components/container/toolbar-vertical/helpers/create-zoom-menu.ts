@@ -129,11 +129,12 @@ export const createZoomMenu = (props: Props) => {
     const buttonRect = (
         props.event.target as HTMLElement
     ).getBoundingClientRect();
+    const viewRect = props.view.container!.getBoundingClientRect();
     menu.showAtPosition({
         x: get(showMinimapStore(props.view))
             ? buttonRect.left - props.state.menuWidth - 10
             : buttonRect.left - 10,
-        y: buttonRect.top + buttonRect.height / 2 - props.state.menuHeight / 2,
+        y: viewRect.bottom - 10 - props.state.menuHeight,
     });
     menu.onHide(() => {
         props.state.lastMenuHideEvent_ms = Date.now();

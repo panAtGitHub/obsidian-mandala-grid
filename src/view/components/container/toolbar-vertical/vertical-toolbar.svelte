@@ -1,9 +1,9 @@
 <script lang="ts">
     import { lang } from '../../../../lang/lang';
-    import { MoreVertical, RotateCcw, RotateCw } from 'lucide-svelte';
+    import { MoreVertical } from 'lucide-svelte';
     import { getView } from '../context';
     import { historyStore } from '../../../../stores/document/derived/history-store';
-    import { derived, get, writable } from 'svelte/store';
+    import { derived, writable } from 'svelte/store';
     import { uiControlsStore } from '../../../../stores/view/derived/ui-controls-store';
     import Button from '../shared/button.svelte';
     import { ScrollSettingsStore, showMinimapStore } from '../../../../stores/settings/derived/scrolling-store';
@@ -11,10 +11,6 @@
         ApplyGapBetweenCardsStore,
         OutlineModeStore
     } from '../../../../stores/settings/derived/view-settings-store';
-    import { KeyboardStore } from '../../../../stores/view/derived/keyboard-store';
-    import { zoomLevelStore } from '../../../../stores/view/derived/zoom-level-store';
-    import { createZoomMenu } from 'src/view/components/container/toolbar-vertical/helpers/create-zoom-menu';
-    import { maxZoomLevel, minZoomLevel } from '../../../../stores/settings/reducers/change-zoom-level';
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 
@@ -32,50 +28,8 @@
     const scrollSettingsStore = ScrollSettingsStore(view);
     const applyGapBetweenCards = ApplyGapBetweenCardsStore(view);
     const outlineMode = OutlineModeStore(view);
-    const keyboardStore = KeyboardStore(view);
-    const zoomLevel = zoomLevelStore(view);
 
-    const showUndoRestZoomButton = writable(false);
-    let zoomValueBeforeReset = -1;
-    $: {
-        showUndoRestZoomButton.set(
-            $keyboardStore.shift && zoomValueBeforeReset !== -1,
-        );
-    }
-
-    const restoreZoom = () => {
-        if (get(showUndoRestZoomButton)) {
-            view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
-                payload: { value: zoomValueBeforeReset },
-            });
-            zoomValueBeforeReset = -1;
-        } else {
-            zoomValueBeforeReset = get(zoomLevelStore(view));
-            view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
-                payload: { value: 1 },
-            });
-        }
-    };
-
-    const zoomMenuState = {
-        menuHeight: 0,
-        menuWidth: 0,
-        lastMenuHideEvent_ms: 0,
-    };
-
-    const showZoomPopupMenu = (event: MouseEvent) => {
-        if (Date.now() - zoomMenuState.lastMenuHideEvent_ms < 100) return;
-
-        createZoomMenu({
-            event: event,
-            view,
-            state: zoomMenuState,
-        });
-    };
-
-    const buttons = VerticalToolbarButtonsList(view, restoreZoom, showZoomPopupMenu);
+    const buttons = VerticalToolbarButtonsList(view);
     const activeStates = derived(
         [
             showMinimap,
@@ -83,8 +37,6 @@
             scrollSettingsStore,
             outlineMode,
             applyGapBetweenCards,
-            zoomLevel,
-            showUndoRestZoomButton,
         ],
         ([
             showMinimap,
@@ -92,10 +44,8 @@
             scrollSettingsStore,
             outlineMode,
             applyGapBetweenCards,
-            zoomLevel,
-            showUndoRestZoomButton,
         ]) => {
-            return ({
+            return {
                 minimap: showMinimap,
                 settings: controls.showSettingsSidebar,
                 hotkeys: controls.showHelpSidebar,
@@ -104,28 +54,17 @@
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
                 'outline-mode': outlineMode,
                 'space-between-cards': applyGapBetweenCards,
-                'zoom-reset': showUndoRestZoomButton
-                    ? true
-                    : zoomLevel !== 1
-            }) as Partial<Record<ToolbarButton, boolean>>;;
-        },
-    );
-
-    const disabledStates = derived(
-        [history, zoomLevel, showUndoRestZoomButton],
-        ([history, zoomLevel, showUndoRestZoomButton]) => {
-            return {
-                'snapshots-list': history.items.length === 0,
-                undo: !history.state.canGoBack,
-                redo: !history.state.canGoForward,
-                'zoom-in': zoomLevel >= maxZoomLevel,
-                'zoom-out': zoomLevel <= minZoomLevel,
-                'zoom-reset': showUndoRestZoomButton
-                    ? false
-                    : zoomLevel === 1,
             } as Partial<Record<ToolbarButton, boolean>>;
         },
     );
+
+    const disabledStates = derived([history], ([history]) => {
+        return {
+            'snapshots-list': history.items.length === 0,
+            undo: !history.state.canGoBack,
+            redo: !history.state.canGoForward,
+        } as Partial<Record<ToolbarButton, boolean>>;
+    });
 </script>
 
 <div class="controls-container">
@@ -156,12 +95,6 @@
                 >
                     {#if 'svg' in button.icon}
                         {@html button.icon.svg}
-                    {:else if button.id === 'zoom-reset'}
-                        {#if $showUndoRestZoomButton}
-                            <RotateCw class="svg-icon" />
-                        {:else}
-                            <RotateCcw class="svg-icon" />
-                        {/if}
                     {:else}
                         <svelte:component this={button.icon} class="svg-icon" />
                     {/if}
