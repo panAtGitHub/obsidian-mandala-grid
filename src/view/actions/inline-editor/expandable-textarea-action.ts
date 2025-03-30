@@ -9,6 +9,9 @@ export const AdjustHeight = (view: LineageView, el: HTMLElement) => {
     let previousScrollHeight = 0;
     let x: HTMLElement;
     const limitCardHeight = get(limitPreviewHeightStore(view));
+    const viewState = view.viewStore.getValue();
+    const isInSidebar = viewState.document.editing.isInSidebar;
+
     return (e?: KeyboardEvent) => {
         if (!x) {
             x = el.querySelector('.cm-scroller') as HTMLElement;
@@ -24,7 +27,7 @@ export const AdjustHeight = (view: LineageView, el: HTMLElement) => {
                 previousScrollHeight = x.scrollHeight;
                 el.style.height = previousScrollHeight + 'px';
                 x.style.height = '';
-                if (limitCardHeight && scrollHeightChange) {
+                if (!isInSidebar && limitCardHeight && scrollHeightChange) {
                     view.alignBranch.align({
                         type: 'view/align-branch/reveal-node',
                     });
