@@ -286,6 +286,14 @@ export const lang = {
     modals_rules_rule_cm_move_to_document: 'Move to document rules',
     modals_rules_rule_cm_move_to_global: 'Move to global rules',
 
+    // sort
+    cmd_sort_child_cards_asc: 'Sort child cards: ascending order',
+    cmd_sort_child_cards_desc: 'Sort child cards: descending order',
+    cm_sort_child: 'Sort child cards',
+    cm_sort_child_cards_asc: 'Ascending order',
+    cm_sort_child_cards_desc: 'Descending order',
+    modals_snapshots_sorted_child_cards: 'Sorted child cards of card ',
+
     // settings
     controls_settings: 'Settings',
     controls_toggle_bar: 'Toggle controls bar',

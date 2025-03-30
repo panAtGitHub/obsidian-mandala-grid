@@ -17,6 +17,7 @@ import { selectInactiveCard } from 'src/obsidian/context-menu/select-inactive-ca
 import { lang } from 'src/lang/lang';
 import { textIsSelected } from 'src/view/actions/context-menu/card-context-menu/helpers/text-is-selected';
 import { Notice } from 'obsidian';
+import { sortChildNodes } from 'src/view/actions/context-menu/card-context-menu/helpers/sort-child-nodes';
 
 export const showCardContextMenu = (event: MouseEvent, view: LineageView) => {
     const target = event.target as HTMLElement;
@@ -78,6 +79,25 @@ export const showCardContextMenu = (event: MouseEvent, view: LineageView) => {
             icon: 'merge',
             action: () => mergeNode(view, 'down'),
             disabled: multipleNodesAreSelected || isInSidebar,
+        },
+        { type: 'separator' },
+        {
+            title: lang.cm_sort_child,
+            icon: 'sort-asc',
+            disabled: isInSidebar || !hasChildren,
+            submenu: [
+                {
+                    title: lang.cm_sort_child_cards_asc,
+                    icon: 'sort-asc',
+                    action: () => sortChildNodes(view, activeNode, 'ascending'),
+                },
+                {
+                    title: lang.cm_sort_child_cards_desc,
+                    icon: 'sort-desc',
+                    action: () =>
+                        sortChildNodes(view, activeNode, 'descending'),
+                },
+            ],
         },
         { type: 'separator' },
         {

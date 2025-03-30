@@ -17,6 +17,7 @@ const createAndDelete = new Set<ActionType>([
 const dropAndMoveEvents = new Set<ActionType>([
     'DOCUMENT/DROP_NODE',
     'DOCUMENT/MOVE_NODE',
+    'document/sort-direct-child-nodes',
 ]);
 
 const historyEvents = new Set<ActionType>([
@@ -82,4 +83,5 @@ export const STRUCTURE_ONLY = new Set<DocumentStoreAction['type']>([
     'DOCUMENT/MOVE_NODE',
     'DOCUMENT/INSERT_NODE',
     'DOCUMENT/PASTE_NODE',
+    'document/sort-direct-child-nodes',
 ]);

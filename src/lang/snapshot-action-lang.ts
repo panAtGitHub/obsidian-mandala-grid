@@ -9,12 +9,15 @@ import {
     Heading1,
     Merge,
     Scissors,
+    SortAsc,
+    SortDesc,
     Split,
 } from 'lucide-svelte';
 import { UndoableAction } from 'src/stores/document/document-store-actions';
 import { Snapshot } from 'src/stores/document/document-state-type';
 import { customIcons } from 'src/helpers/load-custom-icons';
 import { lang } from './lang';
+import { SortChildNodesAction } from 'src/stores/document/reducers/sort/sort-direct-child-nodes';
 
 type Key = UndoableAction['type'];
 
@@ -90,4 +93,13 @@ export const snapshotActionLang: Partial<
             lang.modals_snapshots_split_card + snapshot.context.affectedSection,
         icon: Split,
     }),
+    'document/sort-direct-child-nodes': (snapshot) => {
+        const action = snapshot.context.action as SortChildNodesAction;
+        return {
+            label:
+                lang.modals_snapshots_sorted_child_cards +
+                snapshot.context.affectedSection,
+            icon: action.payload.order === 'descending' ? SortDesc : SortAsc,
+        };
+    },
 };

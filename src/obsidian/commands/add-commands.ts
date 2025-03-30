@@ -14,6 +14,8 @@ import { extractBranch } from 'src/obsidian/commands/helpers/extract-branch/extr
 import { exportColumn } from 'src/view/actions/context-menu/card-context-menu/helpers/export-column';
 import { exportDocument } from 'src/obsidian/commands/helpers/export-document/export-document';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
+import invariant from 'tiny-invariant';
+import { sortChildNodes } from 'src/view/actions/context-menu/card-context-menu/helpers/sort-child-nodes';
 
 const createCommands = (plugin: Lineage) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
@@ -77,6 +79,40 @@ const createCommands = (plugin: Lineage) => {
                 return Boolean(view);
             }
             openSplitNodeModal(view!);
+        },
+    });
+
+    commands.push({
+        name: lang.cmd_sort_child_cards_asc,
+        icon: 'sort-asc',
+        checkCallback: (checking) => {
+            const view = getActiveLineageView(plugin);
+            if (checking) {
+                return Boolean(view);
+            }
+            invariant(view);
+            sortChildNodes(
+                view,
+                view.viewStore.getValue().document.activeNode,
+                'ascending',
+            );
+        },
+    });
+
+    commands.push({
+        name: lang.cmd_sort_child_cards_desc,
+        icon: 'sort-desc',
+        checkCallback: (checking) => {
+            const view = getActiveLineageView(plugin);
+            if (checking) {
+                return Boolean(view);
+            }
+            invariant(view);
+            sortChildNodes(
+                view,
+                view.viewStore.getValue().document.activeNode,
+                'descending',
+            );
         },
     });
 

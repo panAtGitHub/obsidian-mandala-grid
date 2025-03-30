@@ -35,6 +35,7 @@ import { loadPinnedNodes } from 'src/stores/document/reducers/pinned-nodes/load-
 import { refreshGroupParentIds } from 'src/stores/document/reducers/meta/refresh-group-parent-ids';
 import { loadDocumentFromJSON } from 'src/stores/document/reducers/load-document-from-file/load-document-from-json';
 import { NO_UPDATE } from 'src/lib/store/store';
+import { sortDirectChildNodes } from 'src/stores/document/reducers/sort/sort-direct-child-nodes';
 
 const updateDocumentState = (
     state: DocumentState,
@@ -91,6 +92,10 @@ const updateDocumentState = (
             state.document.content[action.payload.activeNodeId];
         newActiveNodeId = mergeNode(state.document, action);
         affectedNodeId = action.payload.activeNodeId;
+    } else if (action.type === 'document/sort-direct-child-nodes') {
+        sortDirectChildNodes(state.document, action.payload);
+        newActiveNodeId = action.payload.id;
+        affectedNodeId = newActiveNodeId;
     } else if (action.type === 'DOCUMENT/LOAD_FILE') {
         if (action.payload.__test_document__) {
             newActiveNodeId = loadDocumentFromJSON(

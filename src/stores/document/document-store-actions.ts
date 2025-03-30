@@ -17,6 +17,7 @@ import { UnpinNodeAction } from 'src/stores/document/reducers/pinned-nodes/unpin
 import { RemoveStalePinnedNodesAction } from 'src/stores/document/reducers/pinned-nodes/remove-stale-pinned-nodes';
 import { LoadPinnedNodesAction } from 'src/stores/document/reducers/pinned-nodes/load-pinned-nodes';
 import { RefreshGroupParentIdsAction } from 'src/stores/document/reducers/meta/refresh-group-parent-ids';
+import { SortChildNodesAction } from 'src/stores/document/reducers/sort/sort-direct-child-nodes';
 
 export type VerticalDirection = 'up' | 'down';
 export type Direction = VerticalDirection | 'right';
@@ -57,7 +58,8 @@ export type DocumentAction =
           };
       }
     | PinnedNodesActions
-    | MetaActions;
+    | MetaActions
+    | SortChildNodesAction;
 
 export type HistoryAction = UndoRedoAction | SelectSnapshotAction;
 export type UndoableAction =
@@ -72,7 +74,8 @@ export type UndoableAction =
     | PasteNodeAction
     | CutNodeAction
     | ExtractNodeAction
-    | SplitNodeAction;
+    | SplitNodeAction
+    | SortChildNodesAction;
 
 export type CopyNodeAction = {
     type: 'DOCUMENT/COPY_NODE';
