@@ -4,7 +4,6 @@
         ViewHotkey
     } from '../../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import { customIcons } from '../../../../../../../../helpers/load-custom-icons';
-    import { Notice } from 'obsidian';
     import { lang } from '../../../../../../../../lang/lang';
 
     export let hotkey: ViewHotkey;
@@ -27,16 +26,15 @@
         'editor-off': lang.modal_hk_editor_state_off,
     };
 
-    let notice: Notice | undefined;
     const wrappedOnClick = () => {
         if (onClick) {
             onClick();
-            setTimeout(() => {
+        /*    setTimeout(() => {
                 if (notice) {
                     notice.hide();
                 }
                 notice = new Notice(label[hotkey.editorState]);
-            }, 16);
+            }, 16);*/
         }
     };
 </script>

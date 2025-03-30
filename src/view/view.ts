@@ -326,7 +326,7 @@ export class LineageView extends TextFileView {
                     existingData &&
                     bodyHasChanged
                 ) {
-                    new Notice('Document reloaded due to external changes');
+                    new Notice('The document was updated externally');
                 }
                 if (!maybeGetDocumentFormat(this)) {
                     invariant(this.file);

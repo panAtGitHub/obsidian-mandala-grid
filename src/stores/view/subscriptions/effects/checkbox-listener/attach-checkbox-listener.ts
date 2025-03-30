@@ -1,7 +1,6 @@
 import { LineageView } from 'src/view/view';
 import invariant from 'tiny-invariant';
 import { updateCheckbox } from 'src/stores/view/subscriptions/effects/checkbox-listener/helpers/update-checkbox/update-checkbox';
-import { Notice } from 'obsidian';
 
 const handleCheckboxChange = (event: Event, view: LineageView) => {
     const checkbox = event.target as HTMLInputElement;
@@ -37,9 +36,6 @@ const handleCheckboxChange = (event: Event, view: LineageView) => {
             payload: { nodeId: cardId, content: content.content },
             context: { isInSidebar: !!card.closest('.sidebar') },
         });
-        new Notice(
-            `"${content.task}" has been ${checkbox.checked ? 'checked' : 'unchecked'}`,
-        );
     }
 };
 
