@@ -4,13 +4,10 @@ import { derived } from 'svelte/store';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 import { lang } from 'src/lang/lang';
 import {
-    HistoryIcon,
     Keyboard,
     Palette,
     PanelRightInactive as PanelRight,
-    Redo2 as RedoIcon,
     Settings,
-    Undo2 as UndoIcon,
 } from 'lucide-svelte';
 import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 import { VerticalToolbarActions } from 'src/view/components/container/toolbar-vertical/vertical-toolbar-actions';
@@ -97,29 +94,6 @@ export const VerticalToolbarButtonsList = (view: LineageView) => {
                         onClick: h.toggleGap,
                         icon: customIcons.gap,
                         id: 'space-between-cards',
-                    },
-                ],
-            },
-            {
-                id: 'history',
-                buttons: [
-                    {
-                        label: lang.controls_history,
-                        onClick: h.toggleSnapshotsModal,
-                        icon: HistoryIcon,
-                        id: 'snapshots-list',
-                    },
-                    {
-                        label: lang.controls_history_undo,
-                        onClick: h.handlePreviousClick,
-                        icon: UndoIcon,
-                        id: 'undo',
-                    },
-                    {
-                        label: lang.controls_history_redo,
-                        onClick: h.handleNextClick,
-                        icon: RedoIcon,
-                        id: 'redo',
                     },
                 ],
             },

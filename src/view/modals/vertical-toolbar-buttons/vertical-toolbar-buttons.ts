@@ -1,15 +1,12 @@
 import { lang } from 'src/lang/lang';
 import {
-    HistoryIcon,
     Keyboard,
     Minus as ZoomOut,
     Palette,
     PanelRightInactive as PanelRight,
     Plus as ZoomIn,
-    Redo2 as RedoIcon,
     RotateCcw,
     ScanSearch,
-    Undo2 as UndoIcon,
 } from 'lucide-svelte';
 import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 
@@ -87,26 +84,7 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
             },
         ],
     },
-    {
-        id: 'history',
-        buttons: [
-            {
-                id: 'snapshots-list',
-                label: lang.controls_history,
-                icon: HistoryIcon,
-            },
-            {
-                id: 'undo',
-                label: lang.controls_history_undo,
-                icon: UndoIcon,
-            },
-            {
-                id: 'redo',
-                label: lang.controls_history_redo,
-                icon: RedoIcon,
-            },
-        ],
-    },
+
     {
         id: 'zoom',
         buttons: [

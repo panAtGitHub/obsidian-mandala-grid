@@ -2,7 +2,6 @@
     import { lang } from '../../../../lang/lang';
     import { MoreVertical } from 'lucide-svelte';
     import { getView } from '../context';
-    import { historyStore } from '../../../../stores/document/derived/history-store';
     import { derived, writable } from 'svelte/store';
     import { uiControlsStore } from '../../../../stores/view/derived/ui-controls-store';
     import Button from '../shared/button.svelte';
@@ -16,7 +15,7 @@
 
     const view = getView();
 
-    const history = historyStore(view);
+
 
     const showControls = writable(false);
     const toggleShowControls = () => {
@@ -58,13 +57,7 @@
         },
     );
 
-    const disabledStates = derived([history], ([history]) => {
-        return {
-            'snapshots-list': history.items.length === 0,
-            undo: !history.state.canGoBack,
-            redo: !history.state.canGoForward,
-        } as Partial<Record<ToolbarButton, boolean>>;
-    });
+
 </script>
 
 <div class="controls-container">
@@ -91,7 +84,7 @@
                     label={button.label}
                     on:click={button.onClick}
                     tooltipPosition="left"
-                    disabled={$disabledStates[button.id]}
+
                 >
                     {#if 'svg' in button.icon}
                         {@html button.icon.svg}
