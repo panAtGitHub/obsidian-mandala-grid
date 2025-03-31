@@ -24,7 +24,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         },
         limitPreviewHeight: true,
         zoomLevel: 1,
-        alwaysShowZoomButtons: false,
         showMinimap: false,
         showLeftSidebar: false,
         leftSidebarWidth: 500,

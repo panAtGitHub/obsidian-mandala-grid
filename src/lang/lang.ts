@@ -204,8 +204,6 @@ export const lang = {
     hk_zoom_out: 'Zoom out',
     hk_zoom_reset: 'Reset zoom',
     hkg_zoom: 'Zoom',
-    controls_modal_always_show_zoom_buttons: 'Always show zoom controls',
-    controls_toogle_zoom_buttons: 'Zoom',
 
     // scroll
     hk_scroll_left: 'Scroll left',

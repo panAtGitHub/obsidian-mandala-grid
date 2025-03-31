@@ -70,12 +70,6 @@ export type SettingsActions =
           };
       }
     | {
-          type: 'settings/view/set-always-show-zoom-button';
-          payload: {
-              alwaysShowZoomButtons: boolean;
-          };
-      }
-    | {
           type: 'SET_CONTAINER_BG';
           payload: {
               backgroundColor: string | undefined;
@@ -295,8 +289,6 @@ const updateState = (store: Settings, action: SettingsActions) => {
         }
     } else if (action.type === 'SET_CUSTOM_HOTKEYS') {
         store.hotkeys.customHotkeys = action.payload.customHotkeys;
-    } else if (action.type === 'settings/view/set-always-show-zoom-button') {
-        store.view.alwaysShowZoomButtons = action.payload.alwaysShowZoomButtons;
     } else if (action.type === 'SET_FONT_SIZE') {
         store.view.fontSize = action.payload.fontSize;
     } else if (action.type === 'settings/view/set-h1-font-size') {

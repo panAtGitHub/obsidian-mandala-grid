@@ -56,7 +56,6 @@ export type Settings = {
         scrolling: ScrollingSettings;
         limitPreviewHeight: boolean;
         zoomLevel: number;
-        alwaysShowZoomButtons: boolean;
         showMinimap: boolean;
         showLeftSidebar: boolean;
         leftSidebarWidth: number;

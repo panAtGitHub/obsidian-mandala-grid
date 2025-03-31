@@ -31,6 +31,3 @@ export const HiddenVerticalToolbarButtons = (plugin: Lineage) =>
         plugin.settings,
         (state) => state.view.hiddenVerticalToolbarButtons,
     );
-
-export const AlwaysShowZoomButtons = (plugin: Lineage) =>
-    derived(plugin.settings, (state) => state.view.alwaysShowZoomButtons);

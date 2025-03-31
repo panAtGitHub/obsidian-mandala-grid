@@ -2,12 +2,8 @@
     import { ToolbarButton, verticalToolbarButtons } from '../vertical-toolbar-buttons';
     import Button from '../../../components/container/shared/button.svelte';
     import { derived } from 'svelte/store';
-    import {
-        AlwaysShowZoomButtons,
-        HiddenVerticalToolbarButtons
-    } from '../../../../stores/settings/derived/view-settings-store';
+    import { HiddenVerticalToolbarButtons } from '../../../../stores/settings/derived/view-settings-store';
     import Lineage from '../../../../main';
-    import { lang } from 'src/lang/lang';
 
     export let close: () => void;
     export let plugin: Lineage;
@@ -36,7 +32,6 @@
             },
         });
     };
-    const alwaysShowZoomButtons = AlwaysShowZoomButtons(plugin);
 </script>
 
 <div class="buttons-list">
@@ -66,23 +61,7 @@
         {/each}
     {/each}
 </div>
-<div class="modal-button-container modal-footer">
-    <div class="always-show-zoom-buttons">
-        <input
-            type="checkbox"
-            on:change={(e) => {
-                plugin.settings.dispatch({
-                    type: 'settings/view/set-always-show-zoom-button',
-                    payload: {
-                        alwaysShowZoomButtons: e.currentTarget.checked,
-                    },
-                });
-            }}
-            checked={$alwaysShowZoomButtons}
-        />
-
-        <span>{lang.controls_modal_always_show_zoom_buttons}</span>
-    </div>
+<div class="modal-button-container">
     <button class="mod-cta" on:click={close}>Done</button>
 </div>
 
@@ -110,16 +89,5 @@
 
     .toolbar-icon-label {
         color: var(--text-normal);
-    }
-
-    .always-show-zoom-buttons {
-        padding: 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .modal-footer {
-        justify-content: space-between;
-        padding-left: 10px;
     }
 </style>

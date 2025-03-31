@@ -115,6 +115,7 @@
         z-index: 2;
     }
 
+
     .controls-toggle {
         display: none;
     }
