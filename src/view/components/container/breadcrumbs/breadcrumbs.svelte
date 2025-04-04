@@ -23,21 +23,24 @@
 
     .breadcrumbs-container {
         z-index: var(--z-index-breadcrumbs);
-        left: var(--size-4-2);
-        bottom: var(--size-4-2);
+        left: 0;
+        bottom: 0;
         display: flex;
         position: absolute;
-        max-width: calc(100% - var(--size-4-2) * 2);
+        max-width: calc(100% - var(--size-4-2) * 2 - 34px);
     }
     .breadcrumbs {
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: var(--radius-s);
-        background-color: var(--interactive-normal);
-        box-shadow: var(--input-shadow);
+        border-style: solid;
+        border-width: 1px 1px 0 0;
+        border-color: var(--status-bar-border-color);
+        border-radius: 0 6px 0 0;
+        background-color:var(--status-bar-background);
+
         max-width: 100%;
-        overflow: auto;
+        overflow: hidden;
         font-size: var(--file-header-font-size);
         color: var(--text-muted);
         gap: 0;
