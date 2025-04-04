@@ -51,9 +51,11 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
     ...scrollCommands(),
     {
         name: 'delete_card',
-        callback: (view) => {
+        callback: (view, e) => {
             const document = view.viewStore.getValue().document;
 
+            e.preventDefault();
+            e.stopPropagation();
             deleteNode(view, document.activeNode, true);
         },
         hotkeys: [
