@@ -67,20 +67,6 @@ export const showCardContextMenu = (event: MouseEvent, view: LineageView) => {
             },
             disabled: multipleNodesAreSelected || isInSidebar,
         },
-        { type: 'separator' },
-        {
-            title: lang.cm_merge_above,
-            icon: 'merge',
-            action: () => mergeNode(view, 'up'),
-            disabled: multipleNodesAreSelected || isInSidebar,
-        },
-        {
-            title: lang.cm_merge_below,
-            icon: 'merge',
-            action: () => mergeNode(view, 'down'),
-            disabled: multipleNodesAreSelected || isInSidebar,
-        },
-        { type: 'separator' },
         {
             title: lang.cm_sort_child,
             icon: 'sort-asc',
@@ -99,6 +85,20 @@ export const showCardContextMenu = (event: MouseEvent, view: LineageView) => {
                 },
             ],
         },
+        { type: 'separator' },
+        {
+            title: lang.cm_merge_above,
+            icon: 'merge',
+            action: () => mergeNode(view, 'up'),
+            disabled: multipleNodesAreSelected || isInSidebar,
+        },
+        {
+            title: lang.cm_merge_below,
+            icon: 'merge',
+            action: () => mergeNode(view, 'down'),
+            disabled: multipleNodesAreSelected || isInSidebar,
+        },
+
         { type: 'separator' },
         {
             title: lang.cm_copy_link_to_block,

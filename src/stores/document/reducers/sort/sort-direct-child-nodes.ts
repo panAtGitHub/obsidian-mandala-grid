@@ -23,12 +23,16 @@ export const sortDirectChildNodes = (
             ? copy.sort((a, b) => {
                   const content_a = document.content[a].content;
                   const content_b = document.content[b].content;
-                  return content_a.localeCompare(content_b);
+                  return content_a.localeCompare(content_b, undefined, {
+                      numeric: true,
+                  });
               })
             : copy.sort((a, b) => {
                   const content_a = document.content[a].content;
                   const content_b = document.content[b].content;
-                  return content_b.localeCompare(content_a);
+                  return content_b.localeCompare(content_a, undefined, {
+                      numeric: true,
+                  });
               });
 
     group.group.nodes = sorted;
