@@ -3,10 +3,10 @@ import { ViewState } from 'src/stores/view/view-state-type';
 export const defaultViewState = (): ViewState => ({
     search: {
         query: '',
-        results: new Set(),
+        results: new Map(),
         searching: false,
         showInput: false,
-        fuzzySearch: false,
+        fuzzySearch: true,
         showAllNodes: true,
     },
     ui: {

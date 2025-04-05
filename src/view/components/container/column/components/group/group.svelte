@@ -7,6 +7,7 @@
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';
     import { nodesStore, singleColumnNodesStore } from 'src/stores/document/derived/nodes-store';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+    import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
     export let groupId: string;
     export let columnId: string;
@@ -18,7 +19,7 @@
     export let editedNodeState: EditingState;
     export let pendingConfirmation: PendingDocumentConfirmation;
     export let searchQuery: string;
-    export let searchResults: Set<string>;
+    export let searchResults: Map<string,NodeSearchResult>;
     export let showAllNodes: boolean;
     export let pinnedNodes: Set<string>;
     export let searching: boolean;

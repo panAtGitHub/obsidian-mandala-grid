@@ -24,7 +24,7 @@
 <div class="search-input-wrapper search-input-container">
     <input
         autofocus={true}
-        class={"search-input search-input-element"+($search.query&& $search.results.size===0?' no-results':'')}
+        class={"search-input search-input-element"+($search.query && $search.results.size===0 && !$search.searching?' no-results':'')}
         enterkeyhint="search"
         on:input={onInput}
         placeholder={'search'}

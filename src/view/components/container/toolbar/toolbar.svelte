@@ -21,7 +21,7 @@
     {#if $search.showInput}
         <SearchInput />
         {#if $search.query.length > 0}
-            <SearchNavigationButtons results={Array.from($search.results)} />
+            <SearchNavigationButtons results={Array.from($search.results.keys())} />
         {/if}
     {/if}
 </div>

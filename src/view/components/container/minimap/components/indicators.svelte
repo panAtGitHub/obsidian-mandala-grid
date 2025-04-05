@@ -33,7 +33,7 @@
         [searchResults, ranges],
         ([searchResults, ranges]) => {
             if (searchResults) {
-                const searchResultsRanges = Array.from(searchResults.results)
+                const searchResultsRanges = Array.from(searchResults.results.keys())
                     .map((searchResult) => {
                         const range = ranges?.[searchResult];
                         if (range) {

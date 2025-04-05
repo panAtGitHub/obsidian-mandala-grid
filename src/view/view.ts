@@ -37,7 +37,7 @@ import { getOrDetectDocumentFormat } from 'src/obsidian/events/workspace/helpers
 import { maybeGetDocumentFormat } from 'src/obsidian/events/workspace/helpers/maybe-get-document-format';
 import { setDocumentFormat } from 'src/obsidian/events/workspace/actions/set-document-format';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
-import { DocumentSearch } from 'src/view/helpers/document-search';
+import { DocumentSearch } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import {
     MinimapDomElements,
     MinimapState,

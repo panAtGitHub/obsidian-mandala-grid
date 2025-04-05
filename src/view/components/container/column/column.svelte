@@ -5,6 +5,7 @@
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+    import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
     export let columnId: string;
     export let activeChildGroups: Set<string>;
@@ -17,7 +18,7 @@
     export let pendingConfirmation: PendingDocumentConfirmation;
     export let showAllNodes: boolean;
     export let searchQuery: string;
-    export let searchResults: Set<string>;
+    export let searchResults: Map<string,NodeSearchResult>;
     export let pinnedNodes: Set<string>;
     export let allDndNodes: Set<string>;
     export let groupParentIds: Set<string>;

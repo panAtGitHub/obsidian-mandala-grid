@@ -1,7 +1,4 @@
-import {
-    NavigationHistory,
-    NodeId,
-} from 'src/stores/document/document-state-type';
+import { NavigationHistory } from 'src/stores/document/document-state-type';
 import {
     ActiveBranch,
     DNDState,
@@ -9,6 +6,7 @@ import {
 } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
 export type ActiveNodesOfColumn = {
     [columnId: string]: {
@@ -39,7 +37,7 @@ export type RecentNodes = {
 export type ViewState = {
     search: {
         query: string;
-        results: Set<NodeId>;
+        results: Map<string, NodeSearchResult>;
         searching: boolean;
         showInput: boolean;
         fuzzySearch: boolean;
