@@ -7,6 +7,7 @@ export type MenuItemObject =
           icon: string;
           disabled?: boolean;
           checked?: boolean;
+          dangerous?: boolean;
       } & (
           | {
                 submenu: MenuItemObject[];
@@ -34,6 +35,12 @@ const addMenuItem = (menu: Menu, menuItem: MenuItemObject) => {
                 }
             } else {
                 item.onClick(menuItem.action);
+            }
+            if (menuItem.dangerous) {
+                if ('dom' in item) {
+                    // @ts-ignore
+                    item.dom.classList.add('is-warning');
+                }
             }
         });
     }

@@ -16,6 +16,7 @@ import { exportDocument } from 'src/obsidian/commands/helpers/export-document/ex
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import invariant from 'tiny-invariant';
 import { sortChildNodes } from 'src/view/actions/context-menu/card-context-menu/helpers/sort-child-nodes';
+import { ejectDocument } from 'src/obsidian/commands/helpers/export-document/eject-document';
 
 const createCommands = (plugin: Lineage) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
@@ -197,6 +198,18 @@ const createCommands = (plugin: Lineage) => {
                 return Boolean(view);
             }
             exportDocument(view!);
+        },
+    });
+
+    commands.push({
+        name: lang.cm_eject_document,
+        icon: 'file-text',
+        checkCallback: (checking) => {
+            const view = getActiveLineageView(plugin);
+            if (checking) {
+                return Boolean(view);
+            }
+            ejectDocument(view!);
         },
     });
 

@@ -141,6 +141,7 @@ export const lang = {
 
     // export
     cm_export_document: 'Export document',
+    cm_eject_document: 'Eject document',
     cm_export_selection: 'Export',
     cm_export_section: 'Export section',
     cm_export_branch_with_subitems: 'Export branch',

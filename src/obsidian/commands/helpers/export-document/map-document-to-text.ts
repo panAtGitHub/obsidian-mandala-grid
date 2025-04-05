@@ -7,7 +7,6 @@ import { htmlElementToJson } from 'src/lib/data-conversion/x-to-json/html-elemen
 
 export const mapDocumentToText = (
     fileData: string,
-    basename: string,
     format: LineageDocumentFormat,
 ) => {
     const { data, frontmatter } = extractFrontmatter(fileData);

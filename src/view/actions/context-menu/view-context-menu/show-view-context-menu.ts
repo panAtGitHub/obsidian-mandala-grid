@@ -9,6 +9,7 @@ import { setDocumentFormat } from 'src/obsidian/events/workspace/actions/set-doc
 import { exportDocument } from 'src/obsidian/commands/helpers/export-document/export-document';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { hasNHeadings } from 'src/lib/format-detection/has-n-headings';
+import { ejectDocument } from 'src/obsidian/commands/helpers/export-document/eject-document';
 
 export const showViewContextMenu = (event: MouseEvent, view: LineageView) => {
     const file = view.file;
@@ -74,6 +75,14 @@ export const showViewContextMenu = (event: MouseEvent, view: LineageView) => {
             action: () => {
                 exportDocument(view);
             },
+        },
+        {
+            title: lang.cm_eject_document,
+            icon: 'file-text',
+            action: () => {
+                ejectDocument(view);
+            },
+            dangerous: true,
         },
     ];
 

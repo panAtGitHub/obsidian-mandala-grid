@@ -1,12 +1,12 @@
-import { createNewFile } from 'src/obsidian/events/workspace/effects/create-new-file';
-import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { mapDocumentToText } from 'src/obsidian/commands/helpers/export-document/map-document-to-text';
 import { getDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-document-format';
 import { LineageView } from 'src/view/view';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
+import { setViewType } from 'src/obsidian/events/workspace/actions/set-view-type';
+import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 
-export const exportDocument = async (view: LineageView) => {
+export const ejectDocument = async (view: LineageView) => {
     try {
         const file = view.file;
         if (!file) return;
@@ -17,22 +17,16 @@ export const exportDocument = async (view: LineageView) => {
         if (isEditing) {
             saveNodeContent(view);
             setTimeout(() => {
-                exportDocument(view);
+                ejectDocument(view);
             }, 100);
             return;
         }
         const fileData = await view.plugin.app.vault.read(file);
         const format = getDocumentFormat(view);
-        const output = mapDocumentToText(fileData, format);
-        const newFile = await createNewFile(
-            view.plugin,
-            file.parent,
-            output,
-            file.basename,
-        );
-        if (newFile) {
-            await openFile(view.plugin, newFile, 'split');
-        }
+        const text = mapDocumentToText(fileData, format);
+        await view.plugin.app.vault.modify(file, text);
+        toggleObsidianViewType(view.plugin, view.leaf, 'markdown');
+        setViewType(view.plugin, file.path, 'markdown');
     } catch (e) {
         onPluginError(e, 'command', { type: 'export-document' });
     }
