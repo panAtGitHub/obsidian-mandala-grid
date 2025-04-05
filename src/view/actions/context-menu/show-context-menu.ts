@@ -1,17 +1,17 @@
 import { LineageView } from 'src/view/view';
 import { Platform } from 'obsidian';
-import { onLongPress } from 'src/view/actions/context-menu/helpers/on-long-press';
-import { showCardContextMenu } from 'src/view/actions/context-menu/card-context-menu/show-card-context-menu';
-import { cardContextMenuPredicate } from 'src/view/actions/context-menu/card-context-menu/card-context-menu-predicate';
-import { viewContextMenuPredicate } from 'src/view/actions/context-menu/view-context-menu/view-context-menu-predicate';
+import { onLongPress } from 'src/helpers/on-long-press';
+import { showNodeContextMenu } from 'src/view/actions/context-menu/card-context-menu/show-node-context-menu';
+import { shouldShowNodeContextMenu } from 'src/view/actions/context-menu/card-context-menu/should-show-node-context-menu';
+import { shouldShowViewContextMenu } from 'src/view/actions/context-menu/view-context-menu/should-show-view-context-menu';
 import { showViewContextMenu } from 'src/view/actions/context-menu/view-context-menu/show-view-context-menu';
 
-export const contextMenu = (element: HTMLElement, view: LineageView) => {
+export const showContextMenu = (element: HTMLElement, view: LineageView) => {
     const listener = (e: MouseEvent | TouchEvent) => {
-        if (cardContextMenuPredicate(e)) {
-            if (e.instanceOf(MouseEvent)) showCardContextMenu(e, view);
-            else showCardContextMenu(new MouseEvent('contextmenu', e), view);
-        } else if (viewContextMenuPredicate(e)) {
+        if (shouldShowNodeContextMenu(e)) {
+            if (e.instanceOf(MouseEvent)) showNodeContextMenu(e, view);
+            else showNodeContextMenu(new MouseEvent('contextmenu', e), view);
+        } else if (shouldShowViewContextMenu(e)) {
             if (e.instanceOf(MouseEvent)) showViewContextMenu(e, view);
             else showViewContextMenu(new MouseEvent('contextmenu', e), view);
         }
@@ -23,7 +23,7 @@ export const contextMenu = (element: HTMLElement, view: LineageView) => {
         unsubFromLongPress = onLongPress(
             element,
             listener,
-            cardContextMenuPredicate,
+            shouldShowNodeContextMenu,
         );
     }
     return {

@@ -165,7 +165,7 @@ const createCommands = (plugin: Lineage) => {
     });
 
     commands.push({
-        name: lang.cmd_export_selection_with_subitems,
+        name: lang.cmd_export_branches_with_subitems,
         icon: 'file-text',
         checkCallback: (checking) => {
             const view = getActiveLineageView(plugin);
@@ -177,7 +177,7 @@ const createCommands = (plugin: Lineage) => {
     });
 
     commands.push({
-        name: lang.cmd_export_selection_wo_subitems,
+        name: lang.cmd_export_sections_wo_subitems,
         icon: 'file-text',
         checkCallback: (checking) => {
             const view = getActiveLineageView(plugin);

@@ -1,5 +1,5 @@
 import { Sections } from 'src/stores/document/document-state-type';
-import { sortSections } from 'src/helpers/sort-sections';
+import { sortSections } from 'src/lib/tree-utils/sort/sort-sections';
 
 export const findNextNode = (
     sections: Sections,

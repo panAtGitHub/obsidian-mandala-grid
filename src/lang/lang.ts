@@ -72,7 +72,7 @@ export const lang = {
     toolbar_cut_search_results: 'Cut search results',
     hkg_clipboard: 'Clipboard',
     modals_snapshots_cut_card: 'Cut card ',
-    cm_cut: 'Cut branch',
+    cm_cut: 'Cut',
     hk_cut_node: 'Cut branch',
     cm_paste: 'Paste',
     hk_paste_node: 'Paste branch',
@@ -136,18 +136,21 @@ export const lang = {
     // extract
     cmd_extract_branch: 'Extract branch to a new document',
     cm_extract_branch: 'Extract branch',
+    cm_extract_section: 'Extract section',
     modals_snapshots_extracted_card: 'Extracted card ',
 
     // export
     cm_export_document: 'Export document',
-    cm_export_selection: 'Export selection',
-    cm_export_with_subitems: 'With sub-items',
-    cm_export_wo_subitems: 'Without sub-items',
-    cmd_export_selection_with_subitems: 'Export selection with sub-items',
-    cmd_export_selection_wo_subitems: 'Export selection without sub-items',
+    cm_export_selection: 'Export',
+    cm_export_section: 'Export section',
+    cm_export_branch_with_subitems: 'Export branch with sub-items',
+    cm_export_branch_wo_subitems: 'Export section without sub-items',
+    cmd_export_branches_with_subitems: 'Export branches with sub-items',
+    cmd_export_sections_wo_subitems: 'Export sections without sub-items',
 
     // document format
     settings_general_default_format: 'Default format',
+    cm_document_format: 'Document format',
     settings_general_default_format_desc: 'Applies to new documents',
     settings_format_html_elements: 'HTML elements (experimental)',
     settings_format_html_comments: 'HTML comments',

@@ -34,28 +34,38 @@ export const showViewContextMenu = (event: MouseEvent, view: LineageView) => {
         },
         { type: 'separator' },
         {
-            title: lang.cm_change_format_to_html_element,
+            title: lang.cm_document_format,
             icon: 'file-cog',
-            action: () => {
-                setDocumentFormat(view.plugin, file.path, 'html-element');
-            },
-            checked: isHtmlElement,
-        },
-        {
-            title: lang.cm_change_format_to_document,
-            icon: 'file-cog',
-            action: () => {
-                setDocumentFormat(view.plugin, file.path, 'sections');
-            },
-            checked: isHtmlComments,
-        },
-        {
-            title: lang.cm_change_format_to_outline,
-            icon: 'file-cog',
-            action: () => {
-                setDocumentFormat(view.plugin, file.path, 'outline');
-            },
-            checked: isOutline,
+            submenu: [
+                {
+                    title: lang.settings_format_html_elements,
+                    icon: 'file-cog',
+                    action: () => {
+                        setDocumentFormat(
+                            view.plugin,
+                            file.path,
+                            'html-element',
+                        );
+                    },
+                    checked: isHtmlElement,
+                },
+                {
+                    title: lang.settings_format_html_comments,
+                    icon: 'file-cog',
+                    action: () => {
+                        setDocumentFormat(view.plugin, file.path, 'sections');
+                    },
+                    checked: isHtmlComments,
+                },
+                {
+                    title: lang.settings_format_outline,
+                    icon: 'file-cog',
+                    action: () => {
+                        setDocumentFormat(view.plugin, file.path, 'outline');
+                    },
+                    checked: isOutline,
+                },
+            ],
         },
         { type: 'separator' },
         {

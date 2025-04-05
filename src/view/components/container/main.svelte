@@ -16,7 +16,7 @@
     import RightSidebar from './right-sidebar/right-sidebar.svelte';
     import { clickAndDrag } from 'src/view/actions/click-and-drag/click-and-drag';
     import LeftSidebar from 'src/view/components/container/left-sidebar/left-sidebar.svelte';
-    import { contextMenu } from 'src/view/actions/context-menu/context-menu';
+    import { showContextMenu } from 'src/view/actions/context-menu/show-context-menu';
     import DNDEdges from './dnd/dnd-edges.svelte';
     import StyleRules from './style-rules/style-rules.svelte';
 
@@ -30,7 +30,7 @@
 <div
     class="lineage-view"
     use:viewHotkeysAction={{ view }}
-    use:contextMenu={view}
+    use:showContextMenu={view}
     tabindex="0"
 >
     <LeftSidebar />

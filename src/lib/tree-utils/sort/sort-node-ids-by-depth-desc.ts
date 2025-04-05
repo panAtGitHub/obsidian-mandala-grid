@@ -1,5 +1,5 @@
 import { Sections } from 'src/stores/document/document-state-type';
-import { sortSectionsByDepthDesc } from 'src/helpers/sort-sections-by-depth';
+import { sortSectionsByDepthDesc } from 'src/lib/tree-utils/sort/sort-sections-by-depth';
 
 export const sortNodeIdsByDepthDesc = (sections: Sections, ids: string[]) => {
     const sectionNumbers = ids.map((id) => sections.id_section[id]);

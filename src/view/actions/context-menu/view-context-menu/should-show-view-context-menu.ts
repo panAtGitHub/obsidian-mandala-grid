@@ -1,4 +1,4 @@
-export const viewContextMenuPredicate = (e: MouseEvent | TouchEvent) => {
+export const shouldShowViewContextMenu = (e: MouseEvent | TouchEvent) => {
     const target = e.target as HTMLElement;
     return (
         target.hasClass('column-buffer') ||
