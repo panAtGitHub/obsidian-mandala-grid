@@ -54,7 +54,7 @@ export const lang = {
     hkg_delete_cards: 'Delete cards',
     modals_snapshots_deleted_card: 'Deleted card ',
 
-    // copy
+    // clipboard
     cm_copy: 'Copy',
     cm_copy_branches: 'Copy branches',
     cm_copy_branch: 'Copy branch',
@@ -66,8 +66,19 @@ export const lang = {
     hk_copy_node_unformatted: 'Copy branch as plain text',
     hk_copy_node_without_subitems: 'Copy without subitems',
     cm_copy_link_to_block: 'Copy link to block',
+    toolbar_copy_search_results: 'Copy search results',
+    toolbar_copy_search_results_wo_subitems:
+        'Copy search results without sub-items',
+    toolbar_cut_search_results: 'Cut search results',
     hkg_clipboard: 'Clipboard',
-    hk_notice_copy: (
+    modals_snapshots_cut_card: 'Cut card ',
+    cm_cut: 'Cut branch',
+    hk_cut_node: 'Cut branch',
+    cm_paste: 'Paste',
+    hk_paste_node: 'Paste branch',
+    modals_snapshots_pasted_card: 'Pasted card ',
+    error_cant_paste: 'Paste command failed. Try pasting directly into a card',
+    /*hk_notice_copy: (
         size: number,
         formatted: boolean,
         type: 'branch' | 'section',
@@ -84,16 +95,7 @@ export const lang = {
             : size === 1
               ? null
               : size + ' sections copied to clipboard';
-    },
-
-    // cut paste
-    cm_cut: 'Cut branch',
-    hk_cut_node: 'Cut branch',
-    cm_paste: 'Paste',
-    hk_paste_node: 'Paste branch',
-    modals_snapshots_cut_card: 'Cut card ',
-    modals_snapshots_pasted_card: 'Pasted card ',
-    error_cant_paste: 'Paste command failed. Try pasting directly into a card',
+    },*/
 
     // merge
     cm_merge_above: 'Merge with branch above',

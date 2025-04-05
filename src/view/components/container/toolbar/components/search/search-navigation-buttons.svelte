@@ -2,7 +2,7 @@
     import { ChevronDown, ChevronUp } from 'lucide-svelte';
     import Button from '../../../shared/button.svelte';
     import { getView } from 'src/view/components/container/context';
-    import { sortNodeIdsBySectionNumber } from 'src/stores/document/reducers/pinned-nodes/pin-node';
+    import { sortNodeIdsBySectionNumber } from 'src/lib/tree-utils/sort/sort-node-ids-by-section-number';
     import { activeNodeStore } from 'src/stores/view/derived/active-node-store';
     import { lang } from 'src/lang/lang';
 

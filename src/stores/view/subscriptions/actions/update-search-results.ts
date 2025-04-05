@@ -31,11 +31,11 @@ export const updateSearchResults = debounce((view: LineageView) => {
         },
     });
 
-    const newSearchResults = Array.from(results).sort().join('');
+    const newSearchResults = Array.from(results.keys()).sort().join('');
     const previousSearchResults = Array.from(viewState.search.results.keys())
         .sort()
         .join('');
     if (previousSearchResults !== newSearchResults) {
         updateActiveNodeAfterSearch(view, Array.from(results.keys()));
     }
-}, 350);
+}, 100);

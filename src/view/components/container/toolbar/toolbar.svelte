@@ -7,6 +7,7 @@
     import LeftSidebarToggle from './components/left-sidebar-toggle.svelte';
     import SearchNavigationButtons from './components/search/search-navigation-buttons.svelte';
     import DocumentHistoryButtons from './components/document-history-buttons.svelte';
+    import SearchActions from './components/search-actions.svelte';
 
     const view = getView();
 
@@ -21,7 +22,12 @@
     {#if $search.showInput}
         <SearchInput />
         {#if $search.query.length > 0}
-            <SearchNavigationButtons results={Array.from($search.results.keys())} />
+            <SearchNavigationButtons
+                results={Array.from($search.results.keys())}
+            />
+            {#if $search.results.size > 0}
+                <SearchActions />
+            {/if}
         {/if}
     {/if}
 </div>

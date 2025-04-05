@@ -1,8 +1,9 @@
 import {
-    Sections,
     PinnedNodesState,
+    Sections,
 } from 'src/stores/document/document-state-type';
-import { sortNodeIdsBySectionNumber } from 'src/stores/document/reducers/pinned-nodes/pin-node';
+
+import { sortNodeIdsBySectionNumber } from 'src/lib/tree-utils/sort/sort-node-ids-by-section-number';
 
 export type RemoveStalePinnedNodesAction = {
     type: 'document/pinned-nodes/remove-stale-nodes';
