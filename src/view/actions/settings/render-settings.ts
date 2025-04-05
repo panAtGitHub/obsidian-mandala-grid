@@ -14,37 +14,63 @@ import { AlwaysShowCardButtons } from 'src/view/actions/settings/components/alwa
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
 import { HeadingsFontSize } from 'src/view/actions/settings/components/headings-font-size';
 import { LinkPaneType } from 'src/view/actions/settings/components/link-pane-type';
+import { LineageView } from 'src/view/view';
 
 export type SettingsTab = 'General' | 'Appearance' | 'Layout';
-export const renderSettings = (element: HTMLElement, tab: SettingsTab) => {
-    const view = getView();
-    const settingsStore = view.plugin.settings;
-    const render = (tab: SettingsTab) => {
-        element.empty();
-        if (tab === 'General') {
-            DefaultDocumentFormat(element, settingsStore);
-            LinkPaneType(element, settingsStore);
-            MaintainEditMode(element, settingsStore);
-            AlwaysShowCardButtons(element, settingsStore);
-            ControlsBarButtons(element, view);
-        } else if (tab === 'Appearance') {
-            BackgroundColor(element, settingsStore);
-            ActiveBranchBackground(element, settingsStore);
-            ActiveBranchColor(element, settingsStore);
-            InactiveCardOpacity(element, settingsStore);
-            FontSize(element, settingsStore);
-            HeadingsFontSize(element, settingsStore);
-        } else if (tab === 'Layout') {
-            CardWidth(element, settingsStore);
-            CardsGap(element, settingsStore);
-            CardIndentationWidth(element, settingsStore);
-            LimitCardHeight(element, settingsStore);
+type Tab = { element: HTMLDivElement; name: SettingsTab };
+
+const setVisibleTab = (tabs: Tab[], activeTab: SettingsTab) => {
+    for (const tab of tabs) {
+        if (tab.name === activeTab) {
+            tab.element.style.visibility = 'visible';
+        } else {
+            tab.element.style.visibility = 'hidden';
         }
-    };
-    render(tab);
+    }
+};
+
+const render = (view: LineageView, element: HTMLElement, tabs: Tab[]) => {
+    const settingsStore = view.plugin.settings;
+    const generalTab = activeDocument.createElement('div');
+    const appearanceTab = activeDocument.createElement('div');
+    const layoutTab = activeDocument.createElement('div');
+
+    tabs.push({ element: generalTab, name: 'General' });
+    tabs.push({ element: appearanceTab, name: 'Appearance' });
+    tabs.push({ element: layoutTab, name: 'Layout' });
+
+    // general
+    DefaultDocumentFormat(generalTab, settingsStore);
+    LinkPaneType(generalTab, settingsStore);
+    MaintainEditMode(generalTab, settingsStore);
+    AlwaysShowCardButtons(generalTab, settingsStore);
+    ControlsBarButtons(generalTab, view);
+
+    // appearance
+    BackgroundColor(appearanceTab, settingsStore);
+    ActiveBranchBackground(appearanceTab, settingsStore);
+    ActiveBranchColor(appearanceTab, settingsStore);
+    InactiveCardOpacity(appearanceTab, settingsStore);
+    FontSize(appearanceTab, settingsStore);
+    HeadingsFontSize(appearanceTab, settingsStore);
+
+    // layout
+    CardWidth(layoutTab, settingsStore);
+    CardsGap(layoutTab, settingsStore);
+    CardIndentationWidth(layoutTab, settingsStore);
+    LimitCardHeight(layoutTab, settingsStore);
+
+    element.append(generalTab, appearanceTab, layoutTab);
+};
+
+export const renderSettings = (element: HTMLElement, tab: SettingsTab) => {
+    const tabs: Tab[] = [];
+    const view = getView();
+    render(view, element, tabs);
+    setVisibleTab(tabs, tab);
     return {
         update: (tab: SettingsTab) => {
-            render(tab);
+            setVisibleTab(tabs, tab);
         },
     };
 };

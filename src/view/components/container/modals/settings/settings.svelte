@@ -23,20 +23,21 @@
         display: flex;
     }
     .lineage-vertical-tab-content {
-        display: flex;
+        height: auto;
+        display: grid;
         flex-direction: column;
         width: 500px;
         overflow-y: auto;
-        height: 400px;
         padding-top: var(--size-4-8);
         padding-bottom: var(--size-4-12);
         padding-inline-start: var(--size-4-12);
         padding-inline-end: var(--size-4-12);
-    }
 
-    :global(.is-mobile) {
-        & .lineage-vertical-tab-content {
-            height: 500px;
+        grid-template-areas: 'main';
+        & > div {
+            grid-area: main;
         }
     }
+
+
 </style>
