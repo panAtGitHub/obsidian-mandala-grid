@@ -14,7 +14,7 @@ export const historyCommands = () => {
             hotkeys: [
                 {
                     key: 'Z',
-                    modifiers: ['Mod', 'Shift'],
+                    modifiers: ['Mod'],
                     editorState: 'editor-off',
                 },
             ],
@@ -31,6 +31,11 @@ export const historyCommands = () => {
             hotkeys: [
                 {
                     key: 'Y',
+                    modifiers: ['Mod'],
+                    editorState: 'editor-off',
+                },
+                {
+                    key: 'Z',
                     modifiers: ['Mod', 'Shift'],
                     editorState: 'editor-off',
                 },
