@@ -5,11 +5,11 @@ import { hasNBulletListItems } from 'src/lib/format-detection/has-n-bullet-list-
 import { hasNHtmlElementMarker } from 'src/lib/format-detection/has-n-html-element-markers';
 
 export const detectDocumentFormat = (text: string, strict = true) => {
-    const { data } = extractFrontmatter(text);
+    const { body } = extractFrontmatter(text);
 
-    if (hasNHtmlCommentMarker(data, 1)) return 'sections';
-    if (hasNHtmlElementMarker(data, 1)) return 'html-element';
-    if (isOutline(data)) return 'outline';
+    if (hasNHtmlCommentMarker(body, 1)) return 'sections';
+    if (hasNHtmlElementMarker(body, 1)) return 'html-element';
+    if (isOutline(body)) return 'outline';
     if (!strict) {
         if (hasNBulletListItems(text, 1)) return 'outline';
     }

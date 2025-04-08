@@ -9,13 +9,13 @@ export const mapDocumentToText = (
     fileData: string,
     format: LineageDocumentFormat,
 ) => {
-    const { data, frontmatter } = extractFrontmatter(fileData);
+    const { body, frontmatter } = extractFrontmatter(fileData);
     const tree =
         format === 'outline'
-            ? outlineToJson(data)
+            ? outlineToJson(body)
             : format === 'html-element'
-              ? htmlElementToJson(data)
-              : htmlCommentToJson(data);
+              ? htmlElementToJson(body)
+              : htmlCommentToJson(body);
     /* if (tree.length < 2 && tree[0].children.length == 0) {
         throw new Error(`File ${basename} does not appear to be a tree`);
     }*/

@@ -48,6 +48,8 @@ import { AlignBranch } from 'src/stores/view/subscriptions/effects/align-branch/
 import { lang } from 'src/lang/lang';
 import { logger } from 'src/helpers/logger';
 import { DebouncedMinimapEffects } from 'src/stores/minimap/subscriptions/effects/debounced-minimap-effects';
+import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
+import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 
 export const LINEAGE_VIEW_TYPE = 'lineage';
 
@@ -173,21 +175,6 @@ export class LineageView extends TextFileView {
 
     async onOpen() {}
 
-    /*private destroyStore = () => {
-	   const leavesOfType = this.plugin.app.workspace
-		   .getLeavesOfType(FILE_VIEW_TYPE)
-		   .filter(
-			   (l) =>
-				   l.view instanceof LineageView &&
-				   l.view.file?.path === this.activeFilePath &&
-				   l.view !== this,
-		   );
-	   if (leavesOfType.length === 0) {
-		   this.store.dispatch({ type: 'RESET_STORE' });
-		   if (this.file) delete stores[this.file.path];
-	   }
-   };*/
-
     async onClose() {
         return this.onUnloadFile();
     }
@@ -286,53 +273,43 @@ export class LineageView extends TextFileView {
     };
 
     private loadDocumentToStore = (isInitialLoad = false) => {
-        const { data, frontmatter } = extractFrontmatter(this.data);
+        const { body, frontmatter } = extractFrontmatter(this.data);
 
-        const state = this.documentStore.getValue();
-        const format = getOrDetectDocumentFormat(this, data);
-        const existingData = stringifyDocument(state.document, format);
-        const bodyHasChanged = existingData !== data;
+        const documentState = this.documentStore.getValue();
+        const viewState = this.viewStore.getValue();
+        const documentFormat = getOrDetectDocumentFormat(this, body);
+        const existingBody = isInitialLoad
+            ? ''
+            : stringifyDocument(documentState.document, documentFormat);
+
+        const bodyHasChanged = existingBody !== body;
         const frontmatterHasChanged =
-            !bodyHasChanged && frontmatter !== state.file.frontmatter;
-        if (!existingData || bodyHasChanged || frontmatterHasChanged) {
-            const isEditing =
-                this.viewStore.getValue().document.editing.activeNodeId;
-            if (frontmatterHasChanged && !isInitialLoad) {
-                this.documentStore.dispatch({
-                    type: 'FILE/UPDATE_FRONTMATTER',
-                    payload: {
-                        frontmatter,
-                    },
-                });
-            } else if (!isEditing) {
-                const activeNode =
-                    this.viewStore.getValue().document.activeNode;
-                const activeSection = activeNode
-                    ? this.documentStore.getValue().sections.id_section[
-                          activeNode
-                      ]
-                    : null;
-                this.documentStore.dispatch({
-                    payload: {
-                        document: { data: data, frontmatter, position: null },
-                        format,
-                        activeSection,
-                    },
-                    type: 'DOCUMENT/LOAD_FILE',
-                });
-                if (
-                    this.isActive &&
-                    !isInitialLoad &&
-                    existingData &&
-                    bodyHasChanged
-                ) {
-                    new Notice('Document changed externally');
-                }
-                if (!maybeGetDocumentFormat(this)) {
-                    invariant(this.file);
-                    setDocumentFormat(this.plugin, this.file.path, format);
-                }
+            frontmatter !== documentState.file.frontmatter;
+
+        const isEditing = Boolean(viewState.document.editing.activeNodeId);
+
+        if (isInitialLoad) {
+            loadFullDocument(this, body, frontmatter, documentFormat, null);
+            if (!maybeGetDocumentFormat(this)) {
+                setDocumentFormat(this.plugin, this.file!.path, documentFormat);
             }
+        } else if (bodyHasChanged && !isEditing) {
+            const activeNode = viewState.document.activeNode;
+            const activeSection = activeNode
+                ? documentState.sections.id_section[activeNode]
+                : null;
+            loadFullDocument(
+                this,
+                body,
+                frontmatter,
+                documentFormat,
+                activeSection,
+            );
+            if (this.isActive && existingBody) {
+                new Notice('Document changed externally');
+            }
+        } else if (frontmatterHasChanged) {
+            updateFrontmatter(this, frontmatter);
         }
     };
 
