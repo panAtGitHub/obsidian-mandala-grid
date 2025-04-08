@@ -153,12 +153,13 @@ export const calculateChunkPositions = (
         ) {
             const elementName = charToElementName[character];
             if (elementName) {
-                const nextCharacter = content[i + 1];
+                const nextCharacter_1 = content[i + 1];
+                const nextCharacter_2 = content[i + 2];
                 // heading
                 if (
                     character === '#' &&
                     state.x === 0 &&
-                    (nextCharacter === ' ' || nextCharacter === '#')
+                    (nextCharacter_1 === ' ' || nextCharacter_1 === '#')
                 ) {
                     state.elementMeta = {
                         elementName,
@@ -168,7 +169,7 @@ export const calculateChunkPositions = (
                 // tag
                 else if (
                     character === '#' &&
-                    !illegalObsidianTagCharacters.has(nextCharacter) &&
+                    !illegalObsidianTagCharacters.has(nextCharacter_1) &&
                     (!state.elementMeta ||
                         state.elementMeta.canBeParent ||
                         state.elementMeta.elementName === elementName)
@@ -185,7 +186,7 @@ export const calculateChunkPositions = (
                 // bullet point
                 else if (character === '-' && state.x === 0) {
                     const isTask =
-                        nextCharacter === ' ' &&
+                        nextCharacter_1 === ' ' &&
                         content[i + 2] === '[' &&
                         content[i + 4] === ']';
                     if (isTask) {
@@ -252,12 +253,12 @@ export const calculateChunkPositions = (
                 ) {
                     const isHighlight = character === '=';
                     const isDoubleCharacterTag =
-                        (isHighlight && nextCharacter === '=') ||
-                        (character === '~' && nextCharacter === '~') ||
-                        (character === '[' && nextCharacter === '[') ||
-                        (character === ']' && nextCharacter === ']') ||
+                        (isHighlight && nextCharacter_1 === '=') ||
+                        (character === '~' && nextCharacter_1 === '~') ||
+                        (character === '[' && nextCharacter_1 === '[') ||
+                        (character === ']' && nextCharacter_1 === ']') ||
                         // **text**
-                        (character === '*' && nextCharacter === '*');
+                        (character === '*' && nextCharacter_1 === '*');
                     const isDoubleTagElement =
                         isDoubleCharacterTag ||
                         // *text*
@@ -267,11 +268,16 @@ export const calculateChunkPositions = (
                     if (isDoubleTagElement) {
                         const isClosingTag =
                             state.elementMeta?.elementName === elementName;
+                        const hasSpaceAfterStart = isClosingTag
+                            ? false
+                            : isDoubleCharacterTag
+                              ? nextCharacter_2 === ' '
+                              : nextCharacter_1 === ' ';
                         if (isClosingTag) {
                             state.closingTagLength = isDoubleCharacterTag
                                 ? 2
                                 : 1;
-                        } else {
+                        } else if (!hasSpaceAfterStart) {
                             const scope = isHighlight
                                 ? ElementScope.multi_line
                                 : ElementScope.block;

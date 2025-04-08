@@ -1479,6 +1479,46 @@ describe('calculate-chunk-position', () => {
         const actual = calculateChunkPositions(input, N_CHARS_PER_LINE, '', '');
         expect(actual).toEqual(output);
     });
+
+    test('case: should not detect italic with a space after the tag', () => {
+        const input = 'word1 * word2* word3';
+        const output = {
+            chunks: [
+                {
+                    chunk: 'word1',
+                    length_chars: 5,
+                    line: 0,
+                    type: null,
+                    x_chars: 0,
+                },
+                {
+                    chunk: '*',
+                    line: 0,
+                    x_chars: 6,
+                    length_chars: 1,
+                    type: null,
+                },
+                {
+                    chunk: 'word2*',
+                    line: 0,
+                    x_chars: 8,
+                    length_chars: 6,
+                    type: null,
+                },
+                {
+                    chunk: 'word3',
+                    line: 0,
+                    x_chars: 15,
+                    length_chars: 5,
+                    type: null,
+                },
+            ],
+            totalLines: 1,
+            empty: false,
+        };
+        const actual = calculateChunkPositions(input, N_CHARS_PER_LINE, '', '');
+        expect(actual).toEqual(output);
+    });
 });
 
 describe('performance-test: calculate-chunk-position', () => {
