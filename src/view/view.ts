@@ -30,12 +30,12 @@ import { id } from 'src/helpers/id';
 import invariant from 'tiny-invariant';
 import { customIcons } from 'src/helpers/load-custom-icons';
 
-import { setViewType } from 'src/obsidian/events/workspace/actions/set-view-type';
+import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { getDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-document-format';
 import { stringifyDocument } from 'src/view/helpers/stringify-document';
 import { getOrDetectDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-or-detect-document-format';
 import { maybeGetDocumentFormat } from 'src/obsidian/events/workspace/helpers/maybe-get-document-format';
-import { setDocumentFormat } from 'src/obsidian/events/workspace/actions/set-document-format';
+import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { DocumentSearch } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import {
@@ -105,8 +105,7 @@ export class LineageView extends TextFileView {
     get isViewOfFile() {
         const path = this.file?.path;
         return path
-            ? this.id ===
-                  this.plugin.documents.getValue().documents[path]?.viewId
+            ? this.id === this.plugin.store.getValue().documents[path]?.viewId
             : false;
     }
 
@@ -170,8 +169,8 @@ export class LineageView extends TextFileView {
     ) => {
         if (action && action.type === 'DOCUMENT/LOAD_FILE') {
             if (this.file) {
-                this.plugin.documents.dispatch({
-                    type: 'DOCUMENTS/DELETE_DOCUMENT',
+                this.plugin.store.dispatch({
+                    type: 'plugin/documents/unregister-document-store',
                     payload: { path: this.file.path },
                 });
                 setViewType(this.plugin, this.file.path, 'markdown');
@@ -203,8 +202,8 @@ export class LineageView extends TextFileView {
     private loadInitialData = async () => {
         invariant(this.file);
 
-        const fileHasAStore =
-            this.plugin.documents.getValue().documents[this.file.path];
+        const pluginState = this.plugin.store.getValue();
+        const fileHasAStore = pluginState.documents[this.file.path];
         if (fileHasAStore) {
             this.useExistingStore();
         } else {
@@ -231,8 +230,8 @@ export class LineageView extends TextFileView {
     private createStore = () => {
         invariant(this.file);
 
-        this.plugin.documents.dispatch({
-            type: 'DOCUMENTS/ADD_DOCUMENT',
+        this.plugin.store.dispatch({
+            type: 'plugin/documents/register-new-document-store',
             payload: {
                 path: this.file.path,
                 documentStore: this.documentStore,
@@ -250,7 +249,7 @@ export class LineageView extends TextFileView {
     private useExistingStore = () => {
         if (!this.file) return;
         this.documentStore =
-            this.plugin.documents.getValue().documents[
+            this.plugin.store.getValue().documents[
                 this.file.path
             ].documentStore;
     };

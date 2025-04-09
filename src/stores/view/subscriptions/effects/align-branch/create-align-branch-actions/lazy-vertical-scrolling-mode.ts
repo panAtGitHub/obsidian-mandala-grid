@@ -17,8 +17,8 @@ export const lazyVerticalScrollingMode = (
             actions.push({ action: '20/active-node/vertical/reveal' });
         }
     } else if (
-        action.type === 'WORKSPACE/RESIZE' ||
-        action.type === 'WORKSPACE/ACTIVE_LEAF_CHANGE' ||
+        action.type === 'plugin/echo/workspace/resize' ||
+        action.type === 'plugin/echo/workspace/active-leaf-change' ||
         action.type === 'view/left-sidebar/toggle' ||
         action.type === 'view/left-sidebar/set-width'
     ) {

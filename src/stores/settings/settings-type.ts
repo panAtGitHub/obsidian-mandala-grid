@@ -42,8 +42,9 @@ export type LeftSidebarTab = 'pinned-cards' | 'recent-cards';
 export type RulesTab = 'global-rules' | 'document-rules';
 
 export type LinkPaneType = 'split' | 'tab';
+export type DocumentsPreferences = Record<string, DocumentPreferences>;
 export type Settings = {
-    documents: Record<string, DocumentPreferences>;
+    documents: DocumentsPreferences;
     hotkeys: {
         customHotkeys: CustomHotkeys;
     };

@@ -1,14 +1,15 @@
 import { DocumentStore } from 'src/view/view';
 
-export type DocumentsStoreAction =
+export type PluginStoreActions =
     | DeleteDocument
     | UpdateDocumentPath
     | AddDocument
     | ActiveLineageViewChange
+    | RefreshDocuments
     | WorkspaceEvents;
 
 export type AddDocument = {
-    type: 'DOCUMENTS/ADD_DOCUMENT';
+    type: 'plugin/documents/register-new-document-store';
     payload: {
         path: string;
         documentStore: DocumentStore;
@@ -16,17 +17,24 @@ export type AddDocument = {
     };
 };
 export type DeleteDocument = {
-    type: 'DOCUMENTS/DELETE_DOCUMENT';
+    type: 'plugin/documents/unregister-document-store';
     payload: {
         path: string;
     };
 };
 
 export type UpdateDocumentPath = {
-    type: 'DOCUMENTS/UPDATE_DOCUMENT_PATH';
+    type: 'plugin/documents/update-document-path';
     payload: {
         oldPath: string;
         newPath: string;
+    };
+};
+
+export type RefreshDocuments = {
+    type: 'plugin/documents/refresh-active-view-of-document';
+    payload: {
+        views: [viewId: string, path: string][];
     };
 };
 
@@ -37,7 +45,7 @@ export type WorkspaceEvents =
     | LayoutReady;
 
 export type ActiveLineageViewChange = {
-    type: 'WORKSPACE/SET_ACTIVE_LINEAGE_VIEW';
+    type: 'plugin/documents/update-active-view-of-document';
     payload: {
         path: string;
         viewId: string;
@@ -45,12 +53,12 @@ export type ActiveLineageViewChange = {
 };
 
 export type ActiveLeafChange = {
-    type: 'WORKSPACE/ACTIVE_LEAF_CHANGE';
+    type: 'plugin/echo/workspace/active-leaf-change';
 };
 
 export type WorkspaceResize = {
-    type: 'WORKSPACE/RESIZE';
+    type: 'plugin/echo/workspace/resize';
 };
 export type LayoutReady = {
-    type: 'WORKSPACE/LAYOUT_READY';
+    type: 'plugin/echo/workspace/layout-ready';
 };

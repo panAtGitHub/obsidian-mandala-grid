@@ -1,6 +1,6 @@
 import { DocumentStore } from 'src/view/view';
 
-export type DocumentsState = {
+export type PluginState = {
     documents: {
         [path: string]: {
             documentStore: DocumentStore;

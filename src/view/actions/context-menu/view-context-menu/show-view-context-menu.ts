@@ -5,7 +5,7 @@ import {
 } from 'src/obsidian/context-menu/render-context-menu';
 import { getDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-document-format';
 import { lang } from 'src/lang/lang';
-import { setDocumentFormat } from 'src/obsidian/events/workspace/actions/set-document-format';
+import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
 import { exportDocument } from 'src/obsidian/commands/helpers/export-document/export-document';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { hasNHeadings } from 'src/lib/format-detection/has-n-headings';

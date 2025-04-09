@@ -1,7 +1,7 @@
 import Lineage from 'src/main';
 import { logger } from 'src/helpers/logger';
-import { filterStaleDocuments } from 'src/stores/documents/subscriptions/effects/remove-stale-documents/helpers/filter-stale-documents';
-import { getAllLoadedFiles } from 'src/stores/documents/subscriptions/effects/remove-stale-documents/helpers/get-all-loaded-files';
+import { filterStaleDocuments } from 'src/stores/plugin/subscriptions/effects/remove-stale-documents/helpers/filter-stale-documents';
+import { getAllLoadedFiles } from 'src/stores/plugin/subscriptions/effects/remove-stale-documents/helpers/get-all-loaded-files';
 
 const processStaleDocuments = (plugin: Lineage) => {
     const settings = plugin.settings.getValue();

@@ -11,7 +11,7 @@ import {
     ViewStoreAction,
 } from 'src/stores/view/view-store-actions';
 import { SettingsActions } from 'src/stores/settings/settings-reducer';
-import { DocumentsStoreAction } from 'src/stores/documents/documents-store-actions';
+import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
 import { waitForActiveNodeToStopMoving } from 'src/lib/align-element/helpers/wait-for-active-node-to-stop-moving';
 import { createContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { SilentError } from 'src/lib/errors/errors';
@@ -23,7 +23,7 @@ export type PluginAction =
     | ViewDocumentAction
     | ViewStoreAction
     | SettingsActions
-    | DocumentsStoreAction
+    | PluginStoreActions
     | { type: 'view/life-cycle/mount' }
     | { type: 'view/align-branch/center-node' }
     | { type: 'view/align-branch/reveal-node' };

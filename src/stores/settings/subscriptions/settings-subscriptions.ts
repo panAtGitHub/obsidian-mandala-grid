@@ -1,13 +1,11 @@
 import Lineage from 'src/main';
-import { updateFileViewTypeCache } from 'src/stores/settings/subscriptions/effects/update-file-view-type-cache';
 import { updateViewHotkeysDictionary } from 'src/view/actions/keyboard-shortcuts/helpers/commands/update-view-hotkeys-dictionary';
 import { get } from 'svelte/store';
 import { ViewHotkeysStore } from 'src/stores/settings/derived/view-hotkeys-store';
 
 export const settingsSubscriptions = (plugin: Lineage) => {
     return plugin.settings.subscribe((state, action, initialRun) => {
-        updateFileViewTypeCache(state.documents);
-
+        plugin.viewType = state.documents;
         if (initialRun) {
             updateViewHotkeysDictionary(get(ViewHotkeysStore(plugin)));
         } else if (action) {

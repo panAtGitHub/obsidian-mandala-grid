@@ -3,7 +3,7 @@ import { mapDocumentToText } from 'src/obsidian/commands/helpers/export-document
 import { getDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-document-format';
 import { LineageView } from 'src/view/view';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
-import { setViewType } from 'src/obsidian/events/workspace/actions/set-view-type';
+import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 
 export const ejectDocument = async (view: LineageView) => {

@@ -7,7 +7,7 @@ export const delayAlign = (action: PluginAction) => {
         action.type === 'VIEW/TOGGLE_MINIMAP'
     ) {
         delay = 300;
-    } else if (action.type === 'WORKSPACE/RESIZE') {
+    } else if (action.type === 'plugin/echo/workspace/resize') {
         delay = 50;
     } else if (action.type === 'view/life-cycle/mount') {
         delay = 16;

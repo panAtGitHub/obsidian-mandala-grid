@@ -4,7 +4,7 @@ import { LineageDocumentFormat } from 'src/stores/settings/settings-type';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 
-import { setDocumentFormat } from 'src/obsidian/events/workspace/actions/set-document-format';
+import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
 
 export const openFileInLineage = async (
     plugin: Lineage,

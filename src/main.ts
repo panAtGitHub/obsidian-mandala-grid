@@ -1,6 +1,6 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { LINEAGE_VIEW_TYPE, LineageView } from './view/view';
-import { setViewState } from 'src/obsidian/patches/set-view-state';
+import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
 import { around } from 'monkey-around';
 import {
     SettingsActions,
@@ -9,22 +9,19 @@ import {
 import { deepMerge } from 'src/helpers/deep-merge';
 import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
 import { Store } from 'src/lib/store/store';
-import { Settings } from 'src/stores/settings/settings-type';
+import {
+    DocumentsPreferences,
+    Settings,
+} from 'src/stores/settings/settings-type';
 import { registerFileMenuEvent } from 'src/obsidian/events/workspace/register-file-menu-event';
-import { registerFileRenameEvent } from 'src/obsidian/events/vault/register-file-move-event';
-import { registerFileDeleteEvent } from 'src/obsidian/events/vault/register-file-delete-event';
 import { addCommands } from 'src/obsidian/commands/add-commands';
 import { settingsSubscriptions } from 'src/stores/settings/subscriptions/settings-subscriptions';
-import { DocumentsState } from 'src/stores/documents/documents-state-type';
-import { DocumentsStoreAction } from 'src/stores/documents/documents-store-actions';
-import { documentsReducer } from 'src/stores/documents/documents-reducer';
-import { DefaultDocumentsState } from 'src/stores/documents/default-documents-state';
+import { PluginState } from 'src/stores/plugin/plugin-state-type';
+import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
+import { pluginReducer } from 'src/stores/plugin/plugin-reducer';
+import { DefaultPluginState } from 'src/stores/plugin/default-plugin-state';
 import { StatusBar } from 'src/obsidian/status-bar/status-bar';
-import { removeStaleDocuments } from 'src/stores/documents/subscriptions/effects/remove-stale-documents/remove-stale-documents';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
-import { registerActiveLeafChange } from 'src/obsidian/events/workspace/register-active-leaf-change';
-import { registerWorkspaceResize } from 'src/obsidian/events/workspace/register-workspace-resize';
-import { registerLayoutReady } from 'src/obsidian/events/workspace/register-layout-ready';
 import { customIcons, loadCustomIcons } from 'src/helpers/load-custom-icons';
 import { setActiveLeaf } from 'src/obsidian/patches/set-active-leaf';
 import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings';
@@ -38,21 +35,24 @@ import {
     rulesWorker,
     statusBarWorker,
 } from 'src/workers/worker-instances';
+import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
+import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
-export type DocumentsStore = Store<DocumentsState, DocumentsStoreAction>;
+export type PluginStore = Store<PluginState, PluginStoreActions>;
 
 export default class Lineage extends Plugin {
     settings: SettingsStore;
-    documents: DocumentsStore;
+    store: PluginStore;
     statusBar: StatusBar;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
+    viewType: DocumentsPreferences = {};
 
     async onload() {
         await this.loadSettings();
-        this.documents = new Store<DocumentsState, DocumentsStoreAction>(
-            DefaultDocumentsState(),
-            documentsReducer,
+        this.store = new Store<PluginState, PluginStoreActions>(
+            DefaultPluginState(),
+            pluginReducer,
             onPluginError,
         );
         loadCustomIcons();
@@ -62,7 +62,6 @@ export default class Lineage extends Plugin {
         );
         addCommands(this);
         this.registerPatches();
-        this.registerEffects();
         this.registerEvents();
         this.statusBar = new StatusBar(this);
         this.loadRibbonIcon();
@@ -93,23 +92,17 @@ export default class Lineage extends Plugin {
     private registerEvents() {
         registerFileMenuEvent(this);
         registerFilesMenuEvent(this);
-        registerFileRenameEvent(this);
-        registerFileDeleteEvent(this);
-        registerActiveLeafChange(this);
-        registerWorkspaceResize(this);
-        registerLayoutReady(this);
+        onVaultEvent(this);
+        onWorkspaceEvent(this);
     }
 
     registerTimeout(timeout: ReturnType<typeof setTimeout>) {
         this.timeoutReferences.add(timeout);
     }
 
-    private registerEffects() {
-        removeStaleDocuments(this);
-    }
-
     private registerPatches() {
         this.register(around(this.app.workspace, { setActiveLeaf }));
+        const setViewState = createSetViewState(this);
         // @ts-ignore
         this.register(around(WorkspaceLeaf.prototype, { setViewState }));
     }

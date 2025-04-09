@@ -3,7 +3,7 @@ import { onViewMount } from 'src/stores/view/subscriptions/on-view-mount';
 import { onViewStateUpdate } from 'src/stores/view/subscriptions/on-view-state-update';
 import { onDocumentStateUpdate } from 'src/stores/view/subscriptions/on-document-state-update';
 import { onPluginSettingsUpdate } from 'src/stores/view/subscriptions/on-plugin-settings-update';
-import { onDocumentsStateUpdate } from 'src/stores/view/subscriptions/on-documents-state-update';
+import { onPluginStateUpdate } from 'src/stores/view/subscriptions/on-plugin-state-update';
 import { onMetadataCache } from 'src/stores/view/subscriptions/on-metadata-cache';
 
 export const viewSubscriptions = (view: LineageView) => {
@@ -28,9 +28,9 @@ export const viewSubscriptions = (view: LineageView) => {
         },
     );
 
-    const unsubFromDocuments = view.plugin.documents.subscribe((_, action) => {
+    const unsubFromDocuments = view.plugin.store.subscribe((_, action) => {
         if (!action) return;
-        onDocumentsStateUpdate(view, action);
+        onPluginStateUpdate(view, action);
     });
 
     const unsubFromSettings = view.plugin.settings.subscribe(
