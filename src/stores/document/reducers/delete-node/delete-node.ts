@@ -22,7 +22,7 @@ export const deleteNode = (
 ) => {
     invariant(nodeId);
 
-    const isSelection = selectedNodes && selectedNodes.size > 1;
+    const isSelection = selectedNodes && selectedNodes.size > 0;
     const nodes: string[] = isSelection ? [...selectedNodes] : [nodeId];
 
     let nextNode: string | undefined = undefined;
