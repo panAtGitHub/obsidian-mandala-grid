@@ -259,10 +259,10 @@ export class LineageView extends TextFileView {
 
         const documentState = this.documentStore.getValue();
         const viewState = this.viewStore.getValue();
-        const documentFormat = getOrDetectDocumentFormat(this, body);
+        const format = getOrDetectDocumentFormat(this, body);
         const existingBody = isInitialLoad
             ? ''
-            : stringifyDocument(documentState.document, documentFormat);
+            : stringifyDocument(documentState.document, format);
 
         const bodyHasChanged = existingBody !== body;
         const frontmatterHasChanged =
@@ -270,23 +270,17 @@ export class LineageView extends TextFileView {
 
         const isEditing = Boolean(viewState.document.editing.activeNodeId);
 
+        const activeNode = viewState.document.activeNode;
+        const activeSection = activeNode
+            ? documentState.sections.id_section[activeNode]
+            : null;
         if (isInitialLoad) {
-            loadFullDocument(this, body, frontmatter, documentFormat, null);
+            loadFullDocument(this, body, frontmatter, format, activeSection);
             if (!maybeGetDocumentFormat(this)) {
-                setDocumentFormat(this.plugin, this.file!.path, documentFormat);
+                setDocumentFormat(this.plugin, this.file!.path, format);
             }
         } else if (bodyHasChanged && !isEditing) {
-            const activeNode = viewState.document.activeNode;
-            const activeSection = activeNode
-                ? documentState.sections.id_section[activeNode]
-                : null;
-            loadFullDocument(
-                this,
-                body,
-                frontmatter,
-                documentFormat,
-                activeSection,
-            );
+            loadFullDocument(this, body, frontmatter, format, activeSection);
             if (this.isActive && existingBody) {
                 new Notice('Document changed externally');
             }
