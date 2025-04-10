@@ -6,7 +6,7 @@ import { DocumentViewState, ViewState } from 'src/stores/view/view-state-type';
 import { updateSelectionState } from 'src/stores/view/reducers/document/helpers/update-selection-state';
 
 export type ChangeActiveNodeAction = {
-    type: 'DOCUMENT/NAVIGATE_USING_KEYBOARD';
+    type: 'view/set-active-node/keyboard';
     payload: {
         direction: AllDirections;
     };

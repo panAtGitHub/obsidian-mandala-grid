@@ -2,7 +2,6 @@ import { LineageView } from 'src/view/view';
 
 export const persistActivePinnedNode = (view: LineageView) => {
     const documentState = view.documentStore.getValue();
-    if (!documentState.file.path) return;
     const sections = documentState.sections;
 
     const viewState = view.viewStore.getValue();
@@ -10,7 +9,7 @@ export const persistActivePinnedNode = (view: LineageView) => {
     view.plugin.settings.dispatch({
         type: 'settings/pinned-nodes/persist-active-node',
         payload: {
-            filePath: documentState.file.path,
+            filePath: view.file!.path,
             section,
         },
     });

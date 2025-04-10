@@ -16,7 +16,7 @@ export const saveNodeAndInsertNode = (
     const nodeId =
         activeNodeId || view.viewStore.getValue().document.activeNode;
     view.documentStore.dispatch({
-        type: 'DOCUMENT/INSERT_NODE',
+        type: 'document/add-node',
         payload: {
             position: direction,
             content,

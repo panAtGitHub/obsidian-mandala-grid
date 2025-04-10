@@ -8,13 +8,15 @@ export const showSearchResultsInMinimap = (view: LineageView) => {
     if (viewState.search.showInput) {
         if (!settingsState.view.showMinimap) {
             if (viewState.search.results.size > 0) {
-                settingsStore.dispatch({ type: 'VIEW/TOGGLE_MINIMAP' });
+                settingsStore.dispatch({
+                    type: 'settings/view/toggle-minimap',
+                });
                 view.documentSearch.searchTriggeredMinimap = true;
             }
         }
     } else if (view.documentSearch.searchTriggeredMinimap) {
         if (settingsState.view.showMinimap) {
-            settingsStore.dispatch({ type: 'VIEW/TOGGLE_MINIMAP' });
+            settingsStore.dispatch({ type: 'settings/view/toggle-minimap' });
         }
         view.documentSearch.searchTriggeredMinimap = false;
     }

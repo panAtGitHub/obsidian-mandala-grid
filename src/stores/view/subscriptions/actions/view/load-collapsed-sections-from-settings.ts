@@ -16,7 +16,7 @@ export const loadCollapsedSectionsFromSettings = (view: LineageView) => {
 
     if (collapsedIds.length > 0) {
         viewStore.dispatch({
-            type: 'view/persisted-state/load-persisted-collapsed-parents',
+            type: 'view/outline/load-persisted-collapsed-parents',
             payload: {
                 collapsedIds,
             },

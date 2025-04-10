@@ -1,7 +1,7 @@
 import { DocumentViewState } from 'src/stores/view/view-state-type';
 
 export type SetDragStartedAction = {
-    type: 'SET_DRAG_STARTED';
+    type: 'view/dnd/set-drag-started';
     payload: {
         nodeId: string;
         childGroups: string[];

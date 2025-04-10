@@ -8,7 +8,7 @@ import { insertFirstNode } from 'src/lib/tree-utils/insert/insert-first-node';
 import { findNextNodeAfterDeletion } from 'src/lib/tree-utils/find/find-next-node-after-deletion';
 
 export type DeleteNodeAction = {
-    type: 'DOCUMENT/DELETE_NODE';
+    type: 'document/delete-node';
     payload: {
         activeNodeId: string;
         selectedNodes?: Set<string>;

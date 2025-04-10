@@ -67,7 +67,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         callback: (view, e) => {
             e.preventDefault();
             e.stopPropagation();
-            view.viewStore.dispatch({ type: 'SEARCH/TOGGLE_INPUT' });
+            view.viewStore.dispatch({ type: 'view/search/toggle-input' });
         },
         hotkeys: [
             { key: '/', modifiers: [], editorState: 'editor-off' },
@@ -79,7 +79,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         callback: (view, e) => {
             e.preventDefault();
             view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
+                type: 'settings/view/set-zoom-level',
                 payload: { direction: 'in' },
             });
         },
@@ -90,7 +90,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         callback: (view, e) => {
             e.preventDefault();
             view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
+                type: 'settings/view/set-zoom-level',
                 payload: { direction: 'out' },
             });
         },
@@ -101,7 +101,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         callback: (view, e) => {
             e.preventDefault();
             view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
+                type: 'settings/view/set-zoom-level',
                 payload: { value: 1 },
             });
         },

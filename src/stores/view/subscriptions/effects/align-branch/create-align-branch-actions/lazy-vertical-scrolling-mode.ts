@@ -8,7 +8,7 @@ export const lazyVerticalScrollingMode = (
 ) => {
     const actions: AlignBranchAction[] = [];
 
-    if (action.type === 'DOCUMENT/INSERT_NODE') {
+    if (action.type === 'document/add-node') {
         if (action.payload.position === 'right') {
             actions.push({
                 action: '20/active-node/vertical/align-with-parent',

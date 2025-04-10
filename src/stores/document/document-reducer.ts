@@ -20,7 +20,6 @@ import {
     DocumentStoreAction,
     UndoableAction,
 } from 'src/stores/document/document-store-actions';
-import { defaultDocumentState } from 'src/stores/document/default-document-state';
 import { formatHeadings } from 'src/stores/document/reducers/content/format-content/format-headings';
 import { pasteNode } from 'src/stores/document/reducers/clipboard/paste-node/paste-node';
 import { updateSectionsDictionary } from 'src/stores/document/reducers/state/update-sections-dictionary';
@@ -45,18 +44,18 @@ const updateDocumentState = (
     let affectedNodeId: null | string = null;
     let affectedNodeContent: Content[string] | null = null;
     let affectedNodes: string[] | undefined = undefined;
-    if (action.type === 'DOCUMENT/SET_NODE_CONTENT') {
+    if (action.type === 'document/update-node-content') {
         const update = setNodeContent(state.document.content, action);
         if (!update) return NO_UPDATE;
         newActiveNodeId = action.payload.nodeId;
-    } else if (action.type === 'DOCUMENT/INSERT_NODE') {
+    } else if (action.type === 'document/add-node') {
         newActiveNodeId = insertNode(
             state.document,
             action.payload.position,
             action.payload.activeNodeId,
             action.payload.content,
         );
-    } else if (action.type === 'DOCUMENT/DELETE_NODE') {
+    } else if (action.type === 'document/delete-node') {
         affectedNodeContent =
             state.document.content[action.payload.activeNodeId];
         newActiveNodeId = deleteNode(
@@ -65,7 +64,7 @@ const updateDocumentState = (
             action.payload.selectedNodes,
         );
         affectedNodeId = action.payload.activeNodeId;
-    } else if (action.type === 'DOCUMENT/EXTRACT_BRANCH') {
+    } else if (action.type === 'document/extract-node') {
         affectedNodeContent = state.document.content[action.payload.nodeId];
         const update = setNodeContent(state.document.content, {
             payload: {
@@ -76,18 +75,18 @@ const updateDocumentState = (
         if (!update) return NO_UPDATE;
         removeExtractedBranch(state.document, action);
         newActiveNodeId = action.payload.nodeId;
-    } else if (action.type === 'DOCUMENT/SPLIT_NODE') {
+    } else if (action.type === 'document/split-node') {
         affectedNodeId = action.payload.target;
         affectedNodeContent = state.document.content[affectedNodeId];
         newActiveNodeId = splitNode(state.document, action);
-    } else if (action.type === 'DOCUMENT/DROP_NODE') {
+    } else if (action.type === 'document/drop-node') {
         dropNode(state.document, action);
         newActiveNodeId = action.payload.droppedNodeId;
-    } else if (action.type === 'DOCUMENT/MOVE_NODE') {
+    } else if (action.type === 'document/move-node') {
         moveNode(state.document, action);
         newActiveNodeId = action.payload.activeNodeId;
         affectedNodeId = newActiveNodeId;
-    } else if (action.type === 'DOCUMENT/MERGE_NODE') {
+    } else if (action.type === 'document/merge-node') {
         affectedNodeContent =
             state.document.content[action.payload.activeNodeId];
         newActiveNodeId = mergeNode(state.document, action);
@@ -96,7 +95,7 @@ const updateDocumentState = (
         sortDirectChildNodes(state.document, action.payload);
         newActiveNodeId = action.payload.id;
         affectedNodeId = newActiveNodeId;
-    } else if (action.type === 'DOCUMENT/LOAD_FILE') {
+    } else if (action.type === 'document/file/load-from-disk') {
         if (action.payload.__test_document__) {
             newActiveNodeId = loadDocumentFromJSON(
                 state,
@@ -105,33 +104,26 @@ const updateDocumentState = (
         } else {
             newActiveNodeId = loadDocumentFromFile(state, action);
         }
-    } else if (action.type === 'RESET_STORE') {
-        const newState = defaultDocumentState();
-        state.document = newState.document;
-        state.history = newState.history;
-        state.file = newState.file;
-    } else if (action.type === 'HISTORY/SELECT_SNAPSHOT') {
+    } else if (action.type === 'document/history/select-snapshot') {
         selectSnapshot(state.document, state.history, action);
         state.history = { ...state.history };
-    } else if (action.type === 'HISTORY/APPLY_PREVIOUS_SNAPSHOT') {
+    } else if (action.type === 'document/history/select-previous-snapshot') {
         undoAction(state.document, state.history);
         state.history = { ...state.history };
-    } else if (action.type === 'HISTORY/APPLY_NEXT_SNAPSHOT') {
+    } else if (action.type === 'document/history/select-next-snapshot') {
         redoAction(state.document, state.history);
         state.history = { ...state.history };
-    } else if (action.type === 'FS/SET_FILE_PATH') {
-        state.file.path = action.payload.path;
-    } else if (action.type === 'DOCUMENT/FORMAT_HEADINGS') {
+    } else if (action.type === 'document/format-headings') {
         formatHeadings(state.document.content, state.sections);
         newActiveNodeId = getIdOfSection(
             state.sections,
             state.history.context.activeSection,
         );
-    } else if (action.type === 'DOCUMENT/PASTE_NODE') {
+    } else if (action.type === 'document/paste-node') {
         const result = pasteNode(state.document, action);
         newActiveNodeId = result.nextNode;
         affectedNodes = result.rootNodes;
-    } else if (action.type === 'DOCUMENT/CUT_NODE') {
+    } else if (action.type === 'document/cut-node') {
         affectedNodeContent = state.document.content[action.payload.nodeId];
         newActiveNodeId = deleteNode(
             state.document,
@@ -139,7 +131,7 @@ const updateDocumentState = (
             action.payload.selectedNodes,
         );
         affectedNodeId = action.payload.nodeId;
-    } else if (action.type === 'FILE/UPDATE_FRONTMATTER') {
+    } else if (action.type === 'document/file/update-frontmatter') {
         state.file.frontmatter = action.payload.frontmatter;
         return;
     } else if (action.type === 'document/pinned-nodes/pin') {
@@ -158,7 +150,7 @@ const updateDocumentState = (
             action.payload.sections,
         );
         return;
-    } else if (action.type === 'META/REFRESH_GROUP_PARENT_IDS') {
+    } else if (action.type === 'document/meta/refresh-group-parent-ids') {
         refreshGroupParentIds(state.document.columns, state.meta);
         return;
     }
@@ -175,7 +167,7 @@ const updateDocumentState = (
     }
 
     // if file was modified externally, try to maintain active section
-    if (action.type === 'DOCUMENT/LOAD_FILE') {
+    if (action.type === 'document/file/load-from-disk') {
         const activeSection = action.payload.activeSection;
         if (activeSection) {
             const id = state.sections.section_id[activeSection];

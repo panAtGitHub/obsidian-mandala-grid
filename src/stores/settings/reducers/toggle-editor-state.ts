@@ -4,9 +4,9 @@ import {
     HotkeyEditorState,
     PersistedViewHotkey,
 } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { ToggleEditorStateAction } from 'src/stores/settings/settings-reducer';
 import invariant from 'tiny-invariant';
 import { CommandName } from 'src/lang/hotkey-groups';
+import { ToggleEditorStateAction } from 'src/stores/settings/settings-store-actions';
 
 const getDefaultHotkey = (
     command: CommandName,

@@ -8,7 +8,7 @@ import { splitText } from 'src/stores/document/reducers/split-node/helpers/split
 
 export type SplitNodeMode = 'headings' | 'outline' | 'blocks';
 export type SplitNodeAction = {
-    type: 'DOCUMENT/SPLIT_NODE';
+    type: 'document/split-node';
     payload: {
         target: string;
         mode: SplitNodeMode;

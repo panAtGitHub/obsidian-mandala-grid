@@ -25,7 +25,7 @@ describe('split node', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/SPLIT_NODE',
+            type: 'document/split-node',
             payload: { target: 'nP3BBw00m', mode: 'headings' },
         } as const;
         const output = {
@@ -228,7 +228,7 @@ describe('split node', () => {
         };
         const inputClone = clone(input);
         const action = {
-            type: 'DOCUMENT/SPLIT_NODE',
+            type: 'document/split-node',
             payload: { target: 'nO5aXT_Tq', mode: 'headings' },
         } as const;
 
@@ -267,7 +267,7 @@ describe('split node', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/SPLIT_NODE',
+            type: 'document/split-node',
             payload: { target: 'nO5aXT_Tq', mode: 'headings' },
         } as const;
         const output = {
@@ -321,7 +321,7 @@ describe('split node', () => {
         };
         const inputClone = clone(input);
         const action = {
-            type: 'DOCUMENT/SPLIT_NODE',
+            type: 'document/split-node',
             payload: { target: 'nVPwysBOU', mode: 'headings' },
         } as const;
 
@@ -346,7 +346,7 @@ describe('split node', () => {
 
         const inputClone = clone(input);
         const action = {
-            type: 'DOCUMENT/SPLIT_NODE',
+            type: 'document/split-node',
             payload: { target: 'nVPwysBOU', mode: 'headings' },
         } as const;
 

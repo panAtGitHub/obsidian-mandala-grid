@@ -5,7 +5,7 @@ import { findNextNode } from 'src/lib/tree-utils/find/find-next-node';
 import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/reset-selection-state';
 
 export type NodeNavigationAction = {
-    type: 'NAVIGATION/SELECT_NEXT_NODE';
+    type: 'view/set-active-node/sequential/select-next';
     payload: {
         sections: Sections;
         direction: 'back' | 'forward';

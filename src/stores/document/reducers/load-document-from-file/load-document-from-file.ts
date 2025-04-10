@@ -12,7 +12,7 @@ import { outlineToJson } from 'src/lib/data-conversion/x-to-json/outline-to-json
 import { htmlElementToJson } from 'src/lib/data-conversion/x-to-json/html-element-to-json';
 
 export type LoadDocumentAction = {
-    type: 'DOCUMENT/LOAD_FILE';
+    type: 'document/file/load-from-disk';
     payload: {
         document: SavedDocument;
         format: LineageDocumentFormat;
@@ -38,7 +38,7 @@ export const loadDocumentFromFile = (
     if (emptyTree) {
         insertFirstNode(state.document.columns, state.document.content);
     }
-    if (action.type === 'DOCUMENT/LOAD_FILE')
+    if (action.type === 'document/file/load-from-disk')
         state.file.frontmatter = action.payload.document.frontmatter;
     const activeNode = state.document.columns[0].groups[0].nodes[0];
     invariant(activeNode);

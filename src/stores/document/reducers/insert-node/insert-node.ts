@@ -8,7 +8,7 @@ import { id } from 'src/helpers/id';
 import { insertNodeAfterParent } from 'src/lib/tree-utils/insert/insert-node-after-parent';
 
 export type CreateNodeAction = {
-    type: 'DOCUMENT/INSERT_NODE';
+    type: 'document/add-node';
     payload: {
         position: AllDirections;
         activeNodeId: string;

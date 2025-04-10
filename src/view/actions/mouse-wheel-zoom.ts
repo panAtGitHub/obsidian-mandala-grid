@@ -7,7 +7,7 @@ export const mouseWheelZoom = (element: HTMLElement, view: LineageView) => {
         if (!modKey) return;
         const delta = e.deltaY;
         view.plugin.settings.dispatch({
-            type: 'UI/CHANGE_ZOOM_LEVEL',
+            type: 'settings/view/set-zoom-level',
             payload: {
                 direction: delta < 0 ? 'in' : 'out',
             },

@@ -57,7 +57,7 @@ export const onViewMount = (view: LineageView) => {
     applySettingsToView(view);
     attachHoverPreviewListener(view);
     attachWheelScrollListener(view);
-    documentStore.dispatch({ type: 'META/REFRESH_GROUP_PARENT_IDS' });
+    documentStore.dispatch({ type: 'document/meta/refresh-group-parent-ids' });
     attachCloseModalsListener(view);
     view.rulesProcessor.onRulesUpdate();
     view.zoomFactor = view.plugin.settings.getValue().view.zoomLevel;

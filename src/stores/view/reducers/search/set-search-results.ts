@@ -2,7 +2,7 @@ import { ViewState } from 'src/stores/view/view-state-type';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
 export type SetSearchResultsAction = {
-    type: 'SEARCH/SET_RESULTS';
+    type: 'view/search/set-results';
     payload: {
         results: Map<string, NodeSearchResult>;
     };

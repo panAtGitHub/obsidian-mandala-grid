@@ -9,7 +9,7 @@ export const mergeNode = (view: LineageView, direction: VerticalDirection) => {
         throw new Error(lang.error_hk_cant_merge_multiple_nodes);
     }
     view.documentStore.dispatch({
-        type: 'DOCUMENT/MERGE_NODE',
+        type: 'document/merge-node',
         payload: {
             direction,
             activeNodeId: view.viewStore.getValue().document.activeNode,

@@ -21,7 +21,7 @@ export const setActiveNode = (
 
     if (activeNodeExists) {
         // keep the affected active section when undoing
-        if (action.type === 'HISTORY/APPLY_PREVIOUS_SNAPSHOT') {
+        if (action.type === 'document/history/select-previous-snapshot') {
             const state = documentState.history.state;
             const previousSnapshot: Snapshot =
                 documentState.history.items[state.activeIndex + 1];
@@ -33,8 +33,8 @@ export const setActiveNode = (
         // active view of file should always update except for dnd events
         else if (
             view.isViewOfFile &&
-            (action.type === 'DOCUMENT/DROP_NODE' ||
-                action.type === 'DOCUMENT/MOVE_NODE')
+            (action.type === 'document/drop-node' ||
+                action.type === 'document/move-node')
         ) {
             shouldSetActiveNode = false;
         }

@@ -32,7 +32,7 @@ describe('lazy vertical scrolling', () => {
             },
         };
 
-     /*   const columns = [
+        /*   const columns = [
             {
                 id: c1,
                 groups: [
@@ -56,7 +56,7 @@ describe('lazy vertical scrolling', () => {
             },
         ];*/
         const action = {
-            type: 'DOCUMENT/NAVIGATE_USING_KEYBOARD',
+            type: 'view/set-active-node/keyboard',
             payload: {
                 direction: 'left',
             },

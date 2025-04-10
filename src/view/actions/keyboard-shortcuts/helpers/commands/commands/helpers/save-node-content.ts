@@ -7,14 +7,14 @@ export const saveNodeContent = (view: LineageView, modKey = false) => {
             view.viewStore.getValue().document.editing.isInSidebar;
         if (isInSidebar) {
             view.viewStore.dispatch({
-                type: 'view/sidebar/disable-edit',
+                type: 'view/editor/disable-sidebar-editor',
                 context: {
                     modKey,
                 },
             });
         } else {
             view.viewStore.dispatch({
-                type: 'view/main/disable-edit',
+                type: 'view/editor/disable-main-editor',
                 context: {
                     modKey,
                 },

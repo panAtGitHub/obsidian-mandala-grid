@@ -45,7 +45,7 @@ export const draggable = (node: HTMLElement, data: DraggableData) => {
                     false,
                 );
                 viewStore.dispatch({
-                    type: 'SET_DRAG_STARTED',
+                    type: 'view/dnd/set-drag-started',
                     payload: { nodeId: data.id, childGroups },
                 });
                 toggleDraggedNodeVisibility(node, data, false);
@@ -57,7 +57,7 @@ export const draggable = (node: HTMLElement, data: DraggableData) => {
 
     node.addEventListener('dragstart', handleDragstart);
     const handleDragEnd = () => {
-        viewStore.dispatch({ type: 'DOCUMENT/SET_DRAG_ENDED' });
+        viewStore.dispatch({ type: 'view/dnd/set-drag-ended' });
         toggleDraggedNodeVisibility(node, data, true);
     };
     node.addEventListener('dragend', handleDragEnd);

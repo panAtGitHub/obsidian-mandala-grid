@@ -32,7 +32,10 @@ export const addSnapshot = (
     removeObsoleteHistoryItems(history);
     removeOldHistoryItems(history, 200);
     // identical content after loading a file
-    if (activeSnapshot && context.action.type === 'DOCUMENT/LOAD_FILE') {
+    if (
+        activeSnapshot &&
+        context.action.type === 'document/file/load-from-disk'
+    ) {
         const snapshotContent = JSON.stringify(
             Object.values(JSON.parse(activeSnapshot.data.content)),
         );

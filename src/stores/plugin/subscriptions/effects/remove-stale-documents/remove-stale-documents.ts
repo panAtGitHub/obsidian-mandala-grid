@@ -11,7 +11,7 @@ const processStaleDocuments = (plugin: Lineage) => {
 
     logger.debug(`[lineage] removed ${deleted} stale documents`);
     plugin.settings.dispatch({
-        type: 'UPDATE_DOCUMENTS_DICTIONARY',
+        type: 'settings/documents/remove-stale-documents',
         payload: {
             documents: settings.documents,
         },

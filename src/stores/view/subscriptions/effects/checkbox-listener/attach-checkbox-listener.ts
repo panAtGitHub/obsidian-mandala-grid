@@ -32,7 +32,7 @@ const handleCheckboxChange = (event: Event, view: LineageView) => {
     );
     if (content) {
         view.documentStore.dispatch({
-            type: 'DOCUMENT/SET_NODE_CONTENT',
+            type: 'document/update-node-content',
             payload: { nodeId: cardId, content: content.content },
             context: { isInSidebar: !!card.closest('.sidebar') },
         });

@@ -1,7 +1,7 @@
 import { ViewState } from 'src/stores/view/view-state-type';
 
 export type ToggleFuzzySearchAction = {
-    type: 'SEARCH/TOGGLE_FUZZY_MODE';
+    type: 'view/search/toggle-fuzzy-mode';
 };
 
 export const toggleFuzzySearch = (state: ViewState) => {

@@ -15,7 +15,7 @@
 
     const toggleSnapshotsModal = () =>
         view.viewStore.dispatch({
-            type: 'UI/TOGGLE_HISTORY_SIDEBAR',
+            type: 'view/snapshots/toggle-modal',
         });
 
     const selectNextSnapshot = () => {
@@ -23,7 +23,7 @@
             new Notice(lang.error_apply_snapshot_while_editing);
         else
             view.documentStore.dispatch({
-                type: 'HISTORY/APPLY_NEXT_SNAPSHOT',
+                type: 'document/history/select-next-snapshot',
             });
     };
 
@@ -32,7 +32,7 @@
             new Notice(lang.error_apply_snapshot_while_editing);
         else
             view.documentStore.dispatch({
-                type: 'HISTORY/APPLY_PREVIOUS_SNAPSHOT',
+                type: 'document/history/select-previous-snapshot',
             });
     };
 </script>

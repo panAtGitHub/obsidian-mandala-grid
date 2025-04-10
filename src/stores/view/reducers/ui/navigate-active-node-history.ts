@@ -7,7 +7,9 @@ import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/r
 
 export type NodeHistoryNavigationAction =
     | {
-          type: 'NAVIGATION/NAVIGATE_BACK' | 'NAVIGATION/NAVIGATE_FORWARD';
+          type:
+              | 'view/set-active-node/history/select-previous'
+              | 'view/set-active-node/history/select-next';
       }
     | RemoveObsoleteNavigationItemsAction;
 

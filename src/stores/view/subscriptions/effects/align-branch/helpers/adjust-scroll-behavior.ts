@@ -6,15 +6,15 @@ export const adjustScrollBehavior = (action: PluginAction) => {
     if (action.type === 'view/update-active-branch?source=document') {
         const documentAction = action.context.documentAction;
         const documentEvent = documentAction.type;
-        if (documentEvent === 'DOCUMENT/LOAD_FILE') {
+        if (documentEvent === 'document/file/load-from-disk') {
             behavior = 'instant';
-        } else if (documentEvent === 'DOCUMENT/MOVE_NODE') {
+        } else if (documentEvent === 'document/move-node') {
             const verticalMove =
                 documentAction.payload.direction === 'down' ||
                 documentAction.payload.direction === 'up';
             if (verticalMove) behavior = 'instant';
         }
-    } else if (action.type === 'UI/CHANGE_ZOOM_LEVEL') {
+    } else if (action.type === 'settings/view/set-zoom-level') {
         behavior = 'instant';
     }
 

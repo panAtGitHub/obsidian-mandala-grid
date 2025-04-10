@@ -22,7 +22,7 @@ export const pasteNode = async (view: LineageView) => {
             '\n',
         );
         view.documentStore.dispatch({
-            type: 'DOCUMENT/PASTE_NODE',
+            type: 'document/paste-node',
             payload: {
                 targetNodeId: viewState.document.activeNode,
                 text,

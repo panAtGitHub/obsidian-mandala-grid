@@ -13,7 +13,7 @@
         e: Event & { currentTarget: EventTarget & HTMLInputElement },
     ) => {
         viewStore.dispatch({
-            type: 'SEARCH/SET_QUERY',
+            type: 'view/search/set-query',
             payload: {
                 query: e.currentTarget.value,
             },
@@ -37,7 +37,7 @@
         class="search-input-clear-button"
         on:click={() => {
             viewStore.dispatch({
-                type: 'SEARCH/SET_QUERY',
+                type: 'view/search/set-query',
                 payload: {
                     query: '',
                 },
@@ -53,7 +53,7 @@
                 ($search.showAllNodes ? ' is-active' : '')}
             on:click={() => {
                 viewStore.dispatch({
-                    type: 'search/toggle-show-all-nodes',
+                    type: 'search/view/toggle-show-all-nodes',
                 });
             }}
             style="right: 28px"
@@ -67,10 +67,10 @@
             ($search.fuzzySearch ? ' is-active' : '')}
         on:click={() => {
             viewStore.dispatch({
-                type: 'SEARCH/TOGGLE_FUZZY_MODE',
+                type: 'view/search/toggle-fuzzy-mode',
             });
             viewStore.dispatch({
-                type: 'SEARCH/SET_QUERY',
+                type: 'view/search/set-query',
                 payload: {
                     query: viewStore.getValue().search.query,
                 },

@@ -5,7 +5,7 @@ export const enableEditModeInMainSplit = (
     nodeId: string,
 ) => {
     view.viewStore.dispatch({
-        type: 'view/main/enable-edit',
+        type: 'view/editor/enable-main-editor',
         payload: {
             nodeId,
         },

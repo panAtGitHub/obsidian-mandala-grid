@@ -28,7 +28,7 @@ export const onDocumentStateUpdate = (
     const e: DocumentEventType | null = getDocumentEventType(
         type as DocumentStoreAction['type'],
     );
-    if (type === 'DOCUMENT/LOAD_FILE') {
+    if (type === 'document/file/load-from-disk') {
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
         view.inlineEditor.unloadNode();
@@ -51,24 +51,26 @@ export const onDocumentStateUpdate = (
         documentStore.dispatch({
             type: 'document/pinned-nodes/remove-stale-nodes',
         });
-        documentStore.dispatch({ type: 'META/REFRESH_GROUP_PARENT_IDS' });
+        documentStore.dispatch({
+            type: 'document/meta/refresh-group-parent-ids',
+        });
     }
 
-    if (structuralChange && type !== 'DOCUMENT/MOVE_NODE') {
+    if (structuralChange && type !== 'document/move-node') {
         updateSelectedNodes(view, action, e.changeHistory!);
     }
 
-    if (type === 'DOCUMENT/INSERT_NODE' && view.isActive) {
+    if (type === 'document/add-node' && view.isActive) {
         enableEditMode(viewStore, documentState);
     }
 
     if (
-        type === 'DOCUMENT/DELETE_NODE' ||
-        type === 'DOCUMENT/CUT_NODE' ||
+        type === 'document/delete-node' ||
+        type === 'document/cut-node' ||
         e.changeHistory ||
-        type === 'DOCUMENT/EXTRACT_BRANCH' ||
-        type === 'DOCUMENT/LOAD_FILE' ||
-        type === 'DOCUMENT/SPLIT_NODE'
+        type === 'document/extract-node' ||
+        type === 'document/file/load-from-disk' ||
+        type === 'document/split-node'
     ) {
         removeObsoleteNavigationItems(viewStore, documentState);
     }
@@ -96,7 +98,7 @@ export const onDocumentStateUpdate = (
         const query = viewStore.getValue().search.query;
         if (query) {
             view.viewStore.dispatch({
-                type: 'SEARCH/SET_QUERY',
+                type: 'view/search/set-query',
                 payload: {
                     query,
                 },

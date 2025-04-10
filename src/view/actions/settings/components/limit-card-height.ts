@@ -13,7 +13,7 @@ export const LimitCardHeight = (
             cb.setValue(settingsState.view.limitPreviewHeight).onChange(
                 (limit) => {
                     settingsStore.dispatch({
-                        type: 'SET_LIMIT_PREVIEW_HEIGHT',
+                        type: 'settings/view/layout/set-limit-card-height',
                         payload: {
                             limit,
                         },

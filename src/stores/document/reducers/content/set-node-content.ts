@@ -1,7 +1,7 @@
 import { Content } from 'src/stores/document/document-state-type';
 
 export type SetNodeContentAction = {
-    type: 'DOCUMENT/SET_NODE_CONTENT';
+    type: 'document/update-node-content';
     payload: {
         nodeId: string;
         content: string;

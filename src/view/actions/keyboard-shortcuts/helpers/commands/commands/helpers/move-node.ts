@@ -9,7 +9,7 @@ type EditingState = {
 const restoreEditingState = (view: LineageView, state: EditingState) => {
     setTimeout(() => {
         view.viewStore.dispatch({
-            type: 'view/main/enable-edit',
+            type: 'view/editor/enable-main-editor',
             payload: {
                 nodeId: state.editedNode,
             },
@@ -28,7 +28,7 @@ export const moveNode = async (view: LineageView, direction: AllDirections) => {
 
     const document = view.viewStore.getValue().document;
     view.documentStore.dispatch({
-        type: 'DOCUMENT/MOVE_NODE',
+        type: 'document/move-node',
         payload: {
             direction,
             activeNodeId: document.activeNode,

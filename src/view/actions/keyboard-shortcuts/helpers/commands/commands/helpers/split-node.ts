@@ -5,7 +5,7 @@ import { SplitNodeMode } from 'src/stores/document/reducers/split-node/split-nod
 export const splitNode = (view: LineageView, mode: SplitNodeMode) => {
     saveNodeContent(view);
     view.documentStore.dispatch({
-        type: 'DOCUMENT/SPLIT_NODE',
+        type: 'document/split-node',
         payload: {
             target: view.viewStore.getValue().document.activeNode,
             mode,

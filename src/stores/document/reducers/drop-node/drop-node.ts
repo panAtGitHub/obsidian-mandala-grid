@@ -5,7 +5,7 @@ import { cleanAndSortColumns } from 'src/lib/tree-utils/sort/clean-and-sort-colu
 import invariant from 'tiny-invariant';
 
 export type DropAction = {
-    type: 'DOCUMENT/DROP_NODE';
+    type: 'document/drop-node';
     payload: {
         droppedNodeId: string;
         targetNodeId: string;

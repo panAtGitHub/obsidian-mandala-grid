@@ -2,7 +2,7 @@ import { ViewState } from 'src/stores/view/view-state-type';
 import { setSearchQuery } from 'src/stores/view/reducers/search/set-search-query';
 
 export type ToggleSearchInputAction = {
-    type: 'SEARCH/TOGGLE_INPUT';
+    type: 'view/search/toggle-input';
 };
 
 export const toggleSearchInput = (state: ViewState) => {

@@ -7,7 +7,7 @@ export const maxZoomLevel = 2;
 export const minZoomLevel = 0.05;
 
 export type ChangeZoomLevelAction = {
-    type: 'UI/CHANGE_ZOOM_LEVEL';
+    type: 'settings/view/set-zoom-level';
     payload:
         | {
               direction: 'in' | 'out';

@@ -19,7 +19,7 @@ export type DocumentState = {
     document: LineageDocument;
     sections: Sections;
     file: {
-        path: string | null;
+        // path: string | null;
         frontmatter: string;
     };
     meta: DocumentMeta;

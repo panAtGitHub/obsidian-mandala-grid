@@ -1,6 +1,7 @@
 import { Settings } from 'src/stores/settings/settings-type';
 import { PersistedViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { SetHotkeyBlankAction } from 'src/stores/settings/settings-reducer';
+
+import { SetHotkeyBlankAction } from 'src/stores/settings/settings-store-actions';
 
 export const setHotkeyAsBlank = (
     state: Settings,

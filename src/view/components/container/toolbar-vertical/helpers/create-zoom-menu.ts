@@ -70,7 +70,7 @@ export const createZoomMenu = (props: Props) => {
             hoverZoom = newValue;
         }
         props.view.plugin.settings.dispatch({
-            type: 'UI/CHANGE_ZOOM_LEVEL',
+            type: 'settings/view/set-zoom-level',
             payload: {
                 value: newValue,
             },
@@ -111,7 +111,7 @@ export const createZoomMenu = (props: Props) => {
         menuDom.addEventListener('mouseleave', () => {
             if (hoverZoom !== lastClickedZoom) {
                 props.view.plugin.settings.dispatch({
-                    type: 'UI/CHANGE_ZOOM_LEVEL',
+                    type: 'settings/view/set-zoom-level',
                     payload: { value: lastClickedZoom },
                 });
             }

@@ -5,7 +5,7 @@ export const forceCenterActiveNodeV = (action: PluginAction) => {
     let centerActiveNodeV = false;
     centerActiveNodeV =
         action.type === 'view/life-cycle/mount' ||
-        action.type === 'DOCUMENT/LOAD_FILE';
+        action.type === 'document/file/load-from-disk';
 
     if (!centerActiveNodeV) {
         // @ts-ignore
@@ -13,7 +13,7 @@ export const forceCenterActiveNodeV = (action: PluginAction) => {
         centerActiveNodeV =
             !!type.dropOrMove ||
             !!type.changeHistory ||
-            (!!type.createOrDelete && action.type !== 'DOCUMENT/INSERT_NODE');
+            (!!type.createOrDelete && action.type !== 'document/add-node');
     }
     return centerActiveNodeV;
 };

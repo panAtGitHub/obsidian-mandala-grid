@@ -169,7 +169,7 @@ export class LineageView extends TextFileView {
         location,
         action,
     ) => {
-        if (action && action.type === 'DOCUMENT/LOAD_FILE') {
+        if (action && action.type === 'document/file/load-from-disk') {
             if (this.file) {
                 this.plugin.store.dispatch({
                     type: 'plugin/documents/unregister-document-store',
@@ -238,12 +238,6 @@ export class LineageView extends TextFileView {
                 path: this.file.path,
                 documentStore: this.documentStore,
                 viewId: this.id,
-            },
-        });
-        this.documentStore.dispatch({
-            type: 'FS/SET_FILE_PATH',
-            payload: {
-                path: this.file.path,
             },
         });
     };

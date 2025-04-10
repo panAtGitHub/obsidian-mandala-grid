@@ -7,7 +7,7 @@ export const loadPinnedNodesToDocument = (view: LineageView) => {
     const settingsStore = view.plugin.settings;
     const settingsState = settingsStore.getValue();
     const persistedDocuments = settingsState.documents;
-    const persistedDocument = persistedDocuments[documentState.file.path!];
+    const persistedDocument = persistedDocuments[view.file!.path];
 
     if (!persistedDocument?.pinnedSections) return;
 

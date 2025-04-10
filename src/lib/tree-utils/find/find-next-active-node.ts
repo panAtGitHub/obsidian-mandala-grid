@@ -9,9 +9,9 @@ export const findNextActiveNode = (
     node: string,
     action: DeleteNodeAction | JumpToNodeAction,
 ) => {
-    if (action.type === 'DOCUMENT/DELETE_NODE') {
+    if (action.type === 'document/delete-node') {
         return findNextNodeAfterDeletion(columns, node);
-    } else if (action.type === 'DOCUMENT/JUMP_TO_NODE') {
+    } else if (action.type === 'view/set-active-node/keyboard-jump') {
         return findNodeToJumpTo(columns, node, action.payload.target);
     }
 };

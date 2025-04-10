@@ -34,7 +34,7 @@
             new Notice(lang.error_apply_snapshot_while_editing);
         else
             documentStore.dispatch({
-                type: 'HISTORY/SELECT_SNAPSHOT',
+                type: 'document/history/select-snapshot',
                 payload: { snapshotId: snapshot.id },
             });
     }}

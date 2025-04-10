@@ -13,7 +13,7 @@ export const BackgroundColor = (
         valueSelector: (settings) => settings.view.theme.containerBg,
         onChange: (color) => {
             settingsStore.dispatch({
-                type: 'SET_CONTAINER_BG',
+                type: 'settings/view/theme/set-container-bg-color',
                 payload: {
                     backgroundColor: color,
                 },

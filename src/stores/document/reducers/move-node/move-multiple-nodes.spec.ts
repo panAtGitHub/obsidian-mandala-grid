@@ -22,7 +22,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'right',
                 activeNodeId: 'n1',
@@ -71,7 +71,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'right',
                 activeNodeId: 'n3',
@@ -117,7 +117,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'up',
                 activeNodeId: n3,
@@ -155,7 +155,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'down',
                 activeNodeId: n2,
@@ -201,7 +201,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'up',
                 activeNodeId: 'n1_2',
@@ -251,7 +251,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'left',
                 activeNodeId: 'n1_2',
@@ -325,7 +325,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'up',
                 activeNodeId: n2,
@@ -407,7 +407,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'down',
                 activeNodeId: n1,
@@ -489,7 +489,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'right',
                 activeNodeId: n1,
@@ -589,7 +589,7 @@ describe('move multiple nodes', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'left',
                 activeNodeId: 'ncaSV5poL',

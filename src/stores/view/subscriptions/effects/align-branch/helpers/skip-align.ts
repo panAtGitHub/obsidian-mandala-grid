@@ -3,7 +3,7 @@ import { LineageView } from 'src/view/view';
 
 export const skipAlign = (view: LineageView, action: PluginAction) => {
     if (
-        action.type === 'DOCUMENT/SET_NODE_CONTENT' &&
+        action.type === 'document/update-node-content' &&
         action.context.isInSidebar
     )
         return true;

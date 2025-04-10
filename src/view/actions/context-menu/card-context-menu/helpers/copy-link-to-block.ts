@@ -34,7 +34,7 @@ export const copyLinkToBlock = async (
     if (output) {
         const fileName = file.basename;
         view.documentStore.dispatch({
-            type: 'DOCUMENT/SET_NODE_CONTENT',
+            type: 'document/update-node-content',
             payload: {
                 content: output.text,
                 nodeId: activeNode,

@@ -11,7 +11,7 @@ export const CardWidth = (
         defaultValue: DEFAULT_CARD_WIDTH,
         onChange: (value) => {
             settingsStore.dispatch({
-                type: 'SET_CARD_WIDTH',
+                type: 'settings/view/layout/set-card-width',
                 payload: {
                     width: value,
                 },

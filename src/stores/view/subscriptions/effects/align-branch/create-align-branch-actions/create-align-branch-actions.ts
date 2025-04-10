@@ -72,15 +72,15 @@ export const createAlignBranchActions = (
 
     if (
         action.type === 'view/life-cycle/mount' ||
-        action.type === 'DOCUMENT/SPLIT_NODE' ||
-        action.type === 'DOCUMENT/LOAD_FILE'
+        action.type === 'document/split-node' ||
+        action.type === 'document/file/load-from-disk'
     ) {
         actions.push({ action: '50/inactive-columns/vertical/move-up' });
     }
     if (
         !settings.centerActiveNodeH &&
         (action.type === 'view/life-cycle/mount' ||
-            action.type === 'UI/CHANGE_ZOOM_LEVEL')
+            action.type === 'settings/view/set-zoom-level')
     ) {
         actions.push({
             action: '10/first-column/horizontal/move-to-the-left',

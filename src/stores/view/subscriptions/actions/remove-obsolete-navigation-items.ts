@@ -6,7 +6,7 @@ export const removeObsoleteNavigationItems = (
     documentState: DocumentState,
 ) => {
     viewStore.dispatch({
-        type: 'NAVIGATION/REMOVE_OBSOLETE',
+        type: 'view/active-node-history/delete-obsolete',
         payload: {
             content: documentState.document.content,
         },

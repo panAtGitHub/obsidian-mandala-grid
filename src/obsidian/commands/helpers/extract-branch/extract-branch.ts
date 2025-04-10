@@ -55,7 +55,7 @@ export const extractBranch = async (view: LineageView) => {
         await openFileInLineage(view.plugin, newFile, format, 'split');
 
         view.documentStore.dispatch({
-            type: 'DOCUMENT/EXTRACT_BRANCH',
+            type: 'document/extract-node',
             payload: {
                 nodeId: branch.nodeId,
                 documentName: newFile.basename,

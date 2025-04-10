@@ -4,7 +4,7 @@ import { deleteChildNodes } from 'src/lib/tree-utils/delete/delete-child-nodes';
 import { cleanAndSortColumns } from 'src/lib/tree-utils/sort/clean-and-sort-columns';
 
 export type ExtractNodeAction = {
-    type: 'DOCUMENT/EXTRACT_BRANCH';
+    type: 'document/extract-node';
     payload: {
         nodeId: string;
         documentName: string;

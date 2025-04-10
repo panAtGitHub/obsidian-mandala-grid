@@ -14,6 +14,6 @@ export const loadFullDocument = (
             format,
             activeSection,
         },
-        type: 'DOCUMENT/LOAD_FILE',
+        type: 'document/file/load-from-disk',
     });
 };

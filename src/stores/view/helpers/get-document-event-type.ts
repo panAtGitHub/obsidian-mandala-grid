@@ -1,33 +1,33 @@
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
 
 const contentEvents = new Set<ActionType>([
-    'DOCUMENT/SET_NODE_CONTENT',
-    'DOCUMENT/FORMAT_HEADINGS',
+    'document/update-node-content',
+    'document/format-headings',
 ]);
 
 const createAndDelete = new Set<ActionType>([
-    'DOCUMENT/INSERT_NODE',
-    'DOCUMENT/DELETE_NODE',
-    'DOCUMENT/MERGE_NODE',
-    'DOCUMENT/LOAD_FILE',
-    'DOCUMENT/EXTRACT_BRANCH',
-    'DOCUMENT/SPLIT_NODE',
+    'document/add-node',
+    'document/delete-node',
+    'document/merge-node',
+    'document/file/load-from-disk',
+    'document/extract-node',
+    'document/split-node',
 ]);
 
 const dropAndMoveEvents = new Set<ActionType>([
-    'DOCUMENT/DROP_NODE',
-    'DOCUMENT/MOVE_NODE',
+    'document/drop-node',
+    'document/move-node',
     'document/sort-direct-child-nodes',
 ]);
 
 const historyEvents = new Set<ActionType>([
-    'HISTORY/APPLY_NEXT_SNAPSHOT',
-    'HISTORY/APPLY_PREVIOUS_SNAPSHOT',
-    'HISTORY/SELECT_SNAPSHOT',
+    'document/history/select-next-snapshot',
+    'document/history/select-previous-snapshot',
+    'document/history/select-snapshot',
 ]);
 const clipboardEvents = new Set<ActionType>([
-    'DOCUMENT/PASTE_NODE',
-    'DOCUMENT/CUT_NODE',
+    'document/paste-node',
+    'document/cut-node',
 ]);
 
 const cachedResults: { [key: string]: DocumentEventType } = {};
@@ -60,28 +60,28 @@ export const getDocumentEventType = (type: ActionType): DocumentEventType => {
 
 export const STRUCTURE_AND_CONTENT = new Set<DocumentStoreAction['type']>([
     // full
-    'HISTORY/APPLY_NEXT_SNAPSHOT',
-    'HISTORY/APPLY_PREVIOUS_SNAPSHOT',
-    'HISTORY/SELECT_SNAPSHOT',
-    'DOCUMENT/LOAD_FILE',
-    'RESET_STORE',
+    'document/history/select-next-snapshot',
+    'document/history/select-previous-snapshot',
+    'document/history/select-snapshot',
+    'document/file/load-from-disk',
+
     // partial
-    'DOCUMENT/MERGE_NODE',
-    'DOCUMENT/SPLIT_NODE',
-    'DOCUMENT/DELETE_NODE',
-    'DOCUMENT/EXTRACT_BRANCH',
-    'DOCUMENT/CUT_NODE',
+    'document/merge-node',
+    'document/split-node',
+    'document/delete-node',
+    'document/extract-node',
+    'document/cut-node',
 ]);
 
 export const CONTENT_ONLY = new Set<DocumentStoreAction['type']>([
-    'DOCUMENT/SET_NODE_CONTENT',
-    'DOCUMENT/FORMAT_HEADINGS',
+    'document/update-node-content',
+    'document/format-headings',
 ]);
 
 export const STRUCTURE_ONLY = new Set<DocumentStoreAction['type']>([
-    'DOCUMENT/DROP_NODE',
-    'DOCUMENT/MOVE_NODE',
-    'DOCUMENT/INSERT_NODE',
-    'DOCUMENT/PASTE_NODE',
+    'document/drop-node',
+    'document/move-node',
+    'document/add-node',
+    'document/paste-node',
     'document/sort-direct-child-nodes',
 ]);

@@ -10,7 +10,7 @@ export const updateSelectedNodes = (
 ) => {
     const documentState = view.documentStore.getValue();
     let clear = true;
-    if (action.type === 'DOCUMENT/PASTE_NODE' || changeHistory) {
+    if (action.type === 'document/paste-node' || changeHistory) {
         const history = documentState.history;
         const snapshot = history.items[history.state.activeIndex];
         if (snapshot.context.affectedSections) {

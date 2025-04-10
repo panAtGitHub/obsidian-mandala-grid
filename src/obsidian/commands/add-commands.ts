@@ -53,7 +53,7 @@ const createCommands = (plugin: Lineage) => {
                 return Boolean(getActiveLineageView(plugin));
             }
             plugin.settings.dispatch({
-                type: 'VIEW/SCROLLING/TOGGLE_SCROLLING_MODE',
+                type: 'settings/view/toggle-horizontal-scrolling-mode',
             });
         },
     });
@@ -66,7 +66,7 @@ const createCommands = (plugin: Lineage) => {
                 return Boolean(getActiveLineageView(plugin));
             }
             plugin.settings.dispatch({
-                type: 'settings/view/scrolling/toggle-vertical-scrolling-mode',
+                type: 'settings/view/toggle-vertical-scrolling-mode',
             });
         },
     });
@@ -222,7 +222,7 @@ const createCommands = (plugin: Lineage) => {
                 return Boolean(view);
             }
             plugin.settings.dispatch({
-                type: 'VIEW/TOGGLE_MINIMAP',
+                type: 'settings/view/toggle-minimap',
             });
         },
     });

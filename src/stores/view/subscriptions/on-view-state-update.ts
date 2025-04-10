@@ -48,7 +48,7 @@ export const onViewStateUpdate = (
         }
     }
 
-    if (action.type === 'SEARCH/SET_QUERY') {
+    if (action.type === 'view/search/set-query') {
         updateSearchResults(view);
     }
 
@@ -63,28 +63,28 @@ export const onViewStateUpdate = (
     }
     if (!container || !view.isViewOfFile) return;
 
-    if (type === 'SEARCH/TOGGLE_FUZZY_MODE') {
+    if (type === 'view/search/toggle-fuzzy-mode') {
         view.documentSearch.resetIndex();
     }
 
     if (
-        action.type === 'view/main/disable-edit' ||
-        action.type === 'view/sidebar/disable-edit' ||
-        action.type === 'NAVIGATION/NAVIGATE_FORWARD' ||
-        action.type === 'NAVIGATION/NAVIGATE_BACK'
+        action.type === 'view/editor/disable-main-editor' ||
+        action.type === 'view/editor/disable-sidebar-editor' ||
+        action.type === 'view/set-active-node/history/select-next' ||
+        action.type === 'view/set-active-node/history/select-previous'
     ) {
         focusContainer(view);
     }
-    if (action.type === 'SEARCH/TOGGLE_INPUT') {
+    if (action.type === 'view/search/toggle-input') {
         if (!viewState.search.showInput) {
             focusContainer(view);
         }
     }
 
     if (
-        action.type === 'SEARCH/SET_RESULTS' ||
-        action.type === 'SEARCH/TOGGLE_INPUT' ||
-        action.type === 'SEARCH/SET_QUERY'
+        action.type === 'view/search/set-results' ||
+        action.type === 'view/search/toggle-input' ||
+        action.type === 'view/search/set-query'
     ) {
         showSearchResultsInMinimap(view);
     }
@@ -93,7 +93,7 @@ export const onViewStateUpdate = (
         persistActivePinnedNode(view);
     }
 
-    if (action.type === 'UI/TOGGLE_HELP_SIDEBAR') {
+    if (action.type === 'view/hotkeys/toggle-modal') {
         if (viewState.ui.controls.showHelpSidebar) {
             view.viewStore.dispatch({
                 type: 'view/hotkeys/update-conflicts',

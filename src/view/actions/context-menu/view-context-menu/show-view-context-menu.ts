@@ -28,7 +28,7 @@ export const showViewContextMenu = (event: MouseEvent, view: LineageView) => {
             action: () => {
                 saveNodeContent(view);
                 view.documentStore.dispatch({
-                    type: 'DOCUMENT/FORMAT_HEADINGS',
+                    type: 'document/format-headings',
                 });
             },
             disabled: !_hasHeading,

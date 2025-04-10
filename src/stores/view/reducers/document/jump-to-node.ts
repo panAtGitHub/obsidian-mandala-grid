@@ -10,7 +10,7 @@ export type JumpTarget =
     | 'start-of-column'
     | 'end-of-column';
 export type JumpToNodeAction = {
-    type: 'DOCUMENT/JUMP_TO_NODE';
+    type: 'view/set-active-node/keyboard-jump';
     payload: {
         target: JumpTarget;
     };

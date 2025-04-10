@@ -6,7 +6,6 @@ import { formatText } from 'src/view/actions/markdown-preview/helpers/format-tex
 export const markdownPreviewAction = (element: HTMLElement, nodeId: string) => {
     const plugin = getPlugin();
     const view = getView();
-    const store = view.documentStore;
 
     const render = (content: string) => {
         if (view && element) {
@@ -18,7 +17,7 @@ export const markdownPreviewAction = (element: HTMLElement, nodeId: string) => {
                 plugin.app,
                 content,
                 element,
-                store.getValue().file.path as string,
+                view.file!.path,
                 view,
             );
         }

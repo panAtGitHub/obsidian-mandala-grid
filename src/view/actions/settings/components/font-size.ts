@@ -10,7 +10,7 @@ export const FontSize = (
         defaultValue: 16,
         onChange: (value) => {
             settingsStore.dispatch({
-                type: 'SET_FONT_SIZE',
+                type: 'settings/view/theme/set-font-size',
                 payload: {
                     fontSize: value,
                 },

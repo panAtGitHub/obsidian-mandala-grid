@@ -27,23 +27,14 @@ export type SavedDocument = {
     position: NodePosition | null;
     frontmatter: string;
 };
-type ResetStoreAction = { type: 'RESET_STORE' };
-type SetFilePathAction = {
-    type: 'FS/SET_FILE_PATH';
-    payload: {
-        path: string | null;
-    };
-};
 
 export type DocumentStoreAction = DocumentAction | HistoryAction;
 
 export type DocumentAction =
     | LoadDocumentAction
     | CreateNodeAction
-    | ResetStoreAction
     | SetNodeContentAction
     | DropAction
-    | SetFilePathAction
     | DeleteNodeAction
     | MoveNodeAction
     | MergeNodeAction
@@ -52,7 +43,7 @@ export type DocumentAction =
     | ExtractNodeAction
     | SplitNodeAction
     | {
-          type: 'FILE/UPDATE_FRONTMATTER';
+          type: 'document/file/update-frontmatter';
           payload: {
               frontmatter: string;
           };
@@ -86,7 +77,7 @@ export type CopyNodeAction = {
 };
 
 export type CutNodeAction = {
-    type: 'DOCUMENT/CUT_NODE';
+    type: 'document/cut-node';
     payload: {
         nodeId: string;
         selectedNodes?: Set<string>;

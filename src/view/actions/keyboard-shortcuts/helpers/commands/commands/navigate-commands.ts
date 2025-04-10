@@ -27,7 +27,7 @@ const maybeEnableEditMode = (view: LineageView) => {
 const spatialNavigation = (view: LineageView, direction: AllDirections) => {
     maybeEnableEditMode(view);
     view.viewStore.dispatch({
-        type: 'DOCUMENT/NAVIGATE_USING_KEYBOARD',
+        type: 'view/set-active-node/keyboard',
         payload: {
             direction: direction,
         },
@@ -43,7 +43,7 @@ const sequentialNavigation = (
 ) => {
     maybeEnableEditMode(view);
     view.viewStore.dispatch({
-        type: 'NAVIGATION/SELECT_NEXT_NODE',
+        type: 'view/set-active-node/sequential/select-next',
         payload: {
             direction,
             sections: view.documentStore.getValue().sections,
@@ -57,7 +57,7 @@ const sequentialNavigation = (
 const jump = (view: LineageView, target: JumpTarget) => {
     maybeEnableEditMode(view);
     view.viewStore.dispatch({
-        type: 'DOCUMENT/JUMP_TO_NODE',
+        type: 'view/set-active-node/keyboard-jump',
         payload: {
             target,
         },
@@ -198,7 +198,7 @@ export const navigateCommands = () => {
             callback: (view, event) => {
                 event.preventDefault();
                 view.viewStore.dispatch({
-                    type: 'NAVIGATION/NAVIGATE_BACK',
+                    type: 'view/set-active-node/history/select-previous',
                 });
             },
             hotkeys: [{ key: 'J', modifiers: ['Alt'], editorState: 'both' }],
@@ -208,7 +208,7 @@ export const navigateCommands = () => {
             callback: (view, event) => {
                 event.preventDefault();
                 view.viewStore.dispatch({
-                    type: 'NAVIGATION/NAVIGATE_FORWARD',
+                    type: 'view/set-active-node/history/select-next',
                 });
             },
             hotkeys: [{ key: 'K', modifiers: ['Alt'], editorState: 'both' }],

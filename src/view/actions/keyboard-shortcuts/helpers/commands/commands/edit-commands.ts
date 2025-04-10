@@ -9,7 +9,7 @@ export const editCommands = () => {
             callback: (view, event) => {
                 event.preventDefault();
                 view.viewStore.dispatch({
-                    type: 'view/main/enable-edit',
+                    type: 'view/editor/enable-main-editor',
                     payload: {
                         nodeId: view.viewStore.getValue().document.activeNode,
                     },
@@ -26,7 +26,7 @@ export const editCommands = () => {
                 const nodeId = view.viewStore.getValue().document.activeNode;
                 view.inlineEditor.setNodeCursor(nodeId, { line: 0, ch: 0 });
                 view.viewStore.dispatch({
-                    type: 'view/main/enable-edit',
+                    type: 'view/editor/enable-main-editor',
                     payload: {
                         nodeId: nodeId,
                     },
@@ -47,7 +47,7 @@ export const editCommands = () => {
                 const nodeId = view.viewStore.getValue().document.activeNode;
                 view.inlineEditor.deleteNodeCursor(nodeId);
                 view.viewStore.dispatch({
-                    type: 'view/main/enable-edit',
+                    type: 'view/editor/enable-main-editor',
                     payload: {
                         nodeId: nodeId,
                     },

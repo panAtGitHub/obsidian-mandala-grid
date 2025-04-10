@@ -18,7 +18,7 @@ export const cutSearchResults = async (view: LineageView) => {
         ? viewState.document.activeNode
         : sortNodeIdsBySectionNumber(sections, results)[0];
     view.documentStore.dispatch({
-        type: 'DOCUMENT/CUT_NODE',
+        type: 'document/cut-node',
         payload: {
             nodeId: activeSearchNode,
             selectedNodes: new Set(sortedByDepth),

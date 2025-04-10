@@ -44,15 +44,15 @@ const updateDocumentState = (
         updateActiveNode(state.document, action.payload.id, state);
         if (!state.document.selectedNodes.has(state.document.activeNode))
             resetSelectionState(state.document);
-    } else if (action.type === 'DOCUMENT/NAVIGATE_USING_KEYBOARD') {
+    } else if (action.type === 'view/set-active-node/keyboard') {
         navigateUsingKeyboard(state.document, state, action, context.columns);
-    } else if (action.type === 'SEARCH/SET_QUERY') {
+    } else if (action.type === 'view/search/set-query') {
         setSearchQuery(state, action.payload.query);
-    } else if (action.type === 'SEARCH/SET_RESULTS') {
+    } else if (action.type === 'view/search/set-results') {
         setSearchResults(state, action.payload.results);
-    } else if (action.type === 'SEARCH/TOGGLE_INPUT') {
+    } else if (action.type === 'view/search/toggle-input') {
         toggleSearchInput(state);
-    } else if (action.type === 'UI/TOGGLE_HISTORY_SIDEBAR') {
+    } else if (action.type === 'view/snapshots/toggle-modal') {
         const showHistorySidebar = state.ui.controls.showHistorySidebar;
         state.ui.controls = {
             showHistorySidebar: !showHistorySidebar,
@@ -60,7 +60,7 @@ const updateDocumentState = (
             showSettingsSidebar: false,
             showStyleRulesModal: false,
         };
-    } else if (action.type === 'UI/TOGGLE_HELP_SIDEBAR') {
+    } else if (action.type === 'view/hotkeys/toggle-modal') {
         const showHelpSidebar = state.ui.controls.showHelpSidebar;
         state.ui.controls = {
             showHistorySidebar: false,
@@ -68,7 +68,7 @@ const updateDocumentState = (
             showSettingsSidebar: false,
             showStyleRulesModal: false,
         };
-    } else if (action.type === 'UI/TOGGLE_SETTINGS_SIDEBAR') {
+    } else if (action.type === 'view/settings/toggle-modal') {
         const showSettingsSidebar = state.ui.controls.showSettingsSidebar;
         state.ui.controls = {
             showHistorySidebar: false,
@@ -76,7 +76,7 @@ const updateDocumentState = (
             showSettingsSidebar: !showSettingsSidebar,
             showStyleRulesModal: false,
         };
-    } else if (action.type === 'CLOSE_MODALS') {
+    } else if (action.type === 'view/close-modals') {
         state.ui.controls = {
             showHistorySidebar: false,
             showHelpSidebar: action.payload?.closeAllModals
@@ -85,12 +85,12 @@ const updateDocumentState = (
             showSettingsSidebar: false,
             showStyleRulesModal: false,
         };
-    } else if (action.type === 'view/main/enable-edit') {
+    } else if (action.type === 'view/editor/enable-main-editor') {
         if (state.document.activeNode !== action.payload.nodeId) {
             updateActiveNode(state.document, action.payload.nodeId, state);
         }
         enableEditMode(state.document, action.payload.nodeId);
-    } else if (action.type === 'view/sidebar/enable-edit') {
+    } else if (action.type === 'view/editor/enable-sidebar-editor') {
         if (action.context.activeSidebarTab === 'pinned-cards') {
             if (state.pinnedNodes.activeNode !== action.payload.id) {
                 setActivePinnedNode(
@@ -109,11 +109,11 @@ const updateDocumentState = (
             }
         }
         enableEditMode(state.document, action.payload.id, true);
-    } else if (action.type === 'view/confirmation/reset/disable-edit') {
+    } else if (action.type === 'view/editor/disable/reset-confirmation') {
         resetPendingConfirmation(state.document);
-    } else if (action.type === 'view/confirmation/reset/delete-node') {
+    } else if (action.type === 'view/delete-node/reset-confirmation') {
         resetPendingConfirmation(state.document);
-    } else if (action.type === 'view/confirmation/confirm/delete-node') {
+    } else if (action.type === 'view/delete-node/confirm') {
         state.document.pendingConfirmation = {
             ...state.document.pendingConfirmation,
             deleteNode:
@@ -122,37 +122,37 @@ const updateDocumentState = (
                     ? new Set(state.document.selectedNodes)
                     : new Set([action.payload.id]),
         };
-    } else if (action.type === 'view/confirmation/confirm/disable-edit') {
+    } else if (action.type === 'view/editor/disable/confirm') {
         state.document.pendingConfirmation = {
             ...state.document.pendingConfirmation,
             disableEdit: action.payload.id,
         };
     } else if (
-        action.type === 'view/main/disable-edit' ||
-        action.type === 'view/sidebar/disable-edit'
+        action.type === 'view/editor/disable-main-editor' ||
+        action.type === 'view/editor/disable-sidebar-editor'
     ) {
         disableEditMode(state.document);
-    } else if (action.type === 'SET_DRAG_STARTED') {
+    } else if (action.type === 'view/dnd/set-drag-started') {
         onDragStart(state.document, action);
-    } else if (action.type === 'DOCUMENT/SET_DRAG_ENDED') {
+    } else if (action.type === 'view/dnd/set-drag-ended') {
         onDragEnd(state.document);
     } else if (action.type === 'view/update-active-branch?source=document') {
         updateActiveBranch(state.document, context.columns, true);
-    } else if (action.type === 'NAVIGATION/NAVIGATE_FORWARD') {
+    } else if (action.type === 'view/set-active-node/history/select-next') {
         navigateActiveNodeHistory(state.document, state, true);
-    } else if (action.type === 'NAVIGATION/NAVIGATE_BACK') {
+    } else if (action.type === 'view/set-active-node/history/select-previous') {
         navigateActiveNodeHistory(state.document, state);
-    } else if (action.type === 'DOCUMENT/JUMP_TO_NODE') {
+    } else if (action.type === 'view/set-active-node/keyboard-jump') {
         jumpToNode(state.document, state, action, context.columns);
-    } else if (action.type === 'NAVIGATION/REMOVE_OBSOLETE') {
+    } else if (action.type === 'view/active-node-history/delete-obsolete') {
         removeDeletedNavigationItems(state, action.payload.content);
-    } else if (action.type === 'SEARCH/TOGGLE_FUZZY_MODE') {
+    } else if (action.type === 'view/search/toggle-fuzzy-mode') {
         toggleFuzzySearch(state);
-    } else if (action.type === 'DOCUMENT/CLEAR_SELECTION') {
+    } else if (action.type === 'view/selection/clear-selection') {
         resetSelectionState(state.document);
     } else if (action.type === 'view/selection/select-all') {
         selectAllNodes(state.document, context.columns);
-    } else if (action.type === 'NAVIGATION/SELECT_NEXT_NODE') {
+    } else if (action.type === 'view/set-active-node/sequential/select-next') {
         navigateActiveNode(state.document, state, action);
     } else if (action.type === 'view/pinned-nodes/set-active-node') {
         setActivePinnedNode(
@@ -166,9 +166,9 @@ const updateDocumentState = (
             state.recentNodes,
             action.payload.id,
         );
-    } else if (action.type === 'search/toggle-show-all-nodes') {
+    } else if (action.type === 'search/view/toggle-show-all-nodes') {
         toggleShowAllNodes(state);
-    } else if (action.type === 'view/modals/toggle-style-rules') {
+    } else if (action.type === 'view/style-rules/toggle-modal') {
         const showStyleRulesModal = state.ui.controls.showStyleRulesModal;
         state.ui.controls = {
             showHistorySidebar: false,
@@ -203,7 +203,7 @@ const updateDocumentState = (
     } else if (action.type === 'view/selection/set-selection') {
         state.document.selectedNodes = new Set(action.payload.ids);
     } else if (
-        action.type === 'view/persisted-state/load-persisted-collapsed-parents'
+        action.type === 'view/outline/load-persisted-collapsed-parents'
     ) {
         for (const id of action.payload.collapsedIds) {
             collapseNode(state, context.columns, id);

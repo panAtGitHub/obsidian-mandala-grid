@@ -1,5 +1,6 @@
 import { Settings } from 'src/stores/settings/settings-type';
-import { PersistCollapsedSectionsAction } from 'src/stores/settings/settings-reducer';
+
+import { PersistCollapsedSectionsAction } from 'src/stores/settings/settings-store-actions';
 
 export const persistCollapsedSections = (
     state: Settings,

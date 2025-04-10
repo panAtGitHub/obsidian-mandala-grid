@@ -126,14 +126,14 @@ export class NodePropertyResolver {
             this.cache['depth'] = {};
             this.cache['direct-children-count'] = {};
             this.cache['total-children-count'] = {};
-        } else if (action.type === 'DOCUMENT/SET_NODE_CONTENT') {
+        } else if (action.type === 'document/update-node-content') {
             delete this.cache.headings[action.payload.nodeId];
             delete this.cache.content[action.payload.nodeId];
             delete this.cache['line-count'][action.payload.nodeId];
             delete this.cache['character-count'][action.payload.nodeId];
             delete this.cache['word-count'][action.payload.nodeId];
             delete this.cache['headings-word-count'][action.payload.nodeId];
-        } else if (action.type === 'DOCUMENT/FORMAT_HEADINGS') {
+        } else if (action.type === 'document/format-headings') {
             this.cache.headings = {};
             this.cache.content = {};
             this.cache['line-count'] = {};

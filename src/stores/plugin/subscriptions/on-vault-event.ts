@@ -12,7 +12,7 @@ export const onVaultEvent = (plugin: Lineage) => {
                     },
                 });
                 plugin.settings.dispatch({
-                    type: 'DELETE_DOCUMENT_PREFERENCES',
+                    type: 'settings/documents/delete-document-preferences',
                     payload: {
                         path: file.path,
                     },
@@ -32,7 +32,7 @@ export const onVaultEvent = (plugin: Lineage) => {
                     },
                 });
                 plugin.settings.dispatch({
-                    type: 'HISTORY/UPDATE_DOCUMENT_PATH',
+                    type: 'settings/documents/update-document-path',
                     payload: {
                         newPath: file.path,
                         oldPath,

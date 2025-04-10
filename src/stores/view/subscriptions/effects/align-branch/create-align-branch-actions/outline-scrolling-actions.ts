@@ -13,7 +13,7 @@ export const outlineScrollingActions = (
 
     const forceCenterActiveNodeV =
         action.type === 'view/life-cycle/mount' ||
-        action.type === 'DOCUMENT/LOAD_FILE';
+        action.type === 'document/file/load-from-disk';
 
     if (forceCenterActiveNodeV) {
         actions.push({ action: '20/active-node/horizontal/center' });

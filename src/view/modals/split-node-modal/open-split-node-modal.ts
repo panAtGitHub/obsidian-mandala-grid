@@ -28,7 +28,7 @@ export const openSplitNodeModal = async (view: LineageView) => {
                 const mode = get(modal.state.mode);
                 if (mode && newContent !== nodeContent) {
                     view.documentStore.dispatch({
-                        type: 'DOCUMENT/SPLIT_NODE',
+                        type: 'document/split-node',
                         payload: {
                             target: activeNode,
                             mode: mode,

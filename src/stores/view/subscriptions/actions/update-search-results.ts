@@ -25,7 +25,7 @@ export const updateSearchResults = debounce((view: LineageView) => {
     if (!query) return;
     const results = view.documentSearch.search(query);
     view.viewStore.dispatch({
-        type: 'SEARCH/SET_RESULTS',
+        type: 'view/search/set-results',
         payload: {
             results: results,
         },

@@ -7,7 +7,7 @@ import {
 import { loadDocumentFromSnapshot } from 'src/stores/document/reducers/history/helpers/load-document-from-snapshot';
 
 export type SelectSnapshotAction = {
-    type: 'HISTORY/SELECT_SNAPSHOT';
+    type: 'document/history/select-snapshot';
     payload: {
         snapshotId: string;
     };

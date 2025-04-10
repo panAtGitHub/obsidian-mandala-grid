@@ -1,14 +1,13 @@
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
 import { PluginState } from 'src/stores/plugin/plugin-state-type';
+import { defaultDocumentState } from 'src/stores/document/default-document-state';
 
 const updateState = (state: PluginState, action: PluginStoreActions) => {
     if (action.type === 'plugin/documents/unregister-document-store') {
         const path = action.payload.path;
         if (path in state.documents) {
             const oldEntry = state.documents[path];
-            oldEntry.documentStore.dispatch({
-                type: 'RESET_STORE',
-            });
+            oldEntry.documentStore.set(defaultDocumentState());
             delete state.documents[path];
         }
     } else if (action.type === 'plugin/documents/update-document-path') {
@@ -18,12 +17,6 @@ const updateState = (state: PluginState, action: PluginStoreActions) => {
             const oldEntry = state.documents[oldPath];
             delete state.documents[oldPath];
             state.documents[newPath] = oldEntry;
-            oldEntry.documentStore.dispatch({
-                type: 'FS/SET_FILE_PATH',
-                payload: {
-                    path: newPath,
-                },
-            });
         }
     } else if (action.type === 'plugin/documents/register-new-document-store') {
         state.documents[action.payload.path] = {

@@ -37,14 +37,14 @@
     const restoreZoom = () => {
         if (get(showUndoRestZoomButton)) {
             view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
+                type: 'settings/view/set-zoom-level',
                 payload: { value: zoomValueBeforeReset },
             });
             clearSavedZoomValue();
         } else {
             saveZoomValue();
             view.plugin.settings.dispatch({
-                type: 'UI/CHANGE_ZOOM_LEVEL',
+                type: 'settings/view/set-zoom-level',
                 payload: { value: 1 },
             });
         }

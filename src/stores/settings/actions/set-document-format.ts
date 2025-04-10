@@ -7,7 +7,7 @@ export const setDocumentFormat = (
     type: LineageDocumentFormat,
 ) => {
     plugin.settings.dispatch({
-        type: 'SET_DOCUMENT_TYPE',
+        type: 'settings/documents/set-document-format',
         payload: {
             path: path,
             format: type,

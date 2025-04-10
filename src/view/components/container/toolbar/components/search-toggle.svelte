@@ -15,7 +15,7 @@
         active={$search.showInput}
         label={lang.tlb_search_toggle}
         on:click={() => {
-            viewStore.dispatch({ type: 'SEARCH/TOGGLE_INPUT' });
+            viewStore.dispatch({ type: 'view/search/toggle-input' });
         }}
         tooltipPosition="bottom"
     >

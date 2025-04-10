@@ -6,7 +6,9 @@ import {
 import { loadDocumentFromSnapshot } from 'src/stores/document/reducers/history/helpers/load-document-from-snapshot';
 
 export type UndoRedoAction = {
-    type: 'HISTORY/APPLY_PREVIOUS_SNAPSHOT' | 'HISTORY/APPLY_NEXT_SNAPSHOT';
+    type:
+        | 'document/history/select-previous-snapshot'
+        | 'document/history/select-next-snapshot';
 };
 
 export const undoAction = (

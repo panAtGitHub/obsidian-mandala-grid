@@ -9,7 +9,7 @@ import { findAdjacentNodeOfSelection } from 'src/lib/tree-utils/find/find-adjace
 import { findAdjacentParent } from 'src/lib/tree-utils/find/find-adjacent-parent';
 
 export type MoveNodeAction = {
-    type: 'DOCUMENT/MOVE_NODE';
+    type: 'document/move-node';
     payload: {
         direction: AllDirections;
         activeNodeId: string;

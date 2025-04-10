@@ -25,7 +25,7 @@ export const selectionCommands = () => {
             callback: (view, event) => {
                 event.preventDefault();
                 view.viewStore.dispatch({
-                    type: 'DOCUMENT/NAVIGATE_USING_KEYBOARD',
+                    type: 'view/set-active-node/keyboard',
                     payload: {
                         direction: 'up',
                     },
@@ -50,7 +50,7 @@ export const selectionCommands = () => {
             callback: (view, event) => {
                 event.preventDefault();
                 view.viewStore.dispatch({
-                    type: 'DOCUMENT/NAVIGATE_USING_KEYBOARD',
+                    type: 'view/set-active-node/keyboard',
                     payload: {
                         direction: 'down',
                     },
@@ -76,7 +76,7 @@ export const selectionCommands = () => {
                 e.preventDefault();
                 e.stopPropagation();
                 view.viewStore.dispatch({
-                    type: 'DOCUMENT/JUMP_TO_NODE',
+                    type: 'view/set-active-node/keyboard-jump',
                     payload: {
                         target: 'end-of-column',
                     },
@@ -95,7 +95,7 @@ export const selectionCommands = () => {
                 e.preventDefault();
                 e.stopPropagation();
                 view.viewStore.dispatch({
-                    type: 'DOCUMENT/JUMP_TO_NODE',
+                    type: 'view/set-active-node/keyboard-jump',
                     payload: {
                         target: 'start-of-column',
                     },
@@ -118,7 +118,7 @@ export const selectionCommands = () => {
                 e.preventDefault();
                 e.stopPropagation();
                 view.viewStore.dispatch({
-                    type: 'DOCUMENT/JUMP_TO_NODE',
+                    type: 'view/set-active-node/keyboard-jump',
                     payload: {
                         target: 'end-of-group',
                     },
@@ -141,7 +141,7 @@ export const selectionCommands = () => {
                 e.preventDefault();
                 e.stopPropagation();
                 view.viewStore.dispatch({
-                    type: 'DOCUMENT/JUMP_TO_NODE',
+                    type: 'view/set-active-node/keyboard-jump',
                     payload: {
                         target: 'start-of-group',
                     },

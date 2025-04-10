@@ -16,7 +16,7 @@
             disabled={!$navigationHistory.state.canGoBack}
             label={lang.tlb_navigation_navigate_back}
             on:click={() => {
-                viewStore.dispatch({ type: 'NAVIGATION/NAVIGATE_BACK' });
+                viewStore.dispatch({ type: 'view/set-active-node/history/select-previous' });
             }}
             tooltipPosition="bottom"
         >
@@ -26,7 +26,7 @@
             disabled={!$navigationHistory.state.canGoForward}
             label={lang.tlb_navigation_navigate_forward}
             on:click={() => {
-                viewStore.dispatch({ type: 'NAVIGATION/NAVIGATE_FORWARD' });
+                viewStore.dispatch({ type: 'view/set-active-node/history/select-next' });
             }}
             tooltipPosition="bottom"
         >

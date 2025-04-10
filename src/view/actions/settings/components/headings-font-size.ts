@@ -11,7 +11,7 @@ export const HeadingsFontSize = (
         defaultValue: DEFAULT_H1_FONT_SIZE_EM,
         onChange: (value) => {
             settingsStore.dispatch({
-                type: 'settings/view/set-h1-font-size',
+                type: 'settings/view/theme/set-h1-font-size',
                 payload: {
                     fontSize_em: value,
                 },

@@ -1,7 +1,7 @@
 import { Column, DocumentMeta } from 'src/stores/document/document-state-type';
 
 export type RefreshGroupParentIdsAction = {
-    type: 'META/REFRESH_GROUP_PARENT_IDS';
+    type: 'document/meta/refresh-group-parent-ids';
 };
 export const refreshGroupParentIds = (
     columns: Column[],

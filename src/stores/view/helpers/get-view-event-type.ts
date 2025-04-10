@@ -2,15 +2,15 @@ import { ViewStoreAction } from 'src/stores/view/view-store-actions';
 
 type ActionType = ViewStoreAction['type'];
 const navigationEvents = new Set<ActionType>([
-    'NAVIGATION/NAVIGATE_BACK',
-    'NAVIGATION/NAVIGATE_FORWARD',
-    'NAVIGATION/SELECT_NEXT_NODE',
+    'view/set-active-node/history/select-previous',
+    'view/set-active-node/history/select-next',
+    'view/set-active-node/sequential/select-next',
 ]);
 
 const searchEvents = new Set<ActionType>([
-    'SEARCH/SET_QUERY',
-    'SEARCH/SET_RESULTS',
-    'SEARCH/TOGGLE_INPUT',
+    'view/search/set-query',
+    'view/search/set-results',
+    'view/search/toggle-input',
 ]);
 
 const stateEvents = new Set<ActionType>([
@@ -18,18 +18,18 @@ const stateEvents = new Set<ActionType>([
     'view/set-active-node/mouse',
     'view/set-active-node/mouse-silent',
     'view/set-active-node/search',
-    'DOCUMENT/NAVIGATE_USING_KEYBOARD',
-    'DOCUMENT/JUMP_TO_NODE',
+    'view/set-active-node/keyboard',
+    'view/set-active-node/keyboard-jump',
     'view/selection/select-all',
 ]);
 
 const editMainSplitEvents = new Set<ActionType>([
-    'view/main/enable-edit',
-    'view/main/disable-edit',
+    'view/editor/enable-main-editor',
+    'view/editor/disable-main-editor',
 ]);
 const editSidebarEvents = new Set<ActionType>([
-    'view/sidebar/enable-edit',
-    'view/sidebar/disable-edit',
+    'view/editor/enable-sidebar-editor',
+    'view/editor/disable-sidebar-editor',
 ]);
 
 export type ViewEventType = {

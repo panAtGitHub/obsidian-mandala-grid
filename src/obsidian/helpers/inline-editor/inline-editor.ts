@@ -224,7 +224,7 @@ export class InlineEditor {
         const content = this.getContent();
         const viewState = this.view.viewStore.getValue();
         this.view.documentStore.dispatch({
-            type: 'DOCUMENT/SET_NODE_CONTENT',
+            type: 'document/update-node-content',
             payload: {
                 nodeId: nodeId,
                 content: content,

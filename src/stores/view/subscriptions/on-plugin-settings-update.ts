@@ -1,6 +1,5 @@
 import { LineageView } from 'src/view/view';
 import { Settings } from 'src/stores/settings/settings-type';
-import { SettingsActions } from 'src/stores/settings/settings-reducer';
 import { applyFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-font-size';
 import { applyCssColor } from 'src/stores/view/subscriptions/effects/css-variables/apply-css-color';
 import { applyCardWidth } from 'src/stores/view/subscriptions/effects/css-variables/apply-card-width';
@@ -11,6 +10,7 @@ import { applyCardIndentationWidth } from 'src/stores/view/subscriptions/effects
 import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/css-variables/apply-inactive-node-opacity';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { applyHeadingsFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-headings-font-size';
+import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 
 export const onPluginSettingsUpdate = (
     view: LineageView,
@@ -19,22 +19,22 @@ export const onPluginSettingsUpdate = (
 ) => {
     if (!view.container) return;
     const type = action.type;
-    if (type === 'SET_FONT_SIZE') {
+    if (type === 'settings/view/theme/set-font-size') {
         applyFontSize(view, state.view.fontSize);
-    } else if (type === 'settings/view/set-h1-font-size') {
+    } else if (type === 'settings/view/theme/set-h1-font-size') {
         applyHeadingsFontSize(view, state.view.h1FontSize_em);
-    } else if (type === 'SET_CONTAINER_BG') {
+    } else if (type === 'settings/view/theme/set-container-bg-color') {
         applyCssColor(view, 'containerBg');
-    } else if (type === 'SET_ACTIVE_BRANCH_BG') {
+    } else if (type === 'settings/view/theme/set-active-branch-bg-color') {
         applyCssColor(view, 'activeBranchBg');
-    } else if (type === 'SET_CARD_WIDTH') {
+    } else if (type === 'settings/view/layout/set-card-width') {
         applyCardWidth(view, state.view.cardWidth);
-    } else if (type === 'SET_CARDS_GAP') {
+    } else if (type === 'settings/view/layout/set-cards-gap') {
         applyCardsGap(view, state.view.cardsGap);
-    } else if (action.type === 'UI/CHANGE_ZOOM_LEVEL') {
+    } else if (action.type === 'settings/view/set-zoom-level') {
         applyZoomLevel(view, state.view.zoomLevel);
         view.zoomFactor = state.view.zoomLevel;
-    } else if (action.type === 'SET_DOCUMENT_TYPE') {
+    } else if (action.type === 'settings/documents/set-document-format') {
         view.saveDocument();
     } else if (type === 'settings/view/set-node-indentation-width') {
         applyCardIndentationWidth(view, state.view.nodeIndentationWidth);
@@ -66,19 +66,19 @@ export const onPluginSettingsUpdate = (
     const shouldAlign =
         type === 'view/left-sidebar/toggle' ||
         type === 'view/left-sidebar/set-width' ||
-        type === 'UI/CHANGE_ZOOM_LEVEL' ||
-        type === 'SET_CARD_WIDTH' ||
-        type === 'SET_LIMIT_PREVIEW_HEIGHT' ||
-        type === 'VIEW/TOGGLE_MINIMAP' ||
-        type === 'VIEW/SCROLLING/TOGGLE_SCROLLING_MODE' ||
-        type === 'settings/view/scrolling/toggle-vertical-scrolling-mode' ||
-        type === 'SET_CARDS_GAP' ||
+        type === 'settings/view/set-zoom-level' ||
+        type === 'settings/view/layout/set-card-width' ||
+        type === 'settings/view/layout/set-limit-card-height' ||
+        type === 'settings/view/toggle-minimap' ||
+        type === 'settings/view/toggle-horizontal-scrolling-mode' ||
+        type === 'settings/view/toggle-vertical-scrolling-mode' ||
+        type === 'settings/view/layout/set-cards-gap' ||
         type === 'view/modes/gap-between-cards/toggle' ||
         type === 'settings/view/set-node-indentation-width';
     if (shouldAlign) {
         view.alignBranch.align(action);
     }
-    if (view.isActive && type === 'UI/CHANGE_ZOOM_LEVEL') {
+    if (view.isActive && type === 'settings/view/set-zoom-level') {
         focusContainer(view);
     }
 

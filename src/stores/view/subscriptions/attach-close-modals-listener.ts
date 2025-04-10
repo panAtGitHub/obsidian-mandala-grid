@@ -9,7 +9,7 @@ export const attachCloseModalsListener = (view: LineageView) => {
             !isInsideModal && target.closest('.controls-container');
 
         if (e.button === 0 && !(isInsideModal || isInsideControlsBar)) {
-            view.viewStore.dispatch({ type: 'CLOSE_MODALS' });
+            view.viewStore.dispatch({ type: 'view/close-modals' });
             view.contentEl.removeEventListener('click', listener);
         }
     };

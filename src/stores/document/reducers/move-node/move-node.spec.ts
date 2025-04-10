@@ -16,7 +16,7 @@ describe('move-node', () => {
             ],
         };
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: mov },
         } as const;
         const output = {
@@ -40,7 +40,7 @@ describe('move-node', () => {
         const mov = 'neeO';
         const tar = 'nnGy';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'up', activeNodeId: mov },
         } as const;
 
@@ -75,7 +75,7 @@ describe('move-node', () => {
         const root = 'rXVP';
         const col0 = 'cZcR';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'right', activeNodeId: mov },
         } as const;
         const input = {
@@ -109,7 +109,7 @@ describe('move-node', () => {
         const adj = 'nvH_';
         const root = 'rXVP';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'up', activeNodeId: mov },
         } as const;
         const input = {
@@ -143,7 +143,7 @@ describe('move-node', () => {
         const mov = 'nKUl';
         const root = 'rXVP';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: mov },
         } as const;
         const input = {
@@ -181,7 +181,7 @@ describe('move-node', () => {
         const adj = 'nvH_';
         const root = 'rXVP';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'right', activeNodeId: mov },
         } as const;
         const input = {
@@ -216,7 +216,7 @@ describe('move-node', () => {
         const adj = 'nvH_';
         const root = 'rXVP';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'left', activeNodeId: mov },
         } as const;
         const input = {
@@ -249,7 +249,7 @@ describe('move-node', () => {
         const adj = 'nKUl';
         const root = 'rXVP';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'left', activeNodeId: mov },
         } as const;
         const input = {
@@ -295,7 +295,7 @@ describe('move-node', () => {
         const adj_c2_c1 = 'nDT_';
         const adj_c2_c2 = 'n4fu';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: mov },
         } as const;
         const input = {
@@ -375,7 +375,7 @@ describe('move-node', () => {
         const adj_2_1 = 'nDT_';
         const adj_2_2 = 'n4fu';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'right', activeNodeId: mov },
         } as const;
         const input = {
@@ -439,7 +439,7 @@ describe('move-node', () => {
     });
     test('>1|*|* 2|*|* left', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'left', activeNodeId: 'nQ-X' },
         } as const;
         const input = {
@@ -502,7 +502,7 @@ describe('move-node', () => {
     });
     test('1|*|* >2|*|*  up', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'up', activeNodeId: 'nDVm' },
         } as const;
         const input = {
@@ -561,7 +561,7 @@ describe('move-node', () => {
     });
     test('1|*|* >2|*|*  right', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'right', activeNodeId: 'nDVm' },
         } as const;
         const col0 = 'cPy4';
@@ -627,7 +627,7 @@ describe('move-node', () => {
     });
     test('1|*|* >2|*|*  down', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: 'nDVm' },
         } as const;
         const input = {
@@ -690,7 +690,7 @@ describe('move-node', () => {
     });
     test('>*|1|* *|2|* down', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: 'nCoJ' },
         } as const;
         const input = {
@@ -749,7 +749,7 @@ describe('move-node', () => {
     });
     test('>*|1|* *|2|* right', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'right', activeNodeId: 'nPFV' },
         } as const;
         const col0 = 'cPy4';
@@ -816,7 +816,7 @@ describe('move-node', () => {
     });
     test('>*|1|* *|2|* up', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'up', activeNodeId: 'nPFV' },
         } as const;
         const input = {
@@ -875,7 +875,7 @@ describe('move-node', () => {
     });
     test('>*|1|* *|2|* left', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'left', activeNodeId: 'nyrI' },
         } as const;
         const input = {
@@ -937,7 +937,7 @@ describe('move-node', () => {
     test('*|1|* >*|2|* up', () => {
         const mov = 'nBcR';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'up', activeNodeId: mov },
         } as const;
         const input = {
@@ -997,7 +997,7 @@ describe('move-node', () => {
     test('*|1|* >*|2|* down', () => {
         const mov = 'nJQr';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: mov },
         } as const;
         const input = {
@@ -1057,7 +1057,7 @@ describe('move-node', () => {
     test('*|1|* >*|2|* right', () => {
         const n2_1 = 'n5JK';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'right', activeNodeId: n2_1 },
         } as const;
         const col0 = 'col0';
@@ -1139,7 +1139,7 @@ describe('move-node', () => {
     });
     test('*|1|* >*|2|* left', () => {
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'left', activeNodeId: 'nsYt' },
         } as const;
         const input = {
@@ -1214,7 +1214,7 @@ describe('move-node', () => {
         const n3_1 = 'nLGp';
         const n3_2 = 'nMLR';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'down', activeNodeId: mov },
         } as const;
         const input = {
@@ -1261,7 +1261,7 @@ describe('move-node', () => {
         const mov = 'nLGp';
         const n3_2 = 'nMLR';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: { direction: 'up', activeNodeId: mov },
         } as const;
         const input = {
@@ -1307,7 +1307,7 @@ describe('move-node', () => {
         const n1_1_1 = 'n1_1_1';
         const n3_1 = 'n3_1';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'down',
                 activeNodeId: n1_1,
@@ -1357,7 +1357,7 @@ describe('move-node', () => {
         const n1_1_1 = 'n1_1_1';
         const n3_1 = 'n3_1';
         const action = {
-            type: 'DOCUMENT/MOVE_NODE',
+            type: 'document/move-node',
             payload: {
                 direction: 'up',
                 activeNodeId: n3_1,

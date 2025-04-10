@@ -8,7 +8,7 @@ import invariant from 'tiny-invariant';
 import { SilentError } from 'src/lib/errors/errors';
 
 export type MergeNodeAction = {
-    type: 'DOCUMENT/MERGE_NODE';
+    type: 'document/merge-node';
     payload: {
         direction: VerticalDirection;
         activeNodeId: string;

@@ -22,7 +22,7 @@ describe('merge node', () => {
             ],
             content: { n8Nd: { content: '1' }, nrIb: { content: '2' } },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'up', activeNodeId: mergedNode },
             },
         } satisfies Input;
@@ -55,7 +55,7 @@ describe('merge node', () => {
 
             content: { nTlU: { content: '1' }, nc8J: { content: '2' } },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'down', activeNodeId: 'nTlU' },
             },
         } satisfies Input;
@@ -100,7 +100,7 @@ describe('merge node', () => {
                 noVy: { content: '2.1' },
             },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'up', activeNodeId: mergedNode },
             },
         } satisfies Input;
@@ -153,7 +153,7 @@ describe('merge node', () => {
                 ngoB: { content: '2.1' },
             },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'down', activeNodeId: mergedNode },
             },
         } satisfies Input;
@@ -230,7 +230,7 @@ describe('merge node', () => {
                 nX1f: { content: '2.1.2' },
             },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'up', activeNodeId: n2 },
             },
         } as Input;
@@ -329,7 +329,7 @@ describe('merge node', () => {
                 nX1f: { content: '2.1.2' },
             },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'down', activeNodeId: n1 },
             },
         } as Input;
@@ -433,7 +433,7 @@ describe('merge node', () => {
                 'nL-q': { content: '2.1.2' },
             },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'up', activeNodeId: mergedNode },
             },
         } satisfies Input;
@@ -540,7 +540,7 @@ describe('merge node', () => {
                 ncc7: { content: '2.1.2' },
             },
             action: {
-                type: 'DOCUMENT/MERGE_NODE',
+                type: 'document/merge-node',
                 payload: { direction: 'down', activeNodeId: mergedNode },
             },
         } satisfies Input;
@@ -658,7 +658,7 @@ describe('merge node', () => {
             },
         } as LineageDocument;
         const action = {
-            type: 'DOCUMENT/MERGE_NODE',
+            type: 'document/merge-node',
             payload: { direction: 'down', activeNodeId: mergedNode },
         } as const;
         const output = {
@@ -777,7 +777,7 @@ describe('merge node', () => {
             },
         } satisfies LineageDocument;
         const action = {
-            type: 'DOCUMENT/MERGE_NODE',
+            type: 'document/merge-node',
             payload: { direction: 'up', activeNodeId: megedNode },
         } as const;
         const output = {
@@ -897,7 +897,7 @@ describe('merge node', () => {
             },
         } satisfies LineageDocument;
         const action = {
-            type: 'DOCUMENT/MERGE_NODE',
+            type: 'document/merge-node',
             payload: { direction: 'down', activeNodeId: merged },
         } as const;
         const output = {
@@ -1008,7 +1008,7 @@ describe('merge node', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/MERGE_NODE',
+            type: 'document/merge-node',
             payload: { direction: 'up', activeNodeId: merged },
         } as const;
         const output = {
@@ -1074,7 +1074,7 @@ describe('merge node', () => {
         const n2_1_2 = 'nekl';
 
         const action = {
-            type: 'DOCUMENT/MERGE_NODE',
+            type: 'document/merge-node',
             payload: { direction: 'up', activeNodeId: 'nVWc' },
         } as const;
 

@@ -1,7 +1,7 @@
 import { ViewState } from 'src/stores/view/view-state-type';
 
 export type SetSearchQueryAction = {
-    type: 'SEARCH/SET_QUERY';
+    type: 'view/search/set-query';
     payload: {
         query: string;
     };

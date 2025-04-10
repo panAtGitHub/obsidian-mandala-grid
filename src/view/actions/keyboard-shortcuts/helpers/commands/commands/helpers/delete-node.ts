@@ -12,18 +12,18 @@ export const deleteNode = (
             ? viewState.document.selectedNodes
             : undefined;
         documentStore.dispatch({
-            type: 'DOCUMENT/DELETE_NODE',
+            type: 'document/delete-node',
             payload: {
                 activeNodeId: nodeId,
                 selectedNodes,
             },
         });
         view.viewStore.dispatch({
-            type: 'view/confirmation/reset/delete-node',
+            type: 'view/delete-node/reset-confirmation',
         });
     } else {
         view.viewStore.dispatch({
-            type: 'view/confirmation/confirm/delete-node',
+            type: 'view/delete-node/confirm',
             payload: {
                 id: nodeId,
                 includeSelection,

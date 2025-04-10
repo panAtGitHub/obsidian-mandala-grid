@@ -39,7 +39,7 @@ test('paste node: order of root nodes', () => {
         content: { [n]: { content: '' } },
     };
     const action = {
-        type: 'DOCUMENT/PASTE_NODE',
+        type: 'document/paste-node',
         payload: {
             targetNodeId: 'nNV0rOET2',
             text: '\n<!--section: 2-->\n1\n\n<!--section: 2.1-->\n1.1\n\n<!--section: 2.2-->\n1.2\n\n<!--section: 3-->\n2\n\n<!--section: 3.1-->\n2.1\n\n<!--section: 3.2-->\n2.2\n\n<!--section: 4-->\n3\n\n<!--section: 4.1-->\n3.1\n\n<!--section: 4.2-->\n3.2',

@@ -13,7 +13,7 @@ export const ActiveBranchBackground = (
         valueSelector: (settings) => settings.view.theme.activeBranchBg,
         onChange: (color) => {
             settingsStore.dispatch({
-                type: 'SET_ACTIVE_BRANCH_BG',
+                type: 'settings/view/theme/set-active-branch-bg-color',
                 payload: {
                     backgroundColor: color,
                 },

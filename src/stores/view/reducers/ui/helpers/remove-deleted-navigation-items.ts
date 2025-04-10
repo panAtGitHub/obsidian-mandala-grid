@@ -3,7 +3,7 @@ import { updateNavigationState } from 'src/stores/document/reducers/history/help
 import { ViewState } from 'src/stores/view/view-state-type';
 
 export type RemoveObsoleteNavigationItemsAction = {
-    type: 'NAVIGATION/REMOVE_OBSOLETE';
+    type: 'view/active-node-history/delete-obsolete';
     payload: {
         content: Content;
     };

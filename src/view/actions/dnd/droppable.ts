@@ -63,7 +63,7 @@ export const droppable = (node: HTMLElement) => {
         const sections = documentStore.getValue().sections;
         if (isId.node(data) && sections.id_section[data]) {
             documentStore.dispatch({
-                type: 'DOCUMENT/DROP_NODE',
+                type: 'document/drop-node',
                 payload: {
                     droppedNodeId: data,
                     targetNodeId: targetCard.id,
@@ -72,7 +72,7 @@ export const droppable = (node: HTMLElement) => {
             });
         } else if (!view.viewStore.getValue().document.editing.activeNodeId) {
             documentStore.dispatch({
-                type: 'DOCUMENT/PASTE_NODE',
+                type: 'document/paste-node',
                 payload: {
                     targetNodeId: targetCard.id,
                     text: data,
@@ -81,7 +81,7 @@ export const droppable = (node: HTMLElement) => {
             });
         }
         viewStore.dispatch({
-            type: 'DOCUMENT/SET_DRAG_ENDED',
+            type: 'view/dnd/set-drag-ended',
         });
     }
 

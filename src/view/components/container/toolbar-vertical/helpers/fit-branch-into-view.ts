@@ -8,7 +8,7 @@ export const fitBranchIntoView = async (view: LineageView) => {
     invariant(view.container);
     const initialZoomLevel = get(zoomLevelStore(view));
     view.plugin.settings.dispatch({
-        type: 'UI/CHANGE_ZOOM_LEVEL',
+        type: 'settings/view/set-zoom-level',
         payload: { value: 1 },
     });
 
@@ -46,7 +46,7 @@ export const fitBranchIntoView = async (view: LineageView) => {
 
     // restore zoom level
     view.plugin.settings.dispatch({
-        type: 'UI/CHANGE_ZOOM_LEVEL',
+        type: 'settings/view/set-zoom-level',
         payload: { value: initialZoomLevel },
     });
 

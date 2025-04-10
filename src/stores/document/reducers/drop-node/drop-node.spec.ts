@@ -20,7 +20,7 @@ describe('drop-node', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -61,7 +61,7 @@ describe('drop-node', () => {
             },
         };
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -88,7 +88,7 @@ describe('drop-node', () => {
         const dropped = 'nvEX';
         const target = 'nzJX';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -137,7 +137,7 @@ describe('drop-node', () => {
         const parent_of_dropped = 'r9sy';
 
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -186,7 +186,7 @@ describe('drop-node', () => {
         const dropped = 'nJus';
         const target = 'niZu';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -249,7 +249,7 @@ describe('drop-node', () => {
         const dropped = 'np-B';
         const target = 'nj-O';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -312,7 +312,7 @@ describe('drop-node', () => {
         const dropped = 'npzs';
         const target = 'nU9f';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -395,7 +395,7 @@ describe('drop-node', () => {
         const dropped = 'nOq7';
         const target = 'nBRR';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -481,7 +481,7 @@ describe('drop-node', () => {
         const dropped = 'nhWo';
         const target = 'ni7w';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dropped,
                 targetNodeId: target,
@@ -604,7 +604,7 @@ describe('drop-node', () => {
         const col_2 = 'c_sC';
         const col_3 = 'cSQX';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dro,
                 targetNodeId: tar,
@@ -672,7 +672,7 @@ describe('drop-node', () => {
         const dro = 'neOB';
         const tar = 'nS2V';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dro,
                 targetNodeId: tar,
@@ -781,7 +781,7 @@ describe('drop-node', () => {
         const dro = 'nPMX';
         const tar = 'naO-';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dro,
                 targetNodeId: tar,
@@ -889,7 +889,7 @@ describe('drop-node', () => {
         const dro = 'nWIN';
         const tar = 'n4WH';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dro,
                 targetNodeId: tar,
@@ -1005,7 +1005,7 @@ describe('drop-node', () => {
         const dro = 'noRE';
         const tar = 'ntb4';
         const action = {
-            type: 'DOCUMENT/DROP_NODE',
+            type: 'document/drop-node',
             payload: {
                 droppedNodeId: dro,
                 targetNodeId: tar,

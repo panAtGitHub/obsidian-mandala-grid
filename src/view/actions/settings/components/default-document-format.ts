@@ -22,7 +22,7 @@ export const DefaultDocumentFormat = (
             .setValue(value)
             .onChange((value) => {
                 settingsStore.dispatch({
-                    type: 'GENERAL/SET_DEFAULT_DOCUMENT_FORMAT',
+                    type: 'settings/general/set-default-document-format',
                     payload: {
                         format: value as LineageDocumentFormat,
                     },

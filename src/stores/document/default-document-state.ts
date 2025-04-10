@@ -10,7 +10,6 @@ export const defaultDocumentState = (): DocumentState => ({
         section_id: {},
     },
     file: {
-        path: null,
         frontmatter: '',
     },
     history: {

@@ -2,10 +2,7 @@ import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { LINEAGE_VIEW_TYPE, LineageView } from './view/view';
 import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
 import { around } from 'monkey-around';
-import {
-    SettingsActions,
-    settingsReducer,
-} from 'src/stores/settings/settings-reducer';
+import { settingsReducer } from 'src/stores/settings/settings-reducer';
 import { deepMerge } from 'src/helpers/deep-merge';
 import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
 import { Store } from 'src/lib/store/store';
@@ -37,6 +34,7 @@ import {
 } from 'src/workers/worker-instances';
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
+import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
 export type PluginStore = Store<PluginState, PluginStoreActions>;

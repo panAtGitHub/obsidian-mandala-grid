@@ -11,7 +11,7 @@ export const CardsGap = (
         defaultValue: DEFAULT_CARDS_GAP,
         onChange: (value) => {
             settingsStore.dispatch({
-                type: 'SET_CARDS_GAP',
+                type: 'settings/view/layout/set-cards-gap',
                 payload: {
                     gap: value,
                 },
