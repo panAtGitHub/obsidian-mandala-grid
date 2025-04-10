@@ -1,6 +1,3 @@
-import { AlwaysShowCardButtons } from 'src/stores/settings/derived/view-settings-store';
-import { getView } from 'src/view/components/container/context';
-
 const toggleHideButtons = (element: HTMLElement, hide: boolean) => {
     element.toggleClass('hide-floating-buttons', hide);
 };
@@ -30,18 +27,10 @@ export const hideFloatingButtons = (element: HTMLElement) => {
         delayedHideButtons();
     };
 
-    const view = getView();
-    const subscription = AlwaysShowCardButtons(view).subscribe((show) => {
-        if (show) {
-            element.addEventListener('mousemove', onMousemove);
-        } else {
-            element.removeEventListener('mousemove', onMousemove);
-        }
-    });
+    element.addEventListener('mousemove', onMousemove);
     return {
         destroy: () => {
             resetHideButtons();
-            subscription();
             element.removeEventListener('mousemove', onMousemove);
         },
     };

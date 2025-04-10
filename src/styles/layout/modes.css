@@ -45,7 +45,7 @@
         }
     }
 
-    & .column{
+    & .column {
         /* to show outline card buttons*/
         padding: 0 calc(1 / var(--zoom-level) * 50vw);
     }
@@ -87,7 +87,6 @@
     }
 }
 
-
 /* to prevent cards from wobbling when hovering over them */
 #columns-container.zoom-enabled {
     * {
@@ -96,8 +95,8 @@
 }
 
 #columns-container.zoom-enabled {
-    .lineage-floating-button{
-        opacity: 0.5 !important
+    .lineage-floating-button {
+        opacity: 0.5 !important;
     }
     .lineage-card:not(:hover) .lineage-floating-button:not(.collapse-button) {
         visibility: hidden;
@@ -110,5 +109,10 @@
         .lineage-floating-button:not(.collapse-button) {
             display: none;
         }
+    }
+
+    .inactive-node:not(.inactive-node-hover) {
+        opacity: var(--inactive-card-opacity) !important;
+        cursor: none !important;
     }
 }
