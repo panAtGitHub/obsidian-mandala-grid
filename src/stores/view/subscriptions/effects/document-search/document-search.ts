@@ -1,52 +1,51 @@
 import { LineageView } from 'src/view/view';
-import {
-    prepareFuzzySearch,
-    prepareSimpleSearch,
-    SearchResult,
-} from 'obsidian';
+import Fuse, { FuseResult } from 'fuse.js';
 
 type SearchItem = { id: string; content: string };
 
-export type NodeSearchResult = SearchResult;
+export type NodeSearchResult = FuseResult<SearchItem>;
 
 export class DocumentSearch {
     constructor(private view: LineageView) {}
+    private fuse: Fuse<SearchItem> | null;
     #searchTriggeredMinimap: boolean;
-    private index: SearchItem[] | null = null;
+
     private updateIndex = () => {
         const documentState = this.view.documentStore.getValue();
-        this.index = [];
+        const viewState = this.view.viewStore.getValue();
+        const items: { id: string; content: string }[] = [];
         for (const id of Object.keys(documentState.document.content)) {
             const content = documentState.document.content[id]?.content;
             if (content) {
-                this.index.push({
+                items.push({
                     id,
                     content,
                 });
             }
         }
+        this.fuse = new Fuse(items, {
+            keys: ['content'],
+            threshold: viewState.search.fuzzySearch ? 0.4 : 0,
+            shouldSort: true,
+            isCaseSensitive: false,
+            ignoreLocation: true,
+        });
     };
 
     resetIndex = () => {
-        this.index = null;
+        this.fuse = null;
     };
 
     search = (query: string) => {
-        if (!this.index || this.index.length === 0) {
+        if (!this.fuse) {
             this.updateIndex();
         }
-        const viewState = this.view.viewStore.getValue();
-        const searchUtil = viewState.search.fuzzySearch
-            ? prepareFuzzySearch
-            : prepareSimpleSearch;
-        const results: Map<string, NodeSearchResult> = new Map();
-        for (const item of this.index!) {
-            const result = searchUtil(query)(item.content);
-            if (result) {
-                results.set(item.id, result);
-            }
+        const results = this.fuse!.search(query);
+        const map: Map<string, NodeSearchResult> = new Map();
+        for (const result of results) {
+            map.set(result.item.id, result);
         }
-        return results;
+        return map;
     };
 
     get searchTriggeredMinimap() {

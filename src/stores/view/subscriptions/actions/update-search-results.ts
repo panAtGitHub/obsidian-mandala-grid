@@ -1,5 +1,4 @@
 import { LineageView } from 'src/view/view';
-import { debounce } from 'obsidian';
 
 export const updateActiveNodeAfterSearch = (
     view: LineageView,
@@ -18,7 +17,7 @@ export const updateActiveNodeAfterSearch = (
     }
 };
 
-export const updateSearchResults = debounce((view: LineageView) => {
+export const updateSearchResults = (view: LineageView) => {
     const viewState = view.viewStore.getValue();
 
     const query = viewState.search.query;
@@ -38,4 +37,4 @@ export const updateSearchResults = debounce((view: LineageView) => {
     if (previousSearchResults !== newSearchResults) {
         updateActiveNodeAfterSearch(view, Array.from(results.keys()));
     }
-}, 100);
+};
