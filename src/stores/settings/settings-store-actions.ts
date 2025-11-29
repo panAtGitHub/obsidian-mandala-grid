@@ -157,6 +157,9 @@ export type SettingsActions =
           payload: { maintain: boolean };
       }
     | {
+          type: 'settings/view/toggle-hidden-card-info';
+      }
+    | {
           type: 'settings/view/theme/set-inactive-node-opacity';
           payload: { opacity: number };
       }

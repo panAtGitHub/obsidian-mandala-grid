@@ -8,6 +8,7 @@ import {
     Palette,
     PanelRightInactive as PanelRight,
     Settings,
+    Eye,
 } from 'lucide-svelte';
 import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 import { VerticalToolbarActions } from 'src/view/components/container/toolbar-vertical/vertical-toolbar-actions';
@@ -89,6 +90,12 @@ export const VerticalToolbarButtonsList = (view: LineageView) => {
                         onClick: h.toggleGap,
                         icon: customIcons.gap,
                         id: 'space-between-cards',
+                    },
+                    {
+                        label: lang.controls_toggle_hidden_card_info,
+                        onClick: h.toggleHiddenInfo,
+                        icon: Eye,
+                        id: 'hidden-card-info',
                     },
                 ],
             },

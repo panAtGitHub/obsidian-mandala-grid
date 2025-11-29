@@ -8,7 +8,8 @@
     import { ScrollSettingsStore, showMinimapStore } from '../../../../stores/settings/derived/scrolling-store';
     import {
         ApplyGapBetweenCardsStore,
-        OutlineModeStore
+        OutlineModeStore,
+        ShowHiddenCardInfoStore,
     } from '../../../../stores/settings/derived/view-settings-store';
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
@@ -27,6 +28,7 @@
     const scrollSettingsStore = ScrollSettingsStore(view);
     const applyGapBetweenCards = ApplyGapBetweenCardsStore(view);
     const outlineMode = OutlineModeStore(view);
+    const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
 
     const buttons = VerticalToolbarButtonsList(view);
     const activeStates = derived(
@@ -36,6 +38,7 @@
             scrollSettingsStore,
             outlineMode,
             applyGapBetweenCards,
+            showHiddenCardInfo,
         ],
         ([
             showMinimap,
@@ -43,6 +46,7 @@
             scrollSettingsStore,
             outlineMode,
             applyGapBetweenCards,
+            showHiddenCardInfo,
         ]) => {
             return {
                 minimap: showMinimap,
@@ -53,6 +57,7 @@
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
                 'outline-mode': outlineMode,
                 'space-between-cards': applyGapBetweenCards,
+                'hidden-card-info': showHiddenCardInfo,
             } as Partial<Record<ToolbarButton, boolean>>;
         },
     );

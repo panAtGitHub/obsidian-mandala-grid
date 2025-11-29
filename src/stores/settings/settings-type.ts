@@ -67,6 +67,7 @@ export type Settings = {
         nodeIndentationWidth: number;
         maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;
+        showHiddenCardInfo: boolean;
         hiddenVerticalToolbarButtons: ToolbarButton[];
     };
     general: {

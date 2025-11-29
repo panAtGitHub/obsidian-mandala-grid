@@ -214,6 +214,8 @@ const updateState = (store: Settings, action: SettingsActions) => {
                     (b) => b !== action.payload.id,
                 );
         }
+    } else if (action.type === 'settings/view/toggle-hidden-card-info') {
+        store.view.showHiddenCardInfo = !store.view.showHiddenCardInfo;
     } else if (action.type === 'settings/style-rules/set-active-tab') {
         store.styleRules.settings.activeTab = action.payload.tab;
     } else if (action.type === 'settings/general/set-link-pane-type') {

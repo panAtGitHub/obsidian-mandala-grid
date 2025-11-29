@@ -37,6 +37,11 @@ export class VerticalToolbarActions {
             type: 'view/modes/gap-between-cards/toggle',
         });
     };
+    toggleHiddenInfo = () => {
+        this.view.plugin.settings.dispatch({
+            type: 'settings/view/toggle-hidden-card-info',
+        });
+    };
     toggleOutlineMode = () => {
         this.view.plugin.settings.dispatch({
             type: 'settings/view/modes/toggle-outline-mode',

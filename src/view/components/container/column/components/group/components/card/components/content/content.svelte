@@ -11,7 +11,10 @@
     import { get } from 'svelte/store';
     import { contentStore } from 'src/stores/document/derived/content-store';
     import { isGrabbing } from './event-handlers/helpers/is-grabbing';
-    import { MaintainEditMode } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
+    import {
+        MaintainEditMode,
+        ShowHiddenCardInfoStore,
+    } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
     import {
         setActiveSidebarNode
     } from '../../../../../../../../../../stores/view/subscriptions/actions/set-active-sidebar-node';
@@ -24,6 +27,7 @@
     export let active: ActiveStatus | null;
 
     const view = getView();
+    const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
 
     const setActiveNode = (e: MouseEvent) => {
         if (isInSidebar) {
@@ -85,6 +89,7 @@
     class={'lng-prev markdown-preview-view markdown-preview-section markdown-rendered'}
     on:click={handleClick}
     on:dblclick={handleDoubleClick}
+    class:hide-hidden-info={!$showHiddenCardInfo}
     use:markdownPreviewAction={nodeId}
 ></div>
 

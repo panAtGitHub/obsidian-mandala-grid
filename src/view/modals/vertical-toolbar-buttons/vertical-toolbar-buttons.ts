@@ -7,6 +7,7 @@ import {
     Plus as ZoomIn,
     RotateCcw,
     ScanSearch,
+    Eye,
 } from 'lucide-svelte';
 import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 
@@ -19,6 +20,7 @@ export type ToolbarButton =
     | 'center-active-node-v'
     | 'outline-mode'
     | 'space-between-cards'
+    | 'hidden-card-info'
     | 'snapshots-list'
     | 'undo'
     | 'redo'
@@ -81,6 +83,11 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
                 id: 'space-between-cards',
                 label: lang.controls_gap_between_cards,
                 icon: customIcons.gap,
+            },
+            {
+                id: 'hidden-card-info',
+                label: lang.controls_toggle_hidden_card_info,
+                icon: Eye,
             },
         ],
     },

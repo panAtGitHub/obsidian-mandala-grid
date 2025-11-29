@@ -12,6 +12,13 @@
     }
 }
 
+.hide-hidden-info .lng-hidden-info {
+    display: none !important;
+}
+.hide-hidden-info .lng-hidden-info-part {
+    display: none !important;
+}
+
 .lineage-card p {
     margin: 0;
 }

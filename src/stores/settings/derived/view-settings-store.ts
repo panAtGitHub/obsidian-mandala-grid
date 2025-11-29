@@ -26,6 +26,9 @@ export const MaintainEditMode = (view: LineageView) =>
 export const AlwaysShowCardButtons = (view: LineageView) =>
     derived(view.plugin.settings, (state) => state.view.alwaysShowCardButtons);
 
+export const ShowHiddenCardInfoStore = (view: LineageView) =>
+    derived(view.plugin.settings, (state) => state.view.showHiddenCardInfo);
+
 export const HiddenVerticalToolbarButtons = (plugin: Lineage) =>
     derived(
         plugin.settings,
