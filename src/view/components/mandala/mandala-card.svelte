@@ -48,12 +48,14 @@
 
 <style>
     .lineage-card {
-        width: var(--node-width);
-        min-height: var(--min-node-height);
-        height: fit-content;
+        width: var(--mandala-card-width, var(--node-width));
+        min-height: var(--mandala-card-min-height, var(--min-node-height));
+        height: var(--mandala-card-height, fit-content);
         display: flex;
+        flex-direction: column;
         position: relative;
         font-size: 16px;
+        overflow: var(--mandala-card-overflow, visible);
         --scrollbar-thumb-bg: var(--color-base-30);
         --scrollbar-active-thumb-bg: var(--color-base-40);
     }

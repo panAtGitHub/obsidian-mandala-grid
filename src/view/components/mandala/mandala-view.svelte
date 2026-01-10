@@ -211,25 +211,18 @@
     /* 3×3 主视图：铺满可视区域（避免横向滚动） */
     .mandala-grid--core {
         width: 100%;
-        height: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-template-rows: repeat(3, minmax(0, 1fr));
-        align-items: stretch;
         justify-items: stretch;
-    }
-
-    .mandala-grid--core :global(.lineage-card),
-    .mandala-grid--core .mandala-empty,
-    .mandala-grid--core .mandala-mirror {
-        width: 100%;
-        height: 100%;
-        min-height: 0;
     }
 
     /* 9×9：格子约等于 3×3 的 1/3，并铺满屏幕 */
     .mandala-root--9 {
         --mandala-gap: calc(var(--mandala-core-gap) / 4);
         --mandala-block-gap: var(--mandala-gap);
+        --mandala-card-width: 100%;
+        --mandala-card-height: 100%;
+        --mandala-card-min-height: 0px;
+        --mandala-card-overflow: hidden;
     }
 
     .mandala-root--9 .mandala-blocks {
@@ -253,19 +246,11 @@
         align-items: stretch;
     }
 
-    .mandala-root--9 :global(.lineage-card),
     .mandala-root--9 .mandala-empty,
     .mandala-root--9 .mandala-mirror {
-        width: 100% !important;
-        height: 100% !important;
+        width: 100%;
+        height: 100%;
         min-height: 0;
-    }
-
-    /* 9×9：内容超出时在格子内部滚动 */
-    .mandala-root--9 :global(.lineage-card) {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
     }
 
     .mandala-root--9 :global(.lng-prev) {
@@ -279,6 +264,11 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow: auto;
+    }
+
+    .mandala-root--9 :global(.draggable),
+    .mandala-root--9 :global(.draggable .content) {
+        height: 100%;
     }
 
     .mandala-empty,
