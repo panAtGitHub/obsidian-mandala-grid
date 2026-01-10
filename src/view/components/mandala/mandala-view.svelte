@@ -261,6 +261,26 @@
         min-height: 0;
     }
 
+    /* 9×9：内容超出时在格子内部滚动 */
+    .mandala-root--9 :global(.lineage-card) {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .mandala-root--9 :global(.lng-prev) {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: auto;
+    }
+
+    .mandala-root--9 :global(.editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
     .mandala-empty,
     .mandala-mirror {
         width: var(--node-width);
