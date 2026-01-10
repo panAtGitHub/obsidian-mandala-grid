@@ -35,6 +35,7 @@ import { refreshGroupParentIds } from 'src/stores/document/reducers/meta/refresh
 import { loadDocumentFromJSON } from 'src/stores/document/reducers/load-document-from-file/load-document-from-json';
 import { NO_UPDATE } from 'src/lib/store/store';
 import { sortDirectChildNodes } from 'src/stores/document/reducers/sort/sort-direct-child-nodes';
+import { swapMandalaNodes } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
 
 const updateDocumentState = (
     state: DocumentState,
@@ -44,10 +45,52 @@ const updateDocumentState = (
     let affectedNodeId: null | string = null;
     let affectedNodeContent: Content[string] | null = null;
     let affectedNodes: string[] | undefined = undefined;
+    if (
+        state.meta.isMandala &&
+        (action.type === 'document/add-node' ||
+            action.type === 'document/delete-node' ||
+            action.type === 'document/drop-node' ||
+            action.type === 'document/move-node' ||
+            action.type === 'document/paste-node' ||
+            action.type === 'document/merge-node' ||
+            action.type === 'document/extract-node' ||
+            action.type === 'document/split-node' ||
+            action.type === 'document/sort-direct-child-nodes')
+    ) {
+        return NO_UPDATE;
+    }
     if (action.type === 'document/update-node-content') {
         const update = setNodeContent(state.document.content, action);
         if (!update) return NO_UPDATE;
         newActiveNodeId = action.payload.nodeId;
+    } else if (action.type === 'document/mandala/swap') {
+        const sourceSection = state.sections.id_section[action.payload.sourceNodeId];
+        const targetSection = state.sections.id_section[action.payload.targetNodeId];
+        if (!sourceSection || !targetSection) return NO_UPDATE;
+        if (sourceSection === '1' || targetSection === '1') return NO_UPDATE;
+        const sourceIsLeaf = sourceSection.includes('.');
+        const targetIsLeaf = targetSection.includes('.');
+        if (sourceIsLeaf !== targetIsLeaf) return NO_UPDATE;
+        if (!sourceIsLeaf) {
+            const s = Number(sourceSection);
+            const t = Number(targetSection);
+            if (!(s >= 2 && s <= 9 && t >= 2 && t <= 9)) return NO_UPDATE;
+        } else {
+            const [sParent, sIndex] = sourceSection.split('.');
+            const [tParent, tIndex] = targetSection.split('.');
+            const sp = Number(sParent);
+            const tp = Number(tParent);
+            const si = Number(sIndex);
+            const ti = Number(tIndex);
+            if (
+                !(sp >= 2 && sp <= 9 && tp >= 2 && tp <= 9 && si >= 1 && si <= 8 && ti >= 1 && ti <= 8)
+            )
+                return NO_UPDATE;
+        }
+
+        swapMandalaNodes(state.document, action.payload.sourceNodeId, action.payload.targetNodeId);
+        newActiveNodeId = action.payload.sourceNodeId;
+        affectedNodeId = action.payload.sourceNodeId;
     } else if (action.type === 'document/add-node') {
         newActiveNodeId = insertNode(
             state.document,

@@ -34,7 +34,8 @@ export const setActiveNode = (
         else if (
             view.isViewOfFile &&
             (action.type === 'document/drop-node' ||
-                action.type === 'document/move-node')
+                action.type === 'document/move-node' ||
+                action.type === 'document/mandala/swap')
         ) {
             shouldSetActiveNode = false;
         }

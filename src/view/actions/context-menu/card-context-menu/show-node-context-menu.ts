@@ -36,6 +36,8 @@ const getContextMenuContext = (
 };
 
 export const showNodeContextMenu = (event: MouseEvent, view: LineageView) => {
+    if (view.documentStore.getValue().meta.isMandala) return;
+
     const target = event.target as HTMLElement;
     const closestCardElement = target.closest(
         '.lineage-card',

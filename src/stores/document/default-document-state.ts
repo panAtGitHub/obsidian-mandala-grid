@@ -28,5 +28,6 @@ export const defaultDocumentState = (): DocumentState => ({
     },
     meta: {
         groupParentIds: new Set(),
+        isMandala: false,
     },
 });

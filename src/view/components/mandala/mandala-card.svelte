@@ -1,0 +1,60 @@
+<script lang="ts">
+    import clx from 'classnames';
+    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
+    import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
+    import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
+    import Draggable from 'src/view/components/container/column/components/group/components/card/components/dnd/draggable.svelte';
+    import CardStyle from 'src/view/components/container/column/components/group/components/card/components/card-style.svelte';
+    import { droppable } from 'src/view/actions/dnd/droppable';
+    import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+
+    export let nodeId: string;
+    export let section: string;
+    export let active: boolean;
+    export let editing: boolean;
+    export let selected: boolean;
+    export let pinned: boolean;
+    export let style: NodeStyle | undefined;
+    export let draggable: boolean;
+</script>
+
+<div
+    class={clx(
+        'lineage-card',
+        active ? 'active-node' : 'inactive-node',
+        selected ? 'node-border--selected' : undefined,
+        pinned ? 'node-border--pinned' : undefined,
+        active ? 'node-border--active' : undefined,
+    )}
+    id={nodeId}
+    use:droppable
+>
+    {#if style}
+        <CardStyle {style} />
+    {/if}
+
+    {#if active && editing}
+        <InlineEditor nodeId={nodeId} {style} />
+    {:else if draggable}
+        <Draggable nodeId={nodeId} isInSidebar={false}>
+            <Content nodeId={nodeId} isInSidebar={false} active={active ? ActiveStatus.node : null} />
+        </Draggable>
+    {:else}
+        <Content nodeId={nodeId} isInSidebar={false} active={active ? ActiveStatus.node : null} />
+    {/if}
+
+    <div class="mandala-section-label">{section}</div>
+</div>
+
+<style>
+    .mandala-section-label {
+        position: absolute;
+        top: 6px;
+        right: 8px;
+        font-size: 12px;
+        opacity: 0.7;
+        user-select: none;
+        pointer-events: none;
+    }
+</style>
+

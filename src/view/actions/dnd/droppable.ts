@@ -27,6 +27,8 @@ export const droppable = (node: HTMLElement) => {
     const viewStore = view.viewStore;
     const documentStore = view.documentStore;
 
+    const isMandala = () => documentStore.getValue().meta.isMandala;
+
     function HandleDragLeave(event: DragEvent) {
         if (!(event.currentTarget instanceof HTMLElement)) return;
         event.currentTarget.removeClasses(classesList);
@@ -61,7 +63,63 @@ export const droppable = (node: HTMLElement) => {
         if (!data) throw new Error(`droppedNodeId is missing`);
         if (!targetCard.id) throw new Error(`targetCard.id is missing`);
         const sections = documentStore.getValue().sections;
-        if (isId.node(data) && sections.id_section[data]) {
+
+        if (isMandala()) {
+            const sourceSection = sections.id_section[data];
+            const targetSection = sections.id_section[targetCard.id];
+            if (
+                isId.node(data) &&
+                sourceSection &&
+                targetSection &&
+                data !== targetCard.id
+            ) {
+                // center "1" is fixed; cross-level swaps are not allowed
+                const isSourceLeaf = sourceSection.includes('.');
+                const isTargetLeaf = targetSection.includes('.');
+                if (sourceSection === '1' || targetSection === '1') {
+                    // do nothing
+                } else if (isSourceLeaf !== isTargetLeaf) {
+                    // do nothing
+                } else if (!isSourceLeaf && !isTargetLeaf) {
+                    const s = Number(sourceSection);
+                    const t = Number(targetSection);
+                    if (s >= 2 && s <= 9 && t >= 2 && t <= 9) {
+                        documentStore.dispatch({
+                            type: 'document/mandala/swap',
+                            payload: {
+                                sourceNodeId: data,
+                                targetNodeId: targetCard.id,
+                            },
+                        });
+                    }
+                } else {
+                    const [sParent, sIndex] = sourceSection.split('.');
+                    const [tParent, tIndex] = targetSection.split('.');
+                    const sp = Number(sParent);
+                    const tp = Number(tParent);
+                    const si = Number(sIndex);
+                    const ti = Number(tIndex);
+                    if (
+                        sp >= 2 &&
+                        sp <= 9 &&
+                        tp >= 2 &&
+                        tp <= 9 &&
+                        si >= 1 &&
+                        si <= 8 &&
+                        ti >= 1 &&
+                        ti <= 8
+                    ) {
+                        documentStore.dispatch({
+                            type: 'document/mandala/swap',
+                            payload: {
+                                sourceNodeId: data,
+                                targetNodeId: targetCard.id,
+                            },
+                        });
+                    }
+                }
+            }
+        } else if (isId.node(data) && sections.id_section[data]) {
             documentStore.dispatch({
                 type: 'document/drop-node',
                 payload: {

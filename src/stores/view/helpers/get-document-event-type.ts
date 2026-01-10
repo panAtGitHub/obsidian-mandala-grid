@@ -24,6 +24,7 @@ const eventTypesDictionary: Partial<Record<ActionType, DocumentEventType>> = {
     'document/drop-node': { dropOrMove: true },
     'document/move-node': { dropOrMove: true },
     'document/sort-direct-child-nodes': { dropOrMove: true },
+    'document/mandala/swap': { dropOrMove: true },
 
     'document/history/select-next-snapshot': { changeHistory: true },
     'document/history/select-previous-snapshot': { changeHistory: true },
@@ -70,4 +71,5 @@ export const STRUCTURE_ONLY = new Set<DocumentStoreAction['type']>([
     'document/add-node',
     'document/paste-node',
     'document/sort-direct-child-nodes',
+    'document/mandala/swap',
 ]);

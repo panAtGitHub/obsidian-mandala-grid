@@ -18,6 +18,7 @@ import { RemoveStalePinnedNodesAction } from 'src/stores/document/reducers/pinne
 import { LoadPinnedNodesAction } from 'src/stores/document/reducers/pinned-nodes/load-pinned-nodes';
 import { RefreshGroupParentIdsAction } from 'src/stores/document/reducers/meta/refresh-group-parent-ids';
 import { SortChildNodesAction } from 'src/stores/document/reducers/sort/sort-direct-child-nodes';
+import { MandalaSwapAction } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
 
 export type VerticalDirection = 'up' | 'down';
 export type Direction = VerticalDirection | 'right';
@@ -34,6 +35,7 @@ export type DocumentAction =
     | LoadDocumentAction
     | CreateNodeAction
     | SetNodeContentAction
+    | MandalaSwapAction
     | DropAction
     | DeleteNodeAction
     | MoveNodeAction
@@ -57,6 +59,7 @@ export type UndoableAction =
     | SetNodeContentAction
     | CreateNodeAction
     | DeleteNodeAction
+    | MandalaSwapAction
     | DropAction
     | MoveNodeAction
     | MergeNodeAction

@@ -25,6 +25,9 @@ export const loadDocumentFromFile = (
     state: DocumentState,
     action: LoadDocumentAction,
 ) => {
+    state.meta.isMandala = Boolean(
+        action.payload.document.frontmatter?.includes('mandala: true'),
+    );
     const tree =
         action.payload.format === 'outline'
             ? outlineToJson(action.payload.document.data)
