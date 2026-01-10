@@ -60,7 +60,11 @@
     };
 </script>
 
-<div class="mandala-root" class:mandala-root--9={$mode === '9x9'}>
+<div
+    class="mandala-root"
+    class:mandala-root--3={$mode === '3x3'}
+    class:mandala-root--9={$mode === '9x9'}
+>
     <div class="mandala-topbar">
         <button class="mandala-toggle" on:click={toggleMode}>
             {$mode === '3x3' ? '切换到 9×9' : '切换到 3×3'}
@@ -168,6 +172,7 @@
         --mandala-core-gap: clamp(10px, 1vw, 18px);
         --mandala-gap: var(--mandala-core-gap);
         --mandala-block-gap: calc(var(--mandala-core-gap) * 2);
+        --mandala-card-width: 100%;
     }
 
     .mandala-topbar {
@@ -211,8 +216,24 @@
     /* 3×3 主视图：铺满可视区域（避免横向滚动） */
     .mandala-grid--core {
         width: 100%;
+        height: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        align-items: stretch;
         justify-items: stretch;
+    }
+
+    .mandala-root--3 {
+        --mandala-card-height: 100%;
+        --mandala-card-min-height: 0px;
+        --mandala-card-overflow: hidden;
+    }
+
+    .mandala-root--3 .mandala-empty,
+    .mandala-root--3 .mandala-mirror {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
     }
 
     /* 9×9：格子约等于 3×3 的 1/3，并铺满屏幕 */
@@ -229,6 +250,7 @@
         width: 100%;
         height: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(3, minmax(0, 1fr));
         justify-content: stretch;
         align-content: stretch;
     }
@@ -268,6 +290,25 @@
 
     .mandala-root--9 :global(.draggable),
     .mandala-root--9 :global(.draggable .content) {
+        height: 100%;
+    }
+
+    /* 3×3：内容超出时在格子内部滚动（避免撑开格子） */
+    .mandala-root--3 :global(.lng-prev) {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: auto;
+    }
+
+    .mandala-root--3 :global(.editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .mandala-root--3 :global(.draggable),
+    .mandala-root--3 :global(.draggable .content) {
         height: 100%;
     }
 
