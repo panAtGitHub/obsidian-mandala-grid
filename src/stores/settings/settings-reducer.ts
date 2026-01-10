@@ -16,7 +16,7 @@ const updateState = (store: Settings, action: SettingsActions) => {
         if (!store.documents[action.payload.path]) {
             store.documents[action.payload.path] = {
                 documentFormat: action.payload.format,
-                viewType: 'lineage',
+                viewType: 'mandala-grid',
                 activeSection: null,
                 pinnedSections: {
                     sections: [],

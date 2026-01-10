@@ -6,7 +6,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         if (typeof pref === 'boolean') {
             settings.documents[path] = {
                 documentFormat: 'sections',
-                viewType: 'lineage',
+                viewType: 'mandala-grid',
                 activeSection: null,
                 pinnedSections: null,
                 outline: null,

@@ -1,6 +1,6 @@
 import { MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
-import { LineageView } from 'src/view/view';
+import { LineageView, LINEAGE_VIEW_TYPE } from 'src/view/view';
 import { getExistingRightTabGroup } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/get-existing-right-tab-group';
 
 const getLeafFromExistingTabGroup = (view: LineageView) => {
@@ -36,5 +36,5 @@ export const openFileAndJumpToLine = async (
     await leaf.openFile(file);
     const markdownView = leaf.view as MarkdownView;
     markdownView.editor.setCursor({ line, ch });
-    setViewType(plugin, file.path, 'lineage');
+    setViewType(plugin, file.path, LINEAGE_VIEW_TYPE);
 };

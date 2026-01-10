@@ -40,7 +40,7 @@ const options = {
     logLevel: 'info',
     sourcemap: prod ? false : 'inline',
     treeShaking: true,
-    outfile: 'temp/vault/.obsidian/plugins/lineage-dev/main.js',
+    outfile: 'temp/vault/.obsidian/plugins/mandala-grid-dev/main.js',
     plugins: [
         inlineWorkerPlugin({ minify: prod }),
         esbuildSvelte({
@@ -60,7 +60,7 @@ const context = await esbuild.context(options);
 const cssOptions = {
     entryPoints: ['src/styles/styles.css'],
     bundle: true,
-    outfile: 'temp/vault/.obsidian/plugins/lineage-dev/styles.css',
+    outfile: 'temp/vault/.obsidian/plugins/mandala-grid-dev/styles.css',
 };
 const cssContext = await esbuild.context(cssOptions);
 

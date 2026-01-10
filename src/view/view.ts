@@ -57,7 +57,7 @@ import { LineageDocumentFormat } from 'src/stores/settings/settings-type';
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
 
-export const LINEAGE_VIEW_TYPE = 'lineage';
+export const LINEAGE_VIEW_TYPE = 'mandala-grid';
 
 export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
 export type ViewStore = Store<ViewState, ViewStoreAction, LineageDocument>;

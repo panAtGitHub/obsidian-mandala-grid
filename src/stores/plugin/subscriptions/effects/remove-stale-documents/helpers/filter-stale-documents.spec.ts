@@ -10,7 +10,7 @@ type PartialSettings = Pick<Settings, 'documents'> & {
 };
 const sample: DocumentPreferences = {
     documentFormat: 'sections',
-    viewType: 'lineage',
+    viewType: 'mandala-grid',
     activeSection: null,
     pinnedSections: null,
     outline: null,

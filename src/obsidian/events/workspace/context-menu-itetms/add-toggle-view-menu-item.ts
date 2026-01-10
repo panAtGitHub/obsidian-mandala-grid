@@ -15,7 +15,7 @@ export const addToggleViewMenuItem = (
     if (file.extension !== 'md') return;
     menu.addItem((item) => {
         if (!leaf) {
-            leaf = getLeafOfFile(plugin, file, 'lineage');
+            leaf = getLeafOfFile(plugin, file, LINEAGE_VIEW_TYPE);
         }
         const isTree = leaf && leaf.view.getViewType() === LINEAGE_VIEW_TYPE;
         item.setTitle(

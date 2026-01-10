@@ -1,9 +1,9 @@
 {
-	"id": "lineage",
-	"name": "Lineage",
+	"id": "mandala-grid",
+	"name": "Mandala Grid",
 	"version": "0.8.5",
 	"minAppVersion": "0.15.0",
-	"description": "Edit Markdown in a keyboard-centric Miller columns interface. Inspired by Gingko Writer.",
+	"description": "Mandala grid (3×3 / 9×9) editor built on Lineage.",
 	"author": "ycnmhd",
 	"isDesktopOnly": false
 }
