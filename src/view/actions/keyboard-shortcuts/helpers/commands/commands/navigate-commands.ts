@@ -3,6 +3,7 @@ import { AllDirections } from 'src/stores/document/document-store-actions';
 import { JumpTarget } from 'src/stores/view/reducers/document/jump-to-node';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
+import { tryMandalaCoreGridNavigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-core-grid-navigation';
 
 const outlineModeSelector = (view: LineageView) =>
     view.plugin.settings.getValue().view.outlineMode;
@@ -26,6 +27,7 @@ const maybeEnableEditMode = (view: LineageView) => {
 
 const spatialNavigation = (view: LineageView, direction: AllDirections) => {
     maybeEnableEditMode(view);
+    if (tryMandalaCoreGridNavigation(view, direction)) return;
     view.viewStore.dispatch({
         type: 'view/set-active-node/keyboard',
         payload: {

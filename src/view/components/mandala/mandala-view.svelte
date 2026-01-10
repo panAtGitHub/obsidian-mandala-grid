@@ -15,6 +15,8 @@
         mode.update((m) => (m === '3x3' ? '9x9' : '3x3'));
     };
 
+    $: view.mandalaMode = $mode;
+
     const sectionToNodeId = derived(view.documentStore, (state) => state.sections.section_id);
     const pinnedNodes = derived(
         view.documentStore,

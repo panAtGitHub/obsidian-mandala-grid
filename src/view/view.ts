@@ -76,6 +76,7 @@ export class LineageView extends TextFileView {
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
+    mandalaMode: '3x3' | '9x9' = '3x3';
     minimapDom: MinimapDomElements | null = null;
     private pendingEphemeralState: unknown = null;
     private readonly onDestroyCallbacks: Set<Unsubscriber> = new Set();

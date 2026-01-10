@@ -1,4 +1,5 @@
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+import { tryMandalaCoreGridNavigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-core-grid-navigation';
 
 export const selectionCommands = () => {
     const commands: DefaultViewCommand[] = [];
@@ -24,6 +25,12 @@ export const selectionCommands = () => {
             name: 'extend_select_up',
             callback: (view, event) => {
                 event.preventDefault();
+                if (
+                    tryMandalaCoreGridNavigation(view, 'up', {
+                        extendSelection: true,
+                    })
+                )
+                    return;
                 view.viewStore.dispatch({
                     type: 'view/set-active-node/keyboard',
                     payload: {
@@ -49,6 +56,12 @@ export const selectionCommands = () => {
             name: 'extend_select_down',
             callback: (view, event) => {
                 event.preventDefault();
+                if (
+                    tryMandalaCoreGridNavigation(view, 'down', {
+                        extendSelection: true,
+                    })
+                )
+                    return;
                 view.viewStore.dispatch({
                     type: 'view/set-active-node/keyboard',
                     payload: {
