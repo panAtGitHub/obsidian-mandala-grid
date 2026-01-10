@@ -79,7 +79,7 @@ export const posOfSection9x9 = (
     }
     const themePos = positions[section];
     if (!themePos) return null;
-    return { row: 3 + themePos.row, col: 3 + themePos.col };
+    return { row: themePos.row * 3 + 1, col: themePos.col * 3 + 1 };
 };
 
 export const sectionAtCell9x9 = (row: number, col: number): string | null => {
