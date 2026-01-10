@@ -7,6 +7,13 @@
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
+    import {
+        childSlots,
+        coreSlots,
+        posOfSection9x9,
+        sectionAtCell9x9,
+        themeBlocks,
+    } from 'src/view/helpers/mandala/mandala-grid';
 
     const view = getView();
 
@@ -17,7 +24,14 @@
 
     $: view.mandalaMode = $mode;
 
-    const sectionToNodeId = derived(view.documentStore, (state) => state.sections.section_id);
+    const sectionToNodeId = derived(
+        view.documentStore,
+        (state) => state.sections.section_id,
+    );
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
     const pinnedNodes = derived(
         view.documentStore,
         (state) => new Set(state.pinnedNodes.Ids),
@@ -33,21 +47,6 @@
         (state) => state.styleRules.nodeStyles,
     );
 
-    const coreSlots = ['2', '3', '4', '5', '1', '6', '7', '8', '9'] as const;
-    const childSlots = ['1', '2', '3', '4', null, '5', '6', '7', '8'] as const;
-
-    const themeBlocks = [
-        '2',
-        '3',
-        '4',
-        '5',
-        null,
-        '6',
-        '7',
-        '8',
-        '9',
-    ] as const;
-
     let containerRef: HTMLElement | null = null;
     onMount(() => {
         view.container = containerRef;
@@ -58,6 +57,25 @@
         const nodeId = $sectionToNodeId[section];
         return nodeId || null;
     };
+
+    $: {
+        if ($mode !== '9x9') {
+            view.mandalaActiveCell9x9 = null;
+        } else {
+            const section = $idToSection[$activeNodeId];
+            if (!section) {
+                view.mandalaActiveCell9x9 = null;
+            } else {
+                const cell = view.mandalaActiveCell9x9;
+                const mapped = cell
+                    ? sectionAtCell9x9(cell.row, cell.col)
+                    : null;
+                if (mapped !== section) {
+                    view.mandalaActiveCell9x9 = posOfSection9x9(section);
+                }
+            }
+        }
+    }
 </script>
 
 <div
@@ -95,16 +113,27 @@
         {:else}
             <div class="mandala-blocks">
                 {#each themeBlocks as themeSection, i (i)}
+                    {@const blockRow = Math.floor(i / 3)}
+                    {@const blockCol = i % 3}
                     <div
                         class={`mandala-block ${themeSection ? '' : 'mandala-block--center'}`}
                     >
                         {#if themeSection}
                             {@const themeNodeId = requireNodeId(themeSection)}
                             <div class="mandala-grid mandala-grid--3">
-                                {#each childSlots as slot (slot)}
+                                {#each childSlots as slot, j (slot)}
+                                    {@const localRow = Math.floor(j / 3)}
+                                    {@const localCol = j % 3}
+                                    {@const row = blockRow * 3 + localRow}
+                                    {@const col = blockCol * 3 + localCol}
                                     {#if slot === null}
                                         {#if themeNodeId}
-                                            <div class="mandala-mirror">
+                                            <div
+                                                class="mandala-mirror"
+                                                on:click={() => {
+                                                    view.mandalaActiveCell9x9 = { row, col };
+                                                }}
+                                            >
                                                 <Content
                                                     nodeId={themeNodeId}
                                                     isInSidebar={false}
@@ -121,6 +150,7 @@
                                             <MandalaCard
                                                 nodeId={nodeId}
                                                 {section}
+                                                gridCell={{ mode: '9x9', row, col }}
                                                 active={nodeId === $activeNodeId}
                                                 editing={$editingState.activeNodeId === nodeId && !$editingState.isInSidebar}
                                                 selected={$selectedNodes.has(nodeId)}
@@ -136,12 +166,17 @@
                             </div>
                         {:else}
                             <div class="mandala-grid mandala-grid--3">
-                                {#each coreSlots as section (section)}
+                                {#each coreSlots as section, j (section)}
+                                    {@const localRow = Math.floor(j / 3)}
+                                    {@const localCol = j % 3}
+                                    {@const row = blockRow * 3 + localRow}
+                                    {@const col = blockCol * 3 + localCol}
                                     {@const nodeId = requireNodeId(section)}
                                     {#if nodeId}
                                         <MandalaCard
                                             nodeId={nodeId}
                                             {section}
+                                            gridCell={{ mode: '9x9', row, col }}
                                             active={nodeId === $activeNodeId}
                                             editing={$editingState.activeNodeId === nodeId && !$editingState.isInSidebar}
                                             selected={$selectedNodes.has(nodeId)}

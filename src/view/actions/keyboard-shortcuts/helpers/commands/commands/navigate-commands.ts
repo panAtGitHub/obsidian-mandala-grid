@@ -3,7 +3,8 @@ import { AllDirections } from 'src/stores/document/document-store-actions';
 import { JumpTarget } from 'src/stores/view/reducers/document/jump-to-node';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
-import { tryMandalaCoreGridNavigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-core-grid-navigation';
+import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
+import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
 
 const outlineModeSelector = (view: LineageView) =>
     view.plugin.settings.getValue().view.outlineMode;
@@ -27,7 +28,12 @@ const maybeEnableEditMode = (view: LineageView) => {
 
 const spatialNavigation = (view: LineageView, direction: AllDirections) => {
     maybeEnableEditMode(view);
-    if (tryMandalaCoreGridNavigation(view, direction)) return;
+    if (view.mandalaMode === '3x3') {
+        if (tryMandala3x3Navigation(view, direction)) return;
+    }
+    if (view.mandalaMode === '9x9') {
+        if (tryMandala9x9Navigation(view, direction)) return;
+    }
     view.viewStore.dispatch({
         type: 'view/set-active-node/keyboard',
         payload: {

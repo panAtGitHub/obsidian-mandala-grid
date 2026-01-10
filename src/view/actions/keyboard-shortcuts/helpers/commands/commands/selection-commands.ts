@@ -1,5 +1,6 @@
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { tryMandalaCoreGridNavigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-core-grid-navigation';
+import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
+import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
 
 export const selectionCommands = () => {
     const commands: DefaultViewCommand[] = [];
@@ -25,12 +26,22 @@ export const selectionCommands = () => {
             name: 'extend_select_up',
             callback: (view, event) => {
                 event.preventDefault();
-                if (
-                    tryMandalaCoreGridNavigation(view, 'up', {
-                        extendSelection: true,
-                    })
-                )
-                    return;
+                if (view.mandalaMode === '3x3') {
+                    if (
+                        tryMandala3x3Navigation(view, 'up', {
+                            extendSelection: true,
+                        })
+                    )
+                        return;
+                }
+                if (view.mandalaMode === '9x9') {
+                    if (
+                        tryMandala9x9Navigation(view, 'up', {
+                            extendSelection: true,
+                        })
+                    )
+                        return;
+                }
                 view.viewStore.dispatch({
                     type: 'view/set-active-node/keyboard',
                     payload: {
@@ -56,12 +67,22 @@ export const selectionCommands = () => {
             name: 'extend_select_down',
             callback: (view, event) => {
                 event.preventDefault();
-                if (
-                    tryMandalaCoreGridNavigation(view, 'down', {
-                        extendSelection: true,
-                    })
-                )
-                    return;
+                if (view.mandalaMode === '3x3') {
+                    if (
+                        tryMandala3x3Navigation(view, 'down', {
+                            extendSelection: true,
+                        })
+                    )
+                        return;
+                }
+                if (view.mandalaMode === '9x9') {
+                    if (
+                        tryMandala9x9Navigation(view, 'down', {
+                            extendSelection: true,
+                        })
+                    )
+                        return;
+                }
                 view.viewStore.dispatch({
                     type: 'view/set-active-node/keyboard',
                     payload: {
