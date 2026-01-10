@@ -60,7 +60,7 @@
     };
 </script>
 
-<div class="mandala-root">
+<div class="mandala-root" class:mandala-root--9={$mode === '9x9'}>
     <div class="mandala-topbar">
         <button class="mandala-toggle" on:click={toggleMode}>
             {$mode === '3x3' ? '切换到 9×9' : '切换到 3×3'}
@@ -165,6 +165,8 @@
         height: 100%;
         width: 100%;
         overflow: hidden;
+        --mandala-gap: var(--node-gap-setting, 12px);
+        --mandala-block-gap: calc(var(--mandala-gap) * 2);
     }
 
     .mandala-topbar {
@@ -193,13 +195,15 @@
     .mandala-blocks {
         display: grid;
         grid-template-columns: repeat(3, max-content);
-        gap: calc(var(--cards-gap) * 2);
+        gap: var(--mandala-block-gap);
+        justify-content: center;
+        align-content: start;
     }
 
     .mandala-grid {
         display: grid;
         grid-template-columns: repeat(3, var(--node-width));
-        gap: var(--cards-gap);
+        gap: var(--mandala-gap);
         align-items: start;
     }
 
@@ -219,6 +223,17 @@
         width: 100%;
         height: 100%;
         min-height: 0;
+    }
+
+    /* 9×9：缩小格子，尽量让 9×9 初始视图可读 */
+    .mandala-root--9 {
+        --mandala-cell-size: clamp(
+            72px,
+            calc((var(--view-width, 900px) - 24px - (8 * var(--mandala-gap))) / 9),
+            140px
+        );
+        --node-width: var(--mandala-cell-size);
+        --min-node-height: var(--mandala-cell-size);
     }
 
     .mandala-empty,
