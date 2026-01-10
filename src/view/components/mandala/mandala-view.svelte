@@ -210,10 +210,8 @@
     /* 3×3 主视图：铺满可视区域（避免横向滚动） */
     .mandala-grid--core {
         width: 100%;
-        height: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-template-rows: repeat(3, minmax(0, 1fr));
-        align-items: stretch;
+        align-items: start;
         justify-items: stretch;
     }
 
@@ -221,16 +219,16 @@
     .mandala-grid--core .mandala-empty,
     .mandala-grid--core .mandala-mirror {
         width: 100%;
-        height: 100%;
-        min-height: 0;
     }
 
     /* 9×9：缩小格子，尽量让 9×9 初始视图可读 */
     .mandala-root--9 {
+        --mandala-gap: clamp(4px, 0.6vw, 10px);
+        --mandala-block-gap: var(--mandala-gap);
         --mandala-cell-size: clamp(
-            72px,
+            56px,
             calc((var(--view-width, 900px) - 24px - (8 * var(--mandala-gap))) / 9),
-            140px
+            120px
         );
         --node-width: var(--mandala-cell-size);
         --min-node-height: var(--mandala-cell-size);
