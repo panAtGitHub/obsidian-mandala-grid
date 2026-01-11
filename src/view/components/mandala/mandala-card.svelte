@@ -7,6 +7,9 @@
     import CardStyle from 'src/view/components/container/column/components/group/components/card/components/card-style.svelte';
     import { droppable } from 'src/view/actions/dnd/droppable';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+    import { getView } from 'src/view/components/container/context';
+    import { setActiveMainSplitNode } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/set-active-main-split-node';
+    import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
 
     export let nodeId: string;
     export let section: string;
@@ -17,6 +20,15 @@
     export let style: NodeStyle | undefined;
     export let draggable: boolean;
     export let gridCell: { mode: '9x9'; row: number; col: number } | null = null;
+
+    const view = getView();
+
+    const handleSelect = (e: MouseEvent) => {
+        if (gridCell) {
+            view.mandalaActiveCell9x9 = { row: gridCell.row, col: gridCell.col };
+        }
+        setActiveMainSplitNode(view, nodeId, e);
+    };
 </script>
 
 <div
@@ -29,6 +41,11 @@
     )}
     id={nodeId}
     use:droppable
+    on:click={handleSelect}
+    on:dblclick={(e) => {
+        handleSelect(e);
+        enableEditModeInMainSplit(view, nodeId);
+    }}
 >
     {#if style}
         <CardStyle {style} />
