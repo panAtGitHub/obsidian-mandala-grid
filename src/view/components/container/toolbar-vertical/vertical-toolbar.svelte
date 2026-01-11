@@ -75,24 +75,21 @@
             active={$showControls}
             label={lang.controls_toggle_bar}
             on:click={toggleShowControls}
-            tooltipPosition="left"
+            tooltipPosition="bottom"
         >
             <MoreVertical class="svg-icon" />
         </Button>
     </div>
 
     {#each $buttons as group (group.id)}
-        <div
-            class="buttons-group buttons-group--vertical"
-            data-visible={$showControls}
-        >
+        <div class="buttons-group" data-visible={$showControls}>
             {#each group.buttons as button (button.label)}
                 <Button
                     active={$activeStates[button.id]}
                     classes="control-item"
                     label={button.label}
                     on:click={button.onClick}
-                    tooltipPosition="left"
+                    tooltipPosition="bottom"
                 >
                     {#if 'svg' in button.icon}
                         {@html button.icon.svg}
@@ -107,13 +104,16 @@
 
 <style>
     .controls-container {
-        right: var(--size-4-2);
-        top: var(--size-4-2);
         gap: var(--size-4-2);
         display: flex;
-        flex-direction: column;
-        position: absolute;
-        z-index: 2;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .buttons-group {
+        display: flex;
+        flex-direction: row;
+        gap: var(--size-4-2);
     }
 
     .controls-toggle {

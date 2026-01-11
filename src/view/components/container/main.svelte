@@ -7,7 +7,6 @@
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
     import MandalaView from 'src/view/components/mandala/mandala-view.svelte';
     import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
-    import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
     import HotkeysModal from 'src/view/components/container/modals/hotkeys/hotkeys.svelte';
     import SettingsModal from 'src/view/components/container/modals/settings/settings.svelte';
     import SnapshotsListModal from 'src/view/components/container/modals/snapshots-list/file-histoy.svelte';
@@ -32,7 +31,6 @@
     <div class={`lineage-main`} use:mouseWheelZoom={view}>
         <MandalaView />
         <Toolbar />
-        <VerticalToolbar />
 
         {#if $controls.showHistorySidebar}
             <SnapshotsListModal />

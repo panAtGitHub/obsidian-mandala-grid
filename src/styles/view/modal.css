@@ -1,12 +1,12 @@
 .lineage-modal {
-    max-width:var(--view-width);
-    max-height:var(--view-height);
-    overflow:auto;
+    max-width: var(--view-width);
+    max-height: var(--view-height);
+    overflow: auto;
     width: fit-content;
     background-color: var(--background-primary);
     position: absolute;
     right: 50px;
-    top: var(--size-4-2);
+    top: calc(var(--size-4-2) + var(--size-4-12));
     display: flex;
     flex-direction: column;
     gap: var(--size-4-2);
@@ -18,15 +18,12 @@
 }
 
 @media (max-width: 720px) {
-    .lineage-modal{
+    .lineage-modal {
         left: var(--size-4-2);
-        overflow-x:auto
+        overflow-x: auto;
     }
 }
 
-
-
-
-.lineage-modal--full-height{
+.lineage-modal--full-height {
     bottom: var(--size-4-2);
 }

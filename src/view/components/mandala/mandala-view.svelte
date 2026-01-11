@@ -12,6 +12,7 @@
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
     import Mandala9x9Grid from 'src/view/components/mandala/mandala-9x9-grid.svelte';
+    import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
 
     const view = getView();
 
@@ -100,6 +101,7 @@
     class:mandala-root--9={$mode === '9x9'}
 >
     <div class="mandala-topbar">
+        <VerticalToolbar />
         <button class="mandala-toggle" on:click={toggleMode}>
             {$mode === '3x3' ? '切换到 9×9' : '切换到 3×3'}
         </button>
@@ -158,6 +160,8 @@
     .mandala-topbar {
         display: flex;
         justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
         padding: 8px;
         border-bottom: 1px solid var(--background-modifier-border);
         flex: 0 0 auto;

@@ -26,7 +26,16 @@ export const ViewHotkeysStore = (plugin: Lineage) =>
         for (const defaultViewHotkey of defaultViewHotkeys()) {
             const customHotkey = customHotkeys[defaultViewHotkey.name];
 
-            const hotkeys: StatefulViewHotkey[] = defaultViewHotkey.hotkeys.map(
+            const baseHotkeys = [...defaultViewHotkey.hotkeys];
+            while (baseHotkeys.length < 2) {
+                baseHotkeys.push({
+                    key: '',
+                    modifiers: [],
+                    editorState: 'both',
+                });
+            }
+
+            const hotkeys: StatefulViewHotkey[] = baseHotkeys.map(
                 (hotkey, i) => {
                     let isCustom = false;
                     const persistedHotkey =
@@ -81,6 +90,8 @@ export const ConflictLabeledHotkeysStore = (view: LineageView) =>
                 for (const hotkey of viewHotkey.hotkeys) {
                     delete hotkey.obsidianConflict;
                     delete hotkey.pluginConflict;
+
+                    if (!hotkey.key) continue;
 
                     const conflict = conflicts.get(
                         hotkey.string_representation,
