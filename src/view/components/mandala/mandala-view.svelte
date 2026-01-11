@@ -91,7 +91,7 @@
         class="mandala-scroll"
         bind:this={containerRef}
         tabindex="0"
-        on:mousedown={() => containerRef?.focus()}
+        on:click={() => focusContainer(view)}
     >
         {#if $mode === '3x3'}
             <div class="mandala-grid mandala-grid--3 mandala-grid--core">
