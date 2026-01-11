@@ -202,6 +202,12 @@ const updateDocumentState = (
         toggleCollapseAllNodes(state, context.columns);
     } else if (action.type === 'view/selection/set-selection') {
         state.document.selectedNodes = new Set(action.payload.ids);
+    } else if (action.type === 'view/mandala/subgrid/enter') {
+        state.ui.mandala.subgridTheme = action.payload.theme;
+        state.ui.mandala = { ...state.ui.mandala };
+    } else if (action.type === 'view/mandala/subgrid/exit') {
+        state.ui.mandala.subgridTheme = null;
+        state.ui.mandala = { ...state.ui.mandala };
     } else if (
         action.type === 'view/outline/load-persisted-collapsed-parents'
     ) {

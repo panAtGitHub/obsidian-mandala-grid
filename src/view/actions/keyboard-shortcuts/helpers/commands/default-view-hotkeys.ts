@@ -13,6 +13,12 @@ import { Hotkey } from 'obsidian';
 import { CommandName, GroupName } from 'src/lang/hotkey-groups';
 import { get } from 'svelte/store';
 import { singleColumnStore } from 'src/stores/document/derived/columns-store';
+import {
+    coreGrid,
+    positions,
+    slotPositions,
+    themeGrid,
+} from 'src/view/helpers/mandala/mandala-grid';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';
 export type HotkeyPreferences = {
@@ -37,6 +43,77 @@ export type StatefulViewHotkey = ViewHotkey & {
 export type StatefulViewCommand = DefaultViewCommand & {
     hotkeys: StatefulViewHotkey[];
     group: GroupName;
+};
+
+type SwapDirection = 'up' | 'down' | 'left' | 'right';
+const swapDeltas: Record<SwapDirection, { dr: number; dc: number }> = {
+    up: { dr: -1, dc: 0 },
+    down: { dr: 1, dc: 0 },
+    left: { dr: 0, dc: -1 },
+    right: { dr: 0, dc: 1 },
+};
+
+const swapMandalaCell = (view: LineageView, direction: SwapDirection) => {
+    if (view.mandalaMode !== '3x3') return;
+
+    const viewState = view.viewStore.getValue();
+    if (viewState.document.editing.activeNodeId) return;
+
+    const docState = view.documentStore.getValue();
+    if (!docState.meta.isMandala) return;
+
+    const activeNodeId = viewState.document.activeNode;
+    const activeSectionRaw = docState.sections.id_section[activeNodeId];
+    if (!activeSectionRaw) return;
+
+    const subgridTheme = viewState.ui.mandala.subgridTheme;
+
+    const pos = (() => {
+        if (subgridTheme) {
+            if (activeSectionRaw === subgridTheme) return { row: 1, col: 1 };
+            if (activeSectionRaw.startsWith(`${subgridTheme}.`)) {
+                const slot = activeSectionRaw.split('.')[1] ?? '';
+                return slotPositions[slot] ?? null;
+            }
+            return null;
+        }
+
+        const coreSection = activeSectionRaw.includes('.')
+            ? activeSectionRaw.split('.')[0]
+            : activeSectionRaw;
+        return positions[coreSection] ?? null;
+    })();
+    if (!pos) return;
+
+    const { dr, dc } = swapDeltas[direction];
+    const nextRow = pos.row + dr;
+    const nextCol = pos.col + dc;
+
+    const targetSection = (() => {
+        if (subgridTheme) {
+            if (nextRow === 1 && nextCol === 1) return subgridTheme;
+            const slot = themeGrid[nextRow]?.[nextCol] ?? null;
+            return slot ? `${subgridTheme}.${slot}` : null;
+        }
+        return coreGrid[nextRow]?.[nextCol] ?? null;
+    })();
+    if (!targetSection) return;
+
+    const targetNodeId = docState.sections.section_id[targetSection];
+    if (!targetNodeId) return;
+
+    view.documentStore.dispatch({
+        type: 'document/mandala/swap',
+        payload: {
+            sourceNodeId: activeNodeId,
+            targetNodeId,
+        },
+    });
+
+    view.viewStore.dispatch({
+        type: 'view/set-active-node/mouse-silent',
+        payload: { id: targetNodeId },
+    });
 };
 
 export const defaultViewHotkeys = (): DefaultViewCommand[] => [
@@ -124,6 +201,105 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             view.plugin.settings.dispatch({
                 type: 'settings/view/mandala/toggle-mode',
             });
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'enter_subgrid',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (view.mandalaMode !== '3x3') return;
+
+            const docState = view.documentStore.getValue();
+            if (!docState.meta.isMandala) return;
+
+            const state = view.viewStore.getValue();
+            if (state.ui.mandala.subgridTheme) return;
+
+            const activeNodeId = state.document.activeNode;
+            const activeSection = docState.sections.id_section[activeNodeId];
+            if (!activeSection) return;
+
+            const theme = activeSection.includes('.')
+                ? activeSection.split('.')[0]
+                : activeSection;
+
+            if (!theme || theme === '1') return;
+
+            const themeNodeId = docState.sections.section_id[theme];
+            if (!themeNodeId) return;
+
+            view.viewStore.dispatch({
+                type: 'view/set-active-node/mouse-silent',
+                payload: { id: themeNodeId },
+            });
+            view.viewStore.dispatch({
+                type: 'view/mandala/subgrid/enter',
+                payload: { theme },
+            });
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'exit_subgrid',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (view.mandalaMode !== '3x3') return;
+
+            const state = view.viewStore.getValue();
+            const theme = state.ui.mandala.subgridTheme;
+            if (!theme) return;
+
+            const docState = view.documentStore.getValue();
+            const themeNodeId = docState.sections.section_id[theme];
+            if (themeNodeId) {
+                view.viewStore.dispatch({
+                    type: 'view/set-active-node/mouse-silent',
+                    payload: { id: themeNodeId },
+                });
+            }
+
+            view.viewStore.dispatch({ type: 'view/mandala/subgrid/exit' });
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'swap_cell_up',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            swapMandalaCell(view, 'up');
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'swap_cell_down',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            swapMandalaCell(view, 'down');
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'swap_cell_left',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            swapMandalaCell(view, 'left');
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'swap_cell_right',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            swapMandalaCell(view, 'right');
         },
         hotkeys: [],
     },

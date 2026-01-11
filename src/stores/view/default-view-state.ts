@@ -16,6 +16,9 @@ export const defaultViewState = (): ViewState => ({
             showSettingsSidebar: false,
             showStyleRulesModal: false,
         },
+        mandala: {
+            subgridTheme: null,
+        },
     },
     document: {
         editing: {

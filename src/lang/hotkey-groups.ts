@@ -78,7 +78,15 @@ export const hotkeyGroups = {
         'toggle_collapse',
         'toggle_collapse_all',
     ]),
-    [lang.hkg_mandala]: new Set(['toggle_mandala_mode']),
+    [lang.hkg_mandala]: new Set([
+        'toggle_mandala_mode',
+        'enter_subgrid',
+        'exit_subgrid',
+        'swap_cell_up',
+        'swap_cell_down',
+        'swap_cell_left',
+        'swap_cell_right',
+    ]),
 } satisfies Record<string, Set<CommandName>>;
 
 export const hotkeysGroups: Record<CommandName, GroupName> = Object.fromEntries(

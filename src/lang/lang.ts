@@ -319,6 +319,12 @@ export const lang = {
     settings_general_link_behavior: 'Default link behavior',
 
     // hotkeys
+    hk_enter_subgrid: 'Enter subgrid',
+    hk_exit_subgrid: 'Exit subgrid',
+    hk_swap_cell_up: 'Swap cell up',
+    hk_swap_cell_down: 'Swap cell down',
+    hk_swap_cell_left: 'Swap cell left',
+    hk_swap_cell_right: 'Swap cell right',
     modals_hk_input_placeholder: 'Filter',
     modals_hk_editor_cancel: 'Cancel',
     controls_hotkeys: 'Hotkeys',

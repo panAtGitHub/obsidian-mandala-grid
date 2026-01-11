@@ -60,6 +60,12 @@ export const hotkeysLang = {
     toggle_collapse_all: lang.hk_outline_toggle_collapse_all,
     toggle_outline_mode: lang.hk_toggle_outline_mode,
     toggle_mandala_mode: lang.hk_toggle_mandala_mode,
+    enter_subgrid: lang.hk_enter_subgrid,
+    exit_subgrid: lang.hk_exit_subgrid,
+    swap_cell_up: lang.hk_swap_cell_up,
+    swap_cell_down: lang.hk_swap_cell_down,
+    swap_cell_left: lang.hk_swap_cell_left,
+    swap_cell_right: lang.hk_swap_cell_right,
     add_parent_sibling: lang.hk_add_parent_sibling,
     select_all_nodes: lang.hk_select_all,
 };

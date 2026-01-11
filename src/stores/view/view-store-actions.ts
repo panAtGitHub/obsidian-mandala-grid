@@ -17,6 +17,15 @@ import { LeftSidebarTab } from 'src/stores/settings/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
 
+export type MandalaActions =
+    | {
+          type: 'view/mandala/subgrid/enter';
+          payload: { theme: string };
+      }
+    | {
+          type: 'view/mandala/subgrid/exit';
+      };
+
 export type ViewStoreAction =
     | SearchAction
     | ViewUIAction
@@ -29,6 +38,7 @@ export type ViewStoreAction =
     | ViewHotkeysAction
     | OutlineAction
     | SelectionActions
+    | MandalaActions
     | PersistedStateActions;
 
 export type SearchAction =

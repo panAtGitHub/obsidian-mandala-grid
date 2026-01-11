@@ -4,6 +4,8 @@ import {
     coreGrid,
     positions,
     posOfSection3x3,
+    slotPositions,
+    themeGrid,
 } from 'src/view/helpers/mandala/mandala-grid';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
@@ -25,24 +27,49 @@ export const tryMandala3x3Navigation = (
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSectionRaw = docState.sections.id_section[activeNodeId];
     if (!activeSectionRaw) return false;
-    const activeSection = activeSectionRaw.includes('.')
-        ? activeSectionRaw.split('.')[0]
-        : activeSectionRaw;
 
-    const pos = positions[activeSection] ?? posOfSection3x3(activeSection);
+    const subgridTheme = view.viewStore.getValue().ui.mandala.subgridTheme;
+
+    const pos = (() => {
+        if (subgridTheme) {
+            if (activeSectionRaw === subgridTheme) return { row: 1, col: 1 };
+            if (activeSectionRaw.startsWith(`${subgridTheme}.`)) {
+                const slot = activeSectionRaw.split('.')[1] ?? '';
+                return slotPositions[slot] ?? null;
+            }
+            return null;
+        }
+
+        const activeSection = activeSectionRaw.includes('.')
+            ? activeSectionRaw.split('.')[0]
+            : activeSectionRaw;
+
+        return positions[activeSection] ?? posOfSection3x3(activeSection);
+    })();
     if (!pos) return false;
 
     const { dr, dc } = deltas[direction];
     const nextRow = pos.row + dr;
     const nextCol = pos.col + dc;
-    const nextSection = coreGrid[nextRow]?.[nextCol] ?? null;
+
+    const nextSection = (() => {
+        if (subgridTheme) {
+            if (nextRow === 1 && nextCol === 1) return subgridTheme;
+            const slot = themeGrid[nextRow]?.[nextCol] ?? null;
+            return slot ? `${subgridTheme}.${slot}` : null;
+        }
+        return coreGrid[nextRow]?.[nextCol] ?? null;
+    })();
+
     if (!nextSection) return true;
 
     const nextNodeId = docState.sections.section_id[nextSection];
     if (!nextNodeId) return true;
 
     if (options?.extendSelection) {
-        const selected = new Set(view.viewStore.getValue().document.selectedNodes);
+        const selected = new Set(
+            view.viewStore.getValue().document.selectedNodes,
+        );
         selected.add(activeNodeId);
         selected.add(nextNodeId);
         view.viewStore.dispatch({

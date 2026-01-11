@@ -50,6 +50,9 @@ export type ViewState = {
             showSettingsSidebar: boolean;
             showStyleRulesModal: boolean;
         };
+        mandala: {
+            subgridTheme: string | null;
+        };
     };
     document: DocumentViewState;
     navigationHistory: NavigationHistory;

@@ -6,6 +6,7 @@
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
+        childSlots,
         coreSlots,
         posOfSection9x9,
         sectionAtCell9x9,
@@ -40,6 +41,11 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
+
+    const subgridTheme = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.subgridTheme,
+    );
     const editingState = derived(
         view.viewStore,
         (state) => state.document.editing,
@@ -65,6 +71,10 @@
     };
 
     $: {
+        if ($mode !== '3x3' && $subgridTheme) {
+            view.viewStore.dispatch({ type: 'view/mandala/subgrid/exit' });
+        }
+
         if ($mode !== '9x9') {
             view.mandalaActiveCell9x9 = null;
         } else {
@@ -102,8 +112,12 @@
         on:click={() => focusContainer(view)}
     >
         {#if $mode === '3x3'}
+            {@const theme = $subgridTheme}
+            {@const sections = theme
+                ? childSlots.map((slot) => (slot ? `${theme}.${slot}` : theme))
+                : coreSlots}
             <div class="mandala-grid mandala-grid--3 mandala-grid--core">
-                {#each coreSlots as section (section)}
+                {#each sections as section (section)}
                     {@const nodeId = requireNodeId(section)}
                     {#if nodeId}
                         <MandalaCard
@@ -115,7 +129,7 @@
                             selected={$selectedNodes.has(nodeId)}
                             pinned={$pinnedNodes.has(nodeId)}
                             style={$nodeStyles.get(nodeId)}
-                            draggable={section !== '1'}
+                            draggable={section !== '1' && !$subgridTheme}
                         />
                     {:else}
                         <div class="mandala-empty">{section}</div>
