@@ -21,15 +21,20 @@ export const viewHotkeysAction = (
             const contain = handleEscapeKey(view);
             if (contain) return;
         }
-        if ((event.target as HTMLElement).localName === 'input') return;
+        if (
+            (event.target as HTMLElement).localName === 'input' ||
+            (event.target as HTMLElement).localName === 'textarea' ||
+            (event.target as HTMLElement).isContentEditable
+        )
+            return;
         const command = viewHotkeys.current[eventToString(event)];
         if (command) {
             const allow =
                 command.editorState === 'editor-on'
                     ? isEditing(view)
                     : command.editorState === 'editor-off'
-                      ? !isEditing(view)
-                      : true;
+                        ? !isEditing(view)
+                        : true;
 
             if (allow) {
                 try {

@@ -127,7 +127,7 @@
                     {:else}
                         <Content
                             nodeId={$activeNodeId}
-                            isInSidebar={true}
+                            isInSidebar={false}
                             active={null}
                         />
                     {/if}

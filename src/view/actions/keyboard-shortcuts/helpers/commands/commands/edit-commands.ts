@@ -8,10 +8,14 @@ export const editCommands = () => {
             name: 'enable_edit_mode',
             callback: (view, event) => {
                 event.preventDefault();
+                const showDetailSidebar =
+                    view.plugin.settings.getValue().view
+                        .showMandalaDetailSidebar;
                 view.viewStore.dispatch({
                     type: 'view/editor/enable-main-editor',
                     payload: {
                         nodeId: view.viewStore.getValue().document.activeNode,
+                        isInSidebar: showDetailSidebar,
                     },
                 });
             },
@@ -25,10 +29,14 @@ export const editCommands = () => {
                 event.preventDefault();
                 const nodeId = view.viewStore.getValue().document.activeNode;
                 view.inlineEditor.setNodeCursor(nodeId, { line: 0, ch: 0 });
+                const showDetailSidebar =
+                    view.plugin.settings.getValue().view
+                        .showMandalaDetailSidebar;
                 view.viewStore.dispatch({
                     type: 'view/editor/enable-main-editor',
                     payload: {
                         nodeId: nodeId,
+                        isInSidebar: showDetailSidebar,
                     },
                 });
             },
@@ -46,10 +54,14 @@ export const editCommands = () => {
                 event.preventDefault();
                 const nodeId = view.viewStore.getValue().document.activeNode;
                 view.inlineEditor.deleteNodeCursor(nodeId);
+                const showDetailSidebar =
+                    view.plugin.settings.getValue().view
+                        .showMandalaDetailSidebar;
                 view.viewStore.dispatch({
                     type: 'view/editor/enable-main-editor',
                     payload: {
                         nodeId: nodeId,
+                        isInSidebar: showDetailSidebar,
                     },
                 });
             },

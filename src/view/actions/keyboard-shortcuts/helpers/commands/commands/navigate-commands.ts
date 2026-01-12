@@ -17,10 +17,17 @@ const maybeEnableEditMode = (view: LineageView) => {
     const isEditing = viewState.document.editing.activeNodeId;
     const activeNode = viewState.document.activeNode;
     if (isEditing && maintainEditMode(view)) {
+        const isInSidebar = viewState.document.editing.isInSidebar;
         setTimeout(() => {
             const newActiveNode = view.viewStore.getValue().document.activeNode;
             if (newActiveNode !== activeNode) {
-                enableEditModeInMainSplit(view, newActiveNode);
+                view.viewStore.dispatch({
+                    type: 'view/editor/enable-main-editor',
+                    payload: {
+                        nodeId: newActiveNode,
+                        isInSidebar: isInSidebar,
+                    },
+                });
             }
         }, 16);
     }
