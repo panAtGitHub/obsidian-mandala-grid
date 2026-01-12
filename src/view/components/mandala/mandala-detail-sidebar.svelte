@@ -181,8 +181,8 @@
         display: flex;
         flex-direction: column;
         min-width: var(--sidebar-width);
-        /* 对齐九宫格的 12px 边距，顶部设为 0 以对齐格子内容起始位置 */
-        padding: 0 12px 12px 0; 
+        /* 对齐九宫格的 12px 边距，确保侧边栏白框与格子顶端对齐 */
+        padding: 12px 12px 12px 0; 
         overflow-y: auto;
     }
 
@@ -223,5 +223,10 @@
     :global(.mandala-detail-sidebar .lng-prev) {
         padding: 6px 6px 10px 12px !important; /* 匹配 Content.svelte 原生边距 */
         background-color: transparent !important;
+    }
+
+    /* 消除侧边栏第一行元素（如标题）的多余顶部边距，实现视觉对齐 */
+    :global(.mandala-detail-sidebar .lng-prev > *:first-child) {
+        margin-top: 0 !important;
     }
 </style>
