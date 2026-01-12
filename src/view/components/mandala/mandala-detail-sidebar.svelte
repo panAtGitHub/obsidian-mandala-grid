@@ -181,8 +181,8 @@
         display: flex;
         flex-direction: column;
         min-width: var(--sidebar-width);
-        /* 对齐九宫格的 12px 边距 */
-        padding: 12px 12px 12px 0; 
+        /* 对齐九宫格的 12px 边距，顶部设为 0 以对齐格子内容起始位置 */
+        padding: 0 12px 12px 0; 
         overflow-y: auto;
     }
 
@@ -217,11 +217,11 @@
 
     :global(.mandala-detail-sidebar .view-content) {
         background-color: transparent !important;
-        padding: 16px !important;
+        padding: 6px 6px 10px 12px !important; /* 匹配 Content.svelte 原生边距 */
     }
-
+    
     :global(.mandala-detail-sidebar .lng-prev) {
-        padding: 16px !important;
+        padding: 6px 6px 10px 12px !important; /* 匹配 Content.svelte 原生边距 */
         background-color: transparent !important;
     }
 </style>
