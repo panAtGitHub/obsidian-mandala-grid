@@ -6,7 +6,7 @@
     background-color: var(--background-primary);
     position: absolute;
     right: 50px;
-    top: calc(var(--size-4-2) + var(--size-4-12));
+    top: calc(var(--size-4-2) + 96px);
     display: flex;
     flex-direction: column;
     gap: var(--size-4-2);
