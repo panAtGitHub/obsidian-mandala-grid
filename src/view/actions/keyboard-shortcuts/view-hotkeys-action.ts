@@ -17,16 +17,6 @@ export const viewHotkeysAction = (
         shift: false,
     };
     const keyboardEventHandler = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-            const contain = handleEscapeKey(view);
-            if (contain) return;
-        }
-        if (
-            (event.target as HTMLElement).localName === 'input' ||
-            (event.target as HTMLElement).localName === 'textarea' ||
-            (event.target as HTMLElement).isContentEditable
-        )
-            return;
         const command = viewHotkeys.current[eventToString(event)];
         if (command) {
             const allow =
@@ -39,11 +29,26 @@ export const viewHotkeysAction = (
             if (allow) {
                 try {
                     command.callback(view, event);
+                    return; // 如果执行了命令，直接返回
                 } catch (error) {
                     onPluginError(error, 'command', command);
                 }
             }
         }
+
+        // 如果没有匹配到命令，或者是 Escape 键
+        if (event.key === 'Escape') {
+            const contain = handleEscapeKey(view);
+            if (contain) return;
+        }
+
+        // 仅在没有匹配到命令时拦截输入控件
+        if (
+            (event.target as HTMLElement).localName === 'input' ||
+            (event.target as HTMLElement).localName === 'textarea' ||
+            (event.target as HTMLElement).isContentEditable
+        )
+            return;
         if (event.shiftKey !== state.shift) {
             state.shift = event.shiftKey;
             view.viewStore.dispatch({
