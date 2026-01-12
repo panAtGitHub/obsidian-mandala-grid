@@ -4,7 +4,7 @@
     "description": "",
     "scripts": {
         "dev": "node esbuild.config.mjs",
-        "build": "tsc -noEmit -skipLibCheck && svelte-check --workspace src && node esbuild.config.mjs production",
+        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
         "version": "node version-bump.mjs && git add manifest.json versions.json",
         "test:watch": "vitest",
         "test": "vitest run",

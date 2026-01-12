@@ -2,13 +2,25 @@
     import { renderSettings, SettingsTab } from '../../../../actions/settings/render-settings';
     import VerticalTabHeader from './vertical-tab-header.svelte';
     import { ActiveSettingsTabStore } from 'src/view/components/container/modals/settings/active-settings-tab-store';
+    import { X } from 'lucide-svelte';
+    import { getContext } from 'svelte';
+    import type { LineageView } from 'src/view/view';
+
+    const view = getContext<LineageView>('LineageView');
 
     const setActiveTab = (tab: SettingsTab) => {
         ActiveSettingsTabStore.set(tab);
     };
+
+    const closeSettings = () => {
+        view.viewStore.dispatch({ type: 'view/toggle-settings' });
+    };
 </script>
 
 <div class="lineage-modal" id="lineage-view-settings" tabindex="0">
+    <button class="modal-close-button" on:click={closeSettings} aria-label="Close settings">
+        <X size={18} />
+    </button>
     <div class="lineage-vertical-tabs-container">
         <VerticalTabHeader {setActiveTab} activeTab={$ActiveSettingsTabStore} />
         <div
@@ -39,5 +51,26 @@
         }
     }
 
+    :global(.modal-close-button) {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 11;
+        background: var(--background-modifier-hover);
+        border: none;
+        border-radius: var(--radius-s);
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        transition: all 0.15s ease;
+    }
+
+    :global(.modal-close-button:hover) {
+        background: var(--background-modifier-border);
+        color: var(--text-normal);
+    }
 
 </style>
