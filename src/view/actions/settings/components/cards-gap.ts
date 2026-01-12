@@ -7,6 +7,7 @@ export const CardsGap = (
     element: HTMLElement,
     settingsStore: SettingsStore,
     label?: string,
+    max?: number,
 ) => {
     RangeSetting(element, settingsStore, {
         defaultValue: DEFAULT_CARDS_GAP,
@@ -20,7 +21,7 @@ export const CardsGap = (
         },
         valueSelector: (settingsState) => settingsState.view.cardsGap,
         label: label || lang.settings_layout_space_between_cards,
-        max: 500,
+        max: max ?? 500,
         min: 0,
         step: 10,
     });

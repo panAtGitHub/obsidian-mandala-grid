@@ -1,5 +1,10 @@
 import { SettingsStore } from 'src/main';
-import { ExtraButtonComponent, Setting, SliderComponent } from 'obsidian';
+import {
+    ExtraButtonComponent,
+    Setting,
+    SliderComponent,
+    TextComponent,
+} from 'obsidian';
 import { lang } from 'src/lang/lang';
 import { Settings } from 'src/stores/settings/settings-type';
 
@@ -19,23 +24,23 @@ export const RangeSetting = (
     settingsStore: SettingsStore,
     props: RangeInputProps,
 ) => {
-    let input: SliderComponent;
+    let slider: SliderComponent;
+    let textInput: TextComponent;
     let resetButton: ExtraButtonComponent;
 
-    const updateExtraButton = (currentValue: number) => {
-        if (currentValue === props.defaultValue) {
-            resetButton.setDisabled(true);
-        } else {
-            resetButton.setDisabled(false);
-        }
+    const updateResetButton = (currentValue: number) => {
+        resetButton.setDisabled(currentValue === props.defaultValue);
     };
-    const setValue = () => {
+
+    const setValues = () => {
         const settingsState = settingsStore.getValue();
         const currentValue =
             props.valueSelector(settingsState) ?? props.defaultValue;
-        input.setValue(currentValue);
-        updateExtraButton(currentValue);
+        slider.setValue(currentValue);
+        textInput.setValue(currentValue.toString());
+        updateResetButton(currentValue);
     };
+
     const setting = new Setting(element);
     setting.setName(props.label);
     if (props.desc) {
@@ -44,22 +49,48 @@ export const RangeSetting = (
 
     setting
         .addSlider((cb) => {
-            input = cb;
+            slider = cb;
             cb.setLimits(props.min, props.max, props.step);
 
             cb.onChange((value) => {
                 props.onChange(value);
-                updateExtraButton(value);
+                textInput.setValue(value.toString());
+                updateResetButton(value);
             }).setDynamicTooltip();
+        })
+        .addText((cb) => {
+            textInput = cb;
+            cb.inputEl.type = 'number';
+            cb.inputEl.style.width = '60px';
+            cb.inputEl.style.marginLeft = '12px';
+            cb.setValue(
+                (
+                    props.valueSelector(settingsStore.getValue()) ??
+                    props.defaultValue
+                ).toString(),
+            );
+
+            cb.onChange((value) => {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue)) {
+                    const clampedValue = Math.min(
+                        Math.max(numValue, props.min),
+                        props.max,
+                    );
+                    props.onChange(clampedValue);
+                    slider.setValue(clampedValue);
+                    updateResetButton(clampedValue);
+                }
+            });
         })
         .addExtraButton((cb) => {
             resetButton = cb;
             cb.setIcon('reset')
                 .onClick(() => {
                     props.onChange(props.defaultValue);
-                    setValue();
+                    setValues();
                 })
                 .setTooltip(lang.settings_reset);
         });
-    setValue();
+    setValues();
 };
