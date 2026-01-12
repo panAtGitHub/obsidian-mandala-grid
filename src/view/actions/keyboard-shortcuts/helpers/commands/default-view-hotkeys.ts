@@ -122,13 +122,13 @@ const swapMandalaCell = (view: LineageView, direction: SwapDirection) => {
 export const defaultViewHotkeys = (): DefaultViewCommand[] => [
     ...navigateCommands(),
     ...editCommands(),
-    ...createCommands(),
+    // ...createCommands(),
     // ...moveCommands(),
     // ...mergeCommands(),
-    ...clipboardCommands(),
+    // ...clipboardCommands(),
     ...historyCommands(),
     // ...selectionCommands(),
-    ...scrollCommands(),
+    // ...scrollCommands(),
     {
         name: 'move_node_up',
         callback: (view) => {
@@ -189,7 +189,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             },
         ],
     },
-    {
+    /* {
         name: 'delete_card',
         callback: (view, e) => {
             const document = view.viewStore.getValue().document;
@@ -201,7 +201,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         hotkeys: [
             { key: 'Backspace', modifiers: ['Mod'], editorState: 'editor-off' },
         ],
-    },
+    }, */
     {
         name: 'toggle_search_input',
         callback: (view, e) => {

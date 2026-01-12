@@ -142,7 +142,7 @@ export const navigateCommands = () => {
                 { key: 'ArrowUp', modifiers: [], editorState: 'editor-off' },
             ],
         },
-        {
+        /* {
             name: 'select_parent',
             callback: (view, event) => {
                 event.preventDefault();
@@ -207,7 +207,7 @@ export const navigateCommands = () => {
                 jump(view, 'end-of-column');
             },
             hotkeys: [{ key: 'End', modifiers: [], editorState: 'editor-off' }],
-        },
+        }, */
         {
             name: 'navigate_back',
             callback: (view, event) => {
