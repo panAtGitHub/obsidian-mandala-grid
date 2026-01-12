@@ -129,7 +129,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
     ...historyCommands(),
     // ...selectionCommands(),
     // ...scrollCommands(),
-    {
+    /* {
         name: 'move_node_up',
         callback: (view) => {
             if (view.mandalaMode === '3x3') swapMandalaCell(view, 'up');
@@ -188,7 +188,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
                 editorState: 'both',
             },
         ],
-    },
+    }, */
     /* {
         name: 'delete_card',
         callback: (view, e) => {
@@ -214,7 +214,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             { key: 'f', modifiers: ['Alt'], editorState: 'both' },
         ],
     },
-    {
+    /* {
         name: 'zoom_in',
         callback: (view, e) => {
             e.preventDefault();
@@ -246,7 +246,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             });
         },
         hotkeys: [{ key: '0', modifiers: ['Mod'], editorState: 'both' }],
-    },
+    }, */
     /*{
         name: 'toggle_outline_mode',
         callback: (view) => {
@@ -256,7 +256,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         },
         hotkeys: [{ key: 'o', modifiers: ['Alt'], editorState: 'both' }],
     },*/
-    {
+    /* {
         name: 'toggle_mandala_mode',
         callback: (view, e) => {
             e.preventDefault();
@@ -266,7 +266,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             });
         },
         hotkeys: [],
-    },
+    }, */
     {
         name: 'enter_subgrid',
         callback: (view, e) => {
@@ -353,7 +353,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         },
         hotkeys: [],
     },
-    {
+    /* {
         name: 'swap_cell_up',
         callback: (view, e) => {
             e.preventDefault();
@@ -388,7 +388,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             swapMandalaCell(view, 'right');
         },
         hotkeys: [],
-    },
+    }, */
     /* {
         name: 'toggle_collapse',
         callback: (view, e) => {
