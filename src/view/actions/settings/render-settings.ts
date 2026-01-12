@@ -48,11 +48,11 @@ const render = (view: LineageView, element: HTMLElement, tabs: Tab[]) => {
         settingsStore,
         isMandala ? '自动聚焦详情编辑' : undefined,
     );
-    AlwaysShowCardButtons(
+    /*AlwaysShowCardButtons(
         generalTab,
         settingsStore,
         isMandala ? '始终显示格子操作图标' : undefined,
-    );
+    );*/
     ControlsBarButtons(
         generalTab,
         view,

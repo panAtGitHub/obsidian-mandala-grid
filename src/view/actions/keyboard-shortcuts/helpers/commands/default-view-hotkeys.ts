@@ -8,6 +8,7 @@ import { clipboardCommands } from 'src/view/actions/keyboard-shortcuts/helpers/c
 import { selectionCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/selection-commands';
 import { scrollCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/scroll-commands';
 import { deleteNode } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/delete-node';
+import { moveNode } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/move-node';
 import { LineageView } from 'src/view/view';
 import { Hotkey, Notice } from 'obsidian';
 import { CommandName, GroupName } from 'src/lang/hotkey-groups';
@@ -122,12 +123,72 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
     ...navigateCommands(),
     ...editCommands(),
     ...createCommands(),
-    ...moveCommands(),
-    ...mergeCommands(),
+    // ...moveCommands(),
+    // ...mergeCommands(),
     ...clipboardCommands(),
     ...historyCommands(),
-    ...selectionCommands(),
+    // ...selectionCommands(),
     ...scrollCommands(),
+    {
+        name: 'move_node_up',
+        callback: (view) => {
+            if (view.mandalaMode === '3x3') swapMandalaCell(view, 'up');
+            else moveNode(view, 'up');
+        },
+        hotkeys: [
+            { key: 'K', modifiers: ['Alt', 'Shift'], editorState: 'both' },
+            {
+                key: 'ArrowUp',
+                modifiers: ['Alt', 'Shift'],
+                editorState: 'both',
+            },
+        ],
+    },
+    {
+        name: 'move_node_down',
+        callback: (view) => {
+            if (view.mandalaMode === '3x3') swapMandalaCell(view, 'down');
+            else moveNode(view, 'down');
+        },
+        hotkeys: [
+            { key: 'J', modifiers: ['Alt', 'Shift'], editorState: 'both' },
+            {
+                key: 'ArrowDown',
+                modifiers: ['Alt', 'Shift'],
+                editorState: 'both',
+            },
+        ],
+    },
+    {
+        name: 'move_node_right',
+        callback: (view) => {
+            if (view.mandalaMode === '3x3') swapMandalaCell(view, 'right');
+            else moveNode(view, 'right');
+        },
+        hotkeys: [
+            { key: 'L', modifiers: ['Alt', 'Shift'], editorState: 'both' },
+            {
+                key: 'ArrowRight',
+                modifiers: ['Alt', 'Shift'],
+                editorState: 'both',
+            },
+        ],
+    },
+    {
+        name: 'move_node_left',
+        callback: (view) => {
+            if (view.mandalaMode === '3x3') swapMandalaCell(view, 'left');
+            else moveNode(view, 'left');
+        },
+        hotkeys: [
+            { key: 'H', modifiers: ['Alt', 'Shift'], editorState: 'both' },
+            {
+                key: 'ArrowLeft',
+                modifiers: ['Alt', 'Shift'],
+                editorState: 'both',
+            },
+        ],
+    },
     {
         name: 'delete_card',
         callback: (view, e) => {
@@ -186,7 +247,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         },
         hotkeys: [{ key: '0', modifiers: ['Mod'], editorState: 'both' }],
     },
-    {
+    /*{
         name: 'toggle_outline_mode',
         callback: (view) => {
             view!.plugin.settings.dispatch({
@@ -194,7 +255,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             });
         },
         hotkeys: [{ key: 'o', modifiers: ['Alt'], editorState: 'both' }],
-    },
+    },*/
     {
         name: 'toggle_mandala_mode',
         callback: (view, e) => {
@@ -328,7 +389,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         },
         hotkeys: [],
     },
-    {
+    /* {
         name: 'toggle_collapse',
         callback: (view, e) => {
             e.preventDefault();
@@ -352,5 +413,5 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             });
         },
         hotkeys: [{ key: '=', modifiers: ['Alt', 'Mod'], editorState: 'both' }],
-    },
+    }, */
 ];

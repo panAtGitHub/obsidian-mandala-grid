@@ -12,10 +12,10 @@
     import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
     import { 
         ShowMandalaDetailSidebarStore,
-        AlwaysShowCardButtons,
+        // AlwaysShowCardButtons,
         OutlineModeStore
     } from 'src/stores/settings/derived/view-settings-store';
-    import CardButtons from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
+    // import CardButtons from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
     import { derived } from 'src/lib/store/derived';
 
     export let nodeId: string;
@@ -30,7 +30,7 @@
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
-    const alwaysShowCardButtons = AlwaysShowCardButtons(view);
+    // const alwaysShowCardButtons = AlwaysShowCardButtons(view);
     const outlineMode = OutlineModeStore(view);
 
     const hasChildrenStore = derived(view.documentStore, (state) => {
@@ -68,7 +68,7 @@
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
-        $alwaysShowCardButtons ? 'always-show-buttons' : undefined,
+        // $alwaysShowCardButtons ? 'always-show-buttons' : undefined,
     )}
     id={nodeId}
     use:droppable
@@ -98,8 +98,8 @@
     {:else}
         <Content nodeId={nodeId} isInSidebar={false} active={active ? ActiveStatus.node : null} />
     {/if}
-
-    <CardButtons
+    
+    <!-- <CardButtons
         {editing}
         {nodeId}
         hasChildren={$hasChildrenStore}
@@ -108,7 +108,7 @@
         active={active ? ActiveStatus.node : null}
         alwaysShowCardButtons={$alwaysShowCardButtons}
         outlineMode={$outlineMode}
-    />
+    /> -->
 
     <div class="mandala-section-label">{section}</div>
 </div>
@@ -141,11 +141,11 @@
         pointer-events: none;
     }
 
-    .lineage-card.always-show-buttons :global(.lineage-floating-button) {
+    /* .lineage-card.always-show-buttons :global(.lineage-floating-button) {
         opacity: var(--opacity-inactive-node) !important;
     }
 
     .lineage-card.always-show-buttons.active-node :global(.lineage-floating-button) {
         opacity: var(--opacity-active-node) !important;
-    }
+    } */
 </style>
