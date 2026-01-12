@@ -75,11 +75,13 @@ const render = (view: LineageView, element: HTMLElement, tabs: Tab[]) => {
     if (!isMandala) {
         CardWidth(layoutTab, settingsStore);
     }
-    CardsGap(layoutTab, settingsStore);
+    CardsGap(layoutTab, settingsStore, isMandala ? '网格间距' : undefined);
     if (!isMandala) {
         CardIndentationWidth(layoutTab, settingsStore);
     }
-    LimitCardHeight(layoutTab, settingsStore);
+    if (!isMandala) {
+        LimitCardHeight(layoutTab, settingsStore);
+    }
 
     element.append(generalTab, appearanceTab, layoutTab);
 };

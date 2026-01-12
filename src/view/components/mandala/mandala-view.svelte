@@ -163,7 +163,7 @@
         width: 100%;
         overflow: hidden;
         --mandala-core-gap: clamp(10px, 1vw, 18px);
-        --mandala-gap: calc(var(--mandala-core-gap) / 4);
+        --mandala-gap: var(--node-gap-setting, calc(var(--mandala-core-gap) / 4));
         --mandala-block-gap: var(--mandala-gap);
         --mandala-card-width: 100%;
     }
