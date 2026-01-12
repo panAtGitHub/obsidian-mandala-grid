@@ -117,20 +117,22 @@
         <div class="sidebar-content">
             {#if $activeNodeId}
                 <div class="editor-wrapper">
-                    {#if isEditingInSidebar}
-                        <div bind:this={editorContainer} class="sidebar-editor-container">
-                            <InlineEditor
+                    {#key $activeNodeId}
+                        {#if isEditingInSidebar}
+                            <div bind:this={editorContainer} class="sidebar-editor-container">
+                                <InlineEditor
+                                    nodeId={$activeNodeId}
+                                    style={$styleRules.get($activeNodeId)}
+                                />
+                            </div>
+                        {:else}
+                            <Content
                                 nodeId={$activeNodeId}
-                                style={$styleRules.get($activeNodeId)}
+                                isInSidebar={false}
+                                active={null}
                             />
-                        </div>
-                    {:else}
-                        <Content
-                            nodeId={$activeNodeId}
-                            isInSidebar={false}
-                            active={null}
-                        />
-                    {/if}
+                        {/if}
+                    {/key}
                 </div>
             {:else}
                 <div class="no-selection">请选择一个格子进行编辑</div>
