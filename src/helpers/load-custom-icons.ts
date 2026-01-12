@@ -68,7 +68,7 @@ const alignV: CustomIcon = {
 };
 
 const gap: CustomIcon = {
-    name: 'cards-gap',
+    name: 'mandala-cards-gap',
     svg: `  
                 <rect width="20" height="12" x="-11.600009" y="6" rx="2" />
                 <rect
@@ -83,7 +83,7 @@ const gap: CustomIcon = {
 };
 
 const outline: CustomIcon = {
-    name: 'outline',
+    name: 'mandala-outline',
     svg: `<path d="M 7.563873,12 H 21.24698" />
   <path d="M 7.56116,18 H 21.159058" />
   <path d="M3 6h18" /> `,
@@ -91,7 +91,7 @@ const outline: CustomIcon = {
 };
 
 const cursorOff: CustomIcon = {
-    name: 'cursor-off',
+    name: 'mandala-cursor-off',
     svg: `<path d="m 8.0036101,3.8555957 h 1 a 3,3 0 0 1 2.9999999,3 3,3 0 0 1 3,-3 h 1" />
   <path d="m 16.00361,19.855596 h -1 a 3,3 0 0 1 -3,-3 3,3 0 0 1 -2.9999999,3 h -1" />
   <path d="M 12.00361,6.8555957 V 16.855596" />
@@ -100,7 +100,7 @@ const cursorOff: CustomIcon = {
 };
 
 const cursor: CustomIcon = {
-    name: 'cursor',
+    name: 'mandala-cursor',
     svg: `<path d="m 8.0036101,3.8555957 h 1 a 3,3 0 0 1 2.9999999,3 3,3 0 0 1 3,-3 h 1" />
   <path d="m 16.00361,19.855596 h -1 a 3,3 0 0 1 -3,-3 3,3 0 0 1 -2.9999999,3 h -1" />
   <path d="M 12.00361,6.8555957 V 16.855596" />`,
