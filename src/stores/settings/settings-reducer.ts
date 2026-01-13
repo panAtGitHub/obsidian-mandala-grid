@@ -229,6 +229,8 @@ const updateState = (store: Settings, action: SettingsActions) => {
         store.styleRules.settings.activeTab = action.payload.tab;
     } else if (action.type === 'settings/general/set-link-pane-type') {
         store.general.linkPaneType = action.payload.position;
+    } else if (action.type === 'settings/view/set-mobile-edit-font-size-offset') {
+        store.view.mobileEditFontSizeOffset = action.payload.offset;
     } else if (action.type.startsWith('settings/style-rules')) {
         updateStyleRules(store, action as any);
     }

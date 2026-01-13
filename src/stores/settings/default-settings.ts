@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         maintainEditMode: false,
         alwaysShowCardButtons: false,
         showHiddenCardInfo: true,
+        mobileEditFontSizeOffset: 0,
         hiddenVerticalToolbarButtons: [],
     },
     general: {

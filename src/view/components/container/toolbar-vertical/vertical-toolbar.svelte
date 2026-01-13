@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { Platform } from 'obsidian';
     import { lang } from '../../../../lang/lang';
     import { MoreVertical } from 'lucide-svelte';
     import { getView } from '../context';
@@ -67,6 +68,8 @@
             } as Partial<Record<ToolbarButton, boolean>>;
         },
     );
+
+    $: flattenedButtons = $buttons.flatMap((g) => g.buttons);
 </script>
 
 <div class="controls-container">
@@ -81,9 +84,9 @@
         </Button>
     </div>
 
-    {#each $buttons as group (group.id)}
+    {#if Platform.isMobile}
         <div class="buttons-group" data-visible={$showControls}>
-            {#each group.buttons as button (button.label)}
+            {#each flattenedButtons as button (button.label)}
                 <Button
                     active={$activeStates[button.id]}
                     classes="control-item"
@@ -99,7 +102,27 @@
                 </Button>
             {/each}
         </div>
-    {/each}
+    {:else}
+        {#each $buttons as group (group.id)}
+            <div class="buttons-group">
+                {#each group.buttons as button (button.label)}
+                    <Button
+                        active={$activeStates[button.id]}
+                        classes="control-item"
+                        label={button.label}
+                        on:click={button.onClick}
+                        tooltipPosition="bottom"
+                    >
+                        {#if 'svg' in button.icon}
+                            {@html button.icon.svg}
+                        {:else}
+                            <svelte:component this={button.icon} class="svg-icon" />
+                        {/if}
+                    </Button>
+                {/each}
+            </div>
+        {/each}
+    {/if}
 </div>
 
 <style>
@@ -121,10 +144,25 @@
     }
     :global(.is-mobile) {
         & .controls-container {
-            flex-direction: row-reverse;
+            flex-direction: row;
         }
         & .controls-toggle {
             display: block;
+            z-index: 1002;
+        }
+        & .buttons-group[data-visible='true'] {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 45px;
+            right: var(--size-4-2);
+            background: var(--background-primary);
+            padding: var(--size-4-2);
+            border-radius: var(--radius-m);
+            box-shadow: var(--shadow-l);
+            border: 1px solid var(--background-modifier-border);
+            z-index: 1001;
+            gap: 8px;
         }
         & .buttons-group[data-visible='false'] {
             display: none;

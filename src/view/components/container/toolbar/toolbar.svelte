@@ -78,13 +78,14 @@
 <style>
     .navigation-history-container {
         z-index: var(--z-index-breadcrumbs);
-        left: var(--size-4-2);
-        top: var(--size-4-2);
         display: flex;
-        position: absolute;
         gap: var(--size-4-2);
         flex-wrap: wrap;
-        max-width: 90%;
+        max-width: fit-content;
+        pointer-events: none;
+    }
+    .navigation-history-container :global(> *) {
+        pointer-events: auto;
     }
 
     .buttons-group-wrapper {
@@ -98,18 +99,33 @@
 
     :global(.is-mobile) {
         & .navigation-history-container {
-            width: 100%;
-            justify-content: space-between;
+            width: auto;
+            position: static;
         }
         & .mobile-toggle {
             display: block;
         }
         & .lock-toggle-container {
             display: block;
-            /* 居中处理，考虑到两边按钮的宽度 */
             position: absolute;
             left: 50%;
+            top: 4px;
             transform: translateX(-50%);
+            z-index: 1002;
+        }
+        & .buttons-group-wrapper[data-visible='true'] {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 45px;
+            left: var(--size-4-2);
+            background: var(--background-primary);
+            padding: var(--size-4-2);
+            border-radius: var(--radius-m);
+            box-shadow: var(--shadow-l);
+            border: 1px solid var(--background-modifier-border);
+            z-index: 1001;
+            gap: 8px;
         }
         & .buttons-group-wrapper[data-visible='false'] {
             display: none;

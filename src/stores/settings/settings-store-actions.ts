@@ -193,6 +193,12 @@ export type SettingsActions =
         payload: {
             position: LinkPaneType;
         };
+    }
+    | {
+        type: 'settings/view/set-mobile-edit-font-size-offset';
+        payload: {
+            offset: number;
+        };
     };
 export type PersistCollapsedSectionsAction = {
     type: 'settings/document/persist-collapsed-sections';

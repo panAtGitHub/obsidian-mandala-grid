@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { Platform } from 'obsidian';
     import { onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import { MandalaModeStore } from 'src/stores/settings/derived/view-settings-store';
@@ -13,6 +14,7 @@
     } from 'src/view/helpers/mandala/mandala-grid';
     import Mandala9x9Grid from 'src/view/components/mandala/mandala-9x9-grid.svelte';
     import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
+    import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
     import MandalaDetailSidebar from './mandala-detail-sidebar.svelte';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
 
@@ -105,8 +107,10 @@
     class="mandala-root"
     class:mandala-root--3={$mode === '3x3'}
     class:mandala-root--9={$mode === '9x9'}
+    class:is-editing-mobile={Platform.isMobile && $editingState.activeNodeId}
 >
     <div class="mandala-topbar">
+        <Toolbar />
         <VerticalToolbar />
         <!-- 注释掉模式切换按钮，保留代码备用 -->
         <!-- <button class="mandala-toggle" on:click={toggleMode}>
@@ -174,12 +178,18 @@
 
     .mandala-topbar {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         gap: 8px;
-        padding: 8px;
+        padding: 4px var(--size-4-2);
         border-bottom: 1px solid var(--background-modifier-border);
         flex: 0 0 auto;
+        position: relative;
+        z-index: 1000;
+        pointer-events: none;
+    }
+    .mandala-topbar :global(> *) {
+        pointer-events: auto;
     }
 
     .mandala-toggle {
@@ -340,5 +350,9 @@
         border-radius: 8px;
         opacity: 0.35;
         pointer-events: none;
+    }
+    .mandala-root.is-editing-mobile .mandala-scroll {
+        padding: 0 !important;
+        overflow: visible !important;
     }
 </style>

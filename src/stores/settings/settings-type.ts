@@ -74,6 +74,7 @@ export type Settings = {
         maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;
         showHiddenCardInfo: boolean;
+        mobileEditFontSizeOffset: number;
         hiddenVerticalToolbarButtons: ToolbarButton[];
     };
     general: {

@@ -30,7 +30,6 @@
 >
     <div class={`mandala-main`} use:mouseWheelZoom={view}>
         <MandalaViewComponent />
-        <Toolbar />
 
         {#if $controls.showHistorySidebar}
             <SnapshotsListModal />

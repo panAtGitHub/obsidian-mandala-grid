@@ -12,7 +12,7 @@
     data-active={active}
     data-tooltip-position={tooltipPosition}
     {disabled}
-    on:click
+    on:click|stopPropagation
 >
     <slot />
 </button>

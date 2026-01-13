@@ -6,10 +6,12 @@
 
     export let nodeId: NodeId;
     export let style: NodeStyle | undefined;
+    export let fontSizeOffset: number = 0;
 </script>
 
 <div
     class={'editor-container' + (style ? ' apply-style-rule' : '')}
+    style="--local-font-size-offset: {fontSizeOffset}px"
     use:expandableTextareaAction
     use:loadInlineEditor={nodeId}
 ></div>

@@ -3,17 +3,17 @@
     import VerticalTabHeader from './vertical-tab-header.svelte';
     import { ActiveSettingsTabStore } from 'src/view/components/container/modals/settings/active-settings-tab-store';
     import { X } from 'lucide-svelte';
-    import { getContext } from 'svelte';
+    import { getView } from '../../context';
     import type { MandalaView } from 'src/view/view';
 
-    const view = getContext<MandalaView>('MandalaView');
+    const view = getView();
 
     const setActiveTab = (tab: SettingsTab) => {
         ActiveSettingsTabStore.set(tab);
     };
 
     const closeSettings = () => {
-        view.viewStore.dispatch({ type: 'view/toggle-settings' });
+        view.viewStore.dispatch({ type: 'view/settings/toggle-modal' });
     };
 </script>
 

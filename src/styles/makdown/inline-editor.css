@@ -1,22 +1,41 @@
-
 .mandala-inline-editor {
     width: 100%;
     height: auto;
     min-height: 100px;
+
     & .view-header,
     & .inline-title,
     & .embedded-backlinks,
     & .cm-gutters {
         display: none !important;
     }
+
+    & .cm-editor,
+    & .cm-content,
+    & .cm-line {
+        font-size: calc(var(--font-text-size, 16px) + var(--local-font-size-offset, 0px)) !important;
+    }
+
     & .cm-editor .cm-scroller {
         padding: 6px !important;
-        padding-bottom: 10px !important;
+        padding-bottom: 20px !important;
         padding-left: 12px !important;
     }
+
     & .cm-contentContainer div {
         padding-bottom: 0 !important;
     }
 
     --file-line-width: 100%;
+}
+
+/* 移动端全屏模式下的编辑器特殊调整 */
+:global(.is-mobile) .is-floating-mobile .mandala-inline-editor {
+    height: 100% !important;
+    min-height: calc(100vh - 100px) !important;
+    background-color: var(--background-primary);
+}
+
+:global(.is-mobile) .is-floating-mobile .editor-container {
+    height: 100% !important;
 }
