@@ -8,17 +8,39 @@
     import SearchNavigationButtons from './components/search/search-navigation-buttons.svelte';
     import DocumentHistoryButtons from './components/document-history-buttons.svelte';
     import SearchActions from './components/search-actions.svelte';
+    import { writable } from 'svelte/store';
+    import { Menu } from 'lucide-svelte';
+    import Button from '../shared/button.svelte';
+    import { lang } from 'src/lang/lang';
 
     const view = getView();
-
     const search = searchStore(view);
+
+    const showControls = writable(false);
+    const toggleShowControls = () => {
+        showControls.update((v) => !v);
+    };
 </script>
 
 <div class="navigation-history-container">
-    <LeftSidebarToggle />
-    <NavigationHistory />
-    <DocumentHistoryButtons />
-    <SearchToggle />
+    <div class="mobile-toggle">
+        <Button
+            active={$showControls}
+            label={lang.controls_toggle_bar}
+            on:click={toggleShowControls}
+            tooltipPosition="bottom"
+        >
+            <Menu class="svg-icon" />
+        </Button>
+    </div>
+
+    <div class="buttons-group-wrapper" data-visible={$showControls}>
+        <LeftSidebarToggle />
+        <NavigationHistory />
+        <DocumentHistoryButtons />
+        <SearchToggle />
+    </div>
+
     {#if $search.showInput}
         <SearchInput />
         {#if $search.query.length > 0}
@@ -42,5 +64,23 @@
         gap: var(--size-4-2);
         flex-wrap: wrap;
         max-width: 90%;
+    }
+
+    .buttons-group-wrapper {
+        display: flex;
+        gap: var(--size-4-2);
+    }
+
+    .mobile-toggle {
+        display: none;
+    }
+
+    :global(.is-mobile) {
+        & .mobile-toggle {
+            display: block;
+        }
+        & .buttons-group-wrapper[data-visible='false'] {
+            display: none;
+        }
     }
 </style>
