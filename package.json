@@ -1,6 +1,6 @@
 {
     "name": "mandala-grid",
-    "version": "0.8.5",
+    "version": "1.1.0",
     "description": "",
     "scripts": {
         "dev": "node esbuild.config.mjs",
