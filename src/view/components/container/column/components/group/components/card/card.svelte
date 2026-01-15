@@ -121,7 +121,7 @@
         --scrollbar-active-thumb-bg: var(--color-base-40);
     }
 
-    .mandala-card:hover {
+    :global(.mandala-view:not(.mandala-white-theme)) .mandala-card:hover {
         z-index: 10;
     }
 

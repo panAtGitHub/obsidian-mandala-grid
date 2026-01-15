@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import { lang } from '../../../../lang/lang';
-    import { MoreVertical } from 'lucide-svelte';
+    import { MoreVertical, Wrench } from 'lucide-svelte';
     import { getView } from '../context';
     import { derived, writable } from 'svelte/store';
     import { uiControlsStore } from '../../../../stores/view/derived/ui-controls-store';
@@ -19,12 +19,18 @@
     } from '../../../../stores/settings/derived/view-settings-store';
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
+    import ViewOptionsMenu from './view-options-menu.svelte';
 
     const view = getView();
 
     const showControls = writable(false);
     const toggleShowControls = () => {
         showControls.update((v) => !v);
+    };
+
+    const showOptionsMenu = writable(false);
+    const toggleOptionsMenu = () => {
+        showOptionsMenu.update((v) => !v);
     };
 
     const controls = uiControlsStore(view);
@@ -35,6 +41,7 @@
     const mandalaMode = MandalaModeStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
+
 
     const buttons = VerticalToolbarButtonsList(view);
     const activeStates = derived(
@@ -125,10 +132,29 @@
                         {/if}
                     </Button>
                 {/each}
+                
+                <!-- 在侧边栏按钮组后添加快捷菜单按钮 -->
+                {#if group.id === 'mandala'}
+                    <Button
+                        active={$showOptionsMenu}
+                        classes="control-item"
+                        label="视图选项"
+                        on:click={toggleOptionsMenu}
+                        tooltipPosition="bottom"
+                    >
+                        <Wrench class="svg-icon" />
+                    </Button>
+                {/if}
             </div>
         {/each}
     {/if}
 </div>
+
+<!-- 视图选项菜单 -->
+<ViewOptionsMenu 
+    show={$showOptionsMenu} 
+    on:close={() => showOptionsMenu.set(false)} 
+/>
 
 <style>
     .controls-container {

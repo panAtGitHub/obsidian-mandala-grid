@@ -2,6 +2,7 @@
     --mandala-accent: #55b1ae;
     --mandala-color-selection: #418cff;
 }
+
 .theme-dark {
     --background-container: #373d4c;
     --background-active-node: var(--background-primary);
@@ -10,6 +11,7 @@
     --mandala-accent-faint: #628c8c;
     --mandala-color-selection-faint: #567aab;
 }
+
 .theme-light {
     --background-container: #899cb3;
     --background-active-node: var(--background-primary);
@@ -29,3 +31,107 @@
     --custom-hotkey-bg: #5f7f93;
 }
 
+
+/* 纯白主题模式 */
+.mandala-white-theme {
+    --background-container: #FFFFFF !important;
+    --background-primary: #FFFFFF !important;
+    --background-secondary: #F8F8F8 !important;
+    --background-modifier-border: #E0E0E0 !important;
+    --background-active-node: #FFFFFF !important;
+    --background-active-parent: #FFFFFF !important;
+    --color-active-node: #000000 !important;
+    --color-active-parent: #000000 !important;
+    --inactive-card-opacity: 1 !important;
+    --text-normal: #000000 !important;
+    --text-muted: #666666 !important;
+    --mandala-color-selection: var(--interactive-accent) !important;
+    --mandala-color-selection-faint: var(--interactive-accent) !important;
+    --mandala-white-outline: var(--background-modifier-border);
+}
+
+.mandala-white-theme .mandala-card {
+    border-left-width: 0;
+    box-shadow: none;
+    border: 1px solid var(--mandala-white-outline);
+}
+
+.mandala-white-theme .node-border--selected {
+    border-left-width: 0;
+    border-left-color: var(--background-modifier-border);
+    outline: 2px solid var(--mandala-white-outline);
+    outline-offset: 0;
+}
+
+.mandala-white-theme .mandala-card.active-node {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 0;
+}
+
+.mandala-white-theme .mandala-card {
+    transition: none;
+}
+
+.mandala-white-theme .active-parent,
+.mandala-white-theme .active-sibling,
+.mandala-white-theme .inactive-node {
+    opacity: 1;
+}
+
+.mandala-white-theme .inactive-node:hover,
+.mandala-white-theme .active-parent:hover,
+.mandala-white-theme .active-sibling:hover,
+.mandala-white-theme .active-child:hover,
+.mandala-white-theme .active-node:hover {
+    opacity: 1 !important;
+}
+
+.mandala-white-theme .mandala-floating-button {
+    display: none !important;
+}
+
+
+.mandala-white-theme .node-border--active,
+.mandala-white-theme .node-border--editing,
+.mandala-white-theme .node-border--delete,
+.mandala-white-theme .node-border--discard,
+.mandala-white-theme .node-border--search-match {
+    border-left-color: var(--background-modifier-border);
+}
+
+/* 打印样式 - 仅移除工具栏,保留侧边栏和格子布局 */
+@media print {
+
+    /* 隐藏工具栏 */
+    .mandala-topbar {
+        display: none !important;
+    }
+
+    /* 保留侧边栏,按当前状态显示 */
+    .mandala-detail-sidebar {
+        /* 保持原样,如果用户打开了就显示,关闭了就不显示 */
+    }
+
+    /* 格子区域调整 */
+    .mandala-scroll {
+        overflow: visible !important;
+        padding: 0 !important;
+    }
+
+    /* A4 横向打印设置 */
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    /* 防止格子内容分页断裂 */
+    .mandala-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* 移除不必要的阴影和边框效果 */
+    .mandala-card {
+        box-shadow: none !important;
+    }
+}

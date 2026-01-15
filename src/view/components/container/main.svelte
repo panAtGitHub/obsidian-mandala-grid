@@ -13,8 +13,9 @@
     import StyleRulesModal from 'src/view/components/container/style-rules/style-rules.svelte';
     import { MandalaView } from 'src/view/view';
     import { localFontStore } from 'src/stores/local-font-store';
+    import { WhiteThemeModeStore } from 'src/stores/settings/derived/view-settings-store';
     import LeftSidebar from 'src/view/components/container/left-sidebar/left-sidebar.svelte';
-    import LeftSidebar from 'src/view/components/container/left-sidebar/left-sidebar.svelte';
+    import { Platform } from 'obsidian';
 
     export let plugin: MandalaGrid;
     export let view: MandalaView;
@@ -23,10 +24,12 @@
     setContext('view', view);
 
     const controls = uiControlsStore(view);
+    const whiteThemeMode = WhiteThemeModeStore(view);
 </script>
 
 <div
     class="mandala-view"
+    class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
     style="--font-text-size: {$localFontStore}px;"
     use:viewHotkeysAction={{ view }}
     use:showContextMenu={view}
@@ -35,8 +38,6 @@
     <div class={`mandala-main`} use:mouseWheelZoom={view}>
         <LeftSidebar />
         <MandalaViewComponent />
-        
-        
         {#if $controls.showHistorySidebar}
             <SnapshotsListModal />
         {/if}

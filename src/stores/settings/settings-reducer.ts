@@ -236,6 +236,10 @@ const updateState = (store: Settings, action: SettingsActions) => {
         store.view.mobileEditFontSizeOffset = action.payload.offset;
     } else if (action.type === 'settings/view/toggle-9x9-title-only') {
         store.view.show9x9TitleOnly = !store.view.show9x9TitleOnly;
+    } else if (action.type === 'settings/view/toggle-square-layout') {
+        store.view.squareLayout = !store.view.squareLayout;
+    } else if (action.type === 'settings/view/toggle-white-theme') {
+        store.view.whiteThemeMode = !store.view.whiteThemeMode;
     } else if (action.type.startsWith('settings/style-rules')) {
         updateStyleRules(store, action as any);
     }

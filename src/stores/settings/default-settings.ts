@@ -1,7 +1,7 @@
 import { Settings } from './settings-type';
 
 export const DEFAULT_CARD_WIDTH = 550;
-export const DEFAULT_CARDS_GAP = 50;
+export const DEFAULT_CARDS_GAP = 6;
 export const DEFAULT_INDENTATION_WIDTH = 60;
 export const DEFAULT_INACTIVE_NODE_OPACITY = 25;
 export const DEFAULT_H1_FONT_SIZE_EM = 1.802;
@@ -39,6 +39,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         showHiddenCardInfo: true,
         mobileEditFontSizeOffset: 0,
         show9x9TitleOnly: false,
+        squareLayout: false,
+        whiteThemeMode: false,
         hiddenVerticalToolbarButtons: [],
     },
     general: {

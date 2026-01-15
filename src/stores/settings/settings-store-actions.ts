@@ -202,6 +202,12 @@ export type SettingsActions =
     }
     | {
         type: 'settings/view/toggle-9x9-title-only';
+    }
+    | {
+        type: 'settings/view/toggle-square-layout';
+    }
+    | {
+        type: 'settings/view/toggle-white-theme';
     };
 export type PersistCollapsedSectionsAction = {
     type: 'settings/document/persist-collapsed-sections';

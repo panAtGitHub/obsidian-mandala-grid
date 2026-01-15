@@ -197,6 +197,16 @@
         flex-direction: column;
     }
 
+    /* 桌面端正方形布局：侧边栏吃掉剩余空间，并贴合右侧 */
+    :global(.is-desktop-square-layout.has-detail-sidebar)
+        .mandala-detail-sidebar {
+        flex: 1 1 var(--animated-sidebar-size);
+        width: auto;
+        min-width: var(--animated-sidebar-size);
+        height: 100%;
+        background-color: var(--background-container);
+    }
+
     .size-transition {
         transition: width 0.3s ease, height 0.3s ease;
     }

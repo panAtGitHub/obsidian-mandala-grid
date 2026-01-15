@@ -1,8 +1,14 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
-    import { MandalaModeStore } from 'src/stores/settings/derived/view-settings-store';
+    import {
+        MandalaDetailSidebarWidthStore,
+        MandalaModeStore,
+        ShowMandalaDetailSidebarStore,
+        SquareLayoutStore,
+        WhiteThemeModeStore,
+    } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
@@ -17,7 +23,6 @@
     import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
     import MandalaDetailSidebar from './mandala-detail-sidebar.svelte';
-    import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
 
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
@@ -39,6 +44,34 @@
     };
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
+    const detailSidebarWidth = MandalaDetailSidebarWidthStore(view);
+    const squareLayout = SquareLayoutStore(view);
+    const whiteThemeMode = WhiteThemeModeStore(view);
+
+    const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
+
+    let desktopSquareSize = 0;
+    let contentWrapperRef: HTMLElement | null = null;
+    let contentWrapperObserver: ResizeObserver | null = null;
+
+    const recomputeDesktopSquareSize = () => {
+        if (Platform.isMobile || !$squareLayout || !contentWrapperRef) {
+            desktopSquareSize = 0;
+            return;
+        }
+
+        const rect = contentWrapperRef.getBoundingClientRect();
+        const sidebarMinWidth = $showDetailSidebar
+            ? Math.max(
+                  MIN_DESKTOP_DETAIL_SIDEBAR_SIZE,
+                  $detailSidebarWidth || MIN_DESKTOP_DETAIL_SIDEBAR_SIZE,
+              )
+            : 0;
+        const availableWidth = Math.max(0, rect.width - sidebarMinWidth);
+        desktopSquareSize = Math.floor(
+            Math.max(0, Math.min(rect.height, availableWidth)),
+        );
+    };
 
     // 强制锁定为 3x3 模式以支持无限嵌套逻辑，保留 9x9 代码备用
     // $: view.mandalaMode = '3x3';
@@ -74,7 +107,27 @@
     onMount(() => {
         view.container = containerRef;
         focusContainer(view);
+
+        contentWrapperObserver = new ResizeObserver(() => {
+            recomputeDesktopSquareSize();
+        });
+        if (contentWrapperRef) {
+            contentWrapperObserver.observe(contentWrapperRef);
+        }
+        recomputeDesktopSquareSize();
     });
+
+    onDestroy(() => {
+        contentWrapperObserver?.disconnect();
+        contentWrapperObserver = null;
+    });
+
+    $: if (!Platform.isMobile) {
+        $squareLayout;
+        $showDetailSidebar;
+        $detailSidebarWidth;
+        recomputeDesktopSquareSize();
+    }
 
     const requireNodeId = (section: string) => {
         const nodeId = $sectionToNodeId[section];
@@ -145,8 +198,11 @@
     class:mandala-root--9={$mode === '9x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
+    class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
+    class:has-detail-sidebar={!Platform.isMobile && $showDetailSidebar}
     class:is-portrait={isPortrait}
-    style="--mandala-square-size: {squareSize}px;"
+    class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px;"
 >
     {#if isMobilePopupEditing}
         <div class="mobile-edit-header">
@@ -184,7 +240,7 @@
             <Toolbar />
             <VerticalToolbar />
         </div>
-        <div class="mandala-content-wrapper">
+        <div class="mandala-content-wrapper" bind:this={contentWrapperRef}>
             <div
                 class="mandala-scroll"
                 bind:this={containerRef}
@@ -285,6 +341,11 @@
         overflow: hidden;
     }
 
+    /* 桌面端正方形布局 + 无侧边栏时居中 */
+    .is-desktop-square-layout:not(.has-detail-sidebar) .mandala-content-wrapper {
+        justify-content: center;
+    }
+
     /* 移动端正方形优先布局 */
     .is-square-layout .mandala-content-wrapper {
         flex-direction: row; /* 横排 */
@@ -310,6 +371,16 @@
     .is-portrait .mandala-content-wrapper {
         flex-direction: column;
     }
+
+    /* 桌面端正方形布局 */
+    .is-desktop-square-layout .mandala-scroll {
+        flex: 0 0 auto;
+        width: var(--desktop-square-size);
+        height: var(--desktop-square-size);
+        overflow: auto;
+        align-self: center;
+    }
+
 
     .mandala-blocks {
         display: grid;

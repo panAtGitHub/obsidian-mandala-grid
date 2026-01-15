@@ -88,13 +88,13 @@
 }
 
 /* to prevent cards from wobbling when hovering over them */
-#columns-container.zoom-enabled {
+.mandala-view:not(.mandala-white-theme) #columns-container.zoom-enabled {
     * {
         transition: none !important;
     }
 }
 
-#columns-container.zoom-enabled {
+.mandala-view:not(.mandala-white-theme) #columns-container.zoom-enabled {
     .mandala-floating-button {
         opacity: 0.5 !important;
     }
@@ -104,7 +104,7 @@
 }
 
 /* hides floating buttons when the mouse is inactive*/
-.hide-floating-buttons {
+.mandala-view:not(.mandala-white-theme) .hide-floating-buttons {
     .mandala-card:not(.active-node) {
         .mandala-floating-button:not(.collapse-button) {
             display: none;

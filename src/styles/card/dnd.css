@@ -30,3 +30,13 @@
     opacity: 0.8 !important;
     background-color: var(--background-active-parent);
 }
+
+.mandala-white-theme .mandala__drop-node-above,
+.mandala-white-theme .mandala__drop-node-below,
+.mandala-white-theme .mandala__drop-node-under {
+    box-shadow: none !important;
+}
+
+.mandala-white-theme .inactive-node-hover {
+    opacity: 1 !important;
+}

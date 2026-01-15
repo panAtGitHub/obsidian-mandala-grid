@@ -41,6 +41,12 @@ export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>
 export const Show9x9TitleOnlyStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.show9x9TitleOnly);
 
+export const SquareLayoutStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.squareLayout);
+
+export const WhiteThemeModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.whiteThemeMode);
+
 export const HiddenVerticalToolbarButtons = (plugin: MandalaGrid) =>
     derived(
         plugin.settings,

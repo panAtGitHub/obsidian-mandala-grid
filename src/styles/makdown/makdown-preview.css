@@ -7,6 +7,13 @@
     }
 }
 
+.mandala-white-theme .inactive-node mark,
+.mandala-white-theme .active-sibling mark,
+.mandala-white-theme .active-parent mark,
+.mandala-white-theme .active-child mark {
+    filter: none;
+}
+
 .active-sibling,
 .active-parent,
 .inactive-node {

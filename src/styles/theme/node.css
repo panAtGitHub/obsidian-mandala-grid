@@ -35,21 +35,22 @@
     opacity: var(--inactive-card-opacity);
 }
 
-.inactive-node:hover {
+/* hover effects (disabled in pure white theme) */
+.mandala-view:not(.mandala-white-theme) .inactive-node:hover {
     opacity: 0.8 !important;
 }
 
 /* box-shadow */
 .theme-dark .mandala-main {
-    .mandala-card:hover {
+    .mandala-view:not(.mandala-white-theme) .mandala-card:hover {
         box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
     }
-    .active-child:hover {
+    .mandala-view:not(.mandala-white-theme) .active-child:hover {
         box-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
     }
 }
 .theme-light .mandala-main {
-    .mandala-card:hover {
+    .mandala-view:not(.mandala-white-theme) .mandala-card:hover {
         box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
     }
 }

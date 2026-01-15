@@ -76,6 +76,8 @@ export type Settings = {
         showHiddenCardInfo: boolean;
         mobileEditFontSizeOffset: number;
         show9x9TitleOnly: boolean;
+        squareLayout: boolean;
+        whiteThemeMode: boolean;
         hiddenVerticalToolbarButtons: ToolbarButton[];
     };
     general: {

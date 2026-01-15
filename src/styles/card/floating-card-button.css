@@ -65,12 +65,12 @@
     opacity: 0;
 }
 
-.mandala-card:hover .mandala-floating-button {
+.mandala-view:not(.mandala-white-theme) .mandala-card:hover .mandala-floating-button {
     opacity: var(--opacity-inactive-node);
 }
 
-.active-node:hover,
-.active-child:hover {
+.mandala-view:not(.mandala-white-theme) .active-node:hover,
+.mandala-view:not(.mandala-white-theme) .active-child:hover {
     & .mandala-floating-button {
         opacity: var(--opacity-active-node);
     }
@@ -131,5 +131,4 @@
     background-color:#ff7b4d !important;
     color: #fff !important
 }
-
 
