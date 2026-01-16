@@ -75,6 +75,12 @@
         
         // 移动端锁定模式：仅激活节点，禁止任何编辑相关的副作用
         if (Platform.isMobile && $mobileInteractionMode === 'locked') {
+            const target = e.target as HTMLElement | null;
+            const anchor = target?.closest('a.internal-link');
+            if (anchor) {
+                handleLinks(view, e);
+                return;
+            }
             setActiveNode(e);
             e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
             return;

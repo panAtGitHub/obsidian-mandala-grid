@@ -5,10 +5,13 @@ import { handleBlockLink } from 'src/view/components/container/column/components
 import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
 
 export const handleLinks = (view: MandalaView, e: MouseEvent) => {
-    // eslint-disable-next-line no-undef
-    if (!(e.target instanceof HTMLAnchorElement)) return;
-    if (!e.target.hasClass('internal-link')) return;
-    const link = e.target.dataset.href;
+    const target = e.target as HTMLElement | null;
+    const anchor = target?.closest('a.internal-link') as
+        | HTMLAnchorElement
+        | null;
+    if (!anchor) return;
+    e.preventDefault();
+    const link = anchor.dataset.href;
     const modKey = isMacLike ? e.metaKey : e.ctrlKey;
     if (!link) return;
     if (link.contains('#^')) {
