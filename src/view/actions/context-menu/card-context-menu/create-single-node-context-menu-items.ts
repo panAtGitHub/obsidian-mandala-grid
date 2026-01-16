@@ -75,33 +75,33 @@ export const createSingleNodeContextMenuItems = (
         { type: 'separator' },
         !hasChildren
             ? {
-                  title: lang.cm_copy,
-                  icon: 'documents',
-                  action: () => copyActiveNodesToClipboard(view, false),
-              }
+                title: lang.cm_copy,
+                icon: 'documents',
+                action: () => copyActiveNodesToClipboard(view, false),
+            }
             : {
-                  title: lang.cm_copy,
-                  icon: 'documents',
-                  submenu: [
-                      {
-                          title: lang.cm_copy_branch,
-                          icon: 'mandala-cards',
-                          action: () =>
-                              copyActiveBranchesToClipboard(view, true, false),
-                      },
-                      {
-                          title: lang.cm_copy_branch_wo_formatting,
-                          icon: 'file-text',
-                          action: () =>
-                              copyActiveBranchesToClipboard(view, false, false),
-                      },
-                      {
-                          title: lang.cm_copy_nodes_wo_subitems,
-                          icon: 'file-text',
-                          action: () => copyActiveNodesToClipboard(view, false),
-                      },
-                  ],
-              },
+                title: lang.cm_copy,
+                icon: 'documents',
+                submenu: [
+                    {
+                        title: lang.cm_copy_branch,
+                        icon: 'mandala-cards',
+                        action: () =>
+                            copyActiveBranchesToClipboard(view, true, false),
+                    },
+                    {
+                        title: lang.cm_copy_branch_wo_formatting,
+                        icon: 'file-text',
+                        action: () =>
+                            copyActiveBranchesToClipboard(view, false, false),
+                    },
+                    {
+                        title: lang.cm_copy_nodes_wo_subitems,
+                        icon: 'file-text',
+                        action: () => copyActiveNodesToClipboard(view, false),
+                    },
+                ],
+            },
         {
             title: lang.cm_cut,
             icon: 'scissors',
@@ -119,7 +119,7 @@ export const createSingleNodeContextMenuItems = (
                 : lang.cm_pin_in_left_sidebar,
             icon: isPinned ? 'pin-off' : 'pin',
             action: () => {
-                togglePinNode(view, activeNode, false, false);
+                togglePinNode(view, activeNode, isPinned, false);
             },
         },
         { type: 'separator' },
@@ -132,26 +132,26 @@ export const createSingleNodeContextMenuItems = (
         },
         !hasChildren
             ? {
-                  title: lang.cm_export_section,
-                  icon: 'file-text',
-                  action: () => exportSelection(view, false),
-              }
+                title: lang.cm_export_section,
+                icon: 'file-text',
+                action: () => exportSelection(view, false),
+            }
             : {
-                  title: lang.cm_export_selection,
-                  icon: 'file-text',
-                  submenu: [
-                      {
-                          title: lang.cm_export_branch_with_subitems,
-                          icon: 'file-text',
-                          action: () => exportSelection(view, true),
-                      },
-                      {
-                          title: lang.cm_export_branch_wo_subitems,
-                          icon: 'file-text',
-                          action: () => exportSelection(view, false),
-                      },
-                  ],
-              },
+                title: lang.cm_export_selection,
+                icon: 'file-text',
+                submenu: [
+                    {
+                        title: lang.cm_export_branch_with_subitems,
+                        icon: 'file-text',
+                        action: () => exportSelection(view, true),
+                    },
+                    {
+                        title: lang.cm_export_branch_wo_subitems,
+                        icon: 'file-text',
+                        action: () => exportSelection(view, false),
+                    },
+                ],
+            },
     ];
     return menuItems;
 };

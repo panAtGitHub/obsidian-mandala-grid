@@ -36,7 +36,8 @@ const getContextMenuContext = (
 };
 
 export const showNodeContextMenu = (event: MouseEvent, view: MandalaView) => {
-    if (view.documentStore.getValue().meta.isMandala) return;
+    // Mandala 模式也启用右键菜单
+    // if (view.documentStore.getValue().meta.isMandala) return;
 
     const target = event.target as HTMLElement;
     const closestCardElement = target.closest(
