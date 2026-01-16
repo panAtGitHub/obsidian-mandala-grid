@@ -1,59 +1,79 @@
 <script lang="ts">
+    import { derived } from 'svelte/store';
     import { PinnedNodesStore } from '../../../../../../stores/document/derived/pinned-nodes-store';
     import { getView } from '../../../context';
-    import { ActiveStatus } from '../../../column/components/group/components/active-status.enum';
-    import Node from '../../../column/components/group/components/card/card.svelte';
-    import { documentStateStore } from '../../../../../../stores/view/derived/editing-store';
-    import { IdSectionStore } from '../../../../../../stores/document/derived/id-section-store';
     import { ActivePinnedCardStore } from '../../../../../../stores/view/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
-    import { PendingConfirmationStore } from 'src/stores/view/derived/pending-confirmation';
-    import { NodeStylesStore } from 'src/stores/view/derived/style-rules';
     import {
         scrollActivePinnedNode
     } from 'src/view/components/container/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
+    import {
+        extractPreview,
+        navigateToSearchResult
+    } from 'src/view/helpers/mandala/search-utils';
+    import {
+        setActiveSidebarNode
+    } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
 
-    const idSection = IdSectionStore(view);
-    const editingStateStore = documentStateStore(view);
-
     const activePinnedCard = ActivePinnedCardStore(view);
-    const pendingConfirmation = PendingConfirmationStore(view);
-    const styleRules = NodeStylesStore(view);
 
+    type PinnedItem = {
+        nodeId: string;
+        section: string;
+        contentPreview: string;
+    };
 
+    const pinnedItems = derived(
+        [pinnedNodesArray, view.documentStore],
+        ([$pinnedNodesArray, $doc]): PinnedItem[] => {
+            return $pinnedNodesArray
+                .map((nodeId) => {
+                    const section = $doc.sections.id_section[nodeId];
+                    if (!section) return null;
+                    const content = $doc.document.content[nodeId]?.content || '';
+                    return {
+                        nodeId,
+                        section,
+                        contentPreview: extractPreview(content),
+                    };
+                })
+                .filter((item): item is PinnedItem => Boolean(item));
+        },
+    );
+
+    const handleClick = (item: PinnedItem) => {
+        setActiveSidebarNode(view, item.nodeId);
+        navigateToSearchResult(item.section, view);
+    };
+
+    const handleKeydown = (event: KeyboardEvent, item: PinnedItem) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        handleClick(item);
+    };
 </script>
 
 <div class="pinned-cards-container" use:scrollActivePinnedNode>
-    {#if $pinnedNodesArray.length > 0}
-        {#each $pinnedNodesArray as node (node)}
-            <Node
-                {node}
-                active={$activePinnedCard === node
-                    ? ActiveStatus.node
-                    : ActiveStatus.sibling}
-                editing={$editingStateStore.activeNodeId === node &&
-                    $editingStateStore.isInSidebar === true}
-                confirmDisableEdit={$editingStateStore.activeNodeId === node &&
-                    $pendingConfirmation.disableEdit === node &&
-                    $editingStateStore.isInSidebar === true}
-                confirmDelete={$pendingConfirmation.deleteNode.has(node)}
-                isInSidebar={true}
-                firstColumn={true}
-                section={$idSection[node]}
-                hasActiveChildren={false}
-                hasChildren={false}
-                selected={false}
-                pinned={false}
-                style={$styleRules.get(node)}
-                outlineMode={false}
-                collapsed={false}
-                hidden={false}
-                alwaysShowCardButtons={true}
-            />
-        {/each}
+    {#if $pinnedItems.length > 0}
+        <div class="pinned-list">
+            {#each $pinnedItems as item (item.nodeId)}
+                <div
+                    class="pinned-list-item"
+                    class:selected={$activePinnedCard === item.nodeId}
+                    id={item.nodeId}
+                    on:click={() => handleClick(item)}
+                    on:keydown={(event) => handleKeydown(event, item)}
+                    role="button"
+                    tabindex="0"
+                >
+                    <div class="section-path">{item.section}</div>
+                    <div class="content-preview">{item.contentPreview}</div>
+                </div>
+            {/each}
+        </div>
     {:else}
         <NoItems variant="pinned" />
     {/if}
@@ -66,10 +86,57 @@
 
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 20px;
+        align-items: stretch;
+        gap: 8px;
         flex: 1 1 auto;
-        padding-bottom: 10px;
+        padding: 8px 8px 10px;
         overflow-y: auto;
+    }
+
+    .pinned-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .pinned-list-item {
+        padding: 8px 10px;
+        cursor: pointer;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: var(--radius-m);
+        background: #fff;
+        transition: background-color 0.1s ease, border-color 0.1s ease;
+    }
+
+    .pinned-list-item:hover {
+        background: #f5f5f5;
+    }
+
+    .pinned-list-item:active {
+        background: var(--background-modifier-active-hover);
+    }
+
+    .pinned-list-item.selected {
+        background: #fff;
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: -2px;
+    }
+
+    .section-path {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-accent);
+        margin-bottom: 4px;
+        font-family: var(--font-monospace);
+    }
+
+    .content-preview {
+        font-size: 12px;
+        color: var(--text-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        line-height: 1.4;
     }
 </style>

@@ -144,7 +144,7 @@ export function convertToMandalaResults(
  * 提取内容预览（截取前 N 个字符）
  * TODO: 未来可以实现高亮关键词周围的上下文
  */
-function extractPreview(content: string, maxLength = 60): string {
+export function extractPreview(content: string, maxLength = 60): string {
     // 去除换行符和多余空格
     const cleaned = content.replace(/\s+/g, ' ').trim();
     return cleaned.slice(0, maxLength) + (cleaned.length > maxLength ? '...' : '');
