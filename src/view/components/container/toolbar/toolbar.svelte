@@ -136,6 +136,8 @@
         flex-wrap: wrap;
         max-width: fit-content;
         pointer-events: none;
+        position: relative;
+        flex: 1 1 auto;
     }
     .navigation-history-container :global(> *) {
         pointer-events: auto;
@@ -154,6 +156,10 @@
         display: flex;
         align-items: center;
         gap: 4px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
     }
 
     .divider {
@@ -172,8 +178,6 @@
             display: block;
         }
         & .lock-toggle-container {
-            position: absolute;
-            left: 50%;
             top: 4px;
             transform: translateX(-50%);
             z-index: 1002;

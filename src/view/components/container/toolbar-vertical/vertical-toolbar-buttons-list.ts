@@ -53,12 +53,6 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                     id: 'mandala',
                     buttons: [
                         {
-                            label: lang.controls_toggle_mandala_mode,
-                            onClick: h.toggleMandalaMode,
-                            icon: customIcons.cards,
-                            id: 'mandala-mode',
-                        },
-                        {
                             label: '详情侧边栏',
                             onClick: () => {
                                 view.plugin.settings.dispatch({
