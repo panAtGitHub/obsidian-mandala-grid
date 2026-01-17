@@ -135,11 +135,7 @@
     on:click={(e) => {
         recordClick();
         if (!isMobile && $mobileInteractionMode === 'locked') {
-            if (isGridCenter(view, nodeId, section)) {
-                exitCurrentSubgrid(view);
-            } else {
-                enterSubgridForNode(view, nodeId);
-            }
+            handleSelect(e);
             return;
         }
         handleSelect(e);
@@ -147,6 +143,11 @@
     on:dblclick={(e) => {
         if (!isFastDoubleClick()) return;
         if ($mobileInteractionMode === 'locked') {
+            if (isGridCenter(view, nodeId, section)) {
+                exitCurrentSubgrid(view);
+            } else {
+                enterSubgridForNode(view, nodeId);
+            }
             return;
         }
 

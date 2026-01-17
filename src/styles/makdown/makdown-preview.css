@@ -78,3 +78,13 @@
         margin-bottom: 0;
     }
 }
+
+.mandala-card .lng-prev,
+.mandala-card .lng-prev * {
+    user-select: none;
+}
+
+.mandala-detail-sidebar .lng-prev,
+.mandala-detail-sidebar .lng-prev * {
+    user-select: text;
+}
