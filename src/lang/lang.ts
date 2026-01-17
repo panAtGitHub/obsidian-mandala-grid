@@ -236,21 +236,21 @@ export const lang = {
     settings_theme_bg: 'Background color',
     settings_theme_active_branch_bg: 'Active branch background color',
     settings_theme_active_branch_color: 'Active branch text color',
-    settings_appearance_font_size: 'Font size',
-    settings_appearance_font_sizes_group: 'Font settings',
+    settings_appearance_font_size: '字体大小',
+    settings_appearance_font_sizes_group: '字体设置',
     settings_appearance_mandala_font_size_3x3_desktop:
-        '3x3 grid font size (desktop)',
+        '3×3 格子字体大小（PC）',
     settings_appearance_mandala_font_size_3x3_mobile:
-        '3x3 grid font size (mobile)',
+        '3×3 格子字体大小（手机）',
     settings_appearance_mandala_font_size_9x9_desktop:
-        '9x9 grid font size (desktop)',
+        '9×9 格子字体大小（PC）',
     settings_appearance_mandala_font_size_9x9_mobile:
-        '9x9 grid font size (mobile)',
+        '9×9 格子字体大小（手机）',
     settings_appearance_mandala_font_size_sidebar_desktop:
-        'Detail sidebar font size (desktop)',
+        '详情侧边栏字体大小（PC）',
     settings_appearance_mandala_font_size_sidebar_mobile:
-        'Detail sidebar font size (mobile)',
-    settings_appearance_headings_font_size: 'Headings font size (em)',
+        '详情侧边栏字体大小（手机）',
+    settings_appearance_headings_font_size: '标题字体大小（em）',
     settings_appearance_inactive_node_opacity: 'Inactive cards opacity',
 
     // layout

@@ -92,11 +92,13 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     const fontContent = fontDetails.createEl('div', {
         cls: 'mandala-font-settings__content',
     });
-    FontSize(fontContent, settingsStore);
     if (isMandala) {
         MandalaFontSizes(fontContent, settingsStore);
+        HeadingsFontSize(fontContent, settingsStore);
+    } else {
+        FontSize(fontContent, settingsStore);
+        HeadingsFontSize(fontContent, settingsStore);
     }
-    HeadingsFontSize(fontContent, settingsStore);
 
     // layout
     if (!isMandala) {
