@@ -80,6 +80,7 @@ export const hotkeyGroups = {
     ]),
     [lang.hkg_mandala]: new Set([
         'toggle_mandala_mode',
+        'toggle_lock_mode',
         'enter_subgrid',
         'exit_subgrid',
         'swap_cell_up',

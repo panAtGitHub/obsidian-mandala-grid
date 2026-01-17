@@ -25,6 +25,7 @@ import {
     slotPositions,
     themeGrid,
 } from 'src/view/helpers/mandala/mandala-grid';
+import { toggleMobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';
 export type HotkeyPreferences = {
@@ -271,6 +272,16 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         },
         hotkeys: [],
     }, */
+    {
+        name: 'toggle_lock_mode',
+        callback: (view, e) => {
+            if (view.mandalaMode === null) return;
+            e.preventDefault();
+            e.stopPropagation();
+            toggleMobileInteractionMode();
+        },
+        hotkeys: [],
+    },
     {
         name: 'enter_subgrid',
         callback: (view, e) => {
