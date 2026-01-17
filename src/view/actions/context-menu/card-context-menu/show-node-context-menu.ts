@@ -41,10 +41,10 @@ export const showNodeContextMenu = (event: MouseEvent, view: MandalaView) => {
 
     const target = event.target as HTMLElement;
     const closestCardElement = target.closest(
-        '.mandala-card',
+        '.mandala-card, .simple-cell',
     ) as HTMLElement | null;
 
-    if (!closestCardElement) return;
+    if (!closestCardElement || !closestCardElement.id) return;
 
     if (textIsSelected()) return;
 

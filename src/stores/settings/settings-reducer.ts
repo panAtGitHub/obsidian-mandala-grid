@@ -55,6 +55,18 @@ const updateState = (store: Settings, action: SettingsActions) => {
         store.view.fontSize = action.payload.fontSize;
     } else if (action.type === 'settings/view/theme/set-h1-font-size') {
         store.view.h1FontSize_em = action.payload.fontSize_em;
+    } else if (action.type === 'settings/view/font-size/set-3x3-desktop') {
+        store.view.mandalaFontSize3x3Desktop = action.payload.fontSize;
+    } else if (action.type === 'settings/view/font-size/set-3x3-mobile') {
+        store.view.mandalaFontSize3x3Mobile = action.payload.fontSize;
+    } else if (action.type === 'settings/view/font-size/set-9x9-desktop') {
+        store.view.mandalaFontSize9x9Desktop = action.payload.fontSize;
+    } else if (action.type === 'settings/view/font-size/set-9x9-mobile') {
+        store.view.mandalaFontSize9x9Mobile = action.payload.fontSize;
+    } else if (action.type === 'settings/view/font-size/set-sidebar-desktop') {
+        store.view.mandalaFontSizeSidebarDesktop = action.payload.fontSize;
+    } else if (action.type === 'settings/view/font-size/set-sidebar-mobile') {
+        store.view.mandalaFontSizeSidebarMobile = action.payload.fontSize;
     } else if (action.type === 'settings/view/theme/set-container-bg-color') {
         store.view.theme.containerBg = action.payload.backgroundColor;
     } else if (

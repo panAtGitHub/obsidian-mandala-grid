@@ -5,6 +5,42 @@ import MandalaGrid from 'src/main';
 export const ViewSettingsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view);
 
+export const MandalaFontSize3x3DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize3x3Desktop,
+    );
+
+export const MandalaFontSize3x3MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize3x3Mobile,
+    );
+
+export const MandalaFontSize9x9DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize9x9Desktop,
+    );
+
+export const MandalaFontSize9x9MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize9x9Mobile,
+    );
+
+export const MandalaFontSizeSidebarDesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSizeSidebarDesktop,
+    );
+
+export const MandalaFontSizeSidebarMobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSizeSidebarMobile,
+    );
+
 export const ShowLeftSidebarStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.showLeftSidebar);
 

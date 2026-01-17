@@ -60,6 +60,30 @@ export type SettingsActions =
         };
     }
     | {
+        type: 'settings/view/font-size/set-3x3-desktop';
+        payload: { fontSize: number };
+    }
+    | {
+        type: 'settings/view/font-size/set-3x3-mobile';
+        payload: { fontSize: number };
+    }
+    | {
+        type: 'settings/view/font-size/set-9x9-desktop';
+        payload: { fontSize: number };
+    }
+    | {
+        type: 'settings/view/font-size/set-9x9-mobile';
+        payload: { fontSize: number };
+    }
+    | {
+        type: 'settings/view/font-size/set-sidebar-desktop';
+        payload: { fontSize: number };
+    }
+    | {
+        type: 'settings/view/font-size/set-sidebar-mobile';
+        payload: { fontSize: number };
+    }
+    | {
         type: 'settings/view/theme/set-container-bg-color';
         payload: {
             backgroundColor: string | undefined;

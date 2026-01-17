@@ -8,14 +8,9 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
     const settingsStore = view.plugin.settings;
     const settingsState = settingsStore.getValue();
     const persistedFrontmatter = readPinnedFromFrontmatter(view);
-    const persistedDocuments = settingsState.documents;
-    const persistedDocument = persistedDocuments[view.file!.path];
 
-    const pinnedSections = persistedFrontmatter?.sections ??
-        persistedDocument?.pinnedSections?.sections;
-    const activeSection = persistedFrontmatter?.activeSection ??
-        persistedDocument?.pinnedSections?.activeSection ??
-        null;
+    const pinnedSections = persistedFrontmatter?.sections;
+    const activeSection = persistedFrontmatter?.activeSection ?? null;
 
     if (!pinnedSections) return;
 

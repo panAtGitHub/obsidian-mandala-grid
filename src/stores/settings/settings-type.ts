@@ -54,6 +54,12 @@ export type Settings = {
     view: {
         fontSize: number;
         h1FontSize_em: number;
+        mandalaFontSize3x3Desktop: number;
+        mandalaFontSize3x3Mobile: number;
+        mandalaFontSize9x9Desktop: number;
+        mandalaFontSize9x9Mobile: number;
+        mandalaFontSizeSidebarDesktop: number;
+        mandalaFontSizeSidebarMobile: number;
         theme: Theme;
         cardWidth: number;
         cardsGap: number;

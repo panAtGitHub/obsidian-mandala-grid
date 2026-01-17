@@ -195,6 +195,7 @@
         background-color: transparent;
         display: flex;
         flex-direction: column;
+        --font-text-size: var(--mandala-font-sidebar, 16px);
     }
 
     /* 桌面端正方形布局：侧边栏吃掉剩余空间，并贴合右侧 */

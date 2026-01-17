@@ -13,6 +13,12 @@ export const DEFAULT_SETTINGS = (): Settings => ({
     view: {
         fontSize: 16,
         h1FontSize_em: DEFAULT_H1_FONT_SIZE_EM,
+        mandalaFontSize3x3Desktop: 16,
+        mandalaFontSize3x3Mobile: 12,
+        mandalaFontSize9x9Desktop: 11,
+        mandalaFontSize9x9Mobile: 10,
+        mandalaFontSizeSidebarDesktop: 16,
+        mandalaFontSizeSidebarMobile: 12,
         theme: {
             inactiveNodeOpacity: DEFAULT_INACTIVE_NODE_OPACITY,
         },

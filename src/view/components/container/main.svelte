@@ -15,6 +15,12 @@
     import { localFontStore } from 'src/stores/local-font-store';
     import {
         LeftSidebarWidthStore,
+        MandalaFontSize3x3DesktopStore,
+        MandalaFontSize3x3MobileStore,
+        MandalaFontSize9x9DesktopStore,
+        MandalaFontSize9x9MobileStore,
+        MandalaFontSizeSidebarDesktopStore,
+        MandalaFontSizeSidebarMobileStore,
         ShowLeftSidebarStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
@@ -31,12 +37,28 @@
     const whiteThemeMode = WhiteThemeModeStore(view);
     const showLeftSidebar = ShowLeftSidebarStore(view);
     const leftSidebarWidth = LeftSidebarWidthStore(view);
+    const mandalaFont3x3Desktop = MandalaFontSize3x3DesktopStore(view);
+    const mandalaFont3x3Mobile = MandalaFontSize3x3MobileStore(view);
+    const mandalaFont9x9Desktop = MandalaFontSize9x9DesktopStore(view);
+    const mandalaFont9x9Mobile = MandalaFontSize9x9MobileStore(view);
+    const mandalaFontSidebarDesktop = MandalaFontSizeSidebarDesktopStore(view);
+    const mandalaFontSidebarMobile = MandalaFontSizeSidebarMobileStore(view);
+
+    $: mandalaFont3x3 = Platform.isMobile
+        ? $mandalaFont3x3Mobile
+        : $mandalaFont3x3Desktop;
+    $: mandalaFont9x9 = Platform.isMobile
+        ? $mandalaFont9x9Mobile
+        : $mandalaFont9x9Desktop;
+    $: mandalaFontSidebar = Platform.isMobile
+        ? $mandalaFontSidebarMobile
+        : $mandalaFontSidebarDesktop;
 </script>
 
 <div
     class="mandala-view"
     class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
-    style="--font-text-size: {$localFontStore}px;"
+    style={`--font-text-size: ${$localFontStore}px; --mandala-font-3x3: ${mandalaFont3x3}px; --mandala-font-9x9: ${mandalaFont9x9}px; --mandala-font-sidebar: ${mandalaFontSidebar}px;`}
     use:viewHotkeysAction={{ view }}
     use:showContextMenu={view}
     tabindex="0"

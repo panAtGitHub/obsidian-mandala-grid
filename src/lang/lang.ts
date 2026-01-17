@@ -237,6 +237,18 @@ export const lang = {
     settings_theme_active_branch_bg: 'Active branch background color',
     settings_theme_active_branch_color: 'Active branch text color',
     settings_appearance_font_size: 'Font size',
+    settings_appearance_mandala_font_size_3x3_desktop:
+        '3x3 grid font size (desktop)',
+    settings_appearance_mandala_font_size_3x3_mobile:
+        '3x3 grid font size (mobile)',
+    settings_appearance_mandala_font_size_9x9_desktop:
+        '9x9 grid font size (desktop)',
+    settings_appearance_mandala_font_size_9x9_mobile:
+        '9x9 grid font size (mobile)',
+    settings_appearance_mandala_font_size_sidebar_desktop:
+        'Detail sidebar font size (desktop)',
+    settings_appearance_mandala_font_size_sidebar_mobile:
+        'Detail sidebar font size (mobile)',
     settings_appearance_headings_font_size: 'Headings font size (em)',
     settings_appearance_inactive_node_opacity: 'Inactive cards opacity',
 

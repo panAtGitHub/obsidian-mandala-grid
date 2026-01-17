@@ -199,6 +199,7 @@
         display: flex;
         flex-direction: column;
         position: relative;
+        --font-text-size: var(--mandala-font-3x3, 16px);
         font-size: var(--font-text-size, 16px);
         line-height: 1.4;
         overflow: var(--mandala-card-overflow, visible);

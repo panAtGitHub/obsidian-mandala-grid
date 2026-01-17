@@ -14,6 +14,10 @@
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const showTitleOnly = Show9x9TitleOnlyStore(view);
+    const activeNodeId = derived(
+        view.viewStore,
+        (state) => state.document.activeNode,
+    );
 
     // Reactive store for cells
     const cells = derived(view.documentStore, (state) => {
@@ -152,6 +156,9 @@
             class:is-center={cell.isCenter}
             class:is-theme-center={cell.isThemeCenter}
             class:is-title-only={$showTitleOnly}
+            class:is-active={cell.nodeId && cell.nodeId === $activeNodeId}
+            data-node-id={cell.nodeId || undefined}
+            id={cell.nodeId || undefined}
             on:click={() => onCellClick(cell.nodeId)}
             on:dblclick={() => onCellDblClick(cell.nodeId)}
         >
@@ -181,6 +188,7 @@
         padding: 4px;
         box-sizing: border-box;
         background-color: var(--background-secondary);
+        font-size: var(--mandala-font-9x9, 11px);
     }
 
     .simple-cell {
@@ -204,7 +212,7 @@
     }
 
     .cell-title {
-        font-size: 11px;
+        font-size: 1em;
         font-weight: 600;
         line-height: 1.2;
         color: var(--text-normal);
@@ -217,7 +225,7 @@
     }
 
     .cell-body {
-        font-size: 10px;
+        font-size: 0.9em;
         color: var(--text-muted);
         line-height: 1.2;
         overflow: hidden;
@@ -241,6 +249,11 @@
     .is-theme-center .cell-title {
         font-weight: 700;
         color: var(--text-accent);
+    }
+
+    .simple-cell.is-active {
+        outline: 2px solid var(--mandala-color-selection);
+        outline-offset: -2px;
     }
 
     .cell-debug {

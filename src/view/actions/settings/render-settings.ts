@@ -13,6 +13,7 @@ import { ActiveBranchColor } from 'src/view/actions/settings/components/active-b
 import { AlwaysShowCardButtons } from 'src/view/actions/settings/components/always-show-card-buttons';
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
 import { HeadingsFontSize } from 'src/view/actions/settings/components/headings-font-size';
+import { MandalaFontSizes } from 'src/view/actions/settings/components/mandala-font-sizes';
 import { LinkPaneType } from 'src/view/actions/settings/components/link-pane-type';
 import { MandalaView } from 'src/view/view';
 
@@ -81,6 +82,9 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
         isMandala ? '非活跃格子透明度' : undefined,
     );
     FontSize(appearanceTab, settingsStore);
+    if (isMandala) {
+        MandalaFontSizes(appearanceTab, settingsStore);
+    }
     HeadingsFontSize(appearanceTab, settingsStore);
 
     // layout
