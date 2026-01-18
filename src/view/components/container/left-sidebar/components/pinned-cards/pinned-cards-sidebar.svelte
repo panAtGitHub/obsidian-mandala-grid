@@ -8,7 +8,6 @@
         scrollActivePinnedNode
     } from 'src/view/components/container/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
     import {
-        extractPreview,
         navigateToSearchResult
     } from 'src/view/helpers/mandala/search-utils';
     import {
@@ -25,7 +24,19 @@
     type PinnedItem = {
         nodeId: string;
         section: string;
-        contentPreview: string;
+        title: string;
+        body: string;
+    };
+
+    const parsePinnedContent = (content: string) => {
+        const lines = content.split('\n');
+        const titleLine = lines.find((line) => line.trim().length > 0) || '';
+        const title = titleLine.replace(/^#+\s*/, '').trim();
+        const titleIndex = lines.indexOf(titleLine);
+        const bodyLine =
+            lines.slice(titleIndex + 1).find((line) => line.trim().length > 0) ||
+            '';
+        return { title, body: bodyLine.trimEnd() };
     };
 
     const pinnedItems = derived(
@@ -36,10 +47,12 @@
                     const section = $doc.sections.id_section[nodeId];
                     if (!section) return null;
                     const content = $doc.document.content[nodeId]?.content || '';
+                    const preview = parsePinnedContent(content);
                     return {
                         nodeId,
                         section,
-                        contentPreview: extractPreview(content),
+                        title: preview.title,
+                        body: preview.body,
                     };
                 })
                 .filter((item): item is PinnedItem => Boolean(item));
@@ -65,6 +78,7 @@
                 <div
                     class="pinned-list-item"
                     class:selected={$activePinnedCard === item.nodeId}
+                    class:has-color={Boolean($sectionColors[item.section])}
                     style={item.section && $sectionColors[item.section]
                         ? `--pinned-item-bg: ${$sectionColors[item.section]};`
                         : undefined}
@@ -74,8 +88,13 @@
                     role="button"
                     tabindex="0"
                 >
-                    <div class="section-path">{item.section}</div>
-                    <div class="content-preview">{item.contentPreview}</div>
+                    <div class="pinned-header">
+                        <div class="section-path">{item.section}</div>
+                        <div class="pinned-title">{item.title}</div>
+                    </div>
+                    {#if item.body}
+                        <div class="content-preview">{item.body}</div>
+                    {/if}
                 </div>
             {/each}
         </div>
@@ -129,21 +148,44 @@
         outline-offset: -2px;
     }
 
+    .pinned-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+
     .section-path {
         font-size: 12px;
         font-weight: 600;
-        color: var(--text-accent);
-        margin-bottom: 4px;
+        color: inherit;
         font-family: var(--font-monospace);
+    }
+
+    .pinned-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: inherit;
+        text-align: right;
+        margin-left: auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 70%;
     }
 
     .content-preview {
         font-size: 12px;
-        color: var(--text-muted);
+        color: inherit;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         line-height: 1.4;
+    }
+
+    :global(.theme-light) .pinned-list-item.has-color {
+        color: var(--text-normal);
     }
 
     :global(.is-mobile) .pinned-cards-container {
