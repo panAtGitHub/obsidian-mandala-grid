@@ -207,8 +207,8 @@
 
     .simple-cell {
         background-color: var(--background-primary);
-        border-left: 1px dashed var(--background-modifier-border);
-        border-top: 1px dashed var(--background-modifier-border);
+        border-left: 1px dashed var(--text-normal);
+        border-top: 1px dashed var(--text-normal);
         border-radius: 0;
         overflow: hidden;
         display: flex;
@@ -220,19 +220,19 @@
     }
 
     .simple-cell.is-block-row-start {
-        border-top: 3px solid #000000;
+        border-top: 3px solid var(--text-normal);
     }
 
     .simple-cell.is-block-col-start {
-        border-left: 3px solid #000000;
+        border-left: 3px solid var(--text-normal);
     }
 
     .simple-cell.is-last-row {
-        border-bottom: 3px solid #000000;
+        border-bottom: 3px solid var(--text-normal);
     }
 
     .simple-cell.is-last-col {
-        border-right: 3px solid #000000;
+        border-right: 3px solid var(--text-normal);
     }
 
     .cell-content {
