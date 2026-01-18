@@ -164,6 +164,10 @@
             class:is-theme-center={cell.isThemeCenter}
             class:is-title-only={$showTitleOnly}
             class:is-active={cell.nodeId && cell.nodeId === $activeNodeId}
+            class:is-block-row-start={cell.row % 3 === 0}
+            class:is-block-col-start={cell.col % 3 === 0}
+            class:is-last-row={cell.row === 8}
+            class:is-last-col={cell.col === 8}
             style={cell.section && $sectionColors[cell.section]
                 ? `background-color: ${$sectionColors[cell.section]};`
                 : undefined}
@@ -194,8 +198,8 @@
         grid-template-rows: repeat(9, 1fr);
         width: 100%;
         height: 100%;
-        gap: 2px;
-        padding: 4px;
+        gap: 0;
+        padding: 0;
         box-sizing: border-box;
         background-color: var(--background-secondary);
         font-size: var(--mandala-font-9x9, 11px);
@@ -203,14 +207,32 @@
 
     .simple-cell {
         background-color: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 4px;
+        border-left: 1px dashed var(--background-modifier-border);
+        border-top: 1px dashed var(--background-modifier-border);
+        border-radius: 0;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        padding: 4px;
+        padding: 6px;
         position: relative;
         user-select: none;
+        box-sizing: border-box;
+    }
+
+    .simple-cell.is-block-row-start {
+        border-top: 3px solid #000000;
+    }
+
+    .simple-cell.is-block-col-start {
+        border-left: 3px solid #000000;
+    }
+
+    .simple-cell.is-last-row {
+        border-bottom: 3px solid #000000;
+    }
+
+    .simple-cell.is-last-col {
+        border-right: 3px solid #000000;
     }
 
     .cell-content {
