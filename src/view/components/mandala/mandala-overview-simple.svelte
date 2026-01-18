@@ -284,8 +284,17 @@
     }
 
     .simple-cell.is-active {
-        outline: 2px solid var(--mandala-color-selection);
-        outline-offset: -2px;
+        position: relative;
+    }
+
+    .simple-cell.is-active::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border: 2px solid var(--mandala-color-selection);
+        pointer-events: none;
+        box-sizing: border-box;
+        border-radius: 0;
     }
 
     .cell-debug {
