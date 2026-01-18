@@ -53,9 +53,15 @@ const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
     for (const key of SECTION_COLOR_KEYS) {
         const raw = record[key];
         if (Array.isArray(raw)) {
-            map[key] = raw.filter((item): item is string => typeof item === 'string');
+            map[key] = raw
+                .map((section) =>
+                    typeof section === 'number' ? String(section) : section,
+                )
+                .filter((section): section is string => typeof section === 'string');
         } else if (typeof raw === 'string') {
             map[key] = [raw];
+        } else if (typeof raw === 'number') {
+            map[key] = [String(raw)];
         }
     }
     return map;
