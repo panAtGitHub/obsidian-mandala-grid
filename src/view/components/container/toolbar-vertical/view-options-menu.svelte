@@ -697,6 +697,11 @@
                                 <span>全景模式</span>
                             </label>
                         </div>
+                        {#if $a4Mode}
+                            <div class="view-options-menu__note">
+                                注意：3x3 布局的沉浸模式在 A4 尺寸下会失效
+                            </div>
+                        {/if}
                     </div>
 
                     <div class="view-options-menu__subsection">
