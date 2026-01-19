@@ -439,6 +439,7 @@
     .mandala-a4-mode .mandala-content-wrapper {
         justify-content: center;
         overflow: auto;
+        align-items: flex-start;
     }
 
     .mandala-a4-mode .mandala-scroll {
@@ -446,7 +447,8 @@
         width: var(--mandala-a4-width);
         height: var(--mandala-a4-height);
         overflow: auto;
-        align-self: center;
+        align-self: flex-start;
+        margin: 0 auto;
     }
 
 
