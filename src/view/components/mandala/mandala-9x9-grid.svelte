@@ -5,8 +5,8 @@
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import {
+        MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
-        MandalaShowSectionColorsStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
 
@@ -42,11 +42,11 @@
         (state) => state.styleRules.nodeStyles,
     );
     const sectionColors = SectionColorBySectionStore(view);
-    const showSectionColors = MandalaShowSectionColorsStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
 
     const getSectionColor = (section: string) => {
-        if (!$showSectionColors) return null;
+        if ($backgroundMode !== 'custom') return null;
         const color = $sectionColors[section];
         if (!color) return null;
         return applyOpacityToHex(color, $sectionColorOpacity / 100);

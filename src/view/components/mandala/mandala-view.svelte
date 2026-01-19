@@ -8,9 +8,8 @@
         MandalaA4OrientationStore,
         MandalaDetailSidebarWidthStore,
         MandalaModeStore,
-        MandalaGrayBackgroundStore,
+        MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
-        MandalaShowSectionColorsStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
@@ -59,18 +58,19 @@
     const squareLayout = SquareLayoutStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
     const sectionColors = SectionColorBySectionStore(view);
-    const showSectionColors = MandalaShowSectionColorsStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
-    const grayBackground = MandalaGrayBackgroundStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
 
     const grayPositions = new Set([1, 3, 5, 7]);
     const getSectionBackground = (section: string, index: number) => {
         const opacity = $sectionColorOpacity / 100;
-        if ($showSectionColors && $sectionColors[section]) {
+        if ($backgroundMode === 'custom' && $sectionColors[section]) {
             return applyOpacityToHex($sectionColors[section], opacity);
         }
-        if ($grayBackground && grayPositions.has(index)) {
-            return 'var(--background-secondary-alt)';
+        if ($backgroundMode === 'gray' && grayPositions.has(index)) {
+            return `color-mix(in srgb, var(--background-secondary-alt) ${
+                $sectionColorOpacity
+            }%, transparent)`;
         }
         return null;
     };

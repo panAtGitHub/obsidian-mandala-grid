@@ -21,15 +21,15 @@
         SECTION_COLOR_KEYS,
     } from 'src/view/helpers/mandala/section-colors';
     import {
+        MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
-        MandalaShowSectionColorsStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
-    const showSectionColors = MandalaShowSectionColorsStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
     const sectionColors = SectionColorBySectionStore(view);
 
     const activePinnedCard = ActivePinnedCardStore(view);
@@ -205,10 +205,10 @@
                     class="pinned-list-item"
                     class:selected={$activePinnedCard === item.nodeId}
                     class:has-color={
-                        $showSectionColors &&
+                        $backgroundMode === 'custom' &&
                         Boolean($sectionColors[item.section])
                     }
-                    style={item.section && $showSectionColors && $sectionColors[item.section]
+                    style={item.section && $backgroundMode === 'custom' && $sectionColors[item.section]
                         ? `--pinned-item-bg: ${applyOpacityToHex(
                               $sectionColors[item.section],
                               $sectionColorOpacity / 100,

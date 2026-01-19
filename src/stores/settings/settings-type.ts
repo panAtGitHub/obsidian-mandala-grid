@@ -79,10 +79,9 @@ export type Settings = {
         mandalaA4Mode: boolean;
         mandalaA4Orientation: 'portrait' | 'landscape';
         mandalaA4Dpi: number;
+        mandalaBackgroundMode: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity: number;
-        mandalaShowSectionColors: boolean;
         mandalaSectionColorOpacity: number;
-        mandalaGrayBackground: boolean;
         nodeIndentationWidth: number;
         maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;

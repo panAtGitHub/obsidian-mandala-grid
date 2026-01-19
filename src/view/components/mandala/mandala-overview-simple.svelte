@@ -8,9 +8,8 @@
     } from 'src/view/helpers/mandala/mandala-grid';
     import {
         MandalaBorderOpacityStore,
-        MandalaGrayBackgroundStore,
+        MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
-        MandalaShowSectionColorsStore,
         ShowMandalaDetailSidebarStore,
         Show9x9TitleOnlyStore,
     } from 'src/stores/settings/derived/view-settings-store';
@@ -25,16 +24,9 @@
     const showTitleOnly = Show9x9TitleOnlyStore(view);
     const sectionColors = SectionColorBySectionStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
-    const showSectionColors = MandalaShowSectionColorsStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
-    const grayBackground = MandalaGrayBackgroundStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
     const grayBlockThemes = new Set(['3', '5', '6', '8']);
-    const getSectionColor = (section: string | null) => {
-        if (!section || !$showSectionColors) return null;
-        const color = $sectionColors[section];
-        if (!color) return null;
-        return applyOpacityToHex(color, $sectionColorOpacity / 100);
-    };
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
@@ -120,6 +112,28 @@
         return list;
     });
 
+    let styledCells: Array<
+        (typeof $cells)[number] & { background: string | null }
+    > = [];
+
+    $: {
+        const opacity = $sectionColorOpacity / 100;
+        styledCells = $cells.map((cell) => {
+            const sectionColor =
+                $backgroundMode === 'custom' && cell.section
+                    ? $sectionColors[cell.section]
+                    : null;
+            const background = sectionColor
+                ? applyOpacityToHex(sectionColor, opacity)
+                : $backgroundMode === 'gray' && cell.isGrayBlock
+                    ? `color-mix(in srgb, var(--background-secondary-alt) ${
+                          $sectionColorOpacity
+                      }%, transparent)`
+                    : null;
+            return { ...cell, background };
+        });
+    }
+
     const onCellClick = (nodeId: string) => {
         if (!nodeId) return;
 
@@ -182,7 +196,7 @@
     class="simple-9x9-grid"
     style={`--mandala-border-opacity: ${$borderOpacity}%`}
 >
-    {#each $cells as cell}
+    {#each styledCells as cell}
         <div 
             class="simple-cell" 
             class:is-center={cell.isCenter}
@@ -193,11 +207,9 @@
             class:is-block-col-start={cell.col % 3 === 0}
             class:is-last-row={cell.row === 8}
             class:is-last-col={cell.col === 8}
-            style={getSectionColor(cell.section)
-                ? `background-color: ${getSectionColor(cell.section)};`
-                : $grayBackground && cell.isGrayBlock
-                    ? 'background-color: var(--background-secondary-alt);'
-                    : undefined}
+            style={cell.background
+                ? `background-color: ${cell.background};`
+                : undefined}
             data-node-id={cell.nodeId || undefined}
             id={cell.nodeId || undefined}
             on:click={() => onCellClick(cell.nodeId)}

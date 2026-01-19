@@ -71,6 +71,9 @@ export const MandalaA4OrientationStore = (view: MandalaView) =>
 export const MandalaA4DpiStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaA4Dpi);
 
+export const MandalaBackgroundModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.mandalaBackgroundMode);
+
 export const MaintainEditMode = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.maintainEditMode);
 
@@ -98,22 +101,10 @@ export const WhiteThemeModeStore = (view: MandalaView) =>
 export const MandalaBorderOpacityStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaGridBorderOpacity);
 
-export const MandalaShowSectionColorsStore = (view: MandalaView) =>
-    derived(
-        view.plugin.settings,
-        (state) => state.view.mandalaShowSectionColors,
-    );
-
 export const MandalaSectionColorOpacityStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
         (state) => state.view.mandalaSectionColorOpacity,
-    );
-
-export const MandalaGrayBackgroundStore = (view: MandalaView) =>
-    derived(
-        view.plugin.settings,
-        (state) => state.view.mandalaGrayBackground,
     );
 
 export const HiddenVerticalToolbarButtons = (plugin: MandalaGrid) =>

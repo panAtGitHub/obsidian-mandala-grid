@@ -17,10 +17,9 @@
         MandalaA4DpiStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
+        MandalaBackgroundModeStore,
         MandalaBorderOpacityStore,
-        MandalaGrayBackgroundStore,
         MandalaSectionColorOpacityStore,
-        MandalaShowSectionColorsStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
@@ -38,9 +37,8 @@
     const a4Orientation = MandalaA4OrientationStore(view);
     const a4Dpi = MandalaA4DpiStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
-    const showSectionColors = MandalaShowSectionColorsStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
-    const grayBackground = MandalaGrayBackgroundStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
 
@@ -116,6 +114,13 @@
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
         updateSectionColorOpacityValue(Number(target.value));
+    };
+
+    const updateBackgroundMode = (mode: 'none' | 'custom' | 'gray') => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-background-mode',
+            payload: { mode },
+        });
     };
 
     type ElectronDialog = {
@@ -459,27 +464,30 @@
             {#if showBackgroundColorOptions}
                 <div class="view-options-menu__submenu">
                     <label class="view-options-menu__row">
-                        <span>显示背景色</span>
+                        <span>无背景色</span>
                         <input
-                            type="checkbox"
-                            checked={$showSectionColors}
-                            on:change={() =>
-                                view.plugin.settings.dispatch({
-                                    type: 'settings/view/mandala/toggle-section-colors',
-                                })
-                            }
+                            type="radio"
+                            name="mandala-background-color"
+                            checked={$backgroundMode === 'none'}
+                            on:change={() => updateBackgroundMode('none')}
                         />
                     </label>
                     <label class="view-options-menu__row">
-                        <span>显示默认间隔色块</span>
+                        <span>色块卡片</span>
                         <input
-                            type="checkbox"
-                            checked={$grayBackground}
-                            on:change={() =>
-                                view.plugin.settings.dispatch({
-                                    type: 'settings/view/mandala/toggle-gray-background',
-                                })
-                            }
+                            type="radio"
+                            name="mandala-background-color"
+                            checked={$backgroundMode === 'custom'}
+                            on:change={() => updateBackgroundMode('custom')}
+                        />
+                    </label>
+                    <label class="view-options-menu__row">
+                        <span>间隔灰色色块</span>
+                        <input
+                            type="radio"
+                            name="mandala-background-color"
+                            checked={$backgroundMode === 'gray'}
+                            on:change={() => updateBackgroundMode('gray')}
                         />
                     </label>
                     <label class="view-options-menu__row">
@@ -491,6 +499,7 @@
                                 max="100"
                                 value={$sectionColorOpacity}
                                 on:input={updateSectionColorOpacity}
+                                disabled={$backgroundMode === 'none'}
                             />
                             <input
                                 type="number"
@@ -498,6 +507,7 @@
                                 max="100"
                                 value={$sectionColorOpacity}
                                 on:input={updateSectionColorOpacity}
+                                disabled={$backgroundMode === 'none'}
                             />
                         </div>
                     </label>

@@ -23,6 +23,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         mandalaA4Mode?: boolean;
         mandalaA4Orientation?: 'portrait' | 'landscape';
         mandalaA4Dpi?: number;
+        mandalaBackgroundMode?: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity?: number;
         mandalaShowSectionColors?: boolean;
         mandalaSectionColorOpacity?: number;
@@ -37,16 +38,19 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (viewSettings.mandalaA4Dpi === undefined) {
         viewSettings.mandalaA4Dpi = 150;
     }
+    if (viewSettings.mandalaBackgroundMode === undefined) {
+        if (viewSettings.mandalaShowSectionColors) {
+            viewSettings.mandalaBackgroundMode = 'custom';
+        } else if (viewSettings.mandalaGrayBackground) {
+            viewSettings.mandalaBackgroundMode = 'gray';
+        } else {
+            viewSettings.mandalaBackgroundMode = 'none';
+        }
+    }
     if (viewSettings.mandalaGridBorderOpacity === undefined) {
         viewSettings.mandalaGridBorderOpacity = 100;
     }
-    if (viewSettings.mandalaShowSectionColors === undefined) {
-        viewSettings.mandalaShowSectionColors = true;
-    }
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
-    }
-    if (viewSettings.mandalaGrayBackground === undefined) {
-        viewSettings.mandalaGrayBackground = false;
     }
 };
