@@ -277,7 +277,46 @@
         }
 
         if ($a4Mode) {
-            await exportToPNG(target, { pixelRatio: 2 });
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '0';
+            wrapper.style.top = '0';
+            wrapper.style.zIndex = '-1';
+            wrapper.style.pointerEvents = 'none';
+            wrapper.style.overflow = 'hidden';
+            wrapper.style.background = getComputedStyle(
+                document.documentElement,
+            ).getPropertyValue('--background-primary');
+
+            const computed = getComputedStyle(target);
+            wrapper.style.padding = computed.padding;
+            wrapper.style.boxSizing = 'border-box';
+
+            const rect = target.getBoundingClientRect();
+            const width = Math.ceil(rect.width);
+            const height = Math.ceil(rect.height);
+            wrapper.style.width = `${width}px`;
+            wrapper.style.height = `${height}px`;
+
+            const clone = target.cloneNode(true) as HTMLElement;
+            clone.style.margin = '0';
+            clone.style.transform = 'none';
+            clone.style.left = '0';
+            clone.style.top = '0';
+            clone.style.position = 'static';
+            clone.style.width = '100%';
+            clone.style.height = '100%';
+            clone.style.padding = '0';
+            clone.style.boxSizing = 'border-box';
+
+            wrapper.appendChild(clone);
+            document.body.appendChild(wrapper);
+
+            try {
+                await exportToPNG(wrapper, { pixelRatio: 2, width, height });
+            } finally {
+                wrapper.remove();
+            }
             return;
         }
 
