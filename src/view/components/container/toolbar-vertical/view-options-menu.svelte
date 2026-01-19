@@ -103,6 +103,14 @@
         updateSectionColorOpacityValue(Number(target.value));
     };
 
+    const stepOpacity = (current: number, delta: number) => {
+        updateSectionColorOpacityValue(current + delta);
+    };
+
+    const stepBorderOpacity = (current: number, delta: number) => {
+        updateBorderOpacityValue(current + delta);
+    };
+
     const updateBackgroundMode = (mode: 'none' | 'custom' | 'gray') => {
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-background-mode',
@@ -554,6 +562,15 @@
                     <label class="view-options-menu__row">
                         <span>背景色透明度</span>
                         <div class="view-options-menu__range">
+                            <button
+                                class="view-options-menu__range-step"
+                                type="button"
+                                disabled={$backgroundMode === 'none'}
+                                on:click={() =>
+                                    stepOpacity($sectionColorOpacity, -5)}
+                            >
+                                -
+                            </button>
                             <input
                                 type="range"
                                 min="0"
@@ -562,6 +579,15 @@
                                 on:input={updateSectionColorOpacity}
                                 disabled={$backgroundMode === 'none'}
                             />
+                            <button
+                                class="view-options-menu__range-step"
+                                type="button"
+                                disabled={$backgroundMode === 'none'}
+                                on:click={() =>
+                                    stepOpacity($sectionColorOpacity, 5)}
+                            >
+                                +
+                            </button>
                             <input
                                 type="number"
                                 min="0"
@@ -595,6 +621,14 @@
                     <label class="view-options-menu__row">
                         <span>线框透明度</span>
                         <div class="view-options-menu__range">
+                            <button
+                                class="view-options-menu__range-step"
+                                type="button"
+                                on:click={() =>
+                                    stepBorderOpacity($borderOpacity, -5)}
+                            >
+                                -
+                            </button>
                             <input
                                 type="range"
                                 min="0"
@@ -602,6 +636,14 @@
                                 value={$borderOpacity}
                                 on:input={updateBorderOpacity}
                             />
+                            <button
+                                class="view-options-menu__range-step"
+                                type="button"
+                                on:click={() =>
+                                    stepBorderOpacity($borderOpacity, 5)}
+                            >
+                                +
+                            </button>
                             <input
                                 type="number"
                                 min="0"
@@ -753,6 +795,23 @@
         display: flex;
         align-items: center;
         gap: 6px;
+    }
+
+    .view-options-menu__range-step {
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border-radius: 4px;
+        border: 1px solid var(--background-modifier-border);
+        background: var(--background-primary);
+        color: var(--text-normal);
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .view-options-menu__range-step:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .view-options-menu__range input[type='range'] {
