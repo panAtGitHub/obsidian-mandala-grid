@@ -14,7 +14,6 @@
     import { toPng } from 'html-to-image';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import {
-        MandalaA4DpiStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
@@ -35,7 +34,6 @@
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
-    const a4Dpi = MandalaA4DpiStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
@@ -74,17 +72,6 @@
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-a4-orientation',
             payload: { orientation },
-        });
-    };
-
-    const updateA4Dpi = (event: Event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLSelectElement)) return;
-        const dpi = Number(target.value);
-        if (!Number.isFinite(dpi)) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-a4-dpi',
-            payload: { dpi },
         });
     };
 
@@ -244,8 +231,11 @@
     };
 
     const exportCurrentView = async () => {
+        const targetSelector = $a4Mode
+            ? '.mandala-scroll'
+            : '.mandala-content-wrapper';
         const target = view.contentEl.querySelector(
-            '.mandala-content-wrapper',
+            targetSelector,
         ) as HTMLElement | null;
         if (!target) {
             new Notice('未找到可导出的视图区域。');
@@ -393,14 +383,6 @@
                             >
                                 <option value="portrait">竖向</option>
                                 <option value="landscape">横向</option>
-                            </select>
-                        </label>
-                        <label class="view-options-menu__row">
-                            <span>DPI</span>
-                            <select value={$a4Dpi} on:change={updateA4Dpi}>
-                                <option value="96">96</option>
-                                <option value="150">150</option>
-                                <option value="300">300</option>
                             </select>
                         </label>
                     {/if}

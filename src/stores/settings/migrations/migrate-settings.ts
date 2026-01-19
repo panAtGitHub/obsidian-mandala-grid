@@ -22,7 +22,6 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     const viewSettings = settings.view as {
         mandalaA4Mode?: boolean;
         mandalaA4Orientation?: 'portrait' | 'landscape';
-        mandalaA4Dpi?: number;
         mandalaBackgroundMode?: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity?: number;
         mandalaShowSectionColors?: boolean;
@@ -33,10 +32,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         viewSettings.mandalaA4Mode = false;
     }
     if (viewSettings.mandalaA4Orientation === undefined) {
-        viewSettings.mandalaA4Orientation = 'portrait';
-    }
-    if (viewSettings.mandalaA4Dpi === undefined) {
-        viewSettings.mandalaA4Dpi = 150;
+        viewSettings.mandalaA4Orientation = 'landscape';
     }
     if (viewSettings.mandalaBackgroundMode === undefined) {
         if (viewSettings.mandalaShowSectionColors) {

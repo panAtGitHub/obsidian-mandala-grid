@@ -256,8 +256,6 @@ const updateState = (store: Settings, action: SettingsActions) => {
         store.view.mandalaA4Mode = !store.view.mandalaA4Mode;
     } else if (action.type === 'settings/view/mandala/set-a4-orientation') {
         store.view.mandalaA4Orientation = action.payload.orientation;
-    } else if (action.type === 'settings/view/mandala/set-a4-dpi') {
-        store.view.mandalaA4Dpi = action.payload.dpi;
     } else if (action.type === 'settings/view/mandala/set-background-mode') {
         store.view.mandalaBackgroundMode = action.payload.mode;
     } else if (action.type === 'settings/view/mandala/set-border-opacity') {

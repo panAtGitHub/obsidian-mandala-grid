@@ -68,9 +68,6 @@ export const MandalaA4OrientationStore = (view: MandalaView) =>
         (state) => state.view.mandalaA4Orientation,
     );
 
-export const MandalaA4DpiStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.mandalaA4Dpi);
-
 export const MandalaBackgroundModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaBackgroundMode);
 

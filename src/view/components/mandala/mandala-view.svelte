@@ -3,7 +3,6 @@
     import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import {
-        MandalaA4DpiStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaDetailSidebarWidthStore,
@@ -45,7 +44,6 @@
     const mode = MandalaModeStore(view);
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
-    const a4Dpi = MandalaA4DpiStore(view);
     const toggleMode = () => {
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/toggle-mode',
@@ -77,17 +75,6 @@
 
     const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
 
-    const getA4Size = (dpi: number, orientation: 'portrait' | 'landscape') => {
-        const widthIn = 8.27;
-        const heightIn = 11.69;
-        const width = Math.round(widthIn * dpi);
-        const height = Math.round(heightIn * dpi);
-        return orientation === 'portrait'
-            ? { width, height }
-            : { width: height, height: width };
-    };
-
-    $: a4Size = getA4Size($a4Dpi, $a4Orientation);
 
     let desktopSquareSize = 0;
     let contentWrapperRef: HTMLElement | null = null;
@@ -242,7 +229,8 @@
     class:is-portrait={isPortrait}
     class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-a4-width: {a4Size.width}px; --mandala-a4-height: {a4Size.height}px;"
+    class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px;"
 >
     {#if isMobilePopupEditing}
         <div class="mobile-edit-header">
@@ -350,6 +338,9 @@
             var(--background-modifier-border) 70%,
             var(--background-primary)
         );
+        --mandala-a4-width: 210mm;
+        --mandala-a4-height: 297mm;
+        --mandala-a4-margin: 1.27cm;
     }
 
     .mandala-topbar {
@@ -446,9 +437,19 @@
         flex: 0 0 auto;
         width: var(--mandala-a4-width);
         height: var(--mandala-a4-height);
-        overflow: auto;
+        overflow: hidden;
+        scrollbar-gutter: stable;
         align-self: flex-start;
         margin: 0 auto;
+        padding: var(--mandala-a4-margin);
+        box-sizing: border-box;
+        border: 1px solid var(--background-modifier-border);
+        background: var(--background-primary);
+    }
+
+    .mandala-a4-mode.mandala-a4-landscape .mandala-scroll {
+        width: var(--mandala-a4-height);
+        height: var(--mandala-a4-width);
     }
 
 

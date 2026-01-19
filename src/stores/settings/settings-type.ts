@@ -78,7 +78,6 @@ export type Settings = {
         mandalaMode: MandalaMode;
         mandalaA4Mode: boolean;
         mandalaA4Orientation: 'portrait' | 'landscape';
-        mandalaA4Dpi: number;
         mandalaBackgroundMode: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity: number;
         mandalaSectionColorOpacity: number;

@@ -241,10 +241,6 @@ export type SettingsActions =
         payload: { orientation: 'portrait' | 'landscape' };
     }
     | {
-        type: 'settings/view/mandala/set-a4-dpi';
-        payload: { dpi: number };
-    }
-    | {
         type: 'settings/view/mandala/set-background-mode';
         payload: { mode: 'none' | 'custom' | 'gray' };
     }
