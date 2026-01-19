@@ -138,7 +138,9 @@
             getCurrentWindow?: () => {
                 webContents?: {
                     printToPDF?: (options: {
-                        pageSize: string;
+                        pageSize:
+                            | string
+                            | { width: number; height: number };
                         landscape?: boolean;
                         printBackground?: boolean;
                         marginsType?: number;
@@ -384,17 +386,28 @@
             .toISOString()
             .replace(/[:.]/g, '-');
         const defaultName = `mandala-${timestamp}.pdf`;
+        const isLandscape = $a4Orientation === 'landscape';
+        const pageStyle = document.createElement('style');
+        pageStyle.textContent = `@page { size: A4 ${
+            isLandscape ? 'landscape' : 'portrait'
+        }; margin: 0; }`;
+        document.head.appendChild(pageStyle);
 
-        const createPrintLayer = (source: HTMLElement) => {
+        const createPrintLayer = (
+            source: HTMLElement,
+            orientation: 'portrait' | 'landscape',
+        ) => {
             const computed = getComputedStyle(source);
             const rect = source.getBoundingClientRect();
             const width = Math.ceil(rect.width);
             const height = Math.ceil(rect.height);
+            const layerWidth = orientation === 'landscape' ? height : width;
+            const layerHeight = orientation === 'landscape' ? width : height;
 
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
-            layer.style.width = `${width}px`;
-            layer.style.height = `${height}px`;
+            layer.style.width = `${layerWidth}px`;
+            layer.style.height = `${layerHeight}px`;
             layer.style.padding = computed.padding;
             layer.style.boxSizing = 'border-box';
             layer.style.background = getComputedStyle(
@@ -426,11 +439,14 @@
         };
 
         try {
-            const printLayer = createPrintLayer(target);
+            const printLayer = createPrintLayer(
+                target,
+                isLandscape ? 'landscape' : 'portrait',
+            );
             await withPrintTarget(printLayer.layer, async () => {
                 const pdfData = await webContents.printToPDF({
                     pageSize: 'A4',
-                    landscape: $a4Orientation === 'landscape',
+                    landscape: isLandscape,
                     printBackground: true,
                     marginsType: 1,
                 });
@@ -467,6 +483,7 @@
         } catch (_error) {
             new Notice('导出失败，请稍后再试。');
         } finally {
+            pageStyle.remove();
             loadingNotice.hide();
             closeMenu();
         }
