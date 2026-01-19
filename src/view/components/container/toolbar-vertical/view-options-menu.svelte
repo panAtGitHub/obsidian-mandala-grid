@@ -397,18 +397,17 @@
             source: HTMLElement,
             orientation: 'portrait' | 'landscape',
         ) => {
-            const computed = getComputedStyle(source);
-            const rect = source.getBoundingClientRect();
-            const width = Math.ceil(rect.width);
-            const height = Math.ceil(rect.height);
-            const layerWidth = orientation === 'landscape' ? height : width;
-            const layerHeight = orientation === 'landscape' ? width : height;
-
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
-            layer.style.width = `${layerWidth}px`;
-            layer.style.height = `${layerHeight}px`;
-            layer.style.padding = computed.padding;
+            layer.classList.add('mandala-a4-mode');
+            if (orientation === 'landscape') {
+                layer.classList.add('mandala-a4-landscape');
+            }
+            layer.style.width =
+                orientation === 'landscape' ? '297mm' : '210mm';
+            layer.style.height =
+                orientation === 'landscape' ? '210mm' : '297mm';
+            layer.style.padding = '1.27cm';
             layer.style.boxSizing = 'border-box';
             layer.style.background = getComputedStyle(
                 document.documentElement,
