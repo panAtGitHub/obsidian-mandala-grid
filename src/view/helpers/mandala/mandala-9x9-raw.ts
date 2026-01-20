@@ -1,9 +1,5 @@
 import type { MandalaGridOrientation } from 'src/stores/settings/settings-type';
-import {
-    getMandalaLayout,
-    slotPositions,
-    themeGrid,
-} from 'src/view/helpers/mandala/mandala-grid';
+import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
 
 export type MandalaCell = { row: number; col: number };
 
@@ -26,9 +22,8 @@ export const sectionAtRaw9x9Cell = (
     const localRow = row % 3;
     const localCol = col % 3;
 
-    const theme = getMandalaLayout(orientation).themeBlocks[
-        blockRow * 3 + blockCol
-    ];
+    const { themeBlocks, themeGrid } = getMandalaLayout(orientation);
+    const theme = themeBlocks[blockRow * 3 + blockCol];
     if (!theme) return null;
     if (localRow === 1 && localCol === 1) return theme;
     const slot = themeGrid[localRow]?.[localCol];
@@ -42,7 +37,7 @@ export const posOfRaw9x9Section = (
 ): MandalaCell | null => {
     if (section === '1') return null;
     if (!section) return null;
-    const { positions } = getMandalaLayout(orientation);
+    const { positions, slotPositions } = getMandalaLayout(orientation);
     if (section.includes('.')) {
         const [theme, slot] = section.split('.');
         const themePos = positions[theme];

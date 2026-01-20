@@ -4,7 +4,6 @@
     import { derived } from 'src/lib/store/derived';
     import {
         getMandalaLayout,
-        themeGrid,
     } from 'src/view/helpers/mandala/mandala-grid';
     import {
         MandalaBorderOpacityStore,
@@ -69,7 +68,7 @@
                             section = theme;
                         } else {
                             // Surrounding -> Theme Children
-                            const slot = themeGrid[localRow][localCol];
+                            const slot = layout.themeGrid[localRow][localCol];
                             if (slot) {
                                 section = `${theme}.${slot}`;
                             }

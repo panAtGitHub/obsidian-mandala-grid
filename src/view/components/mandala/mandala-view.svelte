@@ -18,7 +18,6 @@
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
-        childSlots,
         getMandalaLayout,
         posOfSection9x9,
         sectionAtCell9x9,
@@ -284,7 +283,9 @@
                     {@const theme = $subgridTheme}
                     {@const layout = getMandalaLayout($gridOrientation)}
                     {@const sections = theme
-                        ? childSlots.map((slot) => (slot ? `${theme}.${slot}` : theme))
+                        ? layout.childSlots.map((slot) =>
+                              slot ? `${theme}.${slot}` : theme,
+                          )
                         : layout.coreSlots}
                     <div class="mandala-grid mandala-grid--3 mandala-grid--core">
                         {#each sections as section, index (section)}

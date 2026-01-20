@@ -19,11 +19,7 @@ import {
 import { get } from 'svelte/store';
 import { singleColumnStore } from 'src/stores/document/derived/columns-store';
 import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
-import {
-    getMandalaLayout,
-    slotPositions,
-    themeGrid,
-} from 'src/view/helpers/mandala/mandala-grid';
+import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
 import { toggleMobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';
@@ -76,7 +72,8 @@ const swapMandalaCell = (view: MandalaView, direction: SwapDirection) => {
     const gridOrientation =
         view.plugin.settings.getValue().view.mandalaGridOrientation ??
         'left-to-right';
-    const { coreGrid, positions } = getMandalaLayout(gridOrientation);
+    const { coreGrid, positions, slotPositions, themeGrid } =
+        getMandalaLayout(gridOrientation);
 
     const pos = (() => {
         if (subgridTheme) {

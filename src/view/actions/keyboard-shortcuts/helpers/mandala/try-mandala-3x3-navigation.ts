@@ -1,10 +1,8 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import {
-    getMandalaLayout,
     posOfSection3x3,
-    slotPositions,
-    themeGrid,
+    getMandalaLayout,
 } from 'src/view/helpers/mandala/mandala-grid';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
@@ -31,7 +29,8 @@ export const tryMandala3x3Navigation = (
     const gridOrientation =
         view.plugin.settings.getValue().view.mandalaGridOrientation ??
         'left-to-right';
-    const { coreGrid, positions } = getMandalaLayout(gridOrientation);
+    const { coreGrid, positions, slotPositions, themeGrid } =
+        getMandalaLayout(gridOrientation);
 
     const pos = (() => {
         if (subgridTheme) {
