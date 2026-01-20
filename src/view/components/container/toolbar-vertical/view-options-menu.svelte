@@ -596,10 +596,10 @@
             return;
         }
 
-        view.viewStore.dispatch({ type: 'view/mandala/subgrid/exit' });
-        const centerNodeId = state.sections.section_id['1'];
+        const theme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
+        const centerNodeId = state.sections.section_id[theme];
         if (!centerNodeId) {
-            new Notice('未找到中心格子。');
+            new Notice('未找到当前主题中心格子。');
             closeMenu();
             return;
         }
