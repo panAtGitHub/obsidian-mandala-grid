@@ -252,6 +252,8 @@ const updateState = (store: Settings, action: SettingsActions) => {
         store.view.squareLayout = !store.view.squareLayout;
     } else if (action.type === 'settings/view/toggle-white-theme') {
         store.view.whiteThemeMode = !store.view.whiteThemeMode;
+    } else if (action.type === 'settings/view/mandala/set-grid-orientation') {
+        store.view.mandalaGridOrientation = action.payload.orientation;
     } else if (action.type === 'settings/view/mandala/toggle-a4-mode') {
         store.view.mandalaA4Mode = !store.view.mandalaA4Mode;
     } else if (action.type === 'settings/view/mandala/set-a4-orientation') {

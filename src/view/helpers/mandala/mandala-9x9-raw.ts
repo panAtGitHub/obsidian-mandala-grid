@@ -1,4 +1,9 @@
-import { positions, slotPositions, themeBlocks, themeGrid } from 'src/view/helpers/mandala/mandala-grid';
+import type { MandalaGridOrientation } from 'src/stores/settings/settings-type';
+import {
+    getMandalaLayout,
+    slotPositions,
+    themeGrid,
+} from 'src/view/helpers/mandala/mandala-grid';
 
 export type MandalaCell = { row: number; col: number };
 
@@ -10,14 +15,20 @@ export const isCenter3x3 = (row: number, col: number) =>
  * - 中间 3×3（核心九宫）全部视为“虚格子”，不映射到任何 section（避免 2..9 主题格在 UI 里出现重复映射）。
  * - 其余 8 个主题块：每块 3×3 的中心格映射到主题 section（2..9），其他 8 格映射到 <theme>.<1..8>。
  */
-export const sectionAtRaw9x9Cell = (row: number, col: number): string | null => {
+export const sectionAtRaw9x9Cell = (
+    row: number,
+    col: number,
+    orientation: MandalaGridOrientation = 'left-to-right',
+): string | null => {
     if (isCenter3x3(row, col)) return null;
     const blockRow = Math.floor(row / 3);
     const blockCol = Math.floor(col / 3);
     const localRow = row % 3;
     const localCol = col % 3;
 
-    const theme = themeBlocks[blockRow * 3 + blockCol];
+    const theme = getMandalaLayout(orientation).themeBlocks[
+        blockRow * 3 + blockCol
+    ];
     if (!theme) return null;
     if (localRow === 1 && localCol === 1) return theme;
     const slot = themeGrid[localRow]?.[localCol];
@@ -25,9 +36,13 @@ export const sectionAtRaw9x9Cell = (row: number, col: number): string | null => 
     return `${theme}.${slot}`;
 };
 
-export const posOfRaw9x9Section = (section: string): MandalaCell | null => {
+export const posOfRaw9x9Section = (
+    section: string,
+    orientation: MandalaGridOrientation = 'left-to-right',
+): MandalaCell | null => {
     if (section === '1') return null;
     if (!section) return null;
+    const { positions } = getMandalaLayout(orientation);
     if (section.includes('.')) {
         const [theme, slot] = section.split('.');
         const themePos = positions[theme];
@@ -66,4 +81,3 @@ export const nextRaw9x9Cell = (
     }
     return null;
 };
-

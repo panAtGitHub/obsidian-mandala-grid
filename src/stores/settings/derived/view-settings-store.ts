@@ -59,6 +59,12 @@ export const OutlineModeStore = (view: MandalaView) =>
 export const MandalaModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaMode);
 
+export const MandalaGridOrientationStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridOrientation,
+    );
+
 export const MandalaA4ModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaA4Mode);
 

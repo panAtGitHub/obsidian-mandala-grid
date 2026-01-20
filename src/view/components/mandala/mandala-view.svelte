@@ -8,6 +8,7 @@
         MandalaDetailSidebarWidthStore,
         MandalaModeStore,
         MandalaBackgroundModeStore,
+        MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
@@ -18,7 +19,7 @@
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
         childSlots,
-        coreSlots,
+        getMandalaLayout,
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
@@ -42,6 +43,7 @@
     $: isPortrait = $layout.isPortrait;
 
     const mode = MandalaModeStore(view);
+    const gridOrientation = MandalaGridOrientationStore(view);
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const toggleMode = () => {
@@ -184,10 +186,13 @@
             } else {
                 const cell = view.mandalaActiveCell9x9;
                 const mapped = cell
-                    ? sectionAtCell9x9(cell.row, cell.col)
+                    ? sectionAtCell9x9(cell.row, cell.col, $gridOrientation)
                     : null;
                 if (mapped !== section) {
-                    view.mandalaActiveCell9x9 = posOfSection9x9(section);
+                    view.mandalaActiveCell9x9 = posOfSection9x9(
+                        section,
+                        $gridOrientation,
+                    );
                 }
             }
         }
@@ -277,9 +282,10 @@
             >
                 {#if $mode === '3x3'}
                     {@const theme = $subgridTheme}
+                    {@const layout = getMandalaLayout($gridOrientation)}
                     {@const sections = theme
                         ? childSlots.map((slot) => (slot ? `${theme}.${slot}` : theme))
-                        : coreSlots}
+                        : layout.coreSlots}
                     <div class="mandala-grid mandala-grid--3 mandala-grid--core">
                         {#each sections as section, index (section)}
                             {@const sectionBackground =

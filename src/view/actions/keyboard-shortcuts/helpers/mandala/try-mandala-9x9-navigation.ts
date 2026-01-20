@@ -25,10 +25,17 @@ export const tryMandala9x9Navigation = (
     const activeSection = docState.sections.id_section[activeNodeId];
     if (!activeSection) return false;
 
+    const gridOrientation =
+        view.plugin.settings.getValue().view.mandalaGridOrientation ??
+        'left-to-right';
     const cell = view.mandalaActiveCell9x9;
-    const mapped = cell ? sectionAtCell9x9(cell.row, cell.col) : null;
+    const mapped = cell
+        ? sectionAtCell9x9(cell.row, cell.col, gridOrientation)
+        : null;
     const current =
-        mapped === activeSection ? cell : posOfSection9x9(activeSection);
+        mapped === activeSection
+            ? cell
+            : posOfSection9x9(activeSection, gridOrientation);
     if (!current) return true;
 
     if (!cell || mapped !== activeSection) {
@@ -40,7 +47,7 @@ export const tryMandala9x9Navigation = (
     let nextCol = current.col + dc;
     if (nextRow < 0 || nextCol < 0 || nextRow > 8 || nextCol > 8) return true;
 
-    const nextSection = sectionAtCell9x9(nextRow, nextCol);
+    const nextSection = sectionAtCell9x9(nextRow, nextCol, gridOrientation);
     if (!nextSection) return true;
 
     const nextNodeId = docState.sections.section_id[nextSection];

@@ -15,6 +15,7 @@
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
         MandalaBorderOpacityStore,
+        MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
@@ -34,6 +35,7 @@
     const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
+    const gridOrientation = MandalaGridOrientationStore(view);
 
     const toggleWhiteTheme = () => {
         view.plugin.settings.dispatch({
@@ -119,6 +121,16 @@
                 type: 'settings/view/toggle-square-layout',
             });
         }
+    };
+
+    const updateGridOrientation = (
+        orientation: 'south-start' | 'left-to-right',
+    ) => {
+        if (orientation === $gridOrientation) return;
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-orientation',
+            payload: { orientation },
+        });
     };
 
     type ElectronDialog = {
@@ -728,6 +740,36 @@
                                         updateSquareLayout(true)}
                                 />
                                 <span>正方形布局</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="view-options-menu__subsection">
+                        <div class="view-options-menu__subsection-title">
+                            九宫格方位布局
+                        </div>
+                        <div class="view-options-menu__row view-options-menu__row--inline">
+                            <label class="view-options-menu__inline-option">
+                                <input
+                                    type="radio"
+                                    name="mandala-grid-orientation"
+                                    checked={$gridOrientation === 'south-start'}
+                                    on:change={() =>
+                                        updateGridOrientation('south-start')}
+                                />
+                                <span>从南开始</span>
+                            </label>
+                            <label class="view-options-menu__inline-option">
+                                <input
+                                    type="radio"
+                                    name="mandala-grid-orientation"
+                                    checked={$gridOrientation === 'left-to-right'}
+                                    on:change={() =>
+                                        updateGridOrientation(
+                                            'left-to-right',
+                                        )}
+                                />
+                                <span>从左到右</span>
                             </label>
                         </div>
                     </div>

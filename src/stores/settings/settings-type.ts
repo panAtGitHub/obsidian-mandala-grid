@@ -26,6 +26,7 @@ export type MandalaGridDocumentFormat = 'outline' | 'sections' | 'html-element';
 export type ViewType = 'mandala-grid' | 'markdown';
 
 export type MandalaMode = '3x3' | '9x9';
+export type MandalaGridOrientation = 'south-start' | 'left-to-right';
 
 export type DocumentPreferences = {
     documentFormat: MandalaGridDocumentFormat;
@@ -76,6 +77,7 @@ export type Settings = {
         applyGapBetweenCards: boolean;
         outlineMode: boolean;
         mandalaMode: MandalaMode;
+        mandalaGridOrientation: MandalaGridOrientation;
         mandalaA4Mode: boolean;
         mandalaA4Orientation: 'portrait' | 'landscape';
         mandalaBackgroundMode: 'none' | 'custom' | 'gray';

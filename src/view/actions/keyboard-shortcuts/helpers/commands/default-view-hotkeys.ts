@@ -20,8 +20,7 @@ import { get } from 'svelte/store';
 import { singleColumnStore } from 'src/stores/document/derived/columns-store';
 import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
 import {
-    coreGrid,
-    positions,
+    getMandalaLayout,
     slotPositions,
     themeGrid,
 } from 'src/view/helpers/mandala/mandala-grid';
@@ -74,6 +73,10 @@ const swapMandalaCell = (view: MandalaView, direction: SwapDirection) => {
     if (!activeSectionRaw) return;
 
     const subgridTheme = viewState.ui.mandala.subgridTheme;
+    const gridOrientation =
+        view.plugin.settings.getValue().view.mandalaGridOrientation ??
+        'left-to-right';
+    const { coreGrid, positions } = getMandalaLayout(gridOrientation);
 
     const pos = (() => {
         if (subgridTheme) {

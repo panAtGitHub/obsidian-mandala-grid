@@ -3,8 +3,7 @@
     import { onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import {
-        coreGrid,
-        themeBlocks,
+        getMandalaLayout,
         themeGrid,
     } from 'src/view/helpers/mandala/mandala-grid';
     import {
@@ -36,7 +35,13 @@
     let bodyLineClamp = 3;
 
     // Reactive store for cells
-    const cells = derived(view.documentStore, (state) => {
+    const buildCells = (
+        state: ReturnType<typeof view.documentStore.getValue>,
+        orientation: string,
+    ) => {
+        const layout = getMandalaLayout(
+            orientation === 'south-start' ? 'south-start' : 'left-to-right',
+        );
         const list = [];
         for (let row = 0; row < 9; row++) {
             for (let col = 0; col < 9; col++) {
@@ -47,15 +52,16 @@
                 const localRow = row % 3;
                 const localCol = col % 3;
                 const isCenter = blockRow === 1 && blockCol === 1;
-                const isThemeCenter = !isCenter && localRow === 1 && localCol === 1;
+                const isThemeCenter =
+                    !isCenter && localRow === 1 && localCol === 1;
                 let isGrayBlock = false;
 
                 // Center Block (1,1) -> Core Grid (1-9)
                 if (isCenter) {
-                    section = coreGrid[localRow][localCol];
+                    section = layout.coreGrid[localRow][localCol];
                 } else {
                     // Outer Blocks -> Theme Expansion
-                    const theme = themeBlocks[blockRow * 3 + blockCol];
+                    const theme = layout.themeBlocks[blockRow * 3 + blockCol];
                     if (theme) {
                         isGrayBlock = grayBlockThemes.has(theme);
                         // Center of outer block -> Theme Title
@@ -80,17 +86,22 @@
                     const id = state.sections.section_id[section];
                     if (id) {
                         nodeId = id;
-                        const nodeContent = state.document.content[nodeId]?.content;
+                        const nodeContent =
+                            state.document.content[nodeId]?.content;
                         if (nodeContent) {
                             // Extract title and body
                             const lines = nodeContent.split('\n');
                             const rawTitle = lines[0] || '';
                             title = rawTitle.replace(/^#+\s*/, '').trim();
-                            
+
                             // Body: Join remaining lines, remove standard markdown syntax for cleaner preview
                             if (lines.length > 1) {
-                                body = lines.slice(1).join('\n')
-                                    .replace(/\[\[.*?\]\]/g, (m) => m.slice(2, -2)) // Simplify links
+                                body = lines
+                                    .slice(1)
+                                    .join('\n')
+                                    .replace(/\[\[.*?\]\]/g, (m) =>
+                                        m.slice(2, -2),
+                                    ) // Simplify links
                                     .replace(/[*_`]/g, '') // Remove formatting chars
                                     .trim()
                                     .slice(0, 150); // Limit chars
@@ -113,7 +124,38 @@
             }
         }
         return list;
-    });
+    };
+
+    const cells = {
+        subscribe: (run: (value: ReturnType<typeof buildCells>) => void) => {
+            let documentState = view.documentStore.getValue();
+            let orientation =
+                view.plugin.settings.getValue().view.mandalaGridOrientation ??
+                'left-to-right';
+
+            const update = () => {
+                run(buildCells(documentState, orientation));
+            };
+
+            const unsubDoc = view.documentStore.subscribe((state) => {
+                documentState = state;
+                update();
+            });
+
+            const unsubSettings = view.plugin.settings.subscribe((settings) => {
+                orientation =
+                    settings.view.mandalaGridOrientation ?? 'left-to-right';
+                update();
+            });
+
+            update();
+
+            return () => {
+                unsubDoc();
+                unsubSettings();
+            };
+        },
+    };
 
     let styledCells: Array<
         (typeof $cells)[number] & { background: string | null }

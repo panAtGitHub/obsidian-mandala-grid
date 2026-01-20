@@ -1,8 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import {
-    coreGrid,
-    positions,
+    getMandalaLayout,
     posOfSection3x3,
     slotPositions,
     themeGrid,
@@ -29,6 +28,10 @@ export const tryMandala3x3Navigation = (
     if (!activeSectionRaw) return false;
 
     const subgridTheme = view.viewStore.getValue().ui.mandala.subgridTheme;
+    const gridOrientation =
+        view.plugin.settings.getValue().view.mandalaGridOrientation ??
+        'left-to-right';
+    const { coreGrid, positions } = getMandalaLayout(gridOrientation);
 
     const pos = (() => {
         if (subgridTheme) {
@@ -45,7 +48,10 @@ export const tryMandala3x3Navigation = (
             ? activeSectionRaw.split('.')[0]
             : activeSectionRaw;
 
-        return positions[activeSection] ?? posOfSection3x3(activeSection);
+        return (
+            positions[activeSection] ??
+            posOfSection3x3(activeSection, gridOrientation)
+        );
     })();
     if (!pos) return false;
 

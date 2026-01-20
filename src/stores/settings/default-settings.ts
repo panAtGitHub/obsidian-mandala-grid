@@ -39,6 +39,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         applyGapBetweenCards: false,
         outlineMode: false,
         mandalaMode: '3x3',
+        mandalaGridOrientation: 'left-to-right',
         mandalaA4Mode: false,
         mandalaA4Orientation: 'landscape',
         mandalaBackgroundMode: 'custom',

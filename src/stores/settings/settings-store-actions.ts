@@ -3,6 +3,7 @@ import {
     DocumentPreferences,
     LeftSidebarTab,
     MandalaGridDocumentFormat,
+    MandalaGridOrientation,
     LinkPaneType,
     RulesTab,
     ViewType,
@@ -232,6 +233,10 @@ export type SettingsActions =
     }
     | {
         type: 'settings/view/toggle-white-theme';
+    }
+    | {
+        type: 'settings/view/mandala/set-grid-orientation';
+        payload: { orientation: MandalaGridOrientation };
     }
     | {
         type: 'settings/view/mandala/toggle-a4-mode';
