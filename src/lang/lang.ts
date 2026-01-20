@@ -115,6 +115,13 @@ export const lang = {
     hk_move_node_left: 'Move branch left',
     hkg_move_nodes: 'Move',
     modals_snapshots_moved_node: 'Moved section ',
+    cm_swap_position: 'Swap position',
+    notice_swap_select_target:
+        'Source selected. Click a target card to swap, or press Esc to cancel.',
+    notice_swap_in_progress: 'Swapping...',
+    notice_swap_complete: 'Swap complete',
+    notice_swap_canceled: 'Swap canceled',
+    notice_swap_no_targets: 'No valid swap targets found',
 
     // dnd
     modals_snapshots_dropped_node: 'Dropped section ',

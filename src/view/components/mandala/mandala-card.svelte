@@ -17,6 +17,7 @@
         exitCurrentSubgrid, 
         isGridCenter 
     } from 'src/view/helpers/mandala/mobile-navigation';
+    import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
     import { 
         ShowMandalaDetailSidebarStore,
         // AlwaysShowCardButtons,
@@ -44,6 +45,7 @@
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     // const alwaysShowCardButtons = AlwaysShowCardButtons(view);
     const outlineMode = OutlineModeStore(view);
+    const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
 
     const hasChildrenStore = derived(view.documentStore, (state) => {
         const section = state.sections.id_section[nodeId];
@@ -119,6 +121,23 @@
     const handleDecreaseFontSize = () => {
         localFontStore.setFontSize($localFontStore - 1);
     };
+
+    const handleCardClick = (e: MouseEvent) => {
+        if ($swapState.active) {
+            const sourceNodeId = $swapState.sourceNodeId;
+            if (sourceNodeId && $swapState.targetNodeIds.has(nodeId)) {
+                executeMandalaSwap(view, sourceNodeId, nodeId);
+            }
+            return;
+        }
+
+        recordClick();
+        if (!isMobile && $mobileInteractionMode === 'locked') {
+            handleSelect(e);
+            return;
+        }
+        handleSelect(e);
+    };
 </script>
 
 <div
@@ -130,19 +149,16 @@
         active ? 'node-border--active' : undefined,
         // $alwaysShowCardButtons ? 'always-show-buttons' : undefined,
     )}
+    class:mandala-card--swap-source={$swapState.active && $swapState.sourceNodeId === nodeId}
+    class:mandala-card--swap-target={$swapState.active && $swapState.targetNodeIds.has(nodeId)}
+    class:mandala-card--swap-disabled={$swapState.active && !$swapState.targetNodeIds.has(nodeId) && $swapState.sourceNodeId !== nodeId}
     class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
     id={nodeId}
     style={sectionColor ? `background-color: ${sectionColor};` : undefined}
     use:droppable
-    on:click={(e) => {
-        recordClick();
-        if (!isMobile && $mobileInteractionMode === 'locked') {
-            handleSelect(e);
-            return;
-        }
-        handleSelect(e);
-    }}
+    on:click={handleCardClick}
     on:dblclick={(e) => {
+        if ($swapState.active) return;
         if (!isFastDoubleClick()) return;
         if ($mobileInteractionMode === 'locked') {
             if (isGridCenter(view, nodeId, section)) {
@@ -237,6 +253,19 @@
         opacity: 0.7;
         user-select: none;
         pointer-events: none;
+    }
+
+    .mandala-card--swap-source {
+        box-shadow: 0 0 0 2px var(--interactive-accent);
+    }
+
+    .mandala-card--swap-target {
+        box-shadow: 0 0 0 2px var(--interactive-accent);
+        cursor: pointer;
+    }
+
+    .mandala-card--swap-disabled {
+        opacity: 0.6;
     }
 
 

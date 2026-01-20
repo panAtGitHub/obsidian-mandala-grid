@@ -18,6 +18,11 @@ export const defaultViewState = (): ViewState => ({
         },
         mandala: {
             subgridTheme: null,
+            swap: {
+                active: false,
+                sourceNodeId: null,
+                targetNodeIds: new Set<string>(),
+            },
         },
     },
     document: {

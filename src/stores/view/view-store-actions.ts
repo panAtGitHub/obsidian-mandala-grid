@@ -24,6 +24,13 @@ export type MandalaActions =
     }
     | {
         type: 'view/mandala/subgrid/exit';
+    }
+    | {
+        type: 'view/mandala/swap/start';
+        payload: { sourceNodeId: string; targetNodeIds: string[] };
+    }
+    | {
+        type: 'view/mandala/swap/cancel';
     };
 
 export type ViewStoreAction =

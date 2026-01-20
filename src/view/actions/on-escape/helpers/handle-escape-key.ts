@@ -1,3 +1,5 @@
+import { Notice } from 'obsidian';
+import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 
 export const handleEscapeKey = (view: MandalaView) => {
@@ -6,6 +8,7 @@ export const handleEscapeKey = (view: MandalaView) => {
     const search = value.search;
     const controls = value.ui.controls;
     const selection = value.document.selectedNodes;
+    const swap = value.ui.mandala.swap;
     if (
         controls.showHelpSidebar ||
         controls.showHistorySidebar ||
@@ -23,6 +26,12 @@ export const handleEscapeKey = (view: MandalaView) => {
         viewStore.dispatch({
             type: 'view/delete-node/reset-confirmation',
         });
+        return true;
+    } else if (swap.active) {
+        viewStore.dispatch({
+            type: 'view/mandala/swap/cancel',
+        });
+        new Notice(lang.notice_swap_canceled, 1200);
         return true;
     } else if (selection.size > 0) {
         viewStore.dispatch({

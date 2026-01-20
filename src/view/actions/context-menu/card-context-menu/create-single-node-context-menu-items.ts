@@ -22,6 +22,7 @@ import {
     setSectionColor,
     writeSectionColorsToFrontmatter,
 } from 'src/view/helpers/mandala/section-colors';
+import { startMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
 
 type Props = {
     activeNode: string;
@@ -32,6 +33,7 @@ export const createSingleNodeContextMenuItems = (
     view: MandalaView,
     { hasChildren, isPinned, activeNode }: Props,
 ) => {
+    const isMandala = view.documentStore.getValue().meta.isMandala;
     const section = view.documentStore.getValue().sections.id_section[activeNode];
     const frontmatter = view.documentStore.getValue().file.frontmatter;
     const sectionColorMap = parseSectionColorsFromFrontmatter(frontmatter);
@@ -68,6 +70,15 @@ export const createSingleNodeContextMenuItems = (
                 },
             ],
         },
+        ...(isMandala
+            ? ([
+                  {
+                      title: lang.cm_swap_position,
+                      icon: 'shuffle',
+                      action: () => startMandalaSwap(view, activeNode),
+                  },
+              ] as MenuItemObject[])
+            : []),
         { type: 'separator' },
         {
             title: lang.cm_merge_above,

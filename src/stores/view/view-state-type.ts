@@ -52,6 +52,11 @@ export type ViewState = {
         };
         mandala: {
             subgridTheme: string | null;
+            swap: {
+                active: boolean;
+                sourceNodeId: string | null;
+                targetNodeIds: Set<string>;
+            };
         };
     };
     document: DocumentViewState;

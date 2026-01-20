@@ -208,6 +208,20 @@ const updateDocumentState = (
     } else if (action.type === 'view/mandala/subgrid/exit') {
         state.ui.mandala.subgridTheme = null;
         state.ui.mandala = { ...state.ui.mandala };
+    } else if (action.type === 'view/mandala/swap/start') {
+        state.ui.mandala.swap = {
+            active: true,
+            sourceNodeId: action.payload.sourceNodeId,
+            targetNodeIds: new Set(action.payload.targetNodeIds),
+        };
+        state.ui.mandala = { ...state.ui.mandala };
+    } else if (action.type === 'view/mandala/swap/cancel') {
+        state.ui.mandala.swap = {
+            active: false,
+            sourceNodeId: null,
+            targetNodeIds: new Set(),
+        };
+        state.ui.mandala = { ...state.ui.mandala };
     } else if (
         action.type === 'view/outline/load-persisted-collapsed-parents'
     ) {
