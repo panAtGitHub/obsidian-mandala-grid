@@ -105,7 +105,7 @@ const updateDocumentState = (
         affectedNodeId = action.payload.sourceNodeId;
     } else if (action.type === 'document/mandala/ensure-children') {
         const section = state.sections.id_section[action.payload.parentNodeId];
-        if (!section || section === '1') return NO_UPDATE;
+        if (!section) return NO_UPDATE;
 
         const createdNodes = ensureMandalaChildren(
             state.document,

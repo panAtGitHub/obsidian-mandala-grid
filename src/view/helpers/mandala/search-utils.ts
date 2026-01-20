@@ -51,18 +51,11 @@ export function previewSearchResult(section: string, view: MandalaView): void {
 
     if (!nodeId) return;
 
-    // 1. 设置 subgrid theme（如果有父级且不是根节点）
-    if (parent && parent !== '1') {
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/enter',
-            payload: { theme: parent }
-        });
-    } else {
-        // 回到根九宫格
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/exit'
-        });
-    }
+    // 1. 设置 subgrid theme
+    view.viewStore.dispatch({
+        type: 'view/mandala/subgrid/enter',
+        payload: { theme: parent ?? '1' },
+    });
 
     // 2. 激活目标节点（使用 mouse-silent 不记录历史）
     view.viewStore.dispatch({
@@ -85,18 +78,11 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
         return;
     }
 
-    // 1. 设置 subgrid theme（如果有父级且不是根节点）
-    if (parent && parent !== '1') {
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/enter',
-            payload: { theme: parent }
-        });
-    } else {
-        // 回到根九宫格
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/exit'
-        });
-    }
+    // 1. 设置 subgrid theme
+    view.viewStore.dispatch({
+        type: 'view/mandala/subgrid/enter',
+        payload: { theme: parent ?? '1' },
+    });
 
     // 2. 激活目标节点（使用 search 类型表明是搜索触发）
     view.viewStore.dispatch({

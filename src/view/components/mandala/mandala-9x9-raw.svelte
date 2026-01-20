@@ -25,6 +25,10 @@
     );
     const activeNodeId = derived(view.viewStore, (state) => state.document.activeNode);
     const editingState = derived(view.viewStore, (state) => state.document.editing);
+    const subgridTheme = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.subgridTheme ?? '1',
+    );
 
     export let containerRef: HTMLElement | null = null;
 
@@ -33,7 +37,7 @@
     const resolveCellFromActiveNode = () => {
         const section = $idToSection[$activeNodeId];
         if (!section) return null;
-        return posOfRaw9x9Section(section);
+        return posOfRaw9x9Section(section, 'left-to-right', $subgridTheme);
     };
 
     $: {
@@ -47,7 +51,12 @@
     }
 
     const selectCell = (cell: MandalaCell) => {
-        const section = sectionAtRaw9x9Cell(cell.row, cell.col);
+        const section = sectionAtRaw9x9Cell(
+            cell.row,
+            cell.col,
+            'left-to-right',
+            $subgridTheme,
+        );
         if (!section) return;
         const nodeId = $sectionToNodeId[section];
         if (!nodeId) return;
@@ -119,7 +128,12 @@
 <div class="mandala-raw9">
     {#each Array(9) as _, row (row)}
         {#each Array(9) as __, col (col)}
-            {@const section = sectionAtRaw9x9Cell(row, col)}
+            {@const section = sectionAtRaw9x9Cell(
+                row,
+                col,
+                'left-to-right',
+                $subgridTheme,
+            )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
             {@const isActive = activeCell?.row === row && activeCell?.col === col}
             <div

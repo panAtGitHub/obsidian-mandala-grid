@@ -27,6 +27,10 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
+    const subgridTheme = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.subgridTheme ?? '1',
+    );
 
     const editingState = derived(
         view.viewStore,
@@ -58,7 +62,12 @@
 <div class="mandala-9x9-grid">
     {#each Array(9) as _, row (row)}
         {#each Array(9) as __, col (col)}
-            {@const section = sectionAtCell9x9(row, col, $gridOrientation)}
+            {@const section = sectionAtCell9x9(
+                row,
+                col,
+                $gridOrientation,
+                $subgridTheme,
+            )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
 
             {#if section && nodeId}

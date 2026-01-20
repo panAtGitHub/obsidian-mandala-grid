@@ -100,56 +100,62 @@ export const posOfSection3x3 = (
     section: string,
     orientation: MandalaGridOrientation = 'left-to-right',
 ): { row: number; col: number } | null => {
-    const pos = getMandalaLayout(orientation).positions[section];
-    if (!pos) return null;
-    return { row: pos.row, col: pos.col };
+    const { slotPositions } = getMandalaLayout(orientation);
+    if (section === '1') return { row: 1, col: 1 };
+    if (!section.includes('.')) return null;
+    const parts = section.split('.');
+    const slot = parts[parts.length - 1];
+    if (!slot) return null;
+    return slotPositions[slot] ?? null;
 };
 
 export const posOfSection9x9 = (
     section: string,
     orientation: MandalaGridOrientation = 'left-to-right',
+    baseTheme = '1',
 ): { row: number; col: number } | null => {
-    const { positions: layoutPositions, slotPositions: layoutSlotPositions } =
-        getMandalaLayout(orientation);
-    if (section.includes('.')) {
-        const [theme, slot] = section.split('.');
-        const themePos = layoutPositions[theme];
-        const slotPos = layoutSlotPositions[slot];
-        if (!themePos || !slotPos) return null;
-        return {
-            row: themePos.row * 3 + slotPos.row,
-            col: themePos.col * 3 + slotPos.col,
-        };
+    const { slotPositions } = getMandalaLayout(orientation);
+
+    if (section === baseTheme) return { row: 4, col: 4 };
+    if (!section.startsWith(`${baseTheme}.`)) return null;
+
+    const suffix = section.slice(baseTheme.length + 1);
+    const parts = suffix.split('.');
+    const blockSlot = parts[0];
+    const blockPos = slotPositions[blockSlot];
+    if (!blockPos) return null;
+
+    if (parts.length === 1) {
+        return { row: blockPos.row * 3 + 1, col: blockPos.col * 3 + 1 };
     }
-    if (section === '1') {
-        return { row: 4, col: 4 };
-    }
-    const themePos = layoutPositions[section];
-    if (!themePos) return null;
-    return { row: themePos.row * 3 + 1, col: themePos.col * 3 + 1 };
+    if (parts.length !== 2) return null;
+
+    const localSlot = parts[1];
+    const localPos = slotPositions[localSlot];
+    if (!localPos) return null;
+    return {
+        row: blockPos.row * 3 + localPos.row,
+        col: blockPos.col * 3 + localPos.col,
+    };
 };
 
 export const sectionAtCell9x9 = (
     row: number,
     col: number,
     orientation: MandalaGridOrientation = 'left-to-right',
+    baseTheme = '1',
 ): string | null => {
     const blockRow = Math.floor(row / 3);
     const blockCol = Math.floor(col / 3);
     const localRow = row % 3;
     const localCol = col % 3;
-    const {
-        coreGrid: layoutCoreGrid,
-        themeBlocks: layoutThemeBlocks,
-        themeGrid: layoutThemeGrid,
-    } = getMandalaLayout(orientation);
+    const { themeGrid: layoutThemeGrid } = getMandalaLayout(orientation);
 
-    if (blockRow === 1 && blockCol === 1) {
-        return layoutCoreGrid[localRow]?.[localCol] ?? null;
-    }
-
-    const theme = layoutThemeBlocks[blockRow * 3 + blockCol];
-    if (!theme) return null;
+    const blockSlot =
+        blockRow === 1 && blockCol === 1
+            ? null
+            : layoutThemeGrid[blockRow]?.[blockCol] ?? null;
+    const theme = blockSlot ? `${baseTheme}.${blockSlot}` : baseTheme;
     if (localRow === 1 && localCol === 1) return theme;
     const slot = layoutThemeGrid[localRow]?.[localCol];
     if (!slot) return null;

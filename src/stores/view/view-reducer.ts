@@ -206,7 +206,7 @@ const updateDocumentState = (
         state.ui.mandala.subgridTheme = action.payload.theme;
         state.ui.mandala = { ...state.ui.mandala };
     } else if (action.type === 'view/mandala/subgrid/exit') {
-        state.ui.mandala.subgridTheme = null;
+        state.ui.mandala.subgridTheme = '1';
         state.ui.mandala = { ...state.ui.mandala };
     } else if (action.type === 'view/mandala/swap/start') {
         state.ui.mandala.swap = {

@@ -9,8 +9,7 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     if (!docState.meta.isMandala) return;
 
     const section = docState.sections.id_section[nodeId];
-    // 中心格 (section '1') 不进入子九宫
-    if (!section || section === '1') return;
+    if (!section) return;
 
     const childGroup = findChildGroup(
         docState.document.columns,
@@ -62,7 +61,10 @@ export const exitCurrentSubgrid = (view: MandalaView) => {
             payload: { theme: parentTheme },
         });
     } else {
-        view.viewStore.dispatch({ type: 'view/mandala/subgrid/exit' });
+        view.viewStore.dispatch({
+            type: 'view/mandala/subgrid/enter',
+            payload: { theme: '1' },
+        });
     }
 
     const focusNodeId = docState.sections.section_id[theme];
@@ -77,5 +79,5 @@ export const exitCurrentSubgrid = (view: MandalaView) => {
 export const isGridCenter = (view: MandalaView, nodeId: string, section: string) => {
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme;
     // 如果没有子主题前缀，则 '1' 是中心；如果有，则 section === theme 是中心
-    return theme ? section === theme : section === '1';
+    return section === (theme ?? '1');
 };

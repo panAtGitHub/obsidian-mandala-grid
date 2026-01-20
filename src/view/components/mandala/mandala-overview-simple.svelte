@@ -25,10 +25,14 @@
     const borderOpacity = MandalaBorderOpacityStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
-    const grayBlockThemes = new Set(['3', '5', '6', '8']);
+    const grayBlockSlots = new Set(['3', '5', '6', '8']);
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
+    );
+    const subgridTheme = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.subgridTheme ?? '1',
     );
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
@@ -37,6 +41,7 @@
     const buildCells = (
         state: ReturnType<typeof view.documentStore.getValue>,
         orientation: string,
+        baseTheme: string,
     ) => {
         const layout = getMandalaLayout(
             orientation === 'south-start' ? 'south-start' : 'left-to-right',
@@ -51,28 +56,26 @@
                 const localRow = row % 3;
                 const localCol = col % 3;
                 const isCenter = blockRow === 1 && blockCol === 1;
-                const isThemeCenter =
-                    !isCenter && localRow === 1 && localCol === 1;
+                const isThemeCenter = localRow === 1 && localCol === 1;
                 let isGrayBlock = false;
 
-                // Center Block (1,1) -> Core Grid (1-9)
-                if (isCenter) {
-                    section = layout.coreGrid[localRow][localCol];
+                const blockSlot =
+                    isCenter
+                        ? null
+                        : layout.themeGrid[blockRow]?.[blockCol] ?? null;
+                const theme = blockSlot
+                    ? `${baseTheme}.${blockSlot}`
+                    : baseTheme;
+                if (blockSlot) {
+                    isGrayBlock = grayBlockSlots.has(blockSlot);
+                }
+
+                if (isThemeCenter) {
+                    section = theme;
                 } else {
-                    // Outer Blocks -> Theme Expansion
-                    const theme = layout.themeBlocks[blockRow * 3 + blockCol];
-                    if (theme) {
-                        isGrayBlock = grayBlockThemes.has(theme);
-                        // Center of outer block -> Theme Title
-                        if (isThemeCenter) {
-                            section = theme;
-                        } else {
-                            // Surrounding -> Theme Children
-                            const slot = layout.themeGrid[localRow][localCol];
-                            if (slot) {
-                                section = `${theme}.${slot}`;
-                            }
-                        }
+                    const slot = layout.themeGrid[localRow]?.[localCol];
+                    if (slot) {
+                        section = `${theme}.${slot}`;
                     }
                 }
 
@@ -131,9 +134,10 @@
             let orientation =
                 view.plugin.settings.getValue().view.mandalaGridOrientation ??
                 'left-to-right';
+            let baseTheme = $subgridTheme;
 
             const update = () => {
-                run(buildCells(documentState, orientation));
+                run(buildCells(documentState, orientation, baseTheme));
             };
 
             const unsubDoc = view.documentStore.subscribe((state) => {
@@ -147,11 +151,17 @@
                 update();
             });
 
+            const unsubTheme = view.viewStore.subscribe((state) => {
+                baseTheme = state.ui.mandala.subgridTheme ?? '1';
+                update();
+            });
+
             update();
 
             return () => {
                 unsubDoc();
                 unsubSettings();
+                unsubTheme();
             };
         },
     };

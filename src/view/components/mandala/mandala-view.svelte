@@ -174,25 +174,35 @@
     );
 
     $: {
-        if ($mode !== '3x3' && $subgridTheme) {
-            view.viewStore.dispatch({ type: 'view/mandala/subgrid/exit' });
+        if ($mode && !$subgridTheme) {
+            view.viewStore.dispatch({
+                type: 'view/mandala/subgrid/enter',
+                payload: { theme: '1' },
+            });
         }
 
         if ($mode !== '9x9') {
             view.mandalaActiveCell9x9 = null;
         } else {
             const section = $idToSection[$activeNodeId];
+            const theme = $subgridTheme ?? '1';
             if (!section) {
                 view.mandalaActiveCell9x9 = null;
             } else {
                 const cell = view.mandalaActiveCell9x9;
                 const mapped = cell
-                    ? sectionAtCell9x9(cell.row, cell.col, $gridOrientation)
+                    ? sectionAtCell9x9(
+                          cell.row,
+                          cell.col,
+                          $gridOrientation,
+                          theme,
+                      )
                     : null;
                 if (mapped !== section) {
                     view.mandalaActiveCell9x9 = posOfSection9x9(
                         section,
                         $gridOrientation,
+                        theme,
                     );
                 }
             }
@@ -282,13 +292,11 @@
                 on:click={() => focusContainer(view)}
             >
                 {#if $mode === '3x3'}
-                    {@const theme = $subgridTheme}
+                    {@const theme = $subgridTheme ?? '1'}
                     {@const layout = getMandalaLayout($gridOrientation)}
-                    {@const sections = theme
-                        ? layout.childSlots.map((slot) =>
-                              slot ? `${theme}.${slot}` : theme,
-                          )
-                        : layout.coreSlots}
+                    {@const sections = layout.childSlots.map((slot) =>
+                        slot ? `${theme}.${slot}` : theme,
+                    )}
                     {@const cells = sections.map((section, index) => {
                         const nodeId = requireNodeId(section);
                         return {
@@ -323,8 +331,7 @@
                                         pinned={$pinnedNodes.has(cell.nodeId)}
                                         style={$nodeStyles.get(cell.nodeId)}
                                         sectionColor={sectionBackground}
-                                        draggable={cell.section !== '1' &&
-                                            !$subgridTheme}
+                                        draggable={cell.section !== theme}
                                     />
                                 {:else}
                                     <div
