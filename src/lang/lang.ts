@@ -1,7 +1,7 @@
 export const lang = {
     // open
-    ocm_open_in_editor: 'Open in editor',
-    ocm_open_in_mandala: 'Open in Mandala Grid',
+    ocm_open_in_editor: '在编辑器中打开',
+    ocm_open_in_mandala: '在九宫格中打开',
     cmd_toggle_mandala_view: 'Open Mandala Grid',
     card_btn_reveal_in_editor: 'Reveal in editor',
     error_parent_not_found: (full: string) =>
@@ -12,8 +12,8 @@ export const lang = {
 
     // create document
     cmd_create_new_document: 'New Mandala Grid',
-    ocm_new_document: 'New document',
-    ocm_import_from_gingko: 'Import from Gingko',
+    ocm_new_document: '新建九宫格文档',
+    ocm_import_from_gingko: '从 Gingko 导入',
 
     // add sections
     hk_add_below_and_split: 'Add section after and split at cursor',
@@ -55,28 +55,28 @@ export const lang = {
     modals_snapshots_deleted_section: 'Deleted section ',
 
     // clipboard
-    cm_copy: 'Copy',
-    cm_copy_branches: 'Copy branches',
-    cm_copy_branch: 'Copy branch',
-    cm_copy_branches_wo_formatting: 'Copy branches as plain text',
-    cm_copy_branch_wo_formatting: 'Copy branch as plain text',
-    cm_copy_node_wo_subitems: 'Copy sections',
-    cm_copy_nodes_wo_subitems: 'Copy section',
+    cm_copy: '复制',
+    cm_copy_branches: '复制分支',
+    cm_copy_branch: '复制分支',
+    cm_copy_branches_wo_formatting: '复制分支（纯文本）',
+    cm_copy_branch_wo_formatting: '复制分支（纯文本）',
+    cm_copy_node_wo_subitems: '复制卡片',
+    cm_copy_nodes_wo_subitems: '复制卡片',
     hk_copy_node: 'Copy branch',
     hk_copy_node_unformatted: 'Copy branch as plain text',
     hk_copy_node_without_subitems: 'Copy section',
-    cm_copy_link_to_block: 'Copy link to block',
-    cm_section_color: 'Section color',
-    cm_clear_section_color: 'Clear color',
+    cm_copy_link_to_block: '复制块链接',
+    cm_section_color: '分区颜色',
+    cm_clear_section_color: '清除颜色',
     toolbar_copy_search_results: 'Copy search results',
     toolbar_copy_search_results_wo_subitems:
         'Copy search results without sub-items',
     toolbar_cut_search_results: 'Cut search results',
     hkg_clipboard: 'Clipboard',
     modals_snapshots_cut_section: 'Cut section ',
-    cm_cut: 'Cut',
+    cm_cut: '剪切',
     hk_cut_node: 'Cut branch',
-    cm_paste: 'Paste',
+    cm_paste: '粘贴',
     hk_paste_node: 'Paste branch',
     modals_snapshots_pasted_section: 'Pasted section ',
     error_cant_paste: 'Paste command failed. Try pasting directly into a card',
@@ -100,8 +100,8 @@ export const lang = {
     },*/
 
     // merge
-    cm_merge_above: 'Merge with branch above',
-    cm_merge_below: 'Merge with branch below',
+    cm_merge_above: '与上方分支合并',
+    cm_merge_below: '与下方分支合并',
     hk_merge_with_node_above: 'Merge with branch above',
     hk_merge_with_node_below: 'Merge with branch below',
     error_hk_cant_merge_multiple_nodes: 'Cannot merge multiple branches',
@@ -115,7 +115,7 @@ export const lang = {
     hk_move_node_left: 'Move branch left',
     hkg_move_nodes: 'Move',
     modals_snapshots_moved_node: 'Moved section ',
-    cm_swap_position: 'Swap position',
+    cm_swap_position: '交换位置（仅适用于3x3视图）',
     notice_swap_select_target:
         'Source selected. Click a target card to swap, or press Esc to cancel.',
     notice_swap_in_progress: 'Swapping...',
@@ -127,7 +127,7 @@ export const lang = {
     modals_snapshots_dropped_node: 'Dropped section ',
 
     // split
-    cm_split_node: 'Split section',
+    cm_split_node: '拆分卡片',
     error_cm_cant_split_node_that_has_children:
         'Cannot split a section that has sub-items',
     error_cm_cant_split_node_identical: 'The result is the same as the input',
@@ -144,32 +144,32 @@ export const lang = {
 
     // extract
     cmd_extract_branch: 'Extract to Mandala Grid',
-    cm_extract_branch: 'Extract branch',
-    cm_extract_section: 'Extract section',
+    cm_extract_branch: '提取分支',
+    cm_extract_section: '提取卡片',
     modals_snapshots_extracted_node: 'Extracted section ',
 
     // export
-    cm_export_document: 'Export document',
-    cm_eject_document: 'Eject document',
-    cm_export_selection: 'Export',
-    cm_export_section: 'Export section',
-    cm_export_branch_with_subitems: 'Export branch',
-    cm_export_branch_wo_subitems: 'Export section',
+    cm_export_document: '导出文档',
+    cm_eject_document: '弹出文档',
+    cm_export_selection: '导出',
+    cm_export_section: '导出卡片',
+    cm_export_branch_with_subitems: '导出分支',
+    cm_export_branch_wo_subitems: '导出卡片',
     cmd_export_branches_with_subitems: 'Export branches',
     cmd_export_nodes_wo_subitems: 'Export sections',
 
     // document format
     settings_general_default_format: 'Default format',
-    cm_document_format: 'Document format',
-    settings_format_html_elements: 'HTML elements (experimental)',
-    settings_format_html_comments: 'HTML comments',
-    settings_format_outline: 'Outline',
+    cm_document_format: '文档格式',
+    settings_format_html_elements: 'HTML 元素（实验）',
+    settings_format_html_comments: 'HTML 注释',
+    settings_format_outline: '大纲',
     cm_change_format_to_html_element: 'Format: HTML elements (experimental)',
     cm_change_format_to_document: 'Format: HTML comments',
     cm_change_format_to_outline: 'Format: outline',
 
     // format
-    cm_format_headings: 'Format headings',
+    cm_format_headings: '格式化标题',
     modals_snapshots_formatted_headings: 'Formatted headings',
 
     // search
@@ -304,8 +304,8 @@ export const lang = {
     sidebar_no_recent_nodes: 'No recent sections',
 
     // pin sections
-    cm_unpin_from_left_sidebar: 'Unpin from left sidebar',
-    cm_pin_in_left_sidebar: 'Pin in left sidebar',
+    cm_unpin_from_left_sidebar: '从左侧边栏取消固定',
+    cm_pin_in_left_sidebar: '固定到左侧边栏',
     cmd_toggle_pin_in_left_sidebar: `Toggle 'pin section in left sidebar'`,
     sidebar_tab_pinned_nodes: 'Pinned sections',
     sidebar_no_pinned_nodes: 'No pinned sections',
@@ -324,9 +324,9 @@ export const lang = {
     // sort
     cmd_sort_child_nodes_asc: 'Sort subsections: ascending order',
     cmd_sort_child_nodes_desc: 'Sort subsections: descending order',
-    cm_sort_child: 'Sort subsections',
-    cm_sort_child_nodes_asc: 'Ascending order',
-    cm_sort_child_nodes_desc: 'Descending order',
+    cm_sort_child: '排序子项',
+    cm_sort_child_nodes_asc: '升序',
+    cm_sort_child_nodes_desc: '降序',
     modals_snapshots_sorted_child_nodes: 'Sorted subsections of section ',
 
     // settings
