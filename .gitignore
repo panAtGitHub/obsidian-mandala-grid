@@ -28,3 +28,5 @@ references/*
 /blob-report/
 /playwright/.cache/
 .env
+.agent
+图片
