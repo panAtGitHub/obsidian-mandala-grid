@@ -58,21 +58,23 @@ class MandalaTemplateNameModal extends Modal {
                 });
             });
 
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
-                this.resolveOnce(null);
-                this.close();
-            });
+        const actions = contentEl.createDiv({
+            cls: 'mandala-templates-modal__actions',
         });
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('确认').setCta().onClick(() => {
-                if (!this.name) {
-                    new Notice('模板名称不能为空。');
-                    return;
-                }
-                this.resolveOnce(this.name);
-                this.close();
-            });
+        const cancelButton = actions.createEl('button', { text: '取消' });
+        cancelButton.addEventListener('click', () => {
+            this.resolveOnce(null);
+            this.close();
+        });
+        const confirmButton = actions.createEl('button', { text: '确认' });
+        confirmButton.classList.add('is-enabled');
+        confirmButton.addEventListener('click', () => {
+            if (!this.name) {
+                new Notice('模板名称不能为空。');
+                return;
+            }
+            this.resolveOnce(this.name);
+            this.close();
         });
     }
 
@@ -208,15 +210,17 @@ class MandalaTemplatesFileModal extends Modal {
 
         new Setting(contentEl)
             .setName('新建模板文件')
-            .setDesc('默认在库根目录创建 mandala-templates.md')
+            .setDesc('选择保存位置，文件名为 mandala-templates.md')
             .addButton((button) => {
                 button.setButtonText('新建').setCta().onClick(async () => {
-                    const root = this.app.vault.getRoot();
-                    const file = await this.createTemplateFile(root);
-                    if (file) {
-                        this.resolveOnce(file);
-                        this.close();
-                    }
+                    const folder = await openMandalaTemplatesFolderModal(
+                        this.app,
+                    );
+                    if (!folder) return;
+                    const file = await this.createTemplateFile(folder);
+                    if (!file) return;
+                    this.resolveOnce(file);
+                    this.close();
                 });
             });
 
@@ -278,5 +282,45 @@ class MandalaTemplatesFileSuggestModal extends FuzzySuggestModal<TFile> {
 
     onChooseItem(item: TFile) {
         this.onChoose(item);
+    }
+}
+
+const openMandalaTemplatesFolderModal = (app: MandalaGrid['app']) =>
+    new Promise<TFolder | null>((resolve) => {
+        const modal = new MandalaTemplatesFolderSuggestModal(app, resolve);
+        modal.open();
+    });
+
+class MandalaTemplatesFolderSuggestModal extends FuzzySuggestModal<TFolder> {
+    private resolved = false;
+    constructor(
+        app: MandalaGrid['app'],
+        private onChoose: (folder: TFolder | null) => void,
+    ) {
+        super(app);
+    }
+
+    getItems(): TFolder[] {
+        return this.app.vault
+            .getAllLoadedFiles()
+            .filter((file): file is TFolder => file instanceof TFolder);
+    }
+
+    getItemText(item: TFolder): string {
+        return item.path || '/';
+    }
+
+    onChooseItem(item: TFolder) {
+        this.resolveOnce(item);
+    }
+
+    onClose() {
+        this.resolveOnce(null);
+    }
+
+    private resolveOnce(folder: TFolder | null) {
+        if (this.resolved) return;
+        this.resolved = true;
+        this.onChoose(folder);
     }
 }
