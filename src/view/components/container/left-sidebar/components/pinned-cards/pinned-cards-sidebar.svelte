@@ -114,6 +114,18 @@
 
     let sortMode: 'section' | 'color' | 'colored' = 'section';
 
+    $: hasPinnedItems = $pinnedState.items.length > 0;
+    $: hasColoredItems = $pinnedState.coloredItems.length > 0;
+
+    $: {
+        if (!hasColoredItems && sortMode === 'colored') {
+            sortMode = hasPinnedItems ? 'section' : 'color';
+        }
+        if (!hasPinnedItems && hasColoredItems && sortMode !== 'colored') {
+            sortMode = 'colored';
+        }
+    }
+
     const getColorRank = (colorKey: string | null) => {
         if (!colorKey) return Number.POSITIVE_INFINITY;
         const index = SECTION_COLOR_KEYS.indexOf(
@@ -172,32 +184,36 @@
 </script>
 
 <div class="pinned-cards-container" use:scrollActivePinnedNode>
-    {#if $pinnedState.items.length > 0}
+    {#if hasPinnedItems || hasColoredItems}
         <div class="pinned-sort-toggle">
-            <button
-                class:active={sortMode === 'section'}
-                on:click={() => (sortMode = 'section')}
-                type="button"
-            >
-                <Pin class="svg-icon" size="12" />
-                列表
-            </button>
-            <button
-                class:active={sortMode === 'color'}
-                on:click={() => (sortMode = 'color')}
-                type="button"
-            >
-                <Pin class="svg-icon" size="12" />
-                分类
-            </button>
-            <button
-                class:active={sortMode === 'colored'}
-                on:click={() => (sortMode = 'colored')}
-                type="button"
-            >
-                <Palette class="svg-icon" size="12" />
-                色块
-            </button>
+            {#if hasPinnedItems}
+                <button
+                    class:active={sortMode === 'section'}
+                    on:click={() => (sortMode = 'section')}
+                    type="button"
+                >
+                    <Pin class="svg-icon" size="12" />
+                    列表
+                </button>
+                <button
+                    class:active={sortMode === 'color'}
+                    on:click={() => (sortMode = 'color')}
+                    type="button"
+                >
+                    <Pin class="svg-icon" size="12" />
+                    分类
+                </button>
+            {/if}
+            {#if hasColoredItems}
+                <button
+                    class:active={sortMode === 'colored'}
+                    on:click={() => (sortMode = 'colored')}
+                    type="button"
+                >
+                    <Palette class="svg-icon" size="12" />
+                    色块
+                </button>
+            {/if}
         </div>
         <div class="pinned-list">
             {#each pinnedItems as item (item.nodeId)}

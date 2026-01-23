@@ -9,6 +9,16 @@ import { persistPinnedNodes } from 'src/stores/view/subscriptions/actions/persis
 import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actions/update-stale-active-pinned-node';
 import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-active-pinned-node';
 import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/update-selected-nodes';
+import { Platform } from 'obsidian';
+import {
+    parseSectionColorsFromFrontmatter,
+    SECTION_COLOR_KEYS,
+} from 'src/view/helpers/mandala/section-colors';
+
+const hasSectionColors = (frontmatter: string) => {
+    const map = parseSectionColorsFromFrontmatter(frontmatter);
+    return SECTION_COLOR_KEYS.some((key) => map[key].length > 0);
+};
 
 export const onDocumentStateUpdate = (
     view: MandalaView,
@@ -27,6 +37,27 @@ export const onDocumentStateUpdate = (
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
         view.inlineEditor.unloadNode();
+    }
+
+    if (
+        (type === 'document/file/load-from-disk' ||
+            type === 'document/file/update-frontmatter') &&
+        !Platform.isMobile
+    ) {
+        const settingsStore = view.plugin.settings;
+        const settingsState = settingsStore.getValue();
+        if (
+            !settingsState.view.showLeftSidebar &&
+            hasSectionColors(documentState.file.frontmatter)
+        ) {
+            if (settingsState.view.leftSidebarActiveTab !== 'pinned-cards') {
+                settingsStore.dispatch({
+                    type: 'view/left-sidebar/set-active-tab',
+                    payload: { tab: 'pinned-cards' },
+                });
+            }
+            settingsStore.dispatch({ type: 'view/left-sidebar/toggle' });
+        }
     }
 
     const structuralChange =

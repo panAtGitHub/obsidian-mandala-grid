@@ -1,4 +1,6 @@
 import { parseYaml } from 'obsidian';
+import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
+import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { MandalaView } from 'src/view/view';
 
 export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
@@ -166,4 +168,11 @@ export const writeSectionColorsToFrontmatter = async (
             }
         },
     );
+    try {
+        const content = await view.plugin.app.vault.read(view.file);
+        const { frontmatter } = extractFrontmatter(content);
+        updateFrontmatter(view, frontmatter);
+    } catch {
+        // ignore read failures; metadata cache will eventually catch up
+    }
 };
