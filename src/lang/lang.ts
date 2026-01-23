@@ -344,6 +344,8 @@ export const lang = {
     // hotkeys
     hk_enter_subgrid: 'Enter subgrid',
     hk_exit_subgrid: 'Exit subgrid',
+    hk_jump_core_next: 'Jump to next core grid',
+    hk_jump_core_prev: 'Jump to previous core grid',
     hk_swap_cell_up: 'Swap cell up',
     hk_swap_cell_down: 'Swap cell down',
     hk_swap_cell_left: 'Swap cell left',

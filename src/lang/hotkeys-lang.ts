@@ -63,6 +63,8 @@ export const hotkeysLang = {
     toggle_lock_mode: lang.hk_toggle_lock_mode,
     enter_subgrid: lang.hk_enter_subgrid,
     exit_subgrid: lang.hk_exit_subgrid,
+    jump_core_next: lang.hk_jump_core_next,
+    jump_core_prev: lang.hk_jump_core_prev,
     swap_cell_up: lang.hk_swap_cell_up,
     swap_cell_down: lang.hk_swap_cell_down,
     swap_cell_left: lang.hk_swap_cell_left,

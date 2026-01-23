@@ -1,5 +1,6 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
+    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
     import { onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import {
@@ -36,6 +37,40 @@
     );
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
+
+    const escapeHtml = (value: string) =>
+        value
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+
+    const escapeAttribute = (value: string) =>
+        value.replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+
+    const buildBodyHtml = (rawBody: string) => {
+        let content = escapeHtml(rawBody);
+
+        content = content.replace(/\[\[([^\]]+)\]\]/g, (_, link: string) => {
+            const href = escapeAttribute(link.trim());
+            const label = link.trim();
+            return `<a class="internal-link" data-href="${href}">${label}</a>`;
+        });
+
+        content = content.replace(
+            /\[([^\]]+)\]\(([^)]+)\)/g,
+            (match, label: string, url: string, offset: number, source: string) => {
+                if (offset > 0 && source[offset - 1] === '!') {
+                    return match;
+                }
+                const href = escapeAttribute(url.trim());
+                return `<a class="external-link" href="${href}">${label}</a>`;
+            },
+        );
+
+        return content.replace(/\n/g, '<br />');
+    };
 
     // Reactive store for cells
     const buildCells = (
@@ -83,7 +118,7 @@
 
                 // 2. Get Content if Section exists
                 let title = '';
-                let body = '';
+                let bodyHtml = '';
                 let nodeId = '';
 
                 if (section) {
@@ -98,17 +133,14 @@
                             const rawTitle = lines[0] || '';
                             title = rawTitle.replace(/^#+\s*/, '').trim();
 
-                            // Body: Join remaining lines, remove standard markdown syntax for cleaner preview
+                            // Body: Join remaining lines, keep content short
                             if (lines.length > 1) {
-                                body = lines
+                                const rawBody = lines
                                     .slice(1)
                                     .join('\n')
-                                    .replace(/\[\[.*?\]\]/g, (m) =>
-                                        m.slice(2, -2),
-                                    ) // Simplify links
-                                    .replace(/[*_`]/g, '') // Remove formatting chars
                                     .trim()
-                                    .slice(0, 150); // Limit chars
+                                    .slice(0, 150);
+                                bodyHtml = buildBodyHtml(rawBody);
                             }
                         }
                     }
@@ -119,7 +151,7 @@
                     col,
                     section,
                     title,
-                    body,
+                    bodyHtml,
                     nodeId,
                     isCenter,
                     isThemeCenter,
@@ -307,8 +339,13 @@
                 {#if cell.title}
                     <div class="cell-title">{cell.title}</div>
                 {/if}
-                {#if !$showTitleOnly && cell.body}
-                    <div class="cell-body">{cell.body}</div>
+                {#if !$showTitleOnly && cell.bodyHtml}
+                    <div
+                        class="cell-body"
+                        on:click={(event) => handleLinks(view, event)}
+                    >
+                        {@html cell.bodyHtml}
+                    </div>
                 {/if}
             </div>
             {#if cell.section}

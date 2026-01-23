@@ -83,6 +83,8 @@ export const hotkeyGroups = {
         'toggle_lock_mode',
         'enter_subgrid',
         'exit_subgrid',
+        'jump_core_next',
+        'jump_core_prev',
         'swap_cell_up',
         'swap_cell_down',
         'swap_cell_left',
