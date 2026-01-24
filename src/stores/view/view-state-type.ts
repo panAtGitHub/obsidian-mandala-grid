@@ -52,6 +52,7 @@ export type ViewState = {
         };
         mandala: {
             subgridTheme: string | null;
+            activeCell9x9: { row: number; col: number } | null;
             swap: {
                 active: boolean;
                 sourceNodeId: string | null;

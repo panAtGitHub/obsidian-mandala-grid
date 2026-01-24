@@ -23,6 +23,7 @@
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import Mandala9x9Grid from 'src/view/components/mandala/mandala-9x9-grid.svelte';
     import MandalaOverviewSimple from 'src/view/components/mandala/mandala-overview-simple.svelte';
     import { flip } from 'svelte/animate';
@@ -192,6 +193,7 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
+    let lastActiveNodeId = '';
 
     $: {
         if ($mode && !$subgridTheme) {
@@ -202,30 +204,36 @@
         }
 
         if ($mode !== '9x9') {
-            view.mandalaActiveCell9x9 = null;
+            if (view.mandalaActiveCell9x9) {
+                setActiveCell9x9(view, null);
+            }
         } else {
             const section = $idToSection[$activeNodeId];
-            const theme = $subgridTheme ?? '1';
+            const theme = '1';
             if (!section) {
-                view.mandalaActiveCell9x9 = null;
+                if (view.mandalaActiveCell9x9) {
+                    setActiveCell9x9(view, null);
+                }
             } else {
                 const cell = view.mandalaActiveCell9x9;
-                const mapped = cell
-                    ? sectionAtCell9x9(
-                          cell.row,
-                          cell.col,
-                          $gridOrientation,
-                          theme,
-                      )
-                    : null;
-                if (mapped !== section) {
-                    view.mandalaActiveCell9x9 = posOfSection9x9(
-                        section,
+                const pos = posOfSection9x9(
+                    section,
+                    $gridOrientation,
+                    theme,
+                );
+                if (cell) {
+                    const mapped = sectionAtCell9x9(
+                        cell.row,
+                        cell.col,
                         $gridOrientation,
                         theme,
                     );
+                    if (!mapped) {
+                        setActiveCell9x9(view, pos ?? null);
+                    }
                 }
             }
+            lastActiveNodeId = $activeNodeId;
         }
     }
 

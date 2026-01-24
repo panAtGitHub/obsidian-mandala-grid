@@ -27,10 +27,7 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
-    const subgridTheme = derived(
-        view.viewStore,
-        (state) => state.ui.mandala.subgridTheme ?? '1',
-    );
+    const baseTheme = '1';
 
     const editingState = derived(
         view.viewStore,
@@ -66,7 +63,7 @@
                 row,
                 col,
                 $gridOrientation,
-                $subgridTheme,
+                baseTheme,
             )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
 
@@ -85,7 +82,7 @@
                     pinned={$pinnedNodes.has(nodeId)}
                     style={$nodeStyles.get(nodeId)}
                     sectionColor={sectionColor}
-                    draggable={section !== $subgridTheme}
+                    draggable={section !== baseTheme}
                     gridCell={{ mode: '9x9', row, col }}
                 />
             {:else if section}

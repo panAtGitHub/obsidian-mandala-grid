@@ -12,6 +12,7 @@
         type MandalaCell,
     } from 'src/view/helpers/mandala/mandala-9x9-raw';
     import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
 
     const view = getView();
 
@@ -25,10 +26,7 @@
     );
     const activeNodeId = derived(view.viewStore, (state) => state.document.activeNode);
     const editingState = derived(view.viewStore, (state) => state.document.editing);
-    const subgridTheme = derived(
-        view.viewStore,
-        (state) => state.ui.mandala.subgridTheme ?? '1',
-    );
+    const baseTheme = '1';
 
     export let containerRef: HTMLElement | null = null;
 
@@ -37,7 +35,7 @@
     const resolveCellFromActiveNode = () => {
         const section = $idToSection[$activeNodeId];
         if (!section) return null;
-        return posOfRaw9x9Section(section, 'left-to-right', $subgridTheme);
+        return posOfRaw9x9Section(section, 'left-to-right', baseTheme);
     };
 
     $: {
@@ -55,13 +53,13 @@
             cell.row,
             cell.col,
             'left-to-right',
-            $subgridTheme,
+            baseTheme,
         );
         if (!section) return;
         const nodeId = $sectionToNodeId[section];
         if (!nodeId) return;
         activeCell = cell;
-        view.mandalaActiveCell9x9 = cell;
+        setActiveCell9x9(view, cell);
         view.viewStore.dispatch({
             type: 'view/set-active-node/mouse',
             payload: { id: nodeId },
@@ -132,7 +130,7 @@
                 row,
                 col,
                 'left-to-right',
-                $subgridTheme,
+                baseTheme,
             )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
             {@const isActive = activeCell?.row === row && activeCell?.col === col}

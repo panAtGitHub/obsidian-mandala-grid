@@ -1,8 +1,38 @@
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { cancelChanges } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/cancel-changes';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
+import { MandalaView } from 'src/view/view';
 
 export const editCommands = () => {
+    const ensureNodeForSection = (view: MandalaView, section: string) => {
+        const docState = view.documentStore.getValue();
+        const existing = docState.sections.section_id[section];
+        if (existing) return existing;
+
+        const parts = section.split('.');
+        if (parts.length === 0) return null;
+
+        view.documentStore.dispatch({
+            type: 'document/mandala/ensure-core-theme',
+            payload: { theme: parts[0] },
+        });
+
+        let updated = view.documentStore.getValue();
+        for (let depth = 1; depth < parts.length; depth++) {
+            const parentSection = parts.slice(0, depth).join('.');
+            const parentId = updated.sections.section_id[parentSection];
+            if (!parentId) break;
+            view.documentStore.dispatch({
+                type: 'document/mandala/ensure-children',
+                payload: { parentNodeId: parentId, count: 8 },
+            });
+            updated = view.documentStore.getValue();
+        }
+
+        return view.documentStore.getValue().sections.section_id[section] || null;
+    };
+
     return [
         {
             name: 'enable_edit_mode',
@@ -11,10 +41,32 @@ export const editCommands = () => {
                 const showDetailSidebar =
                     view.plugin.settings.getValue().view
                         .showMandalaDetailSidebar;
+                let nodeId = view.viewStore.getValue().document.activeNode;
+                if (view.mandalaMode === '9x9' && view.mandalaActiveCell9x9) {
+                    const orientation =
+                        view.plugin.settings.getValue().view
+                            .mandalaGridOrientation ?? 'left-to-right';
+                    const baseTheme = '1';
+                    const section = sectionAtCell9x9(
+                        view.mandalaActiveCell9x9.row,
+                        view.mandalaActiveCell9x9.col,
+                        orientation,
+                        baseTheme,
+                    );
+                    if (section) {
+                        const existing =
+                            view.documentStore.getValue().sections
+                                .section_id[section];
+                        nodeId =
+                            existing ??
+                            ensureNodeForSection(view, section) ??
+                            nodeId;
+                    }
+                }
                 view.viewStore.dispatch({
                     type: 'view/editor/enable-main-editor',
                     payload: {
-                        nodeId: view.viewStore.getValue().document.activeNode,
+                        nodeId,
                         isInSidebar: showDetailSidebar,
                     },
                 });

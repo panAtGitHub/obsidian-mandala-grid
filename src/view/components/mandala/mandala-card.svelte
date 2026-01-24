@@ -18,6 +18,7 @@
         isGridCenter 
     } from 'src/view/helpers/mandala/mobile-navigation';
     import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import { 
         ShowMandalaDetailSidebarStore,
         // AlwaysShowCardButtons,
@@ -61,7 +62,7 @@
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
-            view.mandalaActiveCell9x9 = { row: gridCell.row, col: gridCell.col };
+            setActiveCell9x9(view, null);
         }
         setActiveMainSplitNode(view, nodeId, e);
         

@@ -6,6 +6,7 @@
     import {
         getMandalaLayout,
     } from 'src/view/helpers/mandala/mandala-grid';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
@@ -35,10 +36,11 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
-    const subgridTheme = derived(
+    const activeCell = derived(
         view.viewStore,
-        (state) => state.ui.mandala.subgridTheme ?? '1',
+        (state) => state.ui.mandala.activeCell9x9,
     );
+    const baseTheme = '1';
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
 
@@ -172,10 +174,10 @@
             let orientation =
                 view.plugin.settings.getValue().view.mandalaGridOrientation ??
                 'left-to-right';
-            let baseTheme = $subgridTheme;
+            let theme = baseTheme;
 
             const update = () => {
-                run(buildCells(documentState, orientation, baseTheme));
+                run(buildCells(documentState, orientation, theme));
             };
 
             const unsubDoc = view.documentStore.subscribe((state) => {
@@ -189,8 +191,7 @@
                 update();
             });
 
-            const unsubTheme = view.viewStore.subscribe((state) => {
-                baseTheme = state.ui.mandala.subgridTheme ?? '1';
+            const unsubTheme = view.viewStore.subscribe(() => {
                 update();
             });
 
@@ -257,8 +258,13 @@
         return () => observer.disconnect();
     });
 
-    const onCellClick = (nodeId: string) => {
-        if (!nodeId) return;
+    const onCellClick = (cell: (typeof styledCells)[number]) => {
+        if (!cell.nodeId) {
+            setActiveCell9x9(view, { row: cell.row, col: cell.col });
+            return;
+        }
+
+        setActiveCell9x9(view, null);
 
         if (Platform.isMobile) {
             // 场景 5：锁定 + 侧栏关 = 无反应
@@ -270,8 +276,9 @@
 
         view.viewStore.dispatch({
             type: 'view/set-active-node/mouse',
-            payload: { id: nodeId },
+            payload: { id: cell.nodeId },
         });
+        setActiveCell9x9(view, null);
 
         // 仅在非移动端时保留原有的自动开启逻辑 (为了保护 PC 端逻辑)
         if (!Platform.isMobile && !view.plugin.settings.getValue().view.showMandalaDetailSidebar) {
@@ -281,8 +288,11 @@
         }
     };
 
-    const onCellDblClick = (nodeId: string) => {
-        if (!nodeId) return;
+    const onCellDblClick = (cell: (typeof styledCells)[number]) => {
+        if (!cell.nodeId) {
+            setActiveCell9x9(view, { row: cell.row, col: cell.col });
+            return;
+        }
 
         if ($mobileInteractionMode === 'locked') {
             // 锁定模式：双击不进入编辑
@@ -294,14 +304,14 @@
                 // 场景 7, 8: 弹出全屏编辑
                 view.viewStore.dispatch({
                     type: 'view/editor/enable-main-editor',
-                    payload: { nodeId: nodeId, isInSidebar: false },
+                    payload: { nodeId: cell.nodeId, isInSidebar: false },
                 });
                 return;
             } else {
                 // 场景 5: 锁定+侧栏关 = 无反应
                 if (!$showDetailSidebar) return;
                 // 场景 6: 锁定+侧栏开 = 仅选中 (等同于单击)
-                onCellClick(nodeId);
+                onCellClick(cell);
                 return;
             }
         }
@@ -309,7 +319,7 @@
         // PC 端逻辑保持不变
         view.viewStore.dispatch({
             type: 'view/editor/enable-sidebar-editor',
-            payload: { id: nodeId },
+            payload: { id: cell.nodeId },
             context: { activeSidebarTab: 'mandala-detail' as any }
         });
     };
@@ -326,7 +336,8 @@
             class:is-center={cell.isCenter}
             class:is-theme-center={cell.isThemeCenter}
             class:is-title-only={$showTitleOnly}
-            class:is-active={cell.nodeId && cell.nodeId === $activeNodeId}
+            class:is-active={cell.nodeId && cell.nodeId === $activeNodeId && !$activeCell}
+            class:is-active-cell={$activeCell && cell.row === $activeCell.row && cell.col === $activeCell.col}
             class:is-block-row-start={cell.row % 3 === 0}
             class:is-block-col-start={cell.col % 3 === 0}
             class:is-last-row={cell.row === 8}
@@ -336,8 +347,8 @@
                 : undefined}
             data-node-id={cell.nodeId || undefined}
             id={cell.nodeId || undefined}
-            on:click={() => onCellClick(cell.nodeId)}
-            on:dblclick={() => onCellDblClick(cell.nodeId)}
+            on:click={() => onCellClick(cell)}
+            on:dblclick={() => onCellDblClick(cell)}
         >
             <div class="cell-content">
                 {#if cell.title}
@@ -468,11 +479,13 @@
         color: var(--text-accent);
     }
 
-    .simple-cell.is-active {
+    .simple-cell.is-active,
+    .simple-cell.is-active-cell {
         position: relative;
     }
 
-    .simple-cell.is-active::after {
+    .simple-cell.is-active::after,
+    .simple-cell.is-active-cell::after {
         content: '';
         position: absolute;
         inset: 2px;

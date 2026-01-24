@@ -18,6 +18,7 @@ export const defaultViewState = (): ViewState => ({
         },
         mandala: {
             subgridTheme: '1',
+            activeCell9x9: null,
             swap: {
                 active: false,
                 sourceNodeId: null,

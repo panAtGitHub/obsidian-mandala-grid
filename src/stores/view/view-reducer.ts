@@ -208,6 +208,9 @@ const updateDocumentState = (
     } else if (action.type === 'view/mandala/subgrid/exit') {
         state.ui.mandala.subgridTheme = '1';
         state.ui.mandala = { ...state.ui.mandala };
+    } else if (action.type === 'view/mandala/active-cell/set') {
+        state.ui.mandala.activeCell9x9 = action.payload.cell;
+        state.ui.mandala = { ...state.ui.mandala };
     } else if (action.type === 'view/mandala/swap/start') {
         state.ui.mandala.swap = {
             active: true,

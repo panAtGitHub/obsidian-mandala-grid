@@ -26,6 +26,10 @@ export type MandalaActions =
         type: 'view/mandala/subgrid/exit';
     }
     | {
+        type: 'view/mandala/active-cell/set';
+        payload: { cell: { row: number; col: number } | null };
+    }
+    | {
         type: 'view/mandala/swap/start';
         payload: { sourceNodeId: string; targetNodeIds: string[] };
     }
