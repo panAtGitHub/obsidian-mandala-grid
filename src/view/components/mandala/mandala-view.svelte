@@ -423,7 +423,7 @@
         --mandala-border-opacity: 100%;
         --mandala-border-color: color-mix(
             in srgb,
-            var(--background-modifier-border) var(--mandala-border-opacity),
+            var(--text-normal) var(--mandala-border-opacity),
             transparent
         );
         --mandala-a4-width: 210mm;
