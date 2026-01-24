@@ -28,7 +28,7 @@ export const tryMandala9x9Navigation = (
     const gridOrientation =
         view.plugin.settings.getValue().view.mandalaGridOrientation ??
         'left-to-right';
-    const baseTheme = '1';
+    const baseTheme = activeSection ? activeSection.split('.')[0] : '1';
     const cell = view.mandalaActiveCell9x9;
     const current =
         cell ??
