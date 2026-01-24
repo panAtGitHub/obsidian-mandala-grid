@@ -29,13 +29,15 @@
         mobileInteractionMode, 
         toggleMobileInteractionMode 
     } from 'src/stores/view/mobile-interaction-store';
-    import { Lock, Unlock, Grid3x3, Grid2x2 } from 'lucide-svelte';
+    import { Lock, Unlock, Grid3x3, Grid2x2, Type } from 'lucide-svelte';
     import {
         MandalaModeStore,
+        Show9x9TitleOnlyStore,
         ShowHiddenCardInfoStore,
     } from 'src/stores/settings/derived/view-settings-store';
 
     const mode = MandalaModeStore(view);
+    const show9x9TitleOnly = Show9x9TitleOnlyStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const toggleMandalaMode = () => {
         view.plugin.settings.dispatch({
@@ -46,6 +48,12 @@
     const toggleHiddenCardInfo = () => {
         view.plugin.settings.dispatch({
             type: 'settings/view/toggle-hidden-card-info',
+        });
+    };
+
+    const toggle9x9TitleOnly = () => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/toggle-9x9-title-only',
         });
     };
     
@@ -123,6 +131,16 @@
 
     <div class="toolbar-group toolbar-group--center">
         <div class="lock-toggle-container">
+            {#if $mode === '9x9'}
+                <Button
+                    active={$show9x9TitleOnly}
+                    label="仅显示标题"
+                    on:click={toggle9x9TitleOnly}
+                    tooltipPosition="bottom"
+                >
+                    <Type class="svg-icon" size="18" />
+                </Button>
+            {/if}
             <Button
                 active={$mode === '9x9'}
                 label={$mode === '3x3' ? '切换到 9x9' : '切换到 3x3'}

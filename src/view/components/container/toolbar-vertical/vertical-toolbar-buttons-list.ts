@@ -13,7 +13,6 @@ import {
     PanelRight,
     Settings,
     Eye,
-    Type,
 } from 'lucide-svelte';
 import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 import { VerticalToolbarActions } from 'src/view/components/container/toolbar-vertical/vertical-toolbar-actions';
@@ -61,16 +60,6 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                             },
                             icon: PanelRight,
                             id: 'mandala-detail-sidebar' as any,
-                        },
-                        {
-                            label: '仅显示标题',
-                            onClick: () => {
-                                view.plugin.settings.dispatch({
-                                    type: 'settings/view/toggle-9x9-title-only',
-                                });
-                            },
-                            icon: Type,
-                            id: 'toggle-9x9-title-only' as any,
                         },
                     ],
                 },
