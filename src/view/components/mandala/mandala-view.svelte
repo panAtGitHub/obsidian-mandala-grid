@@ -576,6 +576,17 @@
         );
     }
 
+    .mandala-a4-mode.is-desktop-square-layout :global(.simple-9x9-grid) {
+        width: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+        height: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+    }
+
     /* A4 视觉校对：外框与内容区边界 */
     .mandala-a4-mode .mandala-scroll::before,
     .mandala-a4-mode .mandala-scroll::after {
