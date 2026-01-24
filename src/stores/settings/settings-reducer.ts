@@ -259,11 +259,7 @@ const updateState = (store: Settings, action: SettingsActions) => {
     } else if (action.type === 'settings/view/mandala/set-grid-orientation') {
         store.view.mandalaGridOrientation = action.payload.orientation;
     } else if (action.type === 'settings/view/mandala/toggle-a4-mode') {
-        const nextA4Mode = !store.view.mandalaA4Mode;
-        store.view.mandalaA4Mode = nextA4Mode;
-        if (nextA4Mode) {
-            store.view.whiteThemeMode = true;
-        }
+        store.view.mandalaA4Mode = !store.view.mandalaA4Mode;
     } else if (action.type === 'settings/view/mandala/set-a4-orientation') {
         store.view.mandalaA4Orientation = action.payload.orientation;
     } else if (action.type === 'settings/view/mandala/set-background-mode') {

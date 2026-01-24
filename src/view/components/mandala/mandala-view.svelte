@@ -642,13 +642,11 @@
         justify-items: stretch;
     }
 
-    .mandala-a4-mode .mandala-grid--core,
     .mandala-white-theme .mandala-grid--core {
         gap: 0;
         box-sizing: border-box;
     }
 
-    .mandala-a4-mode .mandala-cell,
     .mandala-white-theme .mandala-cell {
         border-left: 1px dashed var(--mandala-border-color);
         border-top: 1px dashed var(--mandala-border-color);
@@ -656,32 +654,20 @@
         overflow: hidden;
     }
 
-    .mandala-a4-mode .mandala-cell:nth-child(-n + 3),
     .mandala-white-theme .mandala-cell:nth-child(-n + 3) {
         border-top: 3px solid var(--mandala-border-color);
     }
 
-    .mandala-a4-mode .mandala-cell:nth-child(3n + 1),
     .mandala-white-theme .mandala-cell:nth-child(3n + 1) {
         border-left: 3px solid var(--mandala-border-color);
     }
 
-    .mandala-a4-mode .mandala-cell:nth-child(n + 7),
     .mandala-white-theme .mandala-cell:nth-child(n + 7) {
         border-bottom: 3px solid var(--mandala-border-color);
     }
 
-    .mandala-a4-mode .mandala-cell:nth-child(3n),
     .mandala-white-theme .mandala-cell:nth-child(3n) {
         border-right: 3px solid var(--mandala-border-color);
-    }
-
-    .mandala-a4-mode :global(.mandala-card) {
-        border: 0 !important;
-        border-left-width: 0 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        outline: 0 !important;
     }
 
     .mandala-white-theme .mandala-cell :global(.mandala-card) {
@@ -690,6 +676,31 @@
         border-radius: 0 !important;
         box-shadow: none !important;
         outline: 0 !important;
+    }
+
+    .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
+        :global(.mandala-card) {
+        border: 1px solid var(--text-normal) !important;
+        border-left-width: 1px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node) {
+        position: relative;
+    }
+
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.active-node)::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border: 2px solid var(--mandala-color-selection);
+        pointer-events: none;
+        box-sizing: border-box;
+        border-radius: 0;
     }
 
     .mandala-root--3 {
