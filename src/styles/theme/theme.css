@@ -118,6 +118,11 @@
         padding: 0 !important;
     }
 
+    .mandala-root.mandala-a4-mode .mandala-scroll {
+        overflow: hidden !important;
+        padding: var(--mandala-a4-margin) !important;
+    }
+
     /* A4 打印设置 */
     @page {
         size: A4;

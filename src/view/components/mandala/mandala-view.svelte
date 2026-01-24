@@ -536,20 +536,25 @@
     /* A4 视觉校对：外框与内容区边界 */
     .mandala-a4-mode .mandala-scroll::before,
     .mandala-a4-mode .mandala-scroll::after {
+        display: none;
+    }
+
+    .mandala-a4-mode .mandala-scroll::before {
         content: '';
         position: absolute;
+        inset: 0;
+        outline: 1px solid rgba(255, 0, 0, 0.6);
         pointer-events: none;
         box-sizing: border-box;
     }
 
-    .mandala-a4-mode .mandala-scroll::before {
-        inset: 0;
-        outline: 1px solid rgba(255, 0, 0, 0.6);
-    }
-
     .mandala-a4-mode .mandala-scroll::after {
+        content: '';
+        position: absolute;
         inset: var(--mandala-a4-margin);
         outline: 1px dashed rgba(0, 128, 255, 0.8);
+        pointer-events: none;
+        box-sizing: border-box;
     }
 
 
@@ -581,6 +586,42 @@
         grid-template-rows: repeat(3, minmax(0, 1fr));
         align-items: stretch;
         justify-items: stretch;
+    }
+
+    .mandala-a4-mode.mandala-root--3 .mandala-grid--core {
+        gap: 0;
+        box-sizing: border-box;
+    }
+
+    .mandala-a4-mode.mandala-root--3 .mandala-cell {
+        border-left: 1px dashed var(--background-modifier-border);
+        border-top: 1px dashed var(--background-modifier-border);
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .mandala-a4-mode.mandala-root--3 .mandala-cell:nth-child(-n + 3) {
+        border-top: 3px solid var(--background-modifier-border);
+    }
+
+    .mandala-a4-mode.mandala-root--3 .mandala-cell:nth-child(3n + 1) {
+        border-left: 3px solid var(--background-modifier-border);
+    }
+
+    .mandala-a4-mode.mandala-root--3 .mandala-cell:nth-child(n + 7) {
+        border-bottom: 3px solid var(--background-modifier-border);
+    }
+
+    .mandala-a4-mode.mandala-root--3 .mandala-cell:nth-child(3n) {
+        border-right: 3px solid var(--background-modifier-border);
+    }
+
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card) {
+        border: 0 !important;
+        border-left-width: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        outline: 0 !important;
     }
 
     .mandala-root--3 {
