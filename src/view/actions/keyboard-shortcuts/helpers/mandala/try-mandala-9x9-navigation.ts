@@ -61,6 +61,11 @@ export const tryMandala9x9Navigation = (
 
     if (nextNodeId === activeNodeId) return true;
 
+    view.viewStore.dispatch({
+        type: 'view/set-active-node/mouse-silent',
+        payload: { id: nextNodeId },
+    });
+
     if (options?.extendSelection) {
         const selected = new Set(
             view.viewStore.getValue().document.selectedNodes,
