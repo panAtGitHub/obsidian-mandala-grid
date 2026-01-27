@@ -9,3 +9,7 @@ export const toggleMobileInteractionMode = () => {
         mode === 'locked' ? 'unlocked' : 'locked',
     );
 };
+
+export const setMobileInteractionMode = (mode: MobileInteractionMode) => {
+    mobileInteractionMode.set(mode);
+};

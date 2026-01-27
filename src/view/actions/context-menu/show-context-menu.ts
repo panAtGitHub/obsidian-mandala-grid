@@ -22,6 +22,14 @@ export const showContextMenu = (element: HTMLElement, view: MandalaView) => {
             element,
             listener,
             shouldShowNodeContextMenu,
+            {
+                suppressTextSelectionPredicate: (e) => {
+                    const target = e.target as HTMLElement | null;
+                    if (!target) return false;
+                    if (target.closest('.sidebar')) return false;
+                    return shouldShowNodeContextMenu(e);
+                },
+            },
         );
     }
     return {

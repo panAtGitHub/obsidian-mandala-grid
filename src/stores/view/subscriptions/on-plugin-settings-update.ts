@@ -11,6 +11,7 @@ import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { applyHeadingsFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-headings-font-size';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { schedulePersistMandalaViewState } from 'src/view/helpers/mandala/view-frontmatter';
 
 export const onPluginSettingsUpdate = (
     view: MandalaView,
@@ -94,5 +95,16 @@ export const onPluginSettingsUpdate = (
         type === 'settings/style-rules/toggle-global';
     if (shouldUpdateStyleRules) {
         view.rulesProcessor.onRulesUpdate();
+    }
+
+    if (
+        type === 'settings/view/set-zoom-level' ||
+        type === 'view/left-sidebar/toggle' ||
+        type === 'view/left-sidebar/set-width' ||
+        type === 'settings/view/mandala/toggle-mode' ||
+        type === 'view/mandala-detail-sidebar/toggle' ||
+        type === 'view/mandala-detail-sidebar/set-width'
+    ) {
+        schedulePersistMandalaViewState(view);
     }
 };

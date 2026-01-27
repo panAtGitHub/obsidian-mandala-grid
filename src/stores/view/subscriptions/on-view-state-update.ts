@@ -8,6 +8,7 @@ import { persistActivePinnedNode } from 'src/stores/view/subscriptions/actions/p
 import { showSearchResultsInMinimap } from 'src/stores/view/subscriptions/effects/show-search-results-in-minimap';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { persistCollapsedSections } from 'src/stores/view/subscriptions/actions/settings/persist-collapsed-sections';
+import { schedulePersistMandalaViewState } from 'src/view/helpers/mandala/view-frontmatter';
 
 export const onViewStateUpdate = (
     view: MandalaView,
@@ -31,6 +32,7 @@ export const onViewStateUpdate = (
     if (activeNodeChange && activeNodeHasChanged) {
         persistActiveNodeInPluginSettings(view);
         view.plugin.statusBar.updateProgressIndicatorAndChildCount(view);
+        schedulePersistMandalaViewState(view);
     }
     if (activeNodeChange) {
         if (view.minimapStore) {
@@ -105,5 +107,13 @@ export const onViewStateUpdate = (
         action.type === 'view/outline/refresh-collapsed-nodes'
     ) {
         persistCollapsedSections(view);
+    }
+
+    if (
+        action.type === 'view/mandala/subgrid/enter' ||
+        action.type === 'view/mandala/subgrid/exit' ||
+        action.type === 'view/mandala/active-cell/set'
+    ) {
+        schedulePersistMandalaViewState(view);
     }
 };

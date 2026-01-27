@@ -19,6 +19,9 @@ import { watchViewSize } from 'src/stores/view/subscriptions/effects/view-size/w
 import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/css-variables/apply-inactive-node-opacity';
 import { loadCollapsedSectionsFromSettings } from 'src/stores/view/subscriptions/actions/view/load-collapsed-sections-from-settings';
 import { applyHeadingsFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-headings-font-size';
+import { applyMandalaViewStateFromFrontmatter } from 'src/view/helpers/mandala/view-frontmatter';
+import { mobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
+import { schedulePersistMandalaViewState } from 'src/view/helpers/mandala/view-frontmatter';
 
 const applySettingsToView = (view: MandalaView) => {
     const state = view.plugin.settings.getValue();
@@ -53,6 +56,7 @@ export const onViewMount = (view: MandalaView) => {
     if (view.isActive) focusContainer(view);
 
     loadPinnedNodesToDocument(view);
+    applyMandalaViewStateFromFrontmatter(view);
     markUnresolvedLinks(view);
     applySettingsToView(view);
     attachHoverPreviewListener(view);
@@ -63,5 +67,10 @@ export const onViewMount = (view: MandalaView) => {
     view.zoomFactor = view.plugin.settings.getValue().view.zoomLevel;
 
     subscriptions.add(watchViewSize(view));
+    subscriptions.add(
+        mobileInteractionMode.subscribe(() =>
+            schedulePersistMandalaViewState(view),
+        ),
+    );
     return subscriptions;
 };
