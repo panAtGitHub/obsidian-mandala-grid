@@ -116,4 +116,24 @@
         height: 100%;
         width: 100%;
     }
+
+    :global(.is-mobile) .mandala-view {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    :global(.is-mobile) .mandala-view .sidebar,
+    :global(.is-mobile) .mandala-view .sidebar * {
+        user-select: text;
+        -webkit-user-select: text;
+    }
+
+    :global(.is-mobile) .mandala-view input,
+    :global(.is-mobile) .mandala-view textarea,
+    :global(.is-mobile) .mandala-view [contenteditable='true'],
+    :global(.is-mobile) .mandala-view .mobile-popup-editor-container,
+    :global(.is-mobile) .mandala-view .mobile-popup-editor-container * {
+        user-select: text;
+        -webkit-user-select: text;
+    }
 </style>
