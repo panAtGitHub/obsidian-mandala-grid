@@ -11,3 +11,4 @@ Mandala Grid 是一款 Obsidian 插件，用九宫格/曼陀罗视图来组织�
 
 ## Acknowledgements
 特别感谢 Lineage 插件及其作者 ycnmhd。本插件是在 Lineage 的基础上进行改进与扩展，承袭其核心理念与实现细节。
+且

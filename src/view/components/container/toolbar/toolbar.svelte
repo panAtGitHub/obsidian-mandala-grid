@@ -10,6 +10,8 @@
     import SearchActions from './components/search-actions.svelte';
     import { writable, derived } from 'svelte/store';
     import { Eye, Menu } from 'lucide-svelte';
+    import { Platform } from 'obsidian';
+    import { onMount } from 'svelte';
     import Button from '../shared/button.svelte';
     import { lang } from 'src/lang/lang';
     
@@ -73,9 +75,59 @@
             return convertToMandalaResults($search.results, $doc.sections.id_section);
         }
     );
+
+    const isMobile = Platform.isMobile;
+
+    const closeSearch = () => {
+        view.viewStore.dispatch({ type: 'view/search/toggle-input' });
+    };
+
+    let visualViewportHeight =
+        window.visualViewport?.height ?? window.innerHeight;
+    let visualViewportOffsetTop = window.visualViewport?.offsetTop ?? 0;
+    let keyboardInsetBottom = 0;
+
+    const updateVisualViewportVars = () => {
+        const vv = window.visualViewport;
+        if (!vv) {
+            visualViewportHeight = window.innerHeight;
+            visualViewportOffsetTop = 0;
+            keyboardInsetBottom = 0;
+            return;
+        }
+        visualViewportHeight = vv.height;
+        visualViewportOffsetTop = vv.offsetTop;
+        // iOS: when the keyboard appears, visualViewport shrinks.
+        // Keep the modal within the remaining visible space.
+        keyboardInsetBottom = Math.max(
+            0,
+            window.innerHeight - vv.height - vv.offsetTop,
+        );
+    };
+
+    onMount(() => {
+        if (!isMobile) return;
+        // Keep the search modal pinned to the *visible* viewport when the iOS
+        // keyboard appears (visualViewport shrinks/offsets).
+        updateVisualViewportVars();
+
+        const vv = window.visualViewport;
+        vv?.addEventListener('resize', updateVisualViewportVars);
+        vv?.addEventListener('scroll', updateVisualViewportVars);
+        window.addEventListener('orientationchange', updateVisualViewportVars);
+
+        return () => {
+            vv?.removeEventListener('resize', updateVisualViewportVars);
+            vv?.removeEventListener('scroll', updateVisualViewportVars);
+            window.removeEventListener(
+                'orientationchange',
+                updateVisualViewportVars,
+            );
+        };
+    });
 </script>
 
-<div class="navigation-history-container">
+<div class="navigation-history-container" data-search-open={$search.showInput}>
     <div class="toolbar-group toolbar-group--left">
         <div class="mobile-toggle">
             <Button
@@ -103,7 +155,7 @@
             <SearchToggle />
         </div>
 
-        {#if $search.showInput}
+        {#if $search.showInput && !isMobile}
             <div class="search-input-wrapper" style="position: relative;">
                 <SearchInput />
                 
@@ -172,6 +224,40 @@
     <div class="toolbar-spacer" />
 </div>
 
+{#if isMobile && $search.showInput}
+    <div
+        class="search-modal-backdrop"
+        style={`--vvh: ${visualViewportHeight}px; --vvo: ${visualViewportOffsetTop}px; --kbd: ${keyboardInsetBottom}px;`}
+        on:click={closeSearch}
+    >
+        <div class="search-modal" on:click|stopPropagation>
+            <div class="search-modal-header">
+                <div class="search-modal-title">搜索</div>
+                <button class="search-modal-close" on:click={closeSearch}>
+                    关闭
+                </button>
+            </div>
+            <div class="search-modal-body">
+                <SearchInput />
+                {#if $search.query.length > 0}
+                    {#if $isMandalaMode}
+                        {#if $mandalaSearchResults.length > 0}
+                            <MandalaSearchResults results={$mandalaSearchResults} />
+                        {/if}
+                    {:else}
+                        <SearchNavigationButtons
+                            results={Array.from($search.results.keys())}
+                        />
+                        {#if $search.results.size > 0}
+                            <SearchActions />
+                        {/if}
+                    {/if}
+                {/if}
+            </div>
+        </div>
+    </div>
+{/if}
+
 <style>
     .navigation-history-container {
         z-index: var(--z-index-breadcrumbs);
@@ -232,6 +318,10 @@
             width: 100%;
             position: static;
         }
+        & .toolbar-group--left {
+            flex-wrap: wrap;
+            width: 100%;
+        }
         & .toolbar-spacer {
             flex: 1 1 auto;
         }
@@ -264,5 +354,76 @@
         & .buttons-group-wrapper[data-visible='false'] {
             display: none;
         }
+    }
+
+    .search-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 1200;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 16px;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 16px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px + var(--kbd, 0px));
+    }
+
+    .search-modal {
+        width: min(92vw, 420px);
+        max-height: calc(100vh - 32px - var(--kbd, 0px));
+        background: var(--background-primary);
+        border-radius: 20px;
+        border: 1px solid var(--background-modifier-border);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .search-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--background-modifier-border);
+        background: var(--background-primary);
+    }
+
+    .search-modal-title {
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--text-normal);
+    }
+
+    .search-modal-close {
+        background: transparent;
+        border: none;
+        color: var(--interactive-accent);
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+
+    .search-modal-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 16px 16px;
+        overflow: auto;
+        flex: 1 1 auto;
+    }
+
+    :global(.is-mobile) .search-modal-body .search-input-wrapper {
+        width: 100%;
+    }
+
+    :global(.is-mobile) .search-modal-body .mandala-search-results {
+        position: static;
+        margin-top: 0;
+        max-height: none;
     }
 </style>

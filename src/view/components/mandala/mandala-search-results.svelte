@@ -194,7 +194,9 @@
     /* 移动端优化 */
     @media (max-width: 568px) {
         .mandala-search-results {
-            max-height: 50vh;
+            position: static;
+            margin-top: 8px;
+            max-height: 60vh;
         }
         
         .search-result-item {
