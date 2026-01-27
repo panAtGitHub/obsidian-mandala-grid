@@ -3,6 +3,7 @@ import { MenuItemObject } from 'src/obsidian/context-menu/render-context-menu';
 import { lang } from 'src/lang/lang';
 import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-block';
 import { togglePinNode } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
+import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 import {
     createSectionColorIndex,
     parseSectionColorsFromFrontmatter,
@@ -33,16 +34,23 @@ export const createSingleNodeContextMenuItems = (
         return cachedSectionColorMap;
     };
 
-    const menuItems: MenuItemObject[] = [
-        ...(isMandala
-            ? ([
-                  {
-                      title: lang.cm_swap_position,
-                      icon: 'shuffle',
-                      action: () => startMandalaSwap(view, activeNode),
-                  },
-              ] as MenuItemObject[])
-            : []),
+    const menuItems: MenuItemObject[] = [];
+    if (isMandala) {
+        menuItems.push({
+            title: lang.cm_swap_position,
+            icon: 'shuffle',
+            action: () => startMandalaSwap(view, activeNode),
+        });
+    }
+    const coreJumpItems = createCoreJumpMenuItems(view);
+    if (coreJumpItems.length) {
+        if (menuItems.length) {
+            menuItems.push({ type: 'separator' });
+        }
+        menuItems.push(...coreJumpItems);
+        menuItems.push({ type: 'separator' });
+    }
+    menuItems.push(
         {
             title: lang.cm_copy_link_to_block,
             icon: 'links-coming-in',
@@ -125,6 +133,6 @@ export const createSingleNodeContextMenuItems = (
                   },
               ] as MenuItemObject[])
             : []),
-    ];
+    );
     return menuItems;
 };

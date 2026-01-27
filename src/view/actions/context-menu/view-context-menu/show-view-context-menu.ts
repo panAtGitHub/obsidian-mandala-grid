@@ -10,6 +10,7 @@ import { exportDocument } from 'src/obsidian/commands/helpers/export-document/ex
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { hasNHeadings } from 'src/lib/format-detection/has-n-headings';
 import { ejectDocument } from 'src/obsidian/commands/helpers/export-document/eject-document';
+import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 
 export const showViewContextMenu = (event: MouseEvent, view: MandalaView) => {
     const file = view.file;
@@ -21,7 +22,12 @@ export const showViewContextMenu = (event: MouseEvent, view: MandalaView) => {
     const isHtmlComments = format === 'sections';
 
     const _hasHeading = hasNHeadings(view.data, 1);
+    const coreJumpItems = createCoreJumpMenuItems(view);
     const menuItems: MenuItemObject[] = [
+        ...coreJumpItems,
+        ...(coreJumpItems.length
+            ? ([{ type: 'separator' }] as MenuItemObject[])
+            : []),
         {
             title: lang.cm_format_headings,
             icon: 'heading-1',
