@@ -224,52 +224,82 @@
         });
     };
 
+    const parseFiniteNumber = (raw: string) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        const value = Number(trimmed);
+        return Number.isFinite(value) ? value : null;
+    };
+
+    const parseFiniteFloat = (raw: string) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        const value = Number.parseFloat(trimmed);
+        return Number.isFinite(value) ? value : null;
+    };
+
     const updateBorderOpacity = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateBorderOpacityValue(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateBorderOpacityValue(value);
     };
 
     const updateSectionColorOpacity = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateSectionColorOpacityValue(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateSectionColorOpacityValue(value);
     };
 
     const updateInactiveNodeOpacity = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateInactiveNodeOpacityValue(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateInactiveNodeOpacityValue(value);
     };
 
     const updateCardsGap = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateCardsGapValue(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateCardsGapValue(value);
     };
 
     const updateFontSize3x3 = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateFontSize3x3Value(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateFontSize3x3Value(value);
     };
 
     const updateFontSize9x9 = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateFontSize9x9Value(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateFontSize9x9Value(value);
     };
 
     const updateFontSizeSidebar = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateFontSizeSidebarValue(Number(target.value));
+        const value = parseFiniteNumber(target.value);
+        if (value === null) return;
+        updateFontSizeSidebarValue(value);
     };
 
     const updateHeadingsFontSize = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        updateHeadingsFontSizeValue(Number.parseFloat(target.value));
+        const value = parseFiniteFloat(target.value);
+        if (value === null) return;
+        updateHeadingsFontSizeValue(value);
     };
 
     const stepOpacity = (current: number, delta: number) => {
@@ -1337,7 +1367,7 @@
                                     max="36"
                                     step="1"
                                     value={$fontSize3x3}
-                                    on:input={updateFontSize3x3}
+                                    on:change={updateFontSize3x3}
                                 />
                                 <button
                                     class="view-options-menu__reset"
@@ -1383,7 +1413,7 @@
                                     max="36"
                                     step="1"
                                     value={$fontSize9x9}
-                                    on:input={updateFontSize9x9}
+                                    on:change={updateFontSize9x9}
                                 />
                                 <button
                                     class="view-options-menu__reset"
@@ -1435,7 +1465,7 @@
                                     max="36"
                                     step="1"
                                     value={$fontSizeSidebar}
-                                    on:input={updateFontSizeSidebar}
+                                    on:change={updateFontSizeSidebar}
                                 />
                                 <button
                                     class="view-options-menu__reset"
@@ -1492,7 +1522,7 @@
                                     max="4"
                                     step="0.1"
                                     value={$headingsFontSizeEm}
-                                    on:input={updateHeadingsFontSize}
+                                    on:change={updateHeadingsFontSize}
                                 />
                                 <button
                                     class="view-options-menu__reset"
@@ -1663,7 +1693,7 @@
                                                 min="0"
                                                 max="100"
                                                 value={$inactiveNodeOpacity}
-                                                on:input={updateInactiveNodeOpacity}
+                                                on:change={updateInactiveNodeOpacity}
                                             />
                                             <button
                                                 class="view-options-menu__reset"
@@ -1801,7 +1831,7 @@
                                     min="0"
                                     max="100"
                                     value={$sectionColorOpacity}
-                                    on:input={updateSectionColorOpacity}
+                                    on:change={updateSectionColorOpacity}
                                     disabled={$backgroundMode === 'none'}
                                 />
                             </div>
@@ -1865,7 +1895,7 @@
                                     max="20"
                                     step="2"
                                     value={$cardsGap}
-                                    on:input={updateCardsGap}
+                                    on:change={updateCardsGap}
                                 />
                                 <button
                                     class="view-options-menu__reset"
