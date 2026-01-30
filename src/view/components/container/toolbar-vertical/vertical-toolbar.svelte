@@ -28,6 +28,12 @@
         showControls.update((v) => !v);
     };
 
+    const closeMobileControls = () => {
+        if (Platform.isMobile) {
+            showControls.set(false);
+        }
+    };
+
     const showOptionsMenu = writable(false);
     const toggleOptionsMenu = () => {
         showOptionsMenu.update((v) => !v);
@@ -121,7 +127,10 @@
                     active={$activeStates[mobileHotkeysButton.id]}
                     classes="control-item"
                     label={mobileHotkeysButton.label}
-                    on:click={mobileHotkeysButton.onClick}
+                    on:click={(e) => {
+                        mobileHotkeysButton.onClick(e);
+                        closeMobileControls();
+                    }}
                     tooltipPosition="bottom"
                 >
                     {#if 'svg' in mobileHotkeysButton.icon}
@@ -139,7 +148,10 @@
                 active={$showOptionsMenu}
                 classes="control-item js-view-options-trigger"
                 label="视图选项"
-                on:click={toggleOptionsMenu}
+                on:click={() => {
+                    toggleOptionsMenu();
+                    closeMobileControls();
+                }}
                 tooltipPosition="bottom"
             >
                 <Wrench class="svg-icon" />
@@ -150,7 +162,10 @@
                     active={$activeStates[mobileSidebarButton.id]}
                     classes="control-item"
                     label={mobileSidebarButton.label}
-                    on:click={mobileSidebarButton.onClick}
+                    on:click={(e) => {
+                        mobileSidebarButton.onClick(e);
+                        closeMobileControls();
+                    }}
                     tooltipPosition="bottom"
                 >
                     {#if 'svg' in mobileSidebarButton.icon}
@@ -169,7 +184,10 @@
                     active={$activeStates[button.id]}
                     classes="control-item"
                     label={button.label}
-                    on:click={button.onClick}
+                    on:click={(e) => {
+                        button.onClick(e);
+                        closeMobileControls();
+                    }}
                     tooltipPosition="bottom"
                 >
                     {#if 'svg' in button.icon}
