@@ -1250,7 +1250,10 @@
     // 点击外部关闭菜单 - 使用全局点击事件
     const handleClickOutside = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
-        if (!target.closest('.view-options-menu') && !target.closest('[aria-label="视图选项"]')) {
+        if (
+            !target.closest('.view-options-menu') &&
+            !target.closest('.js-view-options-trigger')
+        ) {
             closeMenu();
         }
     };
@@ -1264,7 +1267,7 @@
     }
 </script>
 
-{#if show && !Platform.isMobile}
+{#if show}
     <div class="view-options-menu">
         <div class="view-options-menu__header">
             <span class="view-options-menu__title">视图选项</span>
@@ -2077,6 +2080,19 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
+    :global(.is-mobile) .view-options-menu {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        min-width: 0;
+        border-radius: 0;
+        z-index: 1003;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .view-options-menu__header {
         display: flex;
         justify-content: space-between;
@@ -2111,6 +2127,10 @@
 
     .view-options-menu__items {
         padding: 6px;
+    }
+
+    :global(.is-mobile) .view-options-menu__items {
+        padding-bottom: 20px;
     }
 
     .view-options-menu__submenu {
