@@ -23,8 +23,11 @@
         MandalaBackgroundModeStore,
         MandalaBorderOpacityStore,
         MandalaFontSize3x3DesktopStore,
+        MandalaFontSize3x3MobileStore,
         MandalaFontSize9x9DesktopStore,
+        MandalaFontSize9x9MobileStore,
         MandalaFontSizeSidebarDesktopStore,
+        MandalaFontSizeSidebarMobileStore,
         MandalaModeStore,
         MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
@@ -52,12 +55,15 @@
 
     const dispatch = createEventDispatcher();
     const view = getView();
+    const isMobile = Platform.isMobile;
 
     export let show = false;
     let showEditOptions = false;
     let showFontOptions = false;
     let showPrintOptions = false;
     let showTemplateOptions = false;
+    let mobileBoundsStyle = '';
+    let listenersAttached = false;
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
@@ -70,9 +76,15 @@
     const gridOrientation = MandalaGridOrientationStore(view);
     const themeDefaults = getDefaultTheme();
     const cardsGap = derived(view.plugin.settings, (state) => state.view.cardsGap);
-    const fontSize3x3 = MandalaFontSize3x3DesktopStore(view);
-    const fontSize9x9 = MandalaFontSize9x9DesktopStore(view);
-    const fontSizeSidebar = MandalaFontSizeSidebarDesktopStore(view);
+    const fontSize3x3 = isMobile
+        ? MandalaFontSize3x3MobileStore(view)
+        : MandalaFontSize3x3DesktopStore(view);
+    const fontSize9x9 = isMobile
+        ? MandalaFontSize9x9MobileStore(view)
+        : MandalaFontSize9x9DesktopStore(view);
+    const fontSizeSidebar = isMobile
+        ? MandalaFontSizeSidebarMobileStore(view)
+        : MandalaFontSizeSidebarDesktopStore(view);
     const headingsFontSizeEm = derived(
         view.plugin.settings,
         (state) => state.view.h1FontSize_em,
@@ -177,21 +189,27 @@
 
     const updateFontSize3x3Value = (value: number) => {
         view.plugin.settings.dispatch({
-            type: 'settings/view/font-size/set-3x3-desktop',
+            type: isMobile
+                ? 'settings/view/font-size/set-3x3-mobile'
+                : 'settings/view/font-size/set-3x3-desktop',
             payload: { fontSize: clampFontSize(value) },
         });
     };
 
     const updateFontSize9x9Value = (value: number) => {
         view.plugin.settings.dispatch({
-            type: 'settings/view/font-size/set-9x9-desktop',
+            type: isMobile
+                ? 'settings/view/font-size/set-9x9-mobile'
+                : 'settings/view/font-size/set-9x9-desktop',
             payload: { fontSize: clampFontSize(value) },
         });
     };
 
     const updateFontSizeSidebarValue = (value: number) => {
         view.plugin.settings.dispatch({
-            type: 'settings/view/font-size/set-sidebar-desktop',
+            type: isMobile
+                ? 'settings/view/font-size/set-sidebar-mobile'
+                : 'settings/view/font-size/set-sidebar-desktop',
             payload: { fontSize: clampFontSize(value) },
         });
     };
@@ -831,6 +849,10 @@
     }
 
     const exportCurrentFile = async () => {
+        if (isMobile) {
+            new Notice('移动端不支持导出，请在桌面端操作');
+            return;
+        }
         if (exportFormat === 'pdf') {
             await exportCurrentViewPdf();
             return;
@@ -1274,8 +1296,26 @@
     const closeMenu = () => {
         dispatch('close');
         showEditOptions = false;
+        showFontOptions = false;
         showPrintOptions = false;
         showTemplateOptions = false;
+        showImmersiveOptions = false;
+        showPanoramaOptions = false;
+    };
+
+    const updateMobileBoundsStyle = () => {
+        if (!isMobile || !show) {
+            mobileBoundsStyle = '';
+            return;
+        }
+
+        const rect = view.contentEl.getBoundingClientRect();
+        const padding = 8;
+        const left = Math.max(0, rect.left + padding);
+        const top = Math.max(0, rect.top + padding);
+        const width = Math.max(260, rect.width - padding * 2);
+        const height = Math.max(220, rect.height - padding * 2);
+        mobileBoundsStyle = `left:${left}px;top:${top}px;width:${width}px;height:${height}px;`;
     };
 
     // 点击外部关闭菜单 - 使用全局点击事件
@@ -1289,29 +1329,71 @@
         }
     };
 
-    $: if (show) {
+    $: if (show && !listenersAttached) {
+        listenersAttached = true;
         setTimeout(() => {
             document.addEventListener('click', handleClickOutside);
+            window.addEventListener('resize', updateMobileBoundsStyle);
+            updateMobileBoundsStyle();
         }, 0);
-    } else {
+    } else if (!show && listenersAttached) {
+        listenersAttached = false;
         document.removeEventListener('click', handleClickOutside);
+        window.removeEventListener('resize', updateMobileBoundsStyle);
+        mobileBoundsStyle = '';
     }
 </script>
 
 {#if show}
-    <div class="view-options-menu">
-        <div class="view-options-menu__header">
-            <span class="view-options-menu__title">视图选项</span>
-            <button
-                class="view-options-menu__close"
-                on:click={closeMenu}
-                aria-label="关闭"
-            >
-                <X class="icon" size={16} />
-            </button>
-        </div>
-        
+    <div
+        class="mandala-modal view-options-menu"
+        class:is-mobile={isMobile}
+        style={isMobile ? mobileBoundsStyle : undefined}
+        on:mousedown|stopPropagation
+        on:touchstart|stopPropagation
+    >
+        {#if isMobile}
+            <div class="mobile-modal-header">
+                <div class="mobile-modal-title">视图选项</div>
+                <button
+                    class="mobile-done-button"
+                    on:click={closeMenu}
+                    aria-label="关闭视图选项"
+                >
+                    <X size={18} />
+                    <span>关闭</span>
+                </button>
+            </div>
+        {:else}
+            <div class="view-options-menu__header">
+                <span class="view-options-menu__title">视图选项</span>
+                <button
+                    class="view-options-menu__close"
+                    on:click={closeMenu}
+                    aria-label="关闭"
+                >
+                    <X class="icon" size={16} />
+                </button>
+            </div>
+        {/if}
         <div class="view-options-menu__items">
+            {#if !isMobile}
+                <button
+                    class="view-options-menu__item view-options-menu__item--close"
+                    on:click={closeMenu}
+                    aria-label="关闭"
+                >
+                    <div class="view-options-menu__icon">
+                        <X class="view-options-menu__icon-svg" size={18} />
+                    </div>
+                    <div class="view-options-menu__content">
+                        <div class="view-options-menu__label">关闭</div>
+                        <div class="view-options-menu__desc">
+                            返回主界面
+                        </div>
+                    </div>
+                </button>
+            {/if}
             <button
                 class="view-options-menu__item"
                 on:click={() => (showFontOptions = !showFontOptions)}
@@ -1320,9 +1402,11 @@
                     <Type class="view-options-menu__icon-svg" size={18} />
                 </div>
                 <div class="view-options-menu__content">
-                    <div class="view-options-menu__label">字体设置</div>
+                    <div class="view-options-menu__label">
+                        字体设置（{isMobile ? '手机端' : 'PC端'}）
+                    </div>
                     <div class="view-options-menu__desc">
-                        对 3x3 视图、9x9 视图、侧边栏的字体进行调整
+                        对 3x3 视图、9x9 视图、侧边栏字体进行调整
                     </div>
                 </div>
             </button>
@@ -1331,7 +1415,7 @@
                 <div class="view-options-menu__submenu">
                     <div class="view-options-menu__subsection">
                         <div class="view-options-menu__subsection-title">
-                            格子字体大小（PC端）
+                            格子字体大小（{isMobile ? '手机端' : 'PC端'}）
                         </div>
 
                         <label class="view-options-menu__row">
@@ -1955,7 +2039,13 @@
 
             <button
                 class="view-options-menu__item"
-                on:click={() => (showPrintOptions = !showPrintOptions)}
+                on:click={() => {
+                    if (isMobile) {
+                        new Notice('移动端不支持导出，请在桌面端操作');
+                        return;
+                    }
+                    showPrintOptions = !showPrintOptions;
+                }}
             >
                 <div class="view-options-menu__icon">
                     <Printer class="view-options-menu__icon-svg" size={18} />
@@ -2098,30 +2188,33 @@
 
 <style>
     .view-options-menu {
-        position: absolute;
-        top: 48px;
-        right: 8px;
         min-width: 260px;
-        background: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 6px;
-        overflow: hidden;
-        z-index: 1000;
-        /* 使用轻量级阴影提升可视性 */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        gap: 0;
+        padding: 0;
     }
 
     :global(.is-mobile) .view-options-menu {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        min-width: 0;
-        border-radius: 0;
-        z-index: 1003;
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
+        padding: 0 !important;
+        max-width: none;
+        max-height: none;
+        right: auto;
+        bottom: auto;
+        display: flex;
+        flex-direction: column;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--background-modifier-border);
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 92%,
+            var(--background-secondary)
+        );
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    .view-options-menu:not(.is-mobile) {
+        top: 48px;
+        right: 8px;
     }
 
     .view-options-menu__header {
@@ -2148,6 +2241,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 4px;
         border-radius: 3px;
     }
 
@@ -2157,11 +2251,19 @@
     }
 
     .view-options-menu__items {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
         padding: 6px;
     }
 
     :global(.is-mobile) .view-options-menu__items {
-        padding-bottom: 20px;
+        padding: 8px 12px 14px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 18px;
     }
 
     .view-options-menu__submenu {
@@ -2452,5 +2554,45 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .mobile-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--background-modifier-border);
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 88%,
+            var(--background-secondary)
+        );
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    .mobile-modal-title {
+        font-weight: var(--font-bold);
+        color: var(--text-normal);
+    }
+
+    .mobile-done-button {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--background-primary);
+        color: var(--text-normal);
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+    }
+
+    .mobile-done-button:hover {
+        background: var(--background-modifier-hover);
     }
 </style>

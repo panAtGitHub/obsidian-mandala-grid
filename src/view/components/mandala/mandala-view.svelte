@@ -305,7 +305,7 @@
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
     class:has-detail-sidebar={!Platform.isMobile && $showDetailSidebar}
     class:is-portrait={isPortrait}
-    class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
+    class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
     style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%;"

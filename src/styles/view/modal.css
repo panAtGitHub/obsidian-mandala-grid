@@ -22,8 +22,8 @@
     border-radius: var(--radius-m);
 }
 
-@media (max-width: 720px) {
-    .mandala-modal {
+    @media (max-width: 720px) {
+        .mandala-modal {
         position: fixed;
         left: 0;
         right: 0;
@@ -40,7 +40,7 @@
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         background-color: var(--background-primary-alt);
-        z-index: 1000;
+        z-index: 1100;
         overflow: hidden;
         overscroll-behavior: none;
         user-select: none;
@@ -51,6 +51,8 @@
 .mandala-modal.is-mobile {
     --font-text-size: 16px !important;
     font-size: 16px !important;
+    z-index: 99999;
+    inset: 0;
 }
 
 .mandala-modal.is-mobile .vertical-tab-nav-item {

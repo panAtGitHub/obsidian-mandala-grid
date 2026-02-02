@@ -246,6 +246,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+        position: relative;
     }
 
     .buttons-group {
