@@ -78,6 +78,7 @@
                         min="6"
                         max="36"
                         step="1"
+                        inputmode="numeric"
                         value={fontSize3x3}
                         on:change={updateFontSize3x3}
                     />
@@ -122,6 +123,7 @@
                         min="6"
                         max="36"
                         step="1"
+                        inputmode="numeric"
                         value={fontSize9x9}
                         on:change={updateFontSize9x9}
                     />
@@ -166,6 +168,7 @@
                         min="6"
                         max="36"
                         step="1"
+                        inputmode="numeric"
                         value={fontSizeSidebar}
                         on:change={updateFontSizeSidebar}
                     />
@@ -215,6 +218,7 @@
                         min="1"
                         max="4"
                         step="0.1"
+                        inputmode="decimal"
                         value={headingsFontSizeEm}
                         on:change={updateHeadingsFontSize}
                     />

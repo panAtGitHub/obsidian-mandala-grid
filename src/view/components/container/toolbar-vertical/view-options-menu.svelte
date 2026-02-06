@@ -1361,17 +1361,31 @@
             return;
         }
 
-        const rect = view.contentEl.getBoundingClientRect();
         const visibleViewport = getVisibleViewport();
-        const boundedLeft = Math.max(rect.left, visibleViewport.left);
-        const boundedTop = Math.max(rect.top, visibleViewport.top);
-        const boundedRight = Math.min(rect.right, visibleViewport.right);
-        const boundedBottom = Math.min(rect.bottom, visibleViewport.bottom);
         const padding = 8;
-        const left = Math.max(0, boundedLeft + padding);
-        const top = Math.max(0, boundedTop + padding);
-        const width = Math.max(0, boundedRight - boundedLeft - padding * 2);
-        const height = Math.max(0, boundedBottom - boundedTop - padding * 2);
+        const visualViewport = window.visualViewport;
+        const keyboardLikelyOpen =
+            !!visualViewport &&
+            visualViewport.height < window.innerHeight * 0.85;
+
+        let left = Math.max(0, visibleViewport.left + padding);
+        let top = Math.max(0, visibleViewport.top + padding);
+        let width = Math.max(260, visibleViewport.right - visibleViewport.left - padding * 2);
+        let height = Math.max(220, visibleViewport.bottom - visibleViewport.top - padding * 2);
+
+        if (!keyboardLikelyOpen) {
+            const rect = view.contentEl.getBoundingClientRect();
+            const boundedLeft = Math.max(rect.left, visibleViewport.left);
+            const boundedTop = Math.max(rect.top, visibleViewport.top);
+            const boundedRight = Math.min(rect.right, visibleViewport.right);
+            const boundedBottom = Math.min(rect.bottom, visibleViewport.bottom);
+
+            left = Math.max(0, boundedLeft + padding);
+            top = Math.max(0, boundedTop + padding);
+            width = Math.max(260, boundedRight - boundedLeft - padding * 2);
+            height = Math.max(220, boundedBottom - boundedTop - padding * 2);
+        }
+
         mobileBoundsStyle = `left:${left}px;top:${top}px;width:${width}px;height:${height}px;`;
     };
 
