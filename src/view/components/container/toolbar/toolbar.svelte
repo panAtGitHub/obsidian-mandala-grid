@@ -24,12 +24,12 @@
         showControls.update((v) => !v);
     };
 
-    // The center controls (9x9/3x3 + lock toggle) live in toolbar-center.svelte.
+    // The center controls (9x9/3x3) live in toolbar-center.svelte.
     
     // 检测是否是 Mandala 模式
     const isMandalaMode = derived(
         view.viewStore,
-        (state) => view.mandalaMode !== null
+        () => view.mandalaMode !== null
     );
     
     // Mandala 搜索结果

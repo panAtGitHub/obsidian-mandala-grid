@@ -1,7 +1,7 @@
 {
     "name": "mandala-grid",
     "version": "1.2.0",
-    "description": "",
+    "description": "Mandala grid (3×3 / 9×9) editor built on Lineage.",
     "scripts": {
         "dev": "node esbuild.config.mjs",
         "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/sync-manifest.mjs",
@@ -15,7 +15,7 @@
         "lint": "eslint src manifest.json"
     },
     "keywords": [],
-    "author": "",
+    "author": "dusk",
     "license": "MIT",
     "devDependencies": {
         "@commitlint/cli": "17.4.0",

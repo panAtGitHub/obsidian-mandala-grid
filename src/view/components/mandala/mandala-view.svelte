@@ -25,7 +25,6 @@
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
-    import Mandala9x9Grid from 'src/view/components/mandala/mandala-9x9-grid.svelte';
     import MandalaOverviewSimple from 'src/view/components/mandala/mandala-overview-simple.svelte';
     import { flip } from 'svelte/animate';
     import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
@@ -33,7 +32,6 @@
     import ToolbarCenter from 'src/view/components/container/toolbar/toolbar-center.svelte';
     import MandalaDetailSidebar from './mandala-detail-sidebar.svelte';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
-    import { derived as svelteDerived } from 'svelte/store';
     import { searchStore } from 'src/stores/view/derived/search-store';
     import MobileFullScreenSearch from 'src/view/components/mandala/mobile-fullscreen-search.svelte';
 
@@ -199,7 +197,6 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
-    let lastActiveNodeId = '';
 
     $: {
         if ($mode && !$subgridTheme) {
@@ -239,7 +236,6 @@
                     }
                 }
             }
-            lastActiveNodeId = $activeNodeId;
         }
     }
 

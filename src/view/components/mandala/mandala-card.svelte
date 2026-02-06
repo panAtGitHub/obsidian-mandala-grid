@@ -60,36 +60,6 @@
         }
     };
 
-    const handleCancel = () => {
-        // 关闭编辑模式，内容将自动保存
-        view.inlineEditor.unloadNode(nodeId, false);
-        view.viewStore.dispatch({
-            type: 'view/editor/disable-main-editor',
-        });
-    };
-
-    const handleSave = () => {
-        // 触发卸载并自动保存
-        handleCancel();
-    };
-
-    // 防抖定时器
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-    // 设置面板显示状态
-    let showSettings = false;
-    const toggleSettings = () => {
-        showSettings = !showSettings;
-    };
-
-    const handleIncreaseFontSize = () => {
-        localFontStore.setFontSize($localFontStore + 1);
-    };
-
-    const handleDecreaseFontSize = () => {
-        localFontStore.setFontSize($localFontStore - 1);
-    };
-
     const handleCardClick = (e: MouseEvent) => {
         if ($swapState.active) {
             const sourceNodeId = $swapState.sourceNodeId;

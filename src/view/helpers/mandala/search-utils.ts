@@ -1,5 +1,6 @@
 import type { MandalaView } from 'src/view/view';
 import type { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
+import { logger } from 'src/helpers/logger';
 
 /**
  * Mandala 搜索结果类型
@@ -73,7 +74,7 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
     const nodeId = view.documentStore.getValue().sections.section_id[self];
 
     if (!nodeId) {
-        console.error(`Section ${self} 不存在`);
+        logger.error(`Section ${self} 不存在`);
         return;
     }
 

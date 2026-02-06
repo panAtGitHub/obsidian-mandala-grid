@@ -45,7 +45,7 @@ const options = {
         inlineWorkerPlugin({ minify: prod }),
         esbuildSvelte({
             compilerOptions: {
-                css: true,
+                css: 'injected',
             },
             preprocess: sveltePreprocess(),
             filterWarnings: (warning) => {
