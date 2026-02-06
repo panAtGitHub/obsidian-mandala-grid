@@ -80,6 +80,10 @@
         return content.replace(/\n/g, '<br />');
     };
 
+    const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
+    const isMarkdownHeading = (line: string) => HEADING_RE.test(line);
+    const stripHeadingPrefix = (line: string) => line.replace(HEADING_RE, '');
+
     // Reactive store for cells
     const buildCells = (
         state: ReturnType<typeof view.documentStore.getValue>,
@@ -125,7 +129,7 @@
                 }
 
                 // 2. Get Content if Section exists
-                let title = '';
+                let titleHtml = '';
                 let bodyHtml = '';
                 let nodeId = '';
 
@@ -136,15 +140,25 @@
                         const nodeContent =
                             state.document.content[nodeId]?.content;
                         if (nodeContent) {
-                            // Extract title and body
                             const lines = nodeContent.split('\n');
-                            const rawTitle = lines[0] || '';
-                            title = rawTitle.replace(/^#+\s*/, '').trim();
+                            const firstLine = lines[0]?.trim() ?? '';
+                            const restLines = lines.slice(1);
 
-                            // Body: Join remaining lines, keep content short
-                            if (lines.length > 1) {
+                            // Only markdown headings use title style.
+                            if (firstLine && isMarkdownHeading(firstLine)) {
+                                titleHtml = buildBodyHtml(
+                                    stripHeadingPrefix(firstLine).trim(),
+                                );
+                                if (restLines.length > 0) {
+                                    const rawBody = restLines
+                                        .join('\n')
+                                        .trim()
+                                        .slice(0, 150);
+                                    bodyHtml = buildBodyHtml(rawBody);
+                                }
+                            } else {
+                                // Plain first line should be rendered as body text.
                                 const rawBody = lines
-                                    .slice(1)
                                     .join('\n')
                                     .trim()
                                     .slice(0, 150);
@@ -158,7 +172,7 @@
                     row,
                     col,
                     section,
-                    title,
+                    titleHtml,
                     bodyHtml,
                     nodeId,
                     isCenter,
@@ -362,8 +376,13 @@
             on:dblclick={() => onCellDblClick(cell)}
         >
             <div class="cell-content">
-                {#if cell.title}
-                    <div class="cell-title">{cell.title}</div>
+                {#if cell.titleHtml}
+                    <div
+                        class="cell-title"
+                        on:click={(event) => handleLinks(view, event)}
+                    >
+                        {@html cell.titleHtml}
+                    </div>
                 {/if}
                 {#if !$showTitleOnly && cell.bodyHtml}
                     <div
