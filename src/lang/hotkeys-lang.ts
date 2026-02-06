@@ -60,7 +60,6 @@ export const hotkeysLang = {
     toggle_collapse_all: lang.hk_outline_toggle_collapse_all,
     toggle_outline_mode: lang.hk_toggle_outline_mode,
     toggle_mandala_mode: lang.hk_toggle_mandala_mode,
-    toggle_lock_mode: lang.hk_toggle_lock_mode,
     enter_subgrid: lang.hk_enter_subgrid,
     exit_subgrid: lang.hk_exit_subgrid,
     jump_core_next: lang.hk_jump_core_next,

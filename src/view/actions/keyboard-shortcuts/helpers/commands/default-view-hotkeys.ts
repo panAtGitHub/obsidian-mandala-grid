@@ -20,7 +20,6 @@ import { get } from 'svelte/store';
 import { singleColumnStore } from 'src/stores/document/derived/columns-store';
 import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
 import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
-import { toggleMobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
 import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';
@@ -264,16 +263,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [],
     }, */
-    {
-        name: 'toggle_lock_mode',
-        callback: (view, e) => {
-            if (view.mandalaMode === null) return;
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMobileInteractionMode();
-        },
-        hotkeys: [],
-    },
     {
         name: 'enter_subgrid',
         callback: (view, e) => {

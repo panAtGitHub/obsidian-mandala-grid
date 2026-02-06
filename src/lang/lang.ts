@@ -273,7 +273,6 @@ export const lang = {
     controls_single_column: 'Outline mode',
     hk_toggle_outline_mode: '切换大纲模式',
     hk_toggle_mandala_mode: '切换 3×3 / 9×9',
-    hk_toggle_lock_mode: '切换锁定模式',
     card_btn_collapse_node: 'Collapse',
     card_btn_expand_node: 'Expand',
     hk_outline_toggle_collapse: '折叠/展开卡片',

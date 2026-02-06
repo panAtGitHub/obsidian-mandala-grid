@@ -79,7 +79,6 @@ export const hotkeyGroups = {
         'toggle_collapse_all',
     ]),
     [lang.hkg_mandala]: new Set([
-        'toggle_lock_mode',
         'enter_subgrid',
         'exit_subgrid',
         'jump_core_next',
