@@ -509,7 +509,7 @@ const jumpToNextCore = (event: MouseEvent) => {
     }
 
     .cell-title {
-        font-size: 1em;
+        font-size: calc(1em * var(--mandala-h1-scale, 1));
         font-weight: 600;
         line-height: 1.2;
         color: var(--text-normal);
