@@ -1337,6 +1337,24 @@
         showPanoramaOptions = false;
     };
 
+    const getVisibleViewport = () => {
+        const vv = window.visualViewport;
+        if (!vv) {
+            return {
+                left: 0,
+                top: 0,
+                right: window.innerWidth,
+                bottom: window.innerHeight,
+            };
+        }
+        return {
+            left: vv.offsetLeft,
+            top: vv.offsetTop,
+            right: vv.offsetLeft + vv.width,
+            bottom: vv.offsetTop + vv.height,
+        };
+    };
+
     const updateMobileBoundsStyle = () => {
         if (!isMobile || !show) {
             mobileBoundsStyle = '';
@@ -1344,12 +1362,24 @@
         }
 
         const rect = view.contentEl.getBoundingClientRect();
+        const visibleViewport = getVisibleViewport();
+        const boundedLeft = Math.max(rect.left, visibleViewport.left);
+        const boundedTop = Math.max(rect.top, visibleViewport.top);
+        const boundedRight = Math.min(rect.right, visibleViewport.right);
+        const boundedBottom = Math.min(rect.bottom, visibleViewport.bottom);
         const padding = 8;
-        const left = Math.max(0, rect.left + padding);
-        const top = Math.max(0, rect.top + padding);
-        const width = Math.max(260, rect.width - padding * 2);
-        const height = Math.max(220, rect.height - padding * 2);
+        const left = Math.max(0, boundedLeft + padding);
+        const top = Math.max(0, boundedTop + padding);
+        const width = Math.max(0, boundedRight - boundedLeft - padding * 2);
+        const height = Math.max(0, boundedBottom - boundedTop - padding * 2);
         mobileBoundsStyle = `left:${left}px;top:${top}px;width:${width}px;height:${height}px;`;
+    };
+
+    const handleViewportChange = () => {
+        updateMobileBoundsStyle();
+        requestAnimationFrame(() => {
+            updateMobileBoundsStyle();
+        });
     };
 
     // 点击外部关闭菜单 - 使用全局点击事件
@@ -1367,13 +1397,33 @@
         listenersAttached = true;
         setTimeout(() => {
             document.addEventListener('click', handleClickOutside);
-            window.addEventListener('resize', updateMobileBoundsStyle);
-            updateMobileBoundsStyle();
+            window.addEventListener('resize', handleViewportChange);
+            window.addEventListener('orientationchange', handleViewportChange);
+            window.visualViewport?.addEventListener(
+                'resize',
+                handleViewportChange,
+            );
+            window.visualViewport?.addEventListener(
+                'scroll',
+                handleViewportChange,
+            );
+            document.addEventListener('focusin', handleViewportChange, true);
+            handleViewportChange();
         }, 0);
     } else if (!show && listenersAttached) {
         listenersAttached = false;
         document.removeEventListener('click', handleClickOutside);
-        window.removeEventListener('resize', updateMobileBoundsStyle);
+        window.removeEventListener('resize', handleViewportChange);
+        window.removeEventListener('orientationchange', handleViewportChange);
+        window.visualViewport?.removeEventListener(
+            'resize',
+            handleViewportChange,
+        );
+        window.visualViewport?.removeEventListener(
+            'scroll',
+            handleViewportChange,
+        );
+        document.removeEventListener('focusin', handleViewportChange, true);
         mobileBoundsStyle = '';
     }
 </script>
