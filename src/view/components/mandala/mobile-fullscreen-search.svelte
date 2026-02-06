@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
     import { derived as svelteDerived } from 'svelte/store';
-    import { Platform } from 'obsidian';
 
     import { getView } from 'src/view/components/container/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
@@ -83,7 +82,6 @@
         pendingResult = null;
     }
 
-    const isMobile = Platform.isMobile;
 </script>
 
 <div

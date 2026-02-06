@@ -125,8 +125,8 @@
 </script>
 
 <div class="mandala-raw9">
-    {#each Array(9) as _, row (row)}
-        {#each Array(9) as __, col (col)}
+    {#each Array(9) as _rowPlaceholder, row (row)}
+        {#each Array(9) as _colPlaceholder, col (col)}
             {@const section = sectionAtRaw9x9Cell(
                 row,
                 col,

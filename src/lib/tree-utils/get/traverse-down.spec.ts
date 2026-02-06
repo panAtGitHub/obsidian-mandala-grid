@@ -188,7 +188,6 @@ describe('cases from move-node', () => {
                 },
             ],
         };
-        2;
         const childGroups = [n1_1_3];
         const activeNode = n1_1_3;
         const actualChildGroups = traverseDown(

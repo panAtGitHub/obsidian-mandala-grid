@@ -16,7 +16,7 @@
 
 <div class="split-content-footer" tabindex="0" >
     <div class="modes-container" tabindex="0">
-        {#each modes as _mode}
+        {#each modes as _mode (_mode)}
             <label data-disabled={disabledModes.has(_mode)}>
                 <input
                     checked={$mode === _mode}

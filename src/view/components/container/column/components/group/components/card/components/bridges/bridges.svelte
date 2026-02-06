@@ -18,7 +18,7 @@
     ></div>
 {:else if active === ActiveStatus.parent}
     <div
-        class={'active-parent-bridge-right'}
+        class="active-parent-bridge-right"
         style="--bg-color: {style && style.styleVariant == 'background-color'
             ? style.color
             : 'var(--background-active-parent)'}"

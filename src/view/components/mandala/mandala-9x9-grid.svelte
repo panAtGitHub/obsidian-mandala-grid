@@ -65,8 +65,8 @@
 </script>
 
 <div class="mandala-9x9-grid">
-    {#each Array(9) as _, row (row)}
-        {#each Array(9) as __, col (col)}
+    {#each Array(9) as _rowPlaceholder, row (row)}
+        {#each Array(9) as _colPlaceholder, col (col)}
             {@const section = sectionAtCell9x9(
                 row,
                 col,

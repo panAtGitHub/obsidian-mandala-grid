@@ -86,19 +86,19 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                                 });
                             },
                             icon: PanelRight,
-                            id: 'mandala-detail-sidebar' as any,
+                            id: 'mandala-detail-sidebar' as unknown as ToolbarButton,
                         },
                         {
                             label: lang.hk_jump_core_prev,
                             onClick: () => jumpCoreTheme(view, 'up'),
                             icon: ArrowLeftCircle,
-                            id: 'jump-core-prev' as any,
+                            id: 'jump-core-prev' as unknown as ToolbarButton,
                         },
                         {
                             label: lang.hk_jump_core_next,
                             onClick: () => jumpCoreTheme(view, 'down'),
                             icon: ArrowRightCircle,
-                            id: 'jump-core-next' as any,
+                            id: 'jump-core-next' as unknown as ToolbarButton,
                         },
                     ],
                 },

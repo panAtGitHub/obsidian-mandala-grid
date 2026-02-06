@@ -119,8 +119,9 @@ export const ensureMandalaChildren = (
 
 export const ensureMandalaCoreTheme = (
     document: MandalaGridDocument,
-    theme: string,
+    _theme: string,
 ): { nodeId: string; created: boolean } => {
+    void _theme;
     const rootGroup = document.columns[0]?.groups?.[0];
     if (!rootGroup) {
         throw new SilentError('could not find root group');

@@ -9,7 +9,7 @@
 
     export let nodeId: string;
     const view = getView();
-    // eslint-disable-next-line no-undef
+     
     const focusCard = () => {
         view.viewStore.dispatch({
            type: 'view/set-active-node/mouse',

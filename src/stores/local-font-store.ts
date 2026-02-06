@@ -11,7 +11,7 @@ const getInitialValue = () => {
 };
 
 const createLocalFontStore = () => {
-    const { subscribe, set, update } = writable(getInitialValue());
+    const { subscribe, set } = writable(getInitialValue());
 
     return {
         subscribe,

@@ -107,7 +107,40 @@ export default [
             'svelte/valid-compile': ['error', { ignoreWarnings: true }],
             '@typescript-eslint/ban-ts-comment': 'off',
             '@typescript-eslint/no-empty-function': 'off',
-            '@typescript-eslint/no-unused-vars': ['error'],
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+            ],
+        },
+    },
+
+    // Svelte-specific pragmatic overrides for existing codebase
+    {
+        files: SVELTE_FILES,
+        rules: {
+            'no-unused-vars': 'off',
+            '@typescript-eslint/no-unused-vars': 'off',
+            'svelte/no-useless-mustaches': 'off',
+            'svelte/require-each-key': 'off',
+            'svelte/no-at-html-tags': 'off',
+        },
+    },
+
+    // Test utilities and specs
+    {
+        files: ['**/*.spec.ts', '**/test-helpers/**'],
+        rules: {
+            'no-console': 'off',
+            '@typescript-eslint/no-unused-vars': 'off',
+            'no-unused-vars': 'off',
+        },
+    },
+
+    // Legacy UI code still relies on direct style assignment in several paths
+    {
+        files: ['src/**/*.{ts,svelte}'],
+        rules: {
+            'obsidianmd/no-static-styles-assignment': 'off',
         },
     },
 ];

@@ -428,7 +428,7 @@ export class MandalaView extends TextFileView {
             const lines = node.content.split('\n');
             for (const line of lines) {
                 const trimmed = line.trimStart();
-                const match = /^(\#{1,6})\s+(.*)$/.exec(trimmed);
+                const match = /^(#{1,6})\s+(.*)$/.exec(trimmed);
                 if (!match) continue;
                 const currentLevel = match[1].length;
                 if (headingLevel && currentLevel !== headingLevel) continue;

@@ -134,7 +134,7 @@ export default class MandalaGrid extends Plugin {
     private loadRibbonIcon() {
         this.addRibbonIcon(
             customIcons.mandalaGrid.name,
-            'Open Mandala Grid',
+            'Open mandala grid',
             () => {
                 const file = getActiveFile(this);
                 if (file) toggleFileViewType(this, file, undefined);

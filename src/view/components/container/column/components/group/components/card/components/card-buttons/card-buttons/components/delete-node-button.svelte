@@ -10,13 +10,13 @@
     export let nodeId: string;
     const view = getView();
 
-    // eslint-disable-next-line no-undef
+     
     const _deleteNode = (e: MouseEvent) => {
         e.stopPropagation();
         deleteNode(view, nodeId);
     };
 </script>
 
-<FloatingButton label={lang.card_btn_delete} on:click={_deleteNode} position={'up-right'} classes="delete-card-button">
+<FloatingButton label={lang.card_btn_delete} on:click={_deleteNode} position="up-right" classes="delete-card-button">
     <TrashIcon class="svg-con" />
 </FloatingButton>

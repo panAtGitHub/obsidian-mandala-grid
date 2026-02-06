@@ -10,7 +10,6 @@ import { CardIndentationWidth } from 'src/view/actions/settings/components/card-
 import { MaintainEditMode } from 'src/view/actions/settings/components/maintain-edit-mode';
 import { InactiveCardOpacity } from 'src/view/actions/settings/components/inactive-card-opacity';
 import { ActiveBranchColor } from 'src/view/actions/settings/components/active-branch-color';
-import { AlwaysShowCardButtons } from 'src/view/actions/settings/components/always-show-card-buttons';
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
 import { HeadingsFontSize } from 'src/view/actions/settings/components/headings-font-size';
 import { MandalaFontSizes } from 'src/view/actions/settings/components/mandala-font-sizes';

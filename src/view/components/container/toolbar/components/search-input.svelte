@@ -40,7 +40,7 @@
     };
 
     const onInput = (
-        // eslint-disable-next-line no-undef
+         
         e: Event & { currentTarget: EventTarget & HTMLInputElement },
     ) => {
         // 如果正在使用输入法（如拼音），不触发搜索
@@ -104,7 +104,7 @@
         on:compositionupdate={onCompositionUpdate}
         on:compositionend={onCompositionEnd}
         on:keydown={onKeyDown}
-        placeholder={'search'}
+        placeholder="search"
         spellcheck="false"
         type="search"
         value={$search.query}

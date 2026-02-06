@@ -1528,14 +1528,11 @@ describe('performance-test: calculate-chunk-position', () => {
         const lines = Array.from({ length: 10 }).map(() => {
             return generateLoremIpsumWithMarkdown(loremIpsumLength);
         });
-        // eslint-disable-next-line no-console
         console.log(lines.join('').length + ' characters');
-        // eslint-disable-next-line no-console
         console.time('calculateWordPositions');
         for (let i = 0; i < lines.length; i++) {
             calculateChunkPositions(lines[i], N_CHARS_PER_LINE, '', '');
         }
-        // eslint-disable-next-line no-console
         console.timeEnd('calculateWordPositions');
         expect(false).toBe(false);
     });

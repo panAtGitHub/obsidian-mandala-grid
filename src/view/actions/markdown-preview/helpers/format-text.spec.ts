@@ -166,14 +166,11 @@ describe('performance-test: format-text', () => {
         const texts = Array.from({ length: 10 }).map(() => {
             return generateLoremIpsumWithMarkdown(loremIpsumLength);
         });
-        // eslint-disable-next-line no-console
         console.log(texts.join('').length + ' characters');
-        // eslint-disable-next-line no-console
         console.time('format-text');
         for (let i = 0; i < texts.length; i++) {
             formatText(texts[i]);
         }
-        // eslint-disable-next-line no-console
         console.timeEnd('format-text');
 
         expect(false).toBe(false);

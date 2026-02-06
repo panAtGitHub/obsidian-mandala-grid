@@ -6,7 +6,7 @@
     
     export let results: MandalaSearchResult[];
     export let deferNavigation = false;
-    export let onSelect: ((result: MandalaSearchResult) => void) | undefined =
+    export let onSelect: ((_result: MandalaSearchResult) => void) | undefined =
         undefined;
     export let layout: 'dropdown' | 'list' = 'dropdown';
     

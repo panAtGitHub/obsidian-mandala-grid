@@ -1,8 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
-import { JumpTarget } from 'src/stores/view/reducers/document/jump-to-node';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
 import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
 import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
 
@@ -69,15 +67,6 @@ const sequentialNavigation = (
     });
 };
 
-const jump = (view: MandalaView, target: JumpTarget) => {
-    maybeEnableEditMode(view);
-    view.viewStore.dispatch({
-        type: 'view/set-active-node/keyboard-jump',
-        payload: {
-            target,
-        },
-    });
-};
 export const navigateCommands = () => {
     const commands: DefaultViewCommand[] = [];
     commands.push(

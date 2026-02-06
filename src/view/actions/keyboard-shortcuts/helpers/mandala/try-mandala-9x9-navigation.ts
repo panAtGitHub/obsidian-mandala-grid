@@ -42,8 +42,8 @@ export const tryMandala9x9Navigation = (
     }
 
     const { dr, dc } = deltas[direction];
-    let nextRow = current.row + dr;
-    let nextCol = current.col + dc;
+    const nextRow = current.row + dr;
+    const nextCol = current.col + dc;
     if (nextRow < 0 || nextCol < 0 || nextRow > 8 || nextCol > 8) return true;
 
     const nextSection = sectionAtCell9x9(

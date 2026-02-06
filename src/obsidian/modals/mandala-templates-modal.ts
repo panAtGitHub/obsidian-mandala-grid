@@ -223,7 +223,7 @@ class MandalaTemplatesFileModal extends Modal {
             .setName('存放模板文件的文件夹')
             .setDesc('请输入库内文件夹路径；留空表示根目录')
             .addText((text) => {
-                text.setPlaceholder('例如：3Resources/Templates');
+                text.setPlaceholder('例如：3resources/templates');
                 text.setValue(folderPath);
                 text.onChange((value) => {
                     folderPath = value.trim();

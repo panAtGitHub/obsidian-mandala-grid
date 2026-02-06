@@ -15,7 +15,7 @@ export const removeDeletedNavigationItems = (
     const items: NodeId[] = [];
     let previous: NodeId | null = null;
     for (const item of state.navigationHistory.items) {
-        if (content.hasOwnProperty(item) && item !== previous) {
+        if (Object.prototype.hasOwnProperty.call(content, item) && item !== previous) {
             items.push(item);
             previous = item;
         }

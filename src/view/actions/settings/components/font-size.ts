@@ -2,14 +2,12 @@ import type { SettingsStore } from 'src/main';
 import { lang } from 'src/lang/lang';
 import { RangeSetting } from 'src/view/actions/settings/components/shared/range-setting';
 import { localFontStore } from 'src/stores/local-font-store';
-import { get, Unsubscriber } from 'svelte/store';
+import { get } from 'svelte/store';
 
 export const FontSize = (
     element: HTMLElement,
     settingsStore: SettingsStore,
 ) => {
-    let unsub: Unsubscriber | undefined;
-
     const range = RangeSetting(element, settingsStore, {
         defaultValue: 16,
         onChange: (value) => {
@@ -23,7 +21,7 @@ export const FontSize = (
     });
 
     // 订阅本地 store 变化，以便在卡片上调节时，设置面板能同步更新
-    unsub = localFontStore.subscribe(() => {
+    const unsub = localFontStore.subscribe(() => {
         if (range && range.setValues) range.setValues();
     });
 

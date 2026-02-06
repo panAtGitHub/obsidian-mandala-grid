@@ -39,8 +39,8 @@ export const nextRaw9x9Cell = (
         right: { dr: 0, dc: 1 },
     };
     const { dr, dc } = deltas[direction];
-    let row = current.row + dr;
-    let col = current.col + dc;
+    const row = current.row + dr;
+    const col = current.col + dc;
 
     while (row >= 0 && row <= 8 && col >= 0 && col <= 8) {
         return { row, col };

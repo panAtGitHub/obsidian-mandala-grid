@@ -26,7 +26,7 @@ export const fitDocumentHeightIntoView = async (view: MandalaView) => {
         const height = groupHeights[groupHeights.length - 1];
         const width = getCombinedBoundingClientRect(columns).width;
 
-        // eslint-disable-next-line no-undef
+         
         const boundingClientRect = view.container.getBoundingClientRect();
         const heightScale = boundingClientRect.height / (height + 100);
         const widthScale = boundingClientRect.width / (width + 100);

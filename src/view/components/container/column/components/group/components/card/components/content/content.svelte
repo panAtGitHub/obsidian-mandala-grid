@@ -114,7 +114,7 @@
 </script>
 
 <div
-    class={'lng-prev markdown-preview-view markdown-preview-section markdown-rendered'}
+    class="lng-prev markdown-preview-view markdown-preview-section markdown-rendered"
     on:click={handleClick}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={!$showHiddenCardInfo}

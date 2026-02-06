@@ -62,7 +62,7 @@
     use:showContextMenu={view}
     tabindex="0"
 >
-    <div class={`mandala-main`} use:mouseWheelZoom={view}>
+    <div class="mandala-main" use:mouseWheelZoom={view}>
         <LeftSidebar />
         {#if Platform.isMobile && $showLeftSidebar}
             <div
@@ -119,12 +119,6 @@
     :global(.is-mobile) .mandala-view {
         user-select: none;
         -webkit-user-select: none;
-    }
-
-    :global(.is-mobile) .mandala-view .sidebar,
-    :global(.is-mobile) .mandala-view .sidebar * {
-        user-select: text;
-        -webkit-user-select: text;
     }
 
 </style>

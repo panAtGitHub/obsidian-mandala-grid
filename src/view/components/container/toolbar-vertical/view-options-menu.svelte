@@ -1,4 +1,5 @@
 <script lang="ts">
+    /* eslint-disable svelte/infinite-reactive-loop */
     import { getView } from 'src/view/components/container/context';
     import { Trash2, X } from 'lucide-svelte';
     import { Notice, Platform, TFile } from 'obsidian';
@@ -48,7 +49,7 @@
     import ViewOptionsExportPanel from './components/view-options-export-panel.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
 
-    const dispatch = createEventDispatcher();
+    const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
     const isMobile = Platform.isMobile;
 

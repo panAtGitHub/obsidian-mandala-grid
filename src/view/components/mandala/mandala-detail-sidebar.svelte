@@ -3,7 +3,6 @@
     import { derived } from 'src/lib/store/derived';
     import {
         ShowMandalaDetailSidebarStore,
-        MandalaDetailSidebarWidthStore,
         MandalaModeStore,
         Show3x3SubgridNavButtonsStore,
         Show9x9ParallelNavButtonsStore,
@@ -63,12 +62,10 @@
     $: activeCoreNumber = Number(activeSection?.split('.')[0] ?? '1') || 1;
     $: canExitSubgrid = Boolean($subgridTheme && $subgridTheme !== '1');
     $: canEnterSubgrid =
-        Boolean($activeNodeId) &&
-        !Boolean(
-            $subgridTheme &&
+        !!$activeNodeId &&
+        !($subgridTheme &&
                 $subgridTheme.includes('.') &&
-                activeSection === $subgridTheme,
-        );
+                activeSection === $subgridTheme);
     $: canJumpPrevCore = activeCoreNumber > 1;
 
     let editorContainer: HTMLElement;
