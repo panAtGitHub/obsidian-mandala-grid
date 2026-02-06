@@ -457,7 +457,9 @@
                                                     >
                                                         <span
                                                             class="mandala-subgrid-btn__icon"
-                                                            use:applyObsidianIcon={'chevron-up'}
+                                                            use:applyObsidianIcon={theme.includes('.')
+                                                                ? 'chevron-up'
+                                                                : 'chevron-left'}
                                                         />
                                                     </button>
                                                 {/if}
@@ -472,7 +474,9 @@
                                                     >
                                                         <span
                                                             class="mandala-subgrid-btn__icon"
-                                                            use:applyObsidianIcon={'chevron-down'}
+                                                            use:applyObsidianIcon={theme.includes('.')
+                                                                ? 'chevron-down'
+                                                                : 'chevron-right'}
                                                         />
                                                     </button>
                                                 {/if}
