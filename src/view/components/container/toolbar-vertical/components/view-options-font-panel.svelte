@@ -48,7 +48,7 @@
                 格子字体大小（{isMobile ? '手机端' : 'PC端'}）
             </div>
 
-            <label class="view-options-menu__row">
+            <div class="view-options-menu__row">
                 <span>3x3视图：</span>
                 <div class="view-options-menu__range">
                     <button
@@ -96,9 +96,9 @@
                         <RotateCcw size={14} />
                     </button>
                 </div>
-            </label>
+            </div>
 
-            <label class="view-options-menu__row">
+            <div class="view-options-menu__row">
                 <span>9x9视图：</span>
                 <div class="view-options-menu__range">
                     <button
@@ -146,9 +146,9 @@
                         <RotateCcw size={14} />
                     </button>
                 </div>
-            </label>
+            </div>
 
-            <label class="view-options-menu__row">
+            <div class="view-options-menu__row">
                 <span>侧边栏：</span>
                 <div class="view-options-menu__range">
                     <button
@@ -196,14 +196,14 @@
                         <RotateCcw size={14} />
                     </button>
                 </div>
-            </label>
+            </div>
         </div>
 
         <div class="view-options-menu__subsection">
             <div class="view-options-menu__subsection-title">
                 标题字体大小（em）（可理解为正文字体的放大倍数）
             </div>
-            <label class="view-options-menu__row">
+            <div class="view-options-menu__row">
                 <span>H1</span>
                 <div class="view-options-menu__range">
                     <button
@@ -251,7 +251,7 @@
                         <RotateCcw size={14} />
                     </button>
                 </div>
-            </label>
+            </div>
         </div>
     </div>
 {/if}
