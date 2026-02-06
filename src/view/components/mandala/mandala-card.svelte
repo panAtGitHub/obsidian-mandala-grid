@@ -11,17 +11,18 @@
     import { setActiveMainSplitNode } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/set-active-main-split-node';
     import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
     import { Platform } from 'obsidian';
-    import { 
-        enterSubgridForNode, 
-        exitCurrentSubgrid, 
-        isGridCenter 
+    import {
+        enterSubgridForNode,
+        exitCurrentSubgrid,
+        isGridCenter,
     } from 'src/view/helpers/mandala/mobile-navigation';
     import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
-    import { 
+    import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
+    import {
         ShowMandalaDetailSidebarStore,
         // AlwaysShowCardButtons,
-        OutlineModeStore
+        OutlineModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
     // import CardButtons from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
     import { derived } from 'src/lib/store/derived';
@@ -39,7 +40,8 @@
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
     export let draggable: boolean;
-    export let gridCell: { mode: '9x9'; row: number; col: number } | null = null;
+    export let gridCell: { mode: '9x9'; row: number; col: number } | null =
+        null;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -64,18 +66,16 @@
             setActiveCell9x9(view, null);
         }
         setActiveMainSplitNode(view, nodeId, e);
-        
+
         // 移动端：绝对禁止触发编辑逻辑（编辑由右侧栏双击触发）
         if (isMobile) {
             return;
         }
 
-        const maintainEditMode = view.plugin.settings.getValue().view.maintainEditMode;
+        const maintainEditMode =
+            view.plugin.settings.getValue().view.maintainEditMode;
         if (maintainEditMode && $showDetailSidebar) {
-            view.viewStore.dispatch({
-                type: 'view/editor/enable-main-editor',
-                payload: { nodeId: nodeId, isInSidebar: true },
-            });
+            enableSidebarEditorForNode(view, nodeId);
         }
     };
 
@@ -94,7 +94,7 @@
 
     // 防抖定时器
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    
+
     // 设置面板显示状态
     let showSettings = false;
     const toggleSettings = () => {
@@ -131,9 +131,13 @@
         active ? 'node-border--active' : undefined,
         // $alwaysShowCardButtons ? 'always-show-buttons' : undefined,
     )}
-    class:mandala-card--swap-source={$swapState.active && $swapState.sourceNodeId === nodeId}
-    class:mandala-card--swap-target={$swapState.active && $swapState.targetNodeIds.has(nodeId)}
-    class:mandala-card--swap-disabled={$swapState.active && !$swapState.targetNodeIds.has(nodeId) && $swapState.sourceNodeId !== nodeId}
+    class:mandala-card--swap-source={$swapState.active &&
+        $swapState.sourceNodeId === nodeId}
+    class:mandala-card--swap-target={$swapState.active &&
+        $swapState.targetNodeIds.has(nodeId)}
+    class:mandala-card--swap-disabled={$swapState.active &&
+        !$swapState.targetNodeIds.has(nodeId) &&
+        $swapState.sourceNodeId !== nodeId}
     class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
     id={nodeId}
     style={sectionColor ? `background-color: ${sectionColor};` : undefined}
@@ -156,10 +160,7 @@
 
         // PC 端逻辑：根据侧栏状态决定编辑位置
         if ($showDetailSidebar) {
-            view.viewStore.dispatch({
-                type: 'view/editor/enable-main-editor',
-                payload: { nodeId: nodeId, isInSidebar: true },
-            });
+            enableSidebarEditorForNode(view, nodeId);
         } else {
             enableEditModeInMainSplit(view, nodeId);
         }
@@ -170,20 +171,28 @@
     {/if}
 
     {#if active && editing && !$showDetailSidebar}
-        <InlineEditor 
-            nodeId={nodeId} 
-            {style} 
-            fontSizeOffset={isMobile ? ($localFontStore - 16) : 0} 
+        <InlineEditor
+            {nodeId}
+            {style}
+            fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
             absoluteFontSize={isMobile ? $localFontStore : undefined}
         />
     {:else if draggable}
-        <Draggable nodeId={nodeId} isInSidebar={false}>
-            <Content nodeId={nodeId} isInSidebar={false} active={active ? ActiveStatus.node : null} />
+        <Draggable {nodeId} isInSidebar={false}>
+            <Content
+                {nodeId}
+                isInSidebar={false}
+                active={active ? ActiveStatus.node : null}
+            />
         </Draggable>
     {:else}
-        <Content nodeId={nodeId} isInSidebar={false} active={active ? ActiveStatus.node : null} />
+        <Content
+            {nodeId}
+            isInSidebar={false}
+            active={active ? ActiveStatus.node : null}
+        />
     {/if}
-    
+
     <!-- <CardButtons
         {editing}
         {nodeId}
@@ -241,7 +250,6 @@
     .mandala-card--swap-disabled {
         opacity: 0.6;
     }
-
 
     /* .mandala-card.always-show-buttons :global(.mandala-floating-button) {
         opacity: var(--opacity-inactive-node) !important;

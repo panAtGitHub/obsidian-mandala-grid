@@ -1,30 +1,30 @@
 <script lang="ts">
-import { getView } from 'src/view/components/container/context';
-import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
-import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
-import { onMount } from 'svelte';
-    import { derived } from 'src/lib/store/derived';
+    import { getView } from 'src/view/components/container/context';
+    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
+    import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
+    import { onMount } from 'svelte';
     import {
-        getMandalaLayout,
-    } from 'src/view/helpers/mandala/mandala-grid';
+        openSidebarAndEditMandalaNode,
+        setActiveMandalaNode,
+    } from 'src/view/helpers/mandala/node-editing';
+    import { derived } from 'src/lib/store/derived';
+    import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
-    MandalaSectionColorOpacityStore,
-    ShowMandalaDetailSidebarStore,
-    Show9x9ParallelNavButtonsStore,
-    Show9x9TitleOnlyStore,
-} from 'src/stores/settings/derived/view-settings-store';
+        MandalaSectionColorOpacityStore,
+        Show9x9ParallelNavButtonsStore,
+        Show9x9TitleOnlyStore,
+    } from 'src/stores/settings/derived/view-settings-store';
 
-import { Platform, setIcon } from 'obsidian';
+    import { Platform, setIcon } from 'obsidian';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
 
-const view = getView();
-const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
-const showTitleOnly = Show9x9TitleOnlyStore(view);
-const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
+    const view = getView();
+    const showTitleOnly = Show9x9TitleOnlyStore(view);
+    const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const sectionColors = SectionColorBySectionStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
@@ -34,30 +34,30 @@ const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
         (blockRow === 1 && blockCol === 0) ||
         (blockRow === 1 && blockCol === 2) ||
         (blockRow === 2 && blockCol === 1);
-const activeNodeId = derived(
-    view.viewStore,
-    (state) => state.document.activeNode,
-);
-const idToSection = derived(
-    view.documentStore,
-    (state) => state.sections.id_section,
-);
-const activeCell = derived(
-    view.viewStore,
-    (state) => state.ui.mandala.activeCell9x9,
-);
-let gridEl: HTMLDivElement | null = null;
-let bodyLineClamp = 3;
-let currentCoreNumber = 1;
+    const activeNodeId = derived(
+        view.viewStore,
+        (state) => state.document.activeNode,
+    );
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
+    const activeCell = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.activeCell9x9,
+    );
+    let gridEl: HTMLDivElement | null = null;
+    let bodyLineClamp = 3;
+    let currentCoreNumber = 1;
 
-const getBaseTheme = (section: string | undefined) =>
-    section ? section.split('.')[0] : '1';
+    const getBaseTheme = (section: string | undefined) =>
+        section ? section.split('.')[0] : '1';
 
-$: {
-    const section = $idToSection[$activeNodeId];
-    const nextCore = Number(getBaseTheme(section));
-    currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
-}
+    $: {
+        const section = $idToSection[$activeNodeId];
+        const nextCore = Number(getBaseTheme(section));
+        currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
+    }
 
     const escapeHtml = (value: string) =>
         value
@@ -81,7 +81,13 @@ $: {
 
         content = content.replace(
             /\[([^\]]+)\]\(([^)]+)\)/g,
-            (match, label: string, url: string, offset: number, source: string) => {
+            (
+                match,
+                label: string,
+                url: string,
+                offset: number,
+                source: string,
+            ) => {
                 if (offset > 0 && source[offset - 1] === '!') {
                     return match;
                 }
@@ -121,10 +127,9 @@ $: {
                 const isThemeCenter = localRow === 1 && localCol === 1;
                 let isGrayBlock = false;
 
-                const blockSlot =
-                    isCenter
-                        ? null
-                        : layout.themeGrid[blockRow]?.[blockCol] ?? null;
+                const blockSlot = isCenter
+                    ? null
+                    : layout.themeGrid[blockRow]?.[blockCol] ?? null;
                 const theme = blockSlot
                     ? `${baseTheme}.${blockSlot}`
                     : baseTheme;
@@ -251,10 +256,8 @@ $: {
             const background = sectionColor
                 ? applyOpacityToHex(sectionColor, opacity)
                 : $backgroundMode === 'gray' && cell.isGrayBlock
-                    ? `color-mix(in srgb, var(--mandala-gray-block-base) ${
-                          $sectionColorOpacity
-                      }%, transparent)`
-                    : null;
+                  ? `color-mix(in srgb, var(--mandala-gray-block-base) ${$sectionColorOpacity}%, transparent)`
+                  : null;
             return { ...cell, background };
         });
     }
@@ -277,7 +280,8 @@ $: {
             : bodyLineHeight;
         const reservedTitleHeight = titleLineHeight * 2;
         const reservedGap = 2;
-        const available = cellBox.height - padding - reservedTitleHeight - reservedGap;
+        const available =
+            cellBox.height - padding - reservedTitleHeight - reservedGap;
         const lines = Math.max(1, Math.floor(available / bodyLineHeight));
         bodyLineClamp = Math.min(lines, 12);
     };
@@ -300,10 +304,7 @@ $: {
         // as the single visual focus instead of highlighting all same-node copies.
         setActiveCell9x9(view, { row: cell.row, col: cell.col });
 
-        view.viewStore.dispatch({
-            type: 'view/set-active-node/mouse',
-            payload: { id: cell.nodeId },
-        });
+        setActiveMandalaNode(view, cell.nodeId);
     };
 
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
@@ -317,42 +318,27 @@ $: {
             return;
         }
 
-        const showSidebar =
-            view.plugin.settings.getValue().view.showMandalaDetailSidebar;
-        if (!showSidebar) {
-            view.plugin.settings.dispatch({
-                type: 'view/mandala-detail-sidebar/toggle',
-            });
-        }
-
-        view.viewStore.dispatch({
-            type: 'view/set-active-node/mouse-silent',
-            payload: { id: cell.nodeId },
-        });
-        view.viewStore.dispatch({
-            type: 'view/editor/enable-main-editor',
-            payload: { nodeId: cell.nodeId, isInSidebar: true },
-        });
+        openSidebarAndEditMandalaNode(view, cell.nodeId);
     };
 
-const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
-    setIcon(node, iconName);
-    return {
-        update(nextIconName: string) {
-            setIcon(node, nextIconName);
-        },
+    const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
+        setIcon(node, iconName);
+        return {
+            update(nextIconName: string) {
+                setIcon(node, nextIconName);
+            },
+        };
     };
-};
 
-const jumpToPrevCore = (event: MouseEvent) => {
-    event.stopPropagation();
-    jumpCoreTheme(view, 'up');
-};
+    const jumpToPrevCore = (event: MouseEvent) => {
+        event.stopPropagation();
+        jumpCoreTheme(view, 'up');
+    };
 
-const jumpToNextCore = (event: MouseEvent) => {
-    event.stopPropagation();
-    jumpCoreTheme(view, 'down');
-};
+    const jumpToNextCore = (event: MouseEvent) => {
+        event.stopPropagation();
+        jumpCoreTheme(view, 'down');
+    };
 </script>
 
 <div class="simple-9x9-shell">
@@ -362,13 +348,17 @@ const jumpToNextCore = (event: MouseEvent) => {
         bind:this={gridEl}
     >
         {#each styledCells as cell}
-            <div 
-                class="simple-cell" 
+            <div
+                class="simple-cell"
                 class:is-center={cell.isCenter}
                 class:is-theme-center={cell.isThemeCenter}
                 class:is-title-only={$showTitleOnly}
-                class:is-active={cell.nodeId && cell.nodeId === $activeNodeId && !$activeCell}
-                class:is-active-cell={$activeCell && cell.row === $activeCell.row && cell.col === $activeCell.col}
+                class:is-active={cell.nodeId &&
+                    cell.nodeId === $activeNodeId &&
+                    !$activeCell}
+                class:is-active-cell={$activeCell &&
+                    cell.row === $activeCell.row &&
+                    cell.col === $activeCell.col}
                 class:is-block-row-start={cell.row % 3 === 0}
                 class:is-block-col-start={cell.col % 3 === 0}
                 class:is-last-row={cell.row === 8}
@@ -400,7 +390,7 @@ const jumpToNextCore = (event: MouseEvent) => {
                     {/if}
                 </div>
                 {#if cell.section}
-                     <span class="cell-debug">{cell.section}</span>
+                    <span class="cell-debug">{cell.section}</span>
                 {/if}
             </div>
         {/each}
@@ -538,7 +528,7 @@ const jumpToNextCore = (event: MouseEvent) => {
         background-color: var(--background-secondary-alt);
         border-color: var(--text-muted);
     }
-    
+
     .is-theme-center {
         background-color: var(--background-primary-alt);
     }

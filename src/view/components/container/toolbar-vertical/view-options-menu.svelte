@@ -73,7 +73,10 @@
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const themeDefaults = getDefaultTheme();
-    const cardsGap = derived(view.plugin.settings, (state) => state.view.cardsGap);
+    const cardsGap = derived(
+        view.plugin.settings,
+        (state) => state.view.cardsGap,
+    );
     const fontSize3x3 = isMobile
         ? MandalaFontSize3x3MobileStore(view)
         : MandalaFontSize3x3DesktopStore(view);
@@ -93,12 +96,14 @@
     );
     const activeBranchBg = derived(
         view.plugin.settings,
-        (state) => state.view.theme.activeBranchBg ?? themeDefaults.activeBranchBg,
+        (state) =>
+            state.view.theme.activeBranchBg ?? themeDefaults.activeBranchBg,
     );
     const activeBranchColor = derived(
         view.plugin.settings,
         (state) =>
-            state.view.theme.activeBranchColor ?? themeDefaults.activeBranchColor,
+            state.view.theme.activeBranchColor ??
+            themeDefaults.activeBranchColor,
     );
     const inactiveNodeOpacity = derived(
         view.plugin.settings,
@@ -195,6 +200,9 @@
     const clampOpacity = (value: number) => Math.min(100, Math.max(0, value));
     const clampFontSize = (value: number) => Math.min(36, Math.max(6, value));
     const clampH1FontSize = (value: number) => Math.min(4, Math.max(1, value));
+    const roundToDecimal = (value: number, decimalPlaces: number) =>
+        Math.round(value * Math.pow(10, decimalPlaces)) /
+        Math.pow(10, decimalPlaces);
 
     const updateCardsGapValue = (value: number) => {
         view.plugin.settings.dispatch({
@@ -203,32 +211,38 @@
         });
     };
 
-    const updateFontSize3x3Value = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/font-size/set-3x3-mobile'
-                : 'settings/view/font-size/set-3x3-desktop',
-            payload: { fontSize: clampFontSize(value) },
-        });
+    const createPlatformFontSizeUpdater = (
+        desktopType:
+            | 'settings/view/font-size/set-3x3-desktop'
+            | 'settings/view/font-size/set-9x9-desktop'
+            | 'settings/view/font-size/set-sidebar-desktop',
+        mobileType:
+            | 'settings/view/font-size/set-3x3-mobile'
+            | 'settings/view/font-size/set-9x9-mobile'
+            | 'settings/view/font-size/set-sidebar-mobile',
+    ) => {
+        return (value: number) => {
+            view.plugin.settings.dispatch({
+                type: isMobile ? mobileType : desktopType,
+                payload: { fontSize: clampFontSize(value) },
+            });
+        };
     };
 
-    const updateFontSize9x9Value = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/font-size/set-9x9-mobile'
-                : 'settings/view/font-size/set-9x9-desktop',
-            payload: { fontSize: clampFontSize(value) },
-        });
-    };
+    const updateFontSize3x3Value = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-3x3-desktop',
+        'settings/view/font-size/set-3x3-mobile',
+    );
 
-    const updateFontSizeSidebarValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/font-size/set-sidebar-mobile'
-                : 'settings/view/font-size/set-sidebar-desktop',
-            payload: { fontSize: clampFontSize(value) },
-        });
-    };
+    const updateFontSize9x9Value = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-9x9-desktop',
+        'settings/view/font-size/set-9x9-mobile',
+    );
+
+    const updateFontSizeSidebarValue = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-sidebar-desktop',
+        'settings/view/font-size/set-sidebar-mobile',
+    );
 
     const updateHeadingsFontSizeValue = (value: number) => {
         view.plugin.settings.dispatch({
@@ -272,6 +286,32 @@
         return Number.isFinite(value) ? value : null;
     };
 
+    const createNumericInputHandler = (
+        applyValue: (value: number) => void,
+        parseValue: (raw: string) => number | null = parseFiniteNumber,
+    ) => {
+        return (event: Event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLInputElement)) return;
+            const value = parseValue(target.value);
+            if (value === null) return;
+            applyValue(value);
+        };
+    };
+
+    const createStepHandler = (
+        applyValue: (value: number) => void,
+        decimalPlaces?: number,
+    ) => {
+        return (current: number, delta: number) => {
+            const next =
+                decimalPlaces === undefined
+                    ? current + delta
+                    : roundToDecimal(current + delta, decimalPlaces);
+            applyValue(next);
+        };
+    };
+
     const updateBorderOpacity = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
@@ -304,37 +344,15 @@
         updateCardsGapValue(value);
     };
 
-    const updateFontSize3x3 = (event: Event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement)) return;
-        const value = parseFiniteNumber(target.value);
-        if (value === null) return;
-        updateFontSize3x3Value(value);
-    };
-
-    const updateFontSize9x9 = (event: Event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement)) return;
-        const value = parseFiniteNumber(target.value);
-        if (value === null) return;
-        updateFontSize9x9Value(value);
-    };
-
-    const updateFontSizeSidebar = (event: Event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement)) return;
-        const value = parseFiniteNumber(target.value);
-        if (value === null) return;
-        updateFontSizeSidebarValue(value);
-    };
-
-    const updateHeadingsFontSize = (event: Event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement)) return;
-        const value = parseFiniteFloat(target.value);
-        if (value === null) return;
-        updateHeadingsFontSizeValue(value);
-    };
+    const updateFontSize3x3 = createNumericInputHandler(updateFontSize3x3Value);
+    const updateFontSize9x9 = createNumericInputHandler(updateFontSize9x9Value);
+    const updateFontSizeSidebar = createNumericInputHandler(
+        updateFontSizeSidebarValue,
+    );
+    const updateHeadingsFontSize = createNumericInputHandler(
+        updateHeadingsFontSizeValue,
+        parseFiniteFloat,
+    );
 
     const stepOpacity = (current: number, delta: number) => {
         updateSectionColorOpacityValue(current + delta);
@@ -352,22 +370,13 @@
         updateCardsGapValue(current + delta);
     };
 
-    const stepFontSize3x3 = (current: number, delta: number) => {
-        updateFontSize3x3Value(current + delta);
-    };
-
-    const stepFontSize9x9 = (current: number, delta: number) => {
-        updateFontSize9x9Value(current + delta);
-    };
-
-    const stepFontSizeSidebar = (current: number, delta: number) => {
-        updateFontSizeSidebarValue(current + delta);
-    };
-
-    const stepHeadingsFontSize = (current: number, delta: number) => {
-        const next = Math.round((current + delta) * 10) / 10;
-        updateHeadingsFontSizeValue(next);
-    };
+    const stepFontSize3x3 = createStepHandler(updateFontSize3x3Value);
+    const stepFontSize9x9 = createStepHandler(updateFontSize9x9Value);
+    const stepFontSizeSidebar = createStepHandler(updateFontSizeSidebarValue);
+    const stepHeadingsFontSize = createStepHandler(
+        updateHeadingsFontSizeValue,
+        1,
+    );
 
     const updateContainerBg = (event: Event) => {
         const target = event.target;
@@ -487,7 +496,11 @@
 
     const applyPrintConfig = (config: PrintConfig) => {
         updateExportViewSize(
-            config.a4Mode ? 'a4' : config.exportSquareSize ? 'square' : 'screen',
+            config.a4Mode
+                ? 'a4'
+                : config.exportSquareSize
+                  ? 'square'
+                  : 'screen',
         );
         updateWhiteThemeMode(config.whiteThemeMode);
         updateBackgroundMode(config.backgroundMode);
@@ -552,9 +565,7 @@
             getCurrentWindow?: () => {
                 webContents?: {
                     printToPDF?: (options: {
-                        pageSize:
-                            | string
-                            | { width: number; height: number };
+                        pageSize: string | { width: number; height: number };
                         landscape?: boolean;
                         printBackground?: boolean;
                         marginsType?: number;
@@ -584,7 +595,10 @@
         if ($a4Orientation === 'landscape') {
             wrapper.classList.add('mandala-a4-landscape');
         }
-        wrapper.style.setProperty('--mandala-border-opacity', `${$borderOpacity}%`);
+        wrapper.style.setProperty(
+            '--mandala-border-opacity',
+            `${$borderOpacity}%`,
+        );
         if (borderColor.trim().length > 0) {
             wrapper.style.setProperty('--mandala-border-color', borderColor);
         }
@@ -690,9 +704,7 @@
 
         // DPI metadata injection is disabled until PNG chunk placement is fixed.
 
-        const timestamp = new Date()
-            .toISOString()
-            .replace(/[:.]/g, '-');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const defaultName = `mandala-${timestamp}.png`;
 
         const electronRequire = (
@@ -760,7 +772,10 @@
 
             const wrapper = document.createElement('div');
             if (borderColor.trim().length > 0) {
-                wrapper.style.setProperty('--mandala-border-color', borderColor);
+                wrapper.style.setProperty(
+                    '--mandala-border-color',
+                    borderColor,
+                );
             }
             wrapper.style.position = 'fixed';
             wrapper.style.left = '0';
@@ -909,9 +924,7 @@
             return;
         }
 
-        const timestamp = new Date()
-            .toISOString()
-            .replace(/[:.]/g, '-');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const defaultName = `mandala-${timestamp}.pdf`;
         const isLandscape = $a4Orientation === 'landscape';
         const pageStyle = document.createElement('style');
@@ -934,12 +947,14 @@
             if (orientation === 'landscape') {
                 layer.classList.add('mandala-a4-landscape');
             }
-            layer.style.setProperty('--mandala-border-opacity', `${$borderOpacity}%`);
+            layer.style.setProperty(
+                '--mandala-border-opacity',
+                `${$borderOpacity}%`,
+            );
             if (borderColor.trim().length > 0) {
                 layer.style.setProperty('--mandala-border-color', borderColor);
             }
-            layer.style.width =
-                orientation === 'landscape' ? '297mm' : '210mm';
+            layer.style.width = orientation === 'landscape' ? '297mm' : '210mm';
             layer.style.height =
                 orientation === 'landscape' ? '210mm' : '297mm';
             layer.style.padding = '1.27cm';
@@ -1083,9 +1098,7 @@
         const chunkSize = 0x8000;
         let result = '';
         for (let i = 0; i < bytes.length; i += chunkSize) {
-            result += String.fromCharCode(
-                ...bytes.subarray(i, i + chunkSize),
-            );
+            result += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
         }
         return result;
     };
@@ -1395,7 +1408,7 @@
         {/if}
         <div class="view-options-menu__items">
             <ViewOptionsFontPanel
-                isMobile={isMobile}
+                {isMobile}
                 show={showFontOptions}
                 fontSize3x3={$fontSize3x3}
                 fontSize9x9={$fontSize9x9}
@@ -1430,8 +1443,8 @@
             <ViewOptionsEditPanel
                 show={showEditOptions}
                 whiteThemeMode={$whiteThemeMode}
-                showImmersiveOptions={showImmersiveOptions}
-                showPanoramaOptions={showPanoramaOptions}
+                {showImmersiveOptions}
+                {showPanoramaOptions}
                 containerBg={$containerBg}
                 activeBranchBg={$activeBranchBg}
                 activeBranchColor={$activeBranchColor}
@@ -1468,7 +1481,7 @@
             />
 
             <ViewOptionsExportPanel
-                isMobile={isMobile}
+                {isMobile}
                 show={showPrintOptions}
                 a4Mode={$a4Mode}
                 {exportSquareSize}
@@ -1498,7 +1511,10 @@
                 {applyTemplateToCurrentTheme}
             />
 
-            <button class="view-options-menu__item" on:click={clearEmptySubgrids}>
+            <button
+                class="view-options-menu__item"
+                on:click={clearEmptySubgrids}
+            >
                 <div class="view-options-menu__icon">
                     <Trash2 class="view-options-menu__icon-svg" size={18} />
                 </div>
