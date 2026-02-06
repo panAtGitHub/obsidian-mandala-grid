@@ -19,6 +19,7 @@
         MandalaFontSizeSidebarMobileStore,
         MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
+        Show3x3SubgridNavButtonsStore,
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
         SquareLayoutStore,
@@ -68,6 +69,7 @@
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
     const gridOrientation = MandalaGridOrientationStore(view);
+    const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const themeDefaults = getDefaultTheme();
@@ -122,6 +124,12 @@
     const toggle9x9ParallelNavButtons = () => {
         view.plugin.settings.dispatch({
             type: 'settings/view/toggle-9x9-parallel-nav-buttons',
+        });
+    };
+
+    const toggle3x3SubgridNavButtons = () => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/toggle-3x3-subgrid-nav-buttons',
         });
     };
 
@@ -1428,9 +1436,11 @@
             <ViewOptionsDisplayPanel
                 show={showDisplayOptions}
                 showHiddenCardInfo={$showHiddenCardInfo}
+                show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
                 toggle={() => (showDisplayOptions = !showDisplayOptions)}
                 {toggleHiddenCardInfo}
+                {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
             />
 

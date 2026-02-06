@@ -11,6 +11,7 @@
         MandalaBackgroundModeStore,
         MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
+        Show3x3SubgridNavButtonsStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
@@ -59,6 +60,7 @@
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
+    const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const toggleMode = () => {
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/toggle-mode',
@@ -436,7 +438,7 @@
                                         sectionColor={sectionBackground}
                                         draggable={cell.section !== theme}
                                     />
-                                    {#if !Platform.isMobile}
+                                    {#if !Platform.isMobile && $show3x3SubgridNavButtons}
                                         <div
                                             class="mandala-subgrid-controls"
                                             class:is-center-controls={cell.section === theme}

@@ -191,6 +191,9 @@ export type SettingsActions =
         type: 'settings/view/toggle-hidden-card-info';
     }
     | {
+        type: 'settings/view/toggle-3x3-subgrid-nav-buttons';
+    }
+    | {
         type: 'settings/view/toggle-9x9-parallel-nav-buttons';
     }
     | {

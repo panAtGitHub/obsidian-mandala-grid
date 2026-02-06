@@ -332,6 +332,13 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/toggle-hidden-card-info') return;
         store.view.showHiddenCardInfo = !store.view.showHiddenCardInfo;
     },
+    'settings/view/toggle-3x3-subgrid-nav-buttons': (store, action) => {
+        if (action.type !== 'settings/view/toggle-3x3-subgrid-nav-buttons') {
+            return;
+        }
+        store.view.show3x3SubgridNavButtons =
+            !(store.view.show3x3SubgridNavButtons ?? true);
+    },
     'settings/view/toggle-9x9-parallel-nav-buttons': (store, action) => {
         if (action.type !== 'settings/view/toggle-9x9-parallel-nav-buttons') {
             return;

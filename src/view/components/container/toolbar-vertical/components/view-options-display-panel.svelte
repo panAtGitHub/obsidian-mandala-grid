@@ -3,10 +3,12 @@
 
     export let show = false;
     export let showHiddenCardInfo = false;
+    export let show3x3SubgridNavButtons = true;
     export let show9x9ParallelNavButtons = true;
 
     export let toggle: () => void;
     export let toggleHiddenCardInfo: () => void;
+    export let toggle3x3SubgridNavButtons: () => void;
     export let toggle9x9ParallelNavButtons: () => void;
 </script>
 
@@ -35,6 +37,20 @@
                             on:change={toggleHiddenCardInfo}
                         />
                         <span>{showHiddenCardInfo ? '显示中' : '已隐藏'}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__row">
+                <span>3x3 视图导航按钮</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={show3x3SubgridNavButtons}
+                            on:change={toggle3x3SubgridNavButtons}
+                        />
+                        <span>{show3x3SubgridNavButtons ? '显示中' : '已隐藏'}</span>
                     </label>
                 </div>
             </div>

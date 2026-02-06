@@ -86,6 +86,12 @@ export const AlwaysShowCardButtons = (view: MandalaView) =>
 export const ShowHiddenCardInfoStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.showHiddenCardInfo);
 
+export const Show3x3SubgridNavButtonsStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.show3x3SubgridNavButtons ?? true,
+    );
+
 export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
