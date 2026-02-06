@@ -92,6 +92,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         maintainEditMode: false,
         alwaysShowCardButtons: false,
         showHiddenCardInfo: true,
+        show9x9ParallelNavButtons: true,
         mobileEditFontSizeOffset: 0,
         show9x9TitleOnly: false,
         squareLayout: false,

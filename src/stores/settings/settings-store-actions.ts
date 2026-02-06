@@ -191,6 +191,9 @@ export type SettingsActions =
         type: 'settings/view/toggle-hidden-card-info';
     }
     | {
+        type: 'settings/view/toggle-9x9-parallel-nav-buttons';
+    }
+    | {
         type: 'settings/view/theme/set-inactive-node-opacity';
         payload: { opacity: number };
     }

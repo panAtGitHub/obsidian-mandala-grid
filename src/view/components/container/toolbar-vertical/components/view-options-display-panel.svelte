@@ -3,10 +3,11 @@
 
     export let show = false;
     export let showHiddenCardInfo = false;
-    export let showMandalaEntryButtons = true;
+    export let show9x9ParallelNavButtons = true;
 
     export let toggle: () => void;
     export let toggleHiddenCardInfo: () => void;
+    export let toggle9x9ParallelNavButtons: () => void;
 </script>
 
 <button class="view-options-menu__item" on:click={toggle}>
@@ -39,15 +40,15 @@
             </div>
 
             <div class="view-options-menu__row">
-                <span>九宫格进出按钮</span>
+                <span>9x9 平行九宫格切换按钮</span>
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
                             type="checkbox"
-                            checked={showMandalaEntryButtons}
-                            disabled
+                            checked={show9x9ParallelNavButtons}
+                            on:change={toggle9x9ParallelNavButtons}
                         />
-                        <span>功能预留（下一步实现）</span>
+                        <span>{show9x9ParallelNavButtons ? '显示中' : '已隐藏'}</span>
                     </label>
                 </div>
             </div>

@@ -19,6 +19,7 @@
         MandalaFontSizeSidebarMobileStore,
         MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
+        Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
@@ -67,6 +68,7 @@
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
     const gridOrientation = MandalaGridOrientationStore(view);
+    const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const themeDefaults = getDefaultTheme();
     const cardsGap = derived(view.plugin.settings, (state) => state.view.cardsGap);
@@ -114,6 +116,12 @@
     const toggleHiddenCardInfo = () => {
         view.plugin.settings.dispatch({
             type: 'settings/view/toggle-hidden-card-info',
+        });
+    };
+
+    const toggle9x9ParallelNavButtons = () => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/toggle-9x9-parallel-nav-buttons',
         });
     };
 
@@ -1420,9 +1428,10 @@
             <ViewOptionsDisplayPanel
                 show={showDisplayOptions}
                 showHiddenCardInfo={$showHiddenCardInfo}
-                showMandalaEntryButtons={true}
+                show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
                 toggle={() => (showDisplayOptions = !showDisplayOptions)}
                 {toggleHiddenCardInfo}
+                {toggle9x9ParallelNavButtons}
             />
 
             <ViewOptionsEditPanel

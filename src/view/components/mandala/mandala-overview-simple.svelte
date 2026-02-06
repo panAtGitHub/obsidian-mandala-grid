@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
-    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
-    import { onMount } from 'svelte';
+import { getView } from 'src/view/components/container/context';
+import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
+import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
+import { onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import {
         getMandalaLayout,
@@ -10,19 +11,21 @@
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
-        MandalaSectionColorOpacityStore,
-        ShowMandalaDetailSidebarStore,
-        Show9x9TitleOnlyStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    MandalaSectionColorOpacityStore,
+    ShowMandalaDetailSidebarStore,
+    Show9x9ParallelNavButtonsStore,
+    Show9x9TitleOnlyStore,
+} from 'src/stores/settings/derived/view-settings-store';
 
-    import { Platform } from 'obsidian';
+import { Platform, setIcon } from 'obsidian';
     import { mobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
 
-    const view = getView();
-    const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
-    const showTitleOnly = Show9x9TitleOnlyStore(view);
+const view = getView();
+const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
+const showTitleOnly = Show9x9TitleOnlyStore(view);
+const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const sectionColors = SectionColorBySectionStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
@@ -341,66 +344,118 @@
             }
         }
 
-        // PC 端逻辑保持不变
-        view.viewStore.dispatch({
-            type: 'view/editor/enable-sidebar-editor',
-            payload: { id: cell.nodeId },
-            context: { activeSidebarTab: 'mandala-detail' as any }
-        });
+    // PC 端逻辑保持不变
+    view.viewStore.dispatch({
+        type: 'view/editor/enable-sidebar-editor',
+        payload: { id: cell.nodeId },
+        context: { activeSidebarTab: 'mandala-detail' as any }
+    });
+};
+
+const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
+    setIcon(node, iconName);
+    return {
+        update(nextIconName: string) {
+            setIcon(node, nextIconName);
+        },
     };
+};
+
+const jumpToPrevCore = (event: MouseEvent) => {
+    event.stopPropagation();
+    jumpCoreTheme(view, 'up');
+};
+
+const jumpToNextCore = (event: MouseEvent) => {
+    event.stopPropagation();
+    jumpCoreTheme(view, 'down');
+};
 </script>
 
-<div
-    class="simple-9x9-grid"
-    style={`--mandala-border-opacity: ${$borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
-    bind:this={gridEl}
->
-    {#each styledCells as cell}
-        <div 
-            class="simple-cell" 
-            class:is-center={cell.isCenter}
-            class:is-theme-center={cell.isThemeCenter}
-            class:is-title-only={$showTitleOnly}
-            class:is-active={cell.nodeId && cell.nodeId === $activeNodeId && !$activeCell}
-            class:is-active-cell={$activeCell && cell.row === $activeCell.row && cell.col === $activeCell.col}
-            class:is-block-row-start={cell.row % 3 === 0}
-            class:is-block-col-start={cell.col % 3 === 0}
-            class:is-last-row={cell.row === 8}
-            class:is-last-col={cell.col === 8}
-            style={cell.background
-                ? `background-color: ${cell.background};`
-                : undefined}
-            data-node-id={cell.nodeId || undefined}
-            id={cell.nodeId || undefined}
-            on:click={() => onCellClick(cell)}
-            on:dblclick={() => onCellDblClick(cell)}
-        >
-            <div class="cell-content">
-                {#if cell.titleHtml}
-                    <div
-                        class="cell-title"
-                        on:click={(event) => handleLinks(view, event)}
-                    >
-                        {@html cell.titleHtml}
-                    </div>
-                {/if}
-                {#if !$showTitleOnly && cell.bodyHtml}
-                    <div
-                        class="cell-body"
-                        on:click={(event) => handleLinks(view, event)}
-                    >
-                        {@html cell.bodyHtml}
-                    </div>
+<div class="simple-9x9-shell">
+    <div
+        class="simple-9x9-grid"
+        style={`--mandala-border-opacity: ${$borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
+        bind:this={gridEl}
+    >
+        {#each styledCells as cell}
+            <div 
+                class="simple-cell" 
+                class:is-center={cell.isCenter}
+                class:is-theme-center={cell.isThemeCenter}
+                class:is-title-only={$showTitleOnly}
+                class:is-active={cell.nodeId && cell.nodeId === $activeNodeId && !$activeCell}
+                class:is-active-cell={$activeCell && cell.row === $activeCell.row && cell.col === $activeCell.col}
+                class:is-block-row-start={cell.row % 3 === 0}
+                class:is-block-col-start={cell.col % 3 === 0}
+                class:is-last-row={cell.row === 8}
+                class:is-last-col={cell.col === 8}
+                style={cell.background
+                    ? `background-color: ${cell.background};`
+                    : undefined}
+                data-node-id={cell.nodeId || undefined}
+                id={cell.nodeId || undefined}
+                on:click={() => onCellClick(cell)}
+                on:dblclick={() => onCellDblClick(cell)}
+            >
+                <div class="cell-content">
+                    {#if cell.titleHtml}
+                        <div
+                            class="cell-title"
+                            on:click={(event) => handleLinks(view, event)}
+                        >
+                            {@html cell.titleHtml}
+                        </div>
+                    {/if}
+                    {#if !$showTitleOnly && cell.bodyHtml}
+                        <div
+                            class="cell-body"
+                            on:click={(event) => handleLinks(view, event)}
+                        >
+                            {@html cell.bodyHtml}
+                        </div>
+                    {/if}
+                </div>
+                {#if cell.section}
+                     <span class="cell-debug">{cell.section}</span>
                 {/if}
             </div>
-            {#if cell.section}
-                 <span class="cell-debug">{cell.section}</span>
-            {/if}
-        </div>
-    {/each}
+        {/each}
+    </div>
+
+    {#if !Platform.isMobile && $show9x9ParallelNavButtons}
+        <button
+            class="parallel-nav-button parallel-nav-button--left"
+            type="button"
+            aria-label="切换到上一个平行九宫格"
+            on:click={jumpToPrevCore}
+        >
+            <span
+                class="parallel-nav-button__icon"
+                use:applyObsidianIcon={'chevron-left'}
+            />
+        </button>
+        <button
+            class="parallel-nav-button parallel-nav-button--right"
+            type="button"
+            aria-label="切换到下一个平行九宫格"
+            on:click={jumpToNextCore}
+        >
+            <span
+                class="parallel-nav-button__icon"
+                use:applyObsidianIcon={'chevron-right'}
+            />
+        </button>
+    {/if}
 </div>
 
 <style>
+    .simple-9x9-shell {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
     .simple-9x9-grid {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
@@ -547,5 +602,45 @@
         text-align: center;
         white-space: normal;
         word-break: break-word;
+    }
+
+    .parallel-nav-button {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 6;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 999px;
+        background: var(--background-primary);
+        color: var(--text-normal);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-s);
+        cursor: pointer;
+    }
+
+    .parallel-nav-button:hover {
+        background: var(--background-primary-alt);
+    }
+
+    .parallel-nav-button:active {
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+
+    .parallel-nav-button--left {
+        left: 33.3333%;
+    }
+
+    .parallel-nav-button--right {
+        left: 66.6667%;
+    }
+
+    .parallel-nav-button__icon :global(svg) {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2.3;
     }
 </style>

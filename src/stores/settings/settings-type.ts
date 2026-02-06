@@ -90,6 +90,7 @@ export type Settings = {
         maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;
         showHiddenCardInfo: boolean;
+        show9x9ParallelNavButtons: boolean;
         mobileEditFontSizeOffset: number;
         show9x9TitleOnly: boolean;
         squareLayout: boolean;
