@@ -11,7 +11,6 @@
     import { setActiveMainSplitNode } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/set-active-main-split-node';
     import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
     import { Platform } from 'obsidian';
-    import { mobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
     import { 
         enterSubgridForNode, 
         exitCurrentSubgrid, 
@@ -67,7 +66,7 @@
         setActiveMainSplitNode(view, nodeId, e);
         
         // 移动端：绝对禁止触发编辑逻辑（编辑由右侧栏双击触发）
-        if (isMobile || $mobileInteractionMode === 'locked') {
+        if (isMobile) {
             return;
         }
 
@@ -119,10 +118,6 @@
             return;
         }
 
-        if (!isMobile && $mobileInteractionMode === 'locked') {
-            handleSelect(e);
-            return;
-        }
         handleSelect(e);
     };
 </script>
@@ -149,15 +144,6 @@
 
         // 移动端：双击仅用于导航（进入/退出子九宫）
         if (isMobile) {
-            if (isGridCenter(view, nodeId, section)) {
-                exitCurrentSubgrid(view);
-            } else {
-                enterSubgridForNode(view, nodeId);
-            }
-            return;
-        }
-
-        if ($mobileInteractionMode === 'locked') {
             if (isGridCenter(view, nodeId, section)) {
                 exitCurrentSubgrid(view);
             } else {

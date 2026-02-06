@@ -18,7 +18,6 @@ import { onMount } from 'svelte';
 } from 'src/stores/settings/derived/view-settings-store';
 
 import { Platform, setIcon } from 'obsidian';
-    import { mobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
 
@@ -301,14 +300,6 @@ $: {
         // as the single visual focus instead of highlighting all same-node copies.
         setActiveCell9x9(view, { row: cell.row, col: cell.col });
 
-        if (Platform.isMobile) {
-            // 场景 5：锁定 + 侧栏关 = 无反应
-            if ($mobileInteractionMode === 'locked' && !$showDetailSidebar) {
-                return;
-            }
-            // 场景 6, 7, 8：执行选中逻辑
-        }
-
         view.viewStore.dispatch({
             type: 'view/set-active-node/mouse',
             payload: { id: cell.nodeId },
@@ -323,11 +314,6 @@ $: {
 
         // 移动端：9x9 双击格子无功能（编辑仅由右侧栏双击触发）
         if (Platform.isMobile) {
-            return;
-        }
-
-        if ($mobileInteractionMode === 'locked') {
-            // 锁定模式：双击不进入编辑
             return;
         }
 

@@ -65,9 +65,6 @@
         );
     };
 
-    import { 
-        mobileInteractionMode 
-    } from '../../../../../../../../../../stores/view/mobile-interaction-store';
     import { Platform } from 'obsidian';
 
     const DOUBLE_CLICK_THRESHOLD_MS = 250;
@@ -99,16 +96,6 @@
             return;
         }
 
-        // PC 锁定模式：允许卡片处理导航，不改变选中
-        if (!Platform.isMobile && $mobileInteractionMode === 'locked') {
-            const target = e.target as HTMLElement | null;
-            const anchor = target?.closest('a.internal-link');
-            if (anchor) {
-                handleLinks(view, e);
-            }
-            return;
-        }
-
         const maintainEditMode = get(MaintainEditMode(view));
         const enableEditOnSingleClick =
             maintainEditMode && !isInSidebar && anotherNodeIsBeingEdited();
@@ -127,10 +114,6 @@
 
         // 移动端：双击不进入编辑，由父组件 MandalaCard 处理导航（3x3）/无动作（9x9）
         if (Platform.isMobile) {
-            return;
-        }
-
-        if ($mobileInteractionMode === 'locked') {
             return;
         }
 
