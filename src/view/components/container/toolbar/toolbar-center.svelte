@@ -25,10 +25,11 @@
 </script>
 
 <div class="toolbar-center">
-    <div class="lock-toggle-container">
+    <div class="lock-toggle-container buttons-group topbar-buttons-group">
         {#if $mode === '9x9'}
             <Button
                 active={$show9x9TitleOnly}
+                classes="topbar-button"
                 label="仅显示标题"
                 on:click={toggle9x9TitleOnly}
                 tooltipPosition="bottom"
@@ -38,6 +39,7 @@
         {/if}
         <Button
             active={$mode === '9x9'}
+            classes="topbar-button"
             label={$mode === '3x3' ? '切换到 9x9' : '切换到 3x3'}
             on:click={toggleMandalaMode}
             tooltipPosition="bottom"

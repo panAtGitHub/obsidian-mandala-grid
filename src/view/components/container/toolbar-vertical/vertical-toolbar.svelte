@@ -110,9 +110,10 @@
 </script>
 
 <div class="controls-container">
-    <div class="buttons-group controls-toggle">
+    <div class="buttons-group topbar-buttons-group controls-toggle">
         <Button
             active={$showControls}
+            classes="topbar-button"
             label={lang.controls_toggle_bar}
             on:click={toggleShowControls}
             tooltipPosition="bottom"
@@ -179,11 +180,11 @@
         </div>
     {:else}
         {#each orderedButtons as group (group.id)}
-            <div class="buttons-group">
+            <div class="buttons-group topbar-buttons-group">
                 {#each group.buttons as button (button.label)}
                     <Button
                         active={$activeStates[button.id]}
-                        classes="control-item"
+                        classes="control-item topbar-button"
                         label={button.label}
                         on:click={button.onClick}
                         tooltipPosition="bottom"
@@ -200,7 +201,7 @@
                 {#if group.id === 'mandala'}
                     <Button
                         active={$showOptionsMenu}
-                        classes="control-item js-view-options-trigger"
+                        classes="control-item js-view-options-trigger topbar-button"
                         label="视图选项"
                         on:click={toggleOptionsMenu}
                         tooltipPosition="bottom"
