@@ -11,9 +11,14 @@
     border-radius: 0;
     border: none;
     box-shadow: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
 
     & svg {
         opacity: 0.6;
+        display: block;
     }
 }
 
