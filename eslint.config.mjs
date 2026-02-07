@@ -122,6 +122,21 @@ export default [
             '@typescript-eslint/no-unused-vars': 'off',
             'svelte/no-useless-mustaches': 'off',
             'svelte/require-each-key': 'off',
+        },
+    },
+
+    // Allow trusted HTML rendering only in explicit files
+    {
+        files: [
+            'src/view/components/container/modals/snapshots-list/components/snapshot-button.svelte',
+            'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte',
+            'src/view/components/container/toolbar-vertical/zoom-buttons/zoom-buttons.svelte',
+            'src/view/components/container/modals/hotkeys/components/hotkey/editor-state/render-editor-state.svelte',
+            'src/view/components/mandala/mandala-overview-simple.svelte',
+            'src/view/modals/vertical-toolbar-buttons/components/vertical-toolbar-icons-selection-modal.svelte',
+            'src/view/modals/split-node-modal/components/components/content-preview.svelte',
+        ],
+        rules: {
             'svelte/no-at-html-tags': 'off',
         },
     },
@@ -139,8 +154,11 @@ export default [
     // Legacy UI code still relies on direct style assignment in several paths
     {
         files: ['src/**/*.{ts,svelte}'],
+        plugins: {
+            obsidianmd,
+        },
         rules: {
-            'obsidianmd/no-static-styles-assignment': 'off',
+            'obsidianmd/no-static-styles-assignment': 'warn',
         },
     },
 ];

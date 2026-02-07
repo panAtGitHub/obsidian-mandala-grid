@@ -190,13 +190,5 @@
         opacity: 0.6;
     }
 
-    /* .mandala-card.always-show-buttons :global(.mandala-floating-button) {
-        opacity: var(--opacity-inactive-node) !important;
-    }
-
-    .mandala-card.always-show-buttons.active-node :global(.mandala-floating-button) {
-        opacity: var(--opacity-active-node) !important;
-    } */
-
     /* 悬浮模式下的内容区优化 (目前统一由顶层逻辑处理) */
 </style>

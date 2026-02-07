@@ -21,6 +21,7 @@
     import { Platform, setIcon } from 'obsidian';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);
@@ -91,7 +92,11 @@
                 if (offset > 0 && source[offset - 1] === '!') {
                     return match;
                 }
-                const href = escapeAttribute(url.trim());
+                const normalizedUrl = url.trim();
+                if (!isSafeExternalUrl(normalizedUrl)) {
+                    return label;
+                }
+                const href = escapeAttribute(normalizedUrl);
                 return `<a class="external-link" href="${href}">${label}</a>`;
             },
         );
