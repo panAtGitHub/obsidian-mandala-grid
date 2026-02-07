@@ -23,10 +23,10 @@ export const AdjustHeight = (view: MandalaView, el: HTMLElement) => {
             const scrollHeightChange =
                 scrollHeight > 100 && scrollHeight !== previousScrollHeight;
             if (scrollHeightChange || (e && deletionKeys.has(e.key))) {
-                x.style.height = 'auto';
+                x.setCssProps({ height: 'auto' });
                 previousScrollHeight = x.scrollHeight;
-                el.style.height = previousScrollHeight + 'px';
-                x.style.height = '';
+                el.setCssProps({ height: previousScrollHeight + 'px' });
+                x.setCssProps({ height: '' });
                 if (!isInSidebar && limitCardHeight && scrollHeightChange) {
                     view.alignBranch.align({
                         type: 'view/align-branch/reveal-node',

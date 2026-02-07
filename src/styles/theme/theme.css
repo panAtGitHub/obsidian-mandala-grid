@@ -118,6 +118,11 @@
         padding: 0 !important;
     }
 
+    .mandala-root.mandala-a4-mode .mandala-scroll {
+        overflow: hidden !important;
+        padding: var(--mandala-a4-margin) !important;
+    }
+
     /* A4 打印设置 */
     @page {
         size: A4;
@@ -165,6 +170,40 @@
         position: fixed;
         inset: 0;
         display: block;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.is-desktop-square-layout
+        .parallel-nav-button {
+        display: none !important;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.is-desktop-square-layout
+        .mandala-scroll {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.is-desktop-square-layout
+        .simple-9x9-shell {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.is-desktop-square-layout
+        .simple-9x9-grid {
+        width: auto !important;
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        aspect-ratio: 1 / 1 !important;
     }
 }
 

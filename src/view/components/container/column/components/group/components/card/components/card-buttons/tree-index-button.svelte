@@ -23,7 +23,7 @@
     export let section: string;
     export let pinned: boolean;
 
-    // eslint-disable-next-line no-undef
+     
     const openFile = async () => {
         if (!view.file) return;
 

@@ -116,7 +116,7 @@ export const createZoomMenu = (props: Props) => {
                 });
             }
         });
-        menuDom.style.width = '220px';
+        menuDom.setCssProps({ width: '220px' });
     }
 
     if (menuDom && !props.state.menuHeight) {

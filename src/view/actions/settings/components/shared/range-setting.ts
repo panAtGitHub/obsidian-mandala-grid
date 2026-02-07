@@ -61,8 +61,10 @@ export const RangeSetting = (
         .addText((cb) => {
             textInput = cb;
             cb.inputEl.type = 'number';
-            cb.inputEl.style.width = '60px';
-            cb.inputEl.style.marginLeft = '12px';
+            cb.inputEl.setCssProps({
+                width: '60px',
+                'margin-left': '12px',
+            });
             cb.setValue(
                 (
                     props.valueSelector(settingsStore.getValue()) ??

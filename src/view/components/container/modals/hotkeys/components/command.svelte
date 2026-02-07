@@ -21,19 +21,19 @@
         {#if HotkeysThatBehaveDifferentlyInOutlineMode.has(commandHotkeys.name)}
             <span
                 class="info-icon"
-                aria-label="Behaves differently in outline mode"
+                aria-label="在大纲模式下行为不同"
                 ><Info class="svg-icon" /></span
             >
         {/if}
     </span>
     <div class="hotkeys">
-        {#each commandHotkeys.hotkeys as hotkey, i}
+        {#if commandHotkeys.hotkeys[0]}
             <Hotkey
-                {hotkey}
+                hotkey={commandHotkeys.hotkeys[0]}
                 commandName={commandHotkeys.name}
-                isPrimary={i === 0}
+                isPrimary={true}
             />
-        {/each}
+        {/if}
     </div>
 </div>
 

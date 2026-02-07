@@ -1,8 +1,6 @@
 <script lang="ts">
-    import { StyleRule } from '../../../../../../../../../stores/settings/types/style-rules-types';
     import NavigationButtons from '../../../../../../toolbar/components/search/search-navigation-buttons.svelte';
 
-    export let rule: StyleRule;
     export let results: string[] | undefined;
 </script>
 

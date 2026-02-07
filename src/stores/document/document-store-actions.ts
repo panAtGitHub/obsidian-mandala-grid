@@ -21,6 +21,7 @@ import { SortChildNodesAction } from 'src/stores/document/reducers/sort/sort-dir
 import {
     MandalaClearEmptySubgridsAction,
     MandalaEnsureChildrenAction,
+    MandalaEnsureCoreThemeAction,
     MandalaSwapAction,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
 
@@ -41,6 +42,7 @@ export type DocumentAction =
     | SetNodeContentAction
     | MandalaSwapAction
     | MandalaEnsureChildrenAction
+    | MandalaEnsureCoreThemeAction
     | MandalaClearEmptySubgridsAction
     | DropAction
     | DeleteNodeAction
@@ -67,6 +69,7 @@ export type UndoableAction =
     | DeleteNodeAction
     | MandalaSwapAction
     | MandalaEnsureChildrenAction
+    | MandalaEnsureCoreThemeAction
     | MandalaClearEmptySubgridsAction
     | DropAction
     | MoveNodeAction

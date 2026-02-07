@@ -6,7 +6,6 @@
     import { viewHotkeysAction } from 'src/view/actions/keyboard-shortcuts/view-hotkeys-action';
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
     import MandalaViewComponent from 'src/view/components/mandala/mandala-view.svelte';
-    import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
     import HotkeysModal from 'src/view/components/container/modals/hotkeys/hotkeys.svelte';
     import SettingsModal from 'src/view/components/container/modals/settings/settings.svelte';
     import SnapshotsListModal from 'src/view/components/container/modals/snapshots-list/file-histoy.svelte';
@@ -63,7 +62,7 @@
     use:showContextMenu={view}
     tabindex="0"
 >
-    <div class={`mandala-main`} use:mouseWheelZoom={view}>
+    <div class="mandala-main" use:mouseWheelZoom={view}>
         <LeftSidebar />
         {#if Platform.isMobile && $showLeftSidebar}
             <div
@@ -116,4 +115,10 @@
         height: 100%;
         width: 100%;
     }
+
+    :global(.is-mobile) .mandala-view {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
 </style>

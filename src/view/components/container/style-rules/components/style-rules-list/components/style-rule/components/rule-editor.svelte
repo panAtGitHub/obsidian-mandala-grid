@@ -81,14 +81,12 @@
                 type="number"
                 value={'valueB' in rule.condition ? rule.condition.valueB : 0}
                 on:input={h.handleValueBChange}
-                placeholder={'Number'}
-                style={'width: 60px'}
+                placeholder="Number"
+                style="width: 60px"
                 aria-label="Value 2"
             />
         {/if}
     </div>
-
-    <!--    <div class="debug-node-id">{rule.id}</div>-->
 </div>
 
 <style>

@@ -18,7 +18,6 @@ export const tryMandala3x3Navigation = (
     options?: { extendSelection?: boolean },
 ) => {
     const docState = view.documentStore.getValue();
-    if (!docState.meta.isMandala) return false;
     if (view.mandalaMode !== '3x3') return false;
 
     const activeNodeId = view.viewStore.getValue().document.activeNode;
@@ -29,28 +28,17 @@ export const tryMandala3x3Navigation = (
     const gridOrientation =
         view.plugin.settings.getValue().view.mandalaGridOrientation ??
         'left-to-right';
-    const { coreGrid, positions, slotPositions, themeGrid } =
-        getMandalaLayout(gridOrientation);
+    const { slotPositions, themeGrid } = getMandalaLayout(gridOrientation);
+    const theme = subgridTheme ?? '1';
 
     const pos = (() => {
-        if (subgridTheme) {
-            if (activeSectionRaw === subgridTheme) return { row: 1, col: 1 };
-            if (activeSectionRaw.startsWith(`${subgridTheme}.`)) {
-                const suffix = activeSectionRaw.slice(subgridTheme.length + 1);
-                if (suffix.includes('.')) return null;
-                return slotPositions[suffix] ?? null;
-            }
-            return null;
+        if (activeSectionRaw === theme) return { row: 1, col: 1 };
+        if (activeSectionRaw.startsWith(`${theme}.`)) {
+            const suffix = activeSectionRaw.slice(theme.length + 1);
+            if (suffix.includes('.')) return null;
+            return slotPositions[suffix] ?? null;
         }
-
-        const activeSection = activeSectionRaw.includes('.')
-            ? activeSectionRaw.split('.')[0]
-            : activeSectionRaw;
-
-        return (
-            positions[activeSection] ??
-            posOfSection3x3(activeSection, gridOrientation)
-        );
+        return posOfSection3x3(activeSectionRaw, gridOrientation);
     })();
     if (!pos) return false;
 
@@ -59,12 +47,9 @@ export const tryMandala3x3Navigation = (
     const nextCol = pos.col + dc;
 
     const nextSection = (() => {
-        if (subgridTheme) {
-            if (nextRow === 1 && nextCol === 1) return subgridTheme;
-            const slot = themeGrid[nextRow]?.[nextCol] ?? null;
-            return slot ? `${subgridTheme}.${slot}` : null;
-        }
-        return coreGrid[nextRow]?.[nextCol] ?? null;
+        if (nextRow === 1 && nextCol === 1) return theme;
+        const slot = themeGrid[nextRow]?.[nextCol] ?? null;
+        return slot ? `${theme}.${slot}` : null;
     })();
 
     if (!nextSection) return true;

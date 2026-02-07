@@ -1,5 +1,6 @@
 import type { MandalaView } from 'src/view/view';
 import type { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
+import { logger } from 'src/helpers/logger';
 
 /**
  * Mandala 搜索结果类型
@@ -29,10 +30,8 @@ export function parseSection(section: string): ParsedSection {
     const parts = section.split('.');
 
     if (parts.length === 1) {
-        // 根节点或一级节点
-        return section === '1'
-            ? { parent: null, self: section }
-            : { parent: '1', self: section };
+        // 核心主题
+        return { parent: null, self: section };
     }
 
     // 多级节点，去掉最后一段作为父级
@@ -51,18 +50,12 @@ export function previewSearchResult(section: string, view: MandalaView): void {
 
     if (!nodeId) return;
 
-    // 1. 设置 subgrid theme（如果有父级且不是根节点）
-    if (parent && parent !== '1') {
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/enter',
-            payload: { theme: parent }
-        });
-    } else {
-        // 回到根九宫格
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/exit'
-        });
-    }
+    const theme = parent ?? self ?? '1';
+    // 1. 设置 subgrid theme
+    view.viewStore.dispatch({
+        type: 'view/mandala/subgrid/enter',
+        payload: { theme },
+    });
 
     // 2. 激活目标节点（使用 mouse-silent 不记录历史）
     view.viewStore.dispatch({
@@ -81,22 +74,16 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
     const nodeId = view.documentStore.getValue().sections.section_id[self];
 
     if (!nodeId) {
-        console.error(`Section ${self} 不存在`);
+        logger.error(`Section ${self} 不存在`);
         return;
     }
 
-    // 1. 设置 subgrid theme（如果有父级且不是根节点）
-    if (parent && parent !== '1') {
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/enter',
-            payload: { theme: parent }
-        });
-    } else {
-        // 回到根九宫格
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/exit'
-        });
-    }
+    const theme = parent ?? self ?? '1';
+    // 1. 设置 subgrid theme
+    view.viewStore.dispatch({
+        type: 'view/mandala/subgrid/enter',
+        payload: { theme },
+    });
 
     // 2. 激活目标节点（使用 search 类型表明是搜索触发）
     view.viewStore.dispatch({

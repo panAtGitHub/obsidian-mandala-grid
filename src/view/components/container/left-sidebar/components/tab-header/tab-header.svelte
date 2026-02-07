@@ -14,11 +14,4 @@
         box-sizing: border-box;
         height: auto;
     }
-
-    .tab-header-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-    }
 </style>

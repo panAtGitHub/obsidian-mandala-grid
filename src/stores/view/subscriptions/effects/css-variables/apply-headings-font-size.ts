@@ -36,11 +36,13 @@ export const applyHeadingsFontSize = (view: MandalaView, h1_em: number) => {
 
     if (h1_em === DEFAULT_H1_FONT_SIZE_EM) {
         el.style.removeProperty('--h1-size');
+        el.style.removeProperty('--mandala-h1-size');
         for (const key of variables) {
             el.style.removeProperty(key);
         }
     } else {
         el.style.setProperty('--h1-size', `${h1_em}em`);
+        el.style.setProperty('--mandala-h1-size', `${h1_em}em`);
         const adjustedMultiplier = adjustMultiplier(h1_em);
         for (let i = 0; i < variables.length; i++) {
             const key = variables[i];

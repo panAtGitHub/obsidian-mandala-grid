@@ -5,6 +5,10 @@
     import { navigateToSearchResult, previewSearchResult } from 'src/view/helpers/mandala/search-utils';
     
     export let results: MandalaSearchResult[];
+    export let deferNavigation = false;
+    export let onSelect: ((_result: MandalaSearchResult) => void) | undefined =
+        undefined;
+    export let layout: 'dropdown' | 'list' = 'dropdown';
     
     const view = getView();
     
@@ -34,7 +38,15 @@
     }
     
     // 处理点击（确认选择）
-    function handleClick(result: MandalaSearchResult) {
+    function handleClick(result: MandalaSearchResult, index: number) {
+        selectedIndex = index;
+        previewSearchResult(result.section, view);
+
+        if (deferNavigation) {
+            onSelect?.(result);
+            return;
+        }
+
         navigateToSearchResult(result.section, view);
         // 确认后关闭搜索框，焦点自然转到格子
         view.viewStore.dispatch({ type: 'view/search/toggle-input' });
@@ -73,7 +85,7 @@
         } else if (e.key === 'Enter' && selectedIndex >= 0) {
             e.preventDefault();
             e.stopPropagation();
-            handleClick(results[selectedIndex]);
+            handleClick(results[selectedIndex], selectedIndex);
         } else if (e.key === 'Escape') {
             // Esc 退出搜索
             e.preventDefault();
@@ -88,8 +100,9 @@
     });
 </script>
 
-<div 
+<div
     class="mandala-search-results"
+    class:inFlow={layout === 'list'}
     bind:this={listElement}
     on:keydown={handleKeyDown}
     role="listbox"
@@ -105,7 +118,7 @@
                 class:selected={selectedIndex === index}
                 on:mouseenter={() => handleHover(index)}
                 on:mouseleave={handleMouseLeave}
-                on:click={() => handleClick(result)}
+                on:click={() => handleClick(result, index)}
                 role="option"
                 aria-selected={selectedIndex === index}
                 tabindex="0"
@@ -131,6 +144,14 @@
         max-height: 400px;
         overflow-y: auto;
         z-index: 1000;
+    }
+
+    .mandala-search-results.inFlow {
+        position: static;
+        inset: auto;
+        margin-top: 8px;
+        max-height: none;
+        z-index: auto;
     }
     
     .results-count {
@@ -194,7 +215,9 @@
     /* 移动端优化 */
     @media (max-width: 568px) {
         .mandala-search-results {
-            max-height: 50vh;
+            position: static;
+            margin-top: 8px;
+            max-height: 60vh;
         }
         
         .search-result-item {

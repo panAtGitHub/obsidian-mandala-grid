@@ -1,8 +1,9 @@
 <script lang="ts">
     import { getView } from '../../context';
     import { searchStore } from 'src/stores/view/derived/search-store';
-    import { Eye, Text } from 'lucide-svelte';
+    import { Text } from 'lucide-svelte';
     import { lang } from 'src/lang/lang';
+    import { Platform } from 'obsidian';
 
     const view = getView();
     const viewStore = view.viewStore;
@@ -26,8 +27,20 @@
         });
     };
 
+    const onCompositionUpdate = (
+        e: Event & { currentTarget: EventTarget & HTMLInputElement },
+    ) => {
+        // 移动端希望“输入法拼音阶段”也能实时更新结果（虽然不一定精确，但更符合预期）。
+        viewStore.dispatch({
+            type: 'view/search/set-query',
+            payload: {
+                query: e.currentTarget.value,
+            },
+        });
+    };
+
     const onInput = (
-        // eslint-disable-next-line no-undef
+         
         e: Event & { currentTarget: EventTarget & HTMLInputElement },
     ) => {
         // 如果正在使用输入法（如拼音），不触发搜索
@@ -50,8 +63,15 @@
             return; // 允许这些键冒泡
         }
         
-        // Enter 键：将焦点转移到搜索结果列表
-        if (e.key === 'Enter' && $search.results.size > 0) {
+        // 移动端：不要因为 Enter/确定 而把焦点转到列表（否则键盘会收起）。
+        if (Platform.isMobile && e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+
+        // 桌面端：Enter 键将焦点转移到搜索结果列表，方便键盘导航
+        if (!Platform.isMobile && e.key === 'Enter' && $search.results.size > 0) {
             e.preventDefault();
             e.stopPropagation();
             
@@ -81,9 +101,10 @@
         enterkeyhint="search"
         on:input={onInput}
         on:compositionstart={onCompositionStart}
+        on:compositionupdate={onCompositionUpdate}
         on:compositionend={onCompositionEnd}
         on:keydown={onKeyDown}
-        placeholder={'search'}
+        placeholder="search"
         spellcheck="false"
         type="search"
         value={$search.query}
@@ -102,23 +123,6 @@
         style={'right: 49px; top: -1px;'+($search.query ? '' : ' display: none;')}
     ></div>
 
-    <!-- Mandala 模式下不需要"显示所有节点"按钮，已注释
-    {#if $search.query.length > 0}
-        <div
-            aria-label={lang.tlb_search_show_all_nodes}
-            class={'input-right-decorator clickable-icon' +
-                ($search.showAllNodes ? ' is-active' : '')}
-            on:click={() => {
-                viewStore.dispatch({
-                    type: 'search/view/toggle-show-all-nodes',
-                });
-            }}
-            style="right: 28px"
-        >
-            <Eye class="svg-icon" />
-        </div>
-    {/if}
-    -->
     <div
         aria-label={lang.tlb_search_fuzzy_search}
         class={'input-right-decorator clickable-icon' +

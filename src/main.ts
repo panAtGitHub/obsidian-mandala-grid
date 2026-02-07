@@ -44,6 +44,9 @@ export default class MandalaGrid extends Plugin {
     store: PluginStore;
     statusBar: StatusBar;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
+    private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
+    private isSavingSettings = false;
+    private hasPendingSettingsSave = false;
     viewType: DocumentsPreferences = {};
 
     async onload() {
@@ -69,7 +72,18 @@ export default class MandalaGrid extends Plugin {
     }
 
     async saveSettings() {
-        await this.saveData(this.settings.getValue());
+        this.hasPendingSettingsSave = true;
+        if (this.isSavingSettings) return;
+
+        this.isSavingSettings = true;
+        try {
+            while (this.hasPendingSettingsSave) {
+                this.hasPendingSettingsSave = false;
+                await this.saveData(this.settings.getValue());
+            }
+        } finally {
+            this.isSavingSettings = false;
+        }
     }
 
     async loadSettings() {
@@ -81,10 +95,22 @@ export default class MandalaGrid extends Plugin {
             settingsReducer,
             onPluginError,
         );
-        this.settings.subscribe(() => {
-            this.saveSettings();
+        this.settings.subscribe((_state, _action, initialRun) => {
+            if (initialRun) return;
+            this.queueSettingsSave();
         });
         settingsSubscriptions(this);
+    }
+
+    private queueSettingsSave(delay_ms: number = 250) {
+        this.hasPendingSettingsSave = true;
+        if (this.saveSettingsTimeout) {
+            clearTimeout(this.saveSettingsTimeout);
+        }
+        this.saveSettingsTimeout = setTimeout(() => {
+            this.saveSettingsTimeout = null;
+            void this.saveSettings();
+        }, delay_ms);
     }
 
     private registerEvents() {
@@ -108,7 +134,7 @@ export default class MandalaGrid extends Plugin {
     private loadRibbonIcon() {
         this.addRibbonIcon(
             customIcons.mandalaGrid.name,
-            'Open Mandala Grid',
+            'Open mandala grid',
             () => {
                 const file = getActiveFile(this);
                 if (file) toggleFileViewType(this, file, undefined);
@@ -119,6 +145,13 @@ export default class MandalaGrid extends Plugin {
 
     onunload() {
         super.onunload();
+        if (this.saveSettingsTimeout) {
+            clearTimeout(this.saveSettingsTimeout);
+            this.saveSettingsTimeout = null;
+        }
+        if (this.hasPendingSettingsSave) {
+            void this.saveSettings();
+        }
         for (const timeout of this.timeoutReferences) {
             clearTimeout(timeout);
         }

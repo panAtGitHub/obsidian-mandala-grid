@@ -23,7 +23,7 @@
     {/if}
 </div>
 {#if !hotkey.key}
-    <kbd class="blank-hotkey">blank</kbd>
+    <kbd class="blank-hotkey">空</kbd>
 {:else}
     {#if hotkey.editorState !== 'both'}
         <EditorState {hotkey}/>

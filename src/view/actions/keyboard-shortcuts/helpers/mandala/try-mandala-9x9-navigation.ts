@@ -4,6 +4,7 @@ import {
     posOfSection9x9,
     sectionAtCell9x9,
 } from 'src/view/helpers/mandala/mandala-grid';
+import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
@@ -23,39 +24,47 @@ export const tryMandala9x9Navigation = (
 
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSection = docState.sections.id_section[activeNodeId];
-    if (!activeSection) return false;
 
     const gridOrientation =
         view.plugin.settings.getValue().view.mandalaGridOrientation ??
         'left-to-right';
+    const baseTheme = activeSection ? activeSection.split('.')[0] : '1';
     const cell = view.mandalaActiveCell9x9;
-    const mapped = cell
-        ? sectionAtCell9x9(cell.row, cell.col, gridOrientation)
-        : null;
     const current =
-        mapped === activeSection
-            ? cell
-            : posOfSection9x9(activeSection, gridOrientation);
+        cell ??
+        (activeSection
+            ? posOfSection9x9(activeSection, gridOrientation, baseTheme)
+            : null);
     if (!current) return true;
 
-    if (!cell || mapped !== activeSection) {
-        view.mandalaActiveCell9x9 = { row: current.row, col: current.col };
+    if (!cell) {
+        setActiveCell9x9(view, { row: current.row, col: current.col });
     }
 
     const { dr, dc } = deltas[direction];
-    let nextRow = current.row + dr;
-    let nextCol = current.col + dc;
+    const nextRow = current.row + dr;
+    const nextCol = current.col + dc;
     if (nextRow < 0 || nextCol < 0 || nextRow > 8 || nextCol > 8) return true;
 
-    const nextSection = sectionAtCell9x9(nextRow, nextCol, gridOrientation);
+    const nextSection = sectionAtCell9x9(
+        nextRow,
+        nextCol,
+        gridOrientation,
+        baseTheme,
+    );
     if (!nextSection) return true;
+
+    setActiveCell9x9(view, { row: nextRow, col: nextCol });
 
     const nextNodeId = docState.sections.section_id[nextSection];
     if (!nextNodeId) return true;
 
-    view.mandalaActiveCell9x9 = { row: nextRow, col: nextCol };
-
     if (nextNodeId === activeNodeId) return true;
+
+    view.viewStore.dispatch({
+        type: 'view/set-active-node/mouse-silent',
+        payload: { id: nextNodeId },
+    });
 
     if (options?.extendSelection) {
         const selected = new Set(
@@ -68,10 +77,5 @@ export const tryMandala9x9Navigation = (
             payload: { ids: Array.from(selected) },
         });
     }
-
-    view.viewStore.dispatch({
-        type: 'view/set-active-node/mouse-silent',
-        payload: { id: nextNodeId },
-    });
     return true;
 };

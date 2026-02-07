@@ -44,6 +44,13 @@ export type MandalaEnsureChildrenAction = {
     };
 };
 
+export type MandalaEnsureCoreThemeAction = {
+    type: 'document/mandala/ensure-core-theme';
+    payload: {
+        theme: string;
+    };
+};
+
 export type MandalaClearEmptySubgridsAction = {
     type: 'document/mandala/clear-empty-subgrids';
     payload: {
@@ -108,4 +115,21 @@ export const ensureMandalaChildren = (
     existingGroup.nodes = [...existingGroup.nodes, ...nodes];
     childColumn.groups = [...childColumn.groups];
     return nodes;
+};
+
+export const ensureMandalaCoreTheme = (
+    document: MandalaGridDocument,
+    _theme: string,
+): { nodeId: string; created: boolean } => {
+    void _theme;
+    const rootGroup = document.columns[0]?.groups?.[0];
+    if (!rootGroup) {
+        throw new SilentError('could not find root group');
+    }
+
+    const nodeId = id.node();
+    rootGroup.nodes = [...rootGroup.nodes, nodeId];
+    document.content[nodeId] = { content: '' };
+    document.columns = [...document.columns];
+    return { nodeId, created: true };
 };

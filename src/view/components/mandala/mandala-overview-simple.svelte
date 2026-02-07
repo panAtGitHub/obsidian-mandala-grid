@@ -1,45 +1,133 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
+    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
+    import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { onMount } from 'svelte';
-    import { derived } from 'src/lib/store/derived';
     import {
-        getMandalaLayout,
-    } from 'src/view/helpers/mandala/mandala-grid';
+        openSidebarAndEditMandalaNode,
+        setActiveMandalaNode,
+    } from 'src/view/helpers/mandala/node-editing';
+    import { derived } from 'src/lib/store/derived';
+    import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
-        ShowMandalaDetailSidebarStore,
+        Show9x9ParallelNavButtonsStore,
         Show9x9TitleOnlyStore,
     } from 'src/stores/settings/derived/view-settings-store';
 
     import { Platform } from 'obsidian';
-    import { mobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
+    import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
 
     const view = getView();
-    const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const showTitleOnly = Show9x9TitleOnlyStore(view);
+    const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const sectionColors = SectionColorBySectionStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
-    const grayBlockThemes = new Set(['3', '5', '6', '8']);
+    const isCrossBlock = (blockRow: number, blockCol: number) =>
+        (blockRow === 0 && blockCol === 1) ||
+        (blockRow === 1 && blockCol === 0) ||
+        (blockRow === 1 && blockCol === 2) ||
+        (blockRow === 2 && blockCol === 1);
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
     );
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
+    const activeCell = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.activeCell9x9,
+    );
+    const hasOpenOverlayModal = derived(view.viewStore, (state) => {
+        const controls = state.ui.controls;
+        return (
+            controls.showHelpSidebar ||
+            controls.showSettingsSidebar ||
+            controls.showHistorySidebar ||
+            controls.showStyleRulesModal
+        );
+    });
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
+    let currentCoreNumber = 1;
+
+    const getBaseTheme = (section: string | undefined) =>
+        section ? section.split('.')[0] : '1';
+
+    $: {
+        const section = $idToSection[$activeNodeId];
+        const nextCore = Number(getBaseTheme(section));
+        currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
+    }
+
+    const escapeHtml = (value: string) =>
+        value
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+
+    const escapeAttribute = (value: string) =>
+        value.replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+
+    const buildBodyHtml = (rawBody: string) => {
+        let content = escapeHtml(rawBody);
+
+        content = content.replace(/\[\[([^\]]+)\]\]/g, (_, link: string) => {
+            const href = escapeAttribute(link.trim());
+            const label = link.trim();
+            return `<a class="internal-link" data-href="${href}">${label}</a>`;
+        });
+
+        content = content.replace(
+            /\[([^\]]+)\]\(([^)]+)\)/g,
+            (
+                match,
+                label: string,
+                url: string,
+                offset: number,
+                source: string,
+            ) => {
+                if (offset > 0 && source[offset - 1] === '!') {
+                    return match;
+                }
+                const normalizedUrl = url.trim();
+                if (!isSafeExternalUrl(normalizedUrl)) {
+                    return label;
+                }
+                const href = escapeAttribute(normalizedUrl);
+                return `<a class="external-link" href="${href}">${label}</a>`;
+            },
+        );
+
+        return content.replace(/\n/g, '<br />');
+    };
+
+    const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
+    const isMarkdownHeading = (line: string) => HEADING_RE.test(line);
+    const stripHeadingPrefix = (line: string) => line.replace(HEADING_RE, '');
 
     // Reactive store for cells
     const buildCells = (
         state: ReturnType<typeof view.documentStore.getValue>,
         orientation: string,
+        baseTheme: string,
     ) => {
         const layout = getMandalaLayout(
-            orientation === 'south-start' ? 'south-start' : 'left-to-right',
+            orientation === 'south-start' || orientation === 'bottom-to-top'
+                ? orientation
+                : 'left-to-right',
         );
         const list = [];
         for (let row = 0; row < 9; row++) {
@@ -51,34 +139,31 @@
                 const localRow = row % 3;
                 const localCol = col % 3;
                 const isCenter = blockRow === 1 && blockCol === 1;
-                const isThemeCenter =
-                    !isCenter && localRow === 1 && localCol === 1;
+                const isThemeCenter = localRow === 1 && localCol === 1;
                 let isGrayBlock = false;
 
-                // Center Block (1,1) -> Core Grid (1-9)
-                if (isCenter) {
-                    section = layout.coreGrid[localRow][localCol];
+                const blockSlot = isCenter
+                    ? null
+                    : layout.themeGrid[blockRow]?.[blockCol] ?? null;
+                const theme = blockSlot
+                    ? `${baseTheme}.${blockSlot}`
+                    : baseTheme;
+                if (!isCenter && isCrossBlock(blockRow, blockCol)) {
+                    isGrayBlock = true;
+                }
+
+                if (isThemeCenter) {
+                    section = theme;
                 } else {
-                    // Outer Blocks -> Theme Expansion
-                    const theme = layout.themeBlocks[blockRow * 3 + blockCol];
-                    if (theme) {
-                        isGrayBlock = grayBlockThemes.has(theme);
-                        // Center of outer block -> Theme Title
-                        if (isThemeCenter) {
-                            section = theme;
-                        } else {
-                            // Surrounding -> Theme Children
-                            const slot = layout.themeGrid[localRow][localCol];
-                            if (slot) {
-                                section = `${theme}.${slot}`;
-                            }
-                        }
+                    const slot = layout.themeGrid[localRow]?.[localCol];
+                    if (slot) {
+                        section = `${theme}.${slot}`;
                     }
                 }
 
                 // 2. Get Content if Section exists
-                let title = '';
-                let body = '';
+                let titleHtml = '';
+                let bodyHtml = '';
                 let nodeId = '';
 
                 if (section) {
@@ -88,22 +173,29 @@
                         const nodeContent =
                             state.document.content[nodeId]?.content;
                         if (nodeContent) {
-                            // Extract title and body
                             const lines = nodeContent.split('\n');
-                            const rawTitle = lines[0] || '';
-                            title = rawTitle.replace(/^#+\s*/, '').trim();
+                            const firstLine = lines[0]?.trim() ?? '';
+                            const restLines = lines.slice(1);
 
-                            // Body: Join remaining lines, remove standard markdown syntax for cleaner preview
-                            if (lines.length > 1) {
-                                body = lines
-                                    .slice(1)
+                            // Only markdown headings use title style.
+                            if (firstLine && isMarkdownHeading(firstLine)) {
+                                titleHtml = buildBodyHtml(
+                                    stripHeadingPrefix(firstLine).trim(),
+                                );
+                                if (restLines.length > 0) {
+                                    const rawBody = restLines
+                                        .join('\n')
+                                        .trim()
+                                        .slice(0, 150);
+                                    bodyHtml = buildBodyHtml(rawBody);
+                                }
+                            } else {
+                                // Plain first line should be rendered as body text.
+                                const rawBody = lines
                                     .join('\n')
-                                    .replace(/\[\[.*?\]\]/g, (m) =>
-                                        m.slice(2, -2),
-                                    ) // Simplify links
-                                    .replace(/[*_`]/g, '') // Remove formatting chars
                                     .trim()
-                                    .slice(0, 150); // Limit chars
+                                    .slice(0, 150);
+                                bodyHtml = buildBodyHtml(rawBody);
                             }
                         }
                     }
@@ -113,8 +205,8 @@
                     row,
                     col,
                     section,
-                    title,
-                    body,
+                    titleHtml,
+                    bodyHtml,
                     nodeId,
                     isCenter,
                     isThemeCenter,
@@ -133,7 +225,11 @@
                 'left-to-right';
 
             const update = () => {
-                run(buildCells(documentState, orientation));
+                const activeNodeId =
+                    view.viewStore.getValue().document.activeNode;
+                const section = documentState.sections.id_section[activeNodeId];
+                const theme = getBaseTheme(section);
+                run(buildCells(documentState, orientation, theme));
             };
 
             const unsubDoc = view.documentStore.subscribe((state) => {
@@ -147,11 +243,16 @@
                 update();
             });
 
+            const unsubTheme = view.viewStore.subscribe(() => {
+                update();
+            });
+
             update();
 
             return () => {
                 unsubDoc();
                 unsubSettings();
+                unsubTheme();
             };
         },
     };
@@ -170,10 +271,8 @@
             const background = sectionColor
                 ? applyOpacityToHex(sectionColor, opacity)
                 : $backgroundMode === 'gray' && cell.isGrayBlock
-                    ? `color-mix(in srgb, var(--mandala-gray-block-base) ${
-                          $sectionColorOpacity
-                      }%, transparent)`
-                    : null;
+                  ? `color-mix(in srgb, var(--mandala-gray-block-base) ${$sectionColorOpacity}%, transparent)`
+                  : null;
             return { ...cell, background };
         });
     }
@@ -196,7 +295,8 @@
             : bodyLineHeight;
         const reservedTitleHeight = titleLineHeight * 2;
         const reservedGap = 2;
-        const available = cellBox.height - padding - reservedTitleHeight - reservedGap;
+        const available =
+            cellBox.height - padding - reservedTitleHeight - reservedGap;
         const lines = Math.max(1, Math.floor(available / bodyLineHeight));
         bodyLineClamp = Math.min(lines, 12);
     };
@@ -209,104 +309,142 @@
         return () => observer.disconnect();
     });
 
-    const onCellClick = (nodeId: string) => {
-        if (!nodeId) return;
-
-        if (Platform.isMobile) {
-            // 场景 5：锁定 + 侧栏关 = 无反应
-            if ($mobileInteractionMode === 'locked' && !$showDetailSidebar) {
-                return;
-            }
-            // 场景 6, 7, 8：执行选中逻辑
-        }
-
-        view.viewStore.dispatch({
-            type: 'view/set-active-node/mouse',
-            payload: { id: nodeId },
-        });
-
-        // 仅在非移动端时保留原有的自动开启逻辑 (为了保护 PC 端逻辑)
-        if (!Platform.isMobile && !view.plugin.settings.getValue().view.showMandalaDetailSidebar) {
-            view.plugin.settings.dispatch({
-                type: 'view/mandala-detail-sidebar/toggle',
-            });
-        }
-    };
-
-    const onCellDblClick = (nodeId: string) => {
-        if (!nodeId) return;
-
-        if ($mobileInteractionMode === 'locked') {
-            // 锁定模式：双击不进入编辑
+    const onCellClick = (cell: (typeof styledCells)[number]) => {
+        if (!cell.nodeId) {
+            setActiveCell9x9(view, { row: cell.row, col: cell.col });
             return;
         }
 
-        if (Platform.isMobile) {
-            if ($mobileInteractionMode === 'unlocked') {
-                // 场景 7, 8: 弹出全屏编辑
-                view.viewStore.dispatch({
-                    type: 'view/editor/enable-main-editor',
-                    payload: { nodeId: nodeId, isInSidebar: false },
-                });
-                return;
-            } else {
-                // 场景 5: 锁定+侧栏关 = 无反应
-                if (!$showDetailSidebar) return;
-                // 场景 6: 锁定+侧栏开 = 仅选中 (等同于单击)
-                onCellClick(nodeId);
-                return;
-            }
+        // A section can appear in multiple 9x9 cells. Keep the clicked cell
+        // as the single visual focus instead of highlighting all same-node copies.
+        setActiveCell9x9(view, { row: cell.row, col: cell.col });
+
+        setActiveMandalaNode(view, cell.nodeId);
+    };
+
+    const onCellDblClick = (cell: (typeof styledCells)[number]) => {
+        if (!cell.nodeId) {
+            setActiveCell9x9(view, { row: cell.row, col: cell.col });
+            return;
         }
 
-        // PC 端逻辑保持不变
-        view.viewStore.dispatch({
-            type: 'view/editor/enable-sidebar-editor',
-            payload: { id: nodeId },
-            context: { activeSidebarTab: 'mandala-detail' as any }
-        });
+        // 移动端：9x9 双击格子无功能（编辑仅由右侧栏双击触发）
+        if (Platform.isMobile) {
+            return;
+        }
+
+        openSidebarAndEditMandalaNode(view, cell.nodeId);
+    };
+
+    const jumpToPrevCore = (event: MouseEvent) => {
+        event.stopPropagation();
+        jumpCoreTheme(view, 'up');
+    };
+
+    const jumpToNextCore = (event: MouseEvent) => {
+        event.stopPropagation();
+        jumpCoreTheme(view, 'down');
     };
 </script>
 
-<div
-    class="simple-9x9-grid"
-    style={`--mandala-border-opacity: ${$borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
-    bind:this={gridEl}
->
-    {#each styledCells as cell}
-        <div 
-            class="simple-cell" 
-            class:is-center={cell.isCenter}
-            class:is-theme-center={cell.isThemeCenter}
-            class:is-title-only={$showTitleOnly}
-            class:is-active={cell.nodeId && cell.nodeId === $activeNodeId}
-            class:is-block-row-start={cell.row % 3 === 0}
-            class:is-block-col-start={cell.col % 3 === 0}
-            class:is-last-row={cell.row === 8}
-            class:is-last-col={cell.col === 8}
-            style={cell.background
-                ? `background-color: ${cell.background};`
-                : undefined}
-            data-node-id={cell.nodeId || undefined}
-            id={cell.nodeId || undefined}
-            on:click={() => onCellClick(cell.nodeId)}
-            on:dblclick={() => onCellDblClick(cell.nodeId)}
-        >
-            <div class="cell-content">
-                {#if cell.title}
-                    <div class="cell-title">{cell.title}</div>
-                {/if}
-                {#if !$showTitleOnly && cell.body}
-                    <div class="cell-body">{cell.body}</div>
+<div class="simple-9x9-shell">
+    <div
+        class="simple-9x9-grid"
+        style={`--mandala-border-opacity: ${$borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
+        bind:this={gridEl}
+    >
+        {#each styledCells as cell}
+            <div
+                class="simple-cell"
+                class:is-center={cell.isCenter}
+                class:is-theme-center={cell.isThemeCenter}
+                class:is-title-only={$showTitleOnly}
+                class:is-active={cell.nodeId &&
+                    cell.nodeId === $activeNodeId &&
+                    !$activeCell}
+                class:is-active-cell={$activeCell &&
+                    cell.row === $activeCell.row &&
+                    cell.col === $activeCell.col}
+                class:is-block-row-start={cell.row % 3 === 0}
+                class:is-block-col-start={cell.col % 3 === 0}
+                class:is-last-row={cell.row === 8}
+                class:is-last-col={cell.col === 8}
+                style={cell.background
+                    ? `background-color: ${cell.background};`
+                    : undefined}
+                data-node-id={cell.nodeId || undefined}
+                id={cell.nodeId || undefined}
+                on:click={() => onCellClick(cell)}
+                on:dblclick={() => onCellDblClick(cell)}
+            >
+                <div class="cell-content">
+                    {#if cell.titleHtml}
+                        <div
+                            class="cell-title"
+                            on:click={(event) => handleLinks(view, event)}
+                        >
+                            {@html cell.titleHtml}
+                        </div>
+                    {/if}
+                    {#if !$showTitleOnly && cell.bodyHtml}
+                        <div
+                            class="cell-body"
+                            on:click={(event) => handleLinks(view, event)}
+                        >
+                            {@html cell.bodyHtml}
+                        </div>
+                    {/if}
+                </div>
+                {#if cell.section}
+                    <span class="cell-debug">{cell.section}</span>
                 {/if}
             </div>
-            {#if cell.section}
-                 <span class="cell-debug">{cell.section}</span>
-            {/if}
-        </div>
-    {/each}
+        {/each}
+    </div>
+
+    {#if !Platform.isMobile &&
+        $show9x9ParallelNavButtons &&
+        !$hasOpenOverlayModal}
+        {#if currentCoreNumber > 1}
+            <button
+                class="parallel-nav-button parallel-nav-button--left"
+                type="button"
+                aria-label="切换到上一个平行九宫格"
+                on:click={jumpToPrevCore}
+            >
+                <span class="parallel-nav-button__icon">
+                    <MandalaNavIcon
+                        direction="left"
+                        size={16}
+                        strokeWidth={2.3}
+                    />
+                </span>
+            </button>
+        {/if}
+        <button
+            class="parallel-nav-button parallel-nav-button--right"
+            type="button"
+            aria-label="切换到下一个平行九宫格"
+            on:click={jumpToNextCore}
+        >
+            <span class="parallel-nav-button__icon">
+                <MandalaNavIcon
+                    direction="right"
+                    size={16}
+                    strokeWidth={2.3}
+                />
+            </span>
+        </button>
+    {/if}
 </div>
 
 <style>
+    .simple-9x9-shell {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
     .simple-9x9-grid {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
@@ -375,7 +513,7 @@
     }
 
     .cell-title {
-        font-size: 1em;
+        font-size: var(--mandala-h1-size, 1em);
         font-weight: 600;
         line-height: 1.2;
         color: var(--text-normal);
@@ -404,7 +542,7 @@
         background-color: var(--background-secondary-alt);
         border-color: var(--text-muted);
     }
-    
+
     .is-theme-center {
         background-color: var(--background-primary-alt);
     }
@@ -415,11 +553,13 @@
         color: var(--text-accent);
     }
 
-    .simple-cell.is-active {
+    .simple-cell.is-active,
+    .simple-cell.is-active-cell {
         position: relative;
     }
 
-    .simple-cell.is-active::after {
+    .simple-cell.is-active::after,
+    .simple-cell.is-active-cell::after {
         content: '';
         position: absolute;
         inset: 2px;
@@ -451,5 +591,77 @@
         text-align: center;
         white-space: normal;
         word-break: break-word;
+    }
+
+    .parallel-nav-button {
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 20;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 999px;
+        background: var(--background-primary);
+        color: var(--text-normal);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-s);
+        cursor: pointer;
+        transition:
+            background-color 120ms ease,
+            border-color 120ms ease,
+            box-shadow 120ms ease,
+            transform 120ms ease;
+    }
+
+    .parallel-nav-button:hover {
+        background: color-mix(
+            in srgb,
+            var(--background-primary-alt) 75%,
+            var(--interactive-accent) 25%
+        );
+        border-color: color-mix(
+            in srgb,
+            var(--interactive-accent) 55%,
+            var(--background-modifier-border) 45%
+        );
+        box-shadow:
+            0 0 0 1px color-mix(
+                in srgb,
+                var(--interactive-accent) 45%,
+                transparent
+            ),
+            var(--shadow-s);
+        transform: translate(-50%, -50%) translateY(-1px);
+    }
+
+    .parallel-nav-button:active {
+        transform: translate(-50%, -50%) scale(0.96);
+    }
+
+    .parallel-nav-button--left {
+        left: 33.3333%;
+    }
+
+    .parallel-nav-button--right {
+        left: 66.6667%;
+    }
+
+    .parallel-nav-button__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        line-height: 0;
+    }
+
+    .parallel-nav-button__icon :global(svg) {
+        display: block;
+        width: 16px !important;
+        height: 16px !important;
+        stroke-width: 2.3 !important;
     }
 </style>

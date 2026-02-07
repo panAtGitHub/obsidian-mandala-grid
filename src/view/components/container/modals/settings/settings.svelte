@@ -124,26 +124,4 @@
         }
     }
 
-    :global(.modal-close-button) {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        z-index: 11;
-        background: var(--background-modifier-hover);
-        border: none;
-        border-radius: var(--radius-s);
-        padding: 4px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        transition: all 0.15s ease;
-    }
-
-    :global(.modal-close-button:hover) {
-        background: var(--background-modifier-border);
-        color: var(--text-normal);
-    }
-
 </style>

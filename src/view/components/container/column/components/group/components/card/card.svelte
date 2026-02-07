@@ -102,7 +102,6 @@
     />
     <Bridges {active} {editing} {hasActiveChildren} {firstColumn} {style} />
 
-    <!--    <div class="debug-node-id">{node}</div>-->
 </div>
 
 <style>

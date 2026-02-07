@@ -8,15 +8,15 @@ import { derived } from 'svelte/store';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 import { lang } from 'src/lang/lang';
 import {
-    Keyboard,
     Palette,
     PanelRight,
-    Settings,
     Eye,
-    Type,
+    ArrowLeftCircle,
+    ArrowRightCircle,
 } from 'lucide-svelte';
 import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 import { VerticalToolbarActions } from 'src/view/components/container/toolbar-vertical/vertical-toolbar-actions';
+import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
 export type ToolbarButtonsGroup = {
     id: string;
@@ -50,6 +50,25 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                     ],
                 },
                 {
+                    id: 'settings',
+                    buttons: [
+                        // Temporarily hidden: user requested removing the gear button from UI.
+                        // Keep the code commented for possible future restore.
+                        // {
+                        //     label: lang.controls_settings,
+                        //     onClick: h.toggleSettings,
+                        //     icon: Settings,
+                        //     id: 'settings',
+                        // },
+                        {
+                            label: lang.controls_rules,
+                            onClick: h.toggleStyleRules,
+                            icon: Palette,
+                            id: 'style-rules',
+                        },
+                    ],
+                },
+                {
                     id: 'mandala',
                     buttons: [
                         {
@@ -60,40 +79,19 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                                 });
                             },
                             icon: PanelRight,
-                            id: 'mandala-detail-sidebar' as any,
+                            id: 'mandala-detail-sidebar' as unknown as ToolbarButton,
                         },
                         {
-                            label: '仅显示标题',
-                            onClick: () => {
-                                view.plugin.settings.dispatch({
-                                    type: 'settings/view/toggle-9x9-title-only',
-                                });
-                            },
-                            icon: Type,
-                            id: 'toggle-9x9-title-only' as any,
-                        },
-                    ],
-                },
-                {
-                    id: 'settings',
-                    buttons: [
-                        {
-                            label: lang.controls_settings,
-                            onClick: h.toggleSettings,
-                            icon: Settings,
-                            id: 'settings',
+                            label: lang.hk_jump_core_prev,
+                            onClick: () => jumpCoreTheme(view, 'up'),
+                            icon: ArrowLeftCircle,
+                            id: 'jump-core-prev' as unknown as ToolbarButton,
                         },
                         {
-                            label: lang.controls_hotkeys,
-                            onClick: h.toggleHelp,
-                            icon: Keyboard,
-                            id: 'hotkeys',
-                        },
-                        {
-                            label: lang.controls_rules,
-                            onClick: h.toggleStyleRules,
-                            icon: Palette,
-                            id: 'style-rules',
+                            label: lang.hk_jump_core_next,
+                            onClick: () => jumpCoreTheme(view, 'down'),
+                            icon: ArrowRightCircle,
+                            id: 'jump-core-next' as unknown as ToolbarButton,
                         },
                     ],
                 },
@@ -144,6 +142,7 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                         buttons: group.buttons.filter((b) => {
                             if (isMandala) {
                                 if (Platform.isMobile && b.id === 'mandala-mode') return false;
+                                if (!Platform.isMobile && (b.id as string).startsWith('jump-core-')) return false;
 
                                 if (
                                     b.id === 'minimap' ||

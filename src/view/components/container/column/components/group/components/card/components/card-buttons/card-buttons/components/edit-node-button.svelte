@@ -45,7 +45,7 @@
 <FloatingButton
     label={editing ? lang.card_btn_save : lang.card_btn_edit}
     on:click={handleClick}
-    position={'down-right'}
+    position="down-right"
 >
     {#if editing}
         <SaveIcon class="svg-con" />

@@ -27,6 +27,15 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
+    $: baseTheme = (() => {
+        const section = $idToSection[$activeNodeId];
+        const core = section?.split('.')[0];
+        return core ?? '1';
+    })();
 
     const editingState = derived(
         view.viewStore,
@@ -56,9 +65,14 @@
 </script>
 
 <div class="mandala-9x9-grid">
-    {#each Array(9) as _, row (row)}
-        {#each Array(9) as __, col (col)}
-            {@const section = sectionAtCell9x9(row, col, $gridOrientation)}
+    {#each Array(9) as _rowPlaceholder, row (row)}
+        {#each Array(9) as _colPlaceholder, col (col)}
+            {@const section = sectionAtCell9x9(
+                row,
+                col,
+                $gridOrientation,
+                baseTheme,
+            )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
 
             {#if section && nodeId}
@@ -76,7 +90,7 @@
                     pinned={$pinnedNodes.has(nodeId)}
                     style={$nodeStyles.get(nodeId)}
                     sectionColor={sectionColor}
-                    draggable={section !== '1'}
+                    draggable={section !== baseTheme}
                     gridCell={{ mode: '9x9', row, col }}
                 />
             {:else if section}

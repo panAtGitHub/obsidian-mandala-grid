@@ -51,7 +51,7 @@
 </script>
 
 <div
-    class={'mandala-right-sidebar'}
+    class="mandala-right-sidebar"
     style="--animated-sidebar-width: {animatedSidebarWidth}px; --sidebar-width: {sidebarWidth}px; }"
 >
     {#if showMinimap}

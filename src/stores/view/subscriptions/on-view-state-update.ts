@@ -106,4 +106,5 @@ export const onViewStateUpdate = (
     ) {
         persistCollapsedSections(view);
     }
+
 };

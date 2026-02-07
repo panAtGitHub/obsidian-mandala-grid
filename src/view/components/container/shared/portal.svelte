@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
 
-    // eslint-disable-next-line no-undef
+     
     export let target: HTMLElement | null | undefined =
-        // eslint-disable-next-line no-undef
+         
         globalThis.document?.body;
     export let enable = true;
-    // eslint-disable-next-line no-undef
+     
     let ref: HTMLElement;
 
     onMount(() => {

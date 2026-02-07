@@ -11,7 +11,7 @@
     export let nodeId : string;
     export let position: Direction;
     const view = getView();
-    // eslint-disable-next-line no-undef
+     
     const createCard = (e: MouseEvent) => {
         e.stopPropagation();
         saveNodeAndInsertNode(view, position, undefined, nodeId);

@@ -54,7 +54,7 @@ export const clickAndDrag = (element: HTMLElement, view: MandalaView) => {
                 (e.target as HTMLElement).tagName !== 'INPUT';
             if (enabled) {
                 pressed = true;
-                view.container!.style.cursor = 'grab';
+                view.container!.setCssProps({ cursor: 'grab' });
                 e.preventDefault(); // prevent default spacebar scroll
             }
         }
@@ -65,7 +65,7 @@ export const clickAndDrag = (element: HTMLElement, view: MandalaView) => {
             pressed = false;
             initializedValues = false;
             setTimeout(() => {
-                view.container!.style.cursor = 'initial';
+                view.container!.setCssProps({ cursor: 'initial' });
             }, 50);
         }
     };

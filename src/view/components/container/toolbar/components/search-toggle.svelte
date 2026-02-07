@@ -10,9 +10,10 @@
     const search = searchStore(view);
 </script>
 
-<div class="search-container buttons-group">
+<div class="search-container topbar-buttons-group">
     <Button
         active={$search.showInput}
+        classes="topbar-button"
         label={lang.tlb_search_toggle}
         on:click={() => {
             viewStore.dispatch({ type: 'view/search/toggle-input' });

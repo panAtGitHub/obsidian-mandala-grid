@@ -26,7 +26,10 @@ export type MandalaGridDocumentFormat = 'outline' | 'sections' | 'html-element';
 export type ViewType = 'mandala-grid' | 'markdown';
 
 export type MandalaMode = '3x3' | '9x9';
-export type MandalaGridOrientation = 'south-start' | 'left-to-right';
+export type MandalaGridOrientation =
+    | 'south-start'
+    | 'left-to-right'
+    | 'bottom-to-top';
 
 export type DocumentPreferences = {
     documentFormat: MandalaGridDocumentFormat;
@@ -87,6 +90,10 @@ export type Settings = {
         maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;
         showHiddenCardInfo: boolean;
+        show3x3SubgridNavButtonsDesktop: boolean;
+        show3x3SubgridNavButtonsMobile: boolean;
+        show9x9ParallelNavButtonsDesktop: boolean;
+        show9x9ParallelNavButtonsMobile: boolean;
         mobileEditFontSizeOffset: number;
         show9x9TitleOnly: boolean;
         squareLayout: boolean;
@@ -96,6 +103,7 @@ export type Settings = {
     general: {
         defaultDocumentFormat: MandalaGridDocumentFormat;
         linkPaneType: LinkPaneType;
+        mandalaTemplatesFilePath: string | null;
     };
     styleRules: {
         documents: { [path: string]: { rules: StyleRule[] } };

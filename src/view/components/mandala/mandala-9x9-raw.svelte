@@ -5,6 +5,7 @@
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
+    import { Platform } from 'obsidian';
     import {
         nextRaw9x9Cell,
         posOfRaw9x9Section,
@@ -12,6 +13,7 @@
         type MandalaCell,
     } from 'src/view/helpers/mandala/mandala-9x9-raw';
     import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
 
     const view = getView();
 
@@ -25,6 +27,7 @@
     );
     const activeNodeId = derived(view.viewStore, (state) => state.document.activeNode);
     const editingState = derived(view.viewStore, (state) => state.document.editing);
+    const baseTheme = '1';
 
     export let containerRef: HTMLElement | null = null;
 
@@ -33,7 +36,7 @@
     const resolveCellFromActiveNode = () => {
         const section = $idToSection[$activeNodeId];
         if (!section) return null;
-        return posOfRaw9x9Section(section);
+        return posOfRaw9x9Section(section, 'left-to-right', baseTheme);
     };
 
     $: {
@@ -47,12 +50,17 @@
     }
 
     const selectCell = (cell: MandalaCell) => {
-        const section = sectionAtRaw9x9Cell(cell.row, cell.col);
+        const section = sectionAtRaw9x9Cell(
+            cell.row,
+            cell.col,
+            'left-to-right',
+            baseTheme,
+        );
         if (!section) return;
         const nodeId = $sectionToNodeId[section];
         if (!nodeId) return;
         activeCell = cell;
-        view.mandalaActiveCell9x9 = cell;
+        setActiveCell9x9(view, cell);
         view.viewStore.dispatch({
             type: 'view/set-active-node/mouse',
             payload: { id: nodeId },
@@ -117,9 +125,14 @@
 </script>
 
 <div class="mandala-raw9">
-    {#each Array(9) as _, row (row)}
-        {#each Array(9) as __, col (col)}
-            {@const section = sectionAtRaw9x9Cell(row, col)}
+    {#each Array(9) as _rowPlaceholder, row (row)}
+        {#each Array(9) as _colPlaceholder, col (col)}
+            {@const section = sectionAtRaw9x9Cell(
+                row,
+                col,
+                'left-to-right',
+                baseTheme,
+            )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
             {@const isActive = activeCell?.row === row && activeCell?.col === col}
             <div
@@ -133,6 +146,7 @@
                 }}
                 on:dblclick={() => {
                     ensureFocus();
+                    if (Platform.isMobile) return;
                     if (!section || !nodeId) return;
                     selectCell({ row, col });
                     enableEditModeInMainSplit(view, nodeId);

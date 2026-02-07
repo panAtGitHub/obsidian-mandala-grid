@@ -41,9 +41,9 @@
 
 <div
     aria-label={hotkey.obsidianConflict
-        ? `Used by "${hotkey.obsidianConflict}"`
+        ? `已被 "${hotkey.obsidianConflict}" 使用`
         : hotkey.pluginConflict
-          ? `Used by "${hotkey.pluginConflict}"`
+          ? `已被 "${hotkey.pluginConflict}" 使用`
           : ''}
     class={clx(
         'hotkey',

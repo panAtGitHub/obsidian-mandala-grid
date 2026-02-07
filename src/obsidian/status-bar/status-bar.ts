@@ -1,6 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import MandalaGrid from 'src/main';
 import { statusBarWorker } from 'src/workers/worker-instances';
+import { formatStatusBarText } from 'src/obsidian/status-bar/helpers/format-status-bar-text';
 
 export class StatusBar {
     private container: HTMLElement;
@@ -21,7 +22,7 @@ export class StatusBar {
             // numberOfChildren: this.container.createDiv(),
             documentProgress: this.container.createDiv(),
         };
-        this.elements.numberOfCards.style.marginRight = '5px';
+        this.elements.numberOfCards.setCssProps({ 'margin-right': '5px' });
         // this.elements.numberOfChildren.style.marginRight = '5px';
         this.elements.documentProgress.ariaLabel =
             'Progress through the document';
@@ -38,9 +39,6 @@ export class StatusBar {
     private setVisibility(visible: boolean) {
         this.container.toggleClass('mandala__hidden-element', !visible);
     }
-    private setElementVisibility(element: HTMLElement, visible: boolean) {
-        element.toggleClass('mandala__hidden-element', !visible);
-    }
 
     updateAll = (view: MandalaView) => {
         this.updateCardsNumber(view);
@@ -48,12 +46,8 @@ export class StatusBar {
     };
 
     updateCardsNumber = (view: MandalaView) => {
-        const cards = Object.keys(
-            view.documentStore.getValue().document.content,
-        ).length;
-        this.elements.numberOfCards.setText(
-            cards + ' section' + (cards === 1 ? '' : 's'),
-        );
+        void view;
+        this.elements.numberOfCards.setText('');
     };
     updateProgressIndicatorAndChildCount = async (view: MandalaView) => {
         const document = view.documentStore.getValue().document;
@@ -62,17 +56,6 @@ export class StatusBar {
             document,
             activeNode,
         });
-        this.elements.documentProgress.setText(result.progress + ' %');
-        /* const totalChildCount = result.totalChildCount;
-         if (totalChildCount > 0) {
-             this.elements.numberOfChildren.setText(
-                 totalChildCount +
-                     ' subsection' +
-                     (totalChildCount === 1 ? '' : 's'),
-             );
-             this.setElementVisibility(this.elements.numberOfChildren, true);
-         } else {
-             this.setElementVisibility(this.elements.numberOfChildren, false);
-         }*/
+        this.elements.documentProgress.setText(formatStatusBarText(result));
     };
 }

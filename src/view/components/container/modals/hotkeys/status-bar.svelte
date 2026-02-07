@@ -38,7 +38,7 @@
 <div class="hotkeys-status-bar">
     {#if conflicts}
         <span class="conflicts-indicator">
-            {conflicts} command{conflicts === 1 ? '' : 's'} with conflicts
+            {conflicts} 个快捷键存在冲突
         </span>
     {/if}
     <span class="hotkeys-menu" on:click={showMenu}>

@@ -14,11 +14,12 @@
     };
 </script>
 
-<div class="buttons-group" style="overflow: inherit">
+<div class="topbar-buttons-group" style="overflow: inherit">
     <div class="badge-container">
         <Button
             on:click={toggleLeftSidebar}
             active={$show}
+            classes="topbar-button"
             label={lang.toolbar_toggle_left_sidebar}
 
             tooltipPosition="bottom"

@@ -26,6 +26,7 @@ const eventTypesDictionary: Partial<Record<ActionType, DocumentEventType>> = {
     'document/sort-direct-child-nodes': { dropOrMove: true },
     'document/mandala/swap': { dropOrMove: true },
     'document/mandala/ensure-children': { createOrDelete: true },
+    'document/mandala/ensure-core-theme': { createOrDelete: true },
     'document/mandala/clear-empty-subgrids': { createOrDelete: true },
 
     'document/history/select-next-snapshot': { changeHistory: true },
@@ -75,6 +76,7 @@ export const STRUCTURE_ONLY = new Set<DocumentStoreAction['type']>([
     'document/sort-direct-child-nodes',
     'document/mandala/swap',
     'document/mandala/ensure-children',
+    'document/mandala/ensure-core-theme',
     'document/mandala/clear-empty-subgrids',
     'document/mandala/clear-empty-subgrids',
 ]);

@@ -65,29 +65,13 @@
         );
     };
 
-    import { 
-        mobileInteractionMode 
-    } from '../../../../../../../../../../stores/view/mobile-interaction-store';
     import { Platform } from 'obsidian';
-
-    const DOUBLE_CLICK_THRESHOLD_MS = 250;
-    let lastClickAt = 0;
-    let prevClickAt = 0;
-
-    const recordClick = () => {
-        prevClickAt = lastClickAt;
-        lastClickAt = Date.now();
-    };
-
-    const isFastDoubleClick = () =>
-        lastClickAt - prevClickAt <= DOUBLE_CLICK_THRESHOLD_MS;
 
     const handleClick = (e: MouseEvent) => {
         if (isGrabbing(view)) return;
-        recordClick();
         
-        // 移动端锁定模式：仅激活节点，禁止任何编辑相关的副作用
-        if (Platform.isMobile && $mobileInteractionMode === 'locked') {
+        // 移动端：仅激活节点，禁止任何编辑相关的副作用
+        if (Platform.isMobile) {
             const target = e.target as HTMLElement | null;
             const anchor = target?.closest('a.internal-link');
             if (anchor) {
@@ -96,16 +80,6 @@
             }
             setActiveNode(e);
             e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
-            return;
-        }
-
-        // PC 锁定模式：允许卡片处理导航，不改变选中
-        if (!Platform.isMobile && $mobileInteractionMode === 'locked') {
-            const target = e.target as HTMLElement | null;
-            const anchor = target?.closest('a.internal-link');
-            if (anchor) {
-                handleLinks(view, e);
-            }
             return;
         }
 
@@ -119,23 +93,28 @@
             handleLinks(view, e);
             setActiveNode(e);
         }
+
+        // 内容层已完成点击处理，避免继续冒泡到外层卡片重复触发选择逻辑
+        e.stopPropagation();
     };
 
     const handleDoubleClick = (e: MouseEvent) => {
         if (isGrabbing(view)) return;
-        if (!isFastDoubleClick()) return;
 
-        // 移动端锁定模式：绝对禁止双击触发编辑，由父组件 MandalaCard 处理导航
-        if ($mobileInteractionMode === 'locked') {
+        // 移动端：双击不进入编辑，由父组件 MandalaCard 处理导航（3x3）/无动作（9x9）
+        if (Platform.isMobile) {
             return;
         }
 
         enableEditModeAtCursor(e);
+
+        // 避免双击同时触发外层卡片的双击处理，造成重复进入编辑与卡顿
+        e.stopPropagation();
     };
 </script>
 
 <div
-    class={'lng-prev markdown-preview-view markdown-preview-section markdown-rendered'}
+    class="lng-prev markdown-preview-view markdown-preview-section markdown-rendered"
     on:click={handleClick}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={!$showHiddenCardInfo}

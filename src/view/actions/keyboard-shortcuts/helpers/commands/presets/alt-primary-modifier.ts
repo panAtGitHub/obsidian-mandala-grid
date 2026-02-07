@@ -1,6 +1,7 @@
 import { CustomHotkeys } from 'src/stores/settings/settings-type';
 
 export const AltPrimaryModifier: CustomHotkeys = {
+    /*
     navigate_back: {
         primary: {
             key: 'J',
@@ -13,6 +14,7 @@ export const AltPrimaryModifier: CustomHotkeys = {
             modifiers: ['Alt', 'Mod', 'Shift'],
         },
     },
+    */
     add_below_and_split: {
         primary: {
             key: 'J',

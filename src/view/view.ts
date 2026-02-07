@@ -370,6 +370,7 @@ export class MandalaView extends TextFileView {
                 this.findNodeByHeading(heading.text, heading.level)) ||
             this.getNodeIdByLine(result.start.line);
         if (!nodeId) return;
+        this.updateSubgridThemeForNode(nodeId);
         await selectCard(this, nodeId);
         if (heading) {
             this.scrollHeadingIntoView(
@@ -383,6 +384,7 @@ export class MandalaView extends TextFileView {
     private async handleLineJump(line: number) {
         const nodeId = this.getNodeIdByLine(line);
         if (!nodeId) return;
+        this.updateSubgridThemeForNode(nodeId);
         await selectCard(this, nodeId);
     }
 
@@ -390,6 +392,20 @@ export class MandalaView extends TextFileView {
         const section = this.getSectionNumberForLine(line);
         if (!section) return null;
         return this.documentStore.getValue().sections.section_id[section] || null;
+    }
+
+    private updateSubgridThemeForNode(nodeId: string) {
+        if (this.mandalaMode !== '3x3') return;
+        const section =
+            this.documentStore.getValue().sections.id_section[nodeId];
+        if (!section) return;
+        const parts = section.split('.');
+        const theme =
+            parts.length > 1 ? parts.slice(0, -1).join('.') : section;
+        this.viewStore.dispatch({
+            type: 'view/mandala/subgrid/enter',
+            payload: { theme },
+        });
     }
 
     private getSectionNumberForLine(line: number): string | null {
@@ -412,7 +428,7 @@ export class MandalaView extends TextFileView {
             const lines = node.content.split('\n');
             for (const line of lines) {
                 const trimmed = line.trimStart();
-                const match = /^(\#{1,6})\s+(.*)$/.exec(trimmed);
+                const match = /^(#{1,6})\s+(.*)$/.exec(trimmed);
                 if (!match) continue;
                 const currentLevel = match[1].length;
                 if (headingLevel && currentLevel !== headingLevel) continue;

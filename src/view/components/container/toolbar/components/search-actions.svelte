@@ -39,7 +39,7 @@
 
 <div class="search-container buttons-group">
     <Button
-        label={'Search actions'}
+        label="Search actions"
         on:click={showContextMenu}
         tooltipPosition="bottom"
     >

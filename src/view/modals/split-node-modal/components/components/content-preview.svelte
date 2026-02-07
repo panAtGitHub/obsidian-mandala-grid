@@ -1,5 +1,4 @@
 <script lang="ts">
-    /* eslint-disable svelte/no-at-html-tags */
     import { getModalState } from 'src/view/modals/split-node-modal/helpers/get-modal-state';
 
     const state = getModalState();

@@ -39,7 +39,7 @@
     <div class="drag-handle" aria-label={lang.modals_rules_drag_handle}>
         <GripVertical class="svg-icon" />
     </div>
-    <RuleInfo {rule} {results} />
+    <RuleInfo {results} />
     <RuleEditor {rule} />
     <RuleStyleEditor {rule} />
     <RuleActions {rule} />

@@ -28,6 +28,12 @@
         showControls.update((v) => !v);
     };
 
+    const closeMobileControls = () => {
+        if (Platform.isMobile) {
+            showControls.set(false);
+        }
+    };
+
     const showOptionsMenu = writable(false);
     const toggleOptionsMenu = () => {
         showOptionsMenu.update((v) => !v);
@@ -68,7 +74,6 @@
             return {
                 minimap: showMinimap,
                 settings: controls.showSettingsSidebar,
-                hotkeys: controls.showHelpSidebar,
                 'style-rules': controls.showStyleRulesModal,
                 'center-active-node-h': scrollSettingsStore.centerActiveNodeH,
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
@@ -82,12 +87,33 @@
     );
 
     $: flattenedButtons = $buttons.flatMap((g) => g.buttons);
+    $: mobileSidebarButton = flattenedButtons.find(
+        (b) => (b.id as unknown as string) === 'mandala-detail-sidebar',
+    );
+    $: mobileOtherButtons = flattenedButtons.filter(
+        (b) =>
+            b !== mobileSidebarButton &&
+            b.id !== ('jump-core-prev' as ToolbarButton) &&
+            b.id !== ('jump-core-next' as ToolbarButton),
+    );
+    $: orderedButtons = Platform.isMobile
+        ? $buttons
+        : [...$buttons].sort((a, b) => {
+              const desktopOrder = ['mandala', 'settings'];
+              const indexA = desktopOrder.indexOf(a.id);
+              const indexB = desktopOrder.indexOf(b.id);
+              if (indexA === -1 && indexB === -1) return 0;
+              if (indexA === -1) return 1;
+              if (indexB === -1) return -1;
+              return indexA - indexB;
+          });
 </script>
 
 <div class="controls-container">
-    <div class="buttons-group controls-toggle">
+    <div class="topbar-buttons-group controls-toggle">
         <Button
             active={$showControls}
+            classes="topbar-button"
             label={lang.controls_toggle_bar}
             on:click={toggleShowControls}
             tooltipPosition="bottom"
@@ -97,13 +123,55 @@
     </div>
 
     {#if Platform.isMobile}
-        <div class="buttons-group" data-visible={$showControls}>
-            {#each flattenedButtons as button (button.label)}
+        <div
+            class="controls-popover"
+            class:topbar-mobile-popover={Platform.isMobile}
+            data-visible={$showControls}
+        >
+            <Button
+                active={$showOptionsMenu}
+                classes="control-item js-view-options-trigger topbar-button"
+                label="视图选项"
+                on:click={() => {
+                    toggleOptionsMenu();
+                    closeMobileControls();
+                }}
+                tooltipPosition="bottom"
+            >
+                <Wrench class="svg-icon" />
+            </Button>
+
+            {#if mobileSidebarButton}
+                <Button
+                    active={$activeStates[mobileSidebarButton.id]}
+                    classes="control-item topbar-button"
+                    label={mobileSidebarButton.label}
+                    on:click={(e) => {
+                        mobileSidebarButton.onClick(e);
+                        closeMobileControls();
+                    }}
+                    tooltipPosition="bottom"
+                >
+                    {#if 'svg' in mobileSidebarButton.icon}
+                        {@html mobileSidebarButton.icon.svg}
+                    {:else}
+                        <svelte:component
+                            this={mobileSidebarButton.icon}
+                            class="svg-icon"
+                        />
+                    {/if}
+                </Button>
+            {/if}
+
+            {#each mobileOtherButtons as button (button.label)}
                 <Button
                     active={$activeStates[button.id]}
-                    classes="control-item"
+                    classes="control-item topbar-button"
                     label={button.label}
-                    on:click={button.onClick}
+                    on:click={(e) => {
+                        button.onClick(e);
+                        closeMobileControls();
+                    }}
                     tooltipPosition="bottom"
                 >
                     {#if 'svg' in button.icon}
@@ -115,12 +183,12 @@
             {/each}
         </div>
     {:else}
-        {#each $buttons as group (group.id)}
-            <div class="buttons-group">
-                {#each group.buttons as button (button.label)}
+        {#each orderedButtons as group (group.id)}
+            {#each group.buttons as button (button.label)}
+                <div class="topbar-buttons-group">
                     <Button
                         active={$activeStates[button.id]}
-                        classes="control-item"
+                        classes="control-item topbar-button"
                         label={button.label}
                         on:click={button.onClick}
                         tooltipPosition="bottom"
@@ -131,21 +199,23 @@
                             <svelte:component this={button.icon} class="svg-icon" />
                         {/if}
                     </Button>
-                {/each}
-                
-                <!-- 在侧边栏按钮组后添加快捷菜单按钮 -->
-                {#if group.id === 'mandala'}
+                </div>
+            {/each}
+
+            <!-- 在侧边栏按钮组后添加快捷菜单按钮 -->
+            {#if group.id === 'mandala'}
+                <div class="topbar-buttons-group">
                     <Button
                         active={$showOptionsMenu}
-                        classes="control-item"
+                        classes="control-item js-view-options-trigger topbar-button"
                         label="视图选项"
                         on:click={toggleOptionsMenu}
                         tooltipPosition="bottom"
                     >
                         <Wrench class="svg-icon" />
                     </Button>
-                {/if}
-            </div>
+                </div>
+            {/if}
         {/each}
     {/if}
 </div>
@@ -162,9 +232,10 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+        position: relative;
     }
 
-    .buttons-group {
+    .controls-popover {
         display: flex;
         flex-direction: row;
         gap: var(--size-4-2);
@@ -181,21 +252,12 @@
             display: block;
             z-index: 1002;
         }
-        & .buttons-group[data-visible='true'] {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
+        & .controls-popover[data-visible='true'] {
             top: 45px;
             right: var(--size-4-2);
-            background: var(--background-primary);
-            padding: var(--size-4-2);
-            border-radius: var(--radius-m);
-            box-shadow: var(--shadow-l);
-            border: 1px solid var(--background-modifier-border);
-            z-index: 1001;
-            gap: 8px;
+            flex-direction: column !important;
         }
-        & .buttons-group[data-visible='false'] {
+        & .controls-popover[data-visible='false'] {
             display: none;
         }
     }

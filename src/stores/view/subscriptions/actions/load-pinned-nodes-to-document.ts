@@ -3,14 +3,16 @@ import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-a
 import { readPinnedFromFrontmatter } from 'src/view/helpers/mandala/pinned-frontmatter';
 
 export const loadPinnedNodesToDocument = (view: MandalaView) => {
+    if (!view.file) return;
     const documentStore = view.documentStore;
     const documentState = documentStore.getValue();
     const settingsStore = view.plugin.settings;
     const settingsState = settingsStore.getValue();
+    const fromSettings = settingsState.documents[view.file.path]?.pinnedSections;
     const persistedFrontmatter = readPinnedFromFrontmatter(view);
 
-    const pinnedSections = persistedFrontmatter?.sections;
-    const activeSection = persistedFrontmatter?.activeSection ?? null;
+    const pinnedSections = fromSettings?.sections ?? persistedFrontmatter?.sections;
+    const activeSection = fromSettings?.activeSection ?? null;
 
     if (!pinnedSections) return;
 

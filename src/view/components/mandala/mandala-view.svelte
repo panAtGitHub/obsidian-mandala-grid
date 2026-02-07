@@ -5,11 +5,13 @@
     import {
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
+        MandalaBorderOpacityStore,
         MandalaDetailSidebarWidthStore,
         MandalaModeStore,
         MandalaBackgroundModeStore,
         MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
+        Show3x3SubgridNavButtonsStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
@@ -22,21 +24,31 @@
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
-    import Mandala9x9Grid from 'src/view/components/mandala/mandala-9x9-grid.svelte';
+    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import MandalaOverviewSimple from 'src/view/components/mandala/mandala-overview-simple.svelte';
     import { flip } from 'svelte/animate';
     import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
+    import ToolbarCenter from 'src/view/components/container/toolbar/toolbar-center.svelte';
     import MandalaDetailSidebar from './mandala-detail-sidebar.svelte';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
+    import { searchStore } from 'src/stores/view/derived/search-store';
+    import MobileFullScreenSearch from 'src/view/components/mandala/mobile-fullscreen-search.svelte';
 
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
+    import {
+        enterSubgridForNode,
+        exitCurrentSubgrid,
+    } from 'src/view/helpers/mandala/mobile-navigation';
+    import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
 
     const view = getView();
     const layout = createLayoutStore();
+    const search = searchStore(view);
 
     // 默认九宫格大小（如果是移动端且开启该逻辑）
     $: squareSize = $layout.squareSize;
@@ -46,12 +58,8 @@
     const gridOrientation = MandalaGridOrientationStore(view);
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
-    const toggleMode = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/toggle-mode',
-        });
-        focusContainer(view);
-    };
+    const borderOpacity = MandalaBorderOpacityStore(view);
+    const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const detailSidebarWidth = MandalaDetailSidebarWidthStore(view);
@@ -61,19 +69,38 @@
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
 
-    const grayPositions = new Set([1, 3, 5, 7]);
-    const getSectionBackground = (section: string, index: number) => {
-        const opacity = $sectionColorOpacity / 100;
-        if ($backgroundMode === 'custom' && $sectionColors[section]) {
-            return applyOpacityToHex($sectionColors[section], opacity);
+    const isCrossPosition = (row: number, col: number) =>
+        (row === 0 && col === 1) ||
+        (row === 1 && col === 0) ||
+        (row === 1 && col === 2) ||
+        (row === 2 && col === 1);
+
+    const isCrossIndex = (index: number) => {
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        return isCrossPosition(row, col);
+    };
+    const getSectionBackground = (
+        section: string,
+        index: number,
+        backgroundMode: string,
+        sectionColors: Record<string, string>,
+        sectionColorOpacity: number,
+    ) => {
+        const opacity = sectionColorOpacity / 100;
+        if (backgroundMode === 'custom' && sectionColors[section]) {
+            return applyOpacityToHex(sectionColors[section], opacity);
         }
-        if ($backgroundMode === 'gray' && grayPositions.has(index)) {
+        if (backgroundMode === 'gray' && isCrossIndex(index)) {
             return `color-mix(in srgb, var(--mandala-gray-block-base) ${
-                $sectionColorOpacity
+                sectionColorOpacity
             }%, transparent)`;
         }
         return null;
     };
+
+    const getBaseTheme = (section: string | undefined) =>
+        section ? section.split('.')[0] : '1';
 
     const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
 
@@ -101,8 +128,6 @@
         );
     };
 
-    // 强制锁定为 3x3 模式以支持无限嵌套逻辑，保留 9x9 代码备用
-    // $: view.mandalaMode = '3x3';
     $: view.mandalaMode = $mode;
 
     const sectionToNodeId = derived(
@@ -126,11 +151,21 @@
         view.viewStore,
         (state) => state.ui.mandala.subgridTheme,
     );
+    const documentState = derived(view.documentStore, (state) => state);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const nodeStyles = derived(
         view.viewStore,
         (state) => state.styleRules.nodeStyles,
     );
+    const hasOpenOverlayModal = derived(view.viewStore, (state) => {
+        const controls = state.ui.controls;
+        return (
+            controls.showHelpSidebar ||
+            controls.showSettingsSidebar ||
+            controls.showHistorySidebar ||
+            controls.showStyleRulesModal
+        );
+    });
 
     let containerRef: HTMLElement | null = null;
     onMount(() => {
@@ -174,32 +209,72 @@
     );
 
     $: {
-        if ($mode !== '3x3' && $subgridTheme) {
-            view.viewStore.dispatch({ type: 'view/mandala/subgrid/exit' });
+        if ($mode && !$subgridTheme) {
+            view.viewStore.dispatch({
+                type: 'view/mandala/subgrid/enter',
+                payload: { theme: '1' },
+            });
         }
 
         if ($mode !== '9x9') {
-            view.mandalaActiveCell9x9 = null;
+            if (view.mandalaActiveCell9x9) {
+                setActiveCell9x9(view, null);
+            }
         } else {
             const section = $idToSection[$activeNodeId];
+            const baseTheme = getBaseTheme(section);
             if (!section) {
-                view.mandalaActiveCell9x9 = null;
+                if (view.mandalaActiveCell9x9) {
+                    setActiveCell9x9(view, null);
+                }
             } else {
                 const cell = view.mandalaActiveCell9x9;
-                const mapped = cell
-                    ? sectionAtCell9x9(cell.row, cell.col, $gridOrientation)
-                    : null;
-                if (mapped !== section) {
-                    view.mandalaActiveCell9x9 = posOfSection9x9(
-                        section,
+                const pos = posOfSection9x9(
+                    section,
+                    $gridOrientation,
+                    baseTheme,
+                );
+                if (cell) {
+                    const mapped = sectionAtCell9x9(
+                        cell.row,
+                        cell.col,
                         $gridOrientation,
+                        baseTheme,
                     );
+                    if (!mapped || mapped !== section) {
+                        setActiveCell9x9(view, pos ?? null);
+                    }
+                }
+            }
+        }
+    }
+
+    $: {
+        if (
+            $mode === '3x3' &&
+            $subgridTheme &&
+            !$subgridTheme.includes('.') &&
+            $documentState.meta.isMandala
+        ) {
+            const themeNodeId = $sectionToNodeId[$subgridTheme];
+            if (themeNodeId) {
+                const childGroup = findChildGroup(
+                    $documentState.document.columns,
+                    themeNodeId,
+                );
+                const childCount = childGroup?.nodes.length ?? 0;
+                if (childCount < 8) {
+                    view.documentStore.dispatch({
+                        type: 'document/mandala/ensure-children',
+                        payload: { parentNodeId: themeNodeId, count: 8 },
+                    });
                 }
             }
         }
     }
     // 手机端全屏编辑状态判断
     $: isMobilePopupEditing = Platform.isMobile && $editingState.activeNodeId && !$editingState.isInSidebar;
+    $: isMobileFullScreenSearch = Platform.isMobile && $search.showInput;
 
     let showSettings = false;
     const toggleSettings = () => {
@@ -222,6 +297,23 @@
     const handleDecreaseFontSize = () => {
         mobilePopupFontSizeStore.setFontSize($mobilePopupFontSizeStore - 1);
     };
+
+    const enterSubgridFromButton = (event: MouseEvent, nodeId: string) => {
+        event.stopPropagation();
+        enterSubgridForNode(view, nodeId);
+    };
+
+    const exitSubgridFromButton = (event: MouseEvent) => {
+        event.stopPropagation();
+        exitCurrentSubgrid(view);
+    };
+
+    const getUpButtonLabel = (theme: string) =>
+        theme.includes('.') ? '退出上一层子九宫格' : '上一层核心九宫格';
+
+    const getDownButtonLabel = (theme: string) =>
+        theme.includes('.') ? '进入下一层子九宫格' : '下一层核心九宫格';
+
 </script>
 
 <div
@@ -233,10 +325,10 @@
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
     class:has-detail-sidebar={!Platform.isMobile && $showDetailSidebar}
     class:is-portrait={isPortrait}
-    class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
+    class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px;"
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%;"
 >
     {#if isMobilePopupEditing}
         <div class="mobile-edit-header">
@@ -269,10 +361,19 @@
                 />
             </div>
         </div>
+    {:else if isMobileFullScreenSearch}
+        <MobileFullScreenSearch />
     {:else}
         <div class="mandala-topbar">
-            <Toolbar />
-            <VerticalToolbar />
+            <div class="mandala-topbar__left">
+                <Toolbar />
+            </div>
+            <div class="mandala-topbar__center">
+                <ToolbarCenter />
+            </div>
+            <div class="mandala-topbar__right">
+                <VerticalToolbar />
+            </div>
         </div>
         <div class="mandala-content-wrapper" bind:this={contentWrapperRef}>
             <div
@@ -282,13 +383,11 @@
                 on:click={() => focusContainer(view)}
             >
                 {#if $mode === '3x3'}
-                    {@const theme = $subgridTheme}
+                    {@const theme = $subgridTheme ?? '1'}
                     {@const layout = getMandalaLayout($gridOrientation)}
-                    {@const sections = theme
-                        ? layout.childSlots.map((slot) =>
-                              slot ? `${theme}.${slot}` : theme,
-                          )
-                        : layout.coreSlots}
+                    {@const sections = layout.childSlots.map((slot) =>
+                        slot ? `${theme}.${slot}` : theme,
+                    )}
                     {@const cells = sections.map((section, index) => {
                         const nodeId = requireNodeId(section);
                         return {
@@ -303,6 +402,9 @@
                             {@const sectionBackground = getSectionBackground(
                                 cell.section,
                                 cell.index,
+                                $backgroundMode,
+                                $sectionColors,
+                                $sectionColorOpacity,
                             )}
                             <div
                                 class="mandala-cell"
@@ -323,9 +425,90 @@
                                         pinned={$pinnedNodes.has(cell.nodeId)}
                                         style={$nodeStyles.get(cell.nodeId)}
                                         sectionColor={sectionBackground}
-                                        draggable={cell.section !== '1' &&
-                                            !$subgridTheme}
+                                        draggable={cell.section !== theme}
                                     />
+                                    {#if !Platform.isMobile &&
+                                        $show3x3SubgridNavButtons &&
+                                        !$hasOpenOverlayModal}
+                                        <div
+                                            class="mandala-subgrid-controls"
+                                            class:is-center-controls={cell.section === theme}
+                                            on:click|stopPropagation
+                                            on:mousedown|stopPropagation|preventDefault
+                                            on:pointerdown|stopPropagation|preventDefault
+                                        >
+                                            {#if cell.section === theme}
+                                                {#if theme !== '1'}
+                                                    <button
+                                                        class="mandala-subgrid-btn mandala-subgrid-btn--up"
+                                                        type="button"
+                                                        aria-label={getUpButtonLabel(theme)}
+                                                        title={getUpButtonLabel(theme)}
+                                                        on:click={(event) =>
+                                                            exitSubgridFromButton(event)}
+                                                    >
+                                                        <span class="mandala-subgrid-btn__icon">
+                                                            {#if theme.includes('.')}
+                                                                <MandalaNavIcon
+                                                                    direction="up"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
+                                                            {:else}
+                                                                <MandalaNavIcon
+                                                                    direction="left"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
+                                                            {/if}
+                                                        </span>
+                                                    </button>
+                                                {/if}
+                                                {#if !theme.includes('.')}
+                                                    <button
+                                                        class="mandala-subgrid-btn mandala-subgrid-btn--down"
+                                                        type="button"
+                                                        aria-label={getDownButtonLabel(theme)}
+                                                        title={getDownButtonLabel(theme)}
+                                                        on:click={(event) =>
+                                                            enterSubgridFromButton(event, cell.nodeId)}
+                                                    >
+                                                        <span class="mandala-subgrid-btn__icon">
+                                                            {#if theme.includes('.')}
+                                                                <MandalaNavIcon
+                                                                    direction="down"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
+                                                            {:else}
+                                                                <MandalaNavIcon
+                                                                    direction="right"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
+                                                            {/if}
+                                                        </span>
+                                                    </button>
+                                                {/if}
+                                            {:else}
+                                                <button
+                                                    class="mandala-subgrid-btn mandala-subgrid-btn--single"
+                                                    type="button"
+                                                    aria-label="进入子九宫"
+                                                    on:click={(event) =>
+                                                        enterSubgridFromButton(event, cell.nodeId)}
+                                                >
+                                                    <span class="mandala-subgrid-btn__icon">
+                                                        <MandalaNavIcon
+                                                            direction="down"
+                                                            size={14}
+                                                            strokeWidth={2.2}
+                                                        />
+                                                    </span>
+                                                </button>
+                                            {/if}
+                                        </div>
+                                    {/if}
                                 {:else}
                                     <div
                                         class="mandala-empty"
@@ -366,14 +549,20 @@
             var(--background-modifier-border) 70%,
             var(--background-primary)
         );
+        --mandala-border-opacity: 100%;
+        --mandala-border-color: color-mix(
+            in srgb,
+            var(--text-normal) var(--mandala-border-opacity),
+            transparent
+        );
         --mandala-a4-width: 210mm;
         --mandala-a4-height: 297mm;
         --mandala-a4-margin: 1.27cm;
     }
 
     .mandala-topbar {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
         gap: 8px;
         padding: 4px var(--size-4-2);
@@ -387,14 +576,23 @@
         pointer-events: auto;
     }
 
-    .mandala-toggle {
-        padding: 6px 10px;
-        border-radius: 8px;
-        background: var(--interactive-normal);
-        color: var(--text-normal);
-        outline: 1px solid var(--background-modifier-border);
-        outline-offset: -1px;
-        cursor: pointer;
+    .mandala-topbar__left,
+    .mandala-topbar__center,
+    .mandala-topbar__right {
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+    .mandala-topbar__left {
+        justify-self: start;
+    }
+    .mandala-topbar__center {
+        justify-self: center;
+        overflow: hidden;
+    }
+    .mandala-topbar__right {
+        justify-self: end;
     }
 
     .mandala-scroll {
@@ -402,6 +600,7 @@
         overflow: auto;
         padding: 12px;
     }
+
     
     /* 桌面端调整格子右侧间距为 6px，为 6+6=12px 做准备 */
     :global(body:not(.is-mobile)) .mandala-root:not(.mandala-a4-mode) .mandala-scroll {
@@ -481,34 +680,89 @@
         height: var(--mandala-a4-width);
     }
 
+    .mandala-a4-mode {
+        --mandala-a4-content-width: calc(
+            var(--mandala-a4-width) - (2 * var(--mandala-a4-margin))
+        );
+        --mandala-a4-content-height: calc(
+            var(--mandala-a4-height) - (2 * var(--mandala-a4-margin))
+        );
+    }
+
+    .mandala-a4-mode.mandala-a4-landscape {
+        --mandala-a4-content-width: calc(
+            var(--mandala-a4-height) - (2 * var(--mandala-a4-margin))
+        );
+        --mandala-a4-content-height: calc(
+            var(--mandala-a4-width) - (2 * var(--mandala-a4-margin))
+        );
+    }
+
+    .mandala-a4-mode.is-desktop-square-layout .mandala-scroll {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mandala-a4-mode.is-desktop-square-layout .mandala-grid--core {
+        width: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+        height: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+    }
+
+    .mandala-a4-mode.is-desktop-square-layout :global(.simple-9x9-grid) {
+        width: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+        height: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+    }
+
+    .mandala-a4-mode.is-desktop-square-layout :global(.simple-9x9-shell) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+        height: min(
+            var(--mandala-a4-content-width),
+            var(--mandala-a4-content-height)
+        );
+    }
+
     /* A4 视觉校对：外框与内容区边界 */
     .mandala-a4-mode .mandala-scroll::before,
     .mandala-a4-mode .mandala-scroll::after {
+        display: none;
+    }
+
+    .mandala-a4-mode .mandala-scroll::before {
         content: '';
         position: absolute;
+        inset: 0;
+        outline: 1px solid rgba(255, 0, 0, 0.6);
         pointer-events: none;
         box-sizing: border-box;
     }
 
-    .mandala-a4-mode .mandala-scroll::before {
-        inset: 0;
-        outline: 1px solid rgba(255, 0, 0, 0.6);
-    }
-
     .mandala-a4-mode .mandala-scroll::after {
+        content: '';
+        position: absolute;
         inset: var(--mandala-a4-margin);
         outline: 1px dashed rgba(0, 128, 255, 0.8);
+        pointer-events: none;
+        box-sizing: border-box;
     }
-
-
-    .mandala-blocks {
-        display: grid;
-        grid-template-columns: repeat(3, max-content);
-        gap: var(--mandala-block-gap);
-        justify-content: center;
-        align-content: start;
-    }
-
     .mandala-grid {
         display: grid;
         grid-template-columns: repeat(3, var(--node-width));
@@ -519,6 +773,7 @@
     .mandala-cell {
         width: 100%;
         height: 100%;
+        position: relative;
     }
 
     /* 3×3 主视图：铺满可视区域（避免横向滚动） */
@@ -531,17 +786,172 @@
         justify-items: stretch;
     }
 
+    .mandala-white-theme .mandala-grid--core {
+        gap: 0;
+        box-sizing: border-box;
+    }
+
+    .mandala-white-theme .mandala-cell {
+        border-left: 1px dashed var(--mandala-border-color);
+        border-top: 1px dashed var(--mandala-border-color);
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .mandala-white-theme .mandala-cell:nth-child(-n + 3) {
+        border-top: 3px solid var(--mandala-border-color);
+    }
+
+    .mandala-white-theme .mandala-cell:nth-child(3n + 1) {
+        border-left: 3px solid var(--mandala-border-color);
+    }
+
+    .mandala-white-theme .mandala-cell:nth-child(n + 7) {
+        border-bottom: 3px solid var(--mandala-border-color);
+    }
+
+    .mandala-white-theme .mandala-cell:nth-child(3n) {
+        border-right: 3px solid var(--mandala-border-color);
+    }
+
+    .mandala-white-theme .mandala-cell :global(.mandala-card) {
+        border: 0 !important;
+        border-left-width: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        outline: 0 !important;
+    }
+
+    .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
+        :global(.mandala-card) {
+        border: 1px solid var(--text-normal) !important;
+        border-left-width: 1px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node) {
+        position: relative;
+    }
+
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.active-node)::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border: 2px solid var(--mandala-color-selection);
+        pointer-events: none;
+        box-sizing: border-box;
+        border-radius: 0;
+    }
+
     .mandala-root--3 {
         --mandala-card-height: 100%;
         --mandala-card-min-height: 0px;
         --mandala-card-overflow: hidden;
     }
 
-    .mandala-root--3 .mandala-empty,
-    .mandala-root--3 .mandala-mirror {
+    .mandala-root--3 .mandala-empty {
         width: 100%;
         height: 100%;
         min-height: 0;
+    }
+
+    .mandala-subgrid-controls {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        z-index: 20;
+        display: flex;
+        gap: 6px;
+        pointer-events: auto;
+    }
+
+    .mandala-subgrid-controls.is-center-controls {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        display: block;
+    }
+
+    .mandala-subgrid-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        border: 1px solid var(--background-modifier-border);
+        background: var(--background-primary);
+        color: var(--text-normal);
+        box-shadow: var(--shadow-s);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        position: relative;
+        z-index: 21;
+        transition:
+            background-color 120ms ease,
+            border-color 120ms ease,
+            box-shadow 120ms ease,
+            transform 120ms ease;
+    }
+
+    .mandala-subgrid-btn:hover {
+        background: color-mix(
+            in srgb,
+            var(--background-primary-alt) 75%,
+            var(--interactive-accent) 25%
+        );
+        border-color: color-mix(
+            in srgb,
+            var(--interactive-accent) 55%,
+            var(--background-modifier-border) 45%
+        );
+        box-shadow:
+            0 0 0 1px color-mix(
+                in srgb,
+                var(--interactive-accent) 45%,
+                transparent
+            ),
+            var(--shadow-s);
+        transform: translateY(-1px);
+    }
+
+    .mandala-subgrid-btn:active {
+        transform: translateY(1px);
+    }
+
+    .mandala-subgrid-btn__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        line-height: 0;
+    }
+
+    .mandala-subgrid-btn__icon :global(svg),
+    .mandala-subgrid-btn__icon :global(.svg-icon) {
+        display: block;
+        width: 14px !important;
+        height: 14px !important;
+        stroke-width: 2.2 !important;
+    }
+
+    .mandala-subgrid-controls.is-center-controls
+        .mandala-subgrid-btn--up {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+    }
+
+    .mandala-subgrid-controls.is-center-controls
+        .mandala-subgrid-btn--down {
+        position: absolute;
+        right: 0;
+        bottom: 0;
     }
 
     /* 9×9：格子约等于 3×3 的 1/3，并铺满屏幕 */
@@ -552,20 +962,6 @@
         --mandala-card-overflow: hidden;
     }
 
-    .mandala-root--9 .mandala-blocks {
-        width: 100%;
-        height: 100%;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-template-rows: repeat(3, minmax(0, 1fr));
-        justify-content: stretch;
-        align-content: stretch;
-    }
-
-    .mandala-root--9 .mandala-block {
-        width: 100%;
-        height: 100%;
-    }
-
     .mandala-root--9 .mandala-grid {
         width: 100%;
         height: 100%;
@@ -574,8 +970,7 @@
         align-items: stretch;
     }
 
-    .mandala-root--9 .mandala-empty,
-    .mandala-root--9 .mandala-mirror {
+    .mandala-root--9 .mandala-empty {
         width: 100%;
         height: 100%;
         min-height: 0;
@@ -618,8 +1013,7 @@
         height: 100%;
     }
 
-    .mandala-empty,
-    .mandala-mirror {
+    .mandala-empty {
         width: var(--node-width);
         min-height: var(--min-node-height);
         border: 1px dashed var(--background-modifier-border);
@@ -630,18 +1024,6 @@
         background: var(--background-primary);
     }
 
-    .mandala-mirror :global(.lng-prev) {
-        pointer-events: auto;
-    }
-
-    .mandala-center-cell {
-        width: 100%;
-        height: 100%;
-        border: 1px dashed var(--background-modifier-border);
-        border-radius: 8px;
-        opacity: 0.35;
-        pointer-events: none;
-    }
     .is-editing-mobile.mandala-root {
         height: 100dvh !important;
         overflow: hidden !important;

@@ -8,6 +8,7 @@ import { textIsSelected } from 'src/view/actions/context-menu/card-context-menu/
 import { createMultipleNodesContextMenu } from 'src/view/actions/context-menu/card-context-menu/create-multiple-nodes-context-menu';
 import { createSidebarContextMenuItems } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
 import { createSingleNodeContextMenuItems } from 'src/view/actions/context-menu/card-context-menu/create-single-node-context-menu-items';
+import { touchEventToMouseEvent } from 'src/obsidian/context-menu/touch-event-to-mouse-event';
 
 const getContextMenuContext = (
     view: MandalaView,
@@ -35,11 +36,12 @@ const getContextMenuContext = (
     };
 };
 
-export const showNodeContextMenu = (event: MouseEvent, view: MandalaView) => {
-    // Mandala 模式也启用右键菜单
-    // if (view.documentStore.getValue().meta.isMandala) return;
-
-    const target = event.target as HTMLElement;
+export const showNodeContextMenu = (
+    event: MouseEvent | TouchEvent,
+    view: MandalaView,
+) => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
     const closestCardElement = target.closest(
         '.mandala-card, .simple-cell',
     ) as HTMLElement | null;
@@ -75,5 +77,9 @@ export const showNodeContextMenu = (event: MouseEvent, view: MandalaView) => {
     } else {
         menuItems = createSingleNodeContextMenuItems(view, context);
     }
-    renderContextMenu(event, menuItems);
+    const contextEvent = event.instanceOf(MouseEvent)
+        ? event
+        : touchEventToMouseEvent(event);
+    if (!contextEvent) return;
+    renderContextMenu(contextEvent, menuItems);
 };

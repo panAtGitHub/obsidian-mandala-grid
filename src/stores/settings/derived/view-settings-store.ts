@@ -1,6 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { derived } from 'src/lib/store/derived';
 import MandalaGrid from 'src/main';
+import { Platform } from 'obsidian';
 
 export const ViewSettingsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view);
@@ -60,19 +61,13 @@ export const MandalaModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaMode);
 
 export const MandalaGridOrientationStore = (view: MandalaView) =>
-    derived(
-        view.plugin.settings,
-        (state) => state.view.mandalaGridOrientation,
-    );
+    derived(view.plugin.settings, (state) => state.view.mandalaGridOrientation);
 
 export const MandalaA4ModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaA4Mode);
 
 export const MandalaA4OrientationStore = (view: MandalaView) =>
-    derived(
-        view.plugin.settings,
-        (state) => state.view.mandalaA4Orientation,
-    );
+    derived(view.plugin.settings, (state) => state.view.mandalaA4Orientation);
 
 export const MandalaBackgroundModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaBackgroundMode);
@@ -86,11 +81,31 @@ export const AlwaysShowCardButtons = (view: MandalaView) =>
 export const ShowHiddenCardInfoStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.showHiddenCardInfo);
 
+export const Show3x3SubgridNavButtonsStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.show3x3SubgridNavButtonsMobile ?? true
+            : state.view.show3x3SubgridNavButtonsDesktop ?? true,
+    );
+
+export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.show9x9ParallelNavButtonsMobile ?? true
+            : state.view.show9x9ParallelNavButtonsDesktop ?? true,
+    );
+
 export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.showMandalaDetailSidebar);
+    derived(
+        view.plugin.settings,
+        (state) => state.view.showMandalaDetailSidebar,
+    );
 
 export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.mandalaDetailSidebarWidth);
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaDetailSidebarWidth,
+    );
 
 export const Show9x9TitleOnlyStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.show9x9TitleOnly);
@@ -102,7 +117,10 @@ export const WhiteThemeModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.whiteThemeMode);
 
 export const MandalaBorderOpacityStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.mandalaGridBorderOpacity);
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridBorderOpacity,
+    );
 
 export const MandalaSectionColorOpacityStore = (view: MandalaView) =>
     derived(

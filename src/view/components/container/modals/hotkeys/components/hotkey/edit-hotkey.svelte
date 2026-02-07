@@ -27,7 +27,7 @@
     let ALT = hotkey.modifiers.includes('Alt');
     let CTRL = hotkey.modifiers.includes('Ctrl');
 
-    // eslint-disable-next-line no-undef
+     
     const onKeyDown = (e: KeyboardEvent) => {
         e.preventDefault();
         if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
@@ -72,7 +72,7 @@
             },
         });
     };
-    // eslint-disable-next-line no-undef
+     
     const reset = () => {
         view.plugin.settings.dispatch({
             type: 'settings/hotkeys/reset-custom-hotkey',
@@ -115,7 +115,7 @@
             bind:value={key}
             class="search-input input hotkey-key"
             on:keydown={onKeyDown}
-            placeholder={'Key'}
+            placeholder="按键"
             spellcheck="false"
             type="text"
         />

@@ -1,26 +1,14 @@
 import { navigateCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/navigate-commands';
 import { editCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/edit-commands';
-import { createCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/create-commands';
-import { moveCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/move-commands';
-import { mergeCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/merge-commands';
 import { historyCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/history-commands';
-import { clipboardCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/clipboard-commands';
-import { selectionCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/selection-commands';
-import { scrollCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/scroll-commands';
-import { deleteNode } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/delete-node';
-import { moveNode } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/move-node';
 import { MandalaView } from 'src/view/view';
-import { Hotkey, Notice } from 'obsidian';
+import { Hotkey } from 'obsidian';
 import { CommandName, GroupName } from 'src/lang/hotkey-groups';
 import {
     enterSubgridForNode,
     exitCurrentSubgrid
 } from 'src/view/helpers/mandala/mobile-navigation';
-import { get } from 'svelte/store';
-import { singleColumnStore } from 'src/stores/document/derived/columns-store';
-import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
-import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
-import { toggleMobileInteractionMode } from 'src/stores/view/mobile-interaction-store';
+import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';
 export type HotkeyPreferences = {
@@ -47,94 +35,18 @@ export type StatefulViewCommand = DefaultViewCommand & {
     group: GroupName;
 };
 
-type SwapDirection = 'up' | 'down' | 'left' | 'right';
-const swapDeltas: Record<SwapDirection, { dr: number; dc: number }> = {
-    up: { dr: -1, dc: 0 },
-    down: { dr: 1, dc: 0 },
-    left: { dr: 0, dc: -1 },
-    right: { dr: 0, dc: 1 },
-};
-
-const swapMandalaCell = (view: MandalaView, direction: SwapDirection) => {
-    if (view.mandalaMode !== '3x3') return;
-
-    const viewState = view.viewStore.getValue();
-    if (viewState.document.editing.activeNodeId) return;
-
-    const docState = view.documentStore.getValue();
-    if (!docState.meta.isMandala) return;
-
-    const activeNodeId = viewState.document.activeNode;
-    const activeSectionRaw = docState.sections.id_section[activeNodeId];
-    if (!activeSectionRaw) return;
-
-    const subgridTheme = viewState.ui.mandala.subgridTheme;
-    const gridOrientation =
-        view.plugin.settings.getValue().view.mandalaGridOrientation ??
-        'left-to-right';
-    const { coreGrid, positions, slotPositions, themeGrid } =
-        getMandalaLayout(gridOrientation);
-
-    const pos = (() => {
-        if (subgridTheme) {
-            if (activeSectionRaw === subgridTheme) return { row: 1, col: 1 };
-            if (activeSectionRaw.startsWith(`${subgridTheme}.`)) {
-                const suffix = activeSectionRaw.slice(subgridTheme.length + 1);
-                if (suffix.includes('.')) return null;
-                return slotPositions[suffix] ?? null;
-            }
-            return null;
-        }
-
-        const coreSection = activeSectionRaw.includes('.')
-            ? activeSectionRaw.split('.')[0]
-            : activeSectionRaw;
-        return positions[coreSection] ?? null;
-    })();
-    if (!pos) return;
-
-    const { dr, dc } = swapDeltas[direction];
-    const nextRow = pos.row + dr;
-    const nextCol = pos.col + dc;
-
-    const targetSection = (() => {
-        if (subgridTheme) {
-            if (nextRow === 1 && nextCol === 1) return subgridTheme;
-            const slot = themeGrid[nextRow]?.[nextCol] ?? null;
-            return slot ? `${subgridTheme}.${slot}` : null;
-        }
-        return coreGrid[nextRow]?.[nextCol] ?? null;
-    })();
-    if (!targetSection) return;
-
-    const targetNodeId = docState.sections.section_id[targetSection];
-    if (!targetNodeId) return;
-
-    view.documentStore.dispatch({
-        type: 'document/mandala/swap',
-        payload: {
-            sourceNodeId: activeNodeId,
-            targetNodeId,
-        },
-    });
-
-    view.viewStore.dispatch({
-        type: 'view/set-active-node/mouse-silent',
-        payload: { id: targetNodeId },
-    });
-};
-
-export const defaultViewHotkeys = (): DefaultViewCommand[] => [
-    ...navigateCommands(),
-    ...editCommands(),
-    // ...createCommands(),
-    // ...moveCommands(),
-    // ...mergeCommands(),
-    // ...clipboardCommands(),
-    ...historyCommands(),
-    // ...selectionCommands(),
-    // ...scrollCommands(),
-    /* {
+export const defaultViewHotkeys = (): DefaultViewCommand[] => {
+    const commands: DefaultViewCommand[] = [
+        ...navigateCommands(),
+        ...editCommands(),
+        // ...createCommands(),
+        // ...moveCommands(),
+        // ...mergeCommands(),
+        // ...clipboardCommands(),
+        ...historyCommands(),
+        // ...selectionCommands(),
+        // ...scrollCommands(),
+        /* {
         name: 'move_node_up',
         callback: (view) => {
             if (view.mandalaMode === '3x3') swapMandalaCell(view, 'up');
@@ -273,16 +185,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         hotkeys: [],
     }, */
     {
-        name: 'toggle_lock_mode',
-        callback: (view, e) => {
-            if (view.mandalaMode === null) return;
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMobileInteractionMode();
-        },
-        hotkeys: [],
-    },
-    {
         name: 'enter_subgrid',
         callback: (view, e) => {
             e.preventDefault();
@@ -300,6 +202,47 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
             e.preventDefault();
             e.stopPropagation();
             exitCurrentSubgrid(view);
+        },
+        hotkeys: [],
+    },
+    {
+        name: 'jump_core_next',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            jumpCoreTheme(view, 'down');
+        },
+        hotkeys: [
+            {
+                key: 'ArrowDown',
+                modifiers: ['Mod', 'Shift'],
+                editorState: 'editor-off',
+            },
+        ],
+    },
+    {
+        name: 'jump_core_prev',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            jumpCoreTheme(view, 'up');
+        },
+        hotkeys: [
+            {
+                key: 'ArrowUp',
+                modifiers: ['Mod', 'Shift'],
+                editorState: 'editor-off',
+            },
+        ],
+    },
+    {
+        name: 'toggle_mandala_mode',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            view.plugin.settings.dispatch({
+                type: 'settings/view/mandala/toggle-mode',
+            });
         },
         hotkeys: [],
     },
@@ -364,4 +307,14 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => [
         },
         hotkeys: [{ key: '=', modifiers: ['Alt', 'Mod'], editorState: 'both' }],
     }, */
-];
+    ];
+
+    return commands.map((command) => ({
+        ...command,
+        hotkeys: command.hotkeys.map((hotkey) => ({
+            ...hotkey,
+            key: '',
+            modifiers: [],
+        })),
+    }));
+};

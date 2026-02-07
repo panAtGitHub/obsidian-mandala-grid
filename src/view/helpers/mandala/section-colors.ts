@@ -1,4 +1,5 @@
-import { parseYaml } from 'obsidian';
+import { parseYaml, stringifyYaml } from 'obsidian';
+import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { MandalaView } from 'src/view/view';
 
 export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
@@ -66,11 +67,42 @@ const createEmptySectionColorMap = (): SectionColorMap => ({
     '8_graphite': [],
 });
 
+const normalizeSectionIds = (sections: string[]) =>
+    Array.from(new Set(sections)).sort(compareSectionIds);
+
 const stripFrontmatter = (frontmatter: string) =>
     frontmatter
         .replace(/^---\n/, '')
         .replace(/\n---\n?$/, '')
         .trim();
+
+const buildFrontmatterWithSectionColors = (
+    frontmatter: string,
+    map: SectionColorMap,
+) => {
+    const serialized = serializeSectionColorMap(map);
+    let record: Record<string, unknown> = {};
+    if (frontmatter.trim()) {
+        const content = stripFrontmatter(frontmatter);
+        if (content) {
+            try {
+                const parsed = parseYaml(content);
+                if (parsed && typeof parsed === 'object') {
+                    record = parsed as Record<string, unknown>;
+                }
+            } catch {
+                record = {};
+            }
+        }
+    }
+    if (Object.keys(serialized).length === 0) {
+        delete record[SECTION_COLORS_FRONTMATTER_KEY];
+    } else {
+        record[SECTION_COLORS_FRONTMATTER_KEY] = serialized;
+    }
+    const yaml = stringifyYaml(record).trim();
+    return yaml ? `---\n${yaml}\n---\n` : '';
+};
 
 const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
     const map = createEmptySectionColorMap();
@@ -79,14 +111,15 @@ const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
     for (const key of SECTION_COLOR_KEYS) {
         const raw = record[key];
         if (Array.isArray(raw)) {
-            map[key] = raw
+            map[key] = normalizeSectionIds(
+                raw
                 .map((section) =>
                     typeof section === 'number' ? String(section) : section,
                 )
                 .filter(
                     (section): section is string => typeof section === 'string',
-                )
-                .sort(compareSectionIds);
+                ),
+            );
         } else if (typeof raw === 'string') {
             map[key] = [raw];
         } else if (typeof raw === 'number') {
@@ -128,8 +161,9 @@ export const createSectionColorIndex = (map: SectionColorMap) => {
 export const serializeSectionColorMap = (map: SectionColorMap) => {
     const result: Partial<SectionColorMap> = {};
     for (const key of SECTION_COLOR_KEYS) {
-        if (map[key].length > 0) {
-            result[key] = map[key];
+        const sections = normalizeSectionIds(map[key]);
+        if (sections.length > 0) {
+            result[key] = sections;
         }
     }
     return result;
@@ -145,7 +179,7 @@ export const setSectionColor = (
         next[key] = map[key].filter((item) => item !== section);
     }
     if (colorKey) {
-        next[colorKey] = [...next[colorKey], section].sort(compareSectionIds);
+        next[colorKey] = normalizeSectionIds([...next[colorKey], section]);
     }
     return next;
 };
@@ -155,14 +189,27 @@ export const writeSectionColorsToFrontmatter = async (
     map: SectionColorMap,
 ) => {
     if (!view.file) return;
-    const serialized = serializeSectionColorMap(map);
+    const currentMap = parseSectionColorsFromFrontmatter(
+        view.documentStore.getValue().file.frontmatter,
+    );
+    const currentSerialized = serializeSectionColorMap(currentMap);
+    const nextSerialized = serializeSectionColorMap(map);
+    const hasChanged =
+        JSON.stringify(currentSerialized) !== JSON.stringify(nextSerialized);
+    if (!hasChanged) return;
+
+    const nextFrontmatter = buildFrontmatterWithSectionColors(
+        view.documentStore.getValue().file.frontmatter,
+        map,
+    );
+    updateFrontmatter(view, nextFrontmatter);
     await view.plugin.app.fileManager.processFrontMatter(
         view.file,
         (frontmatter) => {
-            if (Object.keys(serialized).length === 0) {
+            if (Object.keys(nextSerialized).length === 0) {
                 delete frontmatter[SECTION_COLORS_FRONTMATTER_KEY];
             } else {
-                frontmatter[SECTION_COLORS_FRONTMATTER_KEY] = serialized;
+                frontmatter[SECTION_COLORS_FRONTMATTER_KEY] = nextSerialized;
             }
         },
     );

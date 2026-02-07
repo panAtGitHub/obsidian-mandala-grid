@@ -38,8 +38,45 @@ import { sortDirectChildNodes } from 'src/stores/document/reducers/sort/sort-dir
 import { deleteChildNodes } from 'src/lib/tree-utils/delete/delete-child-nodes';
 import {
     ensureMandalaChildren,
+    ensureMandalaCoreTheme,
     swapMandalaNodes,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
+
+type EarlyReturnHandler = (
+    state: DocumentState,
+    action: DocumentStoreAction,
+) => void;
+
+const earlyReturnHandlers: Record<string, EarlyReturnHandler> = {
+    'document/file/update-frontmatter': (state, action) => {
+        if (action.type !== 'document/file/update-frontmatter') return;
+        state.file.frontmatter = action.payload.frontmatter;
+    },
+    'document/pinned-nodes/pin': (state, action) => {
+        if (action.type !== 'document/pinned-nodes/pin') return;
+        pinNode(state.sections, state.pinnedNodes, action.payload.id);
+    },
+    'document/pinned-nodes/unpin': (state, action) => {
+        if (action.type !== 'document/pinned-nodes/unpin') return;
+        unpinNode(state.pinnedNodes, action.payload.id);
+    },
+    'document/pinned-nodes/remove-stale-nodes': (state, action) => {
+        if (action.type !== 'document/pinned-nodes/remove-stale-nodes') return;
+        removeStalePinnedNodes(state.pinnedNodes, state.sections);
+    },
+    'document/pinned-nodes/load-from-settings': (state, action) => {
+        if (action.type !== 'document/pinned-nodes/load-from-settings') return;
+        loadPinnedNodes(
+            state.pinnedNodes,
+            state.sections,
+            action.payload.sections,
+        );
+    },
+    'document/meta/refresh-group-parent-ids': (state, action) => {
+        if (action.type !== 'document/meta/refresh-group-parent-ids') return;
+        refreshGroupParentIds(state.document.columns, state.meta);
+    },
+};
 
 const updateDocumentState = (
     state: DocumentState,
@@ -105,7 +142,7 @@ const updateDocumentState = (
         affectedNodeId = action.payload.sourceNodeId;
     } else if (action.type === 'document/mandala/ensure-children') {
         const section = state.sections.id_section[action.payload.parentNodeId];
-        if (!section || section === '1') return NO_UPDATE;
+        if (!section) return NO_UPDATE;
 
         const createdNodes = ensureMandalaChildren(
             state.document,
@@ -117,6 +154,34 @@ const updateDocumentState = (
         newActiveNodeId = action.payload.parentNodeId;
         affectedNodeId = action.payload.parentNodeId;
         affectedNodes = createdNodes;
+    } else if (action.type === 'document/mandala/ensure-core-theme') {
+        const theme = action.payload.theme;
+        const existingNodeId = state.sections.section_id[theme];
+        if (existingNodeId) {
+            const createdNodes = ensureMandalaChildren(
+                state.document,
+                existingNodeId,
+                8,
+            );
+            if (createdNodes.length === 0) {
+                newActiveNodeId = existingNodeId;
+                affectedNodeId = existingNodeId;
+            } else {
+                newActiveNodeId = existingNodeId;
+                affectedNodeId = existingNodeId;
+                affectedNodes = createdNodes;
+            }
+        } else {
+            const { nodeId } = ensureMandalaCoreTheme(state.document, theme);
+            const createdNodes = ensureMandalaChildren(
+                state.document,
+                nodeId,
+                8,
+            );
+            newActiveNodeId = nodeId;
+            affectedNodeId = null;
+            affectedNodes = createdNodes;
+        }
     } else if (action.type === 'document/mandala/clear-empty-subgrids') {
         const parentIds = action.payload.parentIds.filter(Boolean);
         if (parentIds.length === 0) return NO_UPDATE;
@@ -208,27 +273,11 @@ const updateDocumentState = (
             action.payload.selectedNodes,
         );
         affectedNodeId = action.payload.nodeId;
-    } else if (action.type === 'document/file/update-frontmatter') {
-        state.file.frontmatter = action.payload.frontmatter;
-        return;
-    } else if (action.type === 'document/pinned-nodes/pin') {
-        pinNode(state.sections, state.pinnedNodes, action.payload.id);
-        return;
-    } else if (action.type === 'document/pinned-nodes/unpin') {
-        unpinNode(state.pinnedNodes, action.payload.id);
-        return;
-    } else if (action.type === 'document/pinned-nodes/remove-stale-nodes') {
-        removeStalePinnedNodes(state.pinnedNodes, state.sections);
-        return;
-    } else if (action.type === 'document/pinned-nodes/load-from-settings') {
-        loadPinnedNodes(
-            state.pinnedNodes,
-            state.sections,
-            action.payload.sections,
-        );
-        return;
-    } else if (action.type === 'document/meta/refresh-group-parent-ids') {
-        refreshGroupParentIds(state.document.columns, state.meta);
+    } else {
+        const handler = earlyReturnHandlers[action.type];
+        if (handler) {
+            handler(state, action);
+        }
         return;
     }
 

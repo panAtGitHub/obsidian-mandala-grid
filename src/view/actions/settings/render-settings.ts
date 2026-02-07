@@ -10,7 +10,6 @@ import { CardIndentationWidth } from 'src/view/actions/settings/components/card-
 import { MaintainEditMode } from 'src/view/actions/settings/components/maintain-edit-mode';
 import { InactiveCardOpacity } from 'src/view/actions/settings/components/inactive-card-opacity';
 import { ActiveBranchColor } from 'src/view/actions/settings/components/active-branch-color';
-import { AlwaysShowCardButtons } from 'src/view/actions/settings/components/always-show-card-buttons';
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
 import { HeadingsFontSize } from 'src/view/actions/settings/components/headings-font-size';
 import { MandalaFontSizes } from 'src/view/actions/settings/components/mandala-font-sizes';
@@ -24,9 +23,9 @@ type Tab = { element: HTMLDivElement; name: SettingsTab };
 const setVisibleTab = (tabs: Tab[], activeTab: SettingsTab) => {
     for (const tab of tabs) {
         if (tab.name === activeTab) {
-            tab.element.style.visibility = 'visible';
+            tab.element.setCssProps({ visibility: 'visible' });
         } else {
-            tab.element.style.visibility = 'hidden';
+            tab.element.setCssProps({ visibility: 'hidden' });
         }
     }
 };
@@ -62,26 +61,12 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     );
 
     // appearance
-    BackgroundColor(
-        appearanceTab,
-        settingsStore,
-        isMandala ? '网格容器背景颜色' : undefined,
-    );
-    ActiveBranchBackground(
-        appearanceTab,
-        settingsStore,
-        isMandala ? '活跃格子背景颜色' : undefined,
-    );
-    ActiveBranchColor(
-        appearanceTab,
-        settingsStore,
-        isMandala ? '活跃格子文字颜色' : undefined,
-    );
-    InactiveCardOpacity(
-        appearanceTab,
-        settingsStore,
-        isMandala ? '非活跃格子透明度' : undefined,
-    );
+    if (!isMandala) {
+        BackgroundColor(appearanceTab, settingsStore);
+        ActiveBranchBackground(appearanceTab, settingsStore);
+        ActiveBranchColor(appearanceTab, settingsStore);
+        InactiveCardOpacity(appearanceTab, settingsStore);
+    }
     const fontDetails = appearanceTab.createEl('details', {
         cls: 'mandala-font-settings',
     });
@@ -104,13 +89,9 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     if (!isMandala) {
         CardWidth(layoutTab, settingsStore);
     }
-    CardsGap(
-        layoutTab,
-        settingsStore,
-        isMandala ? '网格间距' : undefined,
-        isMandala ? 20 : undefined,
-        isMandala ? 2 : undefined,
-    );
+    if (!isMandala) {
+        CardsGap(layoutTab, settingsStore);
+    }
     if (!isMandala) {
         CardIndentationWidth(layoutTab, settingsStore);
     }

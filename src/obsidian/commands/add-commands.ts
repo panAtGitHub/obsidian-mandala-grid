@@ -17,6 +17,7 @@ import { onPluginError } from 'src/lib/store/on-plugin-error';
 import invariant from 'tiny-invariant';
 import { sortChildNodes } from 'src/view/actions/context-menu/card-context-menu/helpers/sort-child-nodes';
 import { ejectDocument } from 'src/obsidian/commands/helpers/export-document/eject-document';
+import { cleanupLegacyMandalaFrontmatter } from 'src/obsidian/commands/helpers/cleanup-legacy-mandala-frontmatter';
 
 const createCommands = (plugin: MandalaGrid) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
@@ -250,6 +251,15 @@ const createCommands = (plugin: MandalaGrid) => {
             view!.plugin.settings.dispatch({
                 type: 'view/modes/gap-between-cards/toggle',
             });
+        },
+    });
+
+    commands.push({
+        name: '清理旧版 Mandala YAML 视图键',
+        icon: 'eraser',
+        checkCallback: (checking) => {
+            if (checking) return true;
+            void cleanupLegacyMandalaFrontmatter(plugin);
         },
     });
 

@@ -95,4 +95,5 @@ export const onPluginSettingsUpdate = (
     if (shouldUpdateStyleRules) {
         view.rulesProcessor.onRulesUpdate();
     }
+
 };
