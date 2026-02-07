@@ -51,6 +51,7 @@
         <div class="mobile-toggle">
             <Button
                 active={$showControls}
+                classes="topbar-button"
                 label={lang.controls_toggle_bar}
                 on:click={toggleShowControls}
                 tooltipPosition="bottom"

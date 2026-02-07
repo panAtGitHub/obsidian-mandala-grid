@@ -255,6 +255,7 @@
         & .buttons-group[data-visible='true'] {
             top: 45px;
             right: var(--size-4-2);
+            flex-direction: column !important;
         }
         & .buttons-group[data-visible='false'] {
             display: none;
