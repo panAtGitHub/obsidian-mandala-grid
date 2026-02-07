@@ -38,9 +38,6 @@ export class StatusBar {
     private setVisibility(visible: boolean) {
         this.container.toggleClass('mandala__hidden-element', !visible);
     }
-    private setElementVisibility(element: HTMLElement, visible: boolean) {
-        element.toggleClass('mandala__hidden-element', !visible);
-    }
 
     updateAll = (view: MandalaView) => {
         this.updateCardsNumber(view);
@@ -48,12 +45,8 @@ export class StatusBar {
     };
 
     updateCardsNumber = (view: MandalaView) => {
-        const cards = Object.keys(
-            view.documentStore.getValue().document.content,
-        ).length;
-        this.elements.numberOfCards.setText(
-            cards + ' section' + (cards === 1 ? '' : 's'),
-        );
+        void view;
+        this.elements.numberOfCards.setText('');
     };
     updateProgressIndicatorAndChildCount = async (view: MandalaView) => {
         const document = view.documentStore.getValue().document;
@@ -62,17 +55,8 @@ export class StatusBar {
             document,
             activeNode,
         });
-        this.elements.documentProgress.setText(result.progress + ' %');
-        /* const totalChildCount = result.totalChildCount;
-         if (totalChildCount > 0) {
-             this.elements.numberOfChildren.setText(
-                 totalChildCount +
-                     ' subsection' +
-                     (totalChildCount === 1 ? '' : 's'),
-             );
-             this.setElementVisibility(this.elements.numberOfChildren, true);
-         } else {
-             this.setElementVisibility(this.elements.numberOfChildren, false);
-         }*/
+        this.elements.documentProgress.setText(
+            `sections: ${result.nonEmptySections} | words: ${result.currentSectionChars} / ${result.totalChars}`,
+        );
     };
 }
