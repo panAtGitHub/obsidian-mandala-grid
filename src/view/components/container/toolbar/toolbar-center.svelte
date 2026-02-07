@@ -62,7 +62,7 @@
     .lock-toggle-container {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
     }
 
     :global(.is-mobile) .lock-toggle-container {
