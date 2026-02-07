@@ -30,6 +30,7 @@
             on:click={() => {
                     searchTerm = '';
                 }}
+            style={'right: 8px; top: -1px;' + (searchTerm ? '' : ' display: none;')}
         ></div>
     </div>
 </div>
