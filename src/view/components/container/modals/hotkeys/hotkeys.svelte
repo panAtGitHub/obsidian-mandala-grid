@@ -48,12 +48,12 @@
         </div>
         <Front />
     {:else}
-        <div class="hotkeys-desktop-header">
-            <div class="hotkeys-desktop-header__search">
+        <div class="hotkeys-desktop-header mandala-modal-header-inline">
+            <div class="hotkeys-desktop-header__search mandala-modal-header-inline__main">
                 <Front />
             </div>
             <button
-                class="modal-close-button hotkeys-desktop-close"
+                class="modal-close-button hotkeys-desktop-close mandala-modal-close-inline"
                 on:click={closeHotkeys}
                 aria-label="关闭快捷键"
             >
@@ -159,13 +159,6 @@
         z-index: 1200;
     }
 
-    .hotkeys-desktop-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: var(--size-4-2) var(--size-4-6) 0;
-    }
-
     .hotkeys-desktop-header__search {
         flex: 1 1 auto;
         min-width: 0;
@@ -176,16 +169,7 @@
     }
 
     .hotkeys-desktop-close {
-        position: static !important;
-        flex: 0 0 auto;
-        width: 22px;
-        height: 22px;
-        padding: 0;
-        border-radius: 6px;
         margin-top: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
     @media (max-width: 720px) {

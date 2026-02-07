@@ -59,7 +59,7 @@
             </Button>
         </div>
 
-        <div class="buttons-group-wrapper" data-visible={$showControls}>
+        <div class="buttons-group-wrapper topbar-mobile-popover" data-visible={$showControls}>
             <LeftSidebarToggle />
             <SearchToggle />
         </div>
@@ -129,18 +129,8 @@
             display: block;
         }
         & .buttons-group-wrapper[data-visible='true'] {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
             top: 45px;
             left: var(--size-4-2);
-            background: var(--background-primary);
-            padding: var(--size-4-2);
-            border-radius: var(--radius-m);
-            box-shadow: var(--shadow-l);
-            border: 1px solid var(--background-modifier-border);
-            z-index: 1001;
-            gap: 8px;
         }
         & .buttons-group-wrapper[data-visible='false'] {
             display: none;

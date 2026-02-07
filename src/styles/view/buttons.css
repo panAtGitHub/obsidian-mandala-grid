@@ -83,3 +83,16 @@
     width: 36px !important;
     height: 36px !important;
 }
+
+.topbar-mobile-popover {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    background: var(--background-primary);
+    padding: var(--size-4-2);
+    border-radius: var(--radius-m);
+    box-shadow: var(--shadow-l);
+    border: 1px solid var(--background-modifier-border);
+    z-index: 1001;
+    gap: 8px;
+}

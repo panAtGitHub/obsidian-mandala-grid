@@ -1,6 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import MandalaGrid from 'src/main';
 import { statusBarWorker } from 'src/workers/worker-instances';
+import { formatStatusBarText } from 'src/obsidian/status-bar/helpers/format-status-bar-text';
 
 export class StatusBar {
     private container: HTMLElement;
@@ -55,8 +56,6 @@ export class StatusBar {
             document,
             activeNode,
         });
-        this.elements.documentProgress.setText(
-            `sections: ${result.nonEmptySections} | words: ${result.currentSectionChars} / ${result.totalChars}`,
-        );
+        this.elements.documentProgress.setText(formatStatusBarText(result));
     };
 }

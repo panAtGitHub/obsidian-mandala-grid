@@ -123,10 +123,10 @@
     </div>
 
     {#if Platform.isMobile}
-        <div class="buttons-group" data-visible={$showControls}>
+        <div class="buttons-group topbar-mobile-popover" data-visible={$showControls}>
             <Button
                 active={$showOptionsMenu}
-                classes="control-item js-view-options-trigger"
+                classes="control-item js-view-options-trigger topbar-button"
                 label="视图选项"
                 on:click={() => {
                     toggleOptionsMenu();
@@ -140,7 +140,7 @@
             {#if mobileSidebarButton}
                 <Button
                     active={$activeStates[mobileSidebarButton.id]}
-                    classes="control-item"
+                    classes="control-item topbar-button"
                     label={mobileSidebarButton.label}
                     on:click={(e) => {
                         mobileSidebarButton.onClick(e);
@@ -162,7 +162,7 @@
             {#each mobileOtherButtons as button (button.label)}
                 <Button
                     active={$activeStates[button.id]}
-                    classes="control-item"
+                    classes="control-item topbar-button"
                     label={button.label}
                     on:click={(e) => {
                         button.onClick(e);
@@ -247,18 +247,8 @@
             z-index: 1002;
         }
         & .buttons-group[data-visible='true'] {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
             top: 45px;
             right: var(--size-4-2);
-            background: var(--background-primary);
-            padding: var(--size-4-2);
-            border-radius: var(--radius-m);
-            box-shadow: var(--shadow-l);
-            border: 1px solid var(--background-modifier-border);
-            z-index: 1001;
-            gap: 8px;
         }
         & .buttons-group[data-visible='false'] {
             display: none;
