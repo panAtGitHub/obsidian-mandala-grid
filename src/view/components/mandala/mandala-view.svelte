@@ -580,9 +580,19 @@
     }
 
     :global(body:not(.is-mobile)) .mandala-topbar :global(.mandala-view-button) {
+        width: 34px !important;
+        height: 34px !important;
+        padding: 8px !important;
         border-radius: 10px;
         border: 1px solid var(--background-modifier-border);
         box-shadow: var(--shadow-s) !important;
+    }
+
+    :global(body:not(.is-mobile))
+        .mandala-topbar
+        :global(.mandala-view-button svg) {
+        width: 16px;
+        height: 16px;
     }
 
     .mandala-scroll {
