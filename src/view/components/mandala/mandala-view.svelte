@@ -431,7 +431,8 @@
                                             class="mandala-subgrid-controls"
                                             class:is-center-controls={cell.section === theme}
                                             on:click|stopPropagation
-                                            on:mousedown|stopPropagation
+                                            on:mousedown|stopPropagation|preventDefault
+                                            on:pointerdown|stopPropagation|preventDefault
                                         >
                                             {#if cell.section === theme}
                                                 {#if theme !== '1'}
