@@ -115,7 +115,7 @@
             {#if !whiteThemeMode && showImmersiveOptions}
                 <div class="view-options-menu__submenu view-options-menu__submenu--nested">
                     <div class="view-options-menu__subsection">
-                        <label class="view-options-menu__row">
+                        <div class="view-options-menu__row">
                             <span>网格容器背景颜色</span>
                             <div class="view-options-menu__row-controls">
                                 <ColorSwatchInput
@@ -132,8 +132,8 @@
                                     <RotateCcw size={14} />
                                 </button>
                             </div>
-                        </label>
-                        <label class="view-options-menu__row">
+                        </div>
+                        <div class="view-options-menu__row">
                             <span>活跃格子背景颜色</span>
                             <div class="view-options-menu__row-controls">
                                 <ColorSwatchInput
@@ -150,8 +150,8 @@
                                     <RotateCcw size={14} />
                                 </button>
                             </div>
-                        </label>
-                        <label class="view-options-menu__row">
+                        </div>
+                        <div class="view-options-menu__row">
                             <span>活跃格子文字颜色</span>
                             <div class="view-options-menu__row-controls">
                                 <ColorSwatchInput
@@ -168,7 +168,7 @@
                                     <RotateCcw size={14} />
                                 </button>
                             </div>
-                        </label>
+                        </div>
                         <label class="view-options-menu__row">
                             <span>非活跃格子透明度</span>
                             <div class="view-options-menu__range">
