@@ -632,6 +632,9 @@
         if ($a4Orientation === 'landscape') {
             wrapper.classList.add('mandala-a4-landscape');
         }
+        if ($squareLayout) {
+            wrapper.classList.add('is-desktop-square-layout');
+        }
         applyCssVariables(wrapper, cssVars);
         applyInlineStyles(wrapper, {
             ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
@@ -1006,6 +1009,9 @@
             layer.classList.add('mandala-a4-mode');
             if (orientation === 'landscape') {
                 layer.classList.add('mandala-a4-landscape');
+            }
+            if ($squareLayout) {
+                layer.classList.add('is-desktop-square-layout');
             }
             applyInlineStyles(layer, {
                 ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
