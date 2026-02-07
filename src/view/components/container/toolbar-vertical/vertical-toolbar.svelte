@@ -74,7 +74,6 @@
             return {
                 minimap: showMinimap,
                 settings: controls.showSettingsSidebar,
-                hotkeys: controls.showHelpSidebar,
                 'style-rules': controls.showStyleRulesModal,
                 'center-active-node-h': scrollSettingsStore.centerActiveNodeH,
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
@@ -88,13 +87,11 @@
     );
 
     $: flattenedButtons = $buttons.flatMap((g) => g.buttons);
-    $: mobileHotkeysButton = flattenedButtons.find((b) => b.id === 'hotkeys');
     $: mobileSidebarButton = flattenedButtons.find(
         (b) => (b.id as unknown as string) === 'mandala-detail-sidebar',
     );
     $: mobileOtherButtons = flattenedButtons.filter(
         (b) =>
-            b !== mobileHotkeysButton &&
             b !== mobileSidebarButton &&
             b.id !== ('jump-core-prev' as ToolbarButton) &&
             b.id !== ('jump-core-next' as ToolbarButton),
@@ -126,28 +123,6 @@
 
     {#if Platform.isMobile}
         <div class="buttons-group" data-visible={$showControls}>
-            {#if mobileHotkeysButton}
-                <Button
-                    active={$activeStates[mobileHotkeysButton.id]}
-                    classes="control-item"
-                    label={mobileHotkeysButton.label}
-                    on:click={(e) => {
-                        mobileHotkeysButton.onClick(e);
-                        closeMobileControls();
-                    }}
-                    tooltipPosition="bottom"
-                >
-                    {#if 'svg' in mobileHotkeysButton.icon}
-                        {@html mobileHotkeysButton.icon.svg}
-                    {:else}
-                        <svelte:component
-                            this={mobileHotkeysButton.icon}
-                            class="svg-icon"
-                        />
-                    {/if}
-                </Button>
-            {/if}
-
             <Button
                 active={$showOptionsMenu}
                 classes="control-item js-view-options-trigger"

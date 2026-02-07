@@ -2,6 +2,7 @@
     /* eslint-disable svelte/infinite-reactive-loop */
     import { getView } from 'src/view/components/container/context';
     import { Trash2, X } from 'lucide-svelte';
+    import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform, TFile } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { toPng } from 'html-to-image';
@@ -1301,6 +1302,11 @@
         showPanoramaOptions = false;
     };
 
+    const openHotkeysModal = () => {
+        view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
+        closeMenu();
+    };
+
     const getVisibleViewport = () => {
         const vv = window.visualViewport;
         if (!vv) {
@@ -1439,39 +1445,6 @@
             </div>
         {/if}
         <div class="view-options-menu__items">
-            <ViewOptionsFontPanel
-                {isMobile}
-                show={showFontOptions}
-                fontSize3x3={$fontSize3x3}
-                fontSize9x9={$fontSize9x9}
-                fontSizeSidebar={$fontSizeSidebar}
-                headingsFontSizeEm={$headingsFontSizeEm}
-                toggle={() => (showFontOptions = !showFontOptions)}
-                {stepFontSize3x3}
-                {updateFontSize3x3}
-                {resetFontSize3x3}
-                {stepFontSize9x9}
-                {updateFontSize9x9}
-                {resetFontSize9x9}
-                {stepFontSizeSidebar}
-                {updateFontSizeSidebar}
-                {resetFontSizeSidebar}
-                {stepHeadingsFontSize}
-                {updateHeadingsFontSize}
-                {resetHeadingsFontSize}
-            />
-
-            <ViewOptionsDisplayPanel
-                show={showDisplayOptions}
-                showHiddenCardInfo={$showHiddenCardInfo}
-                show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
-                show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
-                toggle={() => (showDisplayOptions = !showDisplayOptions)}
-                {toggleHiddenCardInfo}
-                {toggle3x3SubgridNavButtons}
-                {toggle9x9ParallelNavButtons}
-            />
-
             <ViewOptionsEditPanel
                 show={showEditOptions}
                 whiteThemeMode={$whiteThemeMode}
@@ -1512,16 +1485,48 @@
                 {updateGridOrientation}
             />
 
-            <ViewOptionsExportPanel
-                {isMobile}
-                show={showPrintOptions}
-                {exportMode}
-                toggle={() => (showPrintOptions = !showPrintOptions)}
-                setPngSquareMode={() => setExportMode('png-square')}
-                setPngScreenMode={() => setExportMode('png-screen')}
-                setPdfMode={() => setExportMode('pdf-a4')}
-                {exportCurrentFile}
+            <ViewOptionsDisplayPanel
+                show={showDisplayOptions}
+                showHiddenCardInfo={$showHiddenCardInfo}
+                show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
+                show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                toggle={() => (showDisplayOptions = !showDisplayOptions)}
+                {toggleHiddenCardInfo}
+                {toggle3x3SubgridNavButtons}
+                {toggle9x9ParallelNavButtons}
             />
+
+            <ViewOptionsFontPanel
+                {isMobile}
+                show={showFontOptions}
+                fontSize3x3={$fontSize3x3}
+                fontSize9x9={$fontSize9x9}
+                fontSizeSidebar={$fontSizeSidebar}
+                headingsFontSizeEm={$headingsFontSizeEm}
+                toggle={() => (showFontOptions = !showFontOptions)}
+                {stepFontSize3x3}
+                {updateFontSize3x3}
+                {resetFontSize3x3}
+                {stepFontSize9x9}
+                {updateFontSize9x9}
+                {resetFontSize9x9}
+                {stepFontSizeSidebar}
+                {updateFontSizeSidebar}
+                {resetFontSizeSidebar}
+                {stepHeadingsFontSize}
+                {updateHeadingsFontSize}
+                {resetHeadingsFontSize}
+            />
+
+            <button class="view-options-menu__item" on:click={openHotkeysModal}>
+                <div class="view-options-menu__icon">
+                    <Keyboard class="view-options-menu__icon-svg" size={18} />
+                </div>
+                <div class="view-options-menu__content">
+                    <div class="view-options-menu__label">快捷键设置</div>
+                    <div class="view-options-menu__desc">打开快捷键设置面板</div>
+                </div>
+            </button>
 
             <ViewOptionsTemplatePanel
                 show={showTemplateOptions}
@@ -1531,6 +1536,17 @@
                 {openTemplatesFileFromPath}
                 {saveCurrentThemeAsTemplate}
                 {applyTemplateToCurrentTheme}
+            />
+
+            <ViewOptionsExportPanel
+                {isMobile}
+                show={showPrintOptions}
+                {exportMode}
+                toggle={() => (showPrintOptions = !showPrintOptions)}
+                setPngSquareMode={() => setExportMode('png-square')}
+                setPngScreenMode={() => setExportMode('png-screen')}
+                setPdfMode={() => setExportMode('pdf-a4')}
+                {exportCurrentFile}
             />
 
             <button

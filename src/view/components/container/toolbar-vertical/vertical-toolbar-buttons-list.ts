@@ -8,7 +8,6 @@ import { derived } from 'svelte/store';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 import { lang } from 'src/lang/lang';
 import {
-    Keyboard,
     Palette,
     PanelRight,
     Eye,
@@ -61,12 +60,6 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                         //     icon: Settings,
                         //     id: 'settings',
                         // },
-                        {
-                            label: lang.controls_hotkeys,
-                            onClick: h.toggleHelp,
-                            icon: Keyboard,
-                            id: 'hotkeys',
-                        },
                         {
                             label: lang.controls_rules,
                             onClick: h.toggleStyleRules,
