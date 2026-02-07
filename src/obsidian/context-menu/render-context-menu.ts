@@ -1,4 +1,4 @@
-import { Menu } from 'obsidian';
+import { Menu, MenuItem } from 'obsidian';
 
 export type MenuItemObject =
     | { type: 'separator' }
@@ -28,7 +28,7 @@ const addMenuItem = (menu: Menu, menuItem: MenuItemObject) => {
         menu.addItem((item) => {
             item.setTitle('');
             item.setIcon('');
-            const itemDom = (item as unknown as { dom?: HTMLElement }).dom;
+            const itemDom = (item as MenuItem & { dom?: HTMLElement }).dom;
             if (!itemDom) return;
             itemDom.textContent = '';
             itemDom.classList.add('mandala-context-menu-custom');
@@ -42,19 +42,20 @@ const addMenuItem = (menu: Menu, menuItem: MenuItemObject) => {
                 .setChecked(menuItem.checked || false);
 
             if ('submenu' in menuItem) {
-                // @ts-ignore
-                const subMenu: Menu = item.setSubmenu();
-                for (const subItem of menuItem.submenu) {
-                    addMenuItem(subMenu, subItem);
+                const subMenu = (
+                    item as MenuItem & { setSubmenu?: () => Menu }
+                ).setSubmenu?.();
+                if (subMenu) {
+                    for (const subItem of menuItem.submenu) {
+                        addMenuItem(subMenu, subItem);
+                    }
                 }
             } else {
                 item.onClick(menuItem.action);
             }
             if (menuItem.dangerous) {
-                if ('dom' in item) {
-                    // @ts-ignore
-                    item.dom.classList.add('is-warning');
-                }
+                const itemDom = (item as MenuItem & { dom?: HTMLElement }).dom;
+                itemDom?.classList.add('is-warning');
             }
         });
     }

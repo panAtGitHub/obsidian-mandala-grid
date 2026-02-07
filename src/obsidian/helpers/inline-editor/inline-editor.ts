@@ -9,7 +9,7 @@ import { unlockFile } from 'src/obsidian/helpers/inline-editor/helpers/unlock-fi
 const noop = async () => {};
 
 export type InlineMarkdownView = MarkdownView & {
-    __setViewData__: MarkdownView['setViewData'];
+    mandalaSetViewData: MarkdownView['setViewData'];
 };
 
 export class InlineEditor {
@@ -56,7 +56,7 @@ export class InlineEditor {
     }
 
     setContent(content: string) {
-        this.inlineView.__setViewData__(content, true);
+        this.inlineView.mandalaSetViewData(content, true);
     }
 
     loadNode(target: HTMLElement, nodeId: string) {
@@ -164,7 +164,7 @@ export class InlineEditor {
         } as never) as InlineMarkdownView;
         this.inlineView.save = noop;
         this.inlineView.requestSave = this.invokeAndDeleteOnChangeSubscriptions;
-        this.inlineView.__setViewData__ = this.inlineView.setViewData;
+        this.inlineView.mandalaSetViewData = this.inlineView.setViewData;
         this.inlineView.setViewData = noop;
 
         if (this.inlineView.getMode() === 'preview') {
@@ -197,8 +197,10 @@ export class InlineEditor {
     }
 
     private setActiveEditor = () => {
-        // @ts-ignore
-        this.view.plugin.app.workspace._activeEditor = this.inlineView;
+        const workspace = this.view.plugin.app.workspace as unknown as {
+            _activeEditor?: InlineMarkdownView;
+        };
+        workspace._activeEditor = this.inlineView;
     };
 
     private invokeAndDeleteOnChangeSubscriptions = () => {

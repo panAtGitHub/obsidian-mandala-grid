@@ -94,7 +94,6 @@ export class Store<T, U, C = never> implements Writable<T> {
     }
 
     private readonly reducer: Reducer<T, U, C> = () => this.value;
-    // eslint-disable-next-line no-console
     private readonly onError: OnError<U> = (error) => console.error(error);
 
     private notifySubscribers(action?: U): void {

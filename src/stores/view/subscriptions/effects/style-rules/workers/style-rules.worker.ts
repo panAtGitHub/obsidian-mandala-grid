@@ -53,8 +53,10 @@ self.onmessage = (message: MessageEvent) => {
         }
 
         default:
-            // @ts-ignore
-            throw new Error(`Unhandled event type: ${payload.type}`);
+            // Exhaustive check to keep worker messages in sync with RulesWorkerEvent.
+            throw new Error(
+                `Unhandled event type: ${JSON.stringify(payload as never)}`,
+            );
     }
     self.postMessage({ id, payload: result });
 };

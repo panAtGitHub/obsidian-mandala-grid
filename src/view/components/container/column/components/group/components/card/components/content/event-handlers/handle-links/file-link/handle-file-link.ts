@@ -11,16 +11,16 @@ export const handleFileLink = (
     const path = view.file?.path;
     if (!link || !path) return;
     if (Platform.isMobile) {
-        view.plugin.app.workspace.openLinkText(link, path, false);
+        void view.plugin.app.workspace.openLinkText(link, path, false);
         return;
     }
     const paneType = getLinkPaneType(view, modKey);
     if (paneType === 'tab') {
-        view.plugin.app.workspace.openLinkText(link, path, 'tab');
+        void view.plugin.app.workspace.openLinkText(link, path, 'tab');
     } else {
         const success = openFileInExistingRightTabGroup(view, link, path);
         if (!success) {
-            view.plugin.app.workspace.openLinkText(link, path, 'split');
+            void view.plugin.app.workspace.openLinkText(link, path, 'split');
         }
     }
 };

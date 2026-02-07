@@ -103,7 +103,7 @@ export default [
             },
         },
         rules: {
-            'no-console': 'error',
+            'no-console': ['error', { allow: ['warn', 'error', 'debug'] }],
             'svelte/valid-compile': ['error', { ignoreWarnings: true }],
             '@typescript-eslint/ban-ts-comment': 'off',
             '@typescript-eslint/no-empty-function': 'off',
@@ -122,6 +122,22 @@ export default [
             '@typescript-eslint/no-unused-vars': 'off',
             'svelte/no-useless-mustaches': 'off',
             'svelte/require-each-key': 'off',
+        },
+    },
+
+    {
+        files: [
+            'src/view/components/container/toolbar-vertical/view-options-menu.svelte',
+        ],
+        rules: {
+            'svelte/infinite-reactive-loop': 'off',
+        },
+    },
+
+    {
+        files: ['src/helpers/sanitize-file-name.ts'],
+        rules: {
+            'no-control-regex': 'off',
         },
     },
 

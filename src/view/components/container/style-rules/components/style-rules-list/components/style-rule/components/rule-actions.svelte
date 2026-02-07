@@ -2,7 +2,7 @@
     import { StyleRule } from '../../../../../../../../../stores/settings/types/style-rules-types';
     import { getView } from '../../../../../../context';
     import { MoreVertical } from 'lucide-svelte';
-    import { Menu } from 'obsidian';
+    import { Menu, MenuItem } from 'obsidian';
     import { get } from 'svelte/store';
     import { ActiveStyleRulesTab } from 'src/stores/settings/derived/style-rules';
     import { lang } from 'src/lang/lang';
@@ -81,10 +81,8 @@
             item.setTitle('Delete');
             item.setIcon('trash');
             item.onClick(deleteRule);
-            if ('dom' in item) {
-                // @ts-ignore
-                item.dom.addClass('is-warning');
-            }
+            const itemDom = (item as MenuItem & { dom?: HTMLElement }).dom;
+            itemDom?.addClass('is-warning');
         });
         menu.showAtMouseEvent(e);
     };

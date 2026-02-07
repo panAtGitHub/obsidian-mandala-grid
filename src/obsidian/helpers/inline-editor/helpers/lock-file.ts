@@ -7,8 +7,10 @@ export const lockFile = (view: MandalaView) => {
         const leafView = e.view;
         if (leafView instanceof MarkdownView) {
             if (leafView.file === view.file) {
-                // @ts-ignore
-                leafView.__setViewData__ = leafView.setViewData;
+                const patchedView = leafView as MarkdownView & {
+                    mandalaSetViewData?: MarkdownView['setViewData'];
+                };
+                patchedView.mandalaSetViewData = leafView.setViewData;
                 leafView.setViewData = noop;
             }
         }

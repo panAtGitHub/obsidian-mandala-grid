@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 type Logger = {
     debug: (...message: unknown[]) => void;
     info: (...message: unknown[]) => void;
@@ -9,25 +7,25 @@ type Logger = {
 
 export const __dev__ = process.env.NODE_ENV === 'development';
 const createLogger = (): Logger => {
-    const debug = (...message: string[]) => {
+    const debug = (...message: unknown[]) => {
         if (__dev__) {
-            console.log(`[DEBUG]: `, ...message);
+            console.debug(`[DEBUG]: `, ...message);
         }
     };
 
-    const info = (...message: string[]) => {
+    const info = (...message: unknown[]) => {
         if (__dev__) {
-            console.log(`[INFO]: `, ...message);
+            console.debug(`[INFO]: `, ...message);
         }
     };
 
-    const warn = (...message: string[]) => {
+    const warn = (...message: unknown[]) => {
         if (__dev__) {
             console.warn(`[WARN]: `, ...message);
         }
     };
 
-    const error = (...message: string[]) => {
+    const error = (...message: unknown[]) => {
         console.error(`[ERROR]: `, ...message);
     };
 

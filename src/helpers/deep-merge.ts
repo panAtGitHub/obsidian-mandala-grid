@@ -10,14 +10,22 @@ export const deepMerge = <T extends Record<string, unknown>>(
     const source = sources.shift();
 
     if (isObject(target) && isObject(source)) {
-        for (const key in source) {
-            if (isObject(source[key])) {
-                if (!target[key]) Object.assign(target, { [key]: {} });
-                // @ts-ignore
-                deepMerge(target[key], source[key]);
+        const targetRecord = target as Record<string, unknown>;
+        const sourceRecord = source as Record<string, unknown>;
+        for (const key in sourceRecord) {
+            const sourceValue = sourceRecord[key];
+            if (isObject(sourceValue)) {
+                if (!targetRecord[key]) {
+                    Object.assign(targetRecord, { [key]: {} });
+                }
+                deepMerge(
+                    targetRecord[key] as Record<string, unknown>,
+                    sourceValue as Record<string, unknown>,
+                );
             } else {
-                if (typeof target[key] === 'undefined')
-                    Object.assign(target, { [key]: source[key] });
+                if (typeof targetRecord[key] === 'undefined') {
+                    Object.assign(targetRecord, { [key]: sourceValue });
+                }
             }
         }
     }

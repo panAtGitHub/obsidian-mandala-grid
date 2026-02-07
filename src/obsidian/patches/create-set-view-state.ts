@@ -7,13 +7,15 @@ export function createSetViewState(plugin: MandalaGrid) {
         return function (state: ViewState, ...rest: unknown[]) {
             const isMarkdownView = state.type === 'markdown';
 
-            const path = state?.state?.file;
+            const stateData = state.state as
+                | { file?: string; inlineEditor?: boolean }
+                | undefined;
+            const path = stateData?.file;
             if (
                 isMarkdownView &&
-                // @ts-ignore
+                !!path &&
                 plugin.viewType[path]?.viewType === MANDALA_VIEW_TYPE &&
-                // @ts-ignore
-                !state.state.inlineEditor
+                !stateData?.inlineEditor
             ) {
                 const newState = {
                     ...state,

@@ -17,10 +17,10 @@ export const handleGlobalBlockLink = (
 ) => {
     if (Platform.isMobile) {
         const sourcePath = view.file?.path || view.file!.basename;
-        view.plugin.app.workspace.openLinkText(link, sourcePath, false);
+        void view.plugin.app.workspace.openLinkText(link, sourcePath, false);
         return;
     }
-    view.plugin.app.workspace.openLinkText(
+    void view.plugin.app.workspace.openLinkText(
         link,
         view.file!.basename,
         getLinkPaneType(view, modKey),

@@ -1,4 +1,4 @@
-export class WorkerPromise<Input, Output, Shared = never> {
+export class WorkerPromise<Input, Output, Shared extends Transferable = never> {
     private id = 0;
     private worker: Worker;
     private pending = new Map<
@@ -26,7 +26,6 @@ export class WorkerPromise<Input, Output, Shared = never> {
             const id = this.nextId();
             this.pending.set(id, { resolve, reject });
             if (shared !== undefined) {
-                // @ts-ignore
                 this.worker.postMessage({ id, payload }, [shared]);
             } else this.worker.postMessage({ id, payload });
         });

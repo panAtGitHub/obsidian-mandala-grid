@@ -74,7 +74,7 @@ export const RangeSetting = (
 
             cb.onChange((value) => {
                 const numValue = parseFloat(value);
-                if (!isNaN(numValue)) {
+                if (!Number.isNaN(numValue)) {
                     const clampedValue = Math.min(
                         Math.max(numValue, props.min),
                         props.max,

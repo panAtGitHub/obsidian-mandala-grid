@@ -7,8 +7,12 @@ export const updateRelativeTime = (element: HTMLElement) => {
         ) as HTMLElement[];
         for (const child of children) {
             const created = child.dataset['created'];
-            if (created && !isNaN(+created))
-                child.textContent = relativeTime(+created);
+            if (created) {
+                const createdValue = Number(created);
+                if (!Number.isNaN(createdValue)) {
+                    child.textContent = relativeTime(createdValue);
+                }
+            }
         }
     }, 30 * 1000);
     return {

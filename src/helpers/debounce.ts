@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-type DebounceFunction<T extends (...args: any[]) => any> = (
+type DebounceFunction<T extends (...args: unknown[]) => unknown> = (
     ...args: Parameters<T>
 ) => void;
 
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number,
 ): DebounceFunction<T> => {

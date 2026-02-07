@@ -6,10 +6,12 @@ export const unlockFile = (view: MandalaView) => {
         const leafView = e.view;
         if (leafView instanceof MarkdownView) {
             if (leafView.file === view.file) {
-                if ('__setViewData__' in leafView) {
-                    // @ts-ignore
-                    leafView.setViewData = leafView.__setViewData__;
-                    delete leafView.__setViewData__;
+                const patchedView = leafView as MarkdownView & {
+                    mandalaSetViewData?: MarkdownView['setViewData'];
+                };
+                if (patchedView.mandalaSetViewData) {
+                    leafView.setViewData = patchedView.mandalaSetViewData;
+                    delete patchedView.mandalaSetViewData;
                 }
             }
         }

@@ -127,8 +127,19 @@ export default class MandalaGrid extends Plugin {
     private registerPatches() {
         this.register(around(this.app.workspace, { setActiveLeaf }));
         const setViewState = createSetViewState(this);
-        // @ts-ignore
-        this.register(around(WorkspaceLeaf.prototype, { setViewState }));
+        const workspaceLeafPrototype = WorkspaceLeaf.prototype as unknown as Record<
+            string,
+            (...params: unknown[]) => unknown
+        >;
+        const setViewStateWrapper =
+            setViewState as unknown as (
+                next: (...params: unknown[]) => unknown,
+            ) => (...params: unknown[]) => unknown;
+        this.register(
+            around(workspaceLeafPrototype, {
+                setViewState: setViewStateWrapper,
+            }),
+        );
     }
 
     private loadRibbonIcon() {

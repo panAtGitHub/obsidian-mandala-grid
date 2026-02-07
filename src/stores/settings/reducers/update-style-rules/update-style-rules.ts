@@ -136,13 +136,13 @@ export const updateStyleRules = (
             (r) => r.id === action.payload.id,
         );
         if (index !== -1) {
+            const updatedStyle = {
+                ...rulesContainer.rules[index].style,
+                ...action.payload.style,
+            } as NodeStyle;
             rulesContainer.rules[index] = {
                 ...rulesContainer.rules[index],
-                // @ts-ignore
-                style: {
-                    ...rulesContainer.rules[index].style,
-                    ...action.payload.style,
-                },
+                style: updatedStyle,
             };
             rulesContainer.rules = [...rulesContainer.rules];
         }
@@ -150,13 +150,13 @@ export const updateStyleRules = (
         const { ruleId, updates } = action.payload;
         const index = rulesContainer.rules.findIndex((r) => r.id === ruleId);
         if (index !== -1) {
+            const updatedCondition = {
+                ...rulesContainer.rules[index].condition,
+                ...updates,
+            } as StyleRuleCondition;
             rulesContainer.rules[index] = {
                 ...rulesContainer.rules[index],
-                // @ts-ignore
-                condition: {
-                    ...rulesContainer.rules[index].condition,
-                    ...updates,
-                },
+                condition: updatedCondition,
             };
             fixConditionTypes(rulesContainer.rules[index]);
             rulesContainer.rules = [...rulesContainer.rules];

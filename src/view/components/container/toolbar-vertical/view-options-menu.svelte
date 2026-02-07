@@ -1,9 +1,8 @@
 <script lang="ts">
-    /* eslint-disable svelte/infinite-reactive-loop */
     import { getView } from 'src/view/components/container/context';
     import { Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
-    import { Notice, Platform, TFile } from 'obsidian';
+    import { Notice, Platform, TFile, btoa } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { toPng } from 'html-to-image';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';

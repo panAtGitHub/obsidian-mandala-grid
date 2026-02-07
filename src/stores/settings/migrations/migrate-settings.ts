@@ -15,8 +15,10 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
 
     if ('backup' in settings) {
-        // @ts-ignore
-        delete settings.backup;
+        const settingsWithBackup = settings as unknown as Settings & {
+            backup?: unknown;
+        };
+        delete settingsWithBackup.backup;
     }
 
     const viewSettings = settings.view as {

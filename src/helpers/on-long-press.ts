@@ -77,14 +77,15 @@ export const onLongPress = (
         if (options?.suppressTextSelectionPredicate?.(e)) {
             state.previousBodyUserSelect = document.body.style.userSelect || '';
             state.previousBodyWebkitUserSelect =
-                document.body.style.webkitUserSelect || '';
+                document.body.style.getPropertyValue('-webkit-user-select') ||
+                '';
             state.previousBodyWebkitTouchCallout =
                 document.body.style.getPropertyValue('-webkit-touch-callout') ||
                 '';
             const html = document.documentElement;
             state.previousHtmlUserSelect = html.style.userSelect || '';
             state.previousHtmlWebkitUserSelect =
-                html.style.webkitUserSelect || '';
+                html.style.getPropertyValue('-webkit-user-select') || '';
             state.previousHtmlWebkitTouchCallout =
                 html.style.getPropertyValue('-webkit-touch-callout') || '';
             document.body.setCssProps({

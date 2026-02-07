@@ -4,8 +4,7 @@ export const sanitizeFileName = (path: string, replacement = '-') => {
     const dotAtTheStart = /^\./g;
 
     // credit: https://github.com/parshap/node-sanitize-filename/blob/209c39b914c8eb48ee27bcbde64b2c7822fdf3de/index.js#L33
-    // eslint-disable-next-line no-control-regex
-    const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+    const controlRe = new RegExp('[\\x00-\\x1f\\x80-\\x9f]', 'g');
     const reservedRe = /^\.+$/;
     const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
     const windowsTrailingRe = /[. ]+$/;

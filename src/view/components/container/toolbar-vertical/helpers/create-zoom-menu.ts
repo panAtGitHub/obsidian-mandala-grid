@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { zoomLevelStore } from 'src/stores/view/derived/zoom-level-store';
-import { Menu } from 'obsidian';
+import { Menu, MenuItem } from 'obsidian';
 import { showMinimapStore } from 'src/stores/settings/derived/scrolling-store';
 import { MandalaView } from 'src/view/view';
 import { fitDocumentHeightIntoView } from 'src/view/components/container/toolbar-vertical/helpers/fit-document-height-into-view';
@@ -93,8 +93,7 @@ export const createZoomMenu = (props: Props) => {
                         createZoomMenu(props);
                     });
 
-                // @ts-ignore
-                const dom = item.dom as HTMLElement | null;
+                const dom = (item as MenuItem & { dom?: HTMLElement }).dom;
                 if (dom) {
                     dom.addEventListener('mouseenter', () => {
                         apply(zoom, false);
@@ -105,8 +104,7 @@ export const createZoomMenu = (props: Props) => {
     }
 
     // when mouse leaves the menu, reapply the last clicked zoom level
-    // @ts-ignore
-    const menuDom = menu.dom as HTMLElement | null;
+    const menuDom = (menu as Menu & { dom?: HTMLElement }).dom;
     if (menuDom) {
         menuDom.addEventListener('mouseleave', () => {
             if (hoverZoom !== lastClickedZoom) {

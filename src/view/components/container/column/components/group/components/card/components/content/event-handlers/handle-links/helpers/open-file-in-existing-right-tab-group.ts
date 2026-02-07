@@ -22,7 +22,7 @@ export const openFileInExistingRightTabGroup = (
     ) as WorkspaceLeaf | null;
     if (newLeaf) {
         if (link.contains('#')) {
-            view.plugin.app.workspace.openLinkText(
+            void view.plugin.app.workspace.openLinkText(
                 link,
                 activeFilePath,
                 'split',
@@ -35,7 +35,7 @@ export const openFileInExistingRightTabGroup = (
                     activeFilePath,
                 );
             if (linkedFile) {
-                newLeaf.openFile(linkedFile);
+                void newLeaf.openFile(linkedFile);
                 workspace.setActiveLeaf(newLeaf);
                 return true;
             }

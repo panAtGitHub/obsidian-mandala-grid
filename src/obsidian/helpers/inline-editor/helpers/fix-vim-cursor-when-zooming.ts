@@ -2,8 +2,9 @@ import { MandalaView } from 'src/view/view';
 
 export const fixVimCursorWhenZooming = (view: MandalaView) => {
     if (view.zoomFactor === 1) return null;
-    // @ts-ignore
-    const config = view.plugin.app.vault.config;
+    const config = (
+        view.plugin.app.vault as unknown as { config?: { vimMode?: boolean } }
+    ).config;
     if (!config?.vimMode) return null;
 
     const inlineEditor = view.inlineEditor.target;
