@@ -899,7 +899,17 @@
         transform: translateY(1px);
     }
 
+    .mandala-subgrid-btn__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        line-height: 0;
+    }
+
     .mandala-subgrid-btn__icon :global(svg) {
+        display: block;
         width: 14px;
         height: 14px;
         stroke-width: 2.2;

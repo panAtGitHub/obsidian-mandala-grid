@@ -640,7 +640,17 @@
         left: 66.6667%;
     }
 
+    .parallel-nav-button__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        line-height: 0;
+    }
+
     .parallel-nav-button__icon :global(svg) {
+        display: block;
         width: 16px;
         height: 16px;
         stroke-width: 2.3;
