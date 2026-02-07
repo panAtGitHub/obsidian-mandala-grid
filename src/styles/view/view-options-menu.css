@@ -166,6 +166,18 @@
     cursor: default;
 }
 
+.view-options-menu__inline-toggle--text {
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--text-accent);
+    padding: 0;
+}
+
+.view-options-menu__inline-toggle--text:hover {
+    color: var(--text-normal);
+    text-decoration: underline;
+}
+
 .view-options-menu__row {
     display: flex;
     align-items: center;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Grid3x3, RotateCcw, Settings } from 'lucide-svelte';
+    import { Grid3x3, RotateCcw } from 'lucide-svelte';
     import ColorSwatchInput from '../color-swatch-input.svelte';
 
     export let show = false;
@@ -78,34 +78,38 @@
                         />
                         <span>卡片风格，沉浸模式</span>
                     </label>
-                    <button
-                        class="view-options-menu__inline-toggle"
-                        type="button"
-                        on:click|stopPropagation={toggleImmersiveOptions}
-                        disabled={whiteThemeMode}
-                        aria-label="展开沉浸模式设置"
-                    >
-                        <Settings size={14} />
-                    </button>
+                    {#if !whiteThemeMode}
+                        <button
+                            class="view-options-menu__inline-toggle view-options-menu__inline-toggle--text"
+                            type="button"
+                            on:click|stopPropagation={toggleImmersiveOptions}
+                            aria-label="展开沉浸模式设置"
+                        >
+                            更多设置
+                        </button>
+                    {/if}
                 </div>
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-background"
-                        checked={whiteThemeMode}
-                        on:change={() => updateWhiteThemeMode(true)}
-                    />
-                    <span>表格风格，全景模式</span>
-                </label>
-                <button
-                    class="view-options-menu__inline-toggle"
-                    type="button"
-                    on:click|stopPropagation={togglePanoramaOptions}
-                    disabled={!whiteThemeMode}
-                    aria-label="展开全景模式设置"
-                >
-                    <Settings size={14} />
-                </button>
+                <div class="view-options-menu__inline-group">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="radio"
+                            name="mandala-background"
+                            checked={whiteThemeMode}
+                            on:change={() => updateWhiteThemeMode(true)}
+                        />
+                        <span>表格风格，全景模式</span>
+                    </label>
+                    {#if whiteThemeMode}
+                        <button
+                            class="view-options-menu__inline-toggle view-options-menu__inline-toggle--text"
+                            type="button"
+                            on:click|stopPropagation={togglePanoramaOptions}
+                            aria-label="展开全景模式设置"
+                        >
+                            更多设置
+                        </button>
+                    {/if}
+                </div>
             </div>
 
             {#if !whiteThemeMode && showImmersiveOptions}
