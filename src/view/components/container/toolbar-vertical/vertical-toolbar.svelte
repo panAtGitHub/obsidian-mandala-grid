@@ -110,7 +110,7 @@
 </script>
 
 <div class="controls-container">
-    <div class="buttons-group topbar-buttons-group controls-toggle">
+    <div class="topbar-buttons-group controls-toggle">
         <Button
             active={$showControls}
             classes="topbar-button"
@@ -124,7 +124,7 @@
 
     {#if Platform.isMobile}
         <div
-            class="buttons-group"
+            class="controls-popover"
             class:topbar-mobile-popover={Platform.isMobile}
             data-visible={$showControls}
         >
@@ -235,7 +235,7 @@
         position: relative;
     }
 
-    .buttons-group {
+    .controls-popover {
         display: flex;
         flex-direction: row;
         gap: var(--size-4-2);
@@ -252,12 +252,12 @@
             display: block;
             z-index: 1002;
         }
-        & .buttons-group[data-visible='true'] {
+        & .controls-popover[data-visible='true'] {
             top: 45px;
             right: var(--size-4-2);
             flex-direction: column !important;
         }
-        & .buttons-group[data-visible='false'] {
+        & .controls-popover[data-visible='false'] {
             display: none;
         }
     }
