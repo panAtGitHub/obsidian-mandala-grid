@@ -85,7 +85,7 @@
                             on:click|stopPropagation={toggleImmersiveOptions}
                             aria-label="展开沉浸模式设置"
                         >
-                            更多设置
+                            设置
                         </button>
                     {/if}
                 </div>
@@ -106,7 +106,7 @@
                             on:click|stopPropagation={togglePanoramaOptions}
                             aria-label="展开全景模式设置"
                         >
-                            更多设置
+                            设置
                         </button>
                     {/if}
                 </div>
