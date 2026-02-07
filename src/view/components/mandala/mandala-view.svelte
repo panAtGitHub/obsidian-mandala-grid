@@ -865,10 +865,32 @@
         justify-content: center;
         cursor: pointer;
         padding: 0;
+        transition:
+            background-color 120ms ease,
+            border-color 120ms ease,
+            box-shadow 120ms ease,
+            transform 120ms ease;
     }
 
     .mandala-subgrid-btn:hover {
-        background: var(--background-primary-alt);
+        background: color-mix(
+            in srgb,
+            var(--background-primary-alt) 75%,
+            var(--interactive-accent) 25%
+        );
+        border-color: color-mix(
+            in srgb,
+            var(--interactive-accent) 55%,
+            var(--background-modifier-border) 45%
+        );
+        box-shadow:
+            0 0 0 1px color-mix(
+                in srgb,
+                var(--interactive-accent) 45%,
+                transparent
+            ),
+            var(--shadow-s);
+        transform: translateY(-1px);
     }
 
     .mandala-subgrid-btn:active {
