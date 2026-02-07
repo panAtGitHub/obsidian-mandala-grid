@@ -48,6 +48,15 @@
         view.viewStore,
         (state) => state.ui.mandala.activeCell9x9,
     );
+    const hasOpenOverlayModal = derived(view.viewStore, (state) => {
+        const controls = state.ui.controls;
+        return (
+            controls.showHelpSidebar ||
+            controls.showSettingsSidebar ||
+            controls.showHistorySidebar ||
+            controls.showStyleRulesModal
+        );
+    });
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
     let currentCoreNumber = 1;
@@ -393,7 +402,9 @@
         {/each}
     </div>
 
-    {#if !Platform.isMobile && $show9x9ParallelNavButtons}
+    {#if !Platform.isMobile &&
+        $show9x9ParallelNavButtons &&
+        !$hasOpenOverlayModal}
         {#if currentCoreNumber > 1}
             <button
                 class="parallel-nav-button parallel-nav-button--left"

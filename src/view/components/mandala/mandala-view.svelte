@@ -157,6 +157,15 @@
         view.viewStore,
         (state) => state.styleRules.nodeStyles,
     );
+    const hasOpenOverlayModal = derived(view.viewStore, (state) => {
+        const controls = state.ui.controls;
+        return (
+            controls.showHelpSidebar ||
+            controls.showSettingsSidebar ||
+            controls.showHistorySidebar ||
+            controls.showStyleRulesModal
+        );
+    });
 
     let containerRef: HTMLElement | null = null;
     onMount(() => {
@@ -418,7 +427,9 @@
                                         sectionColor={sectionBackground}
                                         draggable={cell.section !== theme}
                                     />
-                                    {#if !Platform.isMobile && $show3x3SubgridNavButtons}
+                                    {#if !Platform.isMobile &&
+                                        $show3x3SubgridNavButtons &&
+                                        !$hasOpenOverlayModal}
                                         <div
                                             class="mandala-subgrid-controls"
                                             class:is-center-controls={cell.section === theme}
