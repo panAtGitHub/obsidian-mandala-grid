@@ -37,6 +37,12 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         show3x3SubgridNavButtonsMobile?: boolean;
         show9x9ParallelNavButtonsDesktop?: boolean;
         show9x9ParallelNavButtonsMobile?: boolean;
+        squareExportMode?: 'contain' | 'cover' | 'manual';
+        squareExportCanvasSize?: number;
+        squareExportPadding?: number;
+        squareExportManualScale?: number;
+        squareExportOffsetX?: number;
+        squareExportOffsetY?: number;
     };
     if (viewSettings.mandalaA4Mode === undefined) {
         viewSettings.mandalaA4Mode = false;
@@ -61,6 +67,28 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
+    }
+    if (
+        viewSettings.squareExportMode !== 'contain' &&
+        viewSettings.squareExportMode !== 'cover' &&
+        viewSettings.squareExportMode !== 'manual'
+    ) {
+        viewSettings.squareExportMode = 'contain';
+    }
+    if (typeof viewSettings.squareExportCanvasSize !== 'number') {
+        viewSettings.squareExportCanvasSize = 1600;
+    }
+    if (typeof viewSettings.squareExportPadding !== 'number') {
+        viewSettings.squareExportPadding = 0;
+    }
+    if (typeof viewSettings.squareExportManualScale !== 'number') {
+        viewSettings.squareExportManualScale = 1;
+    }
+    if (typeof viewSettings.squareExportOffsetX !== 'number') {
+        viewSettings.squareExportOffsetX = 0;
+    }
+    if (typeof viewSettings.squareExportOffsetY !== 'number') {
+        viewSettings.squareExportOffsetY = 0;
     }
 
     // Legacy compatibility: split old shared toggle flags into desktop/mobile.

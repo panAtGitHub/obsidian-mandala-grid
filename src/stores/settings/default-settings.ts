@@ -100,6 +100,12 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         show9x9TitleOnly: false,
         squareLayout: false,
         whiteThemeMode: false,
+        squareExportMode: 'contain',
+        squareExportCanvasSize: 1600,
+        squareExportPadding: 0,
+        squareExportManualScale: 1,
+        squareExportOffsetX: 0,
+        squareExportOffsetY: 0,
         hiddenVerticalToolbarButtons: [],
     },
     general: {

@@ -30,6 +30,7 @@ export type MandalaGridOrientation =
     | 'south-start'
     | 'left-to-right'
     | 'bottom-to-top';
+export type SquareExportMode = 'contain' | 'cover' | 'manual';
 
 export type DocumentPreferences = {
     documentFormat: MandalaGridDocumentFormat;
@@ -98,6 +99,12 @@ export type Settings = {
         show9x9TitleOnly: boolean;
         squareLayout: boolean;
         whiteThemeMode: boolean;
+        squareExportMode: SquareExportMode;
+        squareExportCanvasSize: number;
+        squareExportPadding: number;
+        squareExportManualScale: number;
+        squareExportOffsetX: number;
+        squareExportOffsetY: number;
         hiddenVerticalToolbarButtons: ToolbarButton[];
     };
     general: {

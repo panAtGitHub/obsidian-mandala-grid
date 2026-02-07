@@ -450,6 +450,41 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             return;
         store.view.mandalaSectionColorOpacity = action.payload.opacity;
     },
+    'settings/view/mandala/set-square-export-mode': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-square-export-mode')
+            return;
+        store.view.squareExportMode = action.payload.mode;
+    },
+    'settings/view/mandala/set-square-export-canvas-size': (store, action) => {
+        if (
+            action.type !==
+            'settings/view/mandala/set-square-export-canvas-size'
+        )
+            return;
+        store.view.squareExportCanvasSize = action.payload.size;
+    },
+    'settings/view/mandala/set-square-export-padding': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-square-export-padding')
+            return;
+        store.view.squareExportPadding = action.payload.padding;
+    },
+    'settings/view/mandala/set-square-export-manual-scale': (
+        store,
+        action,
+    ) => {
+        if (
+            action.type !==
+            'settings/view/mandala/set-square-export-manual-scale'
+        )
+            return;
+        store.view.squareExportManualScale = action.payload.scale;
+    },
+    'settings/view/mandala/set-square-export-offset': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-square-export-offset')
+            return;
+        store.view.squareExportOffsetX = action.payload.x;
+        store.view.squareExportOffsetY = action.payload.y;
+    },
 };
 
 const updateState = (store: Settings, action: SettingsActions) => {

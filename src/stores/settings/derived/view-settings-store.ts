@@ -116,6 +116,30 @@ export const SquareLayoutStore = (view: MandalaView) =>
 export const WhiteThemeModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.whiteThemeMode);
 
+export const SquareExportModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.squareExportMode);
+
+export const SquareExportCanvasSizeStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.squareExportCanvasSize,
+    );
+
+export const SquareExportPaddingStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.squareExportPadding);
+
+export const SquareExportManualScaleStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.squareExportManualScale,
+    );
+
+export const SquareExportOffsetXStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.squareExportOffsetX);
+
+export const SquareExportOffsetYStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.squareExportOffsetY);
+
 export const MandalaBorderOpacityStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,

@@ -5,6 +5,7 @@
     import { Notice, Platform, TFile } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { toPng } from 'html-to-image';
+    import type { SquareExportMode } from 'src/stores/settings/settings-type';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import { derived } from 'src/lib/store/derived';
     import {
@@ -23,6 +24,12 @@
         Show3x3SubgridNavButtonsStore,
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
+        SquareExportCanvasSizeStore,
+        SquareExportManualScaleStore,
+        SquareExportModeStore,
+        SquareExportOffsetXStore,
+        SquareExportOffsetYStore,
+        SquareExportPaddingStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
@@ -61,6 +68,7 @@
     let showTemplateOptions = false;
     let mobileBoundsStyle = '';
     let listenersAttached = false;
+    let squareExportPreviewSize = { width: 1, height: 1 };
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
@@ -69,6 +77,12 @@
     const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
+    const squareExportMode = SquareExportModeStore(view);
+    const squareExportCanvasSize = SquareExportCanvasSizeStore(view);
+    const squareExportPadding = SquareExportPaddingStore(view);
+    const squareExportManualScale = SquareExportManualScaleStore(view);
+    const squareExportOffsetX = SquareExportOffsetXStore(view);
+    const squareExportOffsetY = SquareExportOffsetYStore(view);
     const gridOrientation = MandalaGridOrientationStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
@@ -165,6 +179,77 @@
         updateA4Mode(false);
         exportSquareSize = mode === 'square';
     };
+
+    const updateSquareExportMode = (mode: SquareExportMode) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-mode',
+            payload: { mode },
+        });
+    };
+
+    const updateSquareExportCanvasSize = (size: number) => {
+        const clamped = Math.min(4096, Math.max(512, Math.round(size)));
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-canvas-size',
+            payload: { size: clamped },
+        });
+    };
+
+    const updateSquareExportPadding = (padding: number) => {
+        const clamped = Math.min(240, Math.max(0, Math.round(padding)));
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-padding',
+            payload: { padding: clamped },
+        });
+    };
+
+    const updateSquareExportManualScale = (scale: number) => {
+        const clamped = Math.min(3, Math.max(0.2, scale));
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-manual-scale',
+            payload: { scale: clamped },
+        });
+    };
+
+    const updateSquareExportOffsetX = (x: number) => {
+        const clamped = Math.min(50, Math.max(-50, x));
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-offset',
+            payload: { x: clamped, y: $squareExportOffsetY },
+        });
+    };
+
+    const updateSquareExportOffsetY = (y: number) => {
+        const clamped = Math.min(50, Math.max(-50, y));
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-offset',
+            payload: { x: $squareExportOffsetX, y: clamped },
+        });
+    };
+
+    const resetSquareExportManualTransform = () => {
+        updateSquareExportManualScale(1);
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-offset',
+            payload: { x: 0, y: 0 },
+        });
+    };
+
+    const getSquareExportSourcePreviewSize = () => {
+        const target = view.contentEl.querySelector(
+            '.mandala-scroll',
+        ) as HTMLElement | null;
+        if (!target) return { width: 1, height: 1 };
+        const rect = target.getBoundingClientRect();
+        return {
+            width: Math.max(1, Math.round(rect.width)),
+            height: Math.max(1, Math.round(rect.height)),
+        };
+    };
+
+    $: if (showPrintOptions || exportSquareSize) {
+        squareExportPreviewSize = getSquareExportSourcePreviewSize();
+    }
 
     let showImmersiveOptions = false;
     let showPanoramaOptions = false;
@@ -483,6 +568,12 @@
         borderOpacity: number;
         whiteThemeMode: boolean;
         exportSquareSize: boolean;
+        squareExportMode: SquareExportMode;
+        squareExportCanvasSize: number;
+        squareExportPadding: number;
+        squareExportManualScale: number;
+        squareExportOffsetX: number;
+        squareExportOffsetY: number;
     };
 
     let lastPrintConfig: PrintConfig | null = null;
@@ -496,6 +587,12 @@
             borderOpacity: $borderOpacity,
             whiteThemeMode: $whiteThemeMode,
             exportSquareSize,
+            squareExportMode: $squareExportMode,
+            squareExportCanvasSize: $squareExportCanvasSize,
+            squareExportPadding: $squareExportPadding,
+            squareExportManualScale: $squareExportManualScale,
+            squareExportOffsetX: $squareExportOffsetX,
+            squareExportOffsetY: $squareExportOffsetY,
         };
     };
 
@@ -511,6 +608,17 @@
         updateBackgroundMode(config.backgroundMode);
         updateSectionColorOpacityValue(config.sectionColorOpacity);
         updateBorderOpacityValue(config.borderOpacity);
+        updateSquareExportMode(config.squareExportMode);
+        updateSquareExportCanvasSize(config.squareExportCanvasSize);
+        updateSquareExportPadding(config.squareExportPadding);
+        updateSquareExportManualScale(config.squareExportManualScale);
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-square-export-offset',
+            payload: {
+                x: config.squareExportOffsetX,
+                y: config.squareExportOffsetY,
+            },
+        });
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-a4-orientation',
             payload: { orientation: config.a4Orientation },
@@ -530,6 +638,12 @@
             borderOpacity: $borderOpacity,
             whiteThemeMode: $whiteThemeMode,
             exportSquareSize,
+            squareExportMode: $squareExportMode,
+            squareExportCanvasSize: $squareExportCanvasSize,
+            squareExportPadding: $squareExportPadding,
+            squareExportManualScale: $squareExportManualScale,
+            squareExportOffsetX: $squareExportOffsetX,
+            squareExportOffsetY: $squareExportOffsetY,
         };
         applyPrintConfig(lastPrintConfig);
         lastPrintConfig = current;
@@ -595,18 +709,81 @@
         Object.assign(element.style, styles);
     };
 
+    const collectCssVariables = (elements: HTMLElement[]) => {
+        const vars: Record<string, string> = {};
+        for (const element of elements) {
+            const computed = getComputedStyle(element);
+            for (let i = 0; i < computed.length; i += 1) {
+                const key = computed[i];
+                if (!key.startsWith('--')) continue;
+                const value = computed.getPropertyValue(key).trim();
+                if (!value) continue;
+                vars[key] = value;
+            }
+        }
+        return vars;
+    };
+
+    const applyCssVariables = (element: HTMLElement, vars: Record<string, string>) => {
+        element.setCssProps(vars);
+    };
+
+    type SquareExportGeometry = {
+        scale: number;
+        tx: number;
+        ty: number;
+        canvasSize: number;
+    };
+
+    const calculateSquareExportGeometry = (
+        sourceWidth: number,
+        sourceHeight: number,
+        canvasSize: number,
+        padding: number,
+        mode: SquareExportMode,
+        manualScale: number,
+        offsetX: number,
+        offsetY: number,
+    ): SquareExportGeometry => {
+        const safeCanvasSize = Math.max(512, Math.round(canvasSize));
+        const safePadding = Math.min(
+            Math.max(0, Math.round(padding)),
+            Math.floor(safeCanvasSize / 2) - 1,
+        );
+        const available = Math.max(1, safeCanvasSize - safePadding * 2);
+        const containScale = Math.min(available / sourceWidth, available / sourceHeight);
+        const coverScale = Math.max(available / sourceWidth, available / sourceHeight);
+        const baseScale = mode === 'cover' ? coverScale : containScale;
+        const scale = mode === 'manual' ? baseScale * manualScale : baseScale;
+        const extraX = mode === 'manual' ? (offsetX / 100) * safeCanvasSize : 0;
+        const extraY = mode === 'manual' ? (offsetY / 100) * safeCanvasSize : 0;
+
+        return {
+            scale,
+            tx: (safeCanvasSize - sourceWidth * scale) / 2 + extraX,
+            ty: (safeCanvasSize - sourceHeight * scale) / 2 + extraY,
+            canvasSize: safeCanvasSize,
+        };
+    };
+
     const createA4ExportTarget = (target: HTMLElement) => {
         const computed = getComputedStyle(target);
         const rect = target.getBoundingClientRect();
         const width = Math.ceil(rect.width);
         const height = Math.ceil(rect.height);
         const borderColor = computed.getPropertyValue('--mandala-border-color');
+        const cssVars = collectCssVariables([
+            document.documentElement,
+            view.containerEl,
+            target,
+        ]);
 
         const wrapper = document.createElement('div');
         wrapper.classList.add('mandala-a4-mode');
         if ($a4Orientation === 'landscape') {
             wrapper.classList.add('mandala-a4-landscape');
         }
+        applyCssVariables(wrapper, cssVars);
         applyInlineStyles(wrapper, {
             ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
                 `${$borderOpacity}%`,
@@ -778,18 +955,32 @@
     };
 
     const exportCurrentView = async () => {
-        const squarePadding = 12;
         const createSquarePngExportTarget = (source: HTMLElement) => {
             const rect = source.getBoundingClientRect();
             const computed = getComputedStyle(source);
             const borderColor = computed.getPropertyValue(
                 '--mandala-border-color',
             );
-            const width = Math.ceil(rect.width);
-            const height = Math.ceil(rect.height);
-            const size = Math.min(width, height);
+            const sourceWidth = Math.max(1, Math.ceil(rect.width));
+            const sourceHeight = Math.max(1, Math.ceil(rect.height));
+            const geometry = calculateSquareExportGeometry(
+                sourceWidth,
+                sourceHeight,
+                $squareExportCanvasSize,
+                $squareExportPadding,
+                $squareExportMode,
+                $squareExportManualScale,
+                $squareExportOffsetX,
+                $squareExportOffsetY,
+            );
+            const cssVars = collectCssVariables([
+                document.documentElement,
+                view.containerEl,
+                source,
+            ]);
 
             const wrapper = document.createElement('div');
+            applyCssVariables(wrapper, cssVars);
             if (borderColor.trim().length > 0) {
                 applyInlineStyles(wrapper, {
                     ['--mandala-border-color' as keyof CSSStyleDeclaration]:
@@ -800,8 +991,8 @@
                 position: 'fixed',
                 left: '0',
                 top: '0',
-                width: `${size}px`,
-                height: `${size}px`,
+                width: `${geometry.canvasSize}px`,
+                height: `${geometry.canvasSize}px`,
                 zIndex: '-1',
                 pointerEvents: 'none',
                 overflow: 'hidden',
@@ -817,14 +1008,14 @@
             }
             applyInlineStyles(clone, {
                 margin: '0',
-                transform: 'none',
+                transform: `translate(${geometry.tx}px, ${geometry.ty}px) scale(${geometry.scale})`,
                 left: '0',
                 top: '0',
-                position: 'static',
-                width: '100%',
-                height: '100%',
-                padding: `${squarePadding}px`,
+                position: 'absolute',
+                width: `${sourceWidth}px`,
+                height: `${sourceHeight}px`,
                 boxSizing: 'border-box',
+                transformOrigin: 'top left',
             });
 
             wrapper.appendChild(clone);
@@ -832,8 +1023,8 @@
 
             return {
                 element: wrapper,
-                width: size,
-                height: size,
+                width: geometry.canvasSize,
+                height: geometry.canvasSize,
                 cleanup: () => wrapper.remove(),
             };
         };
@@ -1578,6 +1769,14 @@
                 show={showPrintOptions}
                 a4Mode={$a4Mode}
                 {exportSquareSize}
+                squareExportMode={$squareExportMode}
+                squareExportCanvasSize={$squareExportCanvasSize}
+                squareExportPadding={$squareExportPadding}
+                squareExportManualScale={$squareExportManualScale}
+                squareExportOffsetX={$squareExportOffsetX}
+                squareExportOffsetY={$squareExportOffsetY}
+                previewSourceWidth={squareExportPreviewSize.width}
+                previewSourceHeight={squareExportPreviewSize.height}
                 toggle={() => (showPrintOptions = !showPrintOptions)}
                 setPngSquareMode={() => {
                     exportFormat = 'png';
@@ -1591,6 +1790,13 @@
                     exportFormat = 'pdf';
                     updateExportViewSize('a4');
                 }}
+                setSquareExportMode={updateSquareExportMode}
+                setSquareExportCanvasSize={updateSquareExportCanvasSize}
+                setSquareExportPadding={updateSquareExportPadding}
+                setSquareExportManualScale={updateSquareExportManualScale}
+                setSquareExportOffsetX={updateSquareExportOffsetX}
+                setSquareExportOffsetY={updateSquareExportOffsetY}
+                {resetSquareExportManualTransform}
                 {exportCurrentFile}
             />
 
