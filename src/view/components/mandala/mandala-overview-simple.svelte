@@ -18,11 +18,11 @@
         Show9x9TitleOnlyStore,
     } from 'src/stores/settings/derived/view-settings-store';
 
-    import { ChevronLeft, ChevronRight } from 'lucide-svelte';
     import { Platform } from 'obsidian';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
     import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
+    import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);
@@ -402,7 +402,11 @@
                 on:click={jumpToPrevCore}
             >
                 <span class="parallel-nav-button__icon">
-                    <ChevronLeft class="parallel-nav-button__svg" />
+                    <MandalaNavIcon
+                        direction="left"
+                        size={16}
+                        strokeWidth={2.3}
+                    />
                 </span>
             </button>
         {/if}
@@ -413,7 +417,11 @@
             on:click={jumpToNextCore}
         >
             <span class="parallel-nav-button__icon">
-                <ChevronRight class="parallel-nav-button__svg" />
+                <MandalaNavIcon
+                    direction="right"
+                    size={16}
+                    strokeWidth={2.3}
+                />
             </span>
         </button>
     {/if}

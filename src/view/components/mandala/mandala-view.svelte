@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-svelte';
     import { Platform } from 'obsidian';
     import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
@@ -45,6 +44,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
+    import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -438,9 +438,17 @@
                                                     >
                                                         <span class="mandala-subgrid-btn__icon">
                                                             {#if theme.includes('.')}
-                                                                <ChevronUp class="mandala-subgrid-btn__svg" />
+                                                                <MandalaNavIcon
+                                                                    direction="up"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
                                                             {:else}
-                                                                <ChevronLeft class="mandala-subgrid-btn__svg" />
+                                                                <MandalaNavIcon
+                                                                    direction="left"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
                                                             {/if}
                                                         </span>
                                                     </button>
@@ -456,9 +464,17 @@
                                                     >
                                                         <span class="mandala-subgrid-btn__icon">
                                                             {#if theme.includes('.')}
-                                                                <ChevronDown class="mandala-subgrid-btn__svg" />
+                                                                <MandalaNavIcon
+                                                                    direction="down"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
                                                             {:else}
-                                                                <ChevronRight class="mandala-subgrid-btn__svg" />
+                                                                <MandalaNavIcon
+                                                                    direction="right"
+                                                                    size={14}
+                                                                    strokeWidth={2.2}
+                                                                />
                                                             {/if}
                                                         </span>
                                                     </button>
@@ -472,7 +488,11 @@
                                                         enterSubgridFromButton(event, cell.nodeId)}
                                                 >
                                                     <span class="mandala-subgrid-btn__icon">
-                                                        <ChevronDown class="mandala-subgrid-btn__svg" />
+                                                        <MandalaNavIcon
+                                                            direction="down"
+                                                            size={14}
+                                                            strokeWidth={2.2}
+                                                        />
                                                     </span>
                                                 </button>
                                             {/if}
