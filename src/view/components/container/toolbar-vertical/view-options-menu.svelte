@@ -588,6 +588,13 @@
         ) => void;
     };
 
+    const applyInlineStyles = (
+        element: HTMLElement,
+        styles: Partial<CSSStyleDeclaration>,
+    ) => {
+        Object.assign(element.style, styles);
+    };
+
     const createA4ExportTarget = (target: HTMLElement) => {
         const computed = getComputedStyle(target);
         const rect = target.getBoundingClientRect();
@@ -600,40 +607,47 @@
         if ($a4Orientation === 'landscape') {
             wrapper.classList.add('mandala-a4-landscape');
         }
-        wrapper.style.setProperty(
-            '--mandala-border-opacity',
-            `${$borderOpacity}%`,
-        );
+        applyInlineStyles(wrapper, {
+            ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
+                `${$borderOpacity}%`,
+        });
         if (borderColor.trim().length > 0) {
-            wrapper.style.setProperty('--mandala-border-color', borderColor);
+            applyInlineStyles(wrapper, {
+                ['--mandala-border-color' as keyof CSSStyleDeclaration]:
+                    borderColor,
+            });
         }
-        wrapper.style.position = 'fixed';
-        wrapper.style.left = '0';
-        wrapper.style.top = '0';
-        wrapper.style.width = `${width}px`;
-        wrapper.style.height = `${height}px`;
-        wrapper.style.zIndex = '-1';
-        wrapper.style.pointerEvents = 'none';
-        wrapper.style.overflow = 'hidden';
-        wrapper.style.background = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue('--background-primary');
-        wrapper.style.padding = computed.padding;
-        wrapper.style.boxSizing = 'border-box';
+        applyInlineStyles(wrapper, {
+            position: 'fixed',
+            left: '0',
+            top: '0',
+            width: `${width}px`,
+            height: `${height}px`,
+            zIndex: '-1',
+            pointerEvents: 'none',
+            overflow: 'hidden',
+            background: getComputedStyle(document.documentElement).getPropertyValue(
+                '--background-primary',
+            ),
+            padding: computed.padding,
+            boxSizing: 'border-box',
+        });
 
         const clone = target.cloneNode(true) as HTMLElement;
         if ($whiteThemeMode) {
             clone.classList.add('mandala-white-theme');
         }
-        clone.style.margin = '0';
-        clone.style.transform = 'none';
-        clone.style.left = '0';
-        clone.style.top = '0';
-        clone.style.position = 'static';
-        clone.style.width = '100%';
-        clone.style.height = '100%';
-        clone.style.padding = '0';
-        clone.style.boxSizing = 'border-box';
+        applyInlineStyles(clone, {
+            margin: '0',
+            transform: 'none',
+            left: '0',
+            top: '0',
+            position: 'static',
+            width: '100%',
+            height: '100%',
+            padding: '0',
+            boxSizing: 'border-box',
+        });
 
         wrapper.appendChild(clone);
         document.body.appendChild(wrapper);
@@ -777,37 +791,41 @@
 
             const wrapper = document.createElement('div');
             if (borderColor.trim().length > 0) {
-                wrapper.style.setProperty(
-                    '--mandala-border-color',
-                    borderColor,
-                );
+                applyInlineStyles(wrapper, {
+                    ['--mandala-border-color' as keyof CSSStyleDeclaration]:
+                        borderColor,
+                });
             }
-            wrapper.style.position = 'fixed';
-            wrapper.style.left = '0';
-            wrapper.style.top = '0';
-            wrapper.style.width = `${size}px`;
-            wrapper.style.height = `${size}px`;
-            wrapper.style.zIndex = '-1';
-            wrapper.style.pointerEvents = 'none';
-            wrapper.style.overflow = 'hidden';
-            wrapper.style.background = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue('--background-primary');
-            wrapper.style.boxSizing = 'border-box';
+            applyInlineStyles(wrapper, {
+                position: 'fixed',
+                left: '0',
+                top: '0',
+                width: `${size}px`,
+                height: `${size}px`,
+                zIndex: '-1',
+                pointerEvents: 'none',
+                overflow: 'hidden',
+                background: getComputedStyle(
+                    document.documentElement,
+                ).getPropertyValue('--background-primary'),
+                boxSizing: 'border-box',
+            });
 
             const clone = source.cloneNode(true) as HTMLElement;
             if ($whiteThemeMode) {
                 clone.classList.add('mandala-white-theme');
             }
-            clone.style.margin = '0';
-            clone.style.transform = 'none';
-            clone.style.left = '0';
-            clone.style.top = '0';
-            clone.style.position = 'static';
-            clone.style.width = '100%';
-            clone.style.height = '100%';
-            clone.style.padding = `${squarePadding}px`;
-            clone.style.boxSizing = 'border-box';
+            applyInlineStyles(clone, {
+                margin: '0',
+                transform: 'none',
+                left: '0',
+                top: '0',
+                position: 'static',
+                width: '100%',
+                height: '100%',
+                padding: `${squarePadding}px`,
+                boxSizing: 'border-box',
+            });
 
             wrapper.appendChild(clone);
             document.body.appendChild(wrapper);
@@ -952,35 +970,41 @@
             if (orientation === 'landscape') {
                 layer.classList.add('mandala-a4-landscape');
             }
-            layer.style.setProperty(
-                '--mandala-border-opacity',
-                `${$borderOpacity}%`,
-            );
+            applyInlineStyles(layer, {
+                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
+                    `${$borderOpacity}%`,
+            });
             if (borderColor.trim().length > 0) {
-                layer.style.setProperty('--mandala-border-color', borderColor);
+                applyInlineStyles(layer, {
+                    ['--mandala-border-color' as keyof CSSStyleDeclaration]:
+                        borderColor,
+                });
             }
-            layer.style.width = orientation === 'landscape' ? '297mm' : '210mm';
-            layer.style.height =
-                orientation === 'landscape' ? '210mm' : '297mm';
-            layer.style.padding = '1.27cm';
-            layer.style.boxSizing = 'border-box';
-            layer.style.background = getComputedStyle(
-                document.documentElement,
-            ).getPropertyValue('--background-primary');
+            applyInlineStyles(layer, {
+                width: orientation === 'landscape' ? '297mm' : '210mm',
+                height: orientation === 'landscape' ? '210mm' : '297mm',
+                padding: '1.27cm',
+                boxSizing: 'border-box',
+                background: getComputedStyle(
+                    document.documentElement,
+                ).getPropertyValue('--background-primary'),
+            });
 
             const clone = source.cloneNode(true) as HTMLElement;
             if ($whiteThemeMode) {
                 clone.classList.add('mandala-white-theme');
             }
-            clone.style.margin = '0';
-            clone.style.transform = 'none';
-            clone.style.left = '0';
-            clone.style.top = '0';
-            clone.style.position = 'static';
-            clone.style.width = '100%';
-            clone.style.height = '100%';
-            clone.style.padding = '0';
-            clone.style.boxSizing = 'border-box';
+            applyInlineStyles(clone, {
+                margin: '0',
+                transform: 'none',
+                left: '0',
+                top: '0',
+                position: 'static',
+                width: '100%',
+                height: '100%',
+                padding: '0',
+                boxSizing: 'border-box',
+            });
 
             layer.appendChild(clone);
             document.body.appendChild(layer);
