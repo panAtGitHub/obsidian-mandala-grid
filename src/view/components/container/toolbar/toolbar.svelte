@@ -59,7 +59,11 @@
             </Button>
         </div>
 
-        <div class="buttons-group-wrapper topbar-mobile-popover" data-visible={$showControls}>
+        <div
+            class="buttons-group-wrapper"
+            class:topbar-mobile-popover={isMobile}
+            data-visible={$showControls}
+        >
             <LeftSidebarToggle />
             <SearchToggle />
         </div>

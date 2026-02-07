@@ -123,7 +123,11 @@
     </div>
 
     {#if Platform.isMobile}
-        <div class="buttons-group topbar-mobile-popover" data-visible={$showControls}>
+        <div
+            class="buttons-group"
+            class:topbar-mobile-popover={Platform.isMobile}
+            data-visible={$showControls}
+        >
             <Button
                 active={$showOptionsMenu}
                 classes="control-item js-view-options-trigger topbar-button"
