@@ -90,13 +90,18 @@
     display: none !important;
 }
 
-
 .mandala-white-theme .node-border--active,
 .mandala-white-theme .node-border--editing,
 .mandala-white-theme .node-border--delete,
 .mandala-white-theme .node-border--discard,
 .mandala-white-theme .node-border--search-match {
     border-left-color: var(--background-modifier-border);
+}
+
+/* 导出时隐藏导航按钮 */
+.mandala-export-hide-controls .parallel-nav-button,
+.mandala-export-hide-controls .mandala-subgrid-controls {
+    display: none !important;
 }
 
 /* 打印样式 - 仅移除工具栏,保留侧边栏和格子布局 */

@@ -612,11 +612,22 @@
         callback: () => Promise<void>,
     ) => {
         document.body.classList.add('mandala-print-export');
+        document.body.classList.add('mandala-export-hide-controls');
         target.classList.add('mandala-print-target');
         return callback().finally(() => {
             document.body.classList.remove('mandala-print-export');
+            document.body.classList.remove('mandala-export-hide-controls');
             target.classList.remove('mandala-print-target');
         });
+    };
+
+    const withExportControlsHidden = async (callback: () => Promise<void>) => {
+        document.body.classList.add('mandala-export-hide-controls');
+        try {
+            await callback();
+        } finally {
+            document.body.classList.remove('mandala-export-hide-controls');
+        }
     };
 
     const renderToPNGDataUrl = async (
@@ -816,10 +827,12 @@
         if (mode === 'png-square') {
             const exportTarget = createSquarePngExportTarget(target);
             try {
-                await exportToPNG(exportTarget.element, {
-                    pixelRatio: 2,
-                    width: exportTarget.width,
-                    height: exportTarget.height,
+                await withExportControlsHidden(async () => {
+                    await exportToPNG(exportTarget.element, {
+                        pixelRatio: 2,
+                        width: exportTarget.width,
+                        height: exportTarget.height,
+                    });
                 });
             } finally {
                 exportTarget.cleanup();
@@ -827,7 +840,9 @@
             return;
         }
 
-        await exportToPNG(target, { pixelRatio: 2 });
+        await withExportControlsHidden(async () => {
+            await exportToPNG(target, { pixelRatio: 2 });
+        });
     };
 
     $: if ($a4Mode && exportMode !== 'pdf-a4') {
