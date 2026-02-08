@@ -900,6 +900,7 @@
             const borderColor = computed.getPropertyValue(
                 '--mandala-border-color',
             );
+            const sourceRoot = source.closest('.mandala-root') as HTMLElement | null;
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
             layer.classList.add('mandala-a4-mode');
@@ -909,6 +910,19 @@
             if ($squareLayout) {
                 layer.classList.add('is-desktop-square-layout');
             }
+            if (sourceRoot) {
+                sourceRoot.classList.forEach((className) => {
+                    if (className === 'mandala-root') return;
+                    layer.classList.add(className);
+                });
+            }
+            const cssVars = collectCssVariables([
+                document.documentElement,
+                view.containerEl,
+                sourceRoot ?? source,
+                source,
+            ]);
+            applyCssVariables(layer, cssVars);
             applyInlineStyles(layer, {
                 ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
                     `${$borderOpacity}%`,
@@ -920,6 +934,7 @@
                 });
             }
             applyInlineStyles(layer, {
+                display: 'block',
                 width: orientation === 'landscape' ? '297mm' : '210mm',
                 height: orientation === 'landscape' ? '210mm' : '297mm',
                 padding: '1.27cm',
