@@ -1,77 +1,19 @@
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
-import { DAY_PLAN_FRONTMATTER_KEY, slotsRecordToArray, upsertSlotHeading } from 'src/lib/mandala/day-plan';
+import {
+    parseDayPlanFrontmatter,
+    slotsRecordToArray,
+    upsertSlotHeading,
+} from 'src/lib/mandala/day-plan';
 import {
     replaceSectionContent,
     getSectionContent,
 } from 'src/lib/mandala/day-plan-sections';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 
-const leadingSpaces = (line: string) => line.match(/^ */)?.[0].length ?? 0;
-
-const stripQuotes = (value: string) => {
-    const trimmed = value.trim();
-    if (
-        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-        (trimmed.startsWith("'") && trimmed.endsWith("'"))
-    ) {
-        return trimmed.slice(1, -1);
-    }
-    return trimmed;
-};
-
 const parseSlotsFromFrontmatter = (frontmatter: string) => {
-    if (!frontmatter.trim()) return null;
-    const stripped = frontmatter
-        .replace(/^---\n/, '')
-        .replace(/\n---\n?$/, '')
-        .trim();
-    if (!stripped) return null;
-
-    const lines = stripped.split('\n');
-    let inPlan = false;
-    let inSlots = false;
-    let enabled = false;
-    const slots: Record<string, unknown> = {};
-
-    for (const rawLine of lines) {
-        const line = rawLine.replace(/\t/g, '    ');
-        const indent = leadingSpaces(line);
-        const trimmed = line.trim();
-
-        if (!inPlan) {
-            if (trimmed === `${DAY_PLAN_FRONTMATTER_KEY}:`) {
-                inPlan = true;
-            }
-            continue;
-        }
-
-        if (indent === 0 && trimmed.length > 0) {
-            break;
-        }
-
-        if (!inSlots && /^enabled\s*:\s*true\s*$/i.test(trimmed)) {
-            enabled = true;
-            continue;
-        }
-
-        if (!inSlots && /^slots\s*:\s*$/.test(trimmed)) {
-            inSlots = true;
-            continue;
-        }
-
-        if (inSlots) {
-            if (indent < 4 && trimmed.length > 0) {
-                inSlots = false;
-            }
-            const slotMatch = trimmed.match(/^"?([1-8])"?\s*:\s*(.*)$/);
-            if (slotMatch) {
-                slots[slotMatch[1]] = stripQuotes(slotMatch[2]);
-            }
-        }
-    }
-
-    if (!enabled) return null;
-    return slotsRecordToArray(slots);
+    const plan = parseDayPlanFrontmatter(frontmatter);
+    if (!plan) return null;
+    return slotsRecordToArray(plan.slots);
 };
 
 const collectTargetSections = (body: string) => {

@@ -1,4 +1,4 @@
-import { Notice, TFile, parseYaml } from 'obsidian';
+import { Notice, TFile } from 'obsidian';
 import MandalaGrid from 'src/main';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import {
@@ -16,6 +16,7 @@ import {
     DAY_PLAN_DEFAULT_SLOT_TITLES,
     DAY_PLAN_FRONTMATTER_KEY,
     normalizeSlotTitle,
+    parseDayPlanFrontmatter,
     slotsRecordToArray,
     toSlotsRecord,
     upsertSlotHeading,
@@ -70,26 +71,6 @@ const readTemplatesFromSettings = async (plugin: MandalaGrid) => {
         return parseMandalaTemplates(raw);
     } catch {
         return [];
-    }
-};
-
-const parseDayPlanFromFrontmatter = (frontmatter: string) => {
-    if (!frontmatter.trim()) return null;
-    const stripped = frontmatter
-        .replace(/^---\n/, '')
-        .replace(/\n---\n?$/, '')
-        .trim();
-    if (!stripped) return null;
-
-    try {
-        const parsed: unknown = parseYaml(stripped);
-        if (!parsed || typeof parsed !== 'object') return null;
-        const record = parsed as Record<string, unknown>;
-        const plan = record[DAY_PLAN_FRONTMATTER_KEY];
-        if (!plan || typeof plan !== 'object') return null;
-        return plan as Record<string, unknown>;
-    } catch {
-        return null;
     }
 };
 
@@ -221,7 +202,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
 
     const latest = await plugin.app.vault.read(file);
     const { body, frontmatter } = extractFrontmatter(latest);
-    const existingPlan = parseDayPlanFromFrontmatter(frontmatter);
+    const existingPlan = parseDayPlanFrontmatter(frontmatter);
 
     const selectedYear = await openDayPlanYearInputModal(
         plugin,
@@ -240,7 +221,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     }
 
     const planSlotsFromYaml = slotsRecordToArray(
-        existingPlan?.slots as Record<string, unknown> | null | undefined,
+        existingPlan?.slots,
     );
 
     const todaySection = String(getPlanDayFromToday(selectedYear));

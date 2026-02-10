@@ -1,8 +1,6 @@
 import { Modal, Notice, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
 
-export type DayPlanChoice = 'confirm' | 'cancel';
-
 export const openDayPlanConfirmModal = (
     plugin: MandalaGrid,
     options: {
@@ -14,15 +12,6 @@ export const openDayPlanConfirmModal = (
 ) =>
     new Promise<boolean>((resolve) => {
         const modal = new DayPlanConfirmModal(plugin, options, resolve);
-        modal.open();
-    });
-
-export const openDayPlanDateInputModal = (
-    plugin: MandalaGrid,
-    initialDate: string,
-) =>
-    new Promise<string | null>((resolve) => {
-        const modal = new DayPlanDateInputModal(plugin, initialDate, resolve);
         modal.open();
     });
 
@@ -94,66 +83,6 @@ class DayPlanConfirmModal extends Modal {
     }
 
     private resolveOnce(value: boolean) {
-        if (this.resolved) return;
-        this.resolved = true;
-        this.resolve(value);
-    }
-}
-
-class DayPlanDateInputModal extends Modal {
-    private resolved = false;
-    private date = '';
-
-    constructor(
-        plugin: MandalaGrid,
-        initialDate: string,
-        private resolve: (value: string | null) => void,
-    ) {
-        super(plugin.app);
-        this.date = initialDate;
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        this.setTitle('设置中心日期');
-
-        new Setting(contentEl)
-            .setName('日期')
-            .setDesc('请输入 yyyy-mm-dd（将写入 section 1 的二级标题）')
-            .addText((text) => {
-                text.setPlaceholder('2026-02-10');
-                text.setValue(this.date);
-                text.onChange((value) => {
-                    this.date = value.trim();
-                });
-            });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('确认').setCta().onClick(() => {
-                if (!this.date) {
-                    new Notice('日期不能为空。');
-                    return;
-                }
-                this.resolveOnce(this.date);
-                this.close();
-            });
-        });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
-                this.resolveOnce(null);
-                this.close();
-            });
-        });
-    }
-
-    onClose() {
-        this.resolveOnce(null);
-        this.contentEl.empty();
-    }
-
-    private resolveOnce(value: string | null) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);

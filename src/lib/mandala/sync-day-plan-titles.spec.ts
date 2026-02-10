@@ -8,6 +8,7 @@ describe('syncDayPlanTitlesInMarkdown', () => {
             'mandala: true\n' +
             'mandala_plan:\n' +
             '  enabled: true\n' +
+            '  year: 2026\n' +
             '  slots:\n' +
             '    "1": "接收太阳的能量，开心一天"\n' +
             '    "2": "09-12"\n' +
@@ -37,6 +38,7 @@ describe('syncDayPlanTitlesInMarkdown', () => {
             'mandala: true\n' +
             'mandala_plan:\n' +
             '  enabled: true\n' +
+            '  year: 2026\n' +
             '  slots:\n' +
             '    "1": "接收太阳的能量，开心一天"\n' +
             '    "2": "09-12"\n' +

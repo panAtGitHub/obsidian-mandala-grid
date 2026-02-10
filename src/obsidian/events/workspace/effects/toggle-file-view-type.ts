@@ -1,5 +1,5 @@
 import MandalaGrid from 'src/main';
-import { Notice, parseYaml, TFile, WorkspaceLeaf } from 'obsidian';
+import { Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
@@ -11,7 +11,7 @@ import {
     MandalaConversionMode,
 } from 'src/lib/mandala/mandala-conversion';
 import { syncDayPlanTitlesInMarkdown } from 'src/lib/mandala/sync-day-plan-titles';
-import { DAY_PLAN_FRONTMATTER_KEY, sectionFromDateInPlanYear } from 'src/lib/mandala/day-plan';
+import { parseDayPlanFromMarkdown, sectionFromDateInPlanYear } from 'src/lib/mandala/day-plan';
 
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 
@@ -32,24 +32,6 @@ const refreshMandalaViewData = (
     }, 50);
 };
 
-const getDayPlanYearFromMarkdown = (content: string) => {
-    const frontmatterMatch = content.match(/^---\n([\s\S]+?)\n---\n?/);
-    if (!frontmatterMatch) return null;
-    try {
-        const parsed: unknown = parseYaml(frontmatterMatch[1]);
-        if (!parsed || typeof parsed !== 'object') return null;
-        const root = parsed as Record<string, unknown>;
-        const rawPlan = root[DAY_PLAN_FRONTMATTER_KEY];
-        if (!rawPlan || typeof rawPlan !== 'object') return null;
-        const plan = rawPlan as Record<string, unknown>;
-        if (plan.enabled !== true) return null;
-        const year = Number(plan.year);
-        return Number.isInteger(year) ? year : null;
-    } catch {
-        return null;
-    }
-};
-
 const focusDayPlanSection = (
     plugin: MandalaGrid,
     file: TFile,
@@ -62,10 +44,10 @@ const focusDayPlanSection = (
             return;
         }
         const view = leaf.view;
-        const year = getDayPlanYearFromMarkdown(content);
-        if (!year) return;
+        const plan = parseDayPlanFromMarkdown(content);
+        if (!plan) return;
 
-        const todaySection = sectionFromDateInPlanYear(year);
+        const todaySection = sectionFromDateInPlanYear(plan.year);
         const targetSection = todaySection ?? '1';
         if (!todaySection) {
             new Notice('年份错误。');

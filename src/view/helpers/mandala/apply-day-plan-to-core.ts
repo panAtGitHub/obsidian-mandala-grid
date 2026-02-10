@@ -1,10 +1,10 @@
-import { Notice, parseYaml } from 'obsidian';
+import { Notice } from 'obsidian';
 import {
     addDaysIsoDate,
     DAY_PLAN_FRONTMATTER_KEY,
     extractDateFromCenterHeading,
     isIsoDate,
-    slotsRecordToArray,
+    parseDayPlanFrontmatter,
     upsertCenterDateHeading,
     upsertSlotHeading,
 } from 'src/lib/mandala/day-plan';
@@ -16,46 +16,49 @@ const getFirstNonEmptyLine = (content: string) =>
         .find((line) => line.trim().length > 0)
         ?.trim() ?? '';
 
-const parseDayPlanConfig = (frontmatter: string) => {
-    if (!frontmatter.trim()) return null;
+const hasDayPlanKey = (frontmatter: string) =>
+    frontmatter.includes(`${DAY_PLAN_FRONTMATTER_KEY}:`);
 
-    const yamlContent = frontmatter
-        .replace(/^---\n/, '')
-        .replace(/\n---\n?$/, '')
-        .trim();
-    if (!yamlContent) return null;
-
-    try {
-        const parsed: unknown = parseYaml(yamlContent);
-        if (!parsed || typeof parsed !== 'object') return null;
-        const root = parsed as Record<string, unknown>;
-        const rawPlan = root[DAY_PLAN_FRONTMATTER_KEY];
-        if (!rawPlan || typeof rawPlan !== 'object') return null;
-        const plan = rawPlan as Record<string, unknown>;
-        if (plan.enabled !== true) return null;
-
-        const year = Number(plan.year);
-        const slots = slotsRecordToArray(
-            (plan.slots as Record<string, unknown>) ?? undefined,
-        );
+const getDayPlanConfig = (frontmatter: string) => {
+    const config = parseDayPlanFrontmatter(frontmatter);
+    if (config) {
         return {
-            slots,
-            year: Number.isInteger(year) ? year : null,
-        };
-    } catch {
-        return null;
+            valid: true,
+            slots: Array.from({ length: 8 }, (_, index) => config.slots[String(index + 1)] ?? ''),
+            year: config.year,
+        } as const;
     }
+    if (hasDayPlanKey(frontmatter)) {
+        return {
+            valid: false,
+            slots: null,
+            year: null,
+        } as const;
+    }
+    return {
+        valid: null,
+        slots: null,
+        year: null,
+    } as const;
 };
 
 export const resolveNextDayPlanDate = (
     view: MandalaView,
     currentCore: string,
 ) => {
-    const config = parseDayPlanConfig(view.documentStore.getValue().file.frontmatter);
-    if (!config) {
+    const config = getDayPlanConfig(view.documentStore.getValue().file.frontmatter);
+    if (config.valid === null) {
         return {
             enabled: false,
             blocked: false,
+            nextDate: null as string | null,
+        };
+    }
+    if (config.valid === false) {
+        new Notice('日计划配置无效，请重新运行“设置成「日计划」九宫格格式”。');
+        return {
+            enabled: true,
+            blocked: true,
             nextDate: null as string | null,
         };
     }
@@ -86,7 +89,7 @@ export const resolveNextDayPlanDate = (
 
     const nextDate = addDaysIsoDate(currentDate, 1);
     const nextYear = Number(nextDate.slice(0, 4));
-    const planYear = config.year ?? Number(currentDate.slice(0, 4));
+    const planYear = config.year;
     if (nextYear !== planYear) {
         new Notice('新的一年，从一个新的年计划开始吧。');
         return {
@@ -109,8 +112,12 @@ export const applyDayPlanToCore = (
     nextCore: string,
     nextDateOverride?: string,
 ) => {
-    const config = parseDayPlanConfig(view.documentStore.getValue().file.frontmatter);
-    if (!config) return true;
+    const config = getDayPlanConfig(view.documentStore.getValue().file.frontmatter);
+    if (config.valid === null) return true;
+    if (config.valid === false) {
+        new Notice('日计划配置无效，请重新运行“设置成「日计划」九宫格格式”。');
+        return false;
+    }
 
     const docState = view.documentStore.getValue();
     const currentCoreNodeId = docState.sections.section_id[currentCore];

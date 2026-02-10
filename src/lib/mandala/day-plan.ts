@@ -16,14 +16,30 @@ export const DAY_PLAN_H2_DATE_PATTERN = /^##\s+(\d{4}-\d{2}-\d{2})\s*$/;
 
 export type DayPlanFrontmatter = {
     enabled: boolean;
-    year?: number;
-    center_date_h2: string;
+    year: number;
+    center_date_h2?: string;
     slots: Record<string, string>;
 };
 
 const normalizeLineEndings = (content: string) => content.replace(/\r\n/g, '\n');
 
 const splitLines = (content: string) => normalizeLineEndings(content).split('\n');
+
+const stripFrontmatterMarkers = (frontmatter: string) =>
+    frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, '').trim();
+
+const leadingSpaces = (line: string) => line.match(/^ */)?.[0].length ?? 0;
+
+const stripQuotes = (value: string) => {
+    const trimmed = value.trim();
+    if (
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+    ) {
+        return trimmed.slice(1, -1);
+    }
+    return trimmed;
+};
 
 const firstNonEmptyLineIndex = (lines: string[]) =>
     lines.findIndex((line) => line.trim().length > 0);
@@ -166,3 +182,83 @@ export const slotsRecordToArray = (slots: Record<string, unknown> | null | undef
 
 export const allSlotsFilled = (slots: string[]) =>
     slots.length === 8 && slots.every((slot) => normalizeSlotTitle(slot).length > 0);
+
+export const parseDayPlanFrontmatter = (
+    frontmatter: string,
+): DayPlanFrontmatter | null => {
+    const stripped = stripFrontmatterMarkers(frontmatter);
+    if (!stripped) return null;
+
+    const lines = stripped.split('\n');
+    let inPlan = false;
+    let inSlots = false;
+    let enabled = false;
+    let year: number | null = null;
+    let centerDateH2: string | undefined;
+    const slots: Record<string, unknown> = {};
+
+    for (const rawLine of lines) {
+        const line = rawLine.replace(/\t/g, '    ');
+        const indent = leadingSpaces(line);
+        const trimmed = line.trim();
+
+        if (!inPlan) {
+            if (trimmed === `${DAY_PLAN_FRONTMATTER_KEY}:`) {
+                inPlan = true;
+            }
+            continue;
+        }
+
+        if (indent === 0 && trimmed.length > 0) {
+            break;
+        }
+
+        if (/^enabled\s*:\s*true\s*$/i.test(trimmed)) {
+            enabled = true;
+            continue;
+        }
+
+        const yearMatch = trimmed.match(/^year\s*:\s*(.*)$/);
+        if (yearMatch) {
+            const parsedYear = Number(stripQuotes(yearMatch[1]));
+            year = Number.isInteger(parsedYear) ? parsedYear : null;
+            continue;
+        }
+
+        const centerDateMatch = trimmed.match(/^center_date_h2\s*:\s*(.*)$/);
+        if (centerDateMatch) {
+            centerDateH2 = stripQuotes(centerDateMatch[1]);
+            continue;
+        }
+
+        if (!inSlots && /^slots\s*:\s*$/.test(trimmed)) {
+            inSlots = true;
+            continue;
+        }
+
+        if (inSlots) {
+            if (indent < 4 && trimmed.length > 0) {
+                inSlots = false;
+            }
+            const slotMatch = trimmed.match(/^"?([1-8])"?\s*:\s*(.*)$/);
+            if (slotMatch) {
+                slots[slotMatch[1]] = stripQuotes(slotMatch[2]);
+            }
+        }
+    }
+
+    if (!enabled) return null;
+    if (!year || year < 1900 || year > 9999) return null;
+    return {
+        enabled: true,
+        year,
+        center_date_h2: centerDateH2,
+        slots: toSlotsRecord(slotsRecordToArray(slots)),
+    };
+};
+
+export const parseDayPlanFromMarkdown = (markdown: string) => {
+    const frontmatterMatch = markdown.match(/^---\n([\s\S]+?)\n---\n?/);
+    if (!frontmatterMatch) return null;
+    return parseDayPlanFrontmatter(`---\n${frontmatterMatch[1]}\n---\n`);
+};
