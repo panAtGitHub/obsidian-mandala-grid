@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import { deepMerge } from 'src/helpers/deep-merge';
 import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
 import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings';
 import { Settings } from 'src/stores/settings/settings-type';
@@ -12,15 +11,8 @@ type SettingsWithLegacySidebar = Settings & {
 
 describe('migrateSettings', () => {
     test('migrates legacy showMandalaDetailSidebar into desktop/mobile fields', () => {
-        const input: Partial<SettingsWithLegacySidebar> = {
-            view: {
-                showMandalaDetailSidebar: true,
-            },
-        };
-        const settings = deepMerge(
-            input,
-            DEFAULT_SETTINGS(),
-        ) as SettingsWithLegacySidebar;
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
+        settings.view.showMandalaDetailSidebar = true;
 
         migrateSettings(settings);
 
