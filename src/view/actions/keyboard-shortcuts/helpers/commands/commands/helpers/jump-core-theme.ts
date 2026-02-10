@@ -1,5 +1,8 @@
 import { Notice } from 'obsidian';
-import { applyDayPlanToCore } from 'src/view/helpers/mandala/apply-day-plan-to-core';
+import {
+    applyDayPlanToCore,
+    resolveNextDayPlanDate,
+} from 'src/view/helpers/mandala/apply-day-plan-to-core';
 import { MandalaView } from 'src/view/view';
 
 type CoreJumpDirection = 'up' | 'down';
@@ -32,11 +35,22 @@ export const jumpCoreTheme = (
         }
 
         const nextCore = String(coreNumber + 1);
+        const dayPlanResolution = resolveNextDayPlanDate(view, core);
+        if (dayPlanResolution.blocked) return;
+
         view.documentStore.dispatch({
             type: 'document/mandala/ensure-core-theme',
             payload: { theme: nextCore },
         });
-        if (!applyDayPlanToCore(view, core, nextCore)) return;
+        if (
+            !applyDayPlanToCore(
+                view,
+                core,
+                nextCore,
+                dayPlanResolution.nextDate ?? undefined,
+            )
+        )
+            return;
 
         const nextNodeId =
             view.documentStore.getValue().sections.section_id[nextCore];
