@@ -1,10 +1,15 @@
 import {
     addDaysIsoDate,
     allSlotsFilled,
+    dateFromDayOfYear,
+    dayOfYearFromDate,
+    daysInYear,
     extractDateFromCenterHeading,
     hasValidCenterDateHeading,
+    isLeapYear,
     isIsoDate,
     normalizeSlotTitle,
+    sectionFromDateInPlanYear,
     toSlotsRecord,
     upsertCenterDateHeading,
     upsertSlotHeading,
@@ -21,6 +26,25 @@ describe('day-plan helpers', () => {
     it('adds days for iso date', () => {
         expect(addDaysIsoDate('2026-02-10', 1)).toBe('2026-02-11');
         expect(addDaysIsoDate('2026-12-31', 1)).toBe('2027-01-01');
+    });
+
+    it('calculates leap years and year days', () => {
+        expect(isLeapYear(2024)).toBe(true);
+        expect(isLeapYear(2026)).toBe(false);
+        expect(daysInYear(2024)).toBe(366);
+        expect(daysInYear(2026)).toBe(365);
+    });
+
+    it('maps day-of-year and date correctly', () => {
+        expect(dayOfYearFromDate(2026, 2, 10)).toBe(41);
+        expect(dateFromDayOfYear(2026, 41)).toBe('2026-02-10');
+        expect(dateFromDayOfYear(2024, 60)).toBe('2024-02-29');
+    });
+
+    it('maps today to section in matching plan year', () => {
+        const date = new Date('2026-02-10T08:00:00');
+        expect(sectionFromDateInPlanYear(2026, date)).toBe('41');
+        expect(sectionFromDateInPlanYear(2027, date)).toBeNull();
     });
 
     it('extracts date from H2 heading only', () => {

@@ -10,15 +10,14 @@ import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import {
     allSlotsFilled,
     buildCenterDateHeading,
+    dateFromDayOfYear,
+    dayOfYearFromDate,
+    daysInYear,
     DAY_PLAN_DEFAULT_SLOT_TITLES,
     DAY_PLAN_FRONTMATTER_KEY,
-    extractDateFromCenterHeading,
-    hasValidCenterDateHeading,
-    isIsoDate,
     normalizeSlotTitle,
     slotsRecordToArray,
     toSlotsRecord,
-    upsertCenterDateHeading,
     upsertSlotHeading,
 } from 'src/lib/mandala/day-plan';
 import {
@@ -26,24 +25,23 @@ import {
     getSectionContent,
     replaceSectionContent,
 } from 'src/lib/mandala/day-plan-sections';
-import {
-    openMandalaTemplateSelectModal,
-} from 'src/obsidian/modals/mandala-templates-modal';
+import { openMandalaTemplateSelectModal } from 'src/obsidian/modals/mandala-templates-modal';
 import { parseMandalaTemplates } from 'src/lib/mandala/mandala-templates';
 import {
     openDayPlanConfirmModal,
-    openDayPlanDateInputModal,
     openDayPlanSlotsInputModal,
+    openDayPlanYearInputModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
 
 const MANDALA_KEY = 'mandala';
 
-const getTodayIsoDate = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+const getTodayInfo = () => {
+    const now = new Date();
+    return {
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+        day: now.getDate(),
+    };
 };
 
 const getConversionMode = (
@@ -147,8 +145,59 @@ const chooseSlots = async (
     return manual.map((slot) => normalizeSlotTitle(slot));
 };
 
+const getPlanDayFromToday = (planYear: number) => {
+    const today = getTodayInfo();
+    const normalized = new Date(
+        Date.UTC(planYear, today.month - 1, today.day),
+    );
+    const month = normalized.getUTCMonth() + 1;
+    const day = normalized.getUTCDate();
+    return dayOfYearFromDate(planYear, month, day);
+};
+
+const createYearPlanBody = (
+    planYear: number,
+    todaySection: number,
+    slots: string[],
+) => {
+    const totalDays = daysInYear(planYear);
+    const lines: string[] = [];
+
+    for (let day = 1; day <= totalDays; day += 1) {
+        lines.push(`<!--section: ${day}-->`);
+        lines.push(buildCenterDateHeading(dateFromDayOfYear(planYear, day)));
+
+        for (let i = 1; i <= 8; i += 1) {
+            lines.push(`<!--section: ${day}.${i}-->`);
+            if (day === todaySection) {
+                lines.push(upsertSlotHeading('', slots[i - 1] ?? ''));
+            } else {
+                lines.push('');
+            }
+        }
+    }
+
+    return lines.join('\n') + '\n';
+};
+
 const mergeBodyWithFrontmatter = (frontmatter: string, body: string) =>
     frontmatter ? `${frontmatter}${body}` : body;
+
+const applyTodaySlotsForYear = (
+    body: string,
+    planYear: number,
+) => {
+    const day = getPlanDayFromToday(planYear);
+    let nextBody = ensureSectionChildren(body, String(day), 8);
+
+    const hasAnySlotContent = Array.from({ length: 8 }, (_, index) => {
+        const section = `${day}.${index + 1}`;
+        const content = getSectionContent(nextBody, section) ?? '';
+        return content.trim().length > 0;
+    }).some(Boolean);
+
+    return { body: nextBody, day, hasAnySlotContent };
+};
 
 export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     const file = getActiveFile(plugin);
@@ -172,53 +221,32 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
 
     const latest = await plugin.app.vault.read(file);
     const { body, frontmatter } = extractFrontmatter(latest);
-
-    let workingBody = ensureSectionChildren(body, '1', 8);
-
-    const centerSection = getSectionContent(workingBody, '1') ?? '';
-    let centerDate: string | null = null;
-    if (hasValidCenterDateHeading(centerSection)) {
-        const lines = centerSection.split('\n');
-        const firstLine = lines.find((line) => line.trim().length > 0) ?? '';
-        centerDate = extractDateFromCenterHeading(firstLine);
-    }
-
-    if (centerDate) {
-        const shouldResetDate = await openDayPlanConfirmModal(plugin, {
-            title: '是否重设中心日期？',
-            message: `当前日期为 ${centerDate}。若重设，将更新 section 1 标题。`,
-            confirmText: '重设日期',
-            cancelText: '保持不变',
-        });
-        if (shouldResetDate) {
-            const input = await openDayPlanDateInputModal(plugin, centerDate);
-            if (!input) return;
-            if (!isIsoDate(input)) {
-                new Notice('日期格式错误，请输入 yyyy-mm-dd。');
-                return;
-            }
-            centerDate = input;
-        }
-    }
-
-    if (!centerDate) {
-        const input = await openDayPlanDateInputModal(plugin, getTodayIsoDate());
-        if (!input) return;
-        if (!isIsoDate(input)) {
-            new Notice('日期格式错误，请输入 yyyy-mm-dd。');
-            return;
-        }
-        centerDate = input;
-    }
-
     const existingPlan = parseDayPlanFromFrontmatter(frontmatter);
+
+    const selectedYear = await openDayPlanYearInputModal(
+        plugin,
+        getTodayInfo().year,
+    );
+    if (!selectedYear) return;
+
+    const existingYear = Number(existingPlan?.year);
+    if (
+        existingPlan?.enabled === true &&
+        Number.isInteger(existingYear) &&
+        existingYear !== selectedYear
+    ) {
+        new Notice('请另存新文件作为新的年计划。');
+        return;
+    }
+
     const planSlotsFromYaml = slotsRecordToArray(
         existingPlan?.slots as Record<string, unknown> | null | undefined,
     );
 
+    const todaySection = String(getPlanDayFromToday(selectedYear));
     const sectionSlots = Array.from({ length: 8 }, (_, index) => {
-        const section = `1.${index + 1}`;
-        const sectionContent = getSectionContent(workingBody, section) ?? '';
+        const section = `${todaySection}.${index + 1}`;
+        const sectionContent = getSectionContent(body, section) ?? '';
         const firstLine =
             sectionContent
                 .split('\n')
@@ -235,40 +263,37 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     const slots = await chooseSlots(plugin, initialSlots);
     if (!slots) return;
 
-    const centerHeading = buildCenterDateHeading(centerDate);
-    workingBody = replaceSectionContent(
-        workingBody,
-        '1',
-        upsertCenterDateHeading(centerSection, centerDate),
-    );
+    let nextBody = body;
+    let firstRun = !(existingPlan?.enabled === true);
 
-    const hasAnySlotContent = Array.from({ length: 8 }, (_, index) => {
-        const section = `1.${index + 1}`;
-        const content = getSectionContent(workingBody, section) ?? '';
-        return content.trim().length > 0;
-    }).some(Boolean);
+    if (firstRun) {
+        nextBody = createYearPlanBody(selectedYear, Number(todaySection), slots);
+    } else {
+        const todayApplied = applyTodaySlotsForYear(nextBody, selectedYear);
+        nextBody = todayApplied.body;
 
-    if (hasAnySlotContent) {
-        const shouldOverwriteAll = await openDayPlanConfirmModal(plugin, {
-            title: '是否一次性覆盖 8 个格子的标题？',
-            message: '确认后将统一覆盖 section 1.1 ~ 1.8 的标题行。',
-            confirmText: '一次性覆盖',
-            cancelText: '取消',
-        });
-        if (!shouldOverwriteAll) return;
+        if (todayApplied.hasAnySlotContent) {
+            const shouldOverwriteAll = await openDayPlanConfirmModal(plugin, {
+                title: '是否一次性覆盖 8 个格子的标题？',
+                message: '确认后将统一覆盖当天 section 的 8 个标题行。',
+                confirmText: '一次性覆盖',
+                cancelText: '取消',
+            });
+            if (!shouldOverwriteAll) return;
+        }
+
+        for (let i = 0; i < 8; i += 1) {
+            const section = `${todayApplied.day}.${i + 1}`;
+            const currentContent = getSectionContent(nextBody, section) ?? '';
+            nextBody = replaceSectionContent(
+                nextBody,
+                section,
+                upsertSlotHeading(currentContent, slots[i]),
+            );
+        }
     }
 
-    for (let i = 0; i < 8; i += 1) {
-        const section = `1.${i + 1}`;
-        const currentContent = getSectionContent(workingBody, section) ?? '';
-        workingBody = replaceSectionContent(
-            workingBody,
-            section,
-            upsertSlotHeading(currentContent, slots[i]),
-        );
-    }
-
-    const nextContent = mergeBodyWithFrontmatter(frontmatter, workingBody);
+    const nextContent = mergeBodyWithFrontmatter(frontmatter, nextBody);
     await plugin.app.vault.modify(file, nextContent);
 
     await plugin.app.fileManager.processFrontMatter(file, (fm) => {
@@ -276,11 +301,13 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
         record[MANDALA_KEY] = true;
         record[DAY_PLAN_FRONTMATTER_KEY] = {
             enabled: true,
-            version: 1,
-            center_date_h2: centerHeading,
+            year: selectedYear,
+            center_date_h2: buildCenterDateHeading(
+                dateFromDayOfYear(selectedYear, 1),
+            ),
             slots: toSlotsRecord(slots),
         };
     });
 
-    new Notice('已设置为日计划九宫格格式。可在 YAML 区继续修改。');
+    new Notice('已设置为年计划日计划格式。');
 };

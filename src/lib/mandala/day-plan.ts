@@ -16,7 +16,7 @@ export const DAY_PLAN_H2_DATE_PATTERN = /^##\s+(\d{4}-\d{2}-\d{2})\s*$/;
 
 export type DayPlanFrontmatter = {
     enabled: boolean;
-    version: number;
+    year?: number;
     center_date_h2: string;
     slots: Record<string, string>;
 };
@@ -47,6 +47,40 @@ export const addDaysIsoDate = (value: string, days: number) => {
     const nextMonth = String(date.getUTCMonth() + 1).padStart(2, '0');
     const nextDay = String(date.getUTCDate()).padStart(2, '0');
     return `${nextYear}-${nextMonth}-${nextDay}`;
+};
+
+export const isLeapYear = (year: number) =>
+    (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+
+export const daysInYear = (year: number) => (isLeapYear(year) ? 366 : 365);
+
+export const dayOfYearFromDate = (
+    year: number,
+    month: number,
+    day: number,
+) => {
+    const date = new Date(Date.UTC(year, month - 1, day));
+    const start = new Date(Date.UTC(year, 0, 1));
+    return Math.floor((date.getTime() - start.getTime()) / 86400000) + 1;
+};
+
+export const dateFromDayOfYear = (year: number, dayOfYear: number) => {
+    const start = new Date(Date.UTC(year, 0, 1));
+    start.setUTCDate(start.getUTCDate() + dayOfYear - 1);
+    const month = String(start.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(start.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+export const sectionFromDateInPlanYear = (
+    planYear: number,
+    date: Date = new Date(),
+) => {
+    const year = date.getFullYear();
+    if (year !== planYear) return null;
+    return String(
+        dayOfYearFromDate(year, date.getMonth() + 1, date.getDate()),
+    );
 };
 
 export const buildCenterDateHeading = (date: string) => `## ${date}`;

@@ -1,7 +1,6 @@
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { DAY_PLAN_FRONTMATTER_KEY, slotsRecordToArray, upsertSlotHeading } from 'src/lib/mandala/day-plan';
 import {
-    ensureSectionChildren,
     replaceSectionContent,
     getSectionContent,
 } from 'src/lib/mandala/day-plan-sections';
@@ -87,18 +86,6 @@ const collectTargetSections = (body: string) => {
     return Array.from(result);
 };
 
-const collectCoreSections = (body: string) => {
-    const result = new Set<string>();
-    for (const line of body.split('\n')) {
-        const parsed = parseHtmlCommentMarker(line);
-        if (!parsed) continue;
-        const section = parsed[2];
-        if (!/^\d+$/.test(section)) continue;
-        result.add(section);
-    }
-    return Array.from(result);
-};
-
 export const syncDayPlanTitlesInMarkdown = (markdown: string) => {
     const { body, frontmatter } = extractFrontmatter(markdown);
     const slots = parseSlotsFromFrontmatter(frontmatter);
@@ -112,15 +99,6 @@ export const syncDayPlanTitlesInMarkdown = (markdown: string) => {
     let nextBody = body;
     let changed = false;
 
-    const coreSections = collectCoreSections(nextBody);
-    for (const core of coreSections) {
-        const ensured = ensureSectionChildren(nextBody, core, 8);
-        if (ensured !== nextBody) {
-            changed = true;
-            nextBody = ensured;
-        }
-    }
-
     const sections = collectTargetSections(nextBody);
 
     for (const section of sections) {
@@ -129,6 +107,7 @@ export const syncDayPlanTitlesInMarkdown = (markdown: string) => {
         if (!title) continue;
 
         const current = getSectionContent(nextBody, section) ?? '';
+        if (!current.trim()) continue;
         const next = upsertSlotHeading(current, title);
         if (next === current) continue;
 

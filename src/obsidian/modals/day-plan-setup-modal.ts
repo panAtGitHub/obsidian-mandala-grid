@@ -26,6 +26,15 @@ export const openDayPlanDateInputModal = (
         modal.open();
     });
 
+export const openDayPlanYearInputModal = (
+    plugin: MandalaGrid,
+    initialYear: number,
+) =>
+    new Promise<number | null>((resolve) => {
+        const modal = new DayPlanYearInputModal(plugin, initialYear, resolve);
+        modal.open();
+    });
+
 export const openDayPlanSlotsInputModal = (
     plugin: MandalaGrid,
     initialSlots: string[],
@@ -145,6 +154,67 @@ class DayPlanDateInputModal extends Modal {
     }
 
     private resolveOnce(value: string | null) {
+        if (this.resolved) return;
+        this.resolved = true;
+        this.resolve(value);
+    }
+}
+
+class DayPlanYearInputModal extends Modal {
+    private resolved = false;
+    private year: string;
+
+    constructor(
+        plugin: MandalaGrid,
+        initialYear: number,
+        private resolve: (value: number | null) => void,
+    ) {
+        super(plugin.app);
+        this.year = String(initialYear);
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        this.setTitle('确认年计划年份');
+
+        new Setting(contentEl)
+            .setName('年份')
+            .setDesc('默认取今天年份，可改为其他年份。')
+            .addText((text) => {
+                text.setPlaceholder('2026');
+                text.setValue(this.year);
+                text.onChange((value) => {
+                    this.year = value.trim();
+                });
+            });
+
+        new Setting(contentEl).addButton((button) => {
+            button.setButtonText('确认').setCta().onClick(() => {
+                const year = Number(this.year);
+                if (!Number.isInteger(year) || year < 1900 || year > 9999) {
+                    new Notice('请输入合法年份。');
+                    return;
+                }
+                this.resolveOnce(year);
+                this.close();
+            });
+        });
+
+        new Setting(contentEl).addButton((button) => {
+            button.setButtonText('取消').onClick(() => {
+                this.resolveOnce(null);
+                this.close();
+            });
+        });
+    }
+
+    onClose() {
+        this.resolveOnce(null);
+        this.contentEl.empty();
+    }
+
+    private resolveOnce(value: number | null) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);

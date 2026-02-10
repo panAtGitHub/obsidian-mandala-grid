@@ -1,9 +1,9 @@
 import MandalaGrid from 'src/main';
-import { Notice, TFile, WorkspaceLeaf } from 'obsidian';
+import { Notice, parseYaml, TFile, WorkspaceLeaf } from 'obsidian';
 import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
-import { MANDALA_VIEW_TYPE } from 'src/view/view';
+import { MANDALA_VIEW_TYPE, MandalaView } from 'src/view/view';
 import { openMandalaConversionModal } from 'src/obsidian/modals/mandala-conversion-modal';
 import {
     analyzeMandalaContent,
@@ -11,6 +11,7 @@ import {
     MandalaConversionMode,
 } from 'src/lib/mandala/mandala-conversion';
 import { syncDayPlanTitlesInMarkdown } from 'src/lib/mandala/sync-day-plan-titles';
+import { DAY_PLAN_FRONTMATTER_KEY, sectionFromDateInPlanYear } from 'src/lib/mandala/day-plan';
 
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 
@@ -29,6 +30,59 @@ const refreshMandalaViewData = (
             maybeTextView.setViewData(content);
         }
     }, 50);
+};
+
+const getDayPlanYearFromMarkdown = (content: string) => {
+    const frontmatterMatch = content.match(/^---\n([\s\S]+?)\n---\n?/);
+    if (!frontmatterMatch) return null;
+    try {
+        const parsed: unknown = parseYaml(frontmatterMatch[1]);
+        if (!parsed || typeof parsed !== 'object') return null;
+        const root = parsed as Record<string, unknown>;
+        const rawPlan = root[DAY_PLAN_FRONTMATTER_KEY];
+        if (!rawPlan || typeof rawPlan !== 'object') return null;
+        const plan = rawPlan as Record<string, unknown>;
+        if (plan.enabled !== true) return null;
+        const year = Number(plan.year);
+        return Number.isInteger(year) ? year : null;
+    } catch {
+        return null;
+    }
+};
+
+const focusDayPlanSection = (
+    plugin: MandalaGrid,
+    file: TFile,
+    content: string,
+) => {
+    const run = (attempt: number) => {
+        const leaf = getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE);
+        if (!leaf || !(leaf.view instanceof MandalaView)) {
+            if (attempt < 8) window.setTimeout(() => run(attempt + 1), 80);
+            return;
+        }
+        const view = leaf.view;
+        const year = getDayPlanYearFromMarkdown(content);
+        if (!year) return;
+
+        const todaySection = sectionFromDateInPlanYear(year);
+        const targetSection = todaySection ?? '1';
+        if (!todaySection) {
+            new Notice('年份错误。');
+        }
+        const nodeId = view.documentStore.getValue().sections.section_id[targetSection];
+        if (!nodeId) return;
+
+        view.viewStore.dispatch({
+            type: 'view/mandala/subgrid/enter',
+            payload: { theme: targetSection },
+        });
+        view.viewStore.dispatch({
+            type: 'view/set-active-node/mouse-silent',
+            payload: { id: nodeId },
+        });
+    };
+    window.setTimeout(() => run(0), 120);
 };
 
 export const toggleFileViewType = async (
@@ -87,7 +141,9 @@ export const toggleFileViewType = async (
     toggleObsidianViewType(plugin, fileLeaf, newViewType);
     setViewType(plugin, file.path, newViewType);
     if (newViewType === MANDALA_VIEW_TYPE) {
-        refreshMandalaViewData(plugin, file, await plugin.app.vault.read(file));
+        const latest = await plugin.app.vault.read(file);
+        refreshMandalaViewData(plugin, file, latest);
+        focusDayPlanSection(plugin, file, latest);
     }
 };
 

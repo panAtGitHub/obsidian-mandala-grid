@@ -34,10 +34,14 @@ const parseDayPlanConfig = (frontmatter: string) => {
         const plan = rawPlan as Record<string, unknown>;
         if (plan.enabled !== true) return null;
 
+        const year = Number(plan.year);
         const slots = slotsRecordToArray(
             (plan.slots as Record<string, unknown>) ?? undefined,
         );
-        return { slots };
+        return {
+            slots,
+            year: Number.isInteger(year) ? year : null,
+        };
     } catch {
         return null;
     }
@@ -81,9 +85,9 @@ export const resolveNextDayPlanDate = (
     }
 
     const nextDate = addDaysIsoDate(currentDate, 1);
-    const currentYear = Number(currentDate.slice(0, 4));
     const nextYear = Number(nextDate.slice(0, 4));
-    if (nextYear !== currentYear) {
+    const planYear = config.year ?? Number(currentDate.slice(0, 4));
+    if (nextYear !== planYear) {
         new Notice('新的一年，从一个新的年计划开始吧。');
         return {
             enabled: true,

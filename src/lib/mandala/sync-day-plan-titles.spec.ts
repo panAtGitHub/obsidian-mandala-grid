@@ -31,7 +31,7 @@ describe('syncDayPlanTitlesInMarkdown', () => {
         expect(result.markdown).toContain('<!--section: 2.1-->\n### 接收太阳的能量，开心一天');
     });
 
-    it('creates missing children for each core and applies headings', () => {
+    it('does not create missing children for empty cores', () => {
         const markdown =
             '---\n' +
             'mandala: true\n' +
@@ -51,10 +51,8 @@ describe('syncDayPlanTitlesInMarkdown', () => {
             '<!--section: 2-->\n## 2026-02-11\n';
 
         const result = syncDayPlanTitlesInMarkdown(markdown);
-        expect(result.changed).toBe(true);
-        expect(result.markdown).toContain('<!--section: 1.1-->\n### 接收太阳的能量，开心一天');
-        expect(result.markdown).toContain('<!--section: 2.1-->\n### 接收太阳的能量，开心一天');
-        expect(result.markdown).toContain('<!--section: 2.8-->\n### 睡觉准备');
+        expect(result.changed).toBe(false);
+        expect(result.markdown).toBe(markdown);
     });
 
     it('does not change markdown when day plan is not enabled', () => {
