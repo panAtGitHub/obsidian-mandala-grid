@@ -119,9 +119,16 @@ const chooseSlots = async (
         }
     }
 
+    const recommendedTemplatePreview = DAY_PLAN_DEFAULT_SLOT_TITLES.map(
+        (slot, index) => `${index + 1}. ${slot}`,
+    ).join('\n');
+
     const useRecommended = await openDayPlanConfirmModal(plugin, {
-        title: '使用推荐日计划模板？',
-        message: '若不使用推荐模板，将进入 8 行手动输入。',
+        title: '是否采用本插件推荐的日计划模板？',
+        message:
+            '推荐模板如下：\n' +
+            recommendedTemplatePreview +
+            '\n\n若不采用推荐模板，将进入 8 行手动输入。',
         confirmText: '使用推荐模板',
         cancelText: '手动输入',
     });
