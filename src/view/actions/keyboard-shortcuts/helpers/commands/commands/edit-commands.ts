@@ -3,6 +3,7 @@ import { cancelChanges } from 'src/view/actions/keyboard-shortcuts/helpers/comma
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { MandalaView } from 'src/view/view';
+import { Platform } from 'obsidian';
 
 export const editCommands = () => {
     const ensureNodeForSection = (view: MandalaView, section: string) => {
@@ -38,9 +39,11 @@ export const editCommands = () => {
             name: 'enable_edit_mode',
             callback: (view, event) => {
                 event.preventDefault();
-                let showDetailSidebar =
-                    view.plugin.settings.getValue().view
-                        .showMandalaDetailSidebar;
+                let showDetailSidebar = Platform.isMobile
+                    ? view.plugin.settings.getValue().view
+                          .showMandalaDetailSidebarMobile
+                    : view.plugin.settings.getValue().view
+                          .showMandalaDetailSidebarDesktop;
                 let nodeId = view.viewStore.getValue().document.activeNode;
                 if (view.mandalaMode === '9x9' && view.mandalaActiveCell9x9) {
                     const orientation =

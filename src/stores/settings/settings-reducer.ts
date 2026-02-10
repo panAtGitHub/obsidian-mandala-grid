@@ -7,6 +7,7 @@ import { setHotkeyAsBlank } from 'src/stores/settings/reducers/set-hotkey-as-bla
 import { PersistedViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { persistCollapsedSections } from 'src/stores/settings/reducers/persist-collapsed-sections';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { Platform } from 'obsidian';
 
 type SettingsActionHandler = (store: Settings, action: SettingsActions) => void;
 
@@ -222,8 +223,13 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     },
     'view/mandala-detail-sidebar/toggle': (store, action) => {
         if (action.type !== 'view/mandala-detail-sidebar/toggle') return;
-        store.view.showMandalaDetailSidebar =
-            !store.view.showMandalaDetailSidebar;
+        if (Platform.isMobile) {
+            store.view.showMandalaDetailSidebarMobile =
+                !store.view.showMandalaDetailSidebarMobile;
+            return;
+        }
+        store.view.showMandalaDetailSidebarDesktop =
+            !store.view.showMandalaDetailSidebarDesktop;
     },
     'view/mandala-detail-sidebar/set-width': (store, action) => {
         if (action.type !== 'view/mandala-detail-sidebar/set-width') return;

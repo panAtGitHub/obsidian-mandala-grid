@@ -98,7 +98,10 @@ export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
 export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
-        (state) => state.view.showMandalaDetailSidebar,
+        (state) =>
+            Platform.isMobile
+                ? state.view.showMandalaDetailSidebarMobile
+                : state.view.showMandalaDetailSidebarDesktop,
     );
 
 export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>
