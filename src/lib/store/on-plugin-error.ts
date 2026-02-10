@@ -4,18 +4,18 @@ import { lang } from 'src/lang/lang';
 import { __dev__ } from 'src/helpers/logger';
 
 export const onPluginError = (
-    error: Error,
+    error: unknown,
     location: 'reducer' | 'subscriber' | 'command',
     action: unknown,
 ) => {
-    if (error instanceof SilentError && !__dev__) {
+    const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+    if (normalizedError instanceof SilentError && !__dev__) {
         return;
     }
-    // eslint-disable-next-line no-console
     console.error(`[${location}] action: `, action);
-    // eslint-disable-next-line no-console
-    console.error(`[${location}]`, error);
-    const message = error.message.replace(/Invariant failed(: )?/, '');
+    console.error(`[${location}]`, normalizedError);
+    const message = normalizedError.message.replace(/Invariant failed(: )?/, '');
     if (message) new Notice(message);
     else new Notice(lang.error_generic);
 };

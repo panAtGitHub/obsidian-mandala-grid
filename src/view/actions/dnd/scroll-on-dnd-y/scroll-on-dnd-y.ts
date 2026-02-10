@@ -31,7 +31,7 @@ export const scrollOnDndY = (container: HTMLElement) => {
                   : 0;
 
         const columns = Array.from(
-            container.querySelectorAll('.column'),
+            container.querySelectorAll<HTMLElement>('.column'),
         );
 
         const context: Context = {
@@ -47,8 +47,9 @@ export const scrollOnDndY = (container: HTMLElement) => {
         state.direction = 0;
     };
     setTimeout(() => {
-        topEdge = view.contentEl.querySelector('#dnd-edge-top');
-        bottomEdge = view.contentEl.querySelector('#dnd-edge-bottom');
+        topEdge = view.contentEl.querySelector<HTMLElement>('#dnd-edge-top');
+        bottomEdge =
+            view.contentEl.querySelector<HTMLElement>('#dnd-edge-bottom');
 
         if (topEdge && bottomEdge) {
             topEdge.addEventListener('dragenter', handleDragEnter);

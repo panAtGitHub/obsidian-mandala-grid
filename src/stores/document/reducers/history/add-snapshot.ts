@@ -36,8 +36,12 @@ export const addSnapshot = (
         activeSnapshot &&
         context.action.type === 'document/file/load-from-disk'
     ) {
+        const parsedSnapshotContent = JSON.parse(activeSnapshot.data.content) as Record<
+            string,
+            unknown
+        >;
         const snapshotContent = JSON.stringify(
-            Object.values(JSON.parse(activeSnapshot.data.content)),
+            Object.values(parsedSnapshotContent),
         );
         const documentContent = JSON.stringify(Object.values(document.content));
 

@@ -62,8 +62,10 @@ export const ruleDndAction = (
     const handleDrop = (e: DragEvent) => {
         e.preventDefault();
         const target = e.currentTarget as HTMLElement;
-        const data = JSON.parse(e.dataTransfer?.getData('text/plain') || '{}');
-        if (!data.id) return;
+        const parsed = JSON.parse(e.dataTransfer?.getData('text/plain') || '{}') as
+            | { id?: string }
+            | null;
+        if (!parsed?.id) return;
         const rect = target.getBoundingClientRect();
         const y = e.clientY - rect.top;
         const isAbove = y < rect.height / 2;
@@ -71,7 +73,7 @@ export const ruleDndAction = (
             type: 'settings/style-rules/move',
             payload: {
                 documentPath: view.file?.path as string,
-                droppedId: data.id,
+                droppedId: parsed.id,
                 targetId: rule.id,
                 position: isAbove ? 'before' : 'after',
             },

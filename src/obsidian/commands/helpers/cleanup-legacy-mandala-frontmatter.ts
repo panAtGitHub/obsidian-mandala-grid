@@ -36,8 +36,9 @@ export const cleanupLegacyMandalaFrontmatter = async (plugin: MandalaGrid) => {
 
     for (const file of targetFiles) {
         await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+            const frontmatterRecord = frontmatter as Record<string, unknown>;
             for (const key of LEGACY_KEYS) {
-                delete frontmatter[key];
+                delete frontmatterRecord[key];
             }
         });
     }

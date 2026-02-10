@@ -9,27 +9,23 @@ export const __dev__ = process.env.NODE_ENV === 'development';
 const createLogger = (): Logger => {
     const debug = (...message: unknown[]) => {
         if (__dev__) {
-            // eslint-disable-next-line no-console
             console.debug(`[DEBUG]: `, ...message);
         }
     };
 
     const info = (...message: unknown[]) => {
         if (__dev__) {
-            // eslint-disable-next-line no-console
             console.debug(`[INFO]: `, ...message);
         }
     };
 
     const warn = (...message: unknown[]) => {
         if (__dev__) {
-            // eslint-disable-next-line no-console
             console.warn(`[WARN]: `, ...message);
         }
     };
 
     const error = (...message: unknown[]) => {
-        // eslint-disable-next-line no-console
         console.error(`[ERROR]: `, ...message);
     };
 

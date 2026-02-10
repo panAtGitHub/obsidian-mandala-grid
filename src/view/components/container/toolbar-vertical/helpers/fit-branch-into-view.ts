@@ -15,17 +15,17 @@ export const fitBranchIntoView = async (view: MandalaView) => {
     let result = 1;
 
     const parents = Array.from(
-        view.container.querySelectorAll('.active-parent'),
+        view.container.querySelectorAll<HTMLElement>('.active-parent'),
     );
 
     const activeNode = view.container.querySelector(
         '.active-node',
     ) as HTMLElement;
     const children = Array.from(
-        view.container.querySelectorAll('.active-child'),
+        view.container.querySelectorAll<HTMLElement>('.active-child'),
     );
     const siblings = Array.from(
-        view.container.querySelectorAll('.active-sibling'),
+        view.container.querySelectorAll<HTMLElement>('.active-sibling'),
     );
 
     const combinedRect = getCombinedBoundingClientRect([

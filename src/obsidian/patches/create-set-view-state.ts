@@ -21,10 +21,9 @@ export function createSetViewState(plugin: MandalaGrid) {
                     ...state,
                     type: MANDALA_VIEW_TYPE,
                 };
-
-                return next.apply(this, [newState, ...rest]);
+                return next(newState, ...rest);
             } else {
-                return next.apply(this, [state, ...rest]);
+                return next(state, ...rest);
             }
         };
     };

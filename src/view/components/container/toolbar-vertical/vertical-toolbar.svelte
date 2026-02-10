@@ -20,6 +20,7 @@
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
     import ViewOptionsMenu from './view-options-menu.svelte';
+    import IconRenderer from '../shared/icon-renderer.svelte';
 
     const view = getView();
 
@@ -152,14 +153,7 @@
                     }}
                     tooltipPosition="bottom"
                 >
-                    {#if 'svg' in mobileSidebarButton.icon}
-                        {@html mobileSidebarButton.icon.svg}
-                    {:else}
-                        <svelte:component
-                            this={mobileSidebarButton.icon}
-                            class="svg-icon"
-                        />
-                    {/if}
+                    <IconRenderer icon={mobileSidebarButton.icon} />
                 </Button>
             {/if}
 
@@ -174,11 +168,7 @@
                     }}
                     tooltipPosition="bottom"
                 >
-                    {#if 'svg' in button.icon}
-                        {@html button.icon.svg}
-                    {:else}
-                        <svelte:component this={button.icon} class="svg-icon" />
-                    {/if}
+                    <IconRenderer icon={button.icon} />
                 </Button>
             {/each}
         </div>
@@ -193,11 +183,7 @@
                         on:click={button.onClick}
                         tooltipPosition="bottom"
                     >
-                        {#if 'svg' in button.icon}
-                            {@html button.icon.svg}
-                        {:else}
-                            <svelte:component this={button.icon} class="svg-icon" />
-                        {/if}
+                        <IconRenderer icon={button.icon} />
                     </Button>
                 </div>
             {/each}

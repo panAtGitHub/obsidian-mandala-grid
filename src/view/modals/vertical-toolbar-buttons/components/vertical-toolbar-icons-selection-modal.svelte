@@ -4,6 +4,7 @@
     import { derived } from 'svelte/store';
     import { HiddenVerticalToolbarButtons } from '../../../../stores/settings/derived/view-settings-store';
     import MandalaGrid from '../../../../main';
+    import IconRenderer from '../../../components/container/shared/icon-renderer.svelte';
 
     export let close: () => void;
     export let plugin: MandalaGrid;
@@ -50,11 +51,7 @@
                     label={button.label}
                     tooltipPosition="left"
                 >
-                    {#if 'svg' in button.icon}
-                        {@html button.icon.svg}
-                    {:else}
-                        <svelte:component this={button.icon} class="svg-icon" />
-                    {/if}
+                    <IconRenderer icon={button.icon} />
                 </Button>
                 <span class="toolbar-icon-label">{button.label}</span>
             </div>

@@ -4,7 +4,6 @@ import {
     FileMinus,
     FileOutput,
     FilePlus,
-    FileSymlink,
     FileUp,
     Heading1,
     Merge,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-svelte';
 import { UndoableAction } from 'src/stores/document/document-store-actions';
 import { Snapshot } from 'src/stores/document/document-state-type';
-import { customIcons } from 'src/helpers/load-custom-icons';
+import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 import { lang } from './lang';
 import { SortChildNodesAction } from 'src/stores/document/reducers/sort/sort-direct-child-nodes';
 
@@ -24,7 +23,10 @@ type Key = UndoableAction['type'];
 export const snapshotActionLang: Partial<
     Record<
         Key,
-        (snapshot: Snapshot) => { label: string; icon: typeof FileEdit }
+        (snapshot: Snapshot) => {
+            label: string;
+            icon: typeof FileEdit | CustomIcon;
+        }
     >
 > = {
     'document/update-node-content': (snapshot) => ({
@@ -86,8 +88,7 @@ export const snapshotActionLang: Partial<
         label:
             lang.modals_snapshots_extracted_node +
             snapshot.context.affectedSection,
-        icon: FileSymlink,
-        iconHtml: customIcons.cards.svg,
+        icon: customIcons.cards,
     }),
     'document/split-node': (snapshot) => ({
         label:

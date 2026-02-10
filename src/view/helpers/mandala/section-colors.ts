@@ -86,7 +86,7 @@ const buildFrontmatterWithSectionColors = (
         const content = stripFrontmatter(frontmatter);
         if (content) {
             try {
-                const parsed = parseYaml(content);
+                const parsed: unknown = parseYaml(content);
                 if (parsed && typeof parsed === 'object') {
                     record = parsed as Record<string, unknown>;
                 }
@@ -111,8 +111,9 @@ const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
     for (const key of SECTION_COLOR_KEYS) {
         const raw = record[key];
         if (Array.isArray(raw)) {
+            const rawSections = raw as unknown[];
             map[key] = normalizeSectionIds(
-                raw
+                rawSections
                 .map((section) =>
                     typeof section === 'number' ? String(section) : section,
                 )
@@ -206,10 +207,12 @@ export const writeSectionColorsToFrontmatter = async (
     await view.plugin.app.fileManager.processFrontMatter(
         view.file,
         (frontmatter) => {
+            const frontmatterRecord = frontmatter as Record<string, unknown>;
             if (Object.keys(nextSerialized).length === 0) {
-                delete frontmatter[SECTION_COLORS_FRONTMATTER_KEY];
+                delete frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY];
             } else {
-                frontmatter[SECTION_COLORS_FRONTMATTER_KEY] = nextSerialized;
+                frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY] =
+                    nextSerialized;
             }
         },
     );

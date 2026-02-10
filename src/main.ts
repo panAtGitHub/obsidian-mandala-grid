@@ -10,6 +10,7 @@ import {
     DocumentsPreferences,
     Settings,
 } from 'src/stores/settings/settings-type';
+import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import { registerFileMenuEvent } from 'src/obsidian/events/workspace/register-file-menu-event';
 import { addCommands } from 'src/obsidian/commands/add-commands';
 import { settingsSubscriptions } from 'src/stores/settings/subscriptions/settings-subscriptions';
@@ -87,8 +88,12 @@ export default class MandalaGrid extends Plugin {
     }
 
     async loadSettings() {
-        const rawSettings = (await this.loadData()) || {};
-        const settings = deepMerge(rawSettings, DEFAULT_SETTINGS());
+        const loaded: unknown = await this.loadData();
+        const rawSettings =
+            loaded && typeof loaded === 'object'
+                ? (loaded as Settings | Settings_0_5_4)
+                : {};
+        const settings = deepMerge(rawSettings, DEFAULT_SETTINGS()) as Settings;
         migrateSettings(settings);
         this.settings = new Store<Settings, SettingsActions>(
             settings,

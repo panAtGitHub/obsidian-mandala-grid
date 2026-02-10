@@ -91,8 +91,8 @@ export const hotkeyGroups = {
     ]),
 } satisfies Record<string, Set<CommandName>>;
 
-export const hotkeysGroups: Record<CommandName, GroupName> = Object.fromEntries(
+export const hotkeysGroups = Object.fromEntries(
     Object.entries(hotkeyGroups)
         .map(([group, commands]) => Array.from(commands).map((c) => [c, group]))
         .flat(),
-);
+) as Record<CommandName, GroupName>;

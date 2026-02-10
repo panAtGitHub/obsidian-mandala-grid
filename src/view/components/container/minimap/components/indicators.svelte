@@ -62,7 +62,7 @@
         style={`top:${$activeCardRange.y_start}px; height:${$activeCardRange.height}px`}
     ></div>
 
-    {#each $searchResultsRanges as searchResultRange}
+    {#each $searchResultsRanges as searchResultRange, index (`${searchResultRange.y_start}-${searchResultRange.height}-${index}`)}
         <div
             class="search-result-indicator"
             style={`top:${searchResultRange.y_start}px; height:${searchResultRange.height}px`}

@@ -36,10 +36,11 @@ export const writePinnedToFrontmatter = (
     void view.plugin.app.fileManager.processFrontMatter(
         view.file,
         (frontmatter) => {
+            const frontmatterRecord = frontmatter as Record<string, unknown>;
             if (sections.length > 0) {
-                frontmatter[PINNED_SECTIONS_KEY] = sections;
+                frontmatterRecord[PINNED_SECTIONS_KEY] = sections;
             } else {
-                delete frontmatter[PINNED_SECTIONS_KEY];
+                delete frontmatterRecord[PINNED_SECTIONS_KEY];
             }
         },
     );

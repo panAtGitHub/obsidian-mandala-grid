@@ -1,5 +1,7 @@
-import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
+import tsparser from '@typescript-eslint/parser';
 import tseslint from 'typescript-eslint';
+import obsidianmd from 'eslint-plugin-obsidianmd';
 import svelte from 'eslint-plugin-svelte';
 import svelteParser from 'svelte-eslint-parser';
 import globals from 'globals';
@@ -7,50 +9,33 @@ import globals from 'globals';
 const TS_FILES = ['**/*.{ts,tsx,mts,cts}'];
 const SVELTE_FILES = ['**/*.svelte'];
 
-export default [
+export default defineConfig([
     {
-        ignores: ['node_modules/**', 'temp/**', 'main.js'],
+        ignores: ['node_modules/**', 'temp/**', 'main.js', 'src/main.js'],
     },
-    {
-        ...js.configs.recommended,
-        files: ['**/*.{js,cjs,mjs,ts,tsx,mts,cts}'],
-        languageOptions: {
-            globals: {
-                ...globals.node,
-            },
-        },
-    },
-    ...tseslint.configs.recommended.map((config) =>
-        config.files ? config : { ...config, files: TS_FILES },
-    ),
+    ...obsidianmd.configs.recommended,
     ...svelte.configs['flat/recommended'].map((config) =>
         config.files ? config : { ...config, files: SVELTE_FILES },
     ),
     {
-        files: SVELTE_FILES,
+        files: TS_FILES,
         languageOptions: {
-            parser: svelteParser,
+            parser: tsparser,
             parserOptions: {
-                parser: tseslint.parser,
-                extraFileExtensions: ['.svelte'],
-                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+                activeWindow: 'readonly',
+                activeDocument: 'readonly',
             },
         },
-    },
-    {
-        files: ['**/*.{js,cjs,mjs,ts,tsx,mts,cts,svelte}'],
         plugins: {
-            svelte,
             '@typescript-eslint': tseslint.plugin,
         },
         rules: {
-            'svelte/valid-compile': ['error', { ignoreWarnings: true }],
-            'svelte/no-at-html-tags': 'off',
-            'svelte/require-each-key': 'off',
-            '@typescript-eslint/ban-ts-comment': 'off',
-            'no-prototype-builtins': 'off',
-            '@typescript-eslint/no-empty-function': 'off',
-            'no-console': 'error',
+            'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': [
                 'error',
                 {
@@ -59,6 +44,39 @@ export default [
                     caughtErrorsIgnorePattern: '^_',
                 },
             ],
+            'no-console': 'error',
         },
     },
-];
+    {
+        files: SVELTE_FILES,
+        languageOptions: {
+            parser: svelteParser,
+            parserOptions: {
+                parser: tsparser,
+                extraFileExtensions: ['.svelte'],
+                sourceType: 'module',
+            },
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+                activeWindow: 'readonly',
+                activeDocument: 'readonly',
+            },
+        },
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            'no-unused-vars': 'off',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
+            'no-console': 'error',
+        },
+    },
+]);

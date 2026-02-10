@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
 
-export const getExistingRightTabGroup = (view: MandalaView) => {
+export const getExistingRightTabGroup = (view: MandalaView): unknown => {
     const rootSplit = view.plugin.app.workspace.rootSplit;
     if (!('children' in rootSplit)) return;
 

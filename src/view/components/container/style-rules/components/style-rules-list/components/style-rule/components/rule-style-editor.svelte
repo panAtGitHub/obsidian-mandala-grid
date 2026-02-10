@@ -22,7 +22,7 @@
                 value={rule.style.styleVariant}
                 on:change={h.handleStyleVariantChange}
             >
-                {#each styleVariants as styleType}
+                {#each styleVariants as styleType (styleType)}
                     <option value={styleType}
                         >{styleRulesLang.styleVariants[styleType]}</option
                     >

@@ -1,5 +1,5 @@
 export const __stringifySets = <T>(object: T) =>
-    JSON.stringify(object, (_key, value) =>
+    JSON.stringify(object, (_key, value: unknown) =>
         value instanceof Set
             ? `_$_$_new Set([${
                   [...value].length

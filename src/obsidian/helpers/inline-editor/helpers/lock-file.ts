@@ -1,9 +1,10 @@
 import { MandalaView } from 'src/view/view';
 import { MarkdownView } from 'obsidian';
 
-const noop = function (
+const noopSetViewData = function (
     this: void,
-    _clear?: boolean,
+    _data: string,
+    _clear: boolean,
 ): void {};
 export const lockFile = (view: MandalaView) => {
     view.plugin.app.workspace.iterateAllLeaves((e) => {
@@ -13,10 +14,11 @@ export const lockFile = (view: MandalaView) => {
                 const patchedView = leafView as MarkdownView & {
                     mandalaSetViewData?: MarkdownView['setViewData'];
                 };
-                patchedView.mandalaSetViewData =
-                    leafView.setViewData.bind(leafView);
-                leafView.setViewData =
-                    noop as unknown as MarkdownView['setViewData'];
+                const boundSetViewData = leafView.setViewData.bind(
+                    leafView,
+                ) as MarkdownView['setViewData'];
+                patchedView.mandalaSetViewData = boundSetViewData;
+                leafView.setViewData = noopSetViewData;
             }
         }
     });

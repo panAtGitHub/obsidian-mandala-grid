@@ -25,7 +25,7 @@
             on:change={h.handlePropertyChange}
             aria-label="Property"
         >
-            {#each properties as property}
+            {#each properties as property (property)}
                 <option value={property}
                     >{styleRulesLang.properties[property]}</option
                 >
@@ -36,7 +36,7 @@
             on:change={h.handleScopeChange}
             aria-label="Scope"
         >
-            {#each targets as target}
+            {#each targets as target (target)}
                 <option value={target}>{styleRulesLang.targets[target]}</option>
             {/each}
         </select>
@@ -47,13 +47,13 @@
             aria-label="Operator"
         >
             {#if isStringCondition}
-                {#each stringOperators as operator}
+                {#each stringOperators as operator (operator)}
                     <option value={operator}
                         >{styleRulesLang.operators[operator]}</option
                     >
                 {/each}
             {:else}
-                {#each numericOperators as operator}
+                {#each numericOperators as operator (operator)}
                     <option value={operator}
                         >{styleRulesLang.operators[operator]}</option
                     >

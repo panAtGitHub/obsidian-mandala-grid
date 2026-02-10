@@ -8,6 +8,6 @@ export function setActiveLeaf(next: (...params: unknown[]) => unknown) {
             leaf.view instanceof MandalaView &&
             leaf.view.inlineEditor?.nodeId;
         if (isMandalaViewAndIsEditing) return;
-        return next.call(this, leaf, param);
+        return next(leaf, param);
     };
 }

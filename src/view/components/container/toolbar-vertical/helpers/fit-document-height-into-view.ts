@@ -12,21 +12,19 @@ export const fitDocumentHeightIntoView = async (view: MandalaView) => {
         payload: { value: 1 },
     });
     const columns = Array.from(
-        view.container.querySelectorAll('.column'),
+        view.container.querySelectorAll<HTMLElement>('.column'),
     );
     let result = 1;
     if (columns.length) {
         const groupHeights = columns
             .map((c) => {
                 return getCombinedBoundingClientRect(
-                    Array.from((c).querySelectorAll('.group')),
+                    Array.from(c.querySelectorAll<HTMLElement>('.group')),
                 ).height;
             })
             .sort((a, b) => a - b);
         const height = groupHeights[groupHeights.length - 1];
         const width = getCombinedBoundingClientRect(columns).width;
-
-         
         const boundingClientRect = view.container.getBoundingClientRect();
         const heightScale = boundingClientRect.height / (height + 100);
         const widthScale = boundingClientRect.width / (width + 100);

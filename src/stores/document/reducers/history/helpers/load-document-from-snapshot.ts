@@ -10,6 +10,6 @@ export const loadDocumentFromSnapshot = (
     history: DocumentHistory,
 ) => {
     history.context.activeSection = snapshot.context.newActiveSection;
-    document.content = JSON.parse(snapshot.data.content);
-    document.columns = JSON.parse(snapshot.data.columns);
+    document.content = JSON.parse(snapshot.data.content) as MandalaGridDocument['content'];
+    document.columns = JSON.parse(snapshot.data.columns) as MandalaGridDocument['columns'];
 };

@@ -7,7 +7,7 @@ export const handleLocalHeadingLink = (view: MandalaView, link: string) => {
     const headingText = match[1].trimStart();
     for (let level = 1; level <= 6; level++) {
         const headings = Array.from(
-            view.containerEl.querySelectorAll('h' + level),
+            view.containerEl.querySelectorAll<HTMLElement>('h' + level),
         );
         const heading = headings.find((h) => h.dataset.heading === headingText);
         if (heading) {

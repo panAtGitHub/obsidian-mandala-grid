@@ -6,6 +6,7 @@
     import { Notice } from 'obsidian';
     import invariant from 'tiny-invariant';
     import { lang } from '../../../../../../lang/lang';
+    import IconRenderer from 'src/view/components/container/shared/icon-renderer.svelte';
 
     export let snapshot: Snapshot;
     export let active: boolean;
@@ -40,11 +41,7 @@
     }}
 >
     <div class="icon-wrapper">
-        {#if 'iconHtml' in info}
-            {@html info.iconHtml}
-        {:else}
-            <svelte:component this={info.icon} class="svg-icon label" />
-        {/if}
+        <IconRenderer icon={info.icon} className="svg-icon label" />
     </div>
     <div class="snapshot-content">
         <div class="snapshot-body">

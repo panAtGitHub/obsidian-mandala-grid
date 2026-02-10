@@ -45,10 +45,11 @@ const calculateStatusMetrics = (
 };
 
 self.onmessage = (event: MessageEvent) => {
-    const payload = event.data.payload as DocumentProgressProps;
+    const data = event.data as { id: string; payload: DocumentProgressProps };
+    const payload = data.payload;
     const result = calculateStatusMetrics(payload.document, payload.activeNode);
     self.postMessage({
-        id: event.data.id,
+        id: data.id,
         payload: result,
     });
 };

@@ -3,7 +3,7 @@ import { relativeTime } from 'src/helpers/relative-time';
 export const updateRelativeTime = (element: HTMLElement) => {
     const interval = setInterval(() => {
         const children = Array.from(
-            element.querySelectorAll('[data-created]'),
+            element.querySelectorAll<HTMLElement>('[data-created]'),
         );
         for (const child of children) {
             const created = child.dataset['created'];

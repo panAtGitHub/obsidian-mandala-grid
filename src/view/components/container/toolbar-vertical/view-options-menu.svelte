@@ -3,7 +3,7 @@
     import { Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform, TFile, btoa } from 'obsidian';
-    import { createEventDispatcher } from 'svelte';
+    import { afterUpdate, createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { toPng } from 'html-to-image';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import { derived } from 'src/lib/store/derived';
@@ -61,6 +61,7 @@
     let showTemplateOptions = false;
     let mobileBoundsStyle = '';
     let listenersAttached = false;
+    let previousShow = show;
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
@@ -1406,24 +1407,26 @@
         }
     };
 
-    $: if (show && !listenersAttached) {
+    const attachListeners = () => {
+        if (listenersAttached) return;
         listenersAttached = true;
-        setTimeout(() => {
-            document.addEventListener('click', handleClickOutside);
-            window.addEventListener('resize', handleViewportChange);
-            window.addEventListener('orientationchange', handleViewportChange);
-            window.visualViewport?.addEventListener(
-                'resize',
-                handleViewportChange,
-            );
-            window.visualViewport?.addEventListener(
-                'scroll',
-                handleViewportChange,
-            );
-            document.addEventListener('focusin', handleViewportChange, true);
-            handleViewportChange();
-        }, 0);
-    } else if (!show && listenersAttached) {
+        document.addEventListener('click', handleClickOutside);
+        window.addEventListener('resize', handleViewportChange);
+        window.addEventListener('orientationchange', handleViewportChange);
+        window.visualViewport?.addEventListener(
+            'resize',
+            handleViewportChange,
+        );
+        window.visualViewport?.addEventListener(
+            'scroll',
+            handleViewportChange,
+        );
+        document.addEventListener('focusin', handleViewportChange, true);
+        handleViewportChange();
+    };
+
+    const detachListeners = () => {
+        if (!listenersAttached) return;
         listenersAttached = false;
         document.removeEventListener('click', handleClickOutside);
         window.removeEventListener('resize', handleViewportChange);
@@ -1438,7 +1441,37 @@
         );
         document.removeEventListener('focusin', handleViewportChange, true);
         mobileBoundsStyle = '';
-    }
+    };
+
+    onMount(() => {
+        if (show) {
+            setTimeout(() => {
+                if (show) {
+                    attachListeners();
+                }
+            }, 0);
+        }
+    });
+
+    afterUpdate(() => {
+        if (show === previousShow) return;
+        previousShow = show;
+
+        if (show) {
+            setTimeout(() => {
+                if (show) {
+                    attachListeners();
+                }
+            }, 0);
+            return;
+        }
+
+        detachListeners();
+    });
+
+    onDestroy(() => {
+        detachListeners();
+    });
 </script>
 
 {#if show}

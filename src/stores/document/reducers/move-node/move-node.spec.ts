@@ -172,7 +172,9 @@ describe('move-node', () => {
             moveNode(input, action);
             expect(input.columns).toEqual(output.columns);
         } catch (e) {
-            expect(e.message).toBe('could not find adjacent node');
+            expect(e instanceof Error ? e.message : String(e)).toBe(
+                'could not find adjacent node',
+            );
         }
     });
     test('1 >2 right', () => {
@@ -497,7 +499,9 @@ describe('move-node', () => {
             moveNode(input, action);
             expect(input.columns).toEqual(output.columns);
         } catch (e) {
-            expect(e.message).toBe('could not find adjacent node');
+            expect(e instanceof Error ? e.message : String(e)).toBe(
+                'could not find adjacent node',
+            );
         }
     });
     test('1|*|* >2|*|*  up', () => {
@@ -685,7 +689,9 @@ describe('move-node', () => {
             moveNode(input, action);
             expect(input.columns).toEqual(output.columns);
         } catch (e) {
-            expect(e.message).toBe('could not find adjacent node');
+            expect(e instanceof Error ? e.message : String(e)).toBe(
+                'could not find adjacent node',
+            );
         }
     });
     test('>*|1|* *|2|* down', () => {

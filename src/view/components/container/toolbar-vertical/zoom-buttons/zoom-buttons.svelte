@@ -9,6 +9,7 @@
     import { getView } from '../../context';
     import { RotateCcw, RotateCw } from 'lucide-svelte';
     import Button from '../../shared/button.svelte';
+    import IconRenderer from '../../shared/icon-renderer.svelte';
 
     const view = getView();
     const keyboardStore = KeyboardStore(view);
@@ -100,16 +101,14 @@
                     tooltipPosition="left"
                     disabled={$disabledStates[button.id]}
                 >
-                    {#if 'svg' in button.icon}
-                        {@html button.icon.svg}
-                    {:else if button.id === 'zoom-reset'}
+                    {#if button.id === 'zoom-reset'}
                         {#if $showUndoRestZoomButton}
                             <RotateCw class="svg-icon" />
                         {:else}
                             <RotateCcw class="svg-icon" />
                         {/if}
                     {:else}
-                        <svelte:component this={button.icon} class="svg-icon" />
+                        <IconRenderer icon={button.icon} />
                     {/if}
                 </Button>
             {/each}

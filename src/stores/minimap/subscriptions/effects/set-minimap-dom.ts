@@ -11,7 +11,7 @@ export const setMinimapDom = (view: MandalaView) => {
     if (!minimapContainer)
         throw new SilentError('minimapContainer is undefined');
 
-    const canvasContainer = minimapContainer.querySelector(
+    const canvasContainer = minimapContainer.querySelector<HTMLElement>(
         '.canvas-container',
     );
     invariant(canvasContainer);

@@ -10,16 +10,19 @@ export const openFileInExistingRightTabGroup = (
     const rightTabGroup = getExistingRightTabGroup(view);
     if (!rightTabGroup) return false;
     const workspace = view.plugin.app.workspace;
+    const workspaceWithCreateLeaf = workspace as typeof workspace & {
+        createLeafInTabGroup?: (tabGroup: unknown) => WorkspaceLeaf | null;
+    };
     if (
         !(
-            'createLeafInTabGroup' in workspace &&
-            typeof workspace.createLeafInTabGroup === 'function'
+            'createLeafInTabGroup' in workspaceWithCreateLeaf &&
+            typeof workspaceWithCreateLeaf.createLeafInTabGroup === 'function'
         )
     )
         return false;
-    const newLeaf = workspace.createLeafInTabGroup(
+    const newLeaf = workspaceWithCreateLeaf.createLeafInTabGroup(
         rightTabGroup,
-    ) as WorkspaceLeaf | null;
+    );
     if (newLeaf) {
         if (link.contains('#')) {
             void view.plugin.app.workspace.openLinkText(

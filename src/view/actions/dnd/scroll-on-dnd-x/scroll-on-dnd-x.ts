@@ -44,8 +44,8 @@ export const scrollOnDndX = (container: HTMLElement) => {
     };
 
     setTimeout(() => {
-        leftEdge = view.contentEl.querySelector('#dnd-edge-left');
-        rightEdge = view.contentEl.querySelector('#dnd-edge-right');
+        leftEdge = view.contentEl.querySelector<HTMLElement>('#dnd-edge-left');
+        rightEdge = view.contentEl.querySelector<HTMLElement>('#dnd-edge-right');
 
         if (leftEdge && rightEdge) {
             leftEdge.addEventListener('dragenter', handleDragEnter);

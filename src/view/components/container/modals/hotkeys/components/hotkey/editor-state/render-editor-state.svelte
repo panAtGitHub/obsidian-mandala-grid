@@ -5,6 +5,7 @@
     } from '../../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import { customIcons } from '../../../../../../../../helpers/load-custom-icons';
     import { lang } from '../../../../../../../../lang/lang';
+    import IconRenderer from 'src/view/components/container/shared/icon-renderer.svelte';
 
     export let hotkey: ViewHotkey;
     export let onClick: (() => void) | undefined = undefined;
@@ -14,10 +15,10 @@
         'editor-on': 'editor-state--on',
         'editor-off': 'editor-state--off',
     };
-    const cursorIcon: Record<HotkeyEditorState, string> = {
-        both: customIcons.cursor.svg,
-        'editor-on': customIcons.cursor.svg,
-        'editor-off': customIcons.cursorOff.svg,
+    const cursorIcon = {
+        both: customIcons.cursor,
+        'editor-on': customIcons.cursor,
+        'editor-off': customIcons.cursorOff,
     };
 
     const label: Record<HotkeyEditorState, string> = {
@@ -43,7 +44,10 @@
     class={'editor-state ' +
         classes[hotkey.editorState]}
     aria-label={label[hotkey.editorState]}
-    on:click={wrappedOnClick}>{@html cursorIcon[hotkey.editorState]}</kbd
+    on:click={wrappedOnClick}
+>
+    <IconRenderer icon={cursorIcon[hotkey.editorState]} />
+</kbd
 >
 
 <style>

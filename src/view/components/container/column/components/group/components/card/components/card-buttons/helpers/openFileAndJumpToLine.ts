@@ -7,16 +7,17 @@ const getLeafFromExistingTabGroup = (view: MandalaView) => {
     const rightTabGroup = getExistingRightTabGroup(view);
     if (!rightTabGroup) return null;
     const workspace = view.plugin.app.workspace;
+    const workspaceWithCreateLeaf = workspace as typeof workspace & {
+        createLeafInTabGroup?: (tabGroup: unknown) => WorkspaceLeaf | null;
+    };
     if (
         !(
-            'createLeafInTabGroup' in workspace &&
-            typeof workspace.createLeafInTabGroup === 'function'
+            'createLeafInTabGroup' in workspaceWithCreateLeaf &&
+            typeof workspaceWithCreateLeaf.createLeafInTabGroup === 'function'
         )
     )
         return null;
-    return workspace.createLeafInTabGroup(
-        rightTabGroup,
-    ) as WorkspaceLeaf | null;
+    return workspaceWithCreateLeaf.createLeafInTabGroup(rightTabGroup);
 };
 
 export const openFileAndJumpToLine = async (

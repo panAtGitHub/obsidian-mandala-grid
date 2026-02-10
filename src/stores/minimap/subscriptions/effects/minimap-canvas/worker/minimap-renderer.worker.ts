@@ -62,7 +62,11 @@ export type MinimapEvent = {
 };
 
 self.onmessage = (message: MessageEvent) => {
-    const event = message.data.payload as CanvasWorkerProps;
+    const workerMessage = message.data as {
+        id: string;
+        payload: CanvasWorkerProps;
+    };
+    const event = workerMessage.payload;
     let result = null;
     if (event.type === 'worker/initialize') {
         const ctx = event.payload.canvas.getContext('2d');
@@ -100,7 +104,7 @@ self.onmessage = (message: MessageEvent) => {
         }
     }
     self.postMessage({
-        id: message.data.id,
+        id: workerMessage.id,
         payload: result,
     });
 };

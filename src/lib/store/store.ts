@@ -15,7 +15,7 @@ export type Reducer<T, U, C> = (
 ) => T | typeof NO_UPDATE;
 
 export type OnError<U> = (
-    error: Error,
+    error: unknown,
     location: 'reducer' | 'subscriber',
     action?: U,
 ) => void;
@@ -95,7 +95,6 @@ export class Store<T, U, C = never> implements Writable<T> {
 
     private readonly reducer: Reducer<T, U, C> = () => this.value;
     private readonly onError: OnError<U> = (error) => {
-        // eslint-disable-next-line no-console
         console.error(error);
     };
 

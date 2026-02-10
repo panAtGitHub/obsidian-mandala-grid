@@ -29,7 +29,7 @@
         <EditorState {hotkey}/>
     {/if}
     <kbd class="hotkey-key">{hotkey.key}</kbd>
-    {#each hotkey.modifiers as modifier}
+    {#each hotkey.modifiers as modifier (modifier)}
         <kbd>{modKeyDictionary[modifier]}</kbd>
     {/each}
 {/if}

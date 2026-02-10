@@ -1,6 +1,5 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
-    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { onMount } from 'svelte';
     import {
@@ -21,7 +20,7 @@
     import { Platform } from 'obsidian';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
-    import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
+    import { MarkdownRenderer } from 'obsidian';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
 
     const view = getView();
@@ -70,49 +69,7 @@
         currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
     }
 
-    const escapeHtml = (value: string) =>
-        value
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#39;');
-
-    const escapeAttribute = (value: string) =>
-        value.replaceAll('"', '&quot;').replaceAll("'", '&#39;');
-
-    const buildBodyHtml = (rawBody: string) => {
-        let content = escapeHtml(rawBody);
-
-        content = content.replace(/\[\[([^\]]+)\]\]/g, (_, link: string) => {
-            const href = escapeAttribute(link.trim());
-            const label = link.trim();
-            return `<a class="internal-link" data-href="${href}">${label}</a>`;
-        });
-
-        content = content.replace(
-            /\[([^\]]+)\]\(([^)]+)\)/g,
-            (
-                match,
-                label: string,
-                url: string,
-                offset: number,
-                source: string,
-            ) => {
-                if (offset > 0 && source[offset - 1] === '!') {
-                    return match;
-                }
-                const normalizedUrl = url.trim();
-                if (!isSafeExternalUrl(normalizedUrl)) {
-                    return label;
-                }
-                const href = escapeAttribute(normalizedUrl);
-                return `<a class="external-link" href="${href}">${label}</a>`;
-            },
-        );
-
-        return content.replace(/\n/g, '<br />');
-    };
+    const buildCellMarkdown = (rawBody: string) => rawBody.trim().slice(0, 150);
 
     const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
     const isMarkdownHeading = (line: string) => HEADING_RE.test(line);
@@ -162,8 +119,8 @@
                 }
 
                 // 2. Get Content if Section exists
-                let titleHtml = '';
-                let bodyHtml = '';
+                let titleMarkdown = '';
+                let bodyMarkdown = '';
                 let nodeId = '';
 
                 if (section) {
@@ -179,7 +136,7 @@
 
                             // Only markdown headings use title style.
                             if (firstLine && isMarkdownHeading(firstLine)) {
-                                titleHtml = buildBodyHtml(
+                                titleMarkdown = buildCellMarkdown(
                                     stripHeadingPrefix(firstLine).trim(),
                                 );
                                 if (restLines.length > 0) {
@@ -187,7 +144,7 @@
                                         .join('\n')
                                         .trim()
                                         .slice(0, 150);
-                                    bodyHtml = buildBodyHtml(rawBody);
+                                    bodyMarkdown = buildCellMarkdown(rawBody);
                                 }
                             } else {
                                 // Plain first line should be rendered as body text.
@@ -195,7 +152,7 @@
                                     .join('\n')
                                     .trim()
                                     .slice(0, 150);
-                                bodyHtml = buildBodyHtml(rawBody);
+                                bodyMarkdown = buildCellMarkdown(rawBody);
                             }
                         }
                     }
@@ -205,8 +162,8 @@
                     row,
                     col,
                     section,
-                    titleHtml,
-                    bodyHtml,
+                    titleMarkdown,
+                    bodyMarkdown,
                     nodeId,
                     isCenter,
                     isThemeCenter,
@@ -345,6 +302,31 @@
         event.stopPropagation();
         jumpCoreTheme(view, 'down');
     };
+
+    const renderCellMarkdown = (element: HTMLElement, content: string) => {
+        const render = () => {
+            element.empty();
+            if (!content) {
+                return;
+            }
+            void Promise.resolve(
+                MarkdownRenderer.render(
+                    view.plugin.app,
+                    content,
+                    element,
+                    view.file?.path ?? '',
+                    view,
+                ),
+            );
+        };
+        render();
+        return {
+            update(nextContent: string) {
+                content = nextContent;
+                render();
+            },
+        };
+    };
 </script>
 
 <div class="simple-9x9-shell">
@@ -353,7 +335,7 @@
         style={`--mandala-border-opacity: ${$borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
         bind:this={gridEl}
     >
-        {#each styledCells as cell}
+        {#each styledCells as cell (`${cell.row}-${cell.col}`)}
             <div
                 class="simple-cell"
                 class:is-center={cell.isCenter}
@@ -378,20 +360,12 @@
                 on:dblclick={() => onCellDblClick(cell)}
             >
                 <div class="cell-content">
-                    {#if cell.titleHtml}
-                        <div
-                            class="cell-title"
-                            on:click={(event) => handleLinks(view, event)}
-                        >
-                            {@html cell.titleHtml}
+                    {#if cell.titleMarkdown}
+                        <div class="cell-title" use:renderCellMarkdown={cell.titleMarkdown}>
                         </div>
                     {/if}
-                    {#if !$showTitleOnly && cell.bodyHtml}
-                        <div
-                            class="cell-body"
-                            on:click={(event) => handleLinks(view, event)}
-                        >
-                            {@html cell.bodyHtml}
+                    {#if !$showTitleOnly && cell.bodyMarkdown}
+                        <div class="cell-body" use:renderCellMarkdown={cell.bodyMarkdown}>
                         </div>
                     {/if}
                 </div>

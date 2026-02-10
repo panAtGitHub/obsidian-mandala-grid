@@ -13,7 +13,7 @@
 <div class="mandala-vertical-tab-header" class:is-mobile={isMobile}>
     <div class="vertical-tab-header-group">
         <div class="vertical-tab-header-group-items">
-            {#each tabs as tab}
+            {#each tabs as tab (tab)}
                 <div
                     class={'vertical-tab-nav-item' +
                         (tab === activeTab ? ' is-active' : '')}
