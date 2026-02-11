@@ -168,6 +168,28 @@ describe('day-plan helpers', () => {
         expect(parsed).toBeNull();
     });
 
+    it('parses day-plan even when mandala is after mandala_plan', () => {
+        const frontmatter =
+            '---\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '  slots:\n' +
+            '    "1": "a"\n' +
+            '    "2": "b"\n' +
+            '    "3": "c"\n' +
+            '    "4": "d"\n' +
+            '    "5": "e"\n' +
+            '    "6": "f"\n' +
+            '    "7": "g"\n' +
+            '    "8": "h"\n' +
+            'mandala: true\n' +
+            '---\n';
+        const parsed = parseDayPlanFrontmatter(frontmatter);
+        expect(parsed).not.toBeNull();
+        expect(parsed?.year).toBe(2026);
+    });
+
     it('builds hot core sections from week window', () => {
         const sections = getHotCoreSections(2026, new Date('2026-02-10T08:00:00'));
         expect(sections.has('41')).toBe(true);

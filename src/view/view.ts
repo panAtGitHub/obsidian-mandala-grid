@@ -56,11 +56,7 @@ import { detectDocumentFormat } from 'src/lib/format-detection/detect-document-f
 import { MandalaGridDocumentFormat } from 'src/stores/settings/settings-type';
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
-import {
-    getHotCoreSections,
-    parseDayPlanFrontmatter,
-    sectionFromDateInPlanYear,
-} from 'src/lib/mandala/day-plan';
+import { resolveMandalaProfileActivation } from 'src/lib/mandala/mandala-profile';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -303,9 +299,9 @@ export class MandalaView extends TextFileView {
         const activeSection = activeNode
             ? documentState.sections.id_section[activeNode]
             : null;
-        const dayPlanTargetSection =
-            this.resolveDayPlanTargetSection(frontmatter);
-        const nextActiveSection = dayPlanTargetSection ?? activeSection;
+        const activation = resolveMandalaProfileActivation(frontmatter);
+        this.dayPlanHotCores = activation.hotCoreSections;
+        const nextActiveSection = activation.targetSection ?? activeSection;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             loadFullDocument(
                 this,
@@ -314,14 +310,18 @@ export class MandalaView extends TextFileView {
                 format,
                 nextActiveSection,
             );
-            if (dayPlanTargetSection) {
-                this.focusMandalaSection(dayPlanTargetSection);
-            }
             if (this.isActive && event !== 'view-mount') {
                 new Notice('Document updated externally');
             }
         } else if (frontmatterHasChanged) {
             updateFrontmatter(this, frontmatter);
+        }
+
+        if (activation.notice) {
+            new Notice(activation.notice);
+        }
+        if (activation.targetSection) {
+            this.focusMandalaSection(activation.targetSection);
         }
     };
 
@@ -344,23 +344,6 @@ export class MandalaView extends TextFileView {
         this.loadDocumentToStore,
         250,
     );
-
-    private resolveDayPlanTargetSection(frontmatter: string): string | null {
-        const plan = parseDayPlanFrontmatter(frontmatter);
-        if (!plan || plan.enabled !== true) return null;
-
-        const todaySection = sectionFromDateInPlanYear(plan.year);
-        this.dayPlanHotCores = todaySection
-            ? getHotCoreSections(plan.year)
-            : new Set(['1']);
-
-        if (!todaySection) {
-            new Notice('年份错误。');
-            return '1';
-        }
-
-        return todaySection;
-    }
 
     private focusMandalaSection(targetSection: string) {
         const run = (attempt: number) => {
