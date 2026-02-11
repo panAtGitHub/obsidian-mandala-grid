@@ -147,6 +147,27 @@ describe('day-plan helpers', () => {
         expect(parsed?.daily_only_3x3).toBe(false);
     });
 
+    it('requires mandala: true before enabling day-plan parsing', () => {
+        const frontmatter =
+            '---\n' +
+            'mandala: false\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '  slots:\n' +
+            '    "1": "a"\n' +
+            '    "2": "b"\n' +
+            '    "3": "c"\n' +
+            '    "4": "d"\n' +
+            '    "5": "e"\n' +
+            '    "6": "f"\n' +
+            '    "7": "g"\n' +
+            '    "8": "h"\n' +
+            '---\n';
+        const parsed = parseDayPlanFrontmatter(frontmatter);
+        expect(parsed).toBeNull();
+    });
+
     it('builds hot core sections from week window', () => {
         const sections = getHotCoreSections(2026, new Date('2026-02-10T08:00:00'));
         expect(sections.has('41')).toBe(true);

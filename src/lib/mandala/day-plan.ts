@@ -230,6 +230,7 @@ export const parseDayPlanFrontmatter = (
     const lines = stripped.split('\n');
     let inPlan = false;
     let inSlots = false;
+    let mandalaEnabled = false;
     let enabled = false;
     let year: number | null = null;
     let dailyOnly3x3 = true;
@@ -240,6 +241,13 @@ export const parseDayPlanFrontmatter = (
         const line = rawLine.replace(/\t/g, '    ');
         const indent = leadingSpaces(line);
         const trimmed = line.trim();
+
+        const mandalaMatch = trimmed.match(/^mandala\s*:\s*(.*)$/);
+        if (!inPlan && mandalaMatch) {
+            const value = stripQuotes(mandalaMatch[1]).toLowerCase();
+            mandalaEnabled = value === 'true';
+            continue;
+        }
 
         if (!inPlan) {
             if (trimmed === `${DAY_PLAN_FRONTMATTER_KEY}:`) {
@@ -293,7 +301,7 @@ export const parseDayPlanFrontmatter = (
         }
     }
 
-    if (!enabled) return null;
+    if (!mandalaEnabled || !enabled) return null;
     if (!year || year < 1900 || year > 9999) return null;
     return {
         enabled: true,
