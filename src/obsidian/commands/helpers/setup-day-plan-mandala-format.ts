@@ -52,6 +52,13 @@ const getTodayInfo = () => {
     };
 };
 
+const getTodayIsoDate = () => {
+    const today = getTodayInfo();
+    const month = String(today.month).padStart(2, '0');
+    const day = String(today.day).padStart(2, '0');
+    return `${today.year}-${month}-${day}`;
+};
+
 const getConversionMode = (
     analysis: ReturnType<typeof analyzeMandalaContent>,
 ): MandalaConversionMode | null => {
@@ -348,7 +355,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
             year: selectedYear,
             daily_only_3x3: dailyOnly3x3,
             center_date_h2: buildCenterDateHeading(
-                dateFromDayOfYear(selectedYear, 1),
+                getTodayIsoDate(),
             ),
             slots: toSlotsRecord(slots),
         };

@@ -16,6 +16,8 @@ import {
     syncDayPlanTitlesInMarkdown,
 } from 'src/lib/mandala/sync-day-plan-titles';
 import {
+    buildCenterDateHeading,
+    DAY_PLAN_FRONTMATTER_KEY,
     getHotCoreSections,
     parseDayPlanFromMarkdown,
     sectionFromDateInPlanYear,
@@ -75,6 +77,33 @@ const focusDayPlanSection = (
         });
     };
     window.setTimeout(() => run(0), 120);
+};
+
+const getTodayIsoDate = () => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${now.getFullYear()}-${month}-${day}`;
+};
+
+const syncDayPlanCenterDateHeadingWithToday = async (
+    plugin: MandalaGrid,
+    file: TFile,
+    content: string,
+) => {
+    const plan = parseDayPlanFromMarkdown(content);
+    if (!plan || plan.enabled !== true) return false;
+    const todayHeading = buildCenterDateHeading(getTodayIsoDate());
+    if (plan.center_date_h2 === todayHeading) return false;
+    await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        const record = frontmatter as Record<string, unknown>;
+        const raw = record[DAY_PLAN_FRONTMATTER_KEY];
+        if (!raw || typeof raw !== 'object') return;
+        const dayPlan = raw as Record<string, unknown>;
+        if (dayPlan.enabled !== true) return;
+        dayPlan.center_date_h2 = todayHeading;
+    });
+    return true;
 };
 
 export const toggleFileViewType = async (
@@ -143,6 +172,14 @@ export const toggleFileViewType = async (
                     batchPlan.total,
                 );
             }
+        }
+        const centerDateUpdated = await syncDayPlanCenterDateHeadingWithToday(
+            plugin,
+            file,
+            nextContent,
+        );
+        if (centerDateUpdated) {
+            nextContent = await plugin.app.vault.read(file);
         }
     }
     toggleObsidianViewType(plugin, fileLeaf, newViewType);
