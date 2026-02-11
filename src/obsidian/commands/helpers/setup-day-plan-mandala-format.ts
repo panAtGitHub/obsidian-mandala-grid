@@ -38,6 +38,7 @@ import {
     openDayPlanSlotsInputModal,
     openDayPlanYearInputModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
+import { logger } from 'src/helpers/logger';
 
 const MANDALA_KEY = 'mandala';
 let isSettingUpDayPlan = false;
@@ -299,6 +300,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     isSettingUpDayPlan = true;
     const processingNotice = new Notice('正在生成年计划数据，请先不要使用。', 0);
     try {
+    const startMs = performance.now();
     const file = getActiveFile(plugin);
     if (!file) {
         new Notice('未找到当前文件。');
@@ -372,6 +374,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     let firstRun = !(existingPlan?.enabled === true);
 
     if (firstRun) {
+        const generationStartMs = performance.now();
         nextBody = await createYearPlanBodyAsync(
             selectedYear,
             Number(todaySection),
@@ -380,6 +383,11 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
                 new Notice(`正在生成：${done}/${total}`, 800);
             },
         );
+        logger.debug('[perf][day-plan-setup] generate-year-body', {
+            file: file.path,
+            year: selectedYear,
+            costMs: Number((performance.now() - generationStartMs).toFixed(2)),
+        });
     } else {
         const todayApplied = applyTodaySlotsForYear(nextBody, selectedYear);
         nextBody = todayApplied.body;
@@ -412,11 +420,22 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
         slots,
     });
     const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);
+    const writeStartMs = performance.now();
     await plugin.app.vault.modify(file, nextContent);
+    logger.debug('[perf][day-plan-setup] write-markdown', {
+        file: file.path,
+        costMs: Number((performance.now() - writeStartMs).toFixed(2)),
+    });
 
     await ensureMandalaView(plugin, file);
     const latestAfterFrontmatter = await plugin.app.vault.read(file);
     refreshMandalaViewData(plugin, file, latestAfterFrontmatter);
+    logger.debug('[perf][day-plan-setup] total', {
+        file: file.path,
+        firstRun,
+        year: selectedYear,
+        costMs: Number((performance.now() - startMs).toFixed(2)),
+    });
 
     new Notice('已设置为年计划日计划格式。');
     } finally {

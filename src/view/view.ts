@@ -60,6 +60,7 @@ import {
     MandalaProfileActivation,
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
+import { logger } from 'src/helpers/logger';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -311,6 +312,7 @@ export class MandalaView extends TextFileView {
     };
 
     private loadDocumentToStore = (event?: 'view-mount') => {
+        const startMs = performance.now();
         const { body, frontmatter } = extractFrontmatter(this.data);
 
         const documentState = this.documentStore.getValue();
@@ -326,10 +328,14 @@ export class MandalaView extends TextFileView {
         const activeSection = activeNode
             ? documentState.sections.id_section[activeNode]
             : null;
+        const activationStartMs = performance.now();
         const activation = this.getMandalaProfileActivation(frontmatter);
+        const activationCostMs = performance.now() - activationStartMs;
         this.dayPlanHotCores = activation.hotCoreSections;
         const nextActiveSection = activation.targetSection ?? activeSection;
+        let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
+            const loadStartMs = performance.now();
             loadFullDocument(
                 this,
                 body,
@@ -337,11 +343,19 @@ export class MandalaView extends TextFileView {
                 format,
                 nextActiveSection,
             );
+            const loadCostMs = performance.now() - loadStartMs;
             this.lastLoadedBody = body;
             this.lastLoadedFrontmatter = frontmatter;
             if (this.isActive && event !== 'view-mount') {
                 new Notice('Document updated externally');
             }
+            loadedFromDisk = true;
+            logger.debug('[perf][view] loadFullDocument', {
+                file: this.file?.path,
+                event,
+                loadCostMs: Number(loadCostMs.toFixed(2)),
+                nextActiveSection,
+            });
         } else if (frontmatterHasChanged) {
             updateFrontmatter(this, frontmatter);
             this.lastLoadedFrontmatter = frontmatter;
@@ -358,6 +372,17 @@ export class MandalaView extends TextFileView {
         if (activation.targetSection) {
             this.focusMandalaSection(activation.targetSection);
         }
+        logger.debug('[perf][view] loadDocumentToStore', {
+            file: this.file?.path,
+            event,
+            emptyStore,
+            bodyHasChanged,
+            frontmatterHasChanged,
+            loadedFromDisk,
+            kind: activation.kind,
+            activationCostMs: Number(activationCostMs.toFixed(2)),
+            totalCostMs: Number((performance.now() - startMs).toFixed(2)),
+        });
     };
 
     private getDocumentFormat(body: string) {
@@ -387,12 +412,20 @@ export class MandalaView extends TextFileView {
         ];
         if (currentSection === targetSection) return;
 
+        const startMs = performance.now();
         const run = (attempt: number) => {
             const nodeId =
                 this.documentStore.getValue().sections.section_id[targetSection];
             if (!nodeId) {
                 if (attempt < 20) {
                     window.setTimeout(() => run(attempt + 1), 80);
+                } else {
+                    logger.debug('[perf][view] focusMandalaSection-timeout', {
+                        file: this.file?.path,
+                        targetSection,
+                        attempts: attempt + 1,
+                        costMs: Number((performance.now() - startMs).toFixed(2)),
+                    });
                 }
                 return;
             }
@@ -404,6 +437,12 @@ export class MandalaView extends TextFileView {
             this.viewStore.dispatch({
                 type: 'view/set-active-node/mouse-silent',
                 payload: { id: nodeId },
+            });
+            logger.debug('[perf][view] focusMandalaSection', {
+                file: this.file?.path,
+                targetSection,
+                attempts: attempt + 1,
+                costMs: Number((performance.now() - startMs).toFixed(2)),
             });
         };
 
