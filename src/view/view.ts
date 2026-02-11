@@ -139,7 +139,20 @@ export class MandalaView extends TextFileView {
             void this.loadInitialData();
         } else {
             this.data = data;
-            if (this.isViewOfFile) this.debouncedLoadDocumentToStore();
+            if (!this.isViewOfFile || !this.file) return;
+
+            const nextPath = this.file.path;
+            const switchedFile = this.activeFilePath !== nextPath;
+            if (switchedFile) {
+                this.activeFilePath = nextPath;
+                this.lastLoadedBody = '';
+                this.lastLoadedFrontmatter = '';
+                this.cachedActivation = null;
+                this.loadDocumentToStore();
+                return;
+            }
+
+            this.debouncedLoadDocumentToStore();
         }
     }
 
