@@ -203,7 +203,10 @@ const focusTodaySection = (plugin: MandalaGrid, file: TFile, section: string) =>
         }
         const view = leaf.view;
         const nodeId = view.documentStore.getValue().sections.section_id[section];
-        if (!nodeId) return;
+        if (!nodeId) {
+            if (attempt < 30) window.setTimeout(() => run(attempt + 1), 120);
+            return;
+        }
         view.viewStore.dispatch({
             type: 'view/mandala/subgrid/enter',
             payload: { theme: section },
@@ -214,6 +217,23 @@ const focusTodaySection = (plugin: MandalaGrid, file: TFile, section: string) =>
         });
     };
     window.setTimeout(() => run(0), 120);
+};
+
+const refreshMandalaViewData = (
+    plugin: MandalaGrid,
+    file: TFile,
+    content: string,
+) => {
+    window.setTimeout(() => {
+        const leaf = getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE);
+        if (!leaf) return;
+        const maybeTextView = leaf.view as unknown as {
+            setViewData?: (data: string) => void;
+        };
+        if (typeof maybeTextView.setViewData === 'function') {
+            maybeTextView.setViewData(content);
+        }
+    }, 50);
 };
 
 const ensureMandalaView = async (plugin: MandalaGrid, file: TFile) => {
@@ -362,6 +382,8 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     });
 
     await ensureMandalaView(plugin, file);
+    const latestAfterFrontmatter = await plugin.app.vault.read(file);
+    refreshMandalaViewData(plugin, file, latestAfterFrontmatter);
     focusTodaySection(plugin, file, todaySection);
 
     new Notice('已设置为年计划日计划格式。');
