@@ -1,7 +1,7 @@
 import {
     DayPlanFrontmatter,
     getHotCoreSections,
-    parseDayPlanFrontmatter,
+    parseDayPlanFrontmatterWithMandala,
     sectionFromDateInPlanYear,
 } from 'src/lib/mandala/day-plan';
 
@@ -40,7 +40,8 @@ export const resolveMandalaProfileActivation = (
     frontmatter: string,
     date: Date = new Date(),
 ): MandalaProfileActivation => {
-    if (!isMandalaFrontmatterEnabled(frontmatter)) {
+    const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
+    if (!parsed.mandalaEnabled) {
         return {
             kind: 'none',
             targetSection: null,
@@ -50,7 +51,7 @@ export const resolveMandalaProfileActivation = (
         };
     }
 
-    const dayPlan = parseDayPlanFrontmatter(frontmatter);
+    const dayPlan = parsed.dayPlan;
     if (!dayPlan || dayPlan.enabled !== true) {
         return {
             kind: 'generic',

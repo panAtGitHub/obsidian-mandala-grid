@@ -22,6 +22,11 @@ export type DayPlanFrontmatter = {
     slots: Record<string, string>;
 };
 
+export type DayPlanFrontmatterParseResult = {
+    mandalaEnabled: boolean;
+    dayPlan: DayPlanFrontmatter | null;
+};
+
 const normalizeLineEndings = (content: string) => content.replace(/\r\n/g, '\n');
 
 const splitLines = (content: string) => normalizeLineEndings(content).split('\n');
@@ -221,11 +226,13 @@ export const slotsRecordToArray = (slots: Record<string, unknown> | null | undef
 export const allSlotsFilled = (slots: string[]) =>
     slots.length === 8 && slots.every((slot) => normalizeSlotTitle(slot).length > 0);
 
-export const parseDayPlanFrontmatter = (
+export const parseDayPlanFrontmatterWithMandala = (
     frontmatter: string,
-): DayPlanFrontmatter | null => {
+): DayPlanFrontmatterParseResult => {
     const stripped = stripFrontmatterMarkers(frontmatter);
-    if (!stripped) return null;
+    if (!stripped) {
+        return { mandalaEnabled: false, dayPlan: null };
+    }
     const mandalaMatch = stripped.match(/^mandala\s*:\s*(.*)$/m);
     const mandalaEnabled = mandalaMatch
         ? stripQuotes(mandalaMatch[1]).toLowerCase() === 'true'
@@ -297,16 +304,28 @@ export const parseDayPlanFrontmatter = (
         }
     }
 
-    if (!mandalaEnabled || !enabled) return null;
-    if (!year || year < 1900 || year > 9999) return null;
+    if (!mandalaEnabled || !enabled) {
+        return { mandalaEnabled, dayPlan: null };
+    }
+    if (!year || year < 1900 || year > 9999) {
+        return { mandalaEnabled, dayPlan: null };
+    }
     return {
-        enabled: true,
-        year,
-        daily_only_3x3: dailyOnly3x3,
-        center_date_h2: centerDateH2,
-        slots: toSlotsRecord(slotsRecordToArray(slots)),
+        mandalaEnabled,
+        dayPlan: {
+            enabled: true,
+            year,
+            daily_only_3x3: dailyOnly3x3,
+            center_date_h2: centerDateH2,
+            slots: toSlotsRecord(slotsRecordToArray(slots)),
+        },
     };
 };
+
+export const parseDayPlanFrontmatter = (
+    frontmatter: string,
+): DayPlanFrontmatter | null =>
+    parseDayPlanFrontmatterWithMandala(frontmatter).dayPlan;
 
 export const parseDayPlanFromMarkdown = (markdown: string) => {
     const frontmatterMatch = markdown.match(/^---\n([\s\S]+?)\n---\n?/);

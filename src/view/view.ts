@@ -92,6 +92,7 @@ export class MandalaView extends TextFileView {
     private cachedActivation:
         | { frontmatter: string; activation: MandalaProfileActivation }
         | null = null;
+    private lastActivationNotice: string | null = null;
     constructor(
         leaf: WorkspaceLeaf,
         public plugin: MandalaGrid,
@@ -148,6 +149,7 @@ export class MandalaView extends TextFileView {
                 this.lastLoadedBody = '';
                 this.lastLoadedFrontmatter = '';
                 this.cachedActivation = null;
+                this.lastActivationNotice = null;
                 this.loadDocumentToStore();
                 return;
             }
@@ -164,6 +166,7 @@ export class MandalaView extends TextFileView {
         this.lastLoadedBody = '';
         this.lastLoadedFrontmatter = '';
         this.cachedActivation = null;
+        this.lastActivationNotice = null;
         this.contentEl.empty();
         this.documentStore = new Store(
             defaultDocumentState(),
@@ -345,7 +348,12 @@ export class MandalaView extends TextFileView {
         }
 
         if (activation.notice) {
-            new Notice(activation.notice);
+            if (this.lastActivationNotice !== activation.notice) {
+                new Notice(activation.notice);
+                this.lastActivationNotice = activation.notice;
+            }
+        } else {
+            this.lastActivationNotice = null;
         }
         if (activation.targetSection) {
             this.focusMandalaSection(activation.targetSection);

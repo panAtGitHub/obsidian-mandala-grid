@@ -23,7 +23,6 @@ import {
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
     slotsRecordToArray,
-    toSlotsRecord,
     upsertSlotHeading,
 } from 'src/lib/mandala/day-plan';
 import {
@@ -177,6 +176,73 @@ const createYearPlanBodyAsync = async (
 
 const mergeBodyWithFrontmatter = (frontmatter: string, body: string) =>
     frontmatter ? `${frontmatter}${body}` : body;
+
+const stripFrontmatterMarkers = (frontmatter: string) =>
+    frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, '');
+
+const getTopLevelKey = (line: string) => {
+    if (/^\s/.test(line)) return null;
+    const match = line.match(/^([A-Za-z0-9_-]+)\s*:/);
+    return match ? match[1] : null;
+};
+
+const quoteYamlString = (value: string) =>
+    `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+
+const buildDayPlanFrontmatter = (
+    baseFrontmatter: string,
+    dayPlan: {
+        year: number;
+        dailyOnly3x3: boolean;
+        centerDateH2: string;
+        slots: string[];
+    },
+) => {
+    const raw = stripFrontmatterMarkers(baseFrontmatter).trim();
+    const lines = raw.length > 0 ? raw.split('\n') : [];
+    const kept: string[] = [];
+    let skippingPlan = false;
+
+    for (const line of lines) {
+        const topKey = getTopLevelKey(line);
+        if (topKey === DAY_PLAN_FRONTMATTER_KEY) {
+            skippingPlan = true;
+            continue;
+        }
+        if (topKey === MANDALA_KEY) {
+            skippingPlan = false;
+            continue;
+        }
+        if (skippingPlan && topKey) {
+            skippingPlan = false;
+        }
+        if (skippingPlan) continue;
+        kept.push(line);
+    }
+
+    while (kept.length > 0 && kept[kept.length - 1].trim() === '') {
+        kept.pop();
+    }
+
+    const slotLines = dayPlan.slots.map(
+        (value, index) =>
+            `    "${index + 1}": ${quoteYamlString(normalizeSlotTitle(value))}`,
+    );
+
+    const nextLines = [
+        ...kept,
+        `${MANDALA_KEY}: true`,
+        `${DAY_PLAN_FRONTMATTER_KEY}:`,
+        '  enabled: true',
+        `  year: ${dayPlan.year}`,
+        `  daily_only_3x3: ${dayPlan.dailyOnly3x3 ? 'true' : 'false'}`,
+        `  center_date_h2: ${quoteYamlString(dayPlan.centerDateH2)}`,
+        '  slots:',
+        ...slotLines,
+    ];
+
+    return `---\n${nextLines.join('\n')}\n---\n`;
+};
 
 const applyTodaySlotsForYear = (
     body: string,
@@ -339,22 +405,14 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
         }
     }
 
-    const nextContent = mergeBodyWithFrontmatter(frontmatter, nextBody);
-    await plugin.app.vault.modify(file, nextContent);
-
-    await plugin.app.fileManager.processFrontMatter(file, (fm) => {
-        const record = fm as Record<string, unknown>;
-        record[MANDALA_KEY] = true;
-        record[DAY_PLAN_FRONTMATTER_KEY] = {
-            enabled: true,
-            year: selectedYear,
-            daily_only_3x3: dailyOnly3x3,
-            center_date_h2: buildCenterDateHeading(
-                getTodayIsoDate(),
-            ),
-            slots: toSlotsRecord(slots),
-        };
+    const nextFrontmatter = buildDayPlanFrontmatter(frontmatter, {
+        year: selectedYear,
+        dailyOnly3x3,
+        centerDateH2: buildCenterDateHeading(getTodayIsoDate()),
+        slots,
     });
+    const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);
+    await plugin.app.vault.modify(file, nextContent);
 
     await ensureMandalaView(plugin, file);
     const latestAfterFrontmatter = await plugin.app.vault.read(file);
