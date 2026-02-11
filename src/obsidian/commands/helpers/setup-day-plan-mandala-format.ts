@@ -2,8 +2,10 @@ import { Notice, TFile } from 'obsidian';
 import MandalaGrid from 'src/main';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
-import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
+import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
+import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { MANDALA_VIEW_TYPE, MandalaView } from 'src/view/view';
+import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import {
     analyzeMandalaContent,
     convertToMandalaMarkdown,
@@ -189,7 +191,7 @@ const focusTodaySection = (plugin: MandalaGrid, file: TFile, section: string) =>
     const run = (attempt: number) => {
         const leaf = getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE);
         if (!leaf || !(leaf.view instanceof MandalaView)) {
-            if (attempt < 8) window.setTimeout(() => run(attempt + 1), 80);
+            if (attempt < 30) window.setTimeout(() => run(attempt + 1), 120);
             return;
         }
         const view = leaf.view;
@@ -205,6 +207,20 @@ const focusTodaySection = (plugin: MandalaGrid, file: TFile, section: string) =>
         });
     };
     window.setTimeout(() => run(0), 120);
+};
+
+const ensureMandalaView = async (plugin: MandalaGrid, file: TFile) => {
+    let leaf = getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE);
+    if (leaf) return leaf;
+
+    leaf = getLeafOfFile(plugin, file, 'markdown');
+    if (!leaf) {
+        leaf = await openFile(plugin, file, 'tab');
+    }
+
+    toggleObsidianViewType(plugin, leaf, MANDALA_VIEW_TYPE);
+    setViewType(plugin, file.path, MANDALA_VIEW_TYPE);
+    return leaf;
 };
 
 export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
@@ -338,12 +354,8 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
         };
     });
 
-    const mandalaLeaf = getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE);
-    if (mandalaLeaf && mandalaLeaf.view instanceof MandalaView) {
-        focusTodaySection(plugin, file, todaySection);
-    } else {
-        await toggleFileViewType(plugin, file, undefined);
-    }
+    await ensureMandalaView(plugin, file);
+    focusTodaySection(plugin, file, todaySection);
 
     new Notice('已设置为年计划日计划格式。');
     } finally {
