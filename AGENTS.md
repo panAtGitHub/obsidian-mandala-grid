@@ -145,3 +145,7 @@ ESLint 配置：`.eslintrc`
 -   优先小而精的改动（尽量小的补丁）
 -   贴合当前模块既有模式（store/reducer、view、helpers 等）
 -   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test` 和/或 `npm run test:e2e`
+-   默认交付流程（完成代码改动后）：
+    1. `git add -A && git commit -m "chore: update mandala grid plugin"`
+    2. `npm run build`
+    3. `rsync -av --delete --exclude 'data.json' temp/vault/.obsidian/plugins/mandala-grid-dev/ "/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/"`

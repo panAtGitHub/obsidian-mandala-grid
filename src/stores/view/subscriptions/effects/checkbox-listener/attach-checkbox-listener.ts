@@ -10,21 +10,26 @@ const handleCheckboxChange = (event: Event, view: MandalaView) => {
 
     const listItem = checkbox.closest('.task-list-item');
     const card = checkbox.closest('.mandala-card');
-    if (!listItem || !card) {
+    const detailSidebar = checkbox.closest('.mandala-detail-sidebar');
+    const contentRoot = card ?? detailSidebar;
+    if (!listItem || !contentRoot) {
         return;
     }
 
     const documentState = view.documentStore.getValue();
-    const cardId = card.id;
+    const cardId = card?.id ?? view.viewStore.getValue().document.activeNode;
     const existingContent = documentState.document.content[cardId];
     if (!cardId || !existingContent) {
         return;
     }
 
     const allItems = Array.from(
-        card.querySelectorAll('.lng-prev .task-list-item'),
+        contentRoot.querySelectorAll('.lng-prev .task-list-item'),
     );
     const taskIndex = allItems.indexOf(listItem);
+    if (taskIndex === -1) {
+        return;
+    }
     const content = updateCheckbox(
         taskIndex,
         existingContent.content,
@@ -34,7 +39,10 @@ const handleCheckboxChange = (event: Event, view: MandalaView) => {
         view.documentStore.dispatch({
             type: 'document/update-node-content',
             payload: { nodeId: cardId, content: content.content },
-            context: { isInSidebar: !!card.closest('.sidebar') },
+            context: {
+                isInSidebar:
+                    !!detailSidebar || (!!card && !!card.closest('.sidebar')),
+            },
         });
     }
 };
