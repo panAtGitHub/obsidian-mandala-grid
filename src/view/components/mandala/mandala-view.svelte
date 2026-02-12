@@ -109,9 +109,12 @@
     let desktopSquareSize = 0;
     let contentWrapperRef: HTMLElement | null = null;
     let contentWrapperObserver: ResizeObserver | null = null;
+    let mobilePopupEditorBodyEl: HTMLDivElement | null = null;
     let visualViewportHeight = 0;
     let visualViewportOffsetTop = 0;
     let visualViewportBottomInset = 0;
+    let keyboardOverlayFallback = 0;
+    let isMobileEditorFocused = false;
 
     const updateVisualViewport = () => {
         const vv = window.visualViewport;
@@ -119,6 +122,7 @@
             visualViewportHeight = window.innerHeight;
             visualViewportOffsetTop = 0;
             visualViewportBottomInset = 0;
+            keyboardOverlayFallback = isMobileEditorFocused ? 280 : 0;
             return;
         }
         visualViewportHeight = vv.height;
@@ -127,6 +131,26 @@
             0,
             window.innerHeight - vv.height - vv.offsetTop,
         );
+        // 部分输入法扩展面板不会反映在 visualViewport，焦点态下给一个兜底底部留白
+        const viewportReportedKeyboard =
+            visualViewportBottomInset > 40 ||
+            window.innerHeight - visualViewportHeight > 100;
+        keyboardOverlayFallback =
+            isMobileEditorFocused && !viewportReportedKeyboard ? 280 : 0;
+    };
+
+    const handleMobileEditorFocusIn = () => {
+        isMobileEditorFocused = true;
+        updateVisualViewport();
+    };
+
+    const handleMobileEditorFocusOut = () => {
+        window.setTimeout(() => {
+            isMobileEditorFocused = Boolean(
+                mobilePopupEditorBodyEl?.contains(document.activeElement),
+            );
+            updateVisualViewport();
+        }, 0);
     };
 
     const recomputeDesktopSquareSize = () => {
@@ -365,7 +389,7 @@
     class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight || window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px;"
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight || window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px; --vkf: {keyboardOverlayFallback}px;"
 >
     {#if isMobilePopupEditing}
         <div class="mobile-edit-header">
@@ -390,7 +414,12 @@
                     </div>
                 </div>
             {/if}
-            <div class="mobile-popup-editor-body">
+            <div
+                bind:this={mobilePopupEditorBodyEl}
+                class="mobile-popup-editor-body"
+                on:focusin={handleMobileEditorFocusIn}
+                on:focusout={handleMobileEditorFocusOut}
+            >
                 <InlineEditor
                     nodeId={$editingState.activeNodeId}
                     style={$nodeStyles.get($editingState.activeNodeId)}
@@ -1087,7 +1116,9 @@
         padding: 16px;
         flex: 1;
         min-height: 0;
-        overflow: hidden;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
         padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
         background-color: var(--background-primary);
     }
@@ -1113,11 +1144,18 @@
     .mobile-popup-editor-body :global(.cm-editor .cm-scroller) {
         min-height: 0;
         overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        overscroll-behavior: contain;
         padding-bottom: calc(
-            var(--vvb, 0px) + env(safe-area-inset-bottom, 0px) + 20px
+            max(var(--vvb, 0px), var(--vkf, 0px)) +
+                env(safe-area-inset-bottom, 0px) +
+                20px
         ) !important;
         scroll-padding-bottom: calc(
-            var(--vvb, 0px) + env(safe-area-inset-bottom, 0px) + 80px
+            max(var(--vvb, 0px), var(--vkf, 0px)) +
+                env(safe-area-inset-bottom, 0px) +
+                80px
         );
     }
 
