@@ -459,7 +459,6 @@
         event.stopPropagation();
         exitCurrentSubgrid(view);
     };
-    const stopTouchPropagation = () => {};
 
     const getUpButtonLabel = (theme: string) =>
         theme.includes('.') ? '退出上一层子九宫格' : '上一层核心九宫格';
@@ -493,11 +492,7 @@
             <div class="mobile-edit-title">编辑格子</div>
             <button class="header-btn save-btn" on:click|stopPropagation={handleSave}>保存</button>
         </div>
-        <div
-            class="mobile-popup-editor-container"
-            on:touchstart|stopPropagation={stopTouchPropagation}
-            on:touchmove|stopPropagation={stopTouchPropagation}
-        >
+        <div class="mobile-popup-editor-container">
             {#if showSettings}
                 <div class="mobile-settings-panel" on:click|stopPropagation>
                     <div class="settings-row">
@@ -515,8 +510,6 @@
                 class="mobile-popup-editor-body"
                 on:focusin={handleMobileEditorFocusIn}
                 on:focusout={handleMobileEditorFocusOut}
-                on:touchstart|stopPropagation={stopTouchPropagation}
-                on:touchmove|stopPropagation={stopTouchPropagation}
             >
                 <InlineEditor
                     nodeId={$editingState.activeNodeId}
