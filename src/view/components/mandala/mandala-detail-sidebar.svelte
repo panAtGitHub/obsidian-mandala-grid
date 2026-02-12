@@ -17,6 +17,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
+    import { startSectionNativeEditorSession } from 'src/view/helpers/mandala/section-native-editor-session';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
     const MIN_SIZE = 200;
@@ -179,10 +180,7 @@
     };
     const handleDblClick = () => {
         if (Platform.isMobile && $activeNodeId) {
-            view.viewStore.dispatch({
-                type: 'view/editor/enable-main-editor',
-                payload: { nodeId: $activeNodeId, isInSidebar: false },
-            });
+            void startSectionNativeEditorSession(view, $activeNodeId);
         }
     };
 
