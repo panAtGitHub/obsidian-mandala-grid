@@ -70,6 +70,7 @@
     $: canJumpPrevCore = activeCoreNumber > 1;
 
     let editorContainer: HTMLElement;
+    let lastMobileTapAt = 0;
 
     $: isEditingInSidebar =
         !Platform.isMobile &&
@@ -184,6 +185,15 @@
         }
     };
 
+    const handleMobileTap = () => {
+        if (!Platform.isMobile || !$activeNodeId) return;
+        const now = Date.now();
+        const isDoubleTap = now - lastMobileTapAt <= 320;
+        lastMobileTapAt = now;
+        if (!isDoubleTap) return;
+        void startSectionNativeEditorSession(view, $activeNodeId);
+    };
+
     const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
         setIcon(node, iconName);
         return {
@@ -231,7 +241,11 @@
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
     {#if $showSidebarStore}
-        <div class="sidebar-content" on:dblclick={handleDblClick}>
+        <div
+            class="sidebar-content"
+            on:dblclick={handleDblClick}
+            on:click={handleMobileTap}
+        >
             {#if $activeNodeId}
                 <div class="editor-wrapper">
                     {#key $activeNodeId}
