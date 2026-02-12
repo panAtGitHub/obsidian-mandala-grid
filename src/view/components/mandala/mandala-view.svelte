@@ -109,6 +109,19 @@
     let desktopSquareSize = 0;
     let contentWrapperRef: HTMLElement | null = null;
     let contentWrapperObserver: ResizeObserver | null = null;
+    let visualViewportHeight = 0;
+    let visualViewportOffsetTop = 0;
+
+    const updateVisualViewport = () => {
+        const vv = window.visualViewport;
+        if (!vv) {
+            visualViewportHeight = window.innerHeight;
+            visualViewportOffsetTop = 0;
+            return;
+        }
+        visualViewportHeight = vv.height;
+        visualViewportOffsetTop = vv.offsetTop;
+    };
 
     const recomputeDesktopSquareSize = () => {
         if (Platform.isMobile || !$squareLayout || !contentWrapperRef) {
@@ -172,6 +185,10 @@
     onMount(() => {
         view.container = containerRef;
         focusContainer(view);
+        updateVisualViewport();
+        window.visualViewport?.addEventListener('resize', updateVisualViewport);
+        window.visualViewport?.addEventListener('scroll', updateVisualViewport);
+        window.addEventListener('orientationchange', updateVisualViewport);
 
         contentWrapperObserver = new ResizeObserver(() => {
             recomputeDesktopSquareSize();
@@ -183,6 +200,15 @@
     });
 
     onDestroy(() => {
+        window.visualViewport?.removeEventListener(
+            'resize',
+            updateVisualViewport,
+        );
+        window.visualViewport?.removeEventListener(
+            'scroll',
+            updateVisualViewport,
+        );
+        window.removeEventListener('orientationchange', updateVisualViewport);
         contentWrapperObserver?.disconnect();
         contentWrapperObserver = null;
     });
@@ -333,7 +359,7 @@
     class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%;"
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight || window.innerHeight}px; --vvo: {visualViewportOffsetTop}px;"
 >
     {#if isMobilePopupEditing}
         <div class="mobile-edit-header">
@@ -363,6 +389,7 @@
                     nodeId={$editingState.activeNodeId}
                     style={$nodeStyles.get($editingState.activeNodeId)}
                     absoluteFontSize={$mobilePopupFontSizeStore}
+                    disableAutoResize={true}
                 />
             </div>
         </div>
@@ -1030,22 +1057,22 @@
     }
 
     .is-editing-mobile.mandala-root {
-        height: 100dvh !important;
+        height: var(--vvh, 100dvh) !important;
         overflow: hidden !important;
     }
 
     /* 移动端全屏编辑器样式 */
     .mobile-popup-editor-container {
         position: fixed;
-        top: 0;
+        top: var(--vvo, 0px);
         left: 0;
         width: 100vw;
-        height: 100dvh;
+        height: var(--vvh, 100dvh);
         background-color: var(--background-primary);
         z-index: 1000;
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
+        overflow: hidden;
         overscroll-behavior: contain;
         padding-top: calc(env(safe-area-inset-top, 20px) + 50px);
     }
@@ -1053,6 +1080,9 @@
     .mobile-popup-editor-body {
         padding: 16px;
         flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
         background-color: var(--background-primary);
     }
 

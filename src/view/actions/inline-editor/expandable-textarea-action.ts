@@ -36,15 +36,36 @@ export const AdjustHeight = (view: MandalaView, el: HTMLElement) => {
         });
     };
 };
-export const expandableTextareaAction = (el: HTMLElement) => {
+export const expandableTextareaAction = (
+    el: HTMLElement,
+    enabled = true,
+) => {
     const view = getView();
     const adjustHeight = AdjustHeight(view, el);
+    let isAttached = false;
 
-    el.addEventListener('keydown', adjustHeight);
+    const attach = () => {
+        if (isAttached || !enabled) return;
+        el.addEventListener('keydown', adjustHeight);
+        isAttached = true;
+    };
+
+    const detach = () => {
+        if (!isAttached) return;
+        el.removeEventListener('keydown', adjustHeight);
+        isAttached = false;
+    };
+
+    attach();
 
     return {
+        update: (nextEnabled: boolean) => {
+            enabled = nextEnabled;
+            if (enabled) attach();
+            else detach();
+        },
         destroy: () => {
-            el.removeEventListener('keydown', adjustHeight);
+            detach();
         },
     };
 };
