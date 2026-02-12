@@ -46,6 +46,7 @@ export const expandableTextareaAction = (
 
     const attach = () => {
         if (isAttached || !enabled) return;
+        adjustHeight();
         el.addEventListener('keydown', adjustHeight);
         isAttached = true;
     };

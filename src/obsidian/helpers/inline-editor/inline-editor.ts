@@ -1,6 +1,5 @@
 import { Editor, EditorPosition, MarkdownView, TFile } from 'obsidian';
 import { MandalaView } from 'src/view/view';
-import { AdjustHeight } from 'src/view/actions/inline-editor/expandable-textarea-action';
 import { vimEnterInsertMode } from 'src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode';
 import { fixVimCursorWhenZooming } from 'src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming';
 import { lockFile } from 'src/obsidian/helpers/inline-editor/helpers/lock-file';
@@ -85,7 +84,6 @@ export class InlineEditor {
 
         target.append(this.containerEl);
         this.focus();
-        AdjustHeight(this.view, target)();
         this.target = target;
         if (!content) {
             vimEnterInsertMode(this.view.plugin, this.inlineView);

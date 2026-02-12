@@ -1081,9 +1081,33 @@
         padding: 16px;
         flex: 1;
         min-height: 0;
-        overflow: auto;
+        overflow: hidden;
         padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
         background-color: var(--background-primary);
+    }
+
+    .mobile-popup-editor-body :global(.editor-container) {
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .mobile-popup-editor-body :global(.mandala-inline-editor) {
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mobile-popup-editor-body :global(.cm-editor) {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .mobile-popup-editor-body :global(.cm-editor .cm-scroller) {
+        min-height: 0;
+        overflow: auto;
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px) !important;
     }
 
     .mobile-edit-header {
