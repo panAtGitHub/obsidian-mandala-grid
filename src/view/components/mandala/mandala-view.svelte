@@ -111,16 +111,22 @@
     let contentWrapperObserver: ResizeObserver | null = null;
     let visualViewportHeight = 0;
     let visualViewportOffsetTop = 0;
+    let visualViewportBottomInset = 0;
 
     const updateVisualViewport = () => {
         const vv = window.visualViewport;
         if (!vv) {
             visualViewportHeight = window.innerHeight;
             visualViewportOffsetTop = 0;
+            visualViewportBottomInset = 0;
             return;
         }
         visualViewportHeight = vv.height;
         visualViewportOffsetTop = vv.offsetTop;
+        visualViewportBottomInset = Math.max(
+            0,
+            window.innerHeight - vv.height - vv.offsetTop,
+        );
     };
 
     const recomputeDesktopSquareSize = () => {
@@ -359,7 +365,7 @@
     class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight || window.innerHeight}px; --vvo: {visualViewportOffsetTop}px;"
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight || window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px;"
 >
     {#if isMobilePopupEditing}
         <div class="mobile-edit-header">
@@ -1107,7 +1113,12 @@
     .mobile-popup-editor-body :global(.cm-editor .cm-scroller) {
         min-height: 0;
         overflow: auto;
-        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px) !important;
+        padding-bottom: calc(
+            var(--vvb, 0px) + env(safe-area-inset-bottom, 0px) + 20px
+        ) !important;
+        scroll-padding-bottom: calc(
+            var(--vvb, 0px) + env(safe-area-inset-bottom, 0px) + 80px
+        );
     }
 
     .mobile-edit-header {
