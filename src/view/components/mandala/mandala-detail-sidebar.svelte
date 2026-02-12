@@ -18,7 +18,6 @@
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
-    import { openNativeEditorForNode } from 'src/view/helpers/mandala/open-native-editor-for-node';
 
     const MIN_SIZE = 200;
 
@@ -180,7 +179,10 @@
     };
     const handleDblClick = () => {
         if (Platform.isMobile && $activeNodeId) {
-            void openNativeEditorForNode(view, $activeNodeId);
+            view.viewStore.dispatch({
+                type: 'view/editor/enable-main-editor',
+                payload: { nodeId: $activeNodeId, isInSidebar: false },
+            });
         }
     };
 
