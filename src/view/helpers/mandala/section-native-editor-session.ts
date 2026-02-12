@@ -1,6 +1,5 @@
 import { MarkdownView, Notice, TFile, ViewState } from 'obsidian';
 import { logger } from 'src/helpers/logger';
-import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
 import {
@@ -16,9 +15,9 @@ type SectionEditSession = {
 
 const sessionByTempFilePath = new Map<string, SectionEditSession>();
 let isStartingSectionSession = false;
+let isSavingSectionSession = false;
 
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
-const ACTION_CANCEL_ID = 'mandala-section-edit-cancel';
 const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
 
 const ensureFolderRecursive = async (view: MandalaView, path: string) => {
@@ -33,15 +32,6 @@ const ensureFolderRecursive = async (view: MandalaView, path: string) => {
 
 const getSectionByNodeId = (view: MandalaView, nodeId: string): string | null =>
     view.documentStore.getValue().sections.id_section[nodeId] ?? null;
-
-const findSectionMarkerLine = (markdown: string, section: string) => {
-    const lines = markdown.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        const marker = parseHtmlCommentMarker(lines[i]);
-        if (marker && marker[2] === section) return i;
-    }
-    return 0;
-};
 
 const getFileByPath = (view: MandalaView, path: string): TFile | null => {
     const file = view.app.vault.getAbstractFileByPath(path);
@@ -122,43 +112,40 @@ const withSessionFromView = (
 };
 
 const saveSectionAndReturn = async (view: MandalaView) => {
+    if (isSavingSectionSession) return;
+    isSavingSectionSession = true;
     const ctx = withSessionFromView(view);
-    if (!ctx) return;
-    const { session } = ctx;
-    const sourceFile = getFileByPath(view, session.sourceFilePath);
-    const tempFile = getFileByPath(view, session.tempFilePath);
-    if (!sourceFile || !tempFile) {
-        new Notice('源文件或临时编辑文件不存在，无法保存。');
+    if (!ctx) {
+        isSavingSectionSession = false;
         return;
     }
+    try {
+        const { session, markdownView } = ctx;
+        const sourceFile = getFileByPath(view, session.sourceFilePath);
+        if (!sourceFile) {
+            new Notice('源文件不存在，无法保存。');
+            return;
+        }
 
-    const [sourceMarkdown, replacement] = await Promise.all([
-        view.app.vault.read(sourceFile),
-        view.app.vault.read(tempFile),
-    ]);
-    const patched = applySectionPatch(sourceMarkdown, session.section, replacement);
-    if (!patched) {
-        new Notice('未找到对应 section，保存失败。');
-        return;
+        // 点击保存时先等待一帧，尽量让输入法合成态提交到 editor state。
+        await wait(32);
+        const replacement = markdownView.editor.getValue();
+        const sourceMarkdown = await view.app.vault.read(sourceFile);
+        const patched = applySectionPatch(
+            sourceMarkdown,
+            session.section,
+            replacement,
+        );
+        if (!patched) {
+            new Notice('未找到对应 section，保存失败。');
+            return;
+        }
+        await view.app.vault.modify(sourceFile, patched.markdown);
+        await switchBackToMandala(view, sourceFile, patched.lineForJump);
+        await cleanupSession(view, session.tempFilePath);
+    } finally {
+        isSavingSectionSession = false;
     }
-    await view.app.vault.modify(sourceFile, patched.markdown);
-    await switchBackToMandala(view, sourceFile, patched.lineForJump);
-    await cleanupSession(view, session.tempFilePath);
-};
-
-const cancelSectionEditAndReturn = async (view: MandalaView) => {
-    const ctx = withSessionFromView(view);
-    if (!ctx) return;
-    const { session } = ctx;
-    const sourceFile = getFileByPath(view, session.sourceFilePath);
-    if (!sourceFile) {
-        new Notice('源文件不存在，无法返回九宫视图。');
-        return;
-    }
-    const sourceMarkdown = await view.app.vault.read(sourceFile);
-    const line = findSectionMarkerLine(sourceMarkdown, session.section);
-    await switchBackToMandala(view, sourceFile, line);
-    await cleanupSession(view, session.tempFilePath);
 };
 
 const addSectionEditorActions = (view: MandalaView, markdownView: MarkdownView) => {
@@ -180,11 +167,6 @@ const addSectionEditorActions = (view: MandalaView, markdownView: MarkdownView) 
         void saveSectionAndReturn(view);
     });
     saveEl.setAttr('data-mandala-action', ACTION_SAVE_ID);
-
-    const cancelEl = itemView.addAction('x', '取消并返回九宫', () => {
-        void cancelSectionEditAndReturn(view);
-    });
-    cancelEl.setAttr('data-mandala-action', ACTION_CANCEL_ID);
 };
 
 export const startSectionNativeEditorSession = async (
