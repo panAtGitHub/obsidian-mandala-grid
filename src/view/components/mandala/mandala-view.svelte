@@ -115,6 +115,7 @@
     let visualViewportBottomInset = 0;
     let keyboardOverlayFallback = 0;
     let isMobileEditorFocused = false;
+    let mobileCursorGuardCleanup: (() => void) | null = null;
 
     const updateVisualViewport = () => {
         const vv = window.visualViewport;
@@ -151,6 +152,85 @@
             );
             updateVisualViewport();
         }, 0);
+    };
+
+    const getActiveCursorRect = (): DOMRect | null => {
+        if (!mobilePopupEditorBodyEl) return null;
+        const cursor = mobilePopupEditorBodyEl.querySelector(
+            '.cm-cursorLayer .cm-cursor',
+        ) as HTMLElement | null;
+        if (cursor) return cursor.getBoundingClientRect();
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) return null;
+        return selection.getRangeAt(0).getBoundingClientRect();
+    };
+
+    const ensureMobileCursorVisible = () => {
+        if (!isMobilePopupEditing || !mobilePopupEditorBodyEl) return;
+        const scroller = mobilePopupEditorBodyEl.querySelector(
+            '.cm-editor .cm-scroller',
+        ) as HTMLElement | null;
+        if (!scroller) return;
+        const cursorRect = getActiveCursorRect();
+        if (!cursorRect) return;
+        const vv = window.visualViewport;
+        const visibleTop = vv ? vv.offsetTop : 0;
+        const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+        const topLimit = visibleTop + 8;
+        const bottomLimit = visibleBottom - 12;
+        if (cursorRect.bottom > bottomLimit) {
+            scroller.scrollTop += cursorRect.bottom - bottomLimit;
+        } else if (cursorRect.top < topLimit) {
+            scroller.scrollTop -= topLimit - cursorRect.top;
+        }
+    };
+
+    const scheduleEnsureMobileCursorVisible = () => {
+        window.requestAnimationFrame(() => {
+            ensureMobileCursorVisible();
+            window.setTimeout(() => {
+                ensureMobileCursorVisible();
+            }, 24);
+        });
+    };
+
+    const setupMobileCursorGuard = () => {
+        if (!mobilePopupEditorBodyEl) return () => {};
+        const onEditorActivity = () => {
+            updateVisualViewport();
+            scheduleEnsureMobileCursorVisible();
+        };
+        mobilePopupEditorBodyEl.addEventListener('input', onEditorActivity);
+        mobilePopupEditorBodyEl.addEventListener('keyup', onEditorActivity);
+        mobilePopupEditorBodyEl.addEventListener(
+            'compositionend',
+            onEditorActivity,
+        );
+        mobilePopupEditorBodyEl.addEventListener('touchend', onEditorActivity);
+        mobilePopupEditorBodyEl.addEventListener('click', onEditorActivity);
+        document.addEventListener('selectionchange', onEditorActivity);
+        window.visualViewport?.addEventListener('resize', onEditorActivity);
+        window.visualViewport?.addEventListener('scroll', onEditorActivity);
+        scheduleEnsureMobileCursorVisible();
+        return () => {
+            mobilePopupEditorBodyEl?.removeEventListener('input', onEditorActivity);
+            mobilePopupEditorBodyEl?.removeEventListener('keyup', onEditorActivity);
+            mobilePopupEditorBodyEl?.removeEventListener(
+                'compositionend',
+                onEditorActivity,
+            );
+            mobilePopupEditorBodyEl?.removeEventListener(
+                'touchend',
+                onEditorActivity,
+            );
+            mobilePopupEditorBodyEl?.removeEventListener('click', onEditorActivity);
+            document.removeEventListener('selectionchange', onEditorActivity);
+            window.visualViewport?.removeEventListener(
+                'resize',
+                onEditorActivity,
+            );
+            window.visualViewport?.removeEventListener('scroll', onEditorActivity);
+        };
     };
 
     const recomputeDesktopSquareSize = () => {
@@ -230,6 +310,8 @@
     });
 
     onDestroy(() => {
+        mobileCursorGuardCleanup?.();
+        mobileCursorGuardCleanup = null;
         window.visualViewport?.removeEventListener(
             'resize',
             updateVisualViewport,
@@ -242,6 +324,15 @@
         contentWrapperObserver?.disconnect();
         contentWrapperObserver = null;
     });
+
+    $: {
+        if (!isMobilePopupEditing || !mobilePopupEditorBodyEl) {
+            mobileCursorGuardCleanup?.();
+            mobileCursorGuardCleanup = null;
+        } else if (!mobileCursorGuardCleanup) {
+            mobileCursorGuardCleanup = setupMobileCursorGuard();
+        }
+    }
 
     $: if (!Platform.isMobile) {
         $squareLayout;
@@ -1161,7 +1252,7 @@
 
     .mobile-edit-header {
         position: fixed;
-        top: 0;
+        top: var(--vvo, 0px);
         left: 0;
         width: 100%;
         height: calc(env(safe-area-inset-top, 20px) + 50px);
