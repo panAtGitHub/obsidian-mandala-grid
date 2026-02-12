@@ -15,9 +15,11 @@ type SectionEditSession = {
 };
 
 const sessionByTempFilePath = new Map<string, SectionEditSession>();
+let isStartingSectionSession = false;
 
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const ACTION_CANCEL_ID = 'mandala-section-edit-cancel';
+const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
 
 const ensureFolderRecursive = async (view: MandalaView, path: string) => {
     const parts = path.split('/').filter(Boolean);
@@ -189,6 +191,8 @@ export const startSectionNativeEditorSession = async (
     view: MandalaView,
     nodeId: string,
 ) => {
+    if (isStartingSectionSession) return;
+    isStartingSectionSession = true;
     try {
         const sourceFile = view.file;
         if (!sourceFile) return;
@@ -206,11 +210,9 @@ export const startSectionNativeEditorSession = async (
             return;
         }
 
-        const pluginId = view.plugin.manifest.id;
-        const sessionFolder = `${view.app.vault.configDir}/plugins/${pluginId}/.section-edit-sessions`;
-        await ensureFolderRecursive(view, sessionFolder);
+        await ensureFolderRecursive(view, SESSION_FOLDER);
         const safeSection = String(section).replace(/\./g, '-');
-        const tempPath = `${sessionFolder}/${Date.now()}-${safeSection}.md`;
+        const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}.md`;
         const tempFile = await view.app.vault.create(tempPath, sectionContent);
         sessionByTempFilePath.set(tempPath, {
             tempFilePath: tempPath,
@@ -234,7 +236,11 @@ export const startSectionNativeEditorSession = async (
             await wait(24);
         }
     } catch (error) {
-        new Notice('打开 section 原生编辑失败，请重试。');
+        const message =
+            error instanceof Error ? error.message : String(error);
+        new Notice(`打开 section 原生编辑失败：${message}`);
         logger.error(error);
+    } finally {
+        isStartingSectionSession = false;
     }
 };
