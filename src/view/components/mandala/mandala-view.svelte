@@ -459,6 +459,7 @@
         event.stopPropagation();
         exitCurrentSubgrid(view);
     };
+    const stopTouchPropagation = () => {};
 
     const getUpButtonLabel = (theme: string) =>
         theme.includes('.') ? '退出上一层子九宫格' : '上一层核心九宫格';
@@ -492,7 +493,11 @@
             <div class="mobile-edit-title">编辑格子</div>
             <button class="header-btn save-btn" on:click|stopPropagation={handleSave}>保存</button>
         </div>
-        <div class="mobile-popup-editor-container">
+        <div
+            class="mobile-popup-editor-container"
+            on:touchstart|stopPropagation={stopTouchPropagation}
+            on:touchmove|stopPropagation={stopTouchPropagation}
+        >
             {#if showSettings}
                 <div class="mobile-settings-panel" on:click|stopPropagation>
                     <div class="settings-row">
@@ -510,6 +515,8 @@
                 class="mobile-popup-editor-body"
                 on:focusin={handleMobileEditorFocusIn}
                 on:focusout={handleMobileEditorFocusOut}
+                on:touchstart|stopPropagation={stopTouchPropagation}
+                on:touchmove|stopPropagation={stopTouchPropagation}
             >
                 <InlineEditor
                     nodeId={$editingState.activeNodeId}
@@ -1209,7 +1216,8 @@
         min-height: 0;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
+        touch-action: auto;
+        overscroll-behavior-x: contain;
         padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
         background-color: var(--background-primary);
     }
@@ -1236,8 +1244,9 @@
         min-height: 0;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
+        touch-action: auto;
         overscroll-behavior: contain;
+        overscroll-behavior-x: contain;
         padding-bottom: calc(
             max(var(--vvb, 0px), var(--vkf, 0px)) +
                 env(safe-area-inset-bottom, 0px) +
