@@ -6,12 +6,17 @@ export const toggleObsidianViewType = (
     plugin: MandalaGrid,
     leaf: WorkspaceLeaf,
     type: ViewType,
+    stateOverride?: Record<string, unknown>,
 ) => {
     setTimeout(() => {
+        const currentState = leaf.view.getState?.() || {};
         void leaf.setViewState({
             type,
             popstate: true,
-            state: leaf.view.getState(),
+            state: {
+                ...currentState,
+                ...(stateOverride || {}),
+            },
         } as ViewState);
 
         plugin.app.workspace.setActiveLeaf(leaf);

@@ -1,5 +1,5 @@
 import MandalaGrid from 'src/main';
-import { Notice, TFile, WorkspaceLeaf } from 'obsidian';
+import { MarkdownView, Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
@@ -79,6 +79,10 @@ export const toggleFileViewType = async (
 
     let fileLeaf = leaf || getLeafOfFile(plugin, file, currentViewType);
     if (!fileLeaf) fileLeaf = await openFile(plugin, file, 'tab');
+    const currentLine =
+        currentViewType === 'markdown'
+            ? (fileLeaf.view as MarkdownView).editor?.getCursor()?.line
+            : undefined;
 
     const newViewType =
         currentViewType === 'markdown' ? MANDALA_VIEW_TYPE : 'markdown';
@@ -143,7 +147,14 @@ export const toggleFileViewType = async (
             nextContent = await plugin.app.vault.read(file);
         }
     }
-    toggleObsidianViewType(plugin, fileLeaf, newViewType);
+    toggleObsidianViewType(
+        plugin,
+        fileLeaf,
+        newViewType,
+        newViewType === MANDALA_VIEW_TYPE && currentLine !== undefined
+            ? { line: currentLine }
+            : undefined,
+    );
     setViewType(plugin, file.path, newViewType);
     if (newViewType === MANDALA_VIEW_TYPE) {
         const latest = await plugin.app.vault.read(file);

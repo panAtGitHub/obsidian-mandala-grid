@@ -35,8 +35,6 @@
     import { searchStore } from 'src/stores/view/derived/search-store';
     import MobileFullScreenSearch from 'src/view/components/mandala/mobile-fullscreen-search.svelte';
 
-    import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
-    import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
     import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
@@ -277,31 +275,7 @@
             }
         }
     }
-    // 手机端全屏编辑状态判断
-    $: isMobilePopupEditing = Platform.isMobile && $editingState.activeNodeId && !$editingState.isInSidebar;
     $: isMobileFullScreenSearch = Platform.isMobile && $search.showInput;
-
-    let showSettings = false;
-    const toggleSettings = () => {
-        showSettings = !showSettings;
-    };
-
-    const handleSave = () => {
-        if ($editingState.activeNodeId) {
-            view.inlineEditor.unloadNode($editingState.activeNodeId, false);
-            view.viewStore.dispatch({
-                type: 'view/editor/disable-main-editor',
-            });
-        }
-    };
-
-    const handleIncreaseFontSize = () => {
-        mobilePopupFontSizeStore.setFontSize($mobilePopupFontSizeStore + 1);
-    };
-
-    const handleDecreaseFontSize = () => {
-        mobilePopupFontSizeStore.setFontSize($mobilePopupFontSizeStore - 1);
-    };
 
     const enterSubgridFromButton = (event: MouseEvent, nodeId: string) => {
         event.stopPropagation();
@@ -325,7 +299,6 @@
     class="mandala-root"
     class:mandala-root--3={$mode === '3x3'}
     class:mandala-root--9={$mode === '9x9'}
-    class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
     class:has-detail-sidebar={!Platform.isMobile && $showDetailSidebar}
@@ -335,38 +308,7 @@
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
     style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%;"
 >
-    {#if isMobilePopupEditing}
-        <div class="mobile-edit-header">
-            <button class="header-btn settings-btn" on:click|stopPropagation={toggleSettings} aria-label="设置">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings">
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
-                </svg>
-            </button>
-            <div class="mobile-edit-title">编辑格子</div>
-            <button class="header-btn save-btn" on:click|stopPropagation={handleSave}>保存</button>
-        </div>
-        <div class="mobile-popup-editor-container">
-            {#if showSettings}
-                <div class="mobile-settings-panel" on:click|stopPropagation>
-                    <div class="settings-row">
-                        <span class="settings-label">字号</span>
-                        <div class="font-size-controls">
-                            <button class="control-btn" on:click|stopPropagation={handleDecreaseFontSize}>-</button>
-                            <span class="font-value">{$mobilePopupFontSizeStore}px</span>
-                            <button class="control-btn" on:click|stopPropagation={handleIncreaseFontSize}>+</button>
-                        </div>
-                    </div>
-                </div>
-            {/if}
-            <div class="mobile-popup-editor-body">
-                <InlineEditor
-                    nodeId={$editingState.activeNodeId}
-                    style={$nodeStyles.get($editingState.activeNodeId)}
-                    absoluteFontSize={$mobilePopupFontSizeStore}
-                />
-            </div>
-        </div>
-    {:else if isMobileFullScreenSearch}
+    {#if isMobileFullScreenSearch}
         <MobileFullScreenSearch />
     {:else}
         <div class="mandala-topbar">
@@ -1029,149 +971,4 @@
         background: var(--background-primary);
     }
 
-    .is-editing-mobile.mandala-root {
-        height: 100dvh !important;
-        overflow: hidden !important;
-    }
-
-    /* 移动端全屏编辑器样式 */
-    .mobile-popup-editor-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100dvh;
-        background-color: var(--background-primary);
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        padding-top: calc(env(safe-area-inset-top, 20px) + 50px);
-    }
-
-    .mobile-popup-editor-body {
-        padding: 16px;
-        flex: 1;
-        background-color: var(--background-primary);
-    }
-
-    .mobile-edit-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: calc(env(safe-area-inset-top, 20px) + 50px);
-        background-color: var(--background-primary-alt);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-bottom: 1px solid var(--background-modifier-border);
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        padding: 0 16px 12px 16px;
-        z-index: 1001;
-        pointer-events: auto;
-    }
-
-    .mobile-edit-title {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        font-weight: 600;
-        font-size: 16px;
-        color: var(--text-normal);
-        pointer-events: none;
-    }
-
-    .header-btn {
-        background: none;
-        border: none;
-        padding: 4px 8px;
-        font-size: 16px;
-        cursor: pointer;
-        box-shadow: none !important;
-        color: var(--interactive-accent);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 6px;
-    }
-
-    .header-btn:active {
-        background-color: var(--background-modifier-hover);
-    }
-
-    .save-btn {
-        font-weight: 600;
-        color: var(--text-accent);
-    }
-
-    .settings-btn {
-        opacity: 0.8;
-        color: var(--text-muted);
-    }
-    .settings-btn:active {
-        opacity: 1;
-        color: var(--text-normal);
-    }
-
-    /* 设置面板 */
-    .mobile-settings-panel {
-        position: fixed;
-        top: calc(env(safe-area-inset-top, 20px) + 50px);
-        left: 0;
-        width: 100%;
-        background: var(--background-secondary);
-        border-bottom: 1px solid var(--background-modifier-border);
-        padding: 16px;
-        z-index: 1002;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        animation: slideDown 0.2s ease-out;
-    }
-
-    @keyframes slideDown {
-        from { transform: translateY(-10px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-
-    .settings-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .settings-label {
-        font-size: 15px;
-        color: var(--text-normal);
-    }
-
-    .font-size-controls {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .control-btn {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        font-size: 18px;
-        color: var(--text-normal);
-        cursor: pointer;
-    }
-
-    .font-value {
-        min-width: 40px;
-        text-align: center;
-        font-size: 14px;
-        color: var(--text-muted);
-    }
-
-    /* 全屏下隐藏一些卡片特有装饰 */
-    .mobile-popup-editor-body :global(.mandala-section-label) {
-        display: none;
-    }
 </style>

@@ -120,7 +120,7 @@
         <CardStyle {style} />
     {/if}
 
-    {#if active && editing && !$showDetailSidebar}
+    {#if active && editing && !$showDetailSidebar && !isMobile}
         <InlineEditor
             {nodeId}
             {style}
