@@ -1,4 +1,5 @@
 import { MarkdownView, Notice, TFile, ViewState } from 'obsidian';
+import { logger } from 'src/helpers/logger';
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
@@ -18,10 +19,14 @@ const sessionByTempFilePath = new Map<string, SectionEditSession>();
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const ACTION_CANCEL_ID = 'mandala-section-edit-cancel';
 
-const ensureFolder = async (view: MandalaView, path: string) => {
-    const existing = view.app.vault.getAbstractFileByPath(path);
-    if (existing) return;
-    await view.app.vault.createFolder(path);
+const ensureFolderRecursive = async (view: MandalaView, path: string) => {
+    const parts = path.split('/').filter(Boolean);
+    let current = '';
+    for (const part of parts) {
+        current = current ? `${current}/${part}` : part;
+        if (view.app.vault.getAbstractFileByPath(current)) continue;
+        await view.app.vault.createFolder(current);
+    }
 };
 
 const getSectionByNodeId = (view: MandalaView, nodeId: string): string | null =>
@@ -184,46 +189,52 @@ export const startSectionNativeEditorSession = async (
     view: MandalaView,
     nodeId: string,
 ) => {
-    const sourceFile = view.file;
-    if (!sourceFile) return;
+    try {
+        const sourceFile = view.file;
+        if (!sourceFile) return;
 
-    const section = getSectionByNodeId(view, nodeId);
-    if (!section) {
-        new Notice('未找到对应 section，无法进入单独编辑。');
-        return;
-    }
-
-    const sourceMarkdown = await view.app.vault.read(sourceFile);
-    const sectionContent = getSectionContentBySection(sourceMarkdown, section);
-    if (sectionContent === null) {
-        new Notice('未找到对应 section 内容，无法进入编辑。');
-        return;
-    }
-
-    const sessionFolder = `${view.app.vault.configDir}/plugins/mandala-grid-dev/.section-edit-sessions`;
-    await ensureFolder(view, sessionFolder);
-    const safeSection = String(section).replace(/\./g, '-');
-    const tempPath = `${sessionFolder}/${Date.now()}-${safeSection}.md`;
-    const tempFile = await view.app.vault.create(tempPath, sectionContent);
-    sessionByTempFilePath.set(tempPath, {
-        tempFilePath: tempPath,
-        sourceFilePath: sourceFile.path,
-        section,
-    });
-
-    await view.leaf.openFile(tempFile);
-    const markdownView = getMarkdownView(view);
-    if (!markdownView) return;
-    if (markdownView.getMode() === 'preview') {
-        await markdownView.setState({ mode: 'source' }, { history: false });
-    }
-    addSectionEditorActions(view, markdownView);
-    for (let attempt = 0; attempt < 10; attempt++) {
-        const liveView = getMarkdownView(view);
-        if (liveView?.editor) {
-            setCursorToContentEnd(liveView);
+        const section = getSectionByNodeId(view, nodeId);
+        if (!section) {
+            new Notice('未找到对应 section，无法进入单独编辑。');
             return;
         }
-        await wait(24);
+
+        const sourceMarkdown = await view.app.vault.read(sourceFile);
+        const sectionContent = getSectionContentBySection(sourceMarkdown, section);
+        if (sectionContent === null) {
+            new Notice('未找到对应 section 内容，无法进入编辑。');
+            return;
+        }
+
+        const pluginId = view.plugin.manifest.id;
+        const sessionFolder = `${view.app.vault.configDir}/plugins/${pluginId}/.section-edit-sessions`;
+        await ensureFolderRecursive(view, sessionFolder);
+        const safeSection = String(section).replace(/\./g, '-');
+        const tempPath = `${sessionFolder}/${Date.now()}-${safeSection}.md`;
+        const tempFile = await view.app.vault.create(tempPath, sectionContent);
+        sessionByTempFilePath.set(tempPath, {
+            tempFilePath: tempPath,
+            sourceFilePath: sourceFile.path,
+            section,
+        });
+
+        await view.leaf.openFile(tempFile);
+        const markdownView = getMarkdownView(view);
+        if (!markdownView) return;
+        if (markdownView.getMode() === 'preview') {
+            await markdownView.setState({ mode: 'source' }, { history: false });
+        }
+        addSectionEditorActions(view, markdownView);
+        for (let attempt = 0; attempt < 10; attempt++) {
+            const liveView = getMarkdownView(view);
+            if (liveView?.editor) {
+                setCursorToContentEnd(liveView);
+                return;
+            }
+            await wait(24);
+        }
+    } catch (error) {
+        new Notice('打开 section 原生编辑失败，请重试。');
+        logger.error(error);
     }
 };
