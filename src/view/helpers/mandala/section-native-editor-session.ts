@@ -16,6 +16,8 @@ type SectionEditSession = {
 const sessionByTempFilePath = new Map<string, SectionEditSession>();
 let isStartingSectionSession = false;
 let isSavingSectionSession = false;
+let isSweepingStaleSessions = false;
+let hasRegisteredSessionWatchers = false;
 
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
@@ -43,6 +45,26 @@ const getMarkdownView = (view: MandalaView) =>
 
 const wait = (ms: number) =>
     new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+const getTempFilePathFromLeaf = (leaf: unknown): string | null => {
+    if (!leaf || typeof leaf !== 'object' || !('view' in leaf)) {
+        return null;
+    }
+    const viewInLeaf = (
+        leaf as {
+            view?: {
+                file?: { path?: string };
+            };
+        }
+    ).view;
+    const path = viewInLeaf?.file?.path;
+    return typeof path === 'string' ? path : null;
+};
+
+const isTempFileOpen = (view: MandalaView, tempFilePath: string) =>
+    view.app.workspace
+        .getLeavesOfType('markdown')
+        .some((leaf) => getTempFilePathFromLeaf(leaf) === tempFilePath);
 
 const centerCursorLineInEditor = (markdownView: MarkdownView) => {
     const scroller = markdownView.containerEl.querySelector<HTMLElement>(
@@ -98,6 +120,52 @@ const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
     const tempFile = getFileByPath(view, tempFilePath);
     if (!tempFile) return;
     await view.app.fileManager.trashFile(tempFile);
+};
+
+const mergeTempFileToSource = async (
+    view: MandalaView,
+    session: SectionEditSession,
+) => {
+    const tempFile = getFileByPath(view, session.tempFilePath);
+    const sourceFile = getFileByPath(view, session.sourceFilePath);
+    if (!tempFile || !sourceFile) return;
+    const replacement = await view.app.vault.read(tempFile);
+    const sourceMarkdown = await view.app.vault.read(sourceFile);
+    const patched = applySectionPatch(sourceMarkdown, session.section, replacement);
+    if (!patched) return;
+    await view.app.vault.modify(sourceFile, patched.markdown);
+};
+
+const sweepStaleSessions = async (view: MandalaView) => {
+    if (isSavingSectionSession || isSweepingStaleSessions) return;
+    isSweepingStaleSessions = true;
+    try {
+        for (const [tempFilePath, session] of sessionByTempFilePath.entries()) {
+            if (isTempFileOpen(view, tempFilePath)) continue;
+            try {
+                await mergeTempFileToSource(view, session);
+            } finally {
+                await cleanupSession(view, tempFilePath);
+            }
+        }
+    } finally {
+        isSweepingStaleSessions = false;
+    }
+};
+
+const ensureSessionWatchers = (view: MandalaView) => {
+    if (hasRegisteredSessionWatchers) return;
+    hasRegisteredSessionWatchers = true;
+    view.plugin.registerEvent(
+        view.app.workspace.on('file-open', () => {
+            void sweepStaleSessions(view);
+        }),
+    );
+    view.plugin.registerEvent(
+        view.app.workspace.on('layout-change', () => {
+            void sweepStaleSessions(view);
+        }),
+    );
 };
 
 const withSessionFromView = (
@@ -178,6 +246,7 @@ export const startSectionNativeEditorSession = async (
     try {
         const sourceFile = view.file;
         if (!sourceFile) return;
+        ensureSessionWatchers(view);
 
         const section = getSectionByNodeId(view, nodeId);
         if (!section) {

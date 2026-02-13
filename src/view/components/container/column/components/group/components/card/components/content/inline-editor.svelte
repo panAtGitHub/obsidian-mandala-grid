@@ -14,8 +14,8 @@
 <div
     class={'editor-container' + (style ? ' apply-style-rule' : '')}
     style="--local-font-size-offset: {absoluteFontSize ? 0 : fontSizeOffset}px; {absoluteFontSize ? `--font-text-size: ${absoluteFontSize}px; font-size: ${absoluteFontSize}px;` : ''}"
-    use:expandableTextareaAction={!disableAutoResize}
     use:loadInlineEditor={nodeId}
+    use:expandableTextareaAction={!disableAutoResize}
 ></div>
 
 <style>
