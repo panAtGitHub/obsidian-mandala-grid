@@ -1,8 +1,6 @@
 <script lang="ts">
     import { Printer } from 'lucide-svelte';
-    import { Notice } from 'obsidian';
 
-    export let isMobile = false;
     export let show = false;
     export let exportMode: 'png-square' | 'png-screen' | 'pdf-a4' =
         'png-screen';
@@ -12,17 +10,9 @@
     export let setPngScreenMode: () => void;
     export let setPdfMode: () => void;
     export let exportCurrentFile: () => Promise<void>;
-
-    const toggleWithMobileGuard = () => {
-        if (isMobile) {
-            new Notice('移动端不支持导出，请在桌面端操作');
-            return;
-        }
-        toggle();
-    };
 </script>
 
-<button class="view-options-menu__item" on:click={toggleWithMobileGuard}>
+<button class="view-options-menu__item" on:click={toggle}>
     <div class="view-options-menu__icon">
         <Printer class="view-options-menu__icon-svg" size={18} />
     </div>

@@ -1687,7 +1687,6 @@
             />
 
             <ViewOptionsExportPanel
-                {isMobile}
                 show={showPrintOptions}
                 {exportMode}
                 toggle={() => (showPrintOptions = !showPrintOptions)}
