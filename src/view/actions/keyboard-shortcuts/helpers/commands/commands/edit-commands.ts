@@ -49,7 +49,11 @@ export const editCommands = () => {
                     const orientation =
                         view.plugin.settings.getValue().view
                             .mandalaGridOrientation ?? 'left-to-right';
-                    const baseTheme = '1';
+                    const activeSection =
+                        view.documentStore.getValue().sections.id_section[nodeId];
+                    const baseTheme = activeSection
+                        ? activeSection.split('.')[0]
+                        : '1';
                     const section = sectionAtCell9x9(
                         view.mandalaActiveCell9x9.row,
                         view.mandalaActiveCell9x9.col,
