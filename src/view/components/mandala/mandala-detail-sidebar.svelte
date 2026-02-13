@@ -17,6 +17,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
+    import { startSectionNativeEditorSession } from 'src/view/helpers/mandala/section-native-editor-session';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
     const MIN_SIZE = 200;
@@ -69,6 +70,7 @@
     $: canJumpPrevCore = activeCoreNumber > 1;
 
     let editorContainer: HTMLElement;
+    let lastMobileTapAt = 0;
 
     $: isEditingInSidebar =
         !Platform.isMobile &&
@@ -179,11 +181,17 @@
     };
     const handleDblClick = () => {
         if (Platform.isMobile && $activeNodeId) {
-            view.viewStore.dispatch({
-                type: 'view/editor/enable-main-editor',
-                payload: { nodeId: $activeNodeId, isInSidebar: false },
-            });
+            void startSectionNativeEditorSession(view, $activeNodeId);
         }
+    };
+
+    const handleMobileTap = () => {
+        if (!Platform.isMobile || !$activeNodeId) return;
+        const now = Date.now();
+        const isDoubleTap = now - lastMobileTapAt <= 320;
+        lastMobileTapAt = now;
+        if (!isDoubleTap) return;
+        void startSectionNativeEditorSession(view, $activeNodeId);
     };
 
     const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
@@ -233,7 +241,11 @@
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
     {#if $showSidebarStore}
-        <div class="sidebar-content" on:dblclick={handleDblClick}>
+        <div
+            class="sidebar-content"
+            on:dblclick={handleDblClick}
+            on:click={handleMobileTap}
+        >
             {#if $activeNodeId}
                 <div class="editor-wrapper">
                     {#key $activeNodeId}
