@@ -20,7 +20,6 @@
     import { Platform } from 'obsidian';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
-    import { MarkdownRenderer } from 'obsidian';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
 
     const view = getView();
@@ -69,7 +68,18 @@
         currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
     }
 
-    const buildCellMarkdown = (rawBody: string) => rawBody.trim().slice(0, 150);
+    const normalizeCellPreviewText = (raw: string) =>
+        raw
+            .replace(/^\s*[-*+]\s+\[[ xX]\]\s*/gm, '')
+            .replace(/^\s*[-*+]\s+/gm, '')
+            .replace(/^\s*\d+\.\s+/gm, '')
+            .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
+            .replace(/\[\[([^\]]+)\]\]/g, '$1')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+    const buildCellMarkdown = (rawBody: string) =>
+        normalizeCellPreviewText(rawBody).slice(0, 150);
 
     const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
     const isMarkdownHeading = (line: string) => HEADING_RE.test(line);
@@ -309,20 +319,8 @@
             if (!content) {
                 return;
             }
-            const sourcePath = view.file?.path;
-            if (!sourcePath) {
-                element.setText(content);
-                return;
-            }
-            void Promise.resolve(
-                MarkdownRenderer.render(
-                    view.plugin.app,
-                    content,
-                    element,
-                    sourcePath,
-                    view,
-                ),
-            );
+            // 81格预览使用纯文本摘要，避免Markdown块级DOM在极小网格中造成布局错乱。
+            element.setText(content);
         };
         render();
         return {
