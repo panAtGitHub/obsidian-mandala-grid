@@ -21,6 +21,7 @@
     import { setActiveMainSplitNode } from './store-actions/set-active-main-split-node';
     import { enableEditModeInSidebar } from './store-actions/enable-edit-mode-in-sidebar';
     import { enableEditModeInMainSplit } from './store-actions/enable-edit-mode-in-main-split';
+    import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
 
     export let nodeId: string;
     export let isInSidebar: boolean;
@@ -119,6 +120,7 @@
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={!$showHiddenCardInfo}
     use:markdownPreviewAction={nodeId}
+    use:hideIdleScrollbar
 ></div>
 
 <style>

@@ -1120,7 +1120,8 @@
         min-height: 0;
     }
 
-    .mandala-root--9 :global(.lng-prev) {
+    .mandala-root--9 .mandala-grid :global(.lng-prev),
+    .mandala-root--9 :global(.mandala-raw9-preview .lng-prev) {
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;
@@ -1139,11 +1140,73 @@
     }
 
     /* 3×3：内容超出时在格子内部滚动（避免撑开格子） */
-    .mandala-root--3 :global(.lng-prev) {
+    .mandala-root--3 .mandala-grid :global(.lng-prev),
+    .mandala-root--3 :global(.mandala-raw9-preview .lng-prev) {
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;
         overflow: auto;
+    }
+
+    :global(.mandala-idle-scrollbar) {
+        --mandala-idle-scrollbar-thumb: var(--color-base-30);
+        --mandala-idle-scrollbar-thumb-active: var(--color-base-40);
+        overflow: auto;
+        overflow: overlay;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+        --scrollbar-thumb-bg: transparent !important;
+        --scrollbar-active-thumb-bg: transparent !important;
+        --scrollbar-bg: transparent !important;
+    }
+
+    :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
+        width: 8px;
+        height: 8px;
+    }
+
+    :global(.mandala-idle-scrollbar::-webkit-scrollbar-track) {
+        background: transparent;
+    }
+
+    :global(.mandala-idle-scrollbar::-webkit-scrollbar-thumb) {
+        background: transparent;
+        border-radius: 999px;
+    }
+
+    :global(.mandala-idle-scrollbar.is-scrollbar-visible),
+    :global(.mandala-card.active-node .mandala-idle-scrollbar),
+    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar),
+    :global(.mandala-card:hover .mandala-idle-scrollbar) {
+        scrollbar-width: thin;
+        scrollbar-color: var(--mandala-idle-scrollbar-thumb) transparent;
+        --scrollbar-thumb-bg: var(--mandala-idle-scrollbar-thumb) !important;
+        --scrollbar-active-thumb-bg: var(--mandala-idle-scrollbar-thumb-active)
+            !important;
+        --scrollbar-bg: transparent !important;
+    }
+
+    :global(.mandala-idle-scrollbar.is-scrollbar-visible::-webkit-scrollbar),
+    :global(.mandala-card.active-node .mandala-idle-scrollbar::-webkit-scrollbar),
+    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar::-webkit-scrollbar),
+    :global(.mandala-card:hover .mandala-idle-scrollbar::-webkit-scrollbar) {
+        width: 8px;
+        height: 8px;
+    }
+
+    :global(.mandala-idle-scrollbar.is-scrollbar-visible::-webkit-scrollbar-thumb),
+    :global(.mandala-card.active-node .mandala-idle-scrollbar::-webkit-scrollbar-thumb),
+    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar::-webkit-scrollbar-thumb),
+    :global(.mandala-card:hover .mandala-idle-scrollbar::-webkit-scrollbar-thumb) {
+        background: var(--mandala-idle-scrollbar-thumb);
+    }
+
+    :global(.mandala-idle-scrollbar.is-scrollbar-visible:hover::-webkit-scrollbar-thumb),
+    :global(.mandala-card.active-node .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb),
+    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb),
+    :global(.mandala-card:hover .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb) {
+        background: var(--mandala-idle-scrollbar-thumb-active);
     }
 
     .mandala-root--3 :global(.editor-container) {
