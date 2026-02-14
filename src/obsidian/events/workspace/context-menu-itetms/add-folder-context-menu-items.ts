@@ -11,7 +11,9 @@ export const addFolderContextMenuItems = (
 ) => {
     menu.addItem((item) => {
         item.setTitle(lang.ocm_new_document);
-        item.setIcon(customIcons.cards.name);
-        item.onClick(() => createMandalaGridFileInFolder(plugin, folder));
+        item.setIcon(customIcons.mandalaGrid.name);
+        item.onClick(() => {
+            void createMandalaGridFileInFolder(plugin, folder);
+        });
     });
 };
