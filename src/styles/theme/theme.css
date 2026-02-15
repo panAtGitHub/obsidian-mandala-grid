@@ -104,6 +104,24 @@
     display: none !important;
 }
 
+/* 导出时隐藏网格内滚动条（PNG + PDF） */
+.mandala-export-hide-controls .mandala-scroll,
+.mandala-export-hide-controls .mandala-scroll *,
+body.mandala-print-export .mandala-scroll,
+body.mandala-print-export .mandala-scroll * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar,
+.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar,
+body.mandala-print-export .mandala-scroll::-webkit-scrollbar,
+body.mandala-print-export .mandala-scroll *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 /* 打印样式 - 仅移除工具栏,保留侧边栏和格子布局 */
 @media print {
 
