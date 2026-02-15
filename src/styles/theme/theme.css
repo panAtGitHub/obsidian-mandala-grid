@@ -104,22 +104,38 @@
     display: none !important;
 }
 
-/* 导出时隐藏网格内滚动条（PNG + PDF） */
+/* 导出时仅“视觉隐藏”滚动条：保留占位，避免导出布局与屏幕不一致 */
 .mandala-export-hide-controls .mandala-scroll,
 .mandala-export-hide-controls .mandala-scroll *,
 body.mandala-print-export .mandala-scroll,
 body.mandala-print-export .mandala-scroll * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
+    scrollbar-width: auto !important;
+    scrollbar-color: transparent transparent !important;
+    -ms-overflow-style: auto !important;
+    --scrollbar-thumb-bg: transparent !important;
+    --scrollbar-active-thumb-bg: transparent !important;
+    --scrollbar-bg: transparent !important;
 }
 
-.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar,
-.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar,
-body.mandala-print-export .mandala-scroll::-webkit-scrollbar,
-body.mandala-print-export .mandala-scroll *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
+.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-thumb,
+.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-thumb,
+body.mandala-print-export .mandala-scroll::-webkit-scrollbar-thumb,
+body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-thumb {
+    background: transparent !important;
+}
+
+.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-track,
+.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-track,
+body.mandala-print-export .mandala-scroll::-webkit-scrollbar-track,
+body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-corner,
+.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-corner,
+body.mandala-print-export .mandala-scroll::-webkit-scrollbar-corner,
+body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
+    background: transparent !important;
 }
 
 /* 打印样式 - 仅移除工具栏,保留侧边栏和格子布局 */
