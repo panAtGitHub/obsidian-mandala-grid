@@ -147,6 +147,7 @@ ESLint 配置：`.eslintrc`
 -   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test` 和/或 `npm run test:e2e`
 -   **强制交付动作（每次写完都要执行，不可省略）**：只要本次会话产生了代码改动，必须在结束前执行 `commit + build + sync`
 -   默认交付流程（完成代码改动后）：
-    1. `git add -A && git commit -m "chore: update mandala grid plugin"`
+    1. `git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`
     2. `npm run build`
     3. `rsync -av --delete --exclude 'data.json' temp/vault/.obsidian/plugins/mandala-grid-dev/ "/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/"`
+   -   提交信息要求：**每次提交必须包含中英文总结**，禁止使用固定的 `chore: update ...` 占位提交信息。
