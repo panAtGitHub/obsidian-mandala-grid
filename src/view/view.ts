@@ -4,6 +4,7 @@ import {
     debounce,
     IconName,
     Notice,
+    Scope,
     TextFileView,
     WorkspaceLeaf,
     resolveSubpath,
@@ -99,6 +100,7 @@ export class MandalaView extends TextFileView {
         public plugin: MandalaGrid,
     ) {
         super(leaf);
+        this.scope = new Scope(this.app.scope);
         this.documentStore = new Store(
             defaultDocumentState(),
             documentReducer,
