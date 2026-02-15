@@ -22,6 +22,11 @@
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
+    import {
+        getReadableTextTone,
+        type ThemeTone,
+        type TextTone,
+    } from 'src/view/helpers/mandala/contrast-text-tone';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -41,6 +46,17 @@
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+    let contrastBackgroundColor: string | null = null;
+    let textTone: TextTone | null = null;
+
+    $: contrastBackgroundColor = sectionColor
+        ? sectionColor
+        : style?.styleVariant === 'background-color'
+          ? style.color
+          : null;
+    $: textTone = getReadableTextTone(contrastBackgroundColor, getThemeTone());
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
@@ -88,6 +104,8 @@
     class:mandala-card--swap-disabled={$swapState.active &&
         !$swapState.targetNodeIds.has(nodeId) &&
         $swapState.sourceNodeId !== nodeId}
+    class:mandala-card--contrast-dark-text={textTone === 'dark'}
+    class:mandala-card--contrast-light-text={textTone === 'light'}
     class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
     id={nodeId}
     style={sectionColor ? `background-color: ${sectionColor};` : undefined}
@@ -188,6 +206,18 @@
 
     .mandala-card--swap-disabled {
         opacity: 0.6;
+    }
+
+    .mandala-card--contrast-dark-text {
+        --text-normal: var(--color-base-100);
+        --text-muted: var(--color-base-80);
+        --text-faint: var(--color-base-70);
+    }
+
+    .mandala-card--contrast-light-text {
+        --text-normal: var(--color-base-00);
+        --text-muted: var(--color-base-20);
+        --text-faint: var(--color-base-30);
     }
 
     /* 悬浮模式下的内容区优化 (目前统一由顶层逻辑处理) */
