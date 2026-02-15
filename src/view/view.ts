@@ -198,6 +198,7 @@ export class MandalaView extends TextFileView {
     }
 
     async onOpen() {
+        await super.onOpen();
     }
 
     async onClose() {
