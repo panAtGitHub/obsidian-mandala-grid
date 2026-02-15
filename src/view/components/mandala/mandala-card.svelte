@@ -209,15 +209,15 @@
     }
 
     .mandala-card--contrast-dark-text {
-        --text-normal: var(--color-base-100);
-        --text-muted: var(--color-base-80);
-        --text-faint: var(--color-base-70);
-    }
-
-    .mandala-card--contrast-light-text {
         --text-normal: var(--color-base-00);
         --text-muted: var(--color-base-20);
         --text-faint: var(--color-base-30);
+    }
+
+    .mandala-card--contrast-light-text {
+        --text-normal: var(--color-base-100);
+        --text-muted: var(--color-base-80);
+        --text-faint: var(--color-base-70);
     }
 
     /* 悬浮模式下的内容区优化 (目前统一由顶层逻辑处理) */
