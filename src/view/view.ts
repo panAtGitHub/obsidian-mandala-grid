@@ -1,13 +1,9 @@
 import {
-    App,
     BlockSubpathResult,
     HeadingSubpathResult,
     debounce,
     IconName,
-    Modal,
     Notice,
-    Setting,
-    TFile,
     TextFileView,
     WorkspaceLeaf,
     resolveSubpath,
@@ -72,92 +68,6 @@ export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
 export type ViewStore = Store<ViewState, ViewStoreAction, MandalaGridDocument>;
 export type MinimapStore = Store<MinimapState, MinimapStoreAction>;
 
-class RenameFileFallbackModal extends Modal {
-    private nextName: string;
-    private submitting = false;
-
-    constructor(
-        app: App,
-        private file: TFile,
-        private onRename: (nextPath: string) => Promise<void>,
-    ) {
-        super(app);
-        this.nextName = file.basename;
-    }
-
-    onOpen() {
-        this.setTitle('重命名文件');
-        const { contentEl } = this;
-        contentEl.empty();
-
-        new Setting(contentEl).setName('文件名').addText((text) => {
-            text.setPlaceholder('请输入新文件名');
-            text.setValue(this.file.basename);
-            text.onChange((value) => {
-                this.nextName = value;
-            });
-            setTimeout(() => {
-                text.inputEl.focus();
-                text.inputEl.select();
-            }, 0);
-            text.inputEl.addEventListener('keydown', (event: KeyboardEvent) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    void this.submitRename();
-                }
-            });
-        });
-
-        const footer = new Setting(contentEl);
-        footer.addButton((button) => {
-            button.setButtonText('取消');
-            button.onClick(() => this.close());
-        });
-        footer.addButton((button) => {
-            button.setButtonText('重命名');
-            button.setCta();
-            button.onClick(() => {
-                void this.submitRename();
-            });
-        });
-    }
-
-    private async submitRename() {
-        if (this.submitting) return;
-        const trimmedName = this.nextName.trim();
-        if (!trimmedName) {
-            new Notice('文件名不能为空');
-            return;
-        }
-        if (trimmedName.includes('/')) {
-            new Notice('文件名不能包含 /');
-            return;
-        }
-        if (trimmedName === this.file.basename) {
-            this.close();
-            return;
-        }
-        const parentPath = this.file.parent?.path;
-        const suffix = this.file.extension ? `.${this.file.extension}` : '';
-        const nextPath =
-            (parentPath ? `${parentPath}/` : '') + trimmedName + suffix;
-        if (nextPath === this.file.path) {
-            this.close();
-            return;
-        }
-        this.submitting = true;
-        try {
-            await this.onRename(nextPath);
-            this.close();
-        } catch (error) {
-            new Notice('重命名失败');
-            logger.error(error);
-        } finally {
-            this.submitting = false;
-        }
-    }
-}
-
 export class MandalaView extends TextFileView {
     component: Component;
     documentStore: DocumentStore;
@@ -184,7 +94,6 @@ export class MandalaView extends TextFileView {
         | { frontmatter: string; activation: MandalaProfileActivation }
         | null = null;
     private lastActivationNotice: string | null = null;
-    private pendingRenameFallback: ReturnType<typeof setTimeout> | null = null;
     constructor(
         leaf: WorkspaceLeaf,
         public plugin: MandalaGrid,
@@ -288,85 +197,10 @@ export class MandalaView extends TextFileView {
         return this.file ? this.file.basename : '';
     }
 
-    async onOpen() {
-        this.registerHeaderRenameFallback();
-    }
+    async onOpen() {}
 
     async onClose() {
-        if (this.pendingRenameFallback) {
-            clearTimeout(this.pendingRenameFallback);
-            this.pendingRenameFallback = null;
-        }
         await this.onUnloadFile();
-    }
-
-    private registerHeaderRenameFallback() {
-        this.registerDomEvent(this.containerEl, 'click', (event: MouseEvent) => {
-            const target = event.target;
-            if (!(target instanceof HTMLElement)) return;
-            if (!target.closest('.view-header-title, .view-header-title-container')) {
-                return;
-            }
-            if (!this.file || this.hasHeaderRenameInput()) return;
-            this.queueHeaderRenameFallback();
-        });
-    }
-
-    private queueHeaderRenameFallback() {
-        if (this.pendingRenameFallback) {
-            clearTimeout(this.pendingRenameFallback);
-        }
-        this.pendingRenameFallback = setTimeout(() => {
-            this.pendingRenameFallback = null;
-            void this.ensureRenameStarted();
-        }, 50);
-    }
-
-    private hasHeaderRenameInput() {
-        return Boolean(this.containerEl.querySelector('.view-header-title-input'));
-    }
-
-    private async ensureRenameStarted() {
-        if (!this.file || this.hasHeaderRenameInput()) return;
-        this.tryExecuteHeaderRenameCommand();
-        await new Promise((resolve) => setTimeout(resolve, 60));
-        if (this.hasHeaderRenameInput()) return;
-        await this.renameFileWithFallbackModal();
-    }
-
-    private tryExecuteHeaderRenameCommand() {
-        const appWithCommands = this.app as typeof this.app & {
-            commands?: {
-                commands?: Record<string, unknown>;
-                executeCommandById?: (id: string) => void;
-            };
-        };
-        const commandManager = appWithCommands.commands;
-        if (!commandManager?.executeCommandById) return;
-        const commandIds = [
-            'workspace:edit-file-title',
-            'file-explorer:rename-file',
-        ];
-        for (const commandId of commandIds) {
-            if (
-                commandManager.commands &&
-                !(commandId in commandManager.commands)
-            ) {
-                continue;
-            }
-            commandManager.executeCommandById(commandId);
-            break;
-        }
-    }
-
-    private async renameFileWithFallbackModal() {
-        const file = this.file;
-        if (!file) return;
-        new RenameFileFallbackModal(
-            this.app,
-            file,
-            async (nextPath) => this.app.fileManager.renameFile(file, nextPath),
-        ).open();
     }
 
     setEphemeralState(state: unknown) {

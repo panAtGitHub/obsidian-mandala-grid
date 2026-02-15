@@ -9,12 +9,13 @@ export function setActiveLeaf(
     next: (this: Workspace, ...args: SetActiveLeafArgs) => unknown,
 ) {
     return function (this: Workspace, ...args: SetActiveLeafArgs) {
-        const leaf = args[0];
-        const isMandalaViewAndIsEditing =
-            leaf.view &&
-            leaf.view instanceof MandalaView &&
-            leaf.view.inlineEditor?.nodeId;
-        if (isMandalaViewAndIsEditing) return;
+        const nextLeaf = args[0];
+        const activeLeaf = this.getMostRecentLeaf();
+        const activeView = activeLeaf?.view;
+        const isEditingInActiveMandalaLeaf =
+            activeView instanceof MandalaView &&
+            Boolean(activeView.inlineEditor?.nodeId);
+        if (isEditingInActiveMandalaLeaf && activeLeaf !== nextLeaf) return;
         next.call(this, ...args);
     };
 }
