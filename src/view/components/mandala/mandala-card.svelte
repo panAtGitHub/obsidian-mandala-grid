@@ -128,7 +128,7 @@
             absoluteFontSize={isMobile ? $localFontStore : undefined}
         />
     {:else if draggable}
-        <Draggable {nodeId} isInSidebar={false}>
+        <Draggable {nodeId} isInSidebar={false} dragActivation="whole-card">
             <Content
                 {nodeId}
                 isInSidebar={false}

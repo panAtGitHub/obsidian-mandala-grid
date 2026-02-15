@@ -974,6 +974,19 @@
         box-shadow: none !important;
     }
 
+    .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card) {
+        border-left-width: 0 !important;
+        border-left-style: solid !important;
+    }
+
+    .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--active),
+    .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--selected) {
+        border-left-color: transparent !important;
+    }
+
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node) {
         position: relative;
@@ -1218,6 +1231,10 @@
     .mandala-root--3 :global(.draggable),
     .mandala-root--3 :global(.draggable .content) {
         height: 100%;
+    }
+
+    .mandala-root--3 :global(.mandala-card .drag-handle) {
+        display: none !important;
     }
 
     .mandala-empty {

@@ -3,11 +3,12 @@
 
     export let isInSidebar: boolean;
     export let nodeId: string;
+    export let dragActivation: 'edge-zone' | 'whole-card' = 'edge-zone';
 
 </script>
 
-<div class="draggable" use:draggable={{ id: nodeId,isInSidebar }}>
-    {#if !isInSidebar}
+<div class="draggable" use:draggable={{ id: nodeId,isInSidebar, dragActivation }}>
+    {#if !isInSidebar && dragActivation === 'edge-zone'}
         <div class="drag-handle"></div>
     {/if}
     <div class="content">
@@ -30,9 +31,6 @@
         position: absolute;
         left: -5px;
         z-index: 10;
-    }
-    :global(.active-node) .drag-handle{
-        left:0;
     }
     .draggable:hover .drag-handle {
         background-size: 2px 4px;

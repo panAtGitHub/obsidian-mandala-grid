@@ -21,6 +21,7 @@ const toggleDraggedNodeVisibility = (
 export type DraggableData = {
     id: string;
     isInSidebar: boolean;
+    dragActivation?: 'edge-zone' | 'whole-card';
 };
 
 export const draggable = (node: HTMLElement, data: DraggableData) => {
@@ -29,14 +30,16 @@ export const draggable = (node: HTMLElement, data: DraggableData) => {
     const documentStore = view.documentStore;
     if (data.isInSidebar) return;
     node.draggable = true;
+    const useEdgeActivation = (data.dragActivation ?? 'edge-zone') === 'edge-zone';
 
     const handleDragstart = (event: DragEvent) => {
         if (!event.dataTransfer) return;
         const target = event.currentTarget as HTMLElement;
-        if (
+        const dragStartedNearEdge =
             event.clientX - target.getBoundingClientRect().x <= 7 ||
-            target.dataset['test'] === 'true'
-        ) {
+            target.dataset['test'] === 'true';
+
+        if (!useEdgeActivation || dragStartedNearEdge) {
             event.dataTransfer.setData('text/plain', data.id);
             setTimeout(() => {
                 const childGroups = traverseDown(

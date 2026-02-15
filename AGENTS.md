@@ -145,6 +145,7 @@ ESLint 配置：`.eslintrc`
 -   优先小而精的改动（尽量小的补丁）
 -   贴合当前模块既有模式（store/reducer、view、helpers 等）
 -   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test` 和/或 `npm run test:e2e`
+-   **强制交付动作（每次写完都要执行，不可省略）**：只要本次会话产生了代码改动，必须在结束前执行 `commit + build + sync`
 -   默认交付流程（完成代码改动后）：
     1. `git add -A && git commit -m "chore: update mandala grid plugin"`
     2. `npm run build`
