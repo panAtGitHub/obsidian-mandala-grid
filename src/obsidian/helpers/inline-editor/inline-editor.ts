@@ -142,7 +142,11 @@ export class InlineEditor {
         }
         this.nodeId = null;
         if (this.target) {
-            this.view.plugin.app.workspace.activeEditor = null;
+            const workspace = this.view.plugin.app.workspace as typeof this.view.plugin.app.workspace & {
+                _activeEditor?: InlineMarkdownView | null;
+            };
+            workspace.activeEditor = null;
+            workspace._activeEditor = null;
             this.target.removeEventListener('focusin', this.setActiveEditor);
             this.target.empty();
             this.target = null;
@@ -206,9 +210,10 @@ export class InlineEditor {
     }
 
     private setActiveEditor = () => {
-        const workspace = this.view.plugin.app.workspace as unknown as {
-            _activeEditor?: InlineMarkdownView;
+        const workspace = this.view.plugin.app.workspace as typeof this.view.plugin.app.workspace & {
+            _activeEditor?: InlineMarkdownView | null;
         };
+        workspace.activeEditor = this.inlineView;
         workspace._activeEditor = this.inlineView;
     };
 
