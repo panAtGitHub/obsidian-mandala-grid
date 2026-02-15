@@ -198,44 +198,10 @@ export class MandalaView extends TextFileView {
     }
 
     async onOpen() {
-        this.registerHeaderRenameBridge();
     }
 
     async onClose() {
         await this.onUnloadFile();
-    }
-
-    private registerHeaderRenameBridge() {
-        this.registerDomEvent(
-            this.containerEl,
-            'click',
-            (event: MouseEvent) => {
-                const target = event.target;
-                if (!(target instanceof HTMLElement)) return;
-                const inHeaderTitle = target.closest(
-                    '.view-header-title, .view-header-title-container',
-                );
-                if (!inHeaderTitle) return;
-                if (target.closest('.view-header-title-input')) return;
-                if (!this.file) return;
-                this.app.workspace.setActiveLeaf(this.leaf, { focus: true });
-                this.executeRenameTitleCommand();
-            },
-        );
-    }
-
-    private executeRenameTitleCommand() {
-        const appWithCommands = this.app as typeof this.app & {
-            commands?: {
-                commands?: Record<string, unknown>;
-                executeCommandById?: (id: string) => void;
-            };
-        };
-        const commands = appWithCommands.commands;
-        if (!commands?.executeCommandById) return;
-        const commandId = 'workspace:edit-file-title';
-        if (commands.commands && !(commandId in commands.commands)) return;
-        commands.executeCommandById(commandId);
     }
 
     setEphemeralState(state: unknown) {

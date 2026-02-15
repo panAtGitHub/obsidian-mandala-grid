@@ -21,7 +21,6 @@ import { DefaultPluginState } from 'src/stores/plugin/default-plugin-state';
 import { StatusBar } from 'src/obsidian/status-bar/status-bar';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { customIcons, loadCustomIcons } from 'src/helpers/load-custom-icons';
-import { setActiveLeaf } from 'src/obsidian/patches/set-active-leaf';
 import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
@@ -130,7 +129,6 @@ export default class MandalaGrid extends Plugin {
     }
 
     private registerPatches() {
-        this.register(around(this.app.workspace, { setActiveLeaf }));
         const setViewState = createSetViewState(this);
         const workspaceLeafPrototype = WorkspaceLeaf.prototype as unknown as Record<
             string,
