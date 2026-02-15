@@ -3,9 +3,7 @@
         HotkeyEditorState,
         ViewHotkey
     } from '../../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-    import { customIcons } from '../../../../../../../../helpers/load-custom-icons';
     import { lang } from '../../../../../../../../lang/lang';
-    import IconRenderer from 'src/view/components/container/shared/icon-renderer.svelte';
 
     export let hotkey: ViewHotkey;
     export let onClick: (() => void) | undefined = undefined;
@@ -15,16 +13,15 @@
         'editor-on': 'editor-state--on',
         'editor-off': 'editor-state--off',
     };
-    const cursorIcon = {
-        both: customIcons.cursor,
-        'editor-on': customIcons.cursor,
-        'editor-off': customIcons.cursorOff,
-    };
-
     const label: Record<HotkeyEditorState, string> = {
         both: lang.modal_hk_editor_state_both,
         'editor-on': lang.modal_hk_editor_state_on,
         'editor-off': lang.modal_hk_editor_state_off,
+    };
+    const shortLabel: Record<HotkeyEditorState, string> = {
+        both: '全部',
+        'editor-on': '编辑',
+        'editor-off': '浏览',
     };
 
     const wrappedOnClick = () => {
@@ -46,7 +43,7 @@
     aria-label={label[hotkey.editorState]}
     on:click={wrappedOnClick}
 >
-    <IconRenderer icon={cursorIcon[hotkey.editorState]} />
+    <span>{shortLabel[hotkey.editorState]}</span>
 </kbd
 >
 
@@ -55,16 +52,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 2px;
+        padding: 2px 4px;
         background-color: var(--color-base-100);
         color: var(--color-base-00);
-       /* position: absolute;
-        left: -25px;
-        top: calc(50% - 9px);*/
-        & svg {
-            width: 14px;
-            height: 14px;
-        }
+        font-size: 11px;
+        line-height: 1;
     }
 
 
