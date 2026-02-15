@@ -249,3 +249,8 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
 .mandala-pdf-export-layer {
     display: none;
 }
+
+.workspace-leaf-content[data-type='mandala-grid'] .view-header-title,
+.workspace-leaf-content[data-type='mandala-grid'] .view-header-title-container {
+    cursor: text;
+}
