@@ -1,7 +1,7 @@
 export const lang = {
     // open
-    ocm_open_in_editor: '在编辑器中打开',
-    ocm_open_in_mandala: '在九宫格中打开',
+    ocm_open_in_editor: '用普通md视图打开',
+    ocm_open_in_mandala: '用九宫格插件打开',
     cmd_toggle_mandala_view: 'Open Mandala Grid',
     card_btn_reveal_in_editor: 'Reveal in editor',
     error_parent_not_found: (full: string) =>
