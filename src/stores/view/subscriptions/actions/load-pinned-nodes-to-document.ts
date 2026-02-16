@@ -11,7 +11,6 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
     if (!view.file) return;
     const documentStore = view.documentStore;
     const documentState = documentStore.getValue();
-    const settingsState = view.plugin.settings.getValue();
     const pinnedSections = parsePinnedSectionsFromFrontmatter(
         documentState.file.frontmatter,
     );
@@ -22,11 +21,6 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
     const unchanged = sameSections(currentPinnedSections, pinnedSections);
 
     if (pinnedSections.length === 0) {
-        const activeLeftSideTab = settingsState.view.leftSidebarActiveTab;
-        const showLeftSidebarStore = settingsState.view.showLeftSidebar;
-        if (showLeftSidebarStore && activeLeftSideTab === 'pinned-cards') {
-            view.plugin.settings.dispatch({ type: 'view/left-sidebar/toggle' });
-        }
         if (unchanged) return;
         documentStore.dispatch({
             type: 'document/pinned-nodes/load-from-frontmatter',
