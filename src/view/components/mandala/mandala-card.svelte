@@ -48,15 +48,37 @@
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const getThemeTone = (): ThemeTone =>
         document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue('--background-primary')
+            .trim();
     let contrastBackgroundColor: string | null = null;
     let textTone: TextTone | null = null;
+    let cardStyle: string | undefined;
 
     $: contrastBackgroundColor = sectionColor
         ? sectionColor
         : style?.styleVariant === 'background-color'
           ? style.color
           : null;
-    $: textTone = getReadableTextTone(contrastBackgroundColor, getThemeTone());
+    $: textTone = getReadableTextTone(
+        contrastBackgroundColor,
+        getThemeTone(),
+        getThemeUnderlayColor(),
+    );
+    $: cardStyle = [
+        sectionColor ? `background-color: ${sectionColor}` : '',
+        textTone === 'dark'
+            ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b'
+            : '',
+        textTone === 'light'
+            ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce'
+            : '',
+    ]
+        .filter((chunk) => chunk.length > 0)
+        .join('; ');
+    $: cardStyle = cardStyle.length > 0 ? cardStyle : undefined;
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
@@ -104,11 +126,9 @@
     class:mandala-card--swap-disabled={$swapState.active &&
         !$swapState.targetNodeIds.has(nodeId) &&
         $swapState.sourceNodeId !== nodeId}
-    class:mandala-card--contrast-dark-text={textTone === 'dark'}
-    class:mandala-card--contrast-light-text={textTone === 'light'}
     class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
     id={nodeId}
-    style={sectionColor ? `background-color: ${sectionColor};` : undefined}
+    style={cardStyle}
     use:droppable
     on:click={handleCardClick}
     on:dblclick={(e) => {
@@ -206,18 +226,6 @@
 
     .mandala-card--swap-disabled {
         opacity: 0.6;
-    }
-
-    .mandala-card--contrast-dark-text {
-        --text-normal: var(--color-base-00);
-        --text-muted: var(--color-base-20);
-        --text-faint: var(--color-base-30);
-    }
-
-    .mandala-card--contrast-light-text {
-        --text-normal: var(--color-base-100);
-        --text-muted: var(--color-base-80);
-        --text-faint: var(--color-base-70);
     }
 
     /* 悬浮模式下的内容区优化 (目前统一由顶层逻辑处理) */

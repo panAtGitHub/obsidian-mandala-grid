@@ -28,4 +28,13 @@ describe('getReadableTextTone', () => {
             'light',
         );
     });
+
+    it('uses runtime underlay color when provided', () => {
+        expect(
+            getReadableTextTone('rgba(233, 217, 103, 0.2)', 'dark', '#232938'),
+        ).toBe('light');
+        expect(
+            getReadableTextTone('rgba(233, 217, 103, 0.2)', 'dark', '#f7f8fb'),
+        ).toBe('dark');
+    });
 });

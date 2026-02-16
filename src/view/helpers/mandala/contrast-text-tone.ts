@@ -119,13 +119,19 @@ const contrast = (l1: number, l2: number) => {
 export const getReadableTextTone = (
     backgroundColor: string | null | undefined,
     theme: ThemeTone,
+    underlayColor?: string | null,
 ): TextTone | null => {
     if (!backgroundColor) return null;
     const parsed = parseToRgba(backgroundColor);
     if (!parsed) return null;
 
+    const parsedUnderlay =
+        underlayColor && underlayColor.trim().length > 0
+            ? parseToRgba(underlayColor)
+            : null;
     const defaultBackground =
-        theme === 'dark' ? DARK_THEME_BACKGROUND : LIGHT_THEME_BACKGROUND;
+        parsedUnderlay ??
+        (theme === 'dark' ? DARK_THEME_BACKGROUND : LIGHT_THEME_BACKGROUND);
     const effectiveBg =
         parsed.a < 1 ? blendWithBackground(parsed, defaultBackground) : parsed;
 
