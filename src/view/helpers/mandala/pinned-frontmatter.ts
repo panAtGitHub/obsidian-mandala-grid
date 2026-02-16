@@ -56,11 +56,33 @@ const normalizeSections = (value: unknown): string[] => {
 export const readPinnedFromFrontmatter = (
     view: MandalaView,
 ): PinnedFrontmatter | null => {
-    if (!view.file) return null;
-    const cache = view.plugin.app.metadataCache.getFileCache(view.file);
-    const frontmatter = cache?.frontmatter;
-    if (!frontmatter) return null;
-    const sections = normalizeSections(frontmatter[PINNED_SECTIONS_KEY]);
+    const frontmatterText = view.documentStore.getValue().file.frontmatter;
+    let sections: string[] = [];
+
+    if (frontmatterText.trim()) {
+        const content = stripFrontmatter(frontmatterText);
+        if (content) {
+            try {
+                const parsed: unknown = parseYaml(content);
+                if (parsed && typeof parsed === 'object') {
+                    sections = normalizeSections(
+                        (parsed as Record<string, unknown>)[PINNED_SECTIONS_KEY],
+                    );
+                }
+            } catch {
+                sections = [];
+            }
+        }
+    }
+
+    if (sections.length === 0 && view.file) {
+        const cache = view.plugin.app.metadataCache.getFileCache(view.file);
+        const frontmatter = cache?.frontmatter;
+        if (frontmatter) {
+            sections = normalizeSections(frontmatter[PINNED_SECTIONS_KEY]);
+        }
+    }
+
     if (sections.length === 0) return null;
     return { sections };
 };
