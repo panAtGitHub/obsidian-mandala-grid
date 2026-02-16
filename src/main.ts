@@ -35,6 +35,7 @@ import {
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { lang } from 'src/lang/lang';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
 export type PluginStore = Store<PluginState, PluginStoreActions>;
@@ -148,7 +149,7 @@ export default class MandalaGrid extends Plugin {
     private loadRibbonIcon() {
         this.addRibbonIcon(
             customIcons.mandalaGrid.name,
-            'Open mandala grid',
+            lang.cmd_toggle_mandala_view,
             () => {
                 const file = getActiveFile(this);
                 if (file) {
