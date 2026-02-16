@@ -569,7 +569,7 @@
                                         pinned={$pinnedNodes.has(cell.nodeId)}
                                         style={$nodeStyles.get(cell.nodeId)}
                                         sectionColor={sectionBackground}
-                                        draggable={cell.section !== theme}
+                                        draggable={false}
                                     />
                                     {#if !Platform.isMobile &&
                                         $show3x3SubgridNavButtons &&
