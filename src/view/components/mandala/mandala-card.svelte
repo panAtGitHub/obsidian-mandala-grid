@@ -50,6 +50,10 @@
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
     const getThemeTone = (): ThemeTone =>
         document.body.classList.contains('theme-dark') ? 'dark' : 'light';
     const getThemeUnderlayColor = () =>
@@ -60,12 +64,14 @@
     let contrastBackgroundColor: string | null = null;
     let textTone: TextTone | null = null;
     let cardStyle: string | undefined;
+    let displaySection = section;
 
     $: contrastBackgroundColor = sectionColor
         ? sectionColor
         : style?.styleVariant === 'background-color'
           ? style.color
           : null;
+    $: displaySection = $idToSection[nodeId] ?? section;
     $: textTone = getReadableTextTone(
         contrastBackgroundColor,
         getThemeTone(),
@@ -160,7 +166,7 @@
 
         // 移动端：双击仅用于导航（进入/退出子九宫）
         if (isMobile) {
-            if (isGridCenter(view, nodeId, section)) {
+            if (isGridCenter(view, nodeId, displaySection)) {
                 exitCurrentSubgrid(view);
             } else {
                 enterSubgridForNode(view, nodeId);
@@ -205,7 +211,7 @@
         />
     {/if}
 
-    <div class="mandala-section-label">{section}</div>
+    <div class="mandala-section-label">{displaySection}</div>
 </div>
 
 <style>
