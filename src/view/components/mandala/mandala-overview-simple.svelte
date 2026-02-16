@@ -374,6 +374,15 @@
                 class:is-block-col-start={cell.col % 3 === 0}
                 class:is-last-row={cell.row === 8}
                 class:is-last-col={cell.col === 8}
+                class:simple-cell--swap-source={$swapState.active &&
+                    $swapState.sourceNodeId === cell.nodeId}
+                class:simple-cell--swap-target={$swapState.active &&
+                    !!cell.nodeId &&
+                    $swapState.targetNodeIds.has(cell.nodeId)}
+                class:simple-cell--swap-disabled={$swapState.active &&
+                    !!cell.nodeId &&
+                    !$swapState.targetNodeIds.has(cell.nodeId) &&
+                    $swapState.sourceNodeId !== cell.nodeId}
                 style={cell.background
                     ? `background-color: ${cell.background};`
                     : undefined}
@@ -564,6 +573,19 @@
         pointer-events: none;
         box-sizing: border-box;
         border-radius: 0;
+    }
+
+    .simple-cell--swap-source,
+    .simple-cell--swap-target {
+        box-shadow: inset 0 0 0 2px var(--interactive-accent);
+    }
+
+    .simple-cell--swap-target {
+        cursor: pointer;
+    }
+
+    .simple-cell--swap-disabled {
+        opacity: 0.6;
     }
 
     .cell-debug {
