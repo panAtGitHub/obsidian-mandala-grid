@@ -16,7 +16,11 @@
         exitCurrentSubgrid,
         isGridCenter,
     } from 'src/view/helpers/mandala/mobile-navigation';
-    import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
+    import {
+        executeMandalaSwap,
+        handleMandalaSwapNodeClick,
+        shouldBlockMandalaNodeDoubleClickForSwap,
+    } from 'src/view/helpers/mandala/mandala-swap';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
@@ -99,11 +103,11 @@
     };
 
     const handleCardClick = (e: MouseEvent) => {
-        if ($swapState.active) {
-            const sourceNodeId = $swapState.sourceNodeId;
-            if (sourceNodeId && $swapState.targetNodeIds.has(nodeId)) {
-                executeMandalaSwap(view, sourceNodeId, nodeId);
-            }
+        if (
+            handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
+                executeMandalaSwap(view, source, target),
+            )
+        ) {
             return;
         }
 
@@ -132,7 +136,7 @@
     use:droppable
     on:click={handleCardClick}
     on:dblclick={(e) => {
-        if ($swapState.active) return;
+        if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) return;
 
         // 移动端：双击仅用于导航（进入/退出子九宫）
         if (isMobile) {

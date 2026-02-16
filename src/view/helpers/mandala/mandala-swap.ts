@@ -3,6 +3,12 @@ import { Sections } from 'src/stores/document/document-state-type';
 import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 
+export type MandalaSwapInteractionState = {
+    active: boolean;
+    sourceNodeId: string | null;
+    targetNodeIds: Set<string>;
+};
+
 const getSectionDepth = (section: string) => section.split('.').length;
 
 const getSectionParent = (section: string) => {
@@ -89,3 +95,20 @@ export const executeMandalaSwap = (
         new Notice(lang.notice_swap_complete, 1200);
     }, 260);
 };
+
+export const handleMandalaSwapNodeClick = (
+    swapState: MandalaSwapInteractionState,
+    targetNodeId: string,
+    execute: (sourceNodeId: string, targetNodeId: string) => void,
+) => {
+    if (!swapState.active) return false;
+    const sourceNodeId = swapState.sourceNodeId;
+    if (sourceNodeId && swapState.targetNodeIds.has(targetNodeId)) {
+        execute(sourceNodeId, targetNodeId);
+    }
+    return true;
+};
+
+export const shouldBlockMandalaNodeDoubleClickForSwap = (
+    swapState: Pick<MandalaSwapInteractionState, 'active'>,
+) => swapState.active;

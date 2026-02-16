@@ -9,7 +9,11 @@
     import { derived } from 'src/lib/store/derived';
     import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
-    import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
+    import {
+        executeMandalaSwap,
+        handleMandalaSwapNodeClick,
+        shouldBlockMandalaNodeDoubleClickForSwap,
+    } from 'src/view/helpers/mandala/mandala-swap';
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
@@ -284,11 +288,13 @@
             return;
         }
 
-        if ($swapState.active) {
-            const sourceNodeId = $swapState.sourceNodeId;
-            if (sourceNodeId && $swapState.targetNodeIds.has(cell.nodeId)) {
-                executeMandalaSwap(view, sourceNodeId, cell.nodeId);
-            }
+        if (
+            handleMandalaSwapNodeClick(
+                $swapState,
+                cell.nodeId,
+                (source, target) => executeMandalaSwap(view, source, target),
+            )
+        ) {
             return;
         }
 
@@ -300,7 +306,7 @@
     };
 
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
-        if ($swapState.active) {
+        if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) {
             return;
         }
 
