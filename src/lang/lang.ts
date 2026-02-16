@@ -2,7 +2,7 @@ export const lang = {
     // open
     ocm_open_in_editor: '用普通md视图打开',
     ocm_open_in_mandala: '用九宫格插件打开',
-    cmd_toggle_mandala_view: 'Open Mandala Grid',
+    cmd_toggle_mandala_view: '切换成九宫格视图或普通文件视图',
     card_btn_reveal_in_editor: 'Reveal in editor',
     error_parent_not_found: (full: string) =>
         `Could not find the parent section of ${full}`,
@@ -11,8 +11,8 @@ export const lang = {
     error_save_empty_data: "Can't save empty data",
 
     // create document
-    cmd_create_new_document: 'New Mandala Grid',
-    cmd_set_day_plan_mandala_format: '设置成「日计划」九宫格格式',
+    cmd_create_new_document: '新建九宫格文件',
+    cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
     ocm_new_document: '新建九宫格文档',
     ocm_import_from_gingko: '从 Gingko 导入',
 
