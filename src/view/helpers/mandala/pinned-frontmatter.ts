@@ -1,9 +1,46 @@
 import { MandalaView } from 'src/view/view';
+import { parseYaml, stringifyYaml } from 'obsidian';
+import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 
 const PINNED_SECTIONS_KEY = 'mandala_pinned_sections';
 
 type PinnedFrontmatter = {
     sections: string[];
+};
+
+const stripFrontmatter = (frontmatter: string) =>
+    frontmatter
+        .replace(/^---\n/, '')
+        .replace(/\n---\n?$/, '')
+        .trim();
+
+const buildFrontmatterWithPinnedSections = (
+    frontmatter: string,
+    sections: string[],
+) => {
+    let record: Record<string, unknown> = {};
+    if (frontmatter.trim()) {
+        const content = stripFrontmatter(frontmatter);
+        if (content) {
+            try {
+                const parsed: unknown = parseYaml(content);
+                if (parsed && typeof parsed === 'object') {
+                    record = parsed as Record<string, unknown>;
+                }
+            } catch {
+                record = {};
+            }
+        }
+    }
+
+    if (sections.length > 0) {
+        record[PINNED_SECTIONS_KEY] = sections;
+    } else {
+        delete record[PINNED_SECTIONS_KEY];
+    }
+
+    const yaml = stringifyYaml(record).trim();
+    return yaml ? `---\n${yaml}\n---\n` : '';
 };
 
 const normalizeSections = (value: unknown): string[] => {
@@ -33,6 +70,15 @@ export const writePinnedToFrontmatter = (
     sections: string[],
 ): void => {
     if (!view.file) return;
+    const currentFrontmatter = view.documentStore.getValue().file.frontmatter;
+    const nextFrontmatter = buildFrontmatterWithPinnedSections(
+        currentFrontmatter,
+        sections,
+    );
+    if (nextFrontmatter !== currentFrontmatter) {
+        updateFrontmatter(view, nextFrontmatter);
+    }
+
     void view.plugin.app.fileManager.processFrontMatter(
         view.file,
         (frontmatter) => {
