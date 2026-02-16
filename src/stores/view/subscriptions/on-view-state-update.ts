@@ -4,7 +4,6 @@ import { getViewEventType } from 'src/stores/view/helpers/get-view-event-type';
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 import { persistActiveNodeInPluginSettings } from 'src/stores/view/subscriptions/actions/persist-active-node-in-plugin-settings';
-import { persistActivePinnedNode } from 'src/stores/view/subscriptions/actions/persist-active-pinned-node';
 import { showSearchResultsInMinimap } from 'src/stores/view/subscriptions/effects/show-search-results-in-minimap';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { persistCollapsedSections } from 'src/stores/view/subscriptions/actions/settings/persist-collapsed-sections';
@@ -82,10 +81,6 @@ export const onViewStateUpdate = (
         action.type === 'view/search/set-query'
     ) {
         showSearchResultsInMinimap(view);
-    }
-
-    if (type === 'view/pinned-nodes/set-active-node') {
-        persistActivePinnedNode(view);
     }
 
     if (action.type === 'view/hotkeys/toggle-modal') {

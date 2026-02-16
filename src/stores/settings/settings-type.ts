@@ -35,10 +35,6 @@ export type DocumentPreferences = {
     documentFormat: MandalaGridDocumentFormat;
     viewType: ViewType;
     activeSection: string | null;
-    pinnedSections: {
-        sections: string[];
-        activeSection: string | null;
-    } | null;
     outline: {
         collapsedSections: string[];
     } | null;

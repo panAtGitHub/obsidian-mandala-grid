@@ -24,10 +24,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
                 documentFormat: action.payload.format,
                 viewType: 'mandala-grid',
                 activeSection: null,
-                pinnedSections: {
-                    sections: [],
-                    activeSection: null,
-                },
                 outline: {
                     collapsedSections: [],
                 },
@@ -143,29 +139,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'view/left-sidebar/toggle': (store, action) => {
         if (action.type !== 'view/left-sidebar/toggle') return;
         store.view.showLeftSidebar = !store.view.showLeftSidebar;
-    },
-    'settings/pinned-nodes/persist': (store, action) => {
-        if (action.type !== 'settings/pinned-nodes/persist') return;
-        const document = store.documents[action.payload.filePath];
-        if (!document.pinnedSections) {
-            document.pinnedSections = {
-                sections: [],
-                activeSection: null,
-            };
-        }
-        document.pinnedSections.sections = action.payload.sections;
-        document.pinnedSections.activeSection = action.payload.section;
-    },
-    'settings/pinned-nodes/persist-active-node': (store, action) => {
-        if (action.type !== 'settings/pinned-nodes/persist-active-node') return;
-        const document = store.documents[action.payload.filePath];
-        if (!document.pinnedSections) {
-            document.pinnedSections = {
-                sections: [],
-                activeSection: null,
-            };
-        }
-        document.pinnedSections.activeSection = action.payload.section;
     },
     'settings/view/toggle-horizontal-scrolling-mode': (store, action) => {
         if (action.type !== 'settings/view/toggle-horizontal-scrolling-mode')

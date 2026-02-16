@@ -149,21 +149,6 @@ export type SettingsActions =
           type: 'view/left-sidebar/set-active-tab';
           payload: { tab: LeftSidebarTab };
       }
-    | {
-          type: 'settings/pinned-nodes/persist';
-          payload: {
-              filePath: string;
-              sections: string[];
-              section: string | null;
-          };
-      }
-    | {
-          type: 'settings/pinned-nodes/persist-active-node';
-          payload: {
-              filePath: string;
-              section: string | null;
-          };
-      }
     | { type: 'view/modes/gap-between-cards/toggle' }
     | { type: 'settings/view/modes/toggle-outline-mode' }
     | { type: 'settings/view/mandala/toggle-mode' }

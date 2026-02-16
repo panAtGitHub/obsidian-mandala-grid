@@ -12,7 +12,6 @@ const sample: DocumentPreferences = {
     documentFormat: 'sections',
     viewType: 'mandala-grid',
     activeSection: null,
-    pinnedSections: null,
     outline: null,
 };
 describe('filterStaleDocuments', () => {

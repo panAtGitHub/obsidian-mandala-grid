@@ -8,9 +8,13 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                 documentFormat: 'sections',
                 viewType: 'mandala-grid',
                 activeSection: null,
-                pinnedSections: null,
                 outline: null,
             };
+        } else if (pref && typeof pref === 'object') {
+            const legacyPref = pref as Settings['documents'][string] & {
+                pinnedSections?: unknown;
+            };
+            delete legacyPref.pinnedSections;
         }
     }
 
