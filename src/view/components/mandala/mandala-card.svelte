@@ -120,6 +120,17 @@
             e.stopPropagation();
         }
     };
+
+    const handleCardTouchStart = (e: TouchEvent) => {
+        if (
+            handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
+                executeMandalaSwap(view, source, target),
+            )
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
 </script>
 
 <div
@@ -142,6 +153,7 @@
     style={cardStyle}
     use:droppable
     on:mousedown={handleCardMouseDown}
+    on:touchstart={handleCardTouchStart}
     on:click={handleCardClick}
     on:dblclick={(e) => {
         if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) return;

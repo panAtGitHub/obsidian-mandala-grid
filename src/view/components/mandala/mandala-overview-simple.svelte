@@ -316,6 +316,23 @@
         }
     };
 
+    const onCellTouchStart = (
+        cell: (typeof styledCells)[number],
+        event: TouchEvent,
+    ) => {
+        if (!cell.nodeId) return;
+        if (
+            handleMandalaSwapNodeClick(
+                $swapState,
+                cell.nodeId,
+                (source, target) => executeMandalaSwap(view, source, target),
+            )
+        ) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    };
+
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
         if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) {
             return;
@@ -400,6 +417,7 @@
                 data-node-id={cell.nodeId || undefined}
                 id={cell.nodeId || undefined}
                 on:mousedown={(event) => onCellMouseDown(cell, event)}
+                on:touchstart={(event) => onCellTouchStart(cell, event)}
                 on:click={() => onCellClick(cell)}
                 on:dblclick={() => onCellDblClick(cell)}
             >
