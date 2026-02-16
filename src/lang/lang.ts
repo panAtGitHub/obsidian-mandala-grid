@@ -115,7 +115,7 @@ export const lang = {
     hk_move_node_left: '向左移动分支',
     hkg_move_nodes: '移动',
     modals_snapshots_moved_node: 'Moved section ',
-    cm_swap_position: '交换位置（仅适用于3x3视图）',
+    cm_swap_position: '交换位置',
     notice_swap_select_target:
         'Source selected. Click a target card to swap, or press Esc to cancel.',
     notice_swap_in_progress: 'Swapping...',
