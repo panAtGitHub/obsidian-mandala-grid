@@ -20,12 +20,10 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
         return;
     }
 
-    if (documentState.pinnedNodes.Ids.length === 0) {
-        documentStore.dispatch({
-            type: 'document/pinned-nodes/load-from-settings',
-            payload: {
-                sections: pinnedSections,
-            },
-        });
-    }
+    documentStore.dispatch({
+        type: 'document/pinned-nodes/load-from-settings',
+        payload: {
+            sections: pinnedSections,
+        },
+    });
 };

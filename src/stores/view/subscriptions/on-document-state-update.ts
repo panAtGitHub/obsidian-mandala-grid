@@ -9,6 +9,7 @@ import { persistPinnedNodes } from 'src/stores/view/subscriptions/actions/persis
 import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actions/update-stale-active-pinned-node';
 import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-active-pinned-node';
 import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/update-selected-nodes';
+import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 
 export const onDocumentStateUpdate = (
     view: MandalaView,
@@ -27,6 +28,7 @@ export const onDocumentStateUpdate = (
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
         view.inlineEditor.unloadNode();
+        loadPinnedNodesToDocument(view);
     }
 
     const structuralChange =
