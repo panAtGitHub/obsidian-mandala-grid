@@ -185,6 +185,44 @@ export const setSectionColor = (
     return next;
 };
 
+export const swapSectionColors = (
+    map: SectionColorMap,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    if (!sourceSection || !targetSection || sourceSection === targetSection) {
+        return map;
+    }
+
+    const index = createSectionColorIndex(map);
+    const sourceColor = index[sourceSection] ?? null;
+    const targetColor = index[targetSection] ?? null;
+    if (sourceColor === targetColor) return map;
+
+    let next = setSectionColor(map, sourceSection, targetColor);
+    next = setSectionColor(next, targetSection, sourceColor);
+    return next;
+};
+
+export const swapSectionColorsInFrontmatter = (
+    frontmatter: string,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    const currentMap = parseSectionColorsFromFrontmatter(frontmatter);
+    const nextMap = swapSectionColors(
+        currentMap,
+        sourceSection,
+        targetSection,
+    );
+    const currentSerialized = serializeSectionColorMap(currentMap);
+    const nextSerialized = serializeSectionColorMap(nextMap);
+    const hasChanged =
+        JSON.stringify(currentSerialized) !== JSON.stringify(nextSerialized);
+    if (!hasChanged) return frontmatter;
+    return buildFrontmatterWithSectionColors(frontmatter, nextMap);
+};
+
 export const writeSectionColorsToFrontmatter = async (
     view: MandalaView,
     map: SectionColorMap,

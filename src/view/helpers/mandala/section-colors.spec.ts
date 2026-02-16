@@ -3,6 +3,7 @@ import {
     compareSectionIds,
     serializeSectionColorMap,
     setSectionColor,
+    swapSectionColors,
     type SectionColorMap,
 } from 'src/view/helpers/mandala/section-colors';
 
@@ -51,5 +52,27 @@ describe('section-colors', () => {
 
         expect(next['2_rose']).toEqual(['2.1', '2.2']);
         expect(next['5_green']).toEqual([]);
+    });
+
+    it('swaps section colors between two sections', () => {
+        const map = createMap({
+            '2_rose': ['2.1'],
+            '6_blue': ['2.2'],
+        });
+
+        const next = swapSectionColors(map, '2.1', '2.2');
+
+        expect(next['2_rose']).toEqual(['2.2']);
+        expect(next['6_blue']).toEqual(['2.1']);
+    });
+
+    it('moves color to target when source has color and target has none', () => {
+        const map = createMap({
+            '2_rose': ['2.1'],
+        });
+
+        const next = swapSectionColors(map, '2.1', '2.2');
+
+        expect(next['2_rose']).toEqual(['2.2']);
     });
 });
