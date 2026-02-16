@@ -36,6 +36,8 @@ import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { lang } from 'src/lang/lang';
+import { getCurrentViewTypeForFile } from 'src/obsidian/events/workspace/helpers/get-current-view-type-for-file';
+import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
 export type PluginStore = Store<PluginState, PluginStoreActions>;
@@ -44,6 +46,7 @@ export default class MandalaGrid extends Plugin {
     settings: SettingsStore;
     store: PluginStore;
     statusBar: StatusBar;
+    ribbonIconEl: HTMLElement | null = null;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
     private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
     private isSavingSettings = false;
@@ -147,9 +150,9 @@ export default class MandalaGrid extends Plugin {
     }
 
     private loadRibbonIcon() {
-        this.addRibbonIcon(
+        this.ribbonIconEl = this.addRibbonIcon(
             customIcons.mandalaGrid.name,
-            lang.cmd_toggle_mandala_view,
+            this.getRibbonToggleTitle(),
             () => {
                 const file = getActiveFile(this);
                 if (file) {
@@ -159,6 +162,46 @@ export default class MandalaGrid extends Plugin {
                 }
             },
         );
+        this.syncRibbonToggleTitle();
+        this.registerEvent(
+            this.app.workspace.on('file-open', () => {
+                this.syncRibbonToggleTitle();
+            }),
+        );
+        this.registerEvent(
+            this.app.workspace.on('active-leaf-change', () => {
+                this.syncRibbonToggleTitle();
+            }),
+        );
+        this.registerEvent(
+            this.app.workspace.on('layout-change', () => {
+                this.syncRibbonToggleTitle();
+            }),
+        );
+    }
+
+    private getRibbonToggleTitle() {
+        const file = getActiveFile(this);
+        if (!file) return lang.ocm_new_document;
+        const leaf =
+            getLeafOfFile(this, file, MANDALA_VIEW_TYPE) ||
+            getLeafOfFile(this, file, 'markdown') ||
+            undefined;
+        const viewType = getCurrentViewTypeForFile(
+            this,
+            file,
+            leaf,
+        );
+        return viewType === MANDALA_VIEW_TYPE
+            ? lang.ocm_open_in_editor
+            : lang.ocm_open_in_mandala;
+    }
+
+    private syncRibbonToggleTitle() {
+        if (!this.ribbonIconEl) return;
+        const title = this.getRibbonToggleTitle();
+        this.ribbonIconEl.setAttribute('aria-label', title);
+        this.ribbonIconEl.setAttribute('title', title);
     }
 
     onunload() {
