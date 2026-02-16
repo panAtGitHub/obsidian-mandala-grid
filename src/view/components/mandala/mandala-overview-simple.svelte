@@ -9,6 +9,7 @@
     import { derived } from 'src/lib/store/derived';
     import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
@@ -46,6 +47,7 @@
         view.viewStore,
         (state) => state.ui.mandala.activeCell9x9,
     );
+    const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
         return (
@@ -282,6 +284,14 @@
             return;
         }
 
+        if ($swapState.active) {
+            const sourceNodeId = $swapState.sourceNodeId;
+            if (sourceNodeId && $swapState.targetNodeIds.has(cell.nodeId)) {
+                executeMandalaSwap(view, sourceNodeId, cell.nodeId);
+            }
+            return;
+        }
+
         // A section can appear in multiple 9x9 cells. Keep the clicked cell
         // as the single visual focus instead of highlighting all same-node copies.
         setActiveCell9x9(view, { row: cell.row, col: cell.col });
@@ -290,6 +300,10 @@
     };
 
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
+        if ($swapState.active) {
+            return;
+        }
+
         if (!cell.nodeId) {
             setActiveCell9x9(view, { row: cell.row, col: cell.col });
             return;
