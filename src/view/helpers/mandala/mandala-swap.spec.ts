@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+    getMandalaSwapTargets,
     handleMandalaSwapNodeClick,
     shouldBlockMandalaNodeDoubleClickForSwap,
     type MandalaSwapInteractionState,
 } from 'src/view/helpers/mandala/mandala-swap';
+import { Sections } from 'src/stores/document/document-state-type';
 
 vi.mock('obsidian', () => ({
     Notice: vi.fn(),
@@ -19,6 +21,32 @@ const createSwapState = (
 });
 
 describe('mandala-swap interactions', () => {
+    it('gets same-depth targets across different parents', () => {
+        const sections: Sections = {
+            id_section: {
+                root: '1',
+                source: '1.1.1',
+                sibling: '1.1.2',
+                crossParent: '1.2.1',
+                parentLevel: '1.2',
+            },
+            section_id: {
+                '1': 'root',
+                '1.1.1': 'source',
+                '1.1.2': 'sibling',
+                '1.2.1': 'crossParent',
+                '1.2': 'parentLevel',
+            },
+        };
+
+        const targets = getMandalaSwapTargets(sections, 'source');
+
+        expect(targets.has('sibling')).toBe(true);
+        expect(targets.has('crossParent')).toBe(true);
+        expect(targets.has('parentLevel')).toBe(false);
+        expect(targets.has('root')).toBe(false);
+    });
+
     it('does not consume click when swap mode is inactive', () => {
         const execute = vi.fn();
         const consumed = handleMandalaSwapNodeClick(

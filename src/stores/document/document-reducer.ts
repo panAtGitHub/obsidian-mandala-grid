@@ -125,18 +125,16 @@ const updateDocumentState = (
         const targetLastDot = targetSection.lastIndexOf('.');
         const sourceIsLeaf = sourceLastDot !== -1;
         const targetIsLeaf = targetLastDot !== -1;
+        const sourceDepth = sourceSection.split('.').length;
+        const targetDepth = targetSection.split('.').length;
         if (sourceIsLeaf !== targetIsLeaf) return NO_UPDATE;
+        if (sourceDepth !== targetDepth) return NO_UPDATE;
 
         if (!sourceIsLeaf) {
             const s = Number(sourceSection);
             const t = Number(targetSection);
             if (!(s >= 2 && s <= 9 && t >= 2 && t <= 9)) return NO_UPDATE;
         } else {
-            const sourceParent = sourceSection.slice(0, sourceLastDot);
-            const targetParent = targetSection.slice(0, targetLastDot);
-            if (!sourceParent || sourceParent !== targetParent)
-                return NO_UPDATE;
-
             const si = Number(sourceSection.slice(sourceLastDot + 1));
             const ti = Number(targetSection.slice(targetLastDot + 1));
             if (!(si >= 1 && si <= 8 && ti >= 1 && ti <= 8)) return NO_UPDATE;

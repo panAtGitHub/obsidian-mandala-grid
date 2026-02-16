@@ -11,12 +11,6 @@ export type MandalaSwapInteractionState = {
 
 const getSectionDepth = (section: string) => section.split('.').length;
 
-const getSectionParent = (section: string) => {
-    const parts = section.split('.');
-    parts.pop();
-    return parts.join('.');
-};
-
 export const getMandalaSwapTargets = (
     sections: Sections,
     sourceNodeId: string,
@@ -25,14 +19,12 @@ export const getMandalaSwapTargets = (
     if (!sourceSection || sourceSection === '1') return new Set<string>();
 
     const sourceDepth = getSectionDepth(sourceSection);
-    const sourceParent = getSectionParent(sourceSection);
     const targets = new Set<string>();
 
     for (const [nodeId, section] of Object.entries(sections.id_section)) {
         if (nodeId === sourceNodeId) continue;
         if (section === '1') continue;
         if (getSectionDepth(section) !== sourceDepth) continue;
-        if (getSectionParent(section) !== sourceParent) continue;
         targets.add(nodeId);
     }
 
