@@ -3,7 +3,7 @@ import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/documen
 import { MandalaView } from 'src/view/view';
 
 export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
-export const PINNED_SECTIONS_FRONTMATTER_KEY = 'mandala_pinned_sections';
+const PINNED_SECTIONS_FRONTMATTER_KEY = 'mandala_pinned_sections';
 
 export const SECTION_COLOR_KEYS = [
     '1_white',

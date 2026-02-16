@@ -120,7 +120,7 @@ export const onDocumentStateUpdate = (
     }
     if (
         pinnedNodesUpdate ||
-        type === 'document/pinned-nodes/load-from-settings'
+        type === 'document/pinned-nodes/load-from-frontmatter'
     ) {
         if (type === 'document/pinned-nodes/pin') {
             setActivePinnedNode(view, action.payload.id);

@@ -4,7 +4,7 @@ import {
 } from 'src/stores/document/document-state-type';
 
 export type LoadPinnedNodesAction = {
-    type: 'document/pinned-nodes/load-from-settings';
+    type: 'document/pinned-nodes/load-from-frontmatter';
     payload: {
         sections: string[];
     };
