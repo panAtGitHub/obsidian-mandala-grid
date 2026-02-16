@@ -103,15 +103,22 @@
     };
 
     const handleCardClick = (e: MouseEvent) => {
+        if ($swapState.active) {
+            return;
+        }
+
+        handleSelect(e);
+    };
+
+    const handleCardMouseDown = (e: MouseEvent) => {
         if (
             handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
                 executeMandalaSwap(view, source, target),
             )
         ) {
-            return;
+            e.preventDefault();
+            e.stopPropagation();
         }
-
-        handleSelect(e);
     };
 </script>
 
@@ -134,6 +141,7 @@
     id={nodeId}
     style={cardStyle}
     use:droppable
+    on:mousedown={handleCardMouseDown}
     on:click={handleCardClick}
     on:dblclick={(e) => {
         if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) return;

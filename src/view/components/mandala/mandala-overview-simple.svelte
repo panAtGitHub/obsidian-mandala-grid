@@ -283,18 +283,12 @@
     });
 
     const onCellClick = (cell: (typeof styledCells)[number]) => {
-        if (!cell.nodeId) {
-            setActiveCell9x9(view, { row: cell.row, col: cell.col });
+        if ($swapState.active) {
             return;
         }
 
-        if (
-            handleMandalaSwapNodeClick(
-                $swapState,
-                cell.nodeId,
-                (source, target) => executeMandalaSwap(view, source, target),
-            )
-        ) {
+        if (!cell.nodeId) {
+            setActiveCell9x9(view, { row: cell.row, col: cell.col });
             return;
         }
 
@@ -303,6 +297,23 @@
         setActiveCell9x9(view, { row: cell.row, col: cell.col });
 
         setActiveMandalaNode(view, cell.nodeId);
+    };
+
+    const onCellMouseDown = (
+        cell: (typeof styledCells)[number],
+        event: MouseEvent,
+    ) => {
+        if (!cell.nodeId) return;
+        if (
+            handleMandalaSwapNodeClick(
+                $swapState,
+                cell.nodeId,
+                (source, target) => executeMandalaSwap(view, source, target),
+            )
+        ) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
     };
 
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
@@ -388,6 +399,7 @@
                     : undefined}
                 data-node-id={cell.nodeId || undefined}
                 id={cell.nodeId || undefined}
+                on:mousedown={(event) => onCellMouseDown(cell, event)}
                 on:click={() => onCellClick(cell)}
                 on:dblclick={() => onCellDblClick(cell)}
             >
