@@ -7,7 +7,7 @@
         Show3x3SubgridNavButtonsStore,
         Show9x9ParallelNavButtonsStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { onDestroy, onMount, tick } from 'svelte';
+    import { onDestroy, tick } from 'svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import { NodeStylesStore } from 'src/stores/view/derived/style-rules';
@@ -17,10 +17,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
-    import {
-        ensureSectionSessionMaintenance,
-        startSectionNativeEditorSession,
-    } from 'src/view/helpers/mandala/section-native-editor-session';
+    import { startSectionNativeEditorSession } from 'src/view/helpers/mandala/section-native-editor-session';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
     const MIN_SIZE = 200;
@@ -38,9 +35,6 @@
     let startSize = 0;
 
     const view = getView();
-    onMount(() => {
-        void ensureSectionSessionMaintenance(view);
-    });
     const showSidebarStore = ShowMandalaDetailSidebarStore(view);
     const editingState = derived(
         view.viewStore,

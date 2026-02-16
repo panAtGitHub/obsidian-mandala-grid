@@ -18,15 +18,9 @@ let isStartingSectionSession = false;
 let isSavingSectionSession = false;
 let isSweepingStaleSessions = false;
 let hasRegisteredSessionWatchers = false;
-let sectionSessionMaintenancePromise: Promise<void> | null = null;
 
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
-const LEGACY_SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
-const SESSION_FOLDER = '.mandala-grid/section-edit-sessions';
-
-const isFileNotFound = (error: unknown) =>
-    error instanceof Error &&
-    (error.message.includes('ENOENT') || error.message.includes('NotFoundError'));
+const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
 
 const ensureFolderRecursive = async (view: MandalaView, path: string) => {
     const parts = path.split('/').filter(Boolean);
@@ -35,17 +29,6 @@ const ensureFolderRecursive = async (view: MandalaView, path: string) => {
         current = current ? `${current}/${part}` : part;
         if (view.app.vault.getAbstractFileByPath(current)) continue;
         await view.app.vault.createFolder(current);
-    }
-};
-
-const removeFolderIfEmpty = async (view: MandalaView, path: string) => {
-    try {
-        const listed = await view.app.vault.adapter.list(path);
-        if (listed.files.length > 0 || listed.folders.length > 0) return;
-        await view.app.vault.adapter.rmdir(path, false);
-    } catch (error) {
-        if (isFileNotFound(error)) return;
-        logger.warn(`Failed to remove empty session folder: ${path}`, error);
     }
 };
 
@@ -135,19 +118,8 @@ const switchBackToMandala = async (
 const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
     sessionByTempFilePath.delete(tempFilePath);
     const tempFile = getFileByPath(view, tempFilePath);
-    if (tempFile) {
-        await view.app.fileManager.trashFile(tempFile);
-    } else {
-        try {
-            await view.app.vault.adapter.trashLocal(tempFilePath);
-        } catch (error) {
-            if (!isFileNotFound(error)) {
-                logger.warn(`Failed to clean temp session file: ${tempFilePath}`, error);
-            }
-        }
-    }
-    await removeFolderIfEmpty(view, SESSION_FOLDER);
-    await removeFolderIfEmpty(view, LEGACY_SESSION_FOLDER);
+    if (!tempFile) return;
+    await view.app.fileManager.trashFile(tempFile);
 };
 
 const mergeTempFileToSource = async (
@@ -181,30 +153,6 @@ const sweepStaleSessions = async (view: MandalaView) => {
     }
 };
 
-const cleanupOrphanedTempFilesInFolder = async (
-    view: MandalaView,
-    folderPath: string,
-) => {
-    try {
-        const listed = await view.app.vault.adapter.list(folderPath);
-        for (const filePath of listed.files) {
-            if (isTempFileOpen(view, filePath)) continue;
-            try {
-                await cleanupSession(view, filePath);
-            } catch (error) {
-                logger.warn(
-                    `Failed to cleanup orphaned temp session file: ${filePath}`,
-                    error,
-                );
-            }
-        }
-        await removeFolderIfEmpty(view, folderPath);
-    } catch (error) {
-        if (isFileNotFound(error)) return;
-        logger.warn(`Failed to list section session folder: ${folderPath}`, error);
-    }
-};
-
 const ensureSessionWatchers = (view: MandalaView) => {
     if (hasRegisteredSessionWatchers) return;
     hasRegisteredSessionWatchers = true;
@@ -218,16 +166,6 @@ const ensureSessionWatchers = (view: MandalaView) => {
             void sweepStaleSessions(view);
         }),
     );
-};
-
-export const ensureSectionSessionMaintenance = (view: MandalaView) => {
-    ensureSessionWatchers(view);
-    if (sectionSessionMaintenancePromise) return sectionSessionMaintenancePromise;
-    sectionSessionMaintenancePromise = (async () => {
-        await cleanupOrphanedTempFilesInFolder(view, LEGACY_SESSION_FOLDER);
-        await cleanupOrphanedTempFilesInFolder(view, SESSION_FOLDER);
-    })();
-    return sectionSessionMaintenancePromise;
 };
 
 const withSessionFromView = (
@@ -308,7 +246,7 @@ export const startSectionNativeEditorSession = async (
     try {
         const sourceFile = view.file;
         if (!sourceFile) return;
-        await ensureSectionSessionMaintenance(view);
+        ensureSessionWatchers(view);
 
         const section = getSectionByNodeId(view, nodeId);
         if (!section) {
