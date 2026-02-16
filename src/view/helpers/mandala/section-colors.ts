@@ -3,6 +3,7 @@ import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/documen
 import { MandalaView } from 'src/view/view';
 
 export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
+export const PINNED_SECTIONS_FRONTMATTER_KEY = 'mandala_pinned_sections';
 
 export const SECTION_COLOR_KEYS = [
     '1_white',
@@ -76,25 +77,49 @@ const stripFrontmatter = (frontmatter: string) =>
         .replace(/\n---\n?$/, '')
         .trim();
 
+const parseFrontmatterRecord = (frontmatter: string) => {
+    if (!frontmatter.trim()) return {};
+    const content = stripFrontmatter(frontmatter);
+    if (!content) return {};
+    try {
+        const parsed: unknown = parseYaml(content);
+        if (parsed && typeof parsed === 'object') {
+            return parsed as Record<string, unknown>;
+        }
+    } catch {
+        return {};
+    }
+    return {};
+};
+
+const normalizeSectionIdsFromUnknown = (value: unknown) => {
+    if (Array.isArray(value)) {
+        const rawSections = value as unknown[];
+        return normalizeSectionIds(
+            rawSections
+                .map((section) =>
+                    typeof section === 'number' ? String(section) : section,
+                )
+                .filter(
+                    (section): section is string => typeof section === 'string',
+                ),
+        );
+    }
+    if (typeof value === 'string') {
+        return [value];
+    }
+    if (typeof value === 'number') {
+        return [String(value)];
+    }
+    return [];
+};
+
 const buildFrontmatterWithSectionColors = (
     frontmatter: string,
     map: SectionColorMap,
 ) => {
     const serialized = serializeSectionColorMap(map);
-    let record: Record<string, unknown> = {};
-    if (frontmatter.trim()) {
-        const content = stripFrontmatter(frontmatter);
-        if (content) {
-            try {
-                const parsed: unknown = parseYaml(content);
-                if (parsed && typeof parsed === 'object') {
-                    record = parsed as Record<string, unknown>;
-                }
-            } catch {
-                record = {};
-            }
-        }
-    }
+    const record = parseFrontmatterRecord(frontmatter);
     if (Object.keys(serialized).length === 0) {
         delete record[SECTION_COLORS_FRONTMATTER_KEY];
     } else {
@@ -109,23 +134,7 @@ const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
     if (!value || typeof value !== 'object') return map;
     const record = value as Record<string, unknown>;
     for (const key of SECTION_COLOR_KEYS) {
-        const raw = record[key];
-        if (Array.isArray(raw)) {
-            const rawSections = raw as unknown[];
-            map[key] = normalizeSectionIds(
-                rawSections
-                .map((section) =>
-                    typeof section === 'number' ? String(section) : section,
-                )
-                .filter(
-                    (section): section is string => typeof section === 'string',
-                ),
-            );
-        } else if (typeof raw === 'string') {
-            map[key] = [raw];
-        } else if (typeof raw === 'number') {
-            map[key] = [String(raw)];
-        }
+        map[key] = normalizeSectionIdsFromUnknown(record[key]);
     }
     return map;
 };
@@ -133,20 +142,33 @@ const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
 export const parseSectionColorsFromFrontmatter = (
     frontmatter: string,
 ): SectionColorMap => {
-    if (!frontmatter.trim()) return createEmptySectionColorMap();
-    const content = stripFrontmatter(frontmatter);
-    if (!content) return createEmptySectionColorMap();
-    let parsed: unknown;
-    try {
-        parsed = parseYaml(content);
-    } catch {
+    const record = parseFrontmatterRecord(frontmatter);
+    if (Object.keys(record).length === 0) {
         return createEmptySectionColorMap();
     }
-    if (!parsed || typeof parsed !== 'object') {
-        return createEmptySectionColorMap();
-    }
-    const record = parsed as Record<string, unknown>;
     return normalizeSectionColorMap(record[SECTION_COLORS_FRONTMATTER_KEY]);
+};
+
+const buildFrontmatterWithPinnedSections = (
+    frontmatter: string,
+    sections: string[],
+) => {
+    const normalized = normalizeSectionIds(sections);
+    const record = parseFrontmatterRecord(frontmatter);
+    if (normalized.length === 0) {
+        delete record[PINNED_SECTIONS_FRONTMATTER_KEY];
+    } else {
+        record[PINNED_SECTIONS_FRONTMATTER_KEY] = normalized;
+    }
+    const yaml = stringifyYaml(record).trim();
+    return yaml ? `---\n${yaml}\n---\n` : '';
+};
+
+export const parsePinnedSectionsFromFrontmatter = (frontmatter: string) => {
+    const record = parseFrontmatterRecord(frontmatter);
+    return normalizeSectionIdsFromUnknown(
+        record[PINNED_SECTIONS_FRONTMATTER_KEY],
+    );
 };
 
 export const createSectionColorIndex = (map: SectionColorMap) => {
@@ -251,6 +273,37 @@ export const writeSectionColorsToFrontmatter = async (
             } else {
                 frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY] =
                     nextSerialized;
+            }
+        },
+    );
+};
+
+export const writePinnedSectionsToFrontmatter = async (
+    view: MandalaView,
+    sections: string[],
+) => {
+    if (!view.file) return;
+    const currentFrontmatter = view.documentStore.getValue().file.frontmatter;
+    const currentSections = parsePinnedSectionsFromFrontmatter(currentFrontmatter);
+    const nextSections = normalizeSectionIds(sections);
+    const hasChanged =
+        JSON.stringify(currentSections) !== JSON.stringify(nextSections);
+    if (!hasChanged) return;
+
+    const nextFrontmatter = buildFrontmatterWithPinnedSections(
+        currentFrontmatter,
+        nextSections,
+    );
+    updateFrontmatter(view, nextFrontmatter);
+    await view.plugin.app.fileManager.processFrontMatter(
+        view.file,
+        (frontmatter) => {
+            const frontmatterRecord = frontmatter as Record<string, unknown>;
+            if (nextSections.length === 0) {
+                delete frontmatterRecord[PINNED_SECTIONS_FRONTMATTER_KEY];
+            } else {
+                frontmatterRecord[PINNED_SECTIONS_FRONTMATTER_KEY] =
+                    nextSections;
             }
         },
     );

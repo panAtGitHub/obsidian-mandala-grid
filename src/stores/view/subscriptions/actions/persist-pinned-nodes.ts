@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { writePinnedToFrontmatter } from 'src/view/helpers/mandala/pinned-frontmatter';
+import { writePinnedSectionsToFrontmatter } from 'src/view/helpers/mandala/section-colors';
 
 export const persistPinnedNodes = (view: MandalaView) => {
     if (!view.file) return;
@@ -9,5 +9,5 @@ export const persistPinnedNodes = (view: MandalaView) => {
     const pinnedSections = pinnedNodes.Ids
         .map((id) => sections.id_section[id])
         .filter((section): section is string => Boolean(section));
-    writePinnedToFrontmatter(view, pinnedSections);
+    void writePinnedSectionsToFrontmatter(view, pinnedSections);
 };

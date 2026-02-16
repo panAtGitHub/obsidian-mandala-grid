@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
+import { parseYaml } from 'obsidian';
 import {
     compareSectionIds,
+    parsePinnedSectionsFromFrontmatter,
     serializeSectionColorMap,
     setSectionColor,
     swapSectionColors,
@@ -74,5 +76,26 @@ describe('section-colors', () => {
         const next = swapSectionColors(map, '2.1', '2.2');
 
         expect(next['2_rose']).toEqual(['2.2']);
+    });
+
+    it('parses pinned sections from frontmatter with sorted unique values', () => {
+        const frontmatter = `---
+mandala_pinned_sections:
+  - 2
+  - "1.2"
+  - 1.2
+  - "1.2"
+  - 1
+---
+`;
+        vi.mocked(parseYaml).mockReturnValue({
+            mandala_pinned_sections: [2, '1.2', 1.2, '1.2', 1],
+        });
+
+        expect(parsePinnedSectionsFromFrontmatter(frontmatter)).toEqual([
+            '1',
+            '1.2',
+            '2',
+        ]);
     });
 });
