@@ -11,9 +11,11 @@ import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-d
 
 const createCommands = (plugin: MandalaGrid) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
+        commandId: string;
         checkCallback: (checking: boolean) => boolean | void;
     })[] = [];
     commands.push({
+        commandId: 'toggle-mandala-view',
         name: lang.cmd_toggle_mandala_view,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
@@ -28,6 +30,7 @@ const createCommands = (plugin: MandalaGrid) => {
     });
 
     commands.push({
+        commandId: 'create-new-mandala-document',
         name: lang.cmd_create_new_document,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
@@ -54,6 +57,7 @@ const createCommands = (plugin: MandalaGrid) => {
     // - lang.cmd_space_between_cards
 
     commands.push({
+        commandId: 'set-day-plan-mandala-format',
         name: lang.cmd_set_day_plan_mandala_format,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
@@ -78,7 +82,7 @@ export const addCommands = (plugin: MandalaGrid) => {
                     return false;
                 }
             },
-            id: slugify(command.name),
+            id: slugify(command.commandId),
         });
     }
 };
