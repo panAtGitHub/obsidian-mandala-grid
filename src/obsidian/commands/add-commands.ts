@@ -8,9 +8,6 @@ import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
-import { MANDALA_VIEW_TYPE } from 'src/view/view';
-import { getCurrentViewTypeForFile } from 'src/obsidian/events/workspace/helpers/get-current-view-type-for-file';
-import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 
 const createCommands = (plugin: MandalaGrid) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
@@ -18,50 +15,17 @@ const createCommands = (plugin: MandalaGrid) => {
         checkCallback: (checking: boolean) => boolean | void;
     })[] = [];
     commands.push({
-        commandId: 'open-active-file-in-mandala-view',
-        name: lang.ocm_open_in_mandala,
+        commandId: 'toggle-mandala-view',
+        name: lang.cmd_toggle_mandala_view,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
             const file = getActiveFile(plugin);
-            if (!file) return false;
-            const leaf =
-                getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE) ||
-                getLeafOfFile(plugin, file, 'markdown') ||
-                undefined;
-            const currentViewType = getCurrentViewTypeForFile(
-                plugin,
-                file,
-                leaf,
-            );
-            if (currentViewType === MANDALA_VIEW_TYPE) return false;
-            if (!checking) {
-                void toggleFileViewType(plugin, file, undefined);
+            if (file) {
+                if (checking) return true;
+                else {
+                    void toggleFileViewType(plugin, file, undefined);
+                }
             }
-            return true;
-        },
-    });
-
-    commands.push({
-        commandId: 'open-active-file-in-editor-view',
-        name: lang.ocm_open_in_editor,
-        icon: 'file-text',
-        checkCallback: (checking) => {
-            const file = getActiveFile(plugin);
-            if (!file) return false;
-            const leaf =
-                getLeafOfFile(plugin, file, MANDALA_VIEW_TYPE) ||
-                getLeafOfFile(plugin, file, 'markdown') ||
-                undefined;
-            const currentViewType = getCurrentViewTypeForFile(
-                plugin,
-                file,
-                leaf,
-            );
-            if (currentViewType !== MANDALA_VIEW_TYPE) return false;
-            if (!checking) {
-                void toggleFileViewType(plugin, file, undefined);
-            }
-            return true;
         },
     });
 
