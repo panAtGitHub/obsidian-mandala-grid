@@ -52,6 +52,7 @@
     import ViewOptionsDisplayPanel from './components/view-options-display-panel.svelte';
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
+    import Portal from 'src/view/components/container/shared/portal.svelte';
     import type { LastExportPreset } from 'src/stores/settings/settings-type';
     import {
         closeExportModeModal,
@@ -1950,145 +1951,147 @@
 />
 
 {#if isExportModeModalOpen}
-    <div class="export-mode-overlay" />
-    <div
-        class="mandala-modal export-mode-modal"
-        class:is-mobile={isMobile}
-        style={exportModalInlineStyle}
-        on:mousedown|stopPropagation
-        on:touchstart|stopPropagation
-    >
+    <Portal>
+        <div class="export-mode-overlay" />
         <div
-            class="view-options-menu__header export-mode-modal__header"
-            on:mousedown={startExportModalDrag}
-            on:touchstart={startExportModalDrag}
+            class="mandala-modal export-mode-modal"
+            class:is-mobile={isMobile}
+            style={exportModalInlineStyle}
+            on:mousedown|stopPropagation
+            on:touchstart|stopPropagation
         >
-            <span class="view-options-menu__title">导出模式（临时会话）</span>
-            <button class="view-options-menu__close" on:click={closeExportMode}>
-                <X class="icon" size={16} />
-            </button>
-        </div>
-        <div class="view-options-menu__items">
-            <div class="view-options-menu__submenu export-mode-flow">
-                <div class="view-options-menu__note">
-                    仅本次导出生效，关闭后恢复编辑状态。
-                </div>
-                <div class="view-options-menu__subsection-title">1. 导出目标</div>
-                <div class="export-target-tabs">
-                    <button
-                        class="export-target-tab"
-                        class:is-active={exportMode === 'png-square'}
-                        on:click={() => setExportMode('png-square')}
-                    >
-                        PNG 正方形
-                    </button>
-                    <button
-                        class="export-target-tab"
-                        class:is-active={exportMode === 'png-screen'}
-                        on:click={() => setExportMode('png-screen')}
-                    >
-                        PNG 屏幕
-                    </button>
-                    <button
-                        class="export-target-tab"
-                        class:is-active={exportMode === 'pdf-a4'}
-                        on:click={() => setExportMode('pdf-a4')}
-                    >
-                        PDF A4
-                    </button>
-                </div>
-                <div class="export-mode-status">
-                    <span class="export-mode-badge">{exportModeLabel}</span>
-                    <span class="export-mode-badge export-mode-badge--muted">
-                        {exportModeHint}
-                    </span>
-                </div>
-                <div class="view-options-menu__subsection-title">2. 专属选项</div>
-                {#if exportMode === 'png-screen'}
-                    <div class="view-options-menu__row">
-                        <label class="view-options-menu__inline-option">
-                            <input
-                                type="checkbox"
-                                checked={includeSidebarInPngScreen}
-                                on:change={toggleIncludeSidebarInPngScreen}
-                            />
-                            <span>包含侧边栏</span>
-                        </label>
-                    </div>
-                {:else if exportMode === 'pdf-a4'}
-                    <div class="view-options-menu__row">
-                        <span>A4 方向</span>
-                        <select value={$a4Orientation} on:change={_updateA4Orientation}>
-                            <option value="portrait">纵向</option>
-                            <option value="landscape">横向</option>
-                        </select>
-                    </div>
-                {:else}
-                    <div class="view-options-menu__note">
-                        输出为正方形九宫格，自动等比留白。
-                    </div>
-                {/if}
-                <details class="export-style-panel">
-                    <summary>3. 外观样式（完整）</summary>
-                    <ViewOptionsEditPanel
-                        show={true}
-                        showTrigger={false}
-                        whiteThemeMode={$whiteThemeMode}
-                        {showImmersiveOptions}
-                        {showPanoramaOptions}
-                        containerBg={$containerBg}
-                        activeBranchBg={$activeBranchBg}
-                        activeBranchColor={$activeBranchColor}
-                        inactiveNodeOpacity={$inactiveNodeOpacity}
-                        borderOpacity={$borderOpacity}
-                        backgroundMode={$backgroundMode}
-                        sectionColorOpacity={$sectionColorOpacity}
-                        squareLayout={$squareLayout}
-                        cardsGap={$cardsGap}
-                        gridOrientation={$gridOrientation}
-                        toggle={() => undefined}
-                        {updateWhiteThemeMode}
-                        {toggleImmersiveOptions}
-                        {togglePanoramaOptions}
-                        {updateContainerBg}
-                        {resetContainerBg}
-                        {updateActiveBranchBg}
-                        {resetActiveBranchBg}
-                        {updateActiveBranchColor}
-                        {resetActiveBranchColor}
-                        {stepInactiveOpacity}
-                        {updateInactiveNodeOpacity}
-                        {resetInactiveNodeOpacity}
-                        {stepBorderOpacity}
-                        {updateBorderOpacity}
-                        {updateBackgroundMode}
-                        {stepOpacity}
-                        {updateSectionColorOpacity}
-                        {updateSquareLayout}
-                        {stepCardsGap}
-                        {updateCardsGap}
-                        {resetCardsGap}
-                        {updateGridOrientation}
-                    />
-                </details>
-                <div class="export-action-row">
-                    <button class="view-options-menu__subitem" on:click={exportCurrentFile}>
-                        {exportActionLabel}
-                    </button>
-                    <button
-                        class="view-options-menu__subitem"
-                        on:click={applyLastExportPreset}
-                        disabled={!$lastExportPresetStore}
-                    >
-                        采用上一次导出设置
-                    </button>
-                </div>
+            <div
+                class="view-options-menu__header export-mode-modal__header"
+                on:mousedown={startExportModalDrag}
+                on:touchstart={startExportModalDrag}
+            >
+                <span class="view-options-menu__title">导出模式（临时会话）</span>
+                <button class="view-options-menu__close" on:click={closeExportMode}>
+                    <X class="icon" size={16} />
+                </button>
             </div>
-            <button class="view-options-menu__subitem" on:click={closeExportMode}>
-                取消并恢复
-            </button>
+            <div class="view-options-menu__items">
+                <div class="view-options-menu__submenu export-mode-flow">
+                    <div class="view-options-menu__note">
+                        仅本次导出生效，关闭后恢复编辑状态。
+                    </div>
+                    <div class="view-options-menu__subsection-title">1. 导出目标</div>
+                    <div class="export-target-tabs">
+                        <button
+                            class="export-target-tab"
+                            class:is-active={exportMode === 'png-square'}
+                            on:click={() => setExportMode('png-square')}
+                        >
+                            PNG 正方形
+                        </button>
+                        <button
+                            class="export-target-tab"
+                            class:is-active={exportMode === 'png-screen'}
+                            on:click={() => setExportMode('png-screen')}
+                        >
+                            PNG 屏幕
+                        </button>
+                        <button
+                            class="export-target-tab"
+                            class:is-active={exportMode === 'pdf-a4'}
+                            on:click={() => setExportMode('pdf-a4')}
+                        >
+                            PDF A4
+                        </button>
+                    </div>
+                    <div class="export-mode-status">
+                        <span class="export-mode-badge">{exportModeLabel}</span>
+                        <span class="export-mode-badge export-mode-badge--muted">
+                            {exportModeHint}
+                        </span>
+                    </div>
+                    <div class="view-options-menu__subsection-title">2. 专属选项</div>
+                    {#if exportMode === 'png-screen'}
+                        <div class="view-options-menu__row">
+                            <label class="view-options-menu__inline-option">
+                                <input
+                                    type="checkbox"
+                                    checked={includeSidebarInPngScreen}
+                                    on:change={toggleIncludeSidebarInPngScreen}
+                                />
+                                <span>包含侧边栏</span>
+                            </label>
+                        </div>
+                    {:else if exportMode === 'pdf-a4'}
+                        <div class="view-options-menu__row">
+                            <span>A4 方向</span>
+                            <select value={$a4Orientation} on:change={_updateA4Orientation}>
+                                <option value="portrait">纵向</option>
+                                <option value="landscape">横向</option>
+                            </select>
+                        </div>
+                    {:else}
+                        <div class="view-options-menu__note">
+                            输出为正方形九宫格，自动等比留白。
+                        </div>
+                    {/if}
+                    <details class="export-style-panel">
+                        <summary>3. 外观样式（完整）</summary>
+                        <ViewOptionsEditPanel
+                            show={true}
+                            showTrigger={false}
+                            whiteThemeMode={$whiteThemeMode}
+                            {showImmersiveOptions}
+                            {showPanoramaOptions}
+                            containerBg={$containerBg}
+                            activeBranchBg={$activeBranchBg}
+                            activeBranchColor={$activeBranchColor}
+                            inactiveNodeOpacity={$inactiveNodeOpacity}
+                            borderOpacity={$borderOpacity}
+                            backgroundMode={$backgroundMode}
+                            sectionColorOpacity={$sectionColorOpacity}
+                            squareLayout={$squareLayout}
+                            cardsGap={$cardsGap}
+                            gridOrientation={$gridOrientation}
+                            toggle={() => undefined}
+                            {updateWhiteThemeMode}
+                            {toggleImmersiveOptions}
+                            {togglePanoramaOptions}
+                            {updateContainerBg}
+                            {resetContainerBg}
+                            {updateActiveBranchBg}
+                            {resetActiveBranchBg}
+                            {updateActiveBranchColor}
+                            {resetActiveBranchColor}
+                            {stepInactiveOpacity}
+                            {updateInactiveNodeOpacity}
+                            {resetInactiveNodeOpacity}
+                            {stepBorderOpacity}
+                            {updateBorderOpacity}
+                            {updateBackgroundMode}
+                            {stepOpacity}
+                            {updateSectionColorOpacity}
+                            {updateSquareLayout}
+                            {stepCardsGap}
+                            {updateCardsGap}
+                            {resetCardsGap}
+                            {updateGridOrientation}
+                        />
+                    </details>
+                    <div class="export-action-row">
+                        <button class="view-options-menu__subitem" on:click={exportCurrentFile}>
+                            {exportActionLabel}
+                        </button>
+                        <button
+                            class="view-options-menu__subitem"
+                            on:click={applyLastExportPreset}
+                            disabled={!$lastExportPresetStore}
+                        >
+                            采用上一次导出设置
+                        </button>
+                    </div>
+                </div>
+                <button class="view-options-menu__subitem" on:click={closeExportMode}>
+                    取消并恢复
+                </button>
+            </div>
         </div>
-    </div>
+    </Portal>
 {/if}
 
 <style>
