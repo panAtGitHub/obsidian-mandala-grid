@@ -212,6 +212,7 @@
                   ? '横向'
                   : '纵向'
               : '正方形留白';
+    $: exportActionLabel = exportMode === 'pdf-a4' ? '导出 PDF' : '导出 PNG';
 
 
     let showImmersiveOptions = false;
@@ -1848,9 +1849,33 @@
             </button>
         </div>
         <div class="view-options-menu__items">
-            <div class="view-options-menu__submenu">
+            <div class="view-options-menu__submenu export-mode-flow">
                 <div class="view-options-menu__note">
                     仅本次导出生效，关闭后恢复编辑状态。
+                </div>
+                <div class="view-options-menu__subsection-title">1. 导出目标</div>
+                <div class="export-target-tabs">
+                    <button
+                        class="export-target-tab"
+                        class:is-active={exportMode === 'png-square'}
+                        on:click={() => setExportMode('png-square')}
+                    >
+                        PNG 正方形
+                    </button>
+                    <button
+                        class="export-target-tab"
+                        class:is-active={exportMode === 'png-screen'}
+                        on:click={() => setExportMode('png-screen')}
+                    >
+                        PNG 屏幕
+                    </button>
+                    <button
+                        class="export-target-tab"
+                        class:is-active={exportMode === 'pdf-a4'}
+                        on:click={() => setExportMode('pdf-a4')}
+                    >
+                        PDF A4
+                    </button>
                 </div>
                 <div class="export-mode-status">
                     <span class="export-mode-badge">{exportModeLabel}</span>
@@ -1858,36 +1883,61 @@
                         {exportModeHint}
                     </span>
                 </div>
-                <div class="view-options-menu__subsection-title">快速样式</div>
-                <div class="view-options-menu__row view-options-menu__row--inline">
-                    <label class="view-options-menu__inline-option">
-                        <input
-                            type="checkbox"
-                            checked={$whiteThemeMode}
-                            on:change={() =>
-                                updateWhiteThemeMode(!$whiteThemeMode)}
-                        />
-                        <span>白色主题</span>
-                    </label>
-                    <label class="view-options-menu__inline-option">
-                        <input
-                            type="checkbox"
-                            checked={$squareLayout}
-                            on:change={() => updateSquareLayout(!$squareLayout)}
-                        />
-                        <span>正方形布局</span>
-                    </label>
-                </div>
-                <div class="view-options-menu__row">
-                    <span>A4 方向</span>
-                    <select
-                        value={$a4Orientation}
-                        on:change={_updateA4Orientation}
-                        disabled={exportMode !== 'pdf-a4'}
+                <div class="view-options-menu__subsection-title">2. 专属选项</div>
+                {#if exportMode === 'png-screen'}
+                    <div class="view-options-menu__row">
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="checkbox"
+                                checked={includeSidebarInPngScreen}
+                                on:change={toggleIncludeSidebarInPngScreen}
+                            />
+                            <span>包含侧边栏</span>
+                        </label>
+                    </div>
+                {:else if exportMode === 'pdf-a4'}
+                    <div class="view-options-menu__row">
+                        <span>A4 方向</span>
+                        <select value={$a4Orientation} on:change={_updateA4Orientation}>
+                            <option value="portrait">纵向</option>
+                            <option value="landscape">横向</option>
+                        </select>
+                    </div>
+                {:else}
+                    <div class="view-options-menu__note">
+                        输出为正方形九宫格，自动等比留白。
+                    </div>
+                {/if}
+                <details class="export-style-panel">
+                    <summary>3. 外观样式（可选）</summary>
+                    <div class="view-options-menu__row view-options-menu__row--inline">
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="checkbox"
+                                checked={$whiteThemeMode}
+                                on:change={() =>
+                                    updateWhiteThemeMode(!$whiteThemeMode)}
+                            />
+                            <span>白色主题</span>
+                        </label>
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="checkbox"
+                                checked={$squareLayout}
+                                on:change={() => updateSquareLayout(!$squareLayout)}
+                            />
+                            <span>正方形布局</span>
+                        </label>
+                    </div>
+                </details>
+                <div class="export-action-row">
+                    <button
+                        class="view-options-menu__subitem"
+                        on:click={applyLastExportPreset}
+                        disabled={!$lastExportPresetStore}
                     >
-                        <option value="portrait">纵向</option>
-                        <option value="landscape">横向</option>
-                    </select>
+                        采用上一次导出设置
+                    </button>
                 </div>
             </div>
             <ViewOptionsExportPanel
@@ -1903,6 +1953,7 @@
                 canApplyLastExportPreset={Boolean($lastExportPresetStore)}
                 {applyLastExportPreset}
                 {exportCurrentFile}
+                {exportActionLabel}
             />
             <button class="view-options-menu__subitem" on:click={closeExportMode}>
                 取消并恢复
@@ -1938,6 +1989,54 @@
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
+    }
+
+    .export-mode-flow {
+        gap: 10px;
+    }
+
+    .export-target-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .export-target-tab {
+        border: 1px solid var(--background-modifier-border);
+        background: var(--background-primary);
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .export-target-tab.is-active {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+        background: color-mix(
+            in srgb,
+            var(--interactive-accent) 12%,
+            var(--background-primary)
+        );
+    }
+
+    .export-style-panel {
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 8px;
+        padding: 6px 8px;
+        background: var(--background-primary);
+    }
+
+    .export-style-panel summary {
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+    .export-action-row {
+        display: flex;
     }
 
     .export-mode-badge {

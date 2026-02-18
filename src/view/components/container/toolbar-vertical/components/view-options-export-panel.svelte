@@ -15,6 +15,7 @@
     export let canApplyLastExportPreset = false;
     export let applyLastExportPreset: () => void;
     export let exportCurrentFile: () => Promise<void>;
+    export let exportActionLabel = '导出文件';
 </script>
 
 {#if showTrigger}
@@ -95,7 +96,7 @@
         </div>
 
         <button class="view-options-menu__subitem" on:click={exportCurrentFile}>
-            导出文件
+            {exportActionLabel}
         </button>
     </div>
 {/if}
