@@ -2022,7 +2022,9 @@
                 on:mousedown={startExportModalDrag}
                 on:touchstart={startExportModalDrag}
             >
-                <span class="view-options-menu__title">导出模式（临时会话）</span>
+                <span class="view-options-menu__title">
+                    导出模式（临时会话，按住标题可移动）
+                </span>
                 <button class="view-options-menu__close" on:click={closeExportMode}>
                     <X class="icon" size={16} />
                 </button>
@@ -2146,10 +2148,7 @@
                             {updateGridOrientation}
                         />
                     </details>
-                    <div class="export-action-row">
-                        <button class="view-options-menu__subitem" on:click={exportCurrentFile}>
-                            {exportActionLabel}
-                        </button>
+                    <div class="export-secondary-row">
                         <button
                             class="view-options-menu__subitem"
                             on:click={applyLastExportPreset}
@@ -2157,11 +2156,17 @@
                         >
                             采用上一次导出设置
                         </button>
+                        <button class="view-options-menu__subitem" on:click={closeExportMode}>
+                            取消设置并退出
+                        </button>
                     </div>
+                    <button
+                        class="view-options-menu__subitem export-primary-button"
+                        on:click={exportCurrentFile}
+                    >
+                        {exportActionLabel}
+                    </button>
                 </div>
-                <button class="view-options-menu__subitem" on:click={closeExportMode}>
-                    取消并恢复
-                </button>
             </div>
         </div>
     </Portal>
@@ -2258,8 +2263,22 @@
         margin-bottom: 6px;
     }
 
-    .export-action-row {
-        display: flex;
+    .export-secondary-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .export-primary-button {
+        border-color: var(--interactive-accent);
+        background: var(--interactive-accent);
+        color: var(--text-on-accent);
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .export-primary-button:hover {
+        filter: brightness(0.95);
     }
 
     .export-mode-badge {
