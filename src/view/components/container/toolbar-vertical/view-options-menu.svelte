@@ -1580,9 +1580,10 @@
     const openExportModeModal = () => {
         enterExportSession();
         const initialWidth = Math.min(420, window.innerWidth - 24);
+        const initialTop = getExportModalSafeTop();
         exportModalPosition = clampExportModalPosition(
             window.innerWidth - initialWidth - 16,
-            72,
+            initialTop,
         );
         exportDragOffset = null;
         openExportModeModalForView(view.id);
@@ -1601,14 +1602,40 @@
         closeExportMode();
     };
 
+    const readCssLengthVar = (
+        styles: CSSStyleDeclaration,
+        name: string,
+    ): number => {
+        const raw = styles.getPropertyValue(name).trim();
+        if (!raw) return 0;
+        const parsed = Number.parseFloat(raw);
+        return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const getExportModalSafeTop = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const bodyStyles = getComputedStyle(document.body);
+        const headerHeight = Math.max(
+            readCssLengthVar(rootStyles, '--header-height'),
+            readCssLengthVar(bodyStyles, '--header-height'),
+            40,
+        );
+        const titlebarHeight = Math.max(
+            readCssLengthVar(rootStyles, '--titlebar-height'),
+            readCssLengthVar(bodyStyles, '--titlebar-height'),
+        );
+        return Math.max(headerHeight, titlebarHeight, 40) + 8;
+    };
+
     const clampExportModalPosition = (left: number, top: number) => {
         const width = Math.min(420, window.innerWidth - 24);
         const margin = 8;
         const maxLeft = Math.max(margin, window.innerWidth - width - margin);
-        const maxTop = Math.max(margin, window.innerHeight - 120);
+        const minTop = getExportModalSafeTop();
+        const maxTop = Math.max(minTop, window.innerHeight - 120);
         return {
             left: Math.min(Math.max(left, margin), maxLeft),
-            top: Math.min(Math.max(top, margin), maxTop),
+            top: Math.min(Math.max(top, minTop), maxTop),
         };
     };
 
