@@ -8,6 +8,8 @@ import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
+import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
+import { openExportModeModalForView } from 'src/view/components/container/toolbar-vertical/export-mode-modal-store';
 
 const createCommands = (plugin: MandalaGrid) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
@@ -63,6 +65,18 @@ const createCommands = (plugin: MandalaGrid) => {
         checkCallback: (checking) => {
             if (checking) return true;
             void setupDayPlanMandalaFormat(plugin);
+        },
+    });
+
+    commands.push({
+        commandId: 'open-export-mode',
+        name: lang.cmd_open_export_mode,
+        icon: customIcons.mandalaGrid.name,
+        checkCallback: (checking) => {
+            const view = getActiveMandalaView(plugin);
+            if (!view) return false;
+            if (checking) return true;
+            openExportModeModalForView(view.id);
         },
     });
 

@@ -13,6 +13,7 @@ export const lang = {
     // create document
     cmd_create_new_document: '新建九宫格文件',
     cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
+    cmd_open_export_mode: '打开导出模式',
     ocm_new_document: '新建九宫格文档',
     ocm_import_from_gingko: '从 Gingko 导入',
 

@@ -2,6 +2,7 @@
     import { Printer } from 'lucide-svelte';
 
     export let show = false;
+    export let showTrigger = true;
     export let exportMode: 'png-square' | 'png-screen' | 'pdf-a4' =
         'png-screen';
     export let includeSidebarInPngScreen = true;
@@ -16,15 +17,17 @@
     export let exportCurrentFile: () => Promise<void>;
 </script>
 
-<button class="view-options-menu__item" on:click={toggle}>
-    <div class="view-options-menu__icon">
-        <Printer class="view-options-menu__icon-svg" size={18} />
-    </div>
-    <div class="view-options-menu__content">
-        <div class="view-options-menu__label">导出模式</div>
-        <div class="view-options-menu__desc">可按自定义页面大小进行导出</div>
-    </div>
-</button>
+{#if showTrigger}
+    <button class="view-options-menu__item" on:click={toggle}>
+        <div class="view-options-menu__icon">
+            <Printer class="view-options-menu__icon-svg" size={18} />
+        </div>
+        <div class="view-options-menu__content">
+            <div class="view-options-menu__label">导出模式</div>
+            <div class="view-options-menu__desc">可按自定义页面大小进行导出</div>
+        </div>
+    </button>
+{/if}
 
 {#if show}
     <div class="view-options-menu__submenu">

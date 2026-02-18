@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
-    import { Trash2, X } from 'lucide-svelte';
+    import { Printer, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform, TFile, btoa } from 'obsidian';
     import { afterUpdate, createEventDispatcher, onDestroy, onMount } from 'svelte';
@@ -53,6 +53,11 @@
     import ViewOptionsExportPanel from './components/view-options-export-panel.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
     import type { LastExportPreset } from 'src/stores/settings/settings-type';
+    import {
+        closeExportModeModal,
+        exportModeModalViewId,
+        openExportModeModalForView,
+    } from './export-mode-modal-store';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -62,11 +67,11 @@
     let showEditOptions = false;
     let showFontOptions = false;
     let showDisplayOptions = false;
-    let showPrintOptions = false;
     let showTemplateOptions = false;
     let mobileBoundsStyle = '';
     let listenersAttached = false;
     let previousShow = show;
+    let isExportModeModalOpen = false;
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
@@ -124,6 +129,8 @@
         view.plugin.settings,
         (state) => state.view.lastExportPreset,
     );
+
+    $: isExportModeModalOpen = $exportModeModalViewId === view.id;
 
     const toggleWhiteTheme = () => {
         view.plugin.settings.dispatch({
@@ -729,7 +736,7 @@
         } catch (_error) {
             loadingNotice.hide();
             new Notice('导出失败，请稍后再试。');
-            closeMenu();
+            closeExportMode();
             return;
         }
 
@@ -756,7 +763,7 @@
                 if (!fs) {
                     loadingNotice.hide();
                     new Notice('导出失败，请稍后再试。');
-                    closeMenu();
+                    closeExportMode();
                     return;
                 }
                 const base64 = dataUrl.split(',')[1] ?? '';
@@ -774,11 +781,11 @@
                         persistLastExportPreset(exportPreset);
                     }
                 });
-                closeMenu();
+                closeExportMode();
                 return;
             }
             loadingNotice.hide();
-            closeMenu();
+            closeExportMode();
             return;
         }
 
@@ -788,7 +795,7 @@
         link.download = defaultName;
         link.click();
         persistLastExportPreset(exportPreset);
-        closeMenu();
+        closeExportMode();
     };
 
     const exportCurrentView = async (mode: 'png-square' | 'png-screen') => {
@@ -914,9 +921,12 @@
         exportMode = 'png-screen';
     }
 
-    $: if (!show && isInExportSession) {
+    $: if (!show && isInExportSession && !isExportModeModalOpen) {
         exitExportSession();
-        showPrintOptions = false;
+    }
+
+    $: if (isExportModeModalOpen && !isInExportSession) {
+        enterExportSession();
     }
 
     const exportCurrentFile = async () => {
@@ -945,7 +955,7 @@
         if (!target) {
             loadingNotice.hide();
             new Notice('未找到可导出的视图区域。');
-            closeMenu();
+            closeExportMode();
             return;
         }
         const electronRequire = (
@@ -961,7 +971,7 @@
         if (!dialog || !webContents?.printToPDF) {
             loadingNotice.hide();
             new Notice('当前环境不支持 PDF 导出。');
-            closeMenu();
+            closeExportMode();
             return;
         }
 
@@ -1103,7 +1113,7 @@
         } finally {
             pageStyle.remove();
             loadingNotice.hide();
-            closeMenu();
+            closeExportMode();
         }
     };
 
@@ -1470,13 +1480,14 @@
         closeMenu();
     };
 
-    const closeMenu = () => {
-        exitExportSession();
+    const closeMenu = (preserveExportModeSession = false) => {
+        if (!preserveExportModeSession) {
+            exitExportSession();
+        }
         dispatch('close');
         showEditOptions = false;
         showFontOptions = false;
         showDisplayOptions = false;
-        showPrintOptions = false;
         showTemplateOptions = false;
         showImmersiveOptions = false;
         showPanoramaOptions = false;
@@ -1487,13 +1498,22 @@
         closeMenu();
     };
 
-    const togglePrintOptions = () => {
-        showPrintOptions = !showPrintOptions;
-        if (showPrintOptions) {
-            enterExportSession();
-            return;
-        }
+    const openExportModeModal = () => {
+        enterExportSession();
+        openExportModeModalForView(view.id);
+        closeMenu(true);
+    };
+
+    const closeExportMode = () => {
+        closeExportModeModal();
         exitExportSession();
+    };
+
+    const onExportModeKeyDown = (event: KeyboardEvent) => {
+        if (!isExportModeModalOpen) return;
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        closeExportMode();
     };
 
     const getVisibleViewport = () => {
@@ -1630,6 +1650,9 @@
 
     onDestroy(() => {
         detachListeners();
+        if ($exportModeModalViewId === view.id) {
+            closeExportModeModal();
+        }
     });
 </script>
 
@@ -1759,19 +1782,17 @@
                 {applyTemplateToCurrentTheme}
             />
 
-            <ViewOptionsExportPanel
-                show={showPrintOptions}
-                {exportMode}
-                {includeSidebarInPngScreen}
-                toggle={togglePrintOptions}
-                setPngSquareMode={() => setExportMode('png-square')}
-                setPngScreenMode={() => setExportMode('png-screen')}
-                setPdfMode={() => setExportMode('pdf-a4')}
-                {toggleIncludeSidebarInPngScreen}
-                canApplyLastExportPreset={Boolean($lastExportPresetStore)}
-                {applyLastExportPreset}
-                {exportCurrentFile}
-            />
+            <button class="view-options-menu__item" on:click={openExportModeModal}>
+                <div class="view-options-menu__icon">
+                    <Printer class="view-options-menu__icon-svg" size={18} />
+                </div>
+                <div class="view-options-menu__content">
+                    <div class="view-options-menu__label">导出模式</div>
+                    <div class="view-options-menu__desc">
+                        打开独立导出面板（临时会话）
+                    </div>
+                </div>
+            </button>
 
             <button
                 class="view-options-menu__item"
@@ -1790,3 +1811,100 @@
         </div>
     </div>
 {/if}
+
+<svelte:window on:keydown={onExportModeKeyDown} />
+
+{#if isExportModeModalOpen}
+    <div class="export-mode-overlay" on:click={closeExportMode} />
+    <div
+        class="mandala-modal export-mode-modal"
+        class:is-mobile={isMobile}
+        on:mousedown|stopPropagation
+        on:touchstart|stopPropagation
+    >
+        <div class="view-options-menu__header">
+            <span class="view-options-menu__title">导出模式（临时会话）</span>
+            <button class="view-options-menu__close" on:click={closeExportMode}>
+                <X class="icon" size={16} />
+            </button>
+        </div>
+        <div class="view-options-menu__items">
+            <div class="view-options-menu__submenu">
+                <div class="view-options-menu__note">
+                    仅本次导出生效，关闭后恢复编辑状态。
+                </div>
+                <div class="view-options-menu__row view-options-menu__row--inline">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={$whiteThemeMode}
+                            on:change={() =>
+                                updateWhiteThemeMode(!$whiteThemeMode)}
+                        />
+                        <span>白色主题</span>
+                    </label>
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={$squareLayout}
+                            on:change={() => updateSquareLayout(!$squareLayout)}
+                        />
+                        <span>正方形布局</span>
+                    </label>
+                </div>
+                <div class="view-options-menu__row">
+                    <span>A4 方向</span>
+                    <select
+                        value={$a4Orientation}
+                        on:change={_updateA4Orientation}
+                        disabled={exportMode !== 'pdf-a4'}
+                    >
+                        <option value="portrait">纵向</option>
+                        <option value="landscape">横向</option>
+                    </select>
+                </div>
+            </div>
+            <ViewOptionsExportPanel
+                show={true}
+                showTrigger={false}
+                {exportMode}
+                {includeSidebarInPngScreen}
+                toggle={() => undefined}
+                setPngSquareMode={() => setExportMode('png-square')}
+                setPngScreenMode={() => setExportMode('png-screen')}
+                setPdfMode={() => setExportMode('pdf-a4')}
+                {toggleIncludeSidebarInPngScreen}
+                canApplyLastExportPreset={Boolean($lastExportPresetStore)}
+                {applyLastExportPreset}
+                {exportCurrentFile}
+            />
+            <button class="view-options-menu__subitem" on:click={closeExportMode}>
+                取消并恢复
+            </button>
+        </div>
+    </div>
+{/if}
+
+<style>
+    .export-mode-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        background: rgba(0, 0, 0, 0.18);
+    }
+
+    .export-mode-modal {
+        position: fixed;
+        z-index: 1201;
+        right: 16px;
+        top: 72px;
+        width: min(420px, calc(100vw - 24px));
+        max-height: calc(100vh - 96px);
+    }
+
+    :global(.is-mobile) .export-mode-modal {
+        inset: 8px;
+        width: auto;
+        max-height: none;
+    }
+</style>
