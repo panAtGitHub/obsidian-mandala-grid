@@ -195,6 +195,10 @@
     let includeSidebarInPngScreen = true;
     let exportModeLabel = 'PNG（屏幕范围）';
     let exportModeHint = '包含侧边栏';
+    let appearanceStyleLabel = '风格：沉浸';
+    let appearanceShapeLabel = '形状：自适应';
+    let appearanceBackgroundLabel = '背景：无背景';
+    let appearanceOrientationLabel = '方位：南起';
 
     const setExportMode = (mode: ExportMode) => {
         exportMode = mode;
@@ -239,6 +243,20 @@
                 ? '正方形留白'
                 : '自适应长方形';
     $: exportActionLabel = exportMode === 'pdf-a4' ? '导出 PDF' : '导出 PNG';
+    $: appearanceStyleLabel = $whiteThemeMode ? '风格：全景' : '风格：沉浸';
+    $: appearanceShapeLabel = $squareLayout ? '形状：正方形' : '形状：自适应';
+    $: appearanceBackgroundLabel =
+        $backgroundMode === 'custom'
+            ? '背景：色块'
+            : $backgroundMode === 'gray'
+              ? '背景：灰色间隔'
+              : '背景：无背景';
+    $: appearanceOrientationLabel =
+        $gridOrientation === 'left-to-right'
+            ? '方位：Z形'
+            : $gridOrientation === 'bottom-to-top'
+              ? '方位：S形'
+              : '方位：南起';
     $: if (
         isExportModeModalOpen &&
         exportMode === 'png-screen' &&
@@ -2017,6 +2035,20 @@
                             {exportModeHint}
                         </span>
                     </div>
+                    <div class="export-appearance-status">
+                        <span class="export-mode-badge export-mode-badge--muted">
+                            {appearanceStyleLabel}
+                        </span>
+                        <span class="export-mode-badge export-mode-badge--muted">
+                            {appearanceShapeLabel}
+                        </span>
+                        <span class="export-mode-badge export-mode-badge--muted">
+                            {appearanceBackgroundLabel}
+                        </span>
+                        <span class="export-mode-badge export-mode-badge--muted">
+                            {appearanceOrientationLabel}
+                        </span>
+                    </div>
                     <div class="view-options-menu__subsection-title">2. 专属选项</div>
                     {#if exportMode === 'png-screen'}
                         <div class="view-options-menu__row">
@@ -2144,6 +2176,12 @@
     }
 
     .export-mode-status {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .export-appearance-status {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
