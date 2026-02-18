@@ -2292,8 +2292,8 @@
     }
 
     .export-style-panel :global(.view-options-menu__range input[type='range']) {
-        flex: 0 0 50px;
-        max-width: 50px;
+        flex: 0 0 40px;
+        max-width: 40px;
     }
 
     .export-style-header {
