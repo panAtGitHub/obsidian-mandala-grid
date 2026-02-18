@@ -2270,6 +2270,21 @@
         background: var(--background-primary);
     }
 
+    .export-style-panel :global(.view-options-menu__row) {
+        justify-content: flex-start;
+    }
+
+    .export-style-panel :global(.view-options-menu__row > span) {
+        flex: 0 0 auto;
+        min-width: 7em;
+        white-space: nowrap;
+    }
+
+    .export-style-panel :global(.view-options-menu__range) {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
     .export-style-header {
         display: flex;
         align-items: center;
