@@ -479,6 +479,7 @@
 
     .editor-wrapper {
         flex: 1;
+        min-height: 0;
         background-color: var(--background-primary);
         border-radius: 0px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -486,6 +487,13 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+    }
+
+    .sidebar-editor-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
     }
 
     .no-selection {
@@ -502,8 +510,24 @@
 
     /* 适配 InlineEditor 在侧边栏的样式 */
     :global(.mandala-detail-sidebar .editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
         height: 100% !important;
+        overflow: hidden;
         background-color: transparent !important;
+    }
+
+    :global(.mandala-detail-sidebar .mandala-inline-editor) {
+        height: 100% !important;
+        min-height: 0 !important;
+    }
+
+    :global(.mandala-detail-sidebar .cm-editor) {
+        height: 100% !important;
+    }
+
+    :global(.mandala-detail-sidebar .cm-editor .cm-scroller) {
+        overflow: auto !important;
     }
 
     :global(.mandala-detail-sidebar .view-content) {
