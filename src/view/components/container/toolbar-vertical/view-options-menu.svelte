@@ -50,7 +50,6 @@
     import ViewOptionsFontPanel from './components/view-options-font-panel.svelte';
     import ViewOptionsDisplayPanel from './components/view-options-display-panel.svelte';
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
-    import ViewOptionsExportPanel from './components/view-options-export-panel.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
     import type { LastExportPreset } from 'src/stores/settings/settings-type';
     import {
@@ -1931,6 +1930,9 @@
                     </div>
                 </details>
                 <div class="export-action-row">
+                    <button class="view-options-menu__subitem" on:click={exportCurrentFile}>
+                        {exportActionLabel}
+                    </button>
                     <button
                         class="view-options-menu__subitem"
                         on:click={applyLastExportPreset}
@@ -1940,21 +1942,6 @@
                     </button>
                 </div>
             </div>
-            <ViewOptionsExportPanel
-                show={true}
-                showTrigger={false}
-                {exportMode}
-                {includeSidebarInPngScreen}
-                toggle={() => undefined}
-                setPngSquareMode={() => setExportMode('png-square')}
-                setPngScreenMode={() => setExportMode('png-screen')}
-                setPdfMode={() => setExportMode('pdf-a4')}
-                {toggleIncludeSidebarInPngScreen}
-                canApplyLastExportPreset={Boolean($lastExportPresetStore)}
-                {applyLastExportPreset}
-                {exportCurrentFile}
-                {exportActionLabel}
-            />
             <button class="view-options-menu__subitem" on:click={closeExportMode}>
                 取消并恢复
             </button>
