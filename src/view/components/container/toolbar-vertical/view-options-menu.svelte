@@ -205,9 +205,6 @@
         }
 
         updateA4Mode(false);
-        if (mode === 'png-square') {
-            updateSquareLayout(true);
-        }
     };
 
     const toggleIncludeSidebarInPngScreen = () => {
@@ -225,7 +222,7 @@
 
     $: exportModeLabel =
         exportMode === 'png-square'
-            ? 'PNG（正方形）'
+            ? 'PNG（格子范围）'
             : exportMode === 'pdf-a4'
               ? 'PDF（A4）'
               : 'PNG（屏幕）';
@@ -238,7 +235,9 @@
               ? $a4Orientation === 'landscape'
                   ? '横向'
                   : '纵向'
-              : '正方形留白';
+              : $squareLayout
+                ? '正方形留白'
+                : '自适应长方形';
     $: exportActionLabel = exportMode === 'pdf-a4' ? '导出 PDF' : '导出 PNG';
 
 
@@ -946,7 +945,7 @@
             return;
         }
 
-        if (mode === 'png-square') {
+        if (mode === 'png-square' && $squareLayout) {
             const exportTarget = createSquarePngExportTarget(target);
             try {
                 await withExportControlsHidden(async () => {
@@ -1987,7 +1986,7 @@
                             class:is-active={exportMode === 'png-square'}
                             on:click={() => setExportMode('png-square')}
                         >
-                            PNG 正方形
+                            PNG 格子范围
                         </button>
                         <button
                             class="export-target-tab"
@@ -2032,7 +2031,9 @@
                         </div>
                     {:else}
                         <div class="view-options-menu__note">
-                            输出为正方形九宫格，自动等比留白。
+                            {$squareLayout
+                                ? '当前为正方形布局，按格子范围导出并自动留白。'
+                                : '当前为自适应布局，按格子范围导出长方形。'}
                         </div>
                     {/if}
                     <details class="export-style-panel">
