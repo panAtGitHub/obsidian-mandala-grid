@@ -20,6 +20,7 @@
         MandalaFontSizeSidebarMobileStore,
         MandalaGridOrientationStore,
         MandalaSectionColorOpacityStore,
+        ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
@@ -83,6 +84,7 @@
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const themeDefaults = getDefaultTheme();
     const cardsGap = derived(
         view.plugin.settings,
@@ -193,6 +195,17 @@
 
     const toggleIncludeSidebarInPngScreen = () => {
         includeSidebarInPngScreen = !includeSidebarInPngScreen;
+        if (includeSidebarInPngScreen) {
+            updateMandalaDetailSidebar(true);
+        }
+    };
+
+    const updateMandalaDetailSidebar = (enabled: boolean) => {
+        if (enabled !== $showMandalaDetailSidebar) {
+            view.plugin.settings.dispatch({
+                type: 'view/mandala-detail-sidebar/toggle',
+            });
+        }
     };
 
     $: exportModeLabel =
@@ -527,6 +540,7 @@
         borderOpacity: number;
         whiteThemeMode: boolean;
         squareLayout: boolean;
+        showMandalaDetailSidebar: boolean;
     };
 
     let exportSessionSnapshot: PrintConfig | null = null;
@@ -542,6 +556,7 @@
             borderOpacity: $borderOpacity,
             whiteThemeMode: $whiteThemeMode,
             squareLayout: $squareLayout,
+            showMandalaDetailSidebar: $showMandalaDetailSidebar,
         };
     };
 
@@ -553,6 +568,7 @@
         updateSectionColorOpacityValue(config.sectionColorOpacity);
         updateBorderOpacityValue(config.borderOpacity);
         updateSquareLayout(config.squareLayout);
+        updateMandalaDetailSidebar(config.showMandalaDetailSidebar);
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-a4-orientation',
             payload: { orientation: config.a4Orientation },
@@ -589,6 +605,10 @@
             borderOpacity: preset.borderOpacity,
             whiteThemeMode: preset.whiteThemeMode,
             squareLayout: preset.squareLayout,
+            showMandalaDetailSidebar:
+                preset.exportMode === 'png-screen' && preset.includeSidebar
+                    ? true
+                    : $showMandalaDetailSidebar,
         });
     };
 
