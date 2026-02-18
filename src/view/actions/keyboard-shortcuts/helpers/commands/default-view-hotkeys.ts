@@ -246,6 +246,17 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [],
     },
+    {
+        name: 'toggle_detail_sidebar',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            view.plugin.settings.dispatch({
+                type: 'view/mandala-detail-sidebar/toggle',
+            });
+        },
+        hotkeys: [{ key: ']', modifiers: ['Mod'], editorState: 'editor-off' }],
+    },
     /* {
         name: 'swap_cell_up',
         callback: (view, e) => {

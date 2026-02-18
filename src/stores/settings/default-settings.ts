@@ -51,6 +51,9 @@ export const DEFAULT_SETTINGS = (): Settings => ({
             toggle_mandala_mode: {
                 primary: { key: 'l', modifiers: ['Mod'] },
             },
+            toggle_detail_sidebar: {
+                primary: { key: ']', modifiers: ['Mod'] },
+            },
         },
     },
     view: {

@@ -84,6 +84,7 @@ export const hotkeyGroups = {
         'jump_core_next',
         'jump_core_prev',
         'toggle_mandala_mode',
+        'toggle_detail_sidebar',
         'swap_cell_up',
         'swap_cell_down',
         'swap_cell_left',

@@ -345,6 +345,7 @@ export const lang = {
     hk_exit_subgrid: '退出子九宫',
     hk_jump_core_next: '跳到下一个核心九宫',
     hk_jump_core_prev: '跳到上一个核心九宫',
+    hk_toggle_detail_sidebar: '切换右侧侧边栏',
     hk_swap_cell_up: '向上交换格子',
     hk_swap_cell_down: '向下交换格子',
     hk_swap_cell_left: '向左交换格子',

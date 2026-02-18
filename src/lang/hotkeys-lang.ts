@@ -64,6 +64,7 @@ export const hotkeysLang = {
     exit_subgrid: lang.hk_exit_subgrid,
     jump_core_next: lang.hk_jump_core_next,
     jump_core_prev: lang.hk_jump_core_prev,
+    toggle_detail_sidebar: lang.hk_toggle_detail_sidebar,
     swap_cell_up: lang.hk_swap_cell_up,
     swap_cell_down: lang.hk_swap_cell_down,
     swap_cell_left: lang.hk_swap_cell_left,
