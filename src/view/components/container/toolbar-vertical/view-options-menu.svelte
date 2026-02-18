@@ -175,6 +175,8 @@
     type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
     let exportMode: ExportMode = 'png-screen';
     let includeSidebarInPngScreen = true;
+    let exportModeLabel = 'PNG（屏幕）';
+    let exportModeHint = '包含侧边栏';
 
     const setExportMode = (mode: ExportMode) => {
         exportMode = mode;
@@ -193,6 +195,23 @@
     const toggleIncludeSidebarInPngScreen = () => {
         includeSidebarInPngScreen = !includeSidebarInPngScreen;
     };
+
+    $: exportModeLabel =
+        exportMode === 'png-square'
+            ? 'PNG（正方形）'
+            : exportMode === 'pdf-a4'
+              ? 'PDF（A4）'
+              : 'PNG（屏幕）';
+    $: exportModeHint =
+        exportMode === 'png-screen'
+            ? includeSidebarInPngScreen
+                ? '包含侧边栏'
+                : '不含侧边栏'
+            : exportMode === 'pdf-a4'
+              ? $a4Orientation === 'landscape'
+                  ? '横向'
+                  : '纵向'
+              : '正方形留白';
 
 
     let showImmersiveOptions = false;
@@ -1833,6 +1852,13 @@
                 <div class="view-options-menu__note">
                     仅本次导出生效，关闭后恢复编辑状态。
                 </div>
+                <div class="export-mode-status">
+                    <span class="export-mode-badge">{exportModeLabel}</span>
+                    <span class="export-mode-badge export-mode-badge--muted">
+                        {exportModeHint}
+                    </span>
+                </div>
+                <div class="view-options-menu__subsection-title">快速样式</div>
                 <div class="view-options-menu__row view-options-menu__row--inline">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -1906,5 +1932,26 @@
         inset: 8px;
         width: auto;
         max-height: none;
+    }
+
+    .export-mode-status {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .export-mode-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        color: var(--text-normal);
+        background: var(--background-modifier-hover);
+        border: 1px solid var(--background-modifier-border);
+    }
+
+    .export-mode-badge--muted {
+        color: var(--text-muted);
     }
 </style>
