@@ -95,6 +95,13 @@ export class MandalaView extends TextFileView {
         | { frontmatter: string; activation: MandalaProfileActivation }
         | null = null;
     private lastActivationNotice: string | null = null;
+    private readonly mandalaUiStateByPath = new Map<
+        string,
+        {
+            subgridTheme: string;
+            activeCell9x9: { row: number; col: number } | null;
+        }
+    >();
     constructor(
         leaf: WorkspaceLeaf,
         public plugin: MandalaGrid,
@@ -148,6 +155,9 @@ export class MandalaView extends TextFileView {
             const nextPath = this.file.path;
             const switchedFile = this.activeFilePath !== nextPath;
             if (switchedFile) {
+                if (this.activeFilePath) {
+                    this.persistMandalaUiState(this.activeFilePath);
+                }
                 this.activeFilePath = nextPath;
                 this.lastLoadedBody = '';
                 this.lastLoadedFrontmatter = '';
@@ -164,6 +174,9 @@ export class MandalaView extends TextFileView {
     async onUnloadFile() {
         if (this.component) {
             this.component.$destroy();
+        }
+        if (this.file?.path) {
+            this.persistMandalaUiState(this.file.path);
         }
         this.activeFilePath = null;
         this.lastLoadedBody = '';
@@ -328,15 +341,16 @@ export class MandalaView extends TextFileView {
 
         const isEditing = Boolean(viewState.document.editing.activeNodeId);
 
-        const activeNode = viewState.document.activeNode;
-        const activeSection = activeNode
-            ? documentState.sections.id_section[activeNode]
-            : null;
         const activationStartMs = performance.now();
         const activation = this.getMandalaProfileActivation(frontmatter);
         const activationCostMs = performance.now() - activationStartMs;
         this.dayPlanHotCores = activation.hotCoreSections;
-        const nextActiveSection = activation.targetSection ?? activeSection;
+        const filePath = this.file?.path ?? '';
+        const persistedActiveSection =
+            this.plugin.settings.getValue().documents[filePath]?.activeSection ??
+            null;
+        const nextActiveSection =
+            activation.targetSection ?? persistedActiveSection;
         let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             const loadStartMs = performance.now();
@@ -375,6 +389,8 @@ export class MandalaView extends TextFileView {
         }
         if (activation.targetSection) {
             this.focusMandalaSection(activation.targetSection);
+        } else {
+            this.restoreMandalaUiState(filePath);
         }
         logger.debug('[perf][view] loadDocumentToStore', {
             file: this.file?.path,
@@ -388,6 +404,33 @@ export class MandalaView extends TextFileView {
             totalCostMs: Number((performance.now() - startMs).toFixed(2)),
         });
     };
+
+    private persistMandalaUiState(path: string) {
+        const state = this.viewStore.getValue();
+        this.mandalaUiStateByPath.set(path, {
+            subgridTheme: state.ui.mandala.subgridTheme ?? '1',
+            activeCell9x9: state.ui.mandala.activeCell9x9,
+        });
+    }
+
+    private restoreMandalaUiState(path: string) {
+        const nextState = this.mandalaUiStateByPath.get(path);
+        const subgridTheme = nextState?.subgridTheme ?? '1';
+        const activeCell9x9 = nextState?.activeCell9x9 ?? null;
+
+        this.viewStore.dispatch({
+            type: 'view/mandala/subgrid/enter',
+            payload: { theme: subgridTheme },
+        });
+        this.viewStore.dispatch({
+            type: 'view/mandala/active-cell/set',
+            payload: { cell: activeCell9x9 },
+        });
+        this.viewStore.dispatch({
+            type: 'view/mandala/swap/cancel',
+        });
+        this.mandalaActiveCell9x9 = activeCell9x9;
+    }
 
     private getDocumentFormat(body: string) {
         let format: MandalaGridDocumentFormat;

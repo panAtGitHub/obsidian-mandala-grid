@@ -380,6 +380,18 @@
             });
         }
 
+        if (
+            $mode === '3x3' &&
+            $subgridTheme &&
+            $subgridTheme !== '1' &&
+            !$sectionToNodeId[$subgridTheme]
+        ) {
+            view.viewStore.dispatch({
+                type: 'view/mandala/subgrid/enter',
+                payload: { theme: '1' },
+            });
+        }
+
         if ($mode !== '9x9') {
             if (view.mandalaActiveCell9x9) {
                 setActiveCell9x9(view, null);
