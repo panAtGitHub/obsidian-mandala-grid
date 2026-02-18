@@ -205,9 +205,7 @@
 
     const toggleIncludeSidebarInPngScreen = () => {
         includeSidebarInPngScreen = !includeSidebarInPngScreen;
-        if (includeSidebarInPngScreen) {
-            updateMandalaDetailSidebar(true);
-        }
+        updateMandalaDetailSidebar(includeSidebarInPngScreen);
     };
 
     const updateMandalaDetailSidebar = (enabled: boolean) => {
