@@ -52,6 +52,7 @@
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
     import ViewOptionsExportPanel from './components/view-options-export-panel.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
+    import type { LastExportPreset } from 'src/stores/settings/settings-type';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -119,6 +120,10 @@
         view.plugin.settings,
         (state) => state.general.mandalaTemplatesFilePath,
     );
+    const lastExportPresetStore = derived(
+        view.plugin.settings,
+        (state) => state.view.lastExportPreset,
+    );
 
     const toggleWhiteTheme = () => {
         view.plugin.settings.dispatch({
@@ -162,6 +167,7 @@
 
     type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
     let exportMode: ExportMode = 'png-screen';
+    let includeSidebarInPngScreen = true;
 
     const setExportMode = (mode: ExportMode) => {
         exportMode = mode;
@@ -175,6 +181,10 @@
         if (mode === 'png-square') {
             updateSquareLayout(true);
         }
+    };
+
+    const toggleIncludeSidebarInPngScreen = () => {
+        includeSidebarInPngScreen = !includeSidebarInPngScreen;
     };
 
 
@@ -484,59 +494,97 @@
 
     type PrintConfig = {
         exportMode: ExportMode;
+        includeSidebarInPngScreen: boolean;
         a4Orientation: 'portrait' | 'landscape';
         backgroundMode: 'none' | 'custom' | 'gray';
         sectionColorOpacity: number;
         borderOpacity: number;
         whiteThemeMode: boolean;
+        squareLayout: boolean;
     };
 
-    let lastPrintConfig: PrintConfig | null = null;
+    let exportSessionSnapshot: PrintConfig | null = null;
+    let isInExportSession = false;
 
-    const capturePrintConfig = () => {
-        lastPrintConfig = {
+    const capturePrintConfig = (): PrintConfig => {
+        return {
             exportMode,
+            includeSidebarInPngScreen,
             a4Orientation: $a4Orientation,
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
             borderOpacity: $borderOpacity,
             whiteThemeMode: $whiteThemeMode,
+            squareLayout: $squareLayout,
         };
     };
 
     const applyPrintConfig = (config: PrintConfig) => {
         setExportMode(config.exportMode);
+        includeSidebarInPngScreen = config.includeSidebarInPngScreen;
         updateWhiteThemeMode(config.whiteThemeMode);
         updateBackgroundMode(config.backgroundMode);
         updateSectionColorOpacityValue(config.sectionColorOpacity);
         updateBorderOpacityValue(config.borderOpacity);
+        updateSquareLayout(config.squareLayout);
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-a4-orientation',
             payload: { orientation: config.a4Orientation },
         });
     };
 
-    const _switchLastPrintConfig = () => {
-        if (!lastPrintConfig) {
-            new Notice('暂无可切换的打印配置。');
+    const enterExportSession = () => {
+        if (isInExportSession) return;
+        exportSessionSnapshot = capturePrintConfig();
+        isInExportSession = true;
+    };
+
+    const exitExportSession = () => {
+        if (!isInExportSession) return;
+        if (exportSessionSnapshot) {
+            applyPrintConfig(exportSessionSnapshot);
+        }
+        exportSessionSnapshot = null;
+        isInExportSession = false;
+    };
+
+    const applyLastExportPreset = () => {
+        const preset = $lastExportPresetStore;
+        if (!preset) {
+            new Notice('暂无上一次导出设置。');
             return;
         }
-        const current = {
+        applyPrintConfig({
+            exportMode: preset.exportMode,
+            includeSidebarInPngScreen: preset.includeSidebar,
+            a4Orientation: preset.a4Orientation,
+            backgroundMode: preset.backgroundMode,
+            sectionColorOpacity: preset.sectionColorOpacity,
+            borderOpacity: preset.borderOpacity,
+            whiteThemeMode: preset.whiteThemeMode,
+            squareLayout: preset.squareLayout,
+        });
+    };
+
+    const createCurrentExportPreset = (): LastExportPreset => {
+        return {
             exportMode,
+            includeSidebar: includeSidebarInPngScreen,
             a4Orientation: $a4Orientation,
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
             borderOpacity: $borderOpacity,
             whiteThemeMode: $whiteThemeMode,
+            squareLayout: $squareLayout,
         };
-        applyPrintConfig(lastPrintConfig);
-        lastPrintConfig = current;
     };
 
-    const _restoreEditMode = () => {
-        capturePrintConfig();
-        setExportMode('png-screen');
-        updateWhiteThemeMode(false);
+    const persistLastExportPreset = (preset?: LastExportPreset) => {
+        const nextPreset = preset ?? createCurrentExportPreset();
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-last-export-preset',
+            payload: { preset: nextPreset },
+        });
     };
 
     const updateGridOrientation = (
@@ -667,6 +715,7 @@
             dpi?: number;
         },
     ) => {
+        const exportPreset = createCurrentExportPreset();
         const loadingNotice = new Notice('正在导出 PNG...', 0);
         if (!target) {
             loadingNotice.hide();
@@ -722,6 +771,7 @@
                         new Notice('导出失败，请稍后再试。');
                     } else {
                         new Notice('PNG 导出完成。');
+                        persistLastExportPreset(exportPreset);
                     }
                 });
                 closeMenu();
@@ -737,6 +787,7 @@
         link.href = dataUrl;
         link.download = defaultName;
         link.click();
+        persistLastExportPreset(exportPreset);
         closeMenu();
     };
 
@@ -818,6 +869,11 @@
                     '.mandala-scroll',
                 ) as HTMLElement | null;
             }
+            if (!includeSidebarInPngScreen) {
+                return view.contentEl.querySelector(
+                    '.mandala-scroll',
+                ) as HTMLElement | null;
+            }
             return view.contentEl.querySelector(
                 '.mandala-content-wrapper',
             ) as HTMLElement | null;
@@ -858,6 +914,11 @@
         exportMode = 'png-screen';
     }
 
+    $: if (!show && isInExportSession) {
+        exitExportSession();
+        showPrintOptions = false;
+    }
+
     const exportCurrentFile = async () => {
         if (isMobile) {
             new Notice('移动端不支持导出，请在桌面端操作');
@@ -871,6 +932,7 @@
     };
 
     const exportCurrentViewPdf = async () => {
+        const exportPreset = createCurrentExportPreset();
         if (!$a4Mode) {
             new Notice('请先切换到 A4 大小再导出 PDF。');
             return;
@@ -1028,6 +1090,7 @@
                                 new Notice('导出失败，请稍后再试。');
                             } else {
                                 new Notice('PDF 导出完成。');
+                                persistLastExportPreset(exportPreset);
                             }
                             resolve();
                         });
@@ -1408,6 +1471,7 @@
     };
 
     const closeMenu = () => {
+        exitExportSession();
         dispatch('close');
         showEditOptions = false;
         showFontOptions = false;
@@ -1421,6 +1485,15 @@
     const openHotkeysModal = () => {
         view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
         closeMenu();
+    };
+
+    const togglePrintOptions = () => {
+        showPrintOptions = !showPrintOptions;
+        if (showPrintOptions) {
+            enterExportSession();
+            return;
+        }
+        exitExportSession();
     };
 
     const getVisibleViewport = () => {
@@ -1689,10 +1762,14 @@
             <ViewOptionsExportPanel
                 show={showPrintOptions}
                 {exportMode}
-                toggle={() => (showPrintOptions = !showPrintOptions)}
+                {includeSidebarInPngScreen}
+                toggle={togglePrintOptions}
                 setPngSquareMode={() => setExportMode('png-square')}
                 setPngScreenMode={() => setExportMode('png-screen')}
                 setPdfMode={() => setExportMode('pdf-a4')}
+                {toggleIncludeSidebarInPngScreen}
+                canApplyLastExportPreset={Boolean($lastExportPresetStore)}
+                {applyLastExportPreset}
                 {exportCurrentFile}
             />
 

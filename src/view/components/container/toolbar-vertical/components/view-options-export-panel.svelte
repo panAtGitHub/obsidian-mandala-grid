@@ -4,11 +4,15 @@
     export let show = false;
     export let exportMode: 'png-square' | 'png-screen' | 'pdf-a4' =
         'png-screen';
+    export let includeSidebarInPngScreen = true;
 
     export let toggle: () => void;
     export let setPngSquareMode: () => void;
     export let setPngScreenMode: () => void;
     export let setPdfMode: () => void;
+    export let toggleIncludeSidebarInPngScreen: () => void;
+    export let canApplyLastExportPreset = false;
+    export let applyLastExportPreset: () => void;
     export let exportCurrentFile: () => Promise<void>;
 </script>
 
@@ -24,6 +28,16 @@
 
 {#if show}
     <div class="view-options-menu__submenu">
+        <div class="view-options-menu__subsection">
+            <button
+                class="view-options-menu__subitem"
+                on:click={applyLastExportPreset}
+                disabled={!canApplyLastExportPreset}
+            >
+                采用上一次导出设置
+            </button>
+        </div>
+
         <div class="view-options-menu__subsection">
             <div class="view-options-menu__subsection-title">导出分享用 PNG</div>
             <div class="view-options-menu__row view-options-menu__row--inline">
@@ -46,6 +60,17 @@
                         on:click={setPngScreenMode}
                     />
                     <span>导出屏幕视图内容，可包含侧边栏</span>
+                </label>
+            </div>
+            <div class="view-options-menu__row">
+                <label class="view-options-menu__inline-option">
+                    <input
+                        type="checkbox"
+                        checked={includeSidebarInPngScreen}
+                        disabled={exportMode !== 'png-screen'}
+                        on:change={toggleIncludeSidebarInPngScreen}
+                    />
+                    <span>包含侧边栏（屏幕视图）</span>
                 </label>
             </div>
         </div>

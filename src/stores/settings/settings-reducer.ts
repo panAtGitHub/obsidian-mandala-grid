@@ -421,6 +421,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             return;
         store.view.mandalaSectionColorOpacity = action.payload.opacity;
     },
+    'settings/view/mandala/set-last-export-preset': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-last-export-preset')
+            return;
+        store.view.lastExportPreset = action.payload.preset;
+    },
 };
 
 const updateState = (store: Settings, action: SettingsActions) => {

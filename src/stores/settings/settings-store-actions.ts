@@ -259,6 +259,23 @@ export type SettingsActions =
     | {
           type: 'settings/view/mandala/set-section-color-opacity';
           payload: { opacity: number };
+      }
+    | {
+          type: 'settings/view/mandala/set-last-export-preset';
+          payload: {
+              preset:
+                  | {
+                        exportMode: 'png-square' | 'png-screen' | 'pdf-a4';
+                        includeSidebar: boolean;
+                        a4Orientation: 'portrait' | 'landscape';
+                        backgroundMode: 'none' | 'custom' | 'gray';
+                        sectionColorOpacity: number;
+                        borderOpacity: number;
+                        whiteThemeMode: boolean;
+                        squareLayout: boolean;
+                    }
+                  | null;
+          };
       };
 export type PersistCollapsedSectionsAction = {
     type: 'settings/document/persist-collapsed-sections';

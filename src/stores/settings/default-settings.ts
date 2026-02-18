@@ -92,6 +92,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaBackgroundMode: 'custom',
         mandalaGridBorderOpacity: 100,
         mandalaSectionColorOpacity: 100,
+        lastExportPreset: null,
         nodeIndentationWidth: DEFAULT_INDENTATION_WIDTH,
         maintainEditMode: false,
         alwaysShowCardButtons: false,

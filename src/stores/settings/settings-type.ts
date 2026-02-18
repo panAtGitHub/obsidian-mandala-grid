@@ -30,6 +30,17 @@ export type MandalaGridOrientation =
     | 'south-start'
     | 'left-to-right'
     | 'bottom-to-top';
+export type MandalaExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
+export type LastExportPreset = {
+    exportMode: MandalaExportMode;
+    includeSidebar: boolean;
+    a4Orientation: 'portrait' | 'landscape';
+    backgroundMode: 'none' | 'custom' | 'gray';
+    sectionColorOpacity: number;
+    borderOpacity: number;
+    whiteThemeMode: boolean;
+    squareLayout: boolean;
+};
 
 export type DocumentPreferences = {
     documentFormat: MandalaGridDocumentFormat;
@@ -83,6 +94,7 @@ export type Settings = {
         mandalaBackgroundMode: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity: number;
         mandalaSectionColorOpacity: number;
+        lastExportPreset: LastExportPreset | null;
         nodeIndentationWidth: number;
         maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;
