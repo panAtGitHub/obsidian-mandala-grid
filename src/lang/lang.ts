@@ -150,12 +150,12 @@ export const lang = {
     modals_snapshots_extracted_node: 'Extracted section ',
 
     // export
-    cm_export_document: '导出文档',
-    cm_eject_document: '弹出文档',
-    cm_export_selection: '导出',
-    cm_export_section: '导出卡片',
-    cm_export_branch_with_subitems: '导出分支',
-    cm_export_branch_wo_subitems: '导出卡片',
+    cm_export_document: '导出文本文档',
+    cm_eject_document: '导出并退出为 Markdown',
+    cm_export_selection: '导出文本',
+    cm_export_section: '导出文本卡片',
+    cm_export_branch_with_subitems: '导出文本分支',
+    cm_export_branch_wo_subitems: '导出文本卡片',
     cmd_export_branches_with_subitems: 'Export branches',
     cmd_export_nodes_wo_subitems: 'Export sections',
 
