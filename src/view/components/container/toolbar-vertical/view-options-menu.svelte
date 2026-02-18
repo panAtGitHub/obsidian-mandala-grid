@@ -78,6 +78,8 @@
         | {
               startX: number;
               startY: number;
+              modalLeft: number;
+              modalTop: number;
               offsetX: number;
               offsetY: number;
           }
@@ -1613,6 +1615,8 @@
         exportDragCandidate = {
             startX: pointer.x,
             startY: pointer.y,
+            modalLeft: rect.left,
+            modalTop: rect.top,
             offsetX: pointer.x - rect.left,
             offsetY: pointer.y - rect.top,
         };
@@ -1631,9 +1635,11 @@
                 return;
             }
             exportDragOffset = {
-                x: exportDragCandidate.offsetX,
-                y: exportDragCandidate.offsetY,
+                x: pointer.x - exportDragCandidate.modalLeft,
+                y: pointer.y - exportDragCandidate.modalTop,
             };
+            // Crossing threshold only arms dragging; do not move on this frame.
+            return;
         }
 
         if (!exportDragOffset) return;
