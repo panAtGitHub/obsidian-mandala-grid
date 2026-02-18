@@ -2291,6 +2291,11 @@
         justify-content: flex-end;
     }
 
+    .export-style-panel :global(.view-options-menu__range input[type='range']) {
+        flex: 0 0 140px;
+        max-width: 140px;
+    }
+
     .export-style-header {
         display: flex;
         align-items: center;
