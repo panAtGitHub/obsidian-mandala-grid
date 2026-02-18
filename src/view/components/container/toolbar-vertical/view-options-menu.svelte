@@ -72,6 +72,9 @@
     let listenersAttached = false;
     let previousShow = show;
     let isExportModeModalOpen = false;
+    let exportModalPosition: { left: number; top: number } | null = null;
+    let exportDragOffset: { x: number; y: number } | null = null;
+    let exportModalInlineStyle: string | undefined = undefined;
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
@@ -1539,6 +1542,8 @@
 
     const openExportModeModal = () => {
         enterExportSession();
+        exportModalPosition = null;
+        exportDragOffset = null;
         openExportModeModalForView(view.id);
         closeMenu(true);
     };
@@ -1554,6 +1559,70 @@
         event.preventDefault();
         closeExportMode();
     };
+
+    const clampExportModalPosition = (left: number, top: number) => {
+        const width = Math.min(420, window.innerWidth - 24);
+        const margin = 8;
+        const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+        const maxTop = Math.max(margin, window.innerHeight - 120);
+        return {
+            left: Math.min(Math.max(left, margin), maxLeft),
+            top: Math.min(Math.max(top, margin), maxTop),
+        };
+    };
+
+    const getPointer = (event: MouseEvent | TouchEvent) => {
+        if (event instanceof MouseEvent) {
+            return { x: event.clientX, y: event.clientY };
+        }
+        if (event.touches.length > 0) {
+            return {
+                x: event.touches[0].clientX,
+                y: event.touches[0].clientY,
+            };
+        }
+        return null;
+    };
+
+    const startExportModalDrag = (event: MouseEvent | TouchEvent) => {
+        if (isMobile || !isExportModeModalOpen) return;
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (target.closest('.view-options-menu__close')) return;
+        const modal = target.closest('.export-mode-modal');
+        if (!(modal instanceof HTMLElement)) return;
+
+        const pointer = getPointer(event);
+        if (!pointer) return;
+
+        const rect = modal.getBoundingClientRect();
+        exportModalPosition = { left: rect.left, top: rect.top };
+        exportDragOffset = {
+            x: pointer.x - rect.left,
+            y: pointer.y - rect.top,
+        };
+        event.preventDefault();
+    };
+
+    const moveExportModalDrag = (event: MouseEvent | TouchEvent) => {
+        if (!exportDragOffset || isMobile || !isExportModeModalOpen) return;
+        const pointer = getPointer(event);
+        if (!pointer) return;
+        exportModalPosition = clampExportModalPosition(
+            pointer.x - exportDragOffset.x,
+            pointer.y - exportDragOffset.y,
+        );
+        event.preventDefault();
+    };
+
+    const stopExportModalDrag = () => {
+        exportDragOffset = null;
+    };
+
+    $: exportModalInlineStyle =
+        !isMobile && exportModalPosition
+            ? `left:${exportModalPosition.left}px;top:${exportModalPosition.top}px;right:auto;`
+            : undefined;
 
     const getVisibleViewport = () => {
         const vv = window.visualViewport;
@@ -1851,17 +1920,28 @@
     </div>
 {/if}
 
-<svelte:window on:keydown={onExportModeKeyDown} />
+<svelte:window
+    on:keydown={onExportModeKeyDown}
+    on:mousemove={moveExportModalDrag}
+    on:mouseup={stopExportModalDrag}
+    on:touchmove|nonpassive={moveExportModalDrag}
+    on:touchend={stopExportModalDrag}
+/>
 
 {#if isExportModeModalOpen}
-    <div class="export-mode-overlay" on:click={closeExportMode} />
+    <div class="export-mode-overlay" />
     <div
         class="mandala-modal export-mode-modal"
         class:is-mobile={isMobile}
+        style={exportModalInlineStyle}
         on:mousedown|stopPropagation
         on:touchstart|stopPropagation
     >
-        <div class="view-options-menu__header">
+        <div
+            class="view-options-menu__header export-mode-modal__header"
+            on:mousedown={startExportModalDrag}
+            on:touchstart={startExportModalDrag}
+        >
             <span class="view-options-menu__title">导出模式（临时会话）</span>
             <button class="view-options-menu__close" on:click={closeExportMode}>
                 <X class="icon" size={16} />
@@ -1996,6 +2076,7 @@
         inset: 0;
         z-index: 1200;
         background: rgba(0, 0, 0, 0.18);
+        pointer-events: none;
     }
 
     .export-mode-modal {
@@ -2011,6 +2092,17 @@
         inset: 8px;
         width: auto;
         max-height: none;
+    }
+
+    .export-mode-modal__header {
+        cursor: move;
+        user-select: none;
+        touch-action: none;
+    }
+
+    :global(.is-mobile) .export-mode-modal__header {
+        cursor: default;
+        touch-action: auto;
     }
 
     .export-mode-status {
