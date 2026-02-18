@@ -2106,7 +2106,9 @@
                         </div>
                     {/if}
                     <details class="export-style-panel">
-                        <summary>3. 外观样式（完整）</summary>
+                        <summary class="view-options-menu__subsection-title">
+                            3. 外观样式（详细设置）
+                        </summary>
                         <ViewOptionsEditPanel
                             show={true}
                             showTrigger={false}
@@ -2258,8 +2260,9 @@
 
     .export-style-panel summary {
         cursor: pointer;
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-accent);
         margin-bottom: 6px;
     }
 
