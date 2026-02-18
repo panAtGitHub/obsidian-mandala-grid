@@ -34,6 +34,18 @@
 
 /* 纯白主题模式 */
 .mandala-white-theme {
+    --background-container: var(--background-primary) !important;
+    --background-active-node: var(--background-primary) !important;
+    --background-active-parent: var(--background-primary) !important;
+    --color-active-node: var(--text-normal) !important;
+    --color-active-parent: var(--text-normal) !important;
+    --inactive-card-opacity: 1 !important;
+    --mandala-color-selection: var(--interactive-accent) !important;
+    --mandala-color-selection-faint: var(--interactive-accent) !important;
+    --mandala-white-outline: var(--background-modifier-border);
+}
+
+body.mandala-print-export .mandala-white-theme {
     --background-container: #FFFFFF !important;
     --background-primary: #FFFFFF !important;
     --background-secondary: #F8F8F8 !important;
@@ -42,12 +54,8 @@
     --background-active-parent: #FFFFFF !important;
     --color-active-node: #000000 !important;
     --color-active-parent: #000000 !important;
-    --inactive-card-opacity: 1 !important;
     --text-normal: #000000 !important;
     --text-muted: #666666 !important;
-    --mandala-color-selection: var(--interactive-accent) !important;
-    --mandala-color-selection-faint: var(--interactive-accent) !important;
-    --mandala-white-outline: var(--background-modifier-border);
 }
 
 .mandala-white-theme .mandala-card {
