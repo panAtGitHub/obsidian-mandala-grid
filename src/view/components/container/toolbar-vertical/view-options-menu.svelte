@@ -1908,26 +1908,47 @@
                     </div>
                 {/if}
                 <details class="export-style-panel">
-                    <summary>3. 外观样式（可选）</summary>
-                    <div class="view-options-menu__row view-options-menu__row--inline">
-                        <label class="view-options-menu__inline-option">
-                            <input
-                                type="checkbox"
-                                checked={$whiteThemeMode}
-                                on:change={() =>
-                                    updateWhiteThemeMode(!$whiteThemeMode)}
-                            />
-                            <span>白色主题</span>
-                        </label>
-                        <label class="view-options-menu__inline-option">
-                            <input
-                                type="checkbox"
-                                checked={$squareLayout}
-                                on:change={() => updateSquareLayout(!$squareLayout)}
-                            />
-                            <span>正方形布局</span>
-                        </label>
-                    </div>
+                    <summary>3. 外观样式（完整）</summary>
+                    <ViewOptionsEditPanel
+                        show={true}
+                        showTrigger={false}
+                        whiteThemeMode={$whiteThemeMode}
+                        {showImmersiveOptions}
+                        {showPanoramaOptions}
+                        containerBg={$containerBg}
+                        activeBranchBg={$activeBranchBg}
+                        activeBranchColor={$activeBranchColor}
+                        inactiveNodeOpacity={$inactiveNodeOpacity}
+                        borderOpacity={$borderOpacity}
+                        backgroundMode={$backgroundMode}
+                        sectionColorOpacity={$sectionColorOpacity}
+                        squareLayout={$squareLayout}
+                        cardsGap={$cardsGap}
+                        gridOrientation={$gridOrientation}
+                        toggle={() => undefined}
+                        {updateWhiteThemeMode}
+                        {toggleImmersiveOptions}
+                        {togglePanoramaOptions}
+                        {updateContainerBg}
+                        {resetContainerBg}
+                        {updateActiveBranchBg}
+                        {resetActiveBranchBg}
+                        {updateActiveBranchColor}
+                        {resetActiveBranchColor}
+                        {stepInactiveOpacity}
+                        {updateInactiveNodeOpacity}
+                        {resetInactiveNodeOpacity}
+                        {stepBorderOpacity}
+                        {updateBorderOpacity}
+                        {updateBackgroundMode}
+                        {stepOpacity}
+                        {updateSectionColorOpacity}
+                        {updateSquareLayout}
+                        {stepCardsGap}
+                        {updateCardsGap}
+                        {resetCardsGap}
+                        {updateGridOrientation}
+                    />
                 </details>
                 <div class="export-action-row">
                     <button class="view-options-menu__subitem" on:click={exportCurrentFile}>

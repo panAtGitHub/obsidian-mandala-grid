@@ -3,6 +3,7 @@
     import ColorSwatchInput from '../color-swatch-input.svelte';
 
     export let show = false;
+    export let showTrigger = true;
     export let whiteThemeMode = false;
     export let showImmersiveOptions = false;
     export let showPanoramaOptions = false;
@@ -53,15 +54,17 @@
     ) => void;
 </script>
 
-<button class="view-options-menu__item" on:click={toggle}>
-    <div class="view-options-menu__icon">
-        <Grid3x3 class="view-options-menu__icon-svg" size={18} />
-    </div>
-    <div class="view-options-menu__content">
-        <div class="view-options-menu__label">编辑模式</div>
-        <div class="view-options-menu__desc">背景与布局</div>
-    </div>
-</button>
+{#if showTrigger}
+    <button class="view-options-menu__item" on:click={toggle}>
+        <div class="view-options-menu__icon">
+            <Grid3x3 class="view-options-menu__icon-svg" size={18} />
+        </div>
+        <div class="view-options-menu__content">
+            <div class="view-options-menu__label">编辑模式</div>
+            <div class="view-options-menu__desc">背景与布局</div>
+        </div>
+    </button>
+{/if}
 
 {#if show}
     <div class="view-options-menu__submenu">
