@@ -74,6 +74,14 @@
     let isExportModeModalOpen = false;
     let exportModalPosition: { left: number; top: number } | null = null;
     let exportDragOffset: { x: number; y: number } | null = null;
+    let exportDragCandidate:
+        | {
+              startX: number;
+              startY: number;
+              offsetX: number;
+              offsetY: number;
+          }
+        | null = null;
     let exportModalInlineStyle: string | undefined = undefined;
 
     const a4Mode = MandalaA4ModeStore(view);
@@ -1601,17 +1609,33 @@
 
         const rect = modal.getBoundingClientRect();
         exportModalPosition = { left: rect.left, top: rect.top };
-        exportDragOffset = {
-            x: pointer.x - rect.left,
-            y: pointer.y - rect.top,
+        exportDragOffset = null;
+        exportDragCandidate = {
+            startX: pointer.x,
+            startY: pointer.y,
+            offsetX: pointer.x - rect.left,
+            offsetY: pointer.y - rect.top,
         };
-        event.preventDefault();
     };
 
     const moveExportModalDrag = (event: MouseEvent | TouchEvent) => {
-        if (!exportDragOffset || isMobile || !isExportModeModalOpen) return;
+        if (isMobile || !isExportModeModalOpen) return;
         const pointer = getPointer(event);
         if (!pointer) return;
+
+        if (!exportDragOffset && exportDragCandidate) {
+            const dx = Math.abs(pointer.x - exportDragCandidate.startX);
+            const dy = Math.abs(pointer.y - exportDragCandidate.startY);
+            if (dx < 4 && dy < 4) {
+                return;
+            }
+            exportDragOffset = {
+                x: exportDragCandidate.offsetX,
+                y: exportDragCandidate.offsetY,
+            };
+        }
+
+        if (!exportDragOffset) return;
         exportModalPosition = clampExportModalPosition(
             pointer.x - exportDragOffset.x,
             pointer.y - exportDragOffset.y,
@@ -1621,6 +1645,7 @@
 
     const stopExportModalDrag = () => {
         exportDragOffset = null;
+        exportDragCandidate = null;
     };
 
     $: exportModalInlineStyle =
