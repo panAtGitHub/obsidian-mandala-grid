@@ -268,6 +268,7 @@
 
     let showImmersiveOptions = false;
     let showPanoramaOptions = false;
+    let showExportStyleDetails = false;
 
     const toggleImmersiveOptions = () => {
         if ($whiteThemeMode) return;
@@ -2105,51 +2106,62 @@
                                 : '当前为自适应布局，按格子范围导出长方形。'}
                         </div>
                     {/if}
-                    <details class="export-style-panel">
-                        <summary class="view-options-menu__subsection-title">
-                            3. 外观样式（详细设置）
-                        </summary>
-                        <ViewOptionsEditPanel
-                            show={true}
-                            showTrigger={false}
-                            whiteThemeMode={$whiteThemeMode}
-                            {showImmersiveOptions}
-                            {showPanoramaOptions}
-                            containerBg={$containerBg}
-                            activeBranchBg={$activeBranchBg}
-                            activeBranchColor={$activeBranchColor}
-                            inactiveNodeOpacity={$inactiveNodeOpacity}
-                            borderOpacity={$borderOpacity}
-                            backgroundMode={$backgroundMode}
-                            sectionColorOpacity={$sectionColorOpacity}
-                            squareLayout={$squareLayout}
-                            cardsGap={$cardsGap}
-                            gridOrientation={$gridOrientation}
-                            toggle={() => undefined}
-                            {updateWhiteThemeMode}
-                            {toggleImmersiveOptions}
-                            {togglePanoramaOptions}
-                            {updateContainerBg}
-                            {resetContainerBg}
-                            {updateActiveBranchBg}
-                            {resetActiveBranchBg}
-                            {updateActiveBranchColor}
-                            {resetActiveBranchColor}
-                            {stepInactiveOpacity}
-                            {updateInactiveNodeOpacity}
-                            {resetInactiveNodeOpacity}
-                            {stepBorderOpacity}
-                            {updateBorderOpacity}
-                            {updateBackgroundMode}
-                            {stepOpacity}
-                            {updateSectionColorOpacity}
-                            {updateSquareLayout}
-                            {stepCardsGap}
-                            {updateCardsGap}
-                            {resetCardsGap}
-                            {updateGridOrientation}
-                        />
-                    </details>
+                    <div class="export-style-header">
+                        <div class="view-options-menu__subsection-title">
+                            3. 外观样式
+                        </div>
+                        <button
+                            class="export-style-toggle"
+                            on:click={() =>
+                                (showExportStyleDetails = !showExportStyleDetails)}
+                        >
+                            {showExportStyleDetails ? '收起' : '展开'}
+                        </button>
+                    </div>
+                    {#if showExportStyleDetails}
+                        <div class="export-style-panel">
+                            <ViewOptionsEditPanel
+                                show={true}
+                                showTrigger={false}
+                                whiteThemeMode={$whiteThemeMode}
+                                {showImmersiveOptions}
+                                {showPanoramaOptions}
+                                containerBg={$containerBg}
+                                activeBranchBg={$activeBranchBg}
+                                activeBranchColor={$activeBranchColor}
+                                inactiveNodeOpacity={$inactiveNodeOpacity}
+                                borderOpacity={$borderOpacity}
+                                backgroundMode={$backgroundMode}
+                                sectionColorOpacity={$sectionColorOpacity}
+                                squareLayout={$squareLayout}
+                                cardsGap={$cardsGap}
+                                gridOrientation={$gridOrientation}
+                                toggle={() => undefined}
+                                {updateWhiteThemeMode}
+                                {toggleImmersiveOptions}
+                                {togglePanoramaOptions}
+                                {updateContainerBg}
+                                {resetContainerBg}
+                                {updateActiveBranchBg}
+                                {resetActiveBranchBg}
+                                {updateActiveBranchColor}
+                                {resetActiveBranchColor}
+                                {stepInactiveOpacity}
+                                {updateInactiveNodeOpacity}
+                                {resetInactiveNodeOpacity}
+                                {stepBorderOpacity}
+                                {updateBorderOpacity}
+                                {updateBackgroundMode}
+                                {stepOpacity}
+                                {updateSectionColorOpacity}
+                                {updateSquareLayout}
+                                {stepCardsGap}
+                                {updateCardsGap}
+                                {resetCardsGap}
+                                {updateGridOrientation}
+                            />
+                        </div>
+                    {/if}
                     <div class="export-secondary-row">
                         <button
                             class="view-options-menu__subitem"
@@ -2258,12 +2270,26 @@
         background: var(--background-primary);
     }
 
-    .export-style-panel summary {
+    .export-style-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .export-style-toggle {
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 6px;
+        background: var(--background-primary);
+        color: var(--text-muted);
+        padding: 2px 8px;
+        font-size: 12px;
         cursor: pointer;
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text-accent);
-        margin-bottom: 6px;
+    }
+
+    .export-style-toggle:hover {
+        color: var(--text-normal);
+        background: var(--background-modifier-hover);
     }
 
     .export-secondary-row {
