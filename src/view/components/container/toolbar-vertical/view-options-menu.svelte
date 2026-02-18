@@ -1598,6 +1598,7 @@
 
     const startExportModalDrag = (event: MouseEvent | TouchEvent) => {
         if (isMobile || !isExportModeModalOpen) return;
+        if (event instanceof MouseEvent && event.button !== 0) return;
         const target = event.target;
         if (!(target instanceof HTMLElement)) return;
         if (target.closest('.view-options-menu__close')) return;
@@ -1608,7 +1609,6 @@
         if (!pointer) return;
 
         const rect = modal.getBoundingClientRect();
-        exportModalPosition = { left: rect.left, top: rect.top };
         exportDragOffset = null;
         exportDragCandidate = {
             startX: pointer.x,
@@ -1620,6 +1620,7 @@
 
     const moveExportModalDrag = (event: MouseEvent | TouchEvent) => {
         if (isMobile || !isExportModeModalOpen) return;
+        if (event instanceof MouseEvent && event.buttons !== 1) return;
         const pointer = getPointer(event);
         if (!pointer) return;
 
