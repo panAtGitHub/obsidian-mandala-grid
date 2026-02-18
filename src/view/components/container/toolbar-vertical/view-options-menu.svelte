@@ -2271,18 +2271,24 @@
     }
 
     .export-style-panel :global(.view-options-menu__row) {
-        justify-content: flex-start;
+        justify-content: space-between;
     }
 
     .export-style-panel :global(.view-options-menu__row > span) {
-        flex: 0 0 auto;
-        min-width: 7em;
+        flex: 1 1 auto;
+        min-width: 0;
         white-space: nowrap;
     }
 
+    .export-style-panel :global(.view-options-menu__row-controls) {
+        margin-left: auto;
+    }
+
     .export-style-panel :global(.view-options-menu__range) {
-        flex: 1 1 0;
+        flex: 1 1 auto;
         min-width: 0;
+        margin-left: auto;
+        justify-content: flex-end;
     }
 
     .export-style-header {
