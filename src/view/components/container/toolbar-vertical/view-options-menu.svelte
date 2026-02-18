@@ -1542,7 +1542,11 @@
 
     const openExportModeModal = () => {
         enterExportSession();
-        exportModalPosition = null;
+        const initialWidth = Math.min(420, window.innerWidth - 24);
+        exportModalPosition = clampExportModalPosition(
+            window.innerWidth - initialWidth - 16,
+            72,
+        );
         exportDragOffset = null;
         openExportModeModalForView(view.id);
         closeMenu(true);
