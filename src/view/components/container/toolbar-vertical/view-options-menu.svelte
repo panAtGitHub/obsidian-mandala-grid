@@ -142,6 +142,13 @@
     );
 
     $: isExportModeModalOpen = $exportModeModalViewId === view.id;
+    $: if (
+        isExportModeModalOpen &&
+        exportMode === 'pdf-a4' &&
+        $showMandalaDetailSidebar
+    ) {
+        updateMandalaDetailSidebar(false);
+    }
 
     const toggleWhiteTheme = () => {
         view.plugin.settings.dispatch({
