@@ -193,7 +193,7 @@
     type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
     let exportMode: ExportMode = 'png-screen';
     let includeSidebarInPngScreen = true;
-    let exportModeLabel = 'PNG（屏幕）';
+    let exportModeLabel = 'PNG（屏幕范围）';
     let exportModeHint = '包含侧边栏';
 
     const setExportMode = (mode: ExportMode) => {
@@ -225,7 +225,7 @@
             ? 'PNG（格子范围）'
             : exportMode === 'pdf-a4'
               ? 'PDF（A4）'
-              : 'PNG（屏幕）';
+              : 'PNG（屏幕范围）';
     $: exportModeHint =
         exportMode === 'png-screen'
             ? includeSidebarInPngScreen
@@ -239,6 +239,13 @@
                 ? '正方形留白'
                 : '自适应长方形';
     $: exportActionLabel = exportMode === 'pdf-a4' ? '导出 PDF' : '导出 PNG';
+    $: if (
+        isExportModeModalOpen &&
+        exportMode === 'png-screen' &&
+        includeSidebarInPngScreen !== $showMandalaDetailSidebar
+    ) {
+        includeSidebarInPngScreen = $showMandalaDetailSidebar;
+    }
 
 
     let showImmersiveOptions = false;
@@ -591,6 +598,7 @@
 
     const enterExportSession = () => {
         if (isInExportSession) return;
+        includeSidebarInPngScreen = $showMandalaDetailSidebar;
         exportSessionSnapshot = capturePrintConfig();
         isInExportSession = true;
     };
@@ -620,8 +628,8 @@
             whiteThemeMode: preset.whiteThemeMode,
             squareLayout: preset.squareLayout,
             showMandalaDetailSidebar:
-                preset.exportMode === 'png-screen' && preset.includeSidebar
-                    ? true
+                preset.exportMode === 'png-screen'
+                    ? preset.includeSidebar
                     : $showMandalaDetailSidebar,
         });
     };
@@ -1993,7 +2001,7 @@
                             class:is-active={exportMode === 'png-screen'}
                             on:click={() => setExportMode('png-screen')}
                         >
-                            PNG 屏幕
+                            PNG 屏幕范围
                         </button>
                         <button
                             class="export-target-tab"
