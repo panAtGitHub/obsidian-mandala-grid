@@ -318,6 +318,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/toggle-hidden-card-info') return;
         store.view.showHiddenCardInfo = !store.view.showHiddenCardInfo;
     },
+    'settings/view/detail-sidebar/set-preview-mode': (store, action) => {
+        if (action.type !== 'settings/view/detail-sidebar/set-preview-mode')
+            return;
+        store.view.detailSidebarPreviewMode = action.payload.mode;
+    },
     'settings/view/toggle-3x3-subgrid-nav-buttons-desktop': (store, action) => {
         if (
             action.type !==

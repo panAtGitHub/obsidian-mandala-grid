@@ -80,6 +80,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         showLeftSidebar: false,
         showMandalaDetailSidebarDesktop: false,
         showMandalaDetailSidebarMobile: false,
+        detailSidebarPreviewMode: 'rendered',
         mandalaDetailSidebarWidth: 350,
         leftSidebarWidth: 500,
         leftSidebarActiveTab: 'pinned-cards',

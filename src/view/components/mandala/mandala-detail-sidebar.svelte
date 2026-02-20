@@ -2,6 +2,7 @@
     import { getView } from 'src/view/components/container/context';
     import { derived } from 'src/lib/store/derived';
     import {
+        DetailSidebarPreviewModeStore,
         ShowMandalaDetailSidebarStore,
         MandalaModeStore,
         Show3x3SubgridNavButtonsStore,
@@ -10,6 +11,7 @@
     import { onDestroy, tick } from 'svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
+    import SourcePreview from 'src/view/components/container/column/components/group/components/card/components/content/source-preview.svelte';
     import { NodeStylesStore } from 'src/stores/view/derived/style-rules';
     import { Platform, setIcon } from 'obsidian';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
@@ -36,6 +38,7 @@
 
     const view = getView();
     const showSidebarStore = ShowMandalaDetailSidebarStore(view);
+    const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const editingState = derived(
         view.viewStore,
         (state) => state.document.editing,
@@ -260,11 +263,15 @@
                                 />
                             </div>
                         {:else}
-                            <Content
-                                nodeId={$activeNodeId}
-                                isInSidebar={false}
-                                active={null}
-                            />
+                            {#if $detailSidebarPreviewMode === 'source'}
+                                <SourcePreview nodeId={$activeNodeId} />
+                            {:else}
+                                <Content
+                                    nodeId={$activeNodeId}
+                                    isInSidebar={false}
+                                    active={null}
+                                />
+                            {/if}
                         {/if}
                     {/key}
                 </div>

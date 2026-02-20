@@ -1,5 +1,6 @@
 import {
     CustomHotkeys,
+    DetailSidebarPreviewMode,
     DocumentPreferences,
     LeftSidebarTab,
     MandalaGridDocumentFormat,
@@ -174,6 +175,12 @@ export type SettingsActions =
       }
     | {
           type: 'settings/view/toggle-hidden-card-info';
+      }
+    | {
+          type: 'settings/view/detail-sidebar/set-preview-mode';
+          payload: {
+              mode: DetailSidebarPreviewMode;
+          };
       }
     | {
           type: 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop';

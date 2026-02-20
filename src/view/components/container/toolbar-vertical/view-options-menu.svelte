@@ -8,6 +8,7 @@
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import { derived } from 'src/lib/store/derived';
     import {
+        DetailSidebarPreviewModeStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
@@ -53,7 +54,10 @@
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
     import Portal from 'src/view/components/container/shared/portal.svelte';
-    import type { LastExportPreset } from 'src/stores/settings/settings-type';
+    import type {
+        DetailSidebarPreviewMode,
+        LastExportPreset,
+    } from 'src/stores/settings/settings-type';
     import {
         closeExportModeModal,
         exportModeModalViewId,
@@ -94,6 +98,7 @@
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const themeDefaults = getDefaultTheme();
     const cardsGap = derived(
@@ -175,6 +180,13 @@
             type: isMobile
                 ? 'settings/view/toggle-3x3-subgrid-nav-buttons-mobile'
                 : 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop',
+        });
+    };
+
+    const updateDetailSidebarPreviewMode = (mode: DetailSidebarPreviewMode) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/detail-sidebar/set-preview-mode',
+            payload: { mode },
         });
     };
 
@@ -1922,10 +1934,12 @@
                 showHiddenCardInfo={$showHiddenCardInfo}
                 show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                detailSidebarPreviewMode={$detailSidebarPreviewMode}
                 toggle={() => (showDisplayOptions = !showDisplayOptions)}
                 {toggleHiddenCardInfo}
                 {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
+                {updateDetailSidebarPreviewMode}
             />
 
             <ViewOptionsFontPanel

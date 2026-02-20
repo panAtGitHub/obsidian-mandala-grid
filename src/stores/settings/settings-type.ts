@@ -24,6 +24,7 @@ export type ScrollingSettings = {
 export type MandalaGridDocumentFormat = 'outline' | 'sections' | 'html-element';
 
 export type ViewType = 'mandala-grid' | 'markdown';
+export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
 export type MandalaMode = '3x3' | '9x9';
 export type MandalaGridOrientation =
@@ -82,6 +83,7 @@ export type Settings = {
         showLeftSidebar: boolean;
         showMandalaDetailSidebarDesktop: boolean;
         showMandalaDetailSidebarMobile: boolean;
+        detailSidebarPreviewMode: DetailSidebarPreviewMode;
         mandalaDetailSidebarWidth: number;
         leftSidebarWidth: number;
         leftSidebarActiveTab: LeftSidebarTab;

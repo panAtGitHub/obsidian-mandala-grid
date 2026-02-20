@@ -1,15 +1,20 @@
 <script lang="ts">
     import { Eye } from 'lucide-svelte';
+    import type { DetailSidebarPreviewMode } from 'src/stores/settings/settings-type';
 
     export let show = false;
     export let showHiddenCardInfo = false;
     export let show3x3SubgridNavButtons = true;
     export let show9x9ParallelNavButtons = true;
+    export let detailSidebarPreviewMode: DetailSidebarPreviewMode = 'rendered';
 
     export let toggle: () => void;
     export let toggleHiddenCardInfo: () => void;
     export let toggle3x3SubgridNavButtons: () => void;
     export let toggle9x9ParallelNavButtons: () => void;
+    export let updateDetailSidebarPreviewMode: (
+        mode: DetailSidebarPreviewMode,
+    ) => void;
 </script>
 
 <button class="view-options-menu__item" on:click={toggle}>
@@ -25,6 +30,34 @@
 {#if show}
     <div class="view-options-menu__submenu">
         <div class="view-options-menu__subsection">
+            <div class="view-options-menu__subsection-title">详情侧边栏预览</div>
+
+            <div class="view-options-menu__row">
+                <span>预览样式</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="radio"
+                            name="detail-sidebar-preview-mode"
+                            checked={detailSidebarPreviewMode === 'rendered'}
+                            on:change={() =>
+                                updateDetailSidebarPreviewMode('rendered')}
+                        />
+                        <span>渲染</span>
+                    </label>
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="radio"
+                            name="detail-sidebar-preview-mode"
+                            checked={detailSidebarPreviewMode === 'source'}
+                            on:change={() =>
+                                updateDetailSidebarPreviewMode('source')}
+                        />
+                        <span>Markdown（只读）</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="view-options-menu__subsection-title">显示 / 隐藏</div>
 
             <div class="view-options-menu__row">
