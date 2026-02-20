@@ -30,19 +30,22 @@
     });
 </script>
 
-<pre class="source-preview">{content}</pre>
+<pre class="source-preview" role="textbox" aria-readonly="true">{content}</pre>
 
 <style>
     .source-preview {
         margin: 0;
         width: 100%;
         min-height: var(--min-node-height);
-        font-size: var(--font-text-size);
-        padding: 6px 6px 10px 12px;
+        font-size: calc(
+            var(--font-text-size, 16px) + var(--local-font-size-offset, 0px)
+        );
+        line-height: var(--line-height-normal, 1.5);
+        padding: 6px 6px 20px 12px;
         white-space: pre-wrap;
-        word-break: break-word;
+        overflow-wrap: anywhere;
         color: var(--text-normal);
-        font-family: var(--font-monospace);
-        line-height: 1.5;
+        font-family: var(--font-text);
+        color-scheme: light;
     }
 </style>
