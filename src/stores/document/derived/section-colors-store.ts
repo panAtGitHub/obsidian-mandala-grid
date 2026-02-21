@@ -1,44 +1,66 @@
 import { derived, readable } from 'svelte/store';
 import { MandalaView } from 'src/view/view';
+import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import {
     getCurrentFileSectionColorMap,
-    getCurrentFileSectionColorsSource,
 } from 'src/lib/mandala/current-file-mandala-settings';
 import {
     createSectionColorIndex,
     SectionColorMap,
     SECTION_COLOR_PALETTE,
+    SECTION_COLOR_KEYS,
 } from 'src/view/helpers/mandala/section-colors';
 
-type SectionColorSourceSnapshot = {
+type SectionColorSnapshot = {
     path: string | null;
-    source: unknown;
+    serialized: string;
+    map: SectionColorMap;
 };
 
-const readSectionColorSourceSnapshot = (
-    view: MandalaView,
-): SectionColorSourceSnapshot => ({
-    path: view.file?.path ?? null,
-    source: getCurrentFileSectionColorsSource(view),
-});
+const RELEVANT_SETTINGS_ACTIONS = new Set<SettingsActions['type']>([
+    'settings/documents/persist-mandala-section-colors',
+    'settings/documents/delete-document-preferences',
+    'settings/documents/update-document-path',
+    'settings/documents/remove-stale-documents',
+]);
 
-const sameSectionColorSourceSnapshot = (
-    a: SectionColorSourceSnapshot,
-    b: SectionColorSourceSnapshot,
-) => a.path === b.path && a.source === b.source;
+const serializeSectionColorMap = (map: SectionColorMap) =>
+    JSON.stringify(SECTION_COLOR_KEYS.map((key) => map[key]));
+
+const readSectionColorSnapshot = (view: MandalaView): SectionColorSnapshot => {
+    const map = getCurrentFileSectionColorMap(view);
+    return {
+        path: view.file?.path ?? null,
+        serialized: serializeSectionColorMap(map),
+        map,
+    };
+};
+
+const sameSectionColorSnapshot = (
+    a: SectionColorSnapshot,
+    b: SectionColorSnapshot,
+) => a.path === b.path && a.serialized === b.serialized;
 
 export const CurrentFileSectionColorMapStore = (view: MandalaView) =>
     readable<SectionColorMap>(getCurrentFileSectionColorMap(view), (set) => {
-        let snapshot = readSectionColorSourceSnapshot(view);
+        let snapshot = readSectionColorSnapshot(view);
         const emitIfChanged = () => {
-            const nextSnapshot = readSectionColorSourceSnapshot(view);
-            if (sameSectionColorSourceSnapshot(snapshot, nextSnapshot)) return;
+            const nextSnapshot = readSectionColorSnapshot(view);
+            if (sameSectionColorSnapshot(snapshot, nextSnapshot)) return;
             snapshot = nextSnapshot;
-            set(getCurrentFileSectionColorMap(view));
+            set(nextSnapshot.map);
         };
-        const unsubscribeFromSettings = view.plugin.settings.subscribe(() => {
-            emitIfChanged();
-        });
+        const unsubscribeFromSettings = view.plugin.settings.subscribe(
+            (_settings, action, firstRun) => {
+                if (
+                    firstRun ||
+                    !action ||
+                    RELEVANT_SETTINGS_ACTIONS.has(action.type)
+                ) {
+                    emitIfChanged();
+                }
+            },
+        );
         const unsubscribeFromDocument = view.documentStore.subscribe(
             (_state, action, firstRun) => {
                 if (

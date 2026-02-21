@@ -15,11 +15,11 @@
     } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import {
         CurrentFileSectionColorMapStore,
-        SectionColorBySectionStore,
     } from 'src/stores/document/derived/section-colors-store';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
+        SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
     } from 'src/view/helpers/mandala/section-colors';
     import {
@@ -32,8 +32,15 @@
     const pinnedNodesArray = PinnedNodesStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
-    const sectionColors = SectionColorBySectionStore(view);
     const sectionColorMapStore = CurrentFileSectionColorMapStore(view);
+    const sectionColors = derived(sectionColorMapStore, (colorMap) => {
+        const index = createSectionColorIndex(colorMap);
+        const result: Record<string, string> = {};
+        for (const [section, key] of Object.entries(index)) {
+            result[section] = SECTION_COLOR_PALETTE[key];
+        }
+        return result;
+    });
 
     const activePinnedCard = ActivePinnedCardStore(view);
 
