@@ -46,10 +46,6 @@
                 outlineMode ||
                 (firstColumn && parentNodes.size > 0)) &&
                 'group-has-active-parent',*/
-            (activeChildGroups.has(groupId) || outlineMode) &&
-                'group-has-active-child',
-            (activeGroup === groupId || outlineMode) &&
-                'group-has-active-node',
         )}
         id={'group-' + groupId}
     >
@@ -72,7 +68,6 @@
                         pendingConfirmation.disableEdit === node &&
                         !editedNodeState.isInSidebar}
                     confirmDelete={pendingConfirmation.deleteNode.has(node)}
-                    hasActiveChildren={activeChildGroups.size > 0}
                     hasChildren={groupParentIds.has(node)}
                     section={idSection[node]}
                     selected={selectedNodes.has(node)}

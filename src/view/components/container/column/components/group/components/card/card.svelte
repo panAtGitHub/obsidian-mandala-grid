@@ -8,8 +8,6 @@
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import clx from 'classnames';
-    import Bridges
-        from 'src/view/components/container/column/components/group/components/card/components/bridges/bridges.svelte';
     import { droppable } from 'src/view/actions/dnd/droppable';
     import TreeIndex
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/tree-index-button.svelte';
@@ -18,7 +16,6 @@
     export let node: NodeId;
     export let editing: boolean;
     export let active: ActiveStatus | null;
-    export let hasActiveChildren: boolean;
     export let hasChildren: boolean;
     export let firstColumn: boolean;
     export let confirmDisableEdit: boolean;
@@ -100,8 +97,6 @@
         {section}
         {pinned}
     />
-    <Bridges {active} {editing} {hasActiveChildren} {firstColumn} {style} />
-
 </div>
 
 <style>

@@ -571,6 +571,7 @@
                                         nodeId={cell.nodeId}
                                         section={cell.section}
                                         active={cell.nodeId === $activeNodeId}
+                                        forceActiveBackground={true}
                                         editing={$editingState.activeNodeId ===
                                             cell.nodeId &&
                                             !$editingState.isInSidebar &&

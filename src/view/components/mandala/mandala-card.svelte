@@ -44,6 +44,7 @@
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
     export let draggable: boolean;
+    export let forceActiveBackground = false;
     export let gridCell: { mode: '9x9'; row: number; col: number } | null =
         null;
 
@@ -65,10 +66,15 @@
     let textTone: TextTone | null = null;
     let cardStyle: string | undefined;
     let displaySection = section;
+    let shouldForceActiveBackground = false;
 
+    $: shouldForceActiveBackground = forceActiveBackground && active;
     $: contrastBackgroundColor = sectionColor
-        ? sectionColor
-        : style?.styleVariant === 'background-color'
+        ? shouldForceActiveBackground
+            ? null
+            : sectionColor
+        : !shouldForceActiveBackground &&
+            style?.styleVariant === 'background-color'
           ? style.color
           : null;
     $: displaySection = $idToSection[nodeId] ?? section;
@@ -78,11 +84,15 @@
         getThemeUnderlayColor(),
     );
     $: cardStyle = [
-        sectionColor ? `background-color: ${sectionColor}` : '',
-        textTone === 'dark'
+        shouldForceActiveBackground
+            ? 'background-color: var(--background-active-node) !important'
+            : sectionColor
+              ? `background-color: ${sectionColor}`
+              : '',
+        !shouldForceActiveBackground && textTone === 'dark'
             ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b'
             : '',
-        textTone === 'light'
+        !shouldForceActiveBackground && textTone === 'light'
             ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce'
             : '',
     ]
@@ -184,7 +194,9 @@
         }
     }}
 >
-    {#if style && !(sectionColor && style.styleVariant === 'background-color')}
+    {#if style &&
+        !((sectionColor || shouldForceActiveBackground) &&
+            style.styleVariant === 'background-color')}
         <CardStyle {style} />
     {/if}
 
