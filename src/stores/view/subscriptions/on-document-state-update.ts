@@ -12,10 +12,10 @@ import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/updat
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 import {
     createSectionColorIndex,
-    parseSectionColorsFromPersistedState,
     serializeSectionColorMapForSettings,
     swapSectionColors,
 } from 'src/view/helpers/mandala/section-colors';
+import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
 
 export const onDocumentStateUpdate = (
     view: MandalaView,
@@ -130,12 +130,7 @@ export const onDocumentStateUpdate = (
         const targetSection =
             documentState.sections.id_section[action.payload.targetNodeId];
         if (sourceSection && targetSection) {
-            const persistedMandalaView =
-                view.plugin.settings.getValue().documents[view.file.path]
-                    ?.mandalaView;
-            const sectionColorMap = parseSectionColorsFromPersistedState(
-                persistedMandalaView?.sectionColors,
-            );
+            const sectionColorMap = getCurrentFileSectionColorMap(view);
             const index = createSectionColorIndex(sectionColorMap);
             const sourceColor = index[sourceSection] ?? null;
             const targetColor = index[targetSection] ?? null;

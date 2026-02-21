@@ -1,8 +1,8 @@
 import { MandalaView } from 'src/view/view';
 import {
     compareSectionIds,
-    parsePinnedSectionsFromPersistedState,
 } from 'src/view/helpers/mandala/section-colors';
+import { getCurrentFilePinnedSections } from 'src/lib/mandala/current-file-mandala-settings';
 
 const sameSections = (a: string[], b: string[]) =>
     a.length === b.length && a.every((value, index) => value === b[index]);
@@ -16,11 +16,7 @@ export const persistPinnedNodes = (view: MandalaView) => {
         .map((id) => sections.id_section[id])
         .filter((section): section is string => Boolean(section))
         .sort(compareSectionIds);
-    const persistedMandalaView =
-        view.plugin.settings.getValue().documents[view.file.path]?.mandalaView;
-    const persistedSections = parsePinnedSectionsFromPersistedState(
-        persistedMandalaView?.pinnedSections,
-    );
+    const persistedSections = getCurrentFilePinnedSections(view);
     if (sameSections(persistedSections, pinnedSections)) return;
     view.plugin.settings.dispatch({
         type: 'settings/documents/persist-mandala-pinned-sections',

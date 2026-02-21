@@ -13,11 +13,13 @@
     import {
         setActiveSidebarNode
     } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import {
+        CurrentFileSectionColorMapStore,
+        SectionColorBySectionStore,
+    } from 'src/stores/document/derived/section-colors-store';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
-        parseSectionColorsFromPersistedState,
         SECTION_COLOR_KEYS,
     } from 'src/view/helpers/mandala/section-colors';
     import {
@@ -31,6 +33,7 @@
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
     const sectionColors = SectionColorBySectionStore(view);
+    const sectionColorMapStore = CurrentFileSectionColorMapStore(view);
 
     const activePinnedCard = ActivePinnedCardStore(view);
 
@@ -54,20 +57,15 @@
     };
 
     const pinnedState = derived(
-        [pinnedNodesArray, view.documentStore, view.plugin.settings],
-        ([$pinnedNodesArray, $doc, $settings]) => {
+        [pinnedNodesArray, view.documentStore, sectionColorMapStore],
+        ([pinnedNodeIds, documentState, colorMap]) => {
             const orderMap = new Map<string, number>();
-            $pinnedNodesArray.forEach((nodeId, index) => {
-                const section = $doc.sections.id_section[nodeId];
+            pinnedNodeIds.forEach((nodeId, index) => {
+                const section = documentState.sections.id_section[nodeId];
                 if (section) {
                     orderMap.set(section, index);
                 }
             });
-            const path = view.file?.path;
-            const preferences = path ? $settings.documents[path] : null;
-            const colorMap = parseSectionColorsFromPersistedState(
-                preferences?.mandalaView?.sectionColors,
-            );
             const colorIndex = createSectionColorIndex(colorMap);
             const colorOrderMap = new Map<string, number>();
             for (const key of SECTION_COLOR_KEYS) {
@@ -80,14 +78,14 @@
             const getPreview = (nodeId: string) => {
                 const cached = previewCache.get(nodeId);
                 if (cached) return cached;
-                const content = $doc.document.content[nodeId]?.content || '';
+                const content = documentState.document.content[nodeId]?.content || '';
                 const preview = parsePinnedContent(content);
                 previewCache.set(nodeId, preview);
                 return preview;
             };
-            const items = $pinnedNodesArray
-                .map((nodeId) => {
-                    const section = $doc.sections.id_section[nodeId];
+            const mappedItems: Array<PinnedItem | null> = pinnedNodeIds.map(
+                (nodeId): PinnedItem | null => {
+                    const section = documentState.sections.id_section[nodeId];
                     if (!section) return null;
                     const preview = getPreview(nodeId);
                     return {
@@ -97,13 +95,15 @@
                         body: preview.body,
                         colorKey: colorIndex[section] || null,
                     };
-                })
+                },
+            );
+            const items = mappedItems
                 .filter((item): item is PinnedItem => Boolean(item));
             const coloredItems: PinnedItem[] = [];
             for (const key of SECTION_COLOR_KEYS) {
                 const sections = colorMap[key] || [];
                 for (const section of sections) {
-                    const nodeId = $doc.sections.section_id[section];
+                    const nodeId = documentState.sections.section_id[section];
                     if (!nodeId) continue;
                     const preview = getPreview(nodeId);
                     coloredItems.push({
