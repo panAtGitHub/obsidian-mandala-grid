@@ -64,9 +64,6 @@ import {
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
 import { logger } from 'src/helpers/logger';
-import {
-    parseMandalaViewFrontmatterState,
-} from 'src/view/helpers/mandala/mandala-view-frontmatter';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -354,12 +351,9 @@ export class MandalaView extends TextFileView {
         const filePath = this.file?.path ?? '';
         const documentPreferences = settings.documents[filePath];
         const persistedMandalaViewState = documentPreferences?.mandalaView;
-        const frontmatterMandalaViewState =
-            parseMandalaViewFrontmatterState(frontmatter);
         const currentGridOrientation = settings.view.mandalaGridOrientation;
         const nextGridOrientation =
             persistedMandalaViewState?.gridOrientation ??
-            frontmatterMandalaViewState.gridOrientation ??
             currentGridOrientation;
         if (nextGridOrientation !== currentGridOrientation) {
             this.plugin.settings.dispatch({
@@ -374,10 +368,6 @@ export class MandalaView extends TextFileView {
             sectionsInBody,
             persistedMandalaViewState?.lastActiveSection ?? null,
         );
-        const frontmatterLastActiveSection = this.getExistingSectionFromBody(
-            sectionsInBody,
-            frontmatterMandalaViewState.lastActiveSection,
-        );
         const persistedActiveSection = this.getExistingSectionFromBody(
             sectionsInBody,
             documentPreferences?.activeSection ?? null,
@@ -385,7 +375,6 @@ export class MandalaView extends TextFileView {
         const nextActiveSection =
             activation.targetSection ??
             persistedMandalaLastActiveSection ??
-            frontmatterLastActiveSection ??
             persistedActiveSection;
         let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {

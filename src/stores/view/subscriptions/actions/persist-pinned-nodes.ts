@@ -3,7 +3,6 @@ import {
     compareSectionIds,
     parsePinnedSectionsFromPersistedState,
 } from 'src/view/helpers/mandala/section-colors';
-import { hasPersistedPinnedSections } from 'src/lib/mandala/persisted-mandala-view';
 
 const sameSections = (a: string[], b: string[]) =>
     a.length === b.length && a.every((value, index) => value === b[index]);
@@ -19,17 +18,10 @@ export const persistPinnedNodes = (view: MandalaView) => {
         .sort(compareSectionIds);
     const persistedMandalaView =
         view.plugin.settings.getValue().documents[view.file.path]?.mandalaView;
-    const persistedSections = hasPersistedPinnedSections(persistedMandalaView)
-        ? parsePinnedSectionsFromPersistedState(
-              persistedMandalaView?.pinnedSections,
-          )
-        : null;
-    if (persistedSections && sameSections(persistedSections, pinnedSections)) {
-        return;
-    }
-    if (!persistedSections && pinnedSections.length === 0) {
-        return;
-    }
+    const persistedSections = parsePinnedSectionsFromPersistedState(
+        persistedMandalaView?.pinnedSections,
+    );
+    if (sameSections(persistedSections, pinnedSections)) return;
     view.plugin.settings.dispatch({
         type: 'settings/documents/persist-mandala-pinned-sections',
         payload: {

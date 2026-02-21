@@ -14,12 +14,10 @@
         setActiveSidebarNode
     } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { hasPersistedSectionColors } from 'src/lib/mandala/persisted-mandala-view';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
         parseSectionColorsFromPersistedState,
-        parseSectionColorsFromFrontmatter,
         SECTION_COLOR_KEYS,
     } from 'src/view/helpers/mandala/section-colors';
     import {
@@ -67,11 +65,9 @@
             });
             const path = view.file?.path;
             const preferences = path ? $settings.documents[path] : null;
-            const colorMap = hasPersistedSectionColors(preferences?.mandalaView)
-                ? parseSectionColorsFromPersistedState(
-                      preferences?.mandalaView?.sectionColors,
-                  )
-                : parseSectionColorsFromFrontmatter($doc.file.frontmatter);
+            const colorMap = parseSectionColorsFromPersistedState(
+                preferences?.mandalaView?.sectionColors,
+            );
             const colorIndex = createSectionColorIndex(colorMap);
             const colorOrderMap = new Map<string, number>();
             for (const key of SECTION_COLOR_KEYS) {

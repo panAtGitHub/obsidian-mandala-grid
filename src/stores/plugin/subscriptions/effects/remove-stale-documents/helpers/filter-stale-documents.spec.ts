@@ -13,6 +13,12 @@ const sample: DocumentPreferences = {
     viewType: 'mandala-grid',
     activeSection: null,
     outline: null,
+    mandalaView: {
+        gridOrientation: null,
+        lastActiveSection: null,
+        pinnedSections: [],
+        sectionColors: {},
+    },
 };
 describe('filterStaleDocuments', () => {
     it('should return 0 if allFiles is empty', () => {

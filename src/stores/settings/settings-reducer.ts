@@ -73,7 +73,12 @@ const createDefaultDocumentPreferences = (
     outline: {
         collapsedSections: [],
     },
-    mandalaView: undefined,
+    mandalaView: {
+        gridOrientation: null,
+        lastActiveSection: null,
+        pinnedSections: [],
+        sectionColors: {},
+    },
 });
 
 const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
@@ -85,7 +90,12 @@ const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
 
 const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => {
     if (!preferences.mandalaView || typeof preferences.mandalaView !== 'object') {
-        preferences.mandalaView = {};
+        preferences.mandalaView = {
+            gridOrientation: null,
+            lastActiveSection: null,
+            pinnedSections: [],
+            sectionColors: {},
+        };
     }
     return preferences.mandalaView;
 };
@@ -136,7 +146,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const mandalaView = getOrCreateMandalaViewPreferences(preferences);
         mandalaView.gridOrientation = action.payload.gridOrientation;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
-        mandalaView.migrated = true;
     },
     'settings/documents/persist-mandala-pinned-sections': (store, action) => {
         if (
@@ -153,7 +162,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const current = normalizeSectionIdsFromUnknown(mandalaView.pinnedSections);
         if (sameSections(current, normalized)) return;
         mandalaView.pinnedSections = normalized;
-        mandalaView.migrated = true;
     },
     'settings/documents/persist-mandala-section-colors': (store, action) => {
         if (action.type !== 'settings/documents/persist-mandala-section-colors')
@@ -167,7 +175,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const current = normalizeSectionColorAssignments(mandalaView.sectionColors);
         if (JSON.stringify(current) === JSON.stringify(normalized)) return;
         mandalaView.sectionColors = normalized;
-        mandalaView.migrated = true;
     },
     'settings/documents/update-document-path': (store, action) => {
         if (action.type !== 'settings/documents/update-document-path') return;

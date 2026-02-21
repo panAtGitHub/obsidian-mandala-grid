@@ -1,18 +1,12 @@
-import { describe, expect, it, vi } from 'vitest';
-import { parseYaml } from 'obsidian';
+import { describe, expect, it } from 'vitest';
 import {
     compareSectionIds,
-    parsePinnedSectionsFromFrontmatter,
+    parsePinnedSectionsFromPersistedState,
     serializeSectionColorMap,
     setSectionColor,
     swapSectionColors,
     type SectionColorMap,
 } from 'src/view/helpers/mandala/section-colors';
-
-vi.mock('obsidian', () => ({
-    parseYaml: vi.fn(),
-    stringifyYaml: vi.fn(),
-}));
 
 const createMap = (partial: Partial<SectionColorMap>): SectionColorMap => ({
     '1_white': [],
@@ -78,24 +72,9 @@ describe('section-colors', () => {
         expect(next['2_rose']).toEqual(['2.2']);
     });
 
-    it('parses pinned sections from frontmatter with sorted unique values', () => {
-        const frontmatter = `---
-mandala_pinned_sections:
-  - 2
-  - "1.2"
-  - 1.2
-  - "1.2"
-  - 1
----
-`;
-        vi.mocked(parseYaml).mockReturnValue({
-            mandala_pinned_sections: [2, '1.2', 1.2, '1.2', 1],
-        });
-
-        expect(parsePinnedSectionsFromFrontmatter(frontmatter)).toEqual([
-            '1',
-            '1.2',
-            '2',
-        ]);
+    it('parses persisted pinned sections with sorted unique values', () => {
+        expect(
+            parsePinnedSectionsFromPersistedState([2, '1.2', 1.2, '1.2', 1]),
+        ).toEqual(['1', '1.2', '2']);
     });
 });

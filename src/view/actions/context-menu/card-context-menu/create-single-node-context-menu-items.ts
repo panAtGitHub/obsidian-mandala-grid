@@ -5,11 +5,9 @@ import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu
 import { togglePinNode } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 import { DocumentPreferences } from 'src/stores/settings/settings-type';
-import { hasPersistedSectionColors } from 'src/lib/mandala/persisted-mandala-view';
 import {
     createSectionColorIndex,
     parseSectionColorsFromPersistedState,
-    parseSectionColorsFromFrontmatter,
     SECTION_COLOR_KEYS,
     SECTION_COLOR_PALETTE,
     serializeSectionColorMapForSettings,
@@ -37,15 +35,9 @@ export const createSingleNodeContextMenuItems = (
         const preferences: DocumentPreferences | null = filePath
             ? settings.documents[filePath]
             : null;
-        cachedSectionColorMap = hasPersistedSectionColors(
-            preferences?.mandalaView,
-        )
-            ? parseSectionColorsFromPersistedState(
-                  preferences?.mandalaView?.sectionColors,
-              )
-            : parseSectionColorsFromFrontmatter(
-                  view.documentStore.getValue().file.frontmatter,
-              );
+        cachedSectionColorMap = parseSectionColorsFromPersistedState(
+            preferences?.mandalaView?.sectionColors,
+        );
         return cachedSectionColorMap;
     };
     const persistSectionColorMap = (

@@ -53,44 +53,20 @@ describe('migrateSettings', () => {
         expect('show9x9ParallelNavButtons' in settings.view).toBe(false);
     });
 
-    test('drops non-migrated empty mandalaView defaults to allow frontmatter fallback', () => {
+    test('adds default mandalaView when missing', () => {
         const settings = DEFAULT_SETTINGS();
         settings.documents['foo.md'] = {
             documentFormat: 'sections',
             viewType: 'mandala-grid',
             activeSection: null,
             outline: null,
-            mandalaView: {
-                gridOrientation: null,
-                lastActiveSection: null,
-                pinnedSections: [],
-                sectionColors: {},
-            },
-        };
-
-        migrateSettings(settings);
-
-        expect(settings.documents['foo.md'].mandalaView).toBeUndefined();
-    });
-
-    test('keeps migrated empty mandalaView as explicit persisted state', () => {
-        const settings = DEFAULT_SETTINGS();
-        settings.documents['foo.md'] = {
-            documentFormat: 'sections',
-            viewType: 'mandala-grid',
-            activeSection: null,
-            outline: null,
-            mandalaView: {
-                migrated: true,
-                pinnedSections: [],
-                sectionColors: {},
-            },
-        };
+        } as unknown as Settings['documents'][string];
 
         migrateSettings(settings);
 
         expect(settings.documents['foo.md'].mandalaView).toEqual({
-            migrated: true,
+            gridOrientation: null,
+            lastActiveSection: null,
             pinnedSections: [],
             sectionColors: {},
         });

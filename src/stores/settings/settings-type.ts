@@ -35,12 +35,10 @@ export type MandalaSectionColorAssignments = Partial<
     Record<string, string[]>
 >;
 export type MandalaViewDocumentPreferences = {
-    // Internal guard: when true, explicit per-file mandala state is stored in data.json.
-    migrated?: boolean;
-    gridOrientation?: MandalaGridOrientation | null;
-    lastActiveSection?: string | null;
-    pinnedSections?: string[];
-    sectionColors?: MandalaSectionColorAssignments;
+    gridOrientation: MandalaGridOrientation | null;
+    lastActiveSection: string | null;
+    pinnedSections: string[];
+    sectionColors: MandalaSectionColorAssignments;
 };
 export type MandalaExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
 export type LastExportPreset = {
@@ -61,7 +59,7 @@ export type DocumentPreferences = {
     outline: {
         collapsedSections: string[];
     } | null;
-    mandalaView?: MandalaViewDocumentPreferences;
+    mandalaView: MandalaViewDocumentPreferences;
 };
 
 export type LeftSidebarTab = 'pinned-cards' | 'recent-cards';

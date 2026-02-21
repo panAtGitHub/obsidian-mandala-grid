@@ -1,8 +1,4 @@
-import { parseYaml } from 'obsidian';
 import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
-
-export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
-const PINNED_SECTIONS_FRONTMATTER_KEY = 'mandala_pinned_sections';
 
 export const SECTION_COLOR_KEYS = [
     '1_white',
@@ -70,27 +66,6 @@ const createEmptySectionColorMap = (): SectionColorMap => ({
 const normalizeSectionIds = (sections: string[]) =>
     Array.from(new Set(sections)).sort(compareSectionIds);
 
-const stripFrontmatter = (frontmatter: string) =>
-    frontmatter
-        .replace(/^---\n/, '')
-        .replace(/\n---\n?$/, '')
-        .trim();
-
-const parseFrontmatterRecord = (frontmatter: string) => {
-    if (!frontmatter.trim()) return {};
-    const content = stripFrontmatter(frontmatter);
-    if (!content) return {};
-    try {
-        const parsed: unknown = parseYaml(content);
-        if (parsed && typeof parsed === 'object') {
-            return parsed as Record<string, unknown>;
-        }
-    } catch {
-        return {};
-    }
-    return {};
-};
-
 const normalizeSectionIdsFromUnknown = (value: unknown) => {
     if (Array.isArray(value)) {
         const rawSections = value as unknown[];
@@ -112,7 +87,6 @@ const normalizeSectionIdsFromUnknown = (value: unknown) => {
     }
     return [];
 };
-
 export const parseSectionColorsFromPersistedState = (
     value: unknown,
 ): SectionColorMap => {
@@ -123,25 +97,6 @@ export const parseSectionColorsFromPersistedState = (
         map[key] = normalizeSectionIdsFromUnknown(record[key]);
     }
     return map;
-};
-
-export const parseSectionColorsFromFrontmatter = (
-    frontmatter: string,
-): SectionColorMap => {
-    const record = parseFrontmatterRecord(frontmatter);
-    if (Object.keys(record).length === 0) {
-        return createEmptySectionColorMap();
-    }
-    return parseSectionColorsFromPersistedState(
-        record[SECTION_COLORS_FRONTMATTER_KEY],
-    );
-};
-
-export const parsePinnedSectionsFromFrontmatter = (frontmatter: string) => {
-    const record = parseFrontmatterRecord(frontmatter);
-    return parsePinnedSectionsFromPersistedState(
-        record[PINNED_SECTIONS_FRONTMATTER_KEY],
-    );
 };
 
 export const parsePinnedSectionsFromPersistedState = (value: unknown) =>

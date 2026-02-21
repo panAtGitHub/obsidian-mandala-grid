@@ -1,8 +1,4 @@
-import {
-    MandalaGridOrientation,
-    MandalaViewDocumentPreferences,
-    Settings,
-} from 'src/stores/settings/settings-type';
+import { MandalaGridOrientation, Settings } from 'src/stores/settings/settings-type';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 
 const VALID_GRID_ORIENTATIONS = new Set([
@@ -38,8 +34,12 @@ const normalizeSectionColors = (value: unknown) => {
     return result;
 };
 
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-    Boolean(value && typeof value === 'object' && !Array.isArray(value));
+const createDefaultMandalaView = () => ({
+    gridOrientation: null as MandalaGridOrientation | null,
+    lastActiveSection: null as string | null,
+    pinnedSections: [] as string[],
+    sectionColors: {} as Record<string, string[]>,
+});
 
 export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     for (const [path, pref] of Object.entries(settings.documents)) {
@@ -49,73 +49,41 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                 viewType: 'mandala-grid',
                 activeSection: null,
                 outline: null,
-                mandalaView: undefined,
+                mandalaView: createDefaultMandalaView(),
             };
         } else if (pref && typeof pref === 'object') {
             const legacyPref = pref as Settings['documents'][string] & {
                 pinnedSections?: unknown;
+                mandalaView?: unknown;
             };
             delete legacyPref.pinnedSections;
 
-            if (isObjectRecord(legacyPref.mandalaView)) {
-                const mandalaView = legacyPref.mandalaView;
-                const migrated = mandalaView.migrated === true;
-                const next: MandalaViewDocumentPreferences = {};
-
-                const gridOrientation = mandalaView.gridOrientation;
-                if (isMandalaGridOrientation(gridOrientation)) {
-                    next.gridOrientation = gridOrientation;
-                }
-                if (typeof mandalaView.lastActiveSection === 'string') {
-                    next.lastActiveSection = mandalaView.lastActiveSection;
-                }
-                if (
-                    migrated ||
-                    Object.prototype.hasOwnProperty.call(
-                        mandalaView,
-                        'pinnedSections',
-                    )
-                ) {
-                    next.pinnedSections = normalizeSectionIds(
-                        mandalaView.pinnedSections,
-                    );
-                }
-                if (
-                    migrated ||
-                    Object.prototype.hasOwnProperty.call(
-                        mandalaView,
-                        'sectionColors',
-                    )
-                ) {
-                    next.sectionColors = normalizeSectionColors(
-                        mandalaView.sectionColors,
-                    );
-                }
-
-                const allDefaultsWithoutMigration =
-                    !migrated &&
-                    next.gridOrientation === undefined &&
-                    next.lastActiveSection === undefined &&
-                    Array.isArray(next.pinnedSections) &&
-                    next.pinnedSections.length === 0 &&
-                    Object.keys(next.sectionColors ?? {}).length === 0;
-                if (allDefaultsWithoutMigration) {
-                    delete legacyPref.mandalaView;
-                } else if (Object.keys(next).length === 0) {
-                    delete legacyPref.mandalaView;
-                } else {
-                    if (
-                        next.gridOrientation !== undefined ||
-                        next.lastActiveSection !== undefined ||
-                        next.pinnedSections !== undefined ||
-                        next.sectionColors !== undefined
-                    ) {
-                        next.migrated = true;
-                    }
-                    legacyPref.mandalaView = next;
-                }
+            const mandalaViewRaw =
+                legacyPref.mandalaView &&
+                typeof legacyPref.mandalaView === 'object' &&
+                !Array.isArray(legacyPref.mandalaView)
+                    ? (legacyPref.mandalaView as Record<string, unknown>)
+                    : null;
+            if (!mandalaViewRaw) {
+                legacyPref.mandalaView = createDefaultMandalaView();
             } else {
-                delete legacyPref.mandalaView;
+                legacyPref.mandalaView = {
+                    gridOrientation: isMandalaGridOrientation(
+                        mandalaViewRaw.gridOrientation,
+                    )
+                        ? mandalaViewRaw.gridOrientation
+                        : null,
+                    lastActiveSection:
+                        typeof mandalaViewRaw.lastActiveSection === 'string'
+                            ? mandalaViewRaw.lastActiveSection
+                            : null,
+                    pinnedSections: normalizeSectionIds(
+                        mandalaViewRaw.pinnedSections,
+                    ),
+                    sectionColors: normalizeSectionColors(
+                        mandalaViewRaw.sectionColors,
+                    ),
+                };
             }
         }
     }
