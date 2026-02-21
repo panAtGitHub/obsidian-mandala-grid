@@ -5,6 +5,7 @@ import {
     IconName,
     Notice,
     Scope,
+    TFile,
     TextFileView,
     WorkspaceLeaf,
     resolveSubpath,
@@ -54,7 +55,10 @@ import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/documen
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
 import { detectDocumentFormat } from 'src/lib/format-detection/detect-document-format';
-import { MandalaGridDocumentFormat } from 'src/stores/settings/settings-type';
+import {
+    MandalaGridDocumentFormat,
+    MandalaGridOrientation,
+} from 'src/stores/settings/settings-type';
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
 import {
@@ -62,6 +66,10 @@ import {
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
 import { logger } from 'src/helpers/logger';
+import {
+    parseMandalaViewFrontmatterState,
+    upsertMandalaViewFrontmatterRecord,
+} from 'src/view/helpers/mandala/mandala-view-frontmatter';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -153,14 +161,14 @@ export class MandalaView extends TextFileView {
             if (!this.isViewOfFile || !this.file) return;
 
             const nextPath = this.file.path;
-            const switchedFile = this.activeFilePath !== nextPath;
-            if (switchedFile) {
-                if (this.activeFilePath) {
-                    this.persistMandalaUiState(this.activeFilePath);
-                }
-                this.activeFilePath = nextPath;
-                this.lastLoadedBody = '';
-                this.lastLoadedFrontmatter = '';
+                const switchedFile = this.activeFilePath !== nextPath;
+                if (switchedFile) {
+                    if (this.activeFilePath) {
+                        void this.persistMandalaUiState(this.activeFilePath);
+                    }
+                    this.activeFilePath = nextPath;
+                    this.lastLoadedBody = '';
+                    this.lastLoadedFrontmatter = '';
                 this.cachedActivation = null;
                 this.lastActivationNotice = null;
                 this.loadDocumentToStore();
@@ -176,7 +184,7 @@ export class MandalaView extends TextFileView {
             this.component.$destroy();
         }
         if (this.file?.path) {
-            this.persistMandalaUiState(this.file.path);
+            await this.persistMandalaUiState(this.file.path);
         }
         this.activeFilePath = null;
         this.lastLoadedBody = '';
@@ -345,12 +353,38 @@ export class MandalaView extends TextFileView {
         const activation = this.getMandalaProfileActivation(frontmatter);
         const activationCostMs = performance.now() - activationStartMs;
         this.dayPlanHotCores = activation.hotCoreSections;
+        const mandalaViewState = parseMandalaViewFrontmatterState(frontmatter);
+        const currentGridOrientation =
+            this.plugin.settings.getValue().view.mandalaGridOrientation;
+        const nextGridOrientation =
+            activation.kind === 'none'
+                ? currentGridOrientation
+                : mandalaViewState.gridOrientation ?? currentGridOrientation;
+        if (nextGridOrientation !== currentGridOrientation) {
+            this.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-grid-orientation',
+                payload: {
+                    orientation: nextGridOrientation,
+                },
+            });
+        }
+        const sectionsInBody = this.collectSectionIdsFromBody(body);
         const filePath = this.file?.path ?? '';
         const persistedActiveSection =
             this.plugin.settings.getValue().documents[filePath]?.activeSection ??
             null;
+        const yamlLastActiveSection = this.getExistingSectionFromBody(
+            sectionsInBody,
+            mandalaViewState.lastActiveSection,
+        );
+        const fallbackPersistedActiveSection = this.getExistingSectionFromBody(
+            sectionsInBody,
+            persistedActiveSection,
+        );
         const nextActiveSection =
-            activation.targetSection ?? persistedActiveSection;
+            activation.targetSection ??
+            yamlLastActiveSection ??
+            fallbackPersistedActiveSection;
         let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             const loadStartMs = performance.now();
@@ -405,11 +439,24 @@ export class MandalaView extends TextFileView {
         });
     };
 
-    private persistMandalaUiState(path: string) {
-        const state = this.viewStore.getValue();
+    private async persistMandalaUiState(path: string) {
+        const viewState = this.viewStore.getValue();
         this.mandalaUiStateByPath.set(path, {
-            subgridTheme: state.ui.mandala.subgridTheme ?? '1',
-            activeCell9x9: state.ui.mandala.activeCell9x9,
+            subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
+            activeCell9x9: viewState.ui.mandala.activeCell9x9,
+        });
+
+        const documentState = this.documentStore.getValue();
+        if (!documentState.meta.isMandala) return;
+        const activeNodeId = viewState.document.activeNode;
+        const lastActiveSection =
+            documentState.sections.id_section[activeNodeId] ?? null;
+        const gridOrientation =
+            this.plugin.settings.getValue().view.mandalaGridOrientation;
+
+        await this.persistMandalaViewFrontmatter(path, {
+            gridOrientation,
+            lastActiveSection,
         });
     }
 
@@ -445,6 +492,50 @@ export class MandalaView extends TextFileView {
 
         setDocumentFormat(this.plugin, this.file!.path, format);
         return format;
+    }
+
+    private collectSectionIdsFromBody(body: string) {
+        const sectionIds = new Set<string>();
+        for (const line of body.split('\n')) {
+            const marker = parseHtmlCommentMarker(line);
+            if (!marker) continue;
+            sectionIds.add(marker[2]);
+        }
+        return sectionIds;
+    }
+
+    private getExistingSectionFromBody(
+        existingSections: Set<string>,
+        section: string | null,
+    ) {
+        if (!section) return null;
+        if (existingSections.size === 0) return section;
+        return existingSections.has(section) ? section : null;
+    }
+
+    private async persistMandalaViewFrontmatter(
+        path: string,
+        payload: {
+            gridOrientation: MandalaGridOrientation;
+            lastActiveSection: string | null;
+        },
+    ) {
+        const file = this.plugin.app.vault.getAbstractFileByPath(path);
+        if (!(file instanceof TFile)) return;
+        try {
+            await this.plugin.app.fileManager.processFrontMatter(
+                file,
+                (frontmatter) => {
+                    const record = frontmatter as Record<string, unknown>;
+                    upsertMandalaViewFrontmatterRecord(record, payload);
+                },
+            );
+        } catch (error: unknown) {
+            logger.warn('[mandala-view-frontmatter] persist failed', {
+                file: path,
+                error,
+            });
+        }
     }
 
     private debouncedLoadDocumentToStore = debounce(
