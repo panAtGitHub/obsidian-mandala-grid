@@ -1,4 +1,7 @@
-import { Settings } from 'src/stores/settings/settings-type';
+import {
+    MandalaGridOrientation,
+    Settings,
+} from 'src/stores/settings/settings-type';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 
 const VALID_GRID_ORIENTATIONS = new Set([
@@ -6,6 +9,11 @@ const VALID_GRID_ORIENTATIONS = new Set([
     'left-to-right',
     'bottom-to-top',
 ]);
+
+const isMandalaGridOrientation = (
+    value: unknown,
+): value is MandalaGridOrientation =>
+    typeof value === 'string' && VALID_GRID_ORIENTATIONS.has(value);
 
 const normalizeSectionIds = (sections: unknown) => {
     if (!Array.isArray(sections)) return [];
@@ -58,11 +66,9 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                     : ({} as Record<string, unknown>);
             const gridOrientation = mandalaView.gridOrientation;
             legacyPref.mandalaView = {
-                gridOrientation:
-                    typeof gridOrientation === 'string' &&
-                    VALID_GRID_ORIENTATIONS.has(gridOrientation)
-                        ? gridOrientation
-                        : null,
+                gridOrientation: isMandalaGridOrientation(gridOrientation)
+                    ? gridOrientation
+                    : null,
                 lastActiveSection:
                     typeof mandalaView.lastActiveSection === 'string'
                         ? mandalaView.lastActiveSection
