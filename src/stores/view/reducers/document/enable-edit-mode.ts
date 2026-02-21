@@ -8,9 +8,7 @@ export const enableEditMode = (
 ) => {
     if (state.editing.activeNodeId) {
         if (state.editing.activeNodeId === nodeId) {
-            throw new Error(
-                `This section is being edited in the ${state.editing.isInSidebar ? 'sidebar' : 'main view'}`,
-            );
+            return;
         }
     }
     state.editing = {

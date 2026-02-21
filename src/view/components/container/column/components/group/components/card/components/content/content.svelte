@@ -21,6 +21,7 @@
     import { setActiveMainSplitNode } from './store-actions/set-active-main-split-node';
     import { enableEditModeInSidebar } from './store-actions/enable-edit-mode-in-sidebar';
     import { enableEditModeInMainSplit } from './store-actions/enable-edit-mode-in-main-split';
+    import { Platform } from 'obsidian';
 
     export let nodeId: string;
     export let isInSidebar: boolean;
@@ -67,6 +68,19 @@
 
     const handleClick = (e: MouseEvent) => {
         if (isGrabbing(view)) return;
+
+        if (Platform.isMobile) {
+            const target = e.target as HTMLElement | null;
+            const anchor = target?.closest('a.internal-link');
+            if (anchor) {
+                handleLinks(view, e);
+                return;
+            }
+            setActiveNode(e);
+            e.stopPropagation();
+            return;
+        }
+
         const maintainEditMode = get(MaintainEditMode(view));
         const enableEditOnSingleClick =
             maintainEditMode && !isInSidebar && anotherNodeIsBeingEdited();
@@ -77,11 +91,20 @@
             handleLinks(view, e);
             setActiveNode(e);
         }
+
+        e.stopPropagation();
     };
 
     const handleDoubleClick = (e: MouseEvent) => {
         if (isGrabbing(view)) return;
+        if (Platform.isMobile) {
+            setActiveNode(e);
+            enableEditMode();
+            e.stopPropagation();
+            return;
+        }
         enableEditModeAtCursor(e);
+        e.stopPropagation();
     };
 </script>
 
