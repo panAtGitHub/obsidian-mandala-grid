@@ -14,6 +14,7 @@
         setActiveSidebarNode
     } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import { hasPersistedSectionColors } from 'src/lib/mandala/persisted-mandala-view';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
@@ -66,13 +67,7 @@
             });
             const path = view.file?.path;
             const preferences = path ? $settings.documents[path] : null;
-            const hasPersistedSectionColors =
-                preferences?.mandalaView &&
-                Object.prototype.hasOwnProperty.call(
-                    preferences.mandalaView,
-                    'sectionColors',
-                );
-            const colorMap = hasPersistedSectionColors
+            const colorMap = hasPersistedSectionColors(preferences?.mandalaView)
                 ? parseSectionColorsFromPersistedState(
                       preferences?.mandalaView?.sectionColors,
                   )

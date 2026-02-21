@@ -455,6 +455,15 @@ export class MandalaView extends TextFileView {
             documentState.sections.id_section[activeNodeId] ?? null;
         const gridOrientation =
             this.plugin.settings.getValue().view.mandalaGridOrientation;
+        const currentMandalaViewState =
+            this.plugin.settings.getValue().documents[path]?.mandalaView;
+        if (
+            currentMandalaViewState?.gridOrientation === gridOrientation &&
+            (currentMandalaViewState?.lastActiveSection ?? null) ===
+                lastActiveSection
+        ) {
+            return;
+        }
         this.plugin.settings.dispatch({
             type: 'settings/documents/persist-mandala-view-state',
             payload: {

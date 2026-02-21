@@ -52,4 +52,47 @@ describe('migrateSettings', () => {
         expect('show3x3SubgridNavButtons' in settings.view).toBe(false);
         expect('show9x9ParallelNavButtons' in settings.view).toBe(false);
     });
+
+    test('drops non-migrated empty mandalaView defaults to allow frontmatter fallback', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.documents['foo.md'] = {
+            documentFormat: 'sections',
+            viewType: 'mandala-grid',
+            activeSection: null,
+            outline: null,
+            mandalaView: {
+                gridOrientation: null,
+                lastActiveSection: null,
+                pinnedSections: [],
+                sectionColors: {},
+            },
+        };
+
+        migrateSettings(settings);
+
+        expect(settings.documents['foo.md'].mandalaView).toBeUndefined();
+    });
+
+    test('keeps migrated empty mandalaView as explicit persisted state', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.documents['foo.md'] = {
+            documentFormat: 'sections',
+            viewType: 'mandala-grid',
+            activeSection: null,
+            outline: null,
+            mandalaView: {
+                migrated: true,
+                pinnedSections: [],
+                sectionColors: {},
+            },
+        };
+
+        migrateSettings(settings);
+
+        expect(settings.documents['foo.md'].mandalaView).toEqual({
+            migrated: true,
+            pinnedSections: [],
+            sectionColors: {},
+        });
+    });
 });

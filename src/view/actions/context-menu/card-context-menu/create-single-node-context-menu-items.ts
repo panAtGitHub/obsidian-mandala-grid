@@ -5,6 +5,7 @@ import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu
 import { togglePinNode } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 import { DocumentPreferences } from 'src/stores/settings/settings-type';
+import { hasPersistedSectionColors } from 'src/lib/mandala/persisted-mandala-view';
 import {
     createSectionColorIndex,
     parseSectionColorsFromPersistedState,
@@ -36,14 +37,9 @@ export const createSingleNodeContextMenuItems = (
         const preferences: DocumentPreferences | null = filePath
             ? settings.documents[filePath]
             : null;
-        const hasPersistedSectionColors = Boolean(
-            preferences?.mandalaView &&
-                Object.prototype.hasOwnProperty.call(
-                    preferences.mandalaView,
-                    'sectionColors',
-                ),
-        );
-        cachedSectionColorMap = hasPersistedSectionColors
+        cachedSectionColorMap = hasPersistedSectionColors(
+            preferences?.mandalaView,
+        )
             ? parseSectionColorsFromPersistedState(
                   preferences?.mandalaView?.sectionColors,
               )
@@ -56,12 +52,15 @@ export const createSingleNodeContextMenuItems = (
         next: ReturnType<typeof parseSectionColorsFromPersistedState>,
     ) => {
         if (!view.file) return;
+        const current = serializeSectionColorMapForSettings(getSectionColorMap());
+        const normalizedNext = serializeSectionColorMapForSettings(next);
+        if (JSON.stringify(current) === JSON.stringify(normalizedNext)) return;
         cachedSectionColorMap = next;
         view.plugin.settings.dispatch({
             type: 'settings/documents/persist-mandala-section-colors',
             payload: {
                 path: view.file.path,
-                map: serializeSectionColorMapForSettings(next),
+                map: normalizedNext,
             },
         });
     };

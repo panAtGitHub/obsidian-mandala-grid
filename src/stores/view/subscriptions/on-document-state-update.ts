@@ -10,6 +10,14 @@ import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actio
 import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-active-pinned-node';
 import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/update-selected-nodes';
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
+import {
+    createSectionColorIndex,
+    parseSectionColorsFromFrontmatter,
+    parseSectionColorsFromPersistedState,
+    serializeSectionColorMapForSettings,
+    swapSectionColors,
+} from 'src/view/helpers/mandala/section-colors';
+import { hasPersistedSectionColors } from 'src/lib/mandala/persisted-mandala-view';
 
 export const onDocumentStateUpdate = (
     view: MandalaView,
@@ -124,14 +132,33 @@ export const onDocumentStateUpdate = (
         const targetSection =
             documentState.sections.id_section[action.payload.targetNodeId];
         if (sourceSection && targetSection) {
-            view.plugin.settings.dispatch({
-                type: 'settings/documents/swap-mandala-section-colors',
-                payload: {
-                    path: view.file.path,
+            const persistedMandalaView =
+                view.plugin.settings.getValue().documents[view.file.path]
+                    ?.mandalaView;
+            const sectionColorMap = hasPersistedSectionColors(
+                persistedMandalaView,
+            )
+                ? parseSectionColorsFromPersistedState(
+                      persistedMandalaView?.sectionColors,
+                  )
+                : parseSectionColorsFromFrontmatter(documentState.file.frontmatter);
+            const index = createSectionColorIndex(sectionColorMap);
+            const sourceColor = index[sourceSection] ?? null;
+            const targetColor = index[targetSection] ?? null;
+            if (sourceColor !== targetColor) {
+                const nextMap = swapSectionColors(
+                    sectionColorMap,
                     sourceSection,
                     targetSection,
-                },
-            });
+                );
+                view.plugin.settings.dispatch({
+                    type: 'settings/documents/persist-mandala-section-colors',
+                    payload: {
+                        path: view.file.path,
+                        map: serializeSectionColorMapForSettings(nextMap),
+                    },
+                });
+            }
         }
     }
     if (

@@ -73,76 +73,25 @@ const createDefaultDocumentPreferences = (
     outline: {
         collapsedSections: [],
     },
-    mandalaView: {
-        gridOrientation: null,
-        lastActiveSection: null,
-        pinnedSections: [],
-        sectionColors: {},
-    },
+    mandalaView: undefined,
 });
 
 const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
     if (!store.documents[path]) {
         store.documents[path] = createDefaultDocumentPreferences(store);
     }
-    const preferences = store.documents[path];
+    return store.documents[path];
+};
+
+const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => {
     if (!preferences.mandalaView || typeof preferences.mandalaView !== 'object') {
-        preferences.mandalaView = {
-            gridOrientation: null,
-            lastActiveSection: null,
-            pinnedSections: [],
-            sectionColors: {},
-        };
+        preferences.mandalaView = {};
     }
-    return preferences;
+    return preferences.mandalaView;
 };
 
-const createSectionColorIndex = (map: MandalaSectionColorAssignments) => {
-    const index: Record<string, string> = {};
-    for (const [key, sections] of Object.entries(map)) {
-        for (const section of sections ?? []) {
-            index[section] = key;
-        }
-    }
-    return index;
-};
-
-const setSectionColor = (
-    map: MandalaSectionColorAssignments,
-    section: string,
-    colorKey: string | null,
-): MandalaSectionColorAssignments => {
-    const next: MandalaSectionColorAssignments = {};
-    for (const [key, sections] of Object.entries(map)) {
-        const filtered = normalizeSectionIds(
-            (sections ?? []).filter((item) => item !== section),
-        );
-        if (filtered.length > 0) {
-            next[key] = filtered;
-        }
-    }
-    if (colorKey) {
-        next[colorKey] = normalizeSectionIds([...(next[colorKey] ?? []), section]);
-    }
-    return next;
-};
-
-const swapSectionColors = (
-    map: MandalaSectionColorAssignments,
-    sourceSection: string,
-    targetSection: string,
-) => {
-    if (!sourceSection || !targetSection || sourceSection === targetSection) {
-        return map;
-    }
-    const index = createSectionColorIndex(map);
-    const sourceColor = index[sourceSection] ?? null;
-    const targetColor = index[targetSection] ?? null;
-    if (sourceColor === targetColor) return map;
-    let next = setSectionColor(map, sourceSection, targetColor);
-    next = setSectionColor(next, targetSection, sourceColor);
-    return next;
-};
+const sameSections = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((value, index) => value === b[index]);
 
 const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/documents/delete-document-preferences': (store, action) => {
@@ -184,11 +133,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store,
             action.payload.path,
         );
-        preferences.mandalaView = {
-            ...preferences.mandalaView!,
-            gridOrientation: action.payload.gridOrientation,
-            lastActiveSection: action.payload.lastActiveSection,
-        };
+        const mandalaView = getOrCreateMandalaViewPreferences(preferences);
+        mandalaView.gridOrientation = action.payload.gridOrientation;
+        mandalaView.lastActiveSection = action.payload.lastActiveSection;
+        mandalaView.migrated = true;
     },
     'settings/documents/persist-mandala-pinned-sections': (store, action) => {
         if (
@@ -200,10 +148,12 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store,
             action.payload.path,
         );
-        preferences.mandalaView = {
-            ...preferences.mandalaView!,
-            pinnedSections: normalizeSectionIds(action.payload.sections),
-        };
+        const normalized = normalizeSectionIds(action.payload.sections);
+        const mandalaView = getOrCreateMandalaViewPreferences(preferences);
+        const current = normalizeSectionIdsFromUnknown(mandalaView.pinnedSections);
+        if (sameSections(current, normalized)) return;
+        mandalaView.pinnedSections = normalized;
+        mandalaView.migrated = true;
     },
     'settings/documents/persist-mandala-section-colors': (store, action) => {
         if (action.type !== 'settings/documents/persist-mandala-section-colors')
@@ -212,29 +162,12 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store,
             action.payload.path,
         );
-        preferences.mandalaView = {
-            ...preferences.mandalaView!,
-            sectionColors: normalizeSectionColorAssignments(action.payload.map),
-        };
-    },
-    'settings/documents/swap-mandala-section-colors': (store, action) => {
-        if (action.type !== 'settings/documents/swap-mandala-section-colors')
-            return;
-        const preferences = getOrCreateDocumentPreferences(
-            store,
-            action.payload.path,
-        );
-        const currentMap = normalizeSectionColorAssignments(
-            preferences.mandalaView?.sectionColors,
-        );
-        preferences.mandalaView = {
-            ...preferences.mandalaView!,
-            sectionColors: swapSectionColors(
-                currentMap,
-                action.payload.sourceSection,
-                action.payload.targetSection,
-            ),
-        };
+        const normalized = normalizeSectionColorAssignments(action.payload.map);
+        const mandalaView = getOrCreateMandalaViewPreferences(preferences);
+        const current = normalizeSectionColorAssignments(mandalaView.sectionColors);
+        if (JSON.stringify(current) === JSON.stringify(normalized)) return;
+        mandalaView.sectionColors = normalized;
+        mandalaView.migrated = true;
     },
     'settings/documents/update-document-path': (store, action) => {
         if (action.type !== 'settings/documents/update-document-path') return;

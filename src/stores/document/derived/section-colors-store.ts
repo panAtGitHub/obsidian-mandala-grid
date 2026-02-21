@@ -1,5 +1,6 @@
 import { derived } from 'svelte/store';
 import { MandalaView } from 'src/view/view';
+import { hasPersistedSectionColors } from 'src/lib/mandala/persisted-mandala-view';
 import {
     createSectionColorIndex,
     parseSectionColorsFromPersistedState,
@@ -11,14 +12,7 @@ export const SectionColorBySectionStore = (view: MandalaView) =>
     derived([view.plugin.settings, view.documentStore], ([settings, state]) => {
         const path = view.file?.path;
         const preferences = path ? settings.documents[path] : null;
-        const hasPersistedSectionColors = Boolean(
-            preferences?.mandalaView &&
-                Object.prototype.hasOwnProperty.call(
-                    preferences.mandalaView,
-                    'sectionColors',
-                ),
-        );
-        const map = hasPersistedSectionColors
+        const map = hasPersistedSectionColors(preferences?.mandalaView)
             ? parseSectionColorsFromPersistedState(
                   preferences?.mandalaView?.sectionColors,
               )

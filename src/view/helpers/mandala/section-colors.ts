@@ -1,4 +1,4 @@
-import { parseYaml, stringifyYaml } from 'obsidian';
+import { parseYaml } from 'obsidian';
 import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
 
 export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
@@ -113,21 +113,6 @@ const normalizeSectionIdsFromUnknown = (value: unknown) => {
     return [];
 };
 
-const buildFrontmatterWithSectionColors = (
-    frontmatter: string,
-    map: SectionColorMap,
-) => {
-    const serialized = serializeSectionColorMap(map);
-    const record = parseFrontmatterRecord(frontmatter);
-    if (Object.keys(serialized).length === 0) {
-        delete record[SECTION_COLORS_FRONTMATTER_KEY];
-    } else {
-        record[SECTION_COLORS_FRONTMATTER_KEY] = serialized;
-    }
-    const yaml = stringifyYaml(record).trim();
-    return yaml ? `---\n${yaml}\n---\n` : '';
-};
-
 export const parseSectionColorsFromPersistedState = (
     value: unknown,
 ): SectionColorMap => {
@@ -219,23 +204,4 @@ export const swapSectionColors = (
     let next = setSectionColor(map, sourceSection, targetColor);
     next = setSectionColor(next, targetSection, sourceColor);
     return next;
-};
-
-export const swapSectionColorsInFrontmatter = (
-    frontmatter: string,
-    sourceSection: string,
-    targetSection: string,
-) => {
-    const currentMap = parseSectionColorsFromFrontmatter(frontmatter);
-    const nextMap = swapSectionColors(
-        currentMap,
-        sourceSection,
-        targetSection,
-    );
-    const currentSerialized = serializeSectionColorMap(currentMap);
-    const nextSerialized = serializeSectionColorMap(nextMap);
-    const hasChanged =
-        JSON.stringify(currentSerialized) !== JSON.stringify(nextSerialized);
-    if (!hasChanged) return frontmatter;
-    return buildFrontmatterWithSectionColors(frontmatter, nextMap);
 };

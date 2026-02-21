@@ -137,7 +137,6 @@ export type SettingsActions =
     | PersistMandalaViewStateAction
     | PersistMandalaPinnedSectionsAction
     | PersistMandalaSectionColorsAction
-    | SwapMandalaSectionColorsAction
     | {
           type: 'settings/general/set-default-document-format';
           payload: {
@@ -323,14 +322,6 @@ export type PersistMandalaSectionColorsAction = {
     payload: {
         path: string;
         map: MandalaSectionColorAssignments;
-    };
-};
-export type SwapMandalaSectionColorsAction = {
-    type: 'settings/documents/swap-mandala-section-colors';
-    payload: {
-        path: string;
-        sourceSection: string;
-        targetSection: string;
     };
 };
 export type ToggleEditorStateAction = {

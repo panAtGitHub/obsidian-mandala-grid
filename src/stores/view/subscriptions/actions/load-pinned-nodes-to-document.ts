@@ -1,5 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { DocumentPreferences } from 'src/stores/settings/settings-type';
+import { hasPersistedPinnedSections } from 'src/lib/mandala/persisted-mandala-view';
 import {
     compareSectionIds,
     parsePinnedSectionsFromPersistedState,
@@ -15,14 +16,7 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
     const documentState = documentStore.getValue();
     const preferences: DocumentPreferences | undefined =
         view.plugin.settings.getValue().documents[view.file.path];
-    const hasPersistedPinnedSections = Boolean(
-        preferences?.mandalaView &&
-            Object.prototype.hasOwnProperty.call(
-                preferences.mandalaView,
-                'pinnedSections',
-            ),
-    );
-    const pinnedSections = hasPersistedPinnedSections
+    const pinnedSections = hasPersistedPinnedSections(preferences?.mandalaView)
         ? parsePinnedSectionsFromPersistedState(
               preferences?.mandalaView?.pinnedSections,
           )

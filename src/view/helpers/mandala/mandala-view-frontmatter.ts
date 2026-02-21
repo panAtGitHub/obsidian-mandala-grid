@@ -2,8 +2,6 @@ import { parseYaml } from 'obsidian';
 import { MandalaGridOrientation } from 'src/stores/settings/settings-type';
 
 export const MANDALA_VIEW_FRONTMATTER_KEY = 'mandala_view';
-export const MANDALA_VIEW_GRID_ORIENTATION_KEY = 'grid_orientation';
-export const MANDALA_VIEW_LAST_ACTIVE_SECTION_KEY = 'last_active_section';
 
 type MandalaViewFrontmatterRecord = {
     grid_orientation?: unknown;
@@ -89,44 +87,4 @@ export const parseMandalaViewFrontmatterState = (
             mandalaView.last_active_section,
         ),
     };
-};
-
-export const upsertMandalaViewFrontmatterRecord = (
-    frontmatterRecord: Record<string, unknown>,
-    nextState: {
-        gridOrientation: MandalaGridOrientation;
-        lastActiveSection: string | null;
-    },
-) => {
-    const currentMandalaView = getMandalaViewRecord(frontmatterRecord) ?? {};
-    const currentGridOrientation = isMandalaGridOrientation(
-        currentMandalaView.grid_orientation,
-    )
-        ? currentMandalaView.grid_orientation
-        : null;
-    const currentLastActiveSection = normalizeLastActiveSection(
-        currentMandalaView.last_active_section,
-    );
-
-    if (
-        currentGridOrientation === nextState.gridOrientation &&
-        currentLastActiveSection === nextState.lastActiveSection
-    ) {
-        return false;
-    }
-
-    const nextMandalaView: MandalaViewFrontmatterRecord = {
-        ...currentMandalaView,
-        [MANDALA_VIEW_GRID_ORIENTATION_KEY]: nextState.gridOrientation,
-    };
-
-    if (nextState.lastActiveSection) {
-        nextMandalaView[MANDALA_VIEW_LAST_ACTIVE_SECTION_KEY] =
-            nextState.lastActiveSection;
-    } else {
-        delete nextMandalaView[MANDALA_VIEW_LAST_ACTIVE_SECTION_KEY];
-    }
-
-    frontmatterRecord[MANDALA_VIEW_FRONTMATTER_KEY] = nextMandalaView;
-    return true;
 };
