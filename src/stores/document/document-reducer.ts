@@ -44,7 +44,6 @@ import {
     ensureMandalaCoreTheme,
     swapMandalaNodes,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
-import { swapSectionColorsInFrontmatter } from 'src/view/helpers/mandala/section-colors';
 
 type EarlyReturnHandler = (
     state: DocumentState,
@@ -146,11 +145,6 @@ const updateDocumentState = (
             state.document,
             action.payload.sourceNodeId,
             action.payload.targetNodeId,
-        );
-        state.file.frontmatter = swapSectionColorsInFrontmatter(
-            state.file.frontmatter,
-            sourceSection,
-            targetSection,
         );
         newActiveNodeId = action.payload.sourceNodeId;
         affectedNodeId = action.payload.sourceNodeId;

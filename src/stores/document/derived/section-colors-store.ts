@@ -1,14 +1,28 @@
-import { derived } from 'src/lib/store/derived';
+import { derived } from 'svelte/store';
 import { MandalaView } from 'src/view/view';
 import {
     createSectionColorIndex,
+    parseSectionColorsFromPersistedState,
     parseSectionColorsFromFrontmatter,
     SECTION_COLOR_PALETTE,
 } from 'src/view/helpers/mandala/section-colors';
 
 export const SectionColorBySectionStore = (view: MandalaView) =>
-    derived(view.documentStore, (state) => {
-        const map = parseSectionColorsFromFrontmatter(state.file.frontmatter);
+    derived([view.plugin.settings, view.documentStore], ([settings, state]) => {
+        const path = view.file?.path;
+        const preferences = path ? settings.documents[path] : null;
+        const hasPersistedSectionColors = Boolean(
+            preferences?.mandalaView &&
+                Object.prototype.hasOwnProperty.call(
+                    preferences.mandalaView,
+                    'sectionColors',
+                ),
+        );
+        const map = hasPersistedSectionColors
+            ? parseSectionColorsFromPersistedState(
+                  preferences?.mandalaView?.sectionColors,
+              )
+            : parseSectionColorsFromFrontmatter(state.file.frontmatter);
         const index = createSectionColorIndex(map);
         const result: Record<string, string> = {};
         for (const [section, key] of Object.entries(index)) {

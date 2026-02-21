@@ -17,6 +17,7 @@
     import {
         createSectionColorIndex,
         applyOpacityToHex,
+        parseSectionColorsFromPersistedState,
         parseSectionColorsFromFrontmatter,
         SECTION_COLOR_KEYS,
     } from 'src/view/helpers/mandala/section-colors';
@@ -54,8 +55,8 @@
     };
 
     const pinnedState = derived(
-        [pinnedNodesArray, view.documentStore],
-        ([$pinnedNodesArray, $doc]) => {
+        [pinnedNodesArray, view.documentStore, view.plugin.settings],
+        ([$pinnedNodesArray, $doc, $settings]) => {
             const orderMap = new Map<string, number>();
             $pinnedNodesArray.forEach((nodeId, index) => {
                 const section = $doc.sections.id_section[nodeId];
@@ -63,9 +64,19 @@
                     orderMap.set(section, index);
                 }
             });
-            const colorMap = parseSectionColorsFromFrontmatter(
-                $doc.file.frontmatter,
-            );
+            const path = view.file?.path;
+            const preferences = path ? $settings.documents[path] : null;
+            const hasPersistedSectionColors =
+                preferences?.mandalaView &&
+                Object.prototype.hasOwnProperty.call(
+                    preferences.mandalaView,
+                    'sectionColors',
+                );
+            const colorMap = hasPersistedSectionColors
+                ? parseSectionColorsFromPersistedState(
+                      preferences?.mandalaView?.sectionColors,
+                  )
+                : parseSectionColorsFromFrontmatter($doc.file.frontmatter);
             const colorIndex = createSectionColorIndex(colorMap);
             const colorOrderMap = new Map<string, number>();
             for (const key of SECTION_COLOR_KEYS) {

@@ -1,6 +1,34 @@
 import { Settings } from 'src/stores/settings/settings-type';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 
+const VALID_GRID_ORIENTATIONS = new Set([
+    'south-start',
+    'left-to-right',
+    'bottom-to-top',
+]);
+
+const normalizeSectionIds = (sections: unknown) => {
+    if (!Array.isArray(sections)) return [];
+    const values = (sections as unknown[])
+        .map((section) =>
+            typeof section === 'number' ? String(section) : section,
+        )
+        .filter((section): section is string => typeof section === 'string');
+    return Array.from(new Set(values));
+};
+
+const normalizeSectionColors = (value: unknown) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    const result: Record<string, string[]> = {};
+    for (const [key, sections] of Object.entries(value)) {
+        const normalized = normalizeSectionIds(sections);
+        if (normalized.length > 0) {
+            result[key] = normalized;
+        }
+    }
+    return result;
+};
+
 export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     for (const [path, pref] of Object.entries(settings.documents)) {
         if (typeof pref === 'boolean') {
@@ -9,12 +37,41 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                 viewType: 'mandala-grid',
                 activeSection: null,
                 outline: null,
+                mandalaView: {
+                    gridOrientation: null,
+                    lastActiveSection: null,
+                    pinnedSections: [],
+                    sectionColors: {},
+                },
             };
         } else if (pref && typeof pref === 'object') {
             const legacyPref = pref as Settings['documents'][string] & {
                 pinnedSections?: unknown;
             };
             delete legacyPref.pinnedSections;
+
+            const mandalaView =
+                legacyPref.mandalaView &&
+                typeof legacyPref.mandalaView === 'object' &&
+                !Array.isArray(legacyPref.mandalaView)
+                    ? legacyPref.mandalaView
+                    : ({} as Record<string, unknown>);
+            const gridOrientation = mandalaView.gridOrientation;
+            legacyPref.mandalaView = {
+                gridOrientation:
+                    typeof gridOrientation === 'string' &&
+                    VALID_GRID_ORIENTATIONS.has(gridOrientation)
+                        ? gridOrientation
+                        : null,
+                lastActiveSection:
+                    typeof mandalaView.lastActiveSection === 'string'
+                        ? mandalaView.lastActiveSection
+                        : null,
+                pinnedSections: normalizeSectionIds(mandalaView.pinnedSections),
+                sectionColors: normalizeSectionColors(
+                    mandalaView.sectionColors,
+                ),
+            };
         }
     }
 

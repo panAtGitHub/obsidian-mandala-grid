@@ -31,6 +31,15 @@ export type MandalaGridOrientation =
     | 'south-start'
     | 'left-to-right'
     | 'bottom-to-top';
+export type MandalaSectionColorAssignments = Partial<
+    Record<string, string[]>
+>;
+export type MandalaViewDocumentPreferences = {
+    gridOrientation: MandalaGridOrientation | null;
+    lastActiveSection: string | null;
+    pinnedSections: string[];
+    sectionColors: MandalaSectionColorAssignments;
+};
 export type MandalaExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
 export type LastExportPreset = {
     exportMode: MandalaExportMode;
@@ -50,6 +59,7 @@ export type DocumentPreferences = {
     outline: {
         collapsedSections: string[];
     } | null;
+    mandalaView?: MandalaViewDocumentPreferences | null;
 };
 
 export type LeftSidebarTab = 'pinned-cards' | 'recent-cards';

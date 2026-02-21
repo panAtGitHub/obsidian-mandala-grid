@@ -5,6 +5,7 @@ import {
     LeftSidebarTab,
     MandalaGridDocumentFormat,
     MandalaGridOrientation,
+    MandalaSectionColorAssignments,
     LinkPaneType,
     RulesTab,
     ViewType,
@@ -133,6 +134,10 @@ export type SettingsActions =
       }
     | ChangeZoomLevelAction
     | PersistActiveNodeAction
+    | PersistMandalaViewStateAction
+    | PersistMandalaPinnedSectionsAction
+    | PersistMandalaSectionColorsAction
+    | SwapMandalaSectionColorsAction
     | {
           type: 'settings/general/set-default-document-format';
           payload: {
@@ -296,6 +301,36 @@ export type PersistActiveNodeAction = {
     payload: {
         path: string;
         sectionNumber: string;
+    };
+};
+export type PersistMandalaViewStateAction = {
+    type: 'settings/documents/persist-mandala-view-state';
+    payload: {
+        path: string;
+        gridOrientation: MandalaGridOrientation;
+        lastActiveSection: string | null;
+    };
+};
+export type PersistMandalaPinnedSectionsAction = {
+    type: 'settings/documents/persist-mandala-pinned-sections';
+    payload: {
+        path: string;
+        sections: string[];
+    };
+};
+export type PersistMandalaSectionColorsAction = {
+    type: 'settings/documents/persist-mandala-section-colors';
+    payload: {
+        path: string;
+        map: MandalaSectionColorAssignments;
+    };
+};
+export type SwapMandalaSectionColorsAction = {
+    type: 'settings/documents/swap-mandala-section-colors';
+    payload: {
+        path: string;
+        sourceSection: string;
+        targetSection: string;
     };
 };
 export type ToggleEditorStateAction = {

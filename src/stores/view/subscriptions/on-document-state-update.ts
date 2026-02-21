@@ -118,6 +118,22 @@ export const onDocumentStateUpdate = (
     if (pinnedNodesUpdate) {
         persistPinnedNodes(view);
     }
+    if (type === 'document/mandala/swap' && view.file) {
+        const sourceSection =
+            documentState.sections.id_section[action.payload.sourceNodeId];
+        const targetSection =
+            documentState.sections.id_section[action.payload.targetNodeId];
+        if (sourceSection && targetSection) {
+            view.plugin.settings.dispatch({
+                type: 'settings/documents/swap-mandala-section-colors',
+                payload: {
+                    path: view.file.path,
+                    sourceSection,
+                    targetSection,
+                },
+            });
+        }
+    }
     if (
         pinnedNodesUpdate ||
         type === 'document/pinned-nodes/load-from-frontmatter'

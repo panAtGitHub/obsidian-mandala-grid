@@ -1,6 +1,8 @@
 import { MandalaView } from 'src/view/view';
+import { DocumentPreferences } from 'src/stores/settings/settings-type';
 import {
     compareSectionIds,
+    parsePinnedSectionsFromPersistedState,
     parsePinnedSectionsFromFrontmatter,
 } from 'src/view/helpers/mandala/section-colors';
 
@@ -11,9 +13,20 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
     if (!view.file) return;
     const documentStore = view.documentStore;
     const documentState = documentStore.getValue();
-    const pinnedSections = parsePinnedSectionsFromFrontmatter(
-        documentState.file.frontmatter,
+    const preferences: DocumentPreferences | undefined =
+        view.plugin.settings.getValue().documents[view.file.path];
+    const hasPersistedPinnedSections = Boolean(
+        preferences?.mandalaView &&
+            Object.prototype.hasOwnProperty.call(
+                preferences.mandalaView,
+                'pinnedSections',
+            ),
     );
+    const pinnedSections = hasPersistedPinnedSections
+        ? parsePinnedSectionsFromPersistedState(
+              preferences?.mandalaView?.pinnedSections,
+          )
+        : parsePinnedSectionsFromFrontmatter(documentState.file.frontmatter);
     const currentPinnedSections = documentState.pinnedNodes.Ids
         .map((id) => documentState.sections.id_section[id])
         .filter((section): section is string => Boolean(section))

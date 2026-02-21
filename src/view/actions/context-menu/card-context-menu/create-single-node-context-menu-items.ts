@@ -4,13 +4,15 @@ import { lang } from 'src/lang/lang';
 import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-block';
 import { togglePinNode } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
+import { DocumentPreferences } from 'src/stores/settings/settings-type';
 import {
     createSectionColorIndex,
+    parseSectionColorsFromPersistedState,
     parseSectionColorsFromFrontmatter,
     SECTION_COLOR_KEYS,
     SECTION_COLOR_PALETTE,
+    serializeSectionColorMapForSettings,
     setSectionColor,
-    writeSectionColorsToFrontmatter,
 } from 'src/view/helpers/mandala/section-colors';
 import { startMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
 
@@ -25,13 +27,43 @@ export const createSingleNodeContextMenuItems = (
     const isMandala = view.documentStore.getValue().meta.isMandala;
     const section = view.documentStore.getValue().sections.id_section[activeNode];
     let cachedSectionColorMap: ReturnType<
-        typeof parseSectionColorsFromFrontmatter
+        typeof parseSectionColorsFromPersistedState
     > | null = null;
     const getSectionColorMap = () => {
         if (cachedSectionColorMap) return cachedSectionColorMap;
-        const frontmatter = view.documentStore.getValue().file.frontmatter;
-        cachedSectionColorMap = parseSectionColorsFromFrontmatter(frontmatter);
+        const filePath = view.file?.path;
+        const settings = view.plugin.settings.getValue();
+        const preferences: DocumentPreferences | null = filePath
+            ? settings.documents[filePath]
+            : null;
+        const hasPersistedSectionColors = Boolean(
+            preferences?.mandalaView &&
+                Object.prototype.hasOwnProperty.call(
+                    preferences.mandalaView,
+                    'sectionColors',
+                ),
+        );
+        cachedSectionColorMap = hasPersistedSectionColors
+            ? parseSectionColorsFromPersistedState(
+                  preferences?.mandalaView?.sectionColors,
+              )
+            : parseSectionColorsFromFrontmatter(
+                  view.documentStore.getValue().file.frontmatter,
+              );
         return cachedSectionColorMap;
+    };
+    const persistSectionColorMap = (
+        next: ReturnType<typeof parseSectionColorsFromPersistedState>,
+    ) => {
+        if (!view.file) return;
+        cachedSectionColorMap = next;
+        view.plugin.settings.dispatch({
+            type: 'settings/documents/persist-mandala-section-colors',
+            payload: {
+                path: view.file.path,
+                map: serializeSectionColorMapForSettings(next),
+            },
+        });
     };
 
     const menuItems: MenuItemObject[] = [];
@@ -108,10 +140,7 @@ export const createSingleNodeContextMenuItems = (
                                           section,
                                           key,
                                       );
-                                      void writeSectionColorsToFrontmatter(
-                                          view,
-                                          next,
-                                      );
+                                      persistSectionColorMap(next);
                                       menu.hide();
                                   });
                                   palette.appendChild(button);
@@ -130,7 +159,7 @@ export const createSingleNodeContextMenuItems = (
                               section,
                               null,
                           );
-                          void writeSectionColorsToFrontmatter(view, next);
+                          persistSectionColorMap(next);
                       },
                   },
               ] as MenuItemObject[])

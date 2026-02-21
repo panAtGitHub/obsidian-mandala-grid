@@ -1,6 +1,5 @@
 import { parseYaml, stringifyYaml } from 'obsidian';
-import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
-import { MandalaView } from 'src/view/view';
+import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
 
 export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
 const PINNED_SECTIONS_FRONTMATTER_KEY = 'mandala_pinned_sections';
@@ -129,7 +128,9 @@ const buildFrontmatterWithSectionColors = (
     return yaml ? `---\n${yaml}\n---\n` : '';
 };
 
-const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
+export const parseSectionColorsFromPersistedState = (
+    value: unknown,
+): SectionColorMap => {
     const map = createEmptySectionColorMap();
     if (!value || typeof value !== 'object') return map;
     const record = value as Record<string, unknown>;
@@ -146,30 +147,20 @@ export const parseSectionColorsFromFrontmatter = (
     if (Object.keys(record).length === 0) {
         return createEmptySectionColorMap();
     }
-    return normalizeSectionColorMap(record[SECTION_COLORS_FRONTMATTER_KEY]);
-};
-
-const buildFrontmatterWithPinnedSections = (
-    frontmatter: string,
-    sections: string[],
-) => {
-    const normalized = normalizeSectionIds(sections);
-    const record = parseFrontmatterRecord(frontmatter);
-    if (normalized.length === 0) {
-        delete record[PINNED_SECTIONS_FRONTMATTER_KEY];
-    } else {
-        record[PINNED_SECTIONS_FRONTMATTER_KEY] = normalized;
-    }
-    const yaml = stringifyYaml(record).trim();
-    return yaml ? `---\n${yaml}\n---\n` : '';
+    return parseSectionColorsFromPersistedState(
+        record[SECTION_COLORS_FRONTMATTER_KEY],
+    );
 };
 
 export const parsePinnedSectionsFromFrontmatter = (frontmatter: string) => {
     const record = parseFrontmatterRecord(frontmatter);
-    return normalizeSectionIdsFromUnknown(
+    return parsePinnedSectionsFromPersistedState(
         record[PINNED_SECTIONS_FRONTMATTER_KEY],
     );
 };
+
+export const parsePinnedSectionsFromPersistedState = (value: unknown) =>
+    normalizeSectionIdsFromUnknown(value);
 
 export const createSectionColorIndex = (map: SectionColorMap) => {
     const index: Record<string, SectionColorKey> = {};
@@ -191,6 +182,10 @@ export const serializeSectionColorMap = (map: SectionColorMap) => {
     }
     return result;
 };
+
+export const serializeSectionColorMapForSettings = (
+    map: SectionColorMap,
+): MandalaSectionColorAssignments => serializeSectionColorMap(map);
 
 export const setSectionColor = (
     map: SectionColorMap,
@@ -243,68 +238,4 @@ export const swapSectionColorsInFrontmatter = (
         JSON.stringify(currentSerialized) !== JSON.stringify(nextSerialized);
     if (!hasChanged) return frontmatter;
     return buildFrontmatterWithSectionColors(frontmatter, nextMap);
-};
-
-export const writeSectionColorsToFrontmatter = async (
-    view: MandalaView,
-    map: SectionColorMap,
-) => {
-    if (!view.file) return;
-    const currentMap = parseSectionColorsFromFrontmatter(
-        view.documentStore.getValue().file.frontmatter,
-    );
-    const currentSerialized = serializeSectionColorMap(currentMap);
-    const nextSerialized = serializeSectionColorMap(map);
-    const hasChanged =
-        JSON.stringify(currentSerialized) !== JSON.stringify(nextSerialized);
-    if (!hasChanged) return;
-
-    const nextFrontmatter = buildFrontmatterWithSectionColors(
-        view.documentStore.getValue().file.frontmatter,
-        map,
-    );
-    updateFrontmatter(view, nextFrontmatter);
-    await view.plugin.app.fileManager.processFrontMatter(
-        view.file,
-        (frontmatter) => {
-            const frontmatterRecord = frontmatter as Record<string, unknown>;
-            if (Object.keys(nextSerialized).length === 0) {
-                delete frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY];
-            } else {
-                frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY] =
-                    nextSerialized;
-            }
-        },
-    );
-};
-
-export const writePinnedSectionsToFrontmatter = async (
-    view: MandalaView,
-    sections: string[],
-) => {
-    if (!view.file) return;
-    const currentFrontmatter = view.documentStore.getValue().file.frontmatter;
-    const currentSections = parsePinnedSectionsFromFrontmatter(currentFrontmatter);
-    const nextSections = normalizeSectionIds(sections);
-    const hasChanged =
-        JSON.stringify(currentSections) !== JSON.stringify(nextSections);
-    if (!hasChanged) return;
-
-    const nextFrontmatter = buildFrontmatterWithPinnedSections(
-        currentFrontmatter,
-        nextSections,
-    );
-    updateFrontmatter(view, nextFrontmatter);
-    await view.plugin.app.fileManager.processFrontMatter(
-        view.file,
-        (frontmatter) => {
-            const frontmatterRecord = frontmatter as Record<string, unknown>;
-            if (nextSections.length === 0) {
-                delete frontmatterRecord[PINNED_SECTIONS_FRONTMATTER_KEY];
-            } else {
-                frontmatterRecord[PINNED_SECTIONS_FRONTMATTER_KEY] =
-                    nextSections;
-            }
-        },
-    );
 };

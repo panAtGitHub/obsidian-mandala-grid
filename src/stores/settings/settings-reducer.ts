@@ -1,4 +1,8 @@
-import { Settings } from './settings-type';
+import {
+    DocumentPreferences,
+    MandalaSectionColorAssignments,
+    Settings,
+} from './settings-type';
 import { changeZoomLevel } from 'src/stores/settings/reducers/change-zoom-level';
 import { updateStyleRules } from 'src/stores/settings/reducers/update-style-rules/update-style-rules';
 import { CommandName } from 'src/lang/hotkey-groups';
@@ -10,6 +14,136 @@ import { Platform } from 'obsidian';
 
 type SettingsActionHandler = (store: Settings, action: SettingsActions) => void;
 
+const compareSectionIds = (a: string, b: string) => {
+    const aParts = a.split('.').map((part) => Number(part));
+    const bParts = b.split('.').map((part) => Number(part));
+    const maxLen = Math.max(aParts.length, bParts.length);
+    for (let i = 0; i < maxLen; i += 1) {
+        const aVal = aParts[i];
+        const bVal = bParts[i];
+        if (aVal === undefined) return -1;
+        if (bVal === undefined) return 1;
+        if (aVal === bVal) continue;
+        return aVal - bVal;
+    }
+    return 0;
+};
+
+const normalizeSectionIds = (sections: string[]) =>
+    Array.from(new Set(sections)).sort(compareSectionIds);
+
+const normalizeSectionIdsFromUnknown = (value: unknown) => {
+    if (!Array.isArray(value)) return [];
+    const sections = value as unknown[];
+    return normalizeSectionIds(
+        sections
+            .map((section) =>
+                typeof section === 'number' ? String(section) : section,
+            )
+            .filter(
+                (section): section is string => typeof section === 'string',
+            ),
+    );
+};
+
+const normalizeSectionColorAssignments = (
+    value: unknown,
+): MandalaSectionColorAssignments => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const result: MandalaSectionColorAssignments = {};
+    for (const [key, sections] of Object.entries(value)) {
+        const normalized = normalizeSectionIdsFromUnknown(sections);
+        if (normalized.length > 0) {
+            result[key] = normalized;
+        }
+    }
+    return result;
+};
+
+const createDefaultDocumentPreferences = (
+    store: Settings,
+    format: DocumentPreferences['documentFormat'] = store.general
+        .defaultDocumentFormat,
+): DocumentPreferences => ({
+    documentFormat: format,
+    viewType: 'mandala-grid',
+    activeSection: null,
+    outline: {
+        collapsedSections: [],
+    },
+    mandalaView: {
+        gridOrientation: null,
+        lastActiveSection: null,
+        pinnedSections: [],
+        sectionColors: {},
+    },
+});
+
+const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
+    if (!store.documents[path]) {
+        store.documents[path] = createDefaultDocumentPreferences(store);
+    }
+    const preferences = store.documents[path];
+    if (!preferences.mandalaView || typeof preferences.mandalaView !== 'object') {
+        preferences.mandalaView = {
+            gridOrientation: null,
+            lastActiveSection: null,
+            pinnedSections: [],
+            sectionColors: {},
+        };
+    }
+    return preferences;
+};
+
+const createSectionColorIndex = (map: MandalaSectionColorAssignments) => {
+    const index: Record<string, string> = {};
+    for (const [key, sections] of Object.entries(map)) {
+        for (const section of sections ?? []) {
+            index[section] = key;
+        }
+    }
+    return index;
+};
+
+const setSectionColor = (
+    map: MandalaSectionColorAssignments,
+    section: string,
+    colorKey: string | null,
+): MandalaSectionColorAssignments => {
+    const next: MandalaSectionColorAssignments = {};
+    for (const [key, sections] of Object.entries(map)) {
+        const filtered = normalizeSectionIds(
+            (sections ?? []).filter((item) => item !== section),
+        );
+        if (filtered.length > 0) {
+            next[key] = filtered;
+        }
+    }
+    if (colorKey) {
+        next[colorKey] = normalizeSectionIds([...(next[colorKey] ?? []), section]);
+    }
+    return next;
+};
+
+const swapSectionColors = (
+    map: MandalaSectionColorAssignments,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    if (!sourceSection || !targetSection || sourceSection === targetSection) {
+        return map;
+    }
+    const index = createSectionColorIndex(map);
+    const sourceColor = index[sourceSection] ?? null;
+    const targetColor = index[targetSection] ?? null;
+    if (sourceColor === targetColor) return map;
+    let next = setSectionColor(map, sourceSection, targetColor);
+    next = setSectionColor(next, targetSection, sourceColor);
+    return next;
+};
+
 const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/documents/delete-document-preferences': (store, action) => {
         if (action.type !== 'settings/documents/delete-document-preferences')
@@ -20,14 +154,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/documents/set-document-format': (store, action) => {
         if (action.type !== 'settings/documents/set-document-format') return;
         if (!store.documents[action.payload.path]) {
-            store.documents[action.payload.path] = {
-                documentFormat: action.payload.format,
-                viewType: 'mandala-grid',
-                activeSection: null,
-                outline: {
-                    collapsedSections: [],
-                },
-            };
+            store.documents[action.payload.path] = createDefaultDocumentPreferences(
+                store,
+                action.payload.format,
+            );
             return;
         }
         store.documents[action.payload.path].documentFormat =
@@ -41,10 +171,70 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     },
     'settings/document/persist-active-section': (store, action) => {
         if (action.type !== 'settings/document/persist-active-section') return;
-        if (store.documents[action.payload.path]) {
-            store.documents[action.payload.path].activeSection =
-                action.payload.sectionNumber;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.activeSection = action.payload.sectionNumber;
+    },
+    'settings/documents/persist-mandala-view-state': (store, action) => {
+        if (action.type !== 'settings/documents/persist-mandala-view-state')
+            return;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.mandalaView = {
+            ...preferences.mandalaView!,
+            gridOrientation: action.payload.gridOrientation,
+            lastActiveSection: action.payload.lastActiveSection,
+        };
+    },
+    'settings/documents/persist-mandala-pinned-sections': (store, action) => {
+        if (
+            action.type !== 'settings/documents/persist-mandala-pinned-sections'
+        ) {
+            return;
         }
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.mandalaView = {
+            ...preferences.mandalaView!,
+            pinnedSections: normalizeSectionIds(action.payload.sections),
+        };
+    },
+    'settings/documents/persist-mandala-section-colors': (store, action) => {
+        if (action.type !== 'settings/documents/persist-mandala-section-colors')
+            return;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.mandalaView = {
+            ...preferences.mandalaView!,
+            sectionColors: normalizeSectionColorAssignments(action.payload.map),
+        };
+    },
+    'settings/documents/swap-mandala-section-colors': (store, action) => {
+        if (action.type !== 'settings/documents/swap-mandala-section-colors')
+            return;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        const currentMap = normalizeSectionColorAssignments(
+            preferences.mandalaView?.sectionColors,
+        );
+        preferences.mandalaView = {
+            ...preferences.mandalaView!,
+            sectionColors: swapSectionColors(
+                currentMap,
+                action.payload.sourceSection,
+                action.payload.targetSection,
+            ),
+        };
     },
     'settings/documents/update-document-path': (store, action) => {
         if (action.type !== 'settings/documents/update-document-path') return;

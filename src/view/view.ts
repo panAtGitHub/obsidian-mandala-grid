@@ -5,7 +5,6 @@ import {
     IconName,
     Notice,
     Scope,
-    TFile,
     TextFileView,
     WorkspaceLeaf,
     resolveSubpath,
@@ -57,7 +56,6 @@ import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-a
 import { detectDocumentFormat } from 'src/lib/format-detection/detect-document-format';
 import {
     MandalaGridDocumentFormat,
-    MandalaGridOrientation,
 } from 'src/stores/settings/settings-type';
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
@@ -68,7 +66,6 @@ import {
 import { logger } from 'src/helpers/logger';
 import {
     parseMandalaViewFrontmatterState,
-    upsertMandalaViewFrontmatterRecord,
 } from 'src/view/helpers/mandala/mandala-view-frontmatter';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
@@ -353,13 +350,17 @@ export class MandalaView extends TextFileView {
         const activation = this.getMandalaProfileActivation(frontmatter);
         const activationCostMs = performance.now() - activationStartMs;
         this.dayPlanHotCores = activation.hotCoreSections;
-        const mandalaViewState = parseMandalaViewFrontmatterState(frontmatter);
-        const currentGridOrientation =
-            this.plugin.settings.getValue().view.mandalaGridOrientation;
+        const settings = this.plugin.settings.getValue();
+        const filePath = this.file?.path ?? '';
+        const documentPreferences = settings.documents[filePath];
+        const persistedMandalaViewState = documentPreferences?.mandalaView;
+        const frontmatterMandalaViewState =
+            parseMandalaViewFrontmatterState(frontmatter);
+        const currentGridOrientation = settings.view.mandalaGridOrientation;
         const nextGridOrientation =
-            activation.kind === 'none'
-                ? currentGridOrientation
-                : mandalaViewState.gridOrientation ?? currentGridOrientation;
+            persistedMandalaViewState?.gridOrientation ??
+            frontmatterMandalaViewState.gridOrientation ??
+            currentGridOrientation;
         if (nextGridOrientation !== currentGridOrientation) {
             this.plugin.settings.dispatch({
                 type: 'settings/view/mandala/set-grid-orientation',
@@ -369,22 +370,23 @@ export class MandalaView extends TextFileView {
             });
         }
         const sectionsInBody = this.collectSectionIdsFromBody(body);
-        const filePath = this.file?.path ?? '';
-        const persistedActiveSection =
-            this.plugin.settings.getValue().documents[filePath]?.activeSection ??
-            null;
-        const yamlLastActiveSection = this.getExistingSectionFromBody(
+        const persistedMandalaLastActiveSection = this.getExistingSectionFromBody(
             sectionsInBody,
-            mandalaViewState.lastActiveSection,
+            persistedMandalaViewState?.lastActiveSection ?? null,
         );
-        const fallbackPersistedActiveSection = this.getExistingSectionFromBody(
+        const frontmatterLastActiveSection = this.getExistingSectionFromBody(
             sectionsInBody,
-            persistedActiveSection,
+            frontmatterMandalaViewState.lastActiveSection,
+        );
+        const persistedActiveSection = this.getExistingSectionFromBody(
+            sectionsInBody,
+            documentPreferences?.activeSection ?? null,
         );
         const nextActiveSection =
             activation.targetSection ??
-            yamlLastActiveSection ??
-            fallbackPersistedActiveSection;
+            persistedMandalaLastActiveSection ??
+            frontmatterLastActiveSection ??
+            persistedActiveSection;
         let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             const loadStartMs = performance.now();
@@ -453,10 +455,13 @@ export class MandalaView extends TextFileView {
             documentState.sections.id_section[activeNodeId] ?? null;
         const gridOrientation =
             this.plugin.settings.getValue().view.mandalaGridOrientation;
-
-        await this.persistMandalaViewFrontmatter(path, {
-            gridOrientation,
-            lastActiveSection,
+        this.plugin.settings.dispatch({
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path,
+                gridOrientation,
+                lastActiveSection,
+            },
         });
     }
 
@@ -511,31 +516,6 @@ export class MandalaView extends TextFileView {
         if (!section) return null;
         if (existingSections.size === 0) return section;
         return existingSections.has(section) ? section : null;
-    }
-
-    private async persistMandalaViewFrontmatter(
-        path: string,
-        payload: {
-            gridOrientation: MandalaGridOrientation;
-            lastActiveSection: string | null;
-        },
-    ) {
-        const file = this.plugin.app.vault.getAbstractFileByPath(path);
-        if (!(file instanceof TFile)) return;
-        try {
-            await this.plugin.app.fileManager.processFrontMatter(
-                file,
-                (frontmatter) => {
-                    const record = frontmatter as Record<string, unknown>;
-                    upsertMandalaViewFrontmatterRecord(record, payload);
-                },
-            );
-        } catch (error: unknown) {
-            logger.warn('[mandala-view-frontmatter] persist failed', {
-                file: path,
-                error,
-            });
-        }
     }
 
     private debouncedLoadDocumentToStore = debounce(
