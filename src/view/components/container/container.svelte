@@ -120,7 +120,7 @@
     <div class="columns">
         <ColumnsBuffer />
 
-        {#each $columns as column, i (column.id)}
+        {#each $columns as column (column.id)}
             <Column
                 columnId={column.id}
                 dndChildGroups={$dnd.childGroups}
@@ -138,7 +138,6 @@
                 {pinnedNodes}
                 pendingConfirmation={$pendingConfirmation}
                 groupParentIds={$groupParentIds}
-                firstColumn={i === 0}
                 styleRules={$styleRules}
                 {outlineMode}
                 {allDndNodes}

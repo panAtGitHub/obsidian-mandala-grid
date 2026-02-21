@@ -25,7 +25,6 @@
     export let searching: boolean;
     export let idSection: Record<string, string>;
     export let groupParentIds: Set<string>;
-    export let firstColumn: boolean;
     export let styleRules: Map<string, NodeStyle>;
     export let outlineMode: boolean;
     export let allDndNodes: Set<string>;
@@ -42,9 +41,7 @@
     <div
         class={clx(
             'group',
-            /*(parentNodes.has(groupId) ||
-                outlineMode ||
-                (firstColumn && parentNodes.size > 0)) &&
+            /*(parentNodes.has(groupId) || outlineMode) &&
                 'group-has-active-parent',*/
         )}
         id={'group-' + groupId}
@@ -73,7 +70,6 @@
                     selected={selectedNodes.has(node)}
                     pinned={pinnedNodes.has(node)}
                     isSearchMatch={searchResults.has(node)}
-                    {firstColumn}
                     style={styleRules.get(node)}
                     {outlineMode}
                     collapsed={collapsedParents.has(node)}

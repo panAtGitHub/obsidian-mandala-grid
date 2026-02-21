@@ -24,7 +24,6 @@
     export let groupParentIds: Set<string>;
     export let searching: boolean;
     export let idSection: Record<string, string>;
-    export let firstColumn: boolean;
     export let styleRules: Map<string, NodeStyle>;
     export let outlineMode: boolean;
     export let collapsedParents: Set<string>;
@@ -56,7 +55,6 @@
                 {selectedNodes}
                 {pinnedNodes}
                 {groupParentIds}
-                {firstColumn}
                 {pendingConfirmation}
                 {styleRules}
                 {outlineMode}

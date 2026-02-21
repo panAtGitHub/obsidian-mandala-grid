@@ -72,9 +72,7 @@
                     $editingStateStore.isInSidebar === true}
                 confirmDelete={$pendingConfirmation.deleteNode.has(node)}
                 isInSidebar={true}
-                firstColumn={true}
                 section={$idSection[node]}
-                hasActiveChildren={false}
                 hasChildren={false}
                 selected={false}
                 pinned={false}

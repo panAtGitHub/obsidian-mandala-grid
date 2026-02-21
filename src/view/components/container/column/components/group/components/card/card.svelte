@@ -17,7 +17,6 @@
     export let editing: boolean;
     export let active: ActiveStatus | null;
     export let hasChildren: boolean;
-    export let firstColumn: boolean;
     export let confirmDisableEdit: boolean;
     export let confirmDelete: boolean;
     export let section: string;
