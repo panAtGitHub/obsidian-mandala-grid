@@ -76,13 +76,20 @@
                     colorOrderMap.set(section, idx);
                 });
             }
+            const previewCache = new Map<string, { title: string; body: string }>();
+            const getPreview = (nodeId: string) => {
+                const cached = previewCache.get(nodeId);
+                if (cached) return cached;
+                const content = $doc.document.content[nodeId]?.content || '';
+                const preview = parsePinnedContent(content);
+                previewCache.set(nodeId, preview);
+                return preview;
+            };
             const items = $pinnedNodesArray
                 .map((nodeId) => {
                     const section = $doc.sections.id_section[nodeId];
                     if (!section) return null;
-                    const content =
-                        $doc.document.content[nodeId]?.content || '';
-                    const preview = parsePinnedContent(content);
+                    const preview = getPreview(nodeId);
                     return {
                         nodeId,
                         section,
@@ -98,9 +105,7 @@
                 for (const section of sections) {
                     const nodeId = $doc.sections.section_id[section];
                     if (!nodeId) continue;
-                    const content =
-                        $doc.document.content[nodeId]?.content || '';
-                    const preview = parsePinnedContent(content);
+                    const preview = getPreview(nodeId);
                     coloredItems.push({
                         nodeId,
                         section,

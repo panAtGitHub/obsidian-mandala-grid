@@ -26,7 +26,7 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
     if (pinnedSections.length === 0) {
         if (unchanged) return;
         documentStore.dispatch({
-            type: 'document/pinned-nodes/load-from-frontmatter',
+            type: 'document/pinned-nodes/load-from-settings',
             payload: {
                 sections: [],
             },
@@ -36,7 +36,7 @@ export const loadPinnedNodesToDocument = (view: MandalaView) => {
 
     if (unchanged) return;
     documentStore.dispatch({
-        type: 'document/pinned-nodes/load-from-frontmatter',
+        type: 'document/pinned-nodes/load-from-settings',
         payload: {
             sections: pinnedSections,
         },

@@ -67,8 +67,8 @@ const earlyReturnHandlers: Record<string, EarlyReturnHandler> = {
         if (action.type !== 'document/pinned-nodes/remove-stale-nodes') return;
         removeStalePinnedNodes(state.pinnedNodes, state.sections);
     },
-    'document/pinned-nodes/load-from-frontmatter': (state, action) => {
-        if (action.type !== 'document/pinned-nodes/load-from-frontmatter')
+    'document/pinned-nodes/load-from-settings': (state, action) => {
+        if (action.type !== 'document/pinned-nodes/load-from-settings')
             return;
         loadPinnedNodes(
             state.pinnedNodes,
