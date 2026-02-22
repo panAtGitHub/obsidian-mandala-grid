@@ -13,6 +13,8 @@ export const lang = {
     // create document
     cmd_create_new_document: '新建九宫格文件',
     cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
+    cmd_write_current_core_day_plan_slots_to_yaml:
+        '将当前核心九宫的 8 个标题写回「日计划」模板',
     cmd_open_export_mode: '打开导出模式',
     ocm_new_document: '新建九宫格文档',
     ocm_import_from_gingko: '从 Gingko 导入',

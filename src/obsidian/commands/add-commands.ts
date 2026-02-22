@@ -10,6 +10,7 @@ import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
 import { openExportModeModalForView } from 'src/view/components/container/toolbar-vertical/export-mode-modal-store';
+import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 
 const createCommands = (plugin: MandalaGrid) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
@@ -65,6 +66,16 @@ const createCommands = (plugin: MandalaGrid) => {
         checkCallback: (checking) => {
             if (checking) return true;
             void setupDayPlanMandalaFormat(plugin);
+        },
+    });
+
+    commands.push({
+        commandId: 'write-current-core-day-plan-slots-to-yaml',
+        name: lang.cmd_write_current_core_day_plan_slots_to_yaml,
+        icon: customIcons.mandalaGrid.name,
+        checkCallback: (checking) => {
+            if (checking) return true;
+            void writeCurrentCoreDayPlanSlotsToYaml(plugin);
         },
     });
 
