@@ -106,6 +106,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         show9x9TitleOnly: false,
         squareLayout: false,
         whiteThemeMode: false,
+        mandalaEmbedDebug: false,
         hiddenVerticalToolbarButtons: [],
     },
     general: {

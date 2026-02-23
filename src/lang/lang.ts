@@ -34,6 +34,9 @@ export const lang = {
     settings_general_maintain_edit_mode: 'Maintain editing mode',
     settings_general_maintain_edit_mode_desc:
         'Maintain editing mode when switching to a different card using the mouse or keyboard',
+    settings_general_mandala_embed_debug: 'Mandala embed debug panel',
+    settings_general_mandala_embed_debug_desc:
+        'Show in-place debug panel for ![[...$...]] embeds when rendering fails',
     card_btn_edit: 'Edit',
     hk_enable_edit_mode: '编辑卡片',
     hk_enable_edit_mode_and_place_cursor_at_start:

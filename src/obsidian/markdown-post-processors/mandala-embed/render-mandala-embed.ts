@@ -226,6 +226,18 @@ const restoreNativeEmbed = (
 export const createRenderMandalaEmbedPostProcessor =
     (plugin: MandalaGrid) => {
         const originalEmbedContent = new WeakMap<HTMLElement, Node[]>();
+        const ensureOriginalSnapshot = (
+            embed: HTMLElement,
+            contentEl: HTMLElement,
+        ) => {
+            if (originalEmbedContent.has(embed)) return;
+            originalEmbedContent.set(
+                embed,
+                Array.from(contentEl.childNodes).map((node) =>
+                    node.cloneNode(true),
+                ),
+            );
+        };
 
         return async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
             if (isSkippedContext(el)) return;
@@ -233,6 +245,8 @@ export const createRenderMandalaEmbedPostProcessor =
             const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
             if (embeds.length === 0) return;
 
+            const debugEnabled =
+                plugin.settings.getValue().view.mandalaEmbedDebug ?? false;
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
@@ -262,7 +276,8 @@ export const createRenderMandalaEmbedPostProcessor =
                     const parsedSrc = parseMandalaEmbedSrc(src);
 
                     if (!parsedSrc) {
-                        if (markerIntent) {
+                        if (markerIntent && debugEnabled) {
+                            ensureOriginalSnapshot(embed, contentEl);
                             renderDebugPanel(embed, contentEl, [
                                 'mandala debug: parse failed',
                                 `src: ${src ?? '<null>'}`,
@@ -276,7 +291,8 @@ export const createRenderMandalaEmbedPostProcessor =
                     const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
 
                     if (!target) {
-                        if (markerIntent) {
+                        if (markerIntent && debugEnabled) {
+                            ensureOriginalSnapshot(embed, contentEl);
                             const parsedLink = parseLinktext(parsedSrc.linktext);
                             renderDebugPanel(embed, contentEl, [
                                 'mandala debug: target resolve failed',
@@ -295,7 +311,8 @@ export const createRenderMandalaEmbedPostProcessor =
 
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
-                        if (markerIntent && embed.isConnected) {
+                        if (markerIntent && debugEnabled && embed.isConnected) {
+                            ensureOriginalSnapshot(embed, contentEl);
                             renderDebugPanel(embed, contentEl, [
                                 'mandala debug: model build failed',
                                 `src: ${src ?? '<null>'}`,
@@ -309,14 +326,7 @@ export const createRenderMandalaEmbedPostProcessor =
                         return;
                     }
 
-                    if (!originalEmbedContent.has(embed)) {
-                        originalEmbedContent.set(
-                            embed,
-                            Array.from(contentEl.childNodes).map((node) =>
-                                node.cloneNode(true),
-                            ),
-                        );
-                    }
+                    ensureOriginalSnapshot(embed, contentEl);
 
                     embed.classList.add('mandala-embed-3x3');
                     embed.classList.remove('mandala-embed-debug');

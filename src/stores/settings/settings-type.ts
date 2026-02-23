@@ -119,6 +119,7 @@ export type Settings = {
         show9x9TitleOnly: boolean;
         squareLayout: boolean;
         whiteThemeMode: boolean;
+        mandalaEmbedDebug: boolean;
         hiddenVerticalToolbarButtons: ToolbarButton[];
     };
     general: {

@@ -215,6 +215,12 @@ export type SettingsActions =
           };
       }
     | {
+          type: 'settings/view/set-mandala-embed-debug';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
           type: 'settings/view/vertical-toolbar/set-hidden-button';
           payload: {
               id: ToolbarButton;

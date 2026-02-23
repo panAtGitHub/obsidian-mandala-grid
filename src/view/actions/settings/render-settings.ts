@@ -14,6 +14,7 @@ import { ControlsBarButtons } from 'src/view/actions/settings/components/control
 import { HeadingsFontSize } from 'src/view/actions/settings/components/headings-font-size';
 import { MandalaFontSizes } from 'src/view/actions/settings/components/mandala-font-sizes';
 import { LinkPaneType } from 'src/view/actions/settings/components/link-pane-type';
+import { MandalaEmbedDebug } from 'src/view/actions/settings/components/mandala-embed-debug';
 import { MandalaView } from 'src/view/view';
 import { lang } from 'src/lang/lang';
 
@@ -49,6 +50,7 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
         settingsStore,
         isMandala ? '自动聚焦详情编辑' : undefined,
     );
+    MandalaEmbedDebug(generalTab, settingsStore);
     /*AlwaysShowCardButtons(
         generalTab,
         settingsStore,
