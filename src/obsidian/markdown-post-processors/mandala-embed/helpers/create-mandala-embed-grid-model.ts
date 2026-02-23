@@ -112,8 +112,6 @@ const parseMandalaEmbedDocument = (
     };
 };
 
-const HEADING_LINE_RE = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/u;
-
 const normalizeHeadingText = (value: string) =>
     value
         .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
@@ -127,13 +125,6 @@ const normalizeHeadingText = (value: string) =>
 
 const toHeadingAnchor = (value: string) =>
     normalizeHeadingText(value).replace(/\s+/g, '-');
-
-const extractHeadingText = (content: string) => {
-    const firstLine = content.split('\n')[0]?.trim() ?? '';
-    const matched = firstLine.match(HEADING_LINE_RE);
-    if (!matched?.[1]) return null;
-    return normalizeHeadingText(matched[1]);
-};
 
 const resolveSectionByCommentHeadingPairs = (
     markdown: string,
@@ -169,27 +160,7 @@ export const resolveMandalaSectionByHeading = (
     const targetHeading = headingSubpath?.trim();
     if (!targetHeading) return null;
 
-    const sectionFromPairs = resolveSectionByCommentHeadingPairs(
-        markdown,
-        targetHeading,
-    );
-    if (sectionFromPairs) return sectionFromPairs;
-
-    const parsed = parseMandalaEmbedDocument(markdown);
-    if (!parsed) return null;
-
-    const normalizedTarget = normalizeHeadingText(targetHeading);
-    const targetAnchor = toHeadingAnchor(targetHeading);
-
-    for (const [nodeId, section] of Object.entries(parsed.sections.id_section)) {
-        const content = parsed.document.content[nodeId]?.content ?? '';
-        const heading = extractHeadingText(content);
-        if (!heading) continue;
-        if (heading === normalizedTarget) return section;
-        if (toHeadingAnchor(heading) === targetAnchor) return section;
-    }
-
-    return null;
+    return resolveSectionByCommentHeadingPairs(markdown, targetHeading);
 };
 
 const resolveCenterSection = (

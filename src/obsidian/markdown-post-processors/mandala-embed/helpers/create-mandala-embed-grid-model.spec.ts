@@ -182,4 +182,19 @@ mandala: true
         );
         expect(section).toBeNull();
     });
+
+    it('matches only when heading is directly below section marker', () => {
+        const markdown = `---
+mandala: true
+---
+<!--section: 1-->
+# Root
+
+<!--section: 2-->
+Text only
+## 2026-02-11
+`;
+        const section = resolveMandalaSectionByHeading(markdown, '2026-02-11');
+        expect(section).toBeNull();
+    });
 });
