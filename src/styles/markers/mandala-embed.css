@@ -59,3 +59,23 @@
     padding: 1px 4px;
     border-radius: 4px;
 }
+
+.internal-embed.mandala-embed-debug .markdown-embed-content {
+    padding: 0;
+}
+
+.mandala-embed-debug-panel {
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
+    padding: 8px 10px;
+    margin: 6px 0;
+    font-family: var(--font-monospace);
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.mandala-embed-debug-line + .mandala-embed-debug-line {
+    margin-top: 4px;
+}
