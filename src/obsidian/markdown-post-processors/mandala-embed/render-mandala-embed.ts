@@ -43,6 +43,45 @@ const extractEmbedLinktextFromOriginal = (original: string | undefined) => {
     return linktext || null;
 };
 
+const safeDecodeUriComponent = (value: string) => {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+};
+
+const normalizeSubpath = (value: string | null | undefined) =>
+    value?.trim().replace(/^#+/u, '') ?? '';
+
+const normalizeLinkPath = (value: string) => {
+    const decoded = safeDecodeUriComponent(value).trim();
+    return decoded.endsWith('.md') ? decoded.slice(0, -3) : decoded;
+};
+
+const isSameLinktextTarget = (left: string, right: string) => {
+    const leftParsed = parseLinktext(safeDecodeUriComponent(left).trim());
+    const rightParsed = parseLinktext(safeDecodeUriComponent(right).trim());
+    if (!leftParsed.path || !rightParsed.path) return false;
+
+    return (
+        normalizeLinkPath(leftParsed.path) === normalizeLinkPath(rightParsed.path) &&
+        normalizeSubpath(leftParsed.subpath) === normalizeSubpath(rightParsed.subpath)
+    );
+};
+
+const findMarkerLinktextForEmbed = (src: string | null, hints: string[]) => {
+    if (!src) return null;
+    for (const hint of hints) {
+        const parsedHint = parseMandalaEmbedSrc(hint);
+        if (!parsedHint) continue;
+        if (isSameLinktextTarget(parsedHint.linktext, src)) {
+            return hint;
+        }
+    }
+    return null;
+};
+
 const getEmbedHintsFromMetadata = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
@@ -135,9 +174,11 @@ const resolveEmbedTarget = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     src: string | null,
-    sourceHint: string | null,
+    sourceHints: string[],
 ): EmbedTarget | null => {
-    const parsedSrc = parseMandalaEmbedSrc(src) ?? parseMandalaEmbedSrc(sourceHint);
+    const parsedSrc =
+        parseMandalaEmbedSrc(src) ??
+        parseMandalaEmbedSrc(findMarkerLinktextForEmbed(src, sourceHints));
     if (!parsedSrc) return null;
 
     const { path, subpath } = parseLinktext(parsedSrc.linktext);
@@ -254,13 +295,12 @@ export const createRenderMandalaEmbedPostProcessor =
             };
 
             await Promise.all(
-                Array.from(embeds).map(async (embed, index) => {
-                    const hint = sectionEmbedHints[index] ?? null;
+                Array.from(embeds).map(async (embed) => {
                     const target = resolveEmbedTarget(
                         plugin,
                         ctx,
                         embed.getAttribute('src'),
-                        hint,
+                        sectionEmbedHints,
                     );
                     const contentEl = getEmbedContentEl(embed);
                     if (!target) {
