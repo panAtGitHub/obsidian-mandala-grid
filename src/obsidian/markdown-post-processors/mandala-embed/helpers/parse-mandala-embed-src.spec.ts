@@ -22,6 +22,13 @@ describe('parseMandalaEmbedSrc', () => {
         expect(parseMandalaEmbedSrc('mandala#2026-02-23%24')).toEqual({
             linktext: 'mandala#2026-02-23',
         });
+        expect(
+            parseMandalaEmbedSrc(
+                '2026%E5%B9%B4%EF%BC%8C%E6%97%A5%E8%AE%A1%E5%88%92%232026-02-23%24',
+            ),
+        ).toEqual({
+            linktext: '2026年，日计划#2026-02-23',
+        });
         expect(parseMandalaEmbedSrc('$')).toBeNull();
     });
 });

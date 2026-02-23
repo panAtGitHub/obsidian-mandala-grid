@@ -27,7 +27,7 @@ export const parseMandalaEmbedSrc = (
     const stripped = withMarker.endsWith('$')
         ? withMarker.slice(0, -1)
         : withMarker.slice(0, -3);
-    const linktext = stripped.trim();
+    const linktext = safeDecodeUriComponent(stripped).trim();
     if (!linktext) return null;
 
     return {
