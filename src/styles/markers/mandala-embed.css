@@ -1,5 +1,5 @@
-.internal-embed.mandala-embed-3x3 .markdown-embed-content,
-.internal-embed.mandala-embed-debug .markdown-embed-content {
+.internal-embed[data-mandala-managed='true'].mandala-embed-3x3 .markdown-embed-content,
+.internal-embed[data-mandala-managed='true'].mandala-embed-debug .markdown-embed-content {
     display: none;
 }
 
