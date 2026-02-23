@@ -36,6 +36,35 @@ const extractEmbedLinktextsFromSection = (sectionText: string) => {
     return linktexts;
 };
 
+const extractEmbedLinktextFromOriginal = (original: string | undefined) => {
+    if (!original) return null;
+    const match = original.match(/!\[\[([^\]]+)\]\]/u);
+    const linktext = match?.[1]?.trim();
+    return linktext || null;
+};
+
+const getEmbedHintsFromMetadata = (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    section: ReturnType<MarkdownPostProcessorContext['getSectionInfo']>,
+) => {
+    const sourceFile = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
+    if (!(sourceFile instanceof TFile)) return [];
+    const fileCache = plugin.app.metadataCache.getFileCache(sourceFile);
+    if (!fileCache?.embeds || fileCache.embeds.length === 0) return [];
+
+    const embeds = section
+        ? fileCache.embeds.filter((embed) => {
+              const line = embed.position.start.line;
+              return line >= section.lineStart && line <= section.lineEnd;
+          })
+        : fileCache.embeds;
+
+    return embeds
+        .map((embed) => extractEmbedLinktextFromOriginal(embed.original))
+        .filter((linktext): linktext is string => Boolean(linktext));
+};
+
 const renderGrid = async (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
@@ -193,9 +222,17 @@ export const createRenderMandalaEmbedPostProcessor =
             const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
             if (embeds.length === 0) return;
             const sectionInfo = ctx.getSectionInfo(el);
-            const sectionEmbedHints = sectionInfo
-                ? extractEmbedLinktextsFromSection(sectionInfo.text)
-                : [];
+            const metadataEmbedHints = getEmbedHintsFromMetadata(
+                plugin,
+                ctx,
+                sectionInfo,
+            );
+            const sectionEmbedHints =
+                metadataEmbedHints.length > 0
+                    ? metadataEmbedHints
+                    : sectionInfo
+                      ? extractEmbedLinktextsFromSection(sectionInfo.text)
+                      : [];
 
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
