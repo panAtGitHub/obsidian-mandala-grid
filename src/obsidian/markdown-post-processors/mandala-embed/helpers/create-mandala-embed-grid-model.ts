@@ -1,15 +1,7 @@
-import { htmlCommentToJson } from 'src/lib/data-conversion/x-to-json/html-comment-to-json';
-import { htmlElementToJson } from 'src/lib/data-conversion/x-to-json/html-element-to-json';
-import { jsonToColumns } from 'src/lib/data-conversion/json-to-x/json-to-columns';
-import { outlineToJson } from 'src/lib/data-conversion/x-to-json/outline-to-json';
-import { detectDocumentFormat } from 'src/lib/format-detection/detect-document-format';
-import { isMandalaFrontmatterEnabled } from 'src/lib/mandala/mandala-profile';
-import { calculateMandalaTreeIndexes } from 'src/stores/view/subscriptions/helpers/calculate-tree-index';
-import type { MandalaGridDocumentFormat } from 'src/stores/settings/settings-type';
 import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
-import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 
 const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
+const SECTION_COMMENT_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
 
 export type MandalaEmbedCellModel = {
     section: string;
@@ -24,28 +16,8 @@ export type MandalaEmbedGridModel = {
 };
 
 type ParsedMandalaEmbedDocument = {
-    document: ReturnType<typeof jsonToColumns>;
-    sections: ReturnType<typeof calculateMandalaTreeIndexes>;
-};
-
-const isMandalaDocument = (frontmatter: string, body: string) => {
-    if (isMandalaFrontmatterEnabled(frontmatter)) {
-        return true;
-    }
-
-    const hasCommentCore = /<!--\s*section:\s*1(?:\s|--)/i.test(body);
-    const hasCommentChild = /<!--\s*section:\s*1\.[1-8]\b/i.test(body);
-    if (hasCommentCore && hasCommentChild) {
-        return true;
-    }
-
-    const hasElementCore = /<span\s+[^>]*data-section=["']1["'][^>]*>/i.test(
-        body,
-    );
-    const hasElementChild = /<span\s+[^>]*data-section=["']1\.[1-8]\b[^"']*["'][^>]*>/i.test(
-        body,
-    );
-    return hasElementCore && hasElementChild;
+    sectionToContent: Record<string, string>;
+    firstSection: string | null;
 };
 
 const normalizeCellPreviewText = (raw: string) =>
@@ -87,28 +59,30 @@ const toCellPreview = (content: string) => {
     };
 };
 
-const toFormat = (markdown: string): MandalaGridDocumentFormat =>
-    detectDocumentFormat(markdown, false) ?? 'sections';
-
-const parseToTree = (markdown: string, format: MandalaGridDocumentFormat) => {
-    if (format === 'outline') return outlineToJson(markdown);
-    if (format === 'html-element') return htmlElementToJson(markdown);
-    return htmlCommentToJson(markdown);
-};
-
 const parseMandalaEmbedDocument = (
     markdown: string,
 ): ParsedMandalaEmbedDocument | null => {
-    const { body, frontmatter } = extractFrontmatter(markdown);
-    if (!isMandalaDocument(frontmatter, body)) return null;
+    const matches = Array.from(markdown.matchAll(SECTION_COMMENT_RE));
+    if (matches.length === 0) return null;
 
-    const format = toFormat(markdown);
-    const tree = parseToTree(body, format);
-    const document = jsonToColumns(tree);
-    const sections = calculateMandalaTreeIndexes(document.columns);
+    const sectionToContent: Record<string, string> = {};
+    for (let index = 0; index < matches.length; index += 1) {
+        const current = matches[index];
+        const section = current[1]?.trim();
+        const start = (current.index ?? 0) + current[0].length;
+        const end = matches[index + 1]?.index ?? markdown.length;
+        if (!section) continue;
+
+        const content = markdown
+            .slice(start, end)
+            .replace(/^\s*\r?\n/u, '')
+            .trim();
+        sectionToContent[section] = content;
+    }
+
     return {
-        document,
-        sections,
+        sectionToContent,
+        firstSection: matches[0]?.[1]?.trim() ?? null,
     };
 };
 
@@ -165,15 +139,22 @@ export const resolveMandalaSectionByHeading = (
 
 const resolveCenterSection = (
     requestedCenterSection: string | null | undefined,
-    sectionToId: Record<string, string>,
+    parsed: ParsedMandalaEmbedDocument,
 ) => {
-    if (requestedCenterSection && sectionToId[requestedCenterSection]) {
+    if (
+        requestedCenterSection &&
+        Object.prototype.hasOwnProperty.call(
+            parsed.sectionToContent,
+            requestedCenterSection,
+        )
+    ) {
         return requestedCenterSection;
     }
-    if (sectionToId['1']) return '1';
+    if (Object.prototype.hasOwnProperty.call(parsed.sectionToContent, '1')) {
+        return '1';
+    }
 
-    const fallbackSection = Object.keys(sectionToId)[0];
-    return fallbackSection ?? '1';
+    return parsed.firstSection ?? '1';
 };
 
 export const createMandalaEmbedGridModel = (
@@ -183,8 +164,7 @@ export const createMandalaEmbedGridModel = (
 ): MandalaEmbedGridModel | null => {
     const parsed = parseMandalaEmbedDocument(markdown);
     if (!parsed) return null;
-    const { document, sections } = parsed;
-    const center = resolveCenterSection(centerSection, sections.section_id);
+    const center = resolveCenterSection(centerSection, parsed);
     const layout = getMandalaLayout(orientation);
     const sectionRows = layout.themeGrid.map((row) =>
         row.map((slot) => (slot ? `${center}.${slot}` : center)),
@@ -192,10 +172,7 @@ export const createMandalaEmbedGridModel = (
 
     const rows = sectionRows.map((row) =>
         row.map((section) => {
-            const nodeId = sections.section_id[section];
-            const content = nodeId
-                ? document.content[nodeId]?.content?.trim() ?? ''
-                : '';
+            const content = parsed.sectionToContent[section]?.trim() ?? '';
             const preview = toCellPreview(content);
             const empty = !preview.title && !preview.body;
 

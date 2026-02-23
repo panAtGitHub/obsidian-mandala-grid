@@ -26,23 +26,6 @@ const EMBED_WIKILINK_RE = /!\[\[([^\]]+)\]\]/gu;
 const isSkippedContext = (el: HTMLElement) =>
     el.classList.contains('lng-prev') || Boolean(el.closest('.lng-prev'));
 
-const extractEmbedLinktextsFromSection = (sectionText: string) => {
-    const linktexts: string[] = [];
-    for (const match of sectionText.matchAll(EMBED_WIKILINK_RE)) {
-        const linktext = match[1]?.trim();
-        if (!linktext) continue;
-        linktexts.push(linktext);
-    }
-    return linktexts;
-};
-
-const extractEmbedLinktextFromOriginal = (original: string | undefined) => {
-    if (!original) return null;
-    const match = original.match(/!\[\[([^\]]+)\]\]/u);
-    const linktext = match?.[1]?.trim();
-    return linktext || null;
-};
-
 const safeDecodeUriComponent = (value: string) => {
     try {
         return decodeURIComponent(value);
@@ -70,38 +53,50 @@ const isSameLinktextTarget = (left: string, right: string) => {
     );
 };
 
-const findMarkerLinktextForEmbed = (src: string | null, hints: string[]) => {
+const extractEmbedLinktextsFromText = (text: string) => {
+    const linktexts: string[] = [];
+    for (const match of text.matchAll(EMBED_WIKILINK_RE)) {
+        const linktext = match[1]?.trim();
+        if (!linktext) continue;
+        linktexts.push(linktext);
+    }
+    return linktexts;
+};
+
+const extractEmbedLinktextFromOriginal = (original: string | undefined) => {
+    if (!original) return null;
+    const match = original.match(/!\[\[([^\]]+)\]\]/u);
+    return match?.[1]?.trim() ?? null;
+};
+
+const findMarkerLinktextForEmbed = (src: string | null, markerHints: string[]) => {
     if (!src) return null;
-    for (const hint of hints) {
+
+    for (const hint of markerHints) {
         const parsedHint = parseMandalaEmbedSrc(hint);
         if (!parsedHint) continue;
         if (isSameLinktextTarget(parsedHint.linktext, src)) {
             return hint;
         }
     }
+
     return null;
 };
 
-const getEmbedHintsFromMetadata = (
+const getMarkerHintsFromMetadata = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
-    section: ReturnType<MarkdownPostProcessorContext['getSectionInfo']>,
 ) => {
     const sourceFile = plugin.app.vault.getAbstractFileByPath(ctx.sourcePath);
     if (!(sourceFile instanceof TFile)) return [];
+
     const fileCache = plugin.app.metadataCache.getFileCache(sourceFile);
-    if (!fileCache?.embeds || fileCache.embeds.length === 0) return [];
+    if (!fileCache?.embeds?.length) return [];
 
-    const embeds = section
-        ? fileCache.embeds.filter((embed) => {
-              const line = embed.position.start.line;
-              return line >= section.lineStart && line <= section.lineEnd;
-          })
-        : fileCache.embeds;
-
-    return embeds
+    return fileCache.embeds
         .map((embed) => extractEmbedLinktextFromOriginal(embed.original))
-        .filter((linktext): linktext is string => Boolean(linktext));
+        .filter((linktext): linktext is string => Boolean(linktext))
+        .filter((linktext) => Boolean(parseMandalaEmbedSrc(linktext)));
 };
 
 const renderGrid = async (
@@ -170,46 +165,12 @@ const getEmbedContentEl = (embed: HTMLElement) => {
     return created;
 };
 
-const resolveEmbedTarget = (
-    plugin: MandalaGrid,
-    ctx: MarkdownPostProcessorContext,
-    src: string | null,
-    sourceHint: string | null,
-    sourceHints: string[],
-): EmbedTarget | null => {
-    const parsedSrc =
-        parseMandalaEmbedSrc(sourceHint) ??
-        parseMandalaEmbedSrc(src) ??
-        (sourceHint ? null : parseMandalaEmbedSrc(findMarkerLinktextForEmbed(src, sourceHints)));
-    if (!parsedSrc) return null;
-
-    const { path, subpath } = parseLinktext(parsedSrc.linktext);
-    if (!path) return null;
-
-    const file = resolveMarkdownFile(plugin, path, ctx.sourcePath);
-    if (!(file instanceof TFile) || file.extension !== 'md') return null;
-
-    const normalizedSubpath = subpath?.trim().replace(/^#+/u, '');
-    const centerHeading =
-        normalizedSubpath && !normalizedSubpath.startsWith('^')
-            ? normalizedSubpath
-            : null;
-
-    return {
-        file,
-        centerHeading,
-    };
-};
-
 const resolveMarkdownFile = (
     plugin: MandalaGrid,
     path: string,
     sourcePath: string,
 ) => {
-    const fromSource = plugin.app.metadataCache.getFirstLinkpathDest(
-        path,
-        sourcePath,
-    );
+    const fromSource = plugin.app.metadataCache.getFirstLinkpathDest(path, sourcePath);
     if (fromSource instanceof TFile && fromSource.extension === 'md') {
         return fromSource;
     }
@@ -242,6 +203,34 @@ const resolveMarkdownFile = (
     return null;
 };
 
+const resolveEmbedTarget = (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    candidateLinktexts: string[],
+): EmbedTarget | null => {
+    const parsedSrc = candidateLinktexts
+        .map((candidate) => parseMandalaEmbedSrc(candidate))
+        .find((parsed): parsed is NonNullable<typeof parsed> => Boolean(parsed));
+    if (!parsedSrc) return null;
+
+    const { path, subpath } = parseLinktext(parsedSrc.linktext);
+    if (!path) return null;
+
+    const file = resolveMarkdownFile(plugin, path, ctx.sourcePath);
+    if (!(file instanceof TFile) || file.extension !== 'md') return null;
+
+    const normalizedSubpath = subpath?.trim().replace(/^#+/u, '');
+    const centerHeading =
+        normalizedSubpath && !normalizedSubpath.startsWith('^')
+            ? normalizedSubpath
+            : null;
+
+    return {
+        file,
+        centerHeading,
+    };
+};
+
 const getOrientation = (plugin: MandalaGrid): MandalaEmbedOrientation =>
     plugin.settings.getValue().view.mandalaGridOrientation ?? 'left-to-right';
 
@@ -256,27 +245,37 @@ const buildModelFromFile = async (
     return createMandalaEmbedGridModel(markdown, orientation, centerSection);
 };
 
+const restoreNativeEmbed = (
+    embed: HTMLElement,
+    contentEl: HTMLElement,
+    originalEmbedContent: WeakMap<HTMLElement, Node[]>,
+) => {
+    const original = originalEmbedContent.get(embed);
+    if (original !== undefined) {
+        contentEl.empty();
+        for (const node of original) {
+            contentEl.appendChild(node.cloneNode(true));
+        }
+        originalEmbedContent.delete(embed);
+    }
+    embed.classList.remove('mandala-embed-3x3');
+};
+
 export const createRenderMandalaEmbedPostProcessor =
     (plugin: MandalaGrid) => {
         const originalEmbedContent = new WeakMap<HTMLElement, Node[]>();
+
         return async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
             if (isSkippedContext(el)) return;
 
             const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
             if (embeds.length === 0) return;
-            const sectionInfo = ctx.getSectionInfo(el);
-            const metadataEmbedLinktexts = getEmbedHintsFromMetadata(
-                plugin,
-                ctx,
-                sectionInfo,
-            );
-            const sectionEmbedHints =
-                metadataEmbedLinktexts.length > 0
-                    ? metadataEmbedLinktexts
-                    : sectionInfo
-                      ? extractEmbedLinktextsFromSection(sectionInfo.text)
-                      : [];
 
+            const sectionInfo = ctx.getSectionInfo(el);
+            const sectionLinktexts = sectionInfo
+                ? extractEmbedLinktextsFromText(sectionInfo.text)
+                : [];
+            const metadataMarkerHints = getMarkerHintsFromMetadata(plugin, ctx);
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
@@ -298,35 +297,32 @@ export const createRenderMandalaEmbedPostProcessor =
 
             await Promise.all(
                 Array.from(embeds).map(async (embed, index) => {
-                    const sourceHint =
-                        metadataEmbedLinktexts.length > 0
-                            ? metadataEmbedLinktexts[index] ?? null
-                            : null;
-                    const target = resolveEmbedTarget(
-                        plugin,
-                        ctx,
-                        embed.getAttribute('src'),
-                        sourceHint,
-                        sectionEmbedHints,
+                    const src = embed.getAttribute('src');
+                    const sectionLinktext = sectionLinktexts[index] ?? null;
+                    const markerFromMetadata = findMarkerLinktextForEmbed(
+                        src,
+                        metadataMarkerHints,
                     );
+                    const candidateLinktexts = [
+                        sectionLinktext,
+                        src,
+                        markerFromMetadata,
+                    ].filter((candidate): candidate is string => Boolean(candidate));
+
+                    const target = resolveEmbedTarget(plugin, ctx, candidateLinktexts);
                     const contentEl = getEmbedContentEl(embed);
+
                     if (!target) {
-                        const original = originalEmbedContent.get(embed);
-                        if (original !== undefined) {
-                            contentEl.empty();
-                            for (const node of original) {
-                                contentEl.appendChild(node.cloneNode(true));
-                            }
-                            originalEmbedContent.delete(embed);
-                        }
-                        embed.classList.remove('mandala-embed-3x3');
+                        restoreNativeEmbed(embed, contentEl, originalEmbedContent);
                         return;
                     }
 
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
+                        restoreNativeEmbed(embed, contentEl, originalEmbedContent);
                         return;
                     }
+
                     if (!originalEmbedContent.has(embed)) {
                         originalEmbedContent.set(
                             embed,

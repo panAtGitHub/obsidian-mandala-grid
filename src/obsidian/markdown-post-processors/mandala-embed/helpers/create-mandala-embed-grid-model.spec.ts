@@ -115,6 +115,30 @@ H
         expect(model).not.toBeNull();
     });
 
+    it('supports marker-only numbered sections in regular markdown files', () => {
+        const markdown = `
+<!--section: 42-->
+## 2026-02-11
+1. item
+<!--section: 42.1-->
+## 2026-02-12
+2. item
+<!--section: 42.2-->
+## 2026-02-13
+3. item
+`;
+        const model = createMandalaEmbedGridModel(
+            markdown,
+            'left-to-right',
+            '42',
+        );
+        expect(model).not.toBeNull();
+        if (!model) return;
+
+        expect(model.rows[1][1].section).toBe('42');
+        expect(model.rows[1][1].markdown).toContain('## 2026-02-11');
+    });
+
     it('keeps rendering empty mandala templates', () => {
         const markdown = `---
 mandala: true
