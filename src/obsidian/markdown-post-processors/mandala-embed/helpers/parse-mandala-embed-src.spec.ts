@@ -33,6 +33,14 @@ describe('parseMandalaEmbedSrc', () => {
             linktext: '2026年，日计划#2026-02-23',
             centerSection: null,
         });
+        expect(parseMandalaEmbedSrc('mandala%24')).toEqual({
+            linktext: 'mandala',
+            centerSection: null,
+        });
+        expect(parseMandalaEmbedSrc('mandala%2524')).toEqual({
+            linktext: 'mandala',
+            centerSection: null,
+        });
         expect(parseMandalaEmbedSrc('$')).toBeNull();
     });
 
@@ -52,6 +60,14 @@ describe('parseMandalaEmbedSrc', () => {
         ).toEqual({
             linktext: '2026年，日计划',
             centerSection: '54',
+        });
+        expect(parseMandalaEmbedSrc('mandala%242')).toEqual({
+            linktext: 'mandala',
+            centerSection: '2',
+        });
+        expect(parseMandalaEmbedSrc('mandala%25242')).toEqual({
+            linktext: 'mandala',
+            centerSection: '2',
         });
         expect(parseMandalaEmbedSrc('mandala$abc')).toBeNull();
     });

@@ -259,6 +259,22 @@ export const createRenderMandalaEmbedPostProcessor =
 
                     embed.classList.add('mandala-embed-3x3');
                     await renderGrid(plugin, ctx, contentEl, model, target.file);
+
+                    // Obsidian may update embed content asynchronously after post-processing.
+                    // Re-apply once on next tick to keep marker embeds in grid mode.
+                    const timer = setTimeout(() => {
+                        if (!embed.isConnected) return;
+                        if (!embed.classList.contains('mandala-embed-3x3')) return;
+                        const latestContentEl = getEmbedContentEl(embed);
+                        void renderGrid(
+                            plugin,
+                            ctx,
+                            latestContentEl,
+                            model,
+                            target.file,
+                        );
+                    }, 0);
+                    plugin.registerTimeout(timer);
                 }),
             );
         };
