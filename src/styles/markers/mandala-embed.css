@@ -40,14 +40,6 @@
     padding: 10px 12px 18px;
 }
 
-.mandala-embed-3x3-cell-content > :first-child {
-    margin-top: 0;
-}
-
-.mandala-embed-3x3-cell-content > :last-child {
-    margin-bottom: 0;
-}
-
 .mandala-embed-3x3-cell-section {
     position: absolute;
     right: 8px;
