@@ -19,6 +19,7 @@ export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 type EmbedTarget = {
     file: TFile;
     centerHeading: string | null;
+    centerSection: string | null;
 };
 
 const EMBED_WIKILINK_RE = /!\[\[([^\]]+)\]\]/gu;
@@ -224,10 +225,15 @@ const resolveEmbedTarget = (
         normalizedSubpath && !normalizedSubpath.startsWith('^')
             ? normalizedSubpath
             : null;
+    const centerSection =
+        parsedSrc.centerSection?.trim() && parsedSrc.centerSection.trim().length > 0
+            ? parsedSrc.centerSection.trim()
+            : null;
 
     return {
         file,
         centerHeading,
+        centerSection,
     };
 };
 
@@ -239,10 +245,17 @@ const buildModelFromFile = async (
     file: TFile,
     orientation: MandalaEmbedOrientation,
     centerHeading: string | null,
+    centerSection: string | null,
 ) => {
     const markdown = await plugin.app.vault.cachedRead(file);
-    const centerSection = resolveMandalaSectionByHeading(markdown, centerHeading);
-    return createMandalaEmbedGridModel(markdown, orientation, centerSection);
+    const resolvedCenterSection =
+        centerSection ??
+        resolveMandalaSectionByHeading(markdown, centerHeading);
+    return createMandalaEmbedGridModel(
+        markdown,
+        orientation,
+        resolvedCenterSection,
+    );
 };
 
 const restoreNativeEmbed = (
@@ -280,7 +293,8 @@ export const createRenderMandalaEmbedPostProcessor =
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
             const getModel = (target: EmbedTarget) => {
-                const center = target.centerHeading ?? 'root';
+                const center =
+                    target.centerSection ?? target.centerHeading ?? 'root';
                 const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
                 const cached = modelCache.get(cacheKey);
                 if (cached) return cached;
@@ -290,6 +304,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     target.file,
                     orientation,
                     target.centerHeading,
+                    target.centerSection,
                 ).catch(() => null);
                 modelCache.set(cacheKey, loading);
                 return loading;
