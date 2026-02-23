@@ -10,7 +10,6 @@ import type MandalaGrid from 'src/main';
 import {
     createMandalaEmbedGridModel,
     type MandalaEmbedGridModel,
-    resolveMandalaSectionByHeading,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
 import {
     parseMandalaEmbedSrc,
@@ -215,9 +214,7 @@ const buildModelFromFile = async (
         return markerMatch?.[1] ?? null;
     };
     const resolvedCenterSection =
-        centerSection ??
-        resolveCenterSectionByOfficialSubpath() ??
-        resolveMandalaSectionByHeading(markdown, centerHeading);
+        centerSection ?? resolveCenterSectionByOfficialSubpath();
     return createMandalaEmbedGridModel(
         markdown,
         orientation,
