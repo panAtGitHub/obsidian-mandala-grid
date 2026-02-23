@@ -19,9 +19,9 @@
     position: relative;
     border: 1px solid var(--background-modifier-border);
     padding: 0;
-    height: 250px;
+    height: auto;
     vertical-align: top;
-    overflow: hidden;
+    overflow: visible;
     background: var(--background-primary);
 }
 
@@ -34,9 +34,9 @@
 }
 
 .mandala-embed-3x3-cell-content {
-    height: 100%;
+    height: auto;
     box-sizing: border-box;
-    overflow: auto;
+    overflow: visible;
     padding: 10px 12px 18px;
 }
 
