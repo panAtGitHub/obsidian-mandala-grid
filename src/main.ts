@@ -26,6 +26,10 @@ import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
 import { registerFilesMenuEvent } from 'src/obsidian/events/workspace/register-files-menu-event';
+import {
+    createRenderMandalaEmbedPostProcessor,
+    MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
 import { removeHtmlElementMarkerInPreviewMode } from 'src/obsidian/markdown-post-processors/remove-html-element-marker-in-preview-mode';
 import {
     minimapWorker,
@@ -69,6 +73,10 @@ export default class MandalaGrid extends Plugin {
         this.loadRibbonIcon();
         this.registerMarkdownPostProcessor(
             removeHtmlElementMarkerInPreviewMode,
+        );
+        this.registerMarkdownPostProcessor(
+            createRenderMandalaEmbedPostProcessor(this),
+            MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
         );
     }
 
