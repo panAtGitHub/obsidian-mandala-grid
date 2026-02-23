@@ -19,6 +19,9 @@ describe('parseMandalaEmbedSrc', () => {
         expect(parseMandalaEmbedSrc('mandala#2026-02-23$')).toEqual({
             linktext: 'mandala#2026-02-23',
         });
+        expect(parseMandalaEmbedSrc('mandala#2026-02-23%24')).toEqual({
+            linktext: 'mandala#2026-02-23',
+        });
         expect(parseMandalaEmbedSrc('$')).toBeNull();
     });
 });

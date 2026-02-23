@@ -81,7 +81,7 @@ const resolveEmbedTarget = (
     const { path, subpath } = parseLinktext(parsedSrc.linktext);
     if (!path) return null;
 
-    const file = plugin.app.metadataCache.getFirstLinkpathDest(path, ctx.sourcePath);
+    const file = resolveMarkdownFile(plugin, path, ctx.sourcePath);
     if (!(file instanceof TFile) || file.extension !== 'md') return null;
 
     const normalizedSubpath = subpath?.trim().replace(/^#+/u, '');
@@ -94,6 +94,47 @@ const resolveEmbedTarget = (
         file,
         centerHeading,
     };
+};
+
+const resolveMarkdownFile = (
+    plugin: MandalaGrid,
+    path: string,
+    sourcePath: string,
+) => {
+    const fromSource = plugin.app.metadataCache.getFirstLinkpathDest(
+        path,
+        sourcePath,
+    );
+    if (fromSource instanceof TFile && fromSource.extension === 'md') {
+        return fromSource;
+    }
+
+    const fromRoot = plugin.app.metadataCache.getFirstLinkpathDest(path, '');
+    if (fromRoot instanceof TFile && fromRoot.extension === 'md') {
+        return fromRoot;
+    }
+
+    const direct = plugin.app.vault.getAbstractFileByPath(path);
+    if (direct instanceof TFile && direct.extension === 'md') return direct;
+
+    const withExt = path.endsWith('.md') ? path : `${path}.md`;
+    const directWithExt = plugin.app.vault.getAbstractFileByPath(withExt);
+    if (directWithExt instanceof TFile && directWithExt.extension === 'md') {
+        return directWithExt;
+    }
+
+    const byName = plugin.app.vault
+        .getAllLoadedFiles()
+        .find(
+            (item) =>
+                item instanceof TFile &&
+                item.extension === 'md' &&
+                item.basename.toLowerCase() ===
+                    path.split('/').pop()?.trim().toLowerCase(),
+        );
+    if (byName instanceof TFile) return byName;
+
+    return null;
 };
 
 const getOrientation = (plugin: MandalaGrid): MandalaEmbedOrientation =>

@@ -2,6 +2,14 @@ export type ParsedMandalaEmbedSrc = {
     linktext: string;
 };
 
+const safeDecodeUriComponent = (value: string) => {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+};
+
 export const parseMandalaEmbedSrc = (
     src: string | null,
 ): ParsedMandalaEmbedSrc | null => {
@@ -9,9 +17,17 @@ export const parseMandalaEmbedSrc = (
 
     const trimmed = src.trim();
     if (!trimmed) return null;
-    if (!trimmed.endsWith('$')) return null;
+    const decoded = safeDecodeUriComponent(trimmed);
 
-    const linktext = trimmed.slice(0, -1).trim();
+    const withMarker = [trimmed, decoded].find(
+        (value) => value.endsWith('$') || value.endsWith('%24'),
+    );
+    if (!withMarker) return null;
+
+    const stripped = withMarker.endsWith('$')
+        ? withMarker.slice(0, -1)
+        : withMarker.slice(0, -3);
+    const linktext = stripped.trim();
     if (!linktext) return null;
 
     return {
