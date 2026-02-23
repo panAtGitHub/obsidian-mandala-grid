@@ -174,11 +174,13 @@ const resolveEmbedTarget = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     src: string | null,
+    sourceHint: string | null,
     sourceHints: string[],
 ): EmbedTarget | null => {
     const parsedSrc =
+        parseMandalaEmbedSrc(sourceHint) ??
         parseMandalaEmbedSrc(src) ??
-        parseMandalaEmbedSrc(findMarkerLinktextForEmbed(src, sourceHints));
+        (sourceHint ? null : parseMandalaEmbedSrc(findMarkerLinktextForEmbed(src, sourceHints)));
     if (!parsedSrc) return null;
 
     const { path, subpath } = parseLinktext(parsedSrc.linktext);
@@ -263,14 +265,14 @@ export const createRenderMandalaEmbedPostProcessor =
             const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
             if (embeds.length === 0) return;
             const sectionInfo = ctx.getSectionInfo(el);
-            const metadataEmbedHints = getEmbedHintsFromMetadata(
+            const metadataEmbedLinktexts = getEmbedHintsFromMetadata(
                 plugin,
                 ctx,
                 sectionInfo,
             );
             const sectionEmbedHints =
-                metadataEmbedHints.length > 0
-                    ? metadataEmbedHints
+                metadataEmbedLinktexts.length > 0
+                    ? metadataEmbedLinktexts
                     : sectionInfo
                       ? extractEmbedLinktextsFromSection(sectionInfo.text)
                       : [];
@@ -295,11 +297,16 @@ export const createRenderMandalaEmbedPostProcessor =
             };
 
             await Promise.all(
-                Array.from(embeds).map(async (embed) => {
+                Array.from(embeds).map(async (embed, index) => {
+                    const sourceHint =
+                        metadataEmbedLinktexts.length > 0
+                            ? metadataEmbedLinktexts[index] ?? null
+                            : null;
                     const target = resolveEmbedTarget(
                         plugin,
                         ctx,
                         embed.getAttribute('src'),
+                        sourceHint,
                         sectionEmbedHints,
                     );
                     const contentEl = getEmbedContentEl(embed);
