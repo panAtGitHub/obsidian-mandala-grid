@@ -152,48 +152,70 @@ const buildModelFromFile = async (
 };
 
 export const createRenderMandalaEmbedPostProcessor =
-    (plugin: MandalaGrid) =>
-    async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
-        if (isSkippedContext(el)) return;
+    (plugin: MandalaGrid) => {
+        const originalEmbedContent = new WeakMap<HTMLElement, Node[]>();
+        return async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
+            if (isSkippedContext(el)) return;
 
-        const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
-        if (embeds.length === 0) return;
+            const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
+            if (embeds.length === 0) return;
 
-        const orientation = getOrientation(plugin);
-        const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
+            const orientation = getOrientation(plugin);
+            const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
-        const getModel = (target: EmbedTarget) => {
-            const center = target.centerHeading ?? 'root';
-            const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
-            const cached = modelCache.get(cacheKey);
-            if (cached) return cached;
+            const getModel = (target: EmbedTarget) => {
+                const center = target.centerHeading ?? 'root';
+                const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
+                const cached = modelCache.get(cacheKey);
+                if (cached) return cached;
 
-            const loading = buildModelFromFile(
-                plugin,
-                target.file,
-                orientation,
-                target.centerHeading,
-            ).catch(() => null);
-            modelCache.set(cacheKey, loading);
-            return loading;
-        };
-
-        await Promise.all(
-            Array.from(embeds).map(async (embed) => {
-                const target = resolveEmbedTarget(
+                const loading = buildModelFromFile(
                     plugin,
-                    ctx,
-                    embed.getAttribute('src'),
-                );
-                if (!target) return;
+                    target.file,
+                    orientation,
+                    target.centerHeading,
+                ).catch(() => null);
+                modelCache.set(cacheKey, loading);
+                return loading;
+            };
 
-                const model = await getModel(target);
-                if (!model || !embed.isConnected) return;
+            await Promise.all(
+                Array.from(embeds).map(async (embed) => {
+                    const target = resolveEmbedTarget(
+                        plugin,
+                        ctx,
+                        embed.getAttribute('src'),
+                    );
+                    const contentEl = getEmbedContentEl(embed);
+                    if (!target) {
+                        const original = originalEmbedContent.get(embed);
+                        if (original !== undefined) {
+                            contentEl.empty();
+                            for (const node of original) {
+                                contentEl.appendChild(node.cloneNode(true));
+                            }
+                            originalEmbedContent.delete(embed);
+                        }
+                        embed.classList.remove('mandala-embed-3x3');
+                        return;
+                    }
 
-                const contentEl = getEmbedContentEl(embed);
+                    const model = await getModel(target);
+                    if (!model || !embed.isConnected) {
+                        return;
+                    }
+                    if (!originalEmbedContent.has(embed)) {
+                        originalEmbedContent.set(
+                            embed,
+                            Array.from(contentEl.childNodes).map((node) =>
+                                node.cloneNode(true),
+                            ),
+                        );
+                    }
 
-                embed.classList.add('mandala-embed-3x3');
-                renderGrid(contentEl, model);
-            }),
-        );
+                    embed.classList.add('mandala-embed-3x3');
+                    renderGrid(contentEl, model);
+                }),
+            );
+        };
     };
