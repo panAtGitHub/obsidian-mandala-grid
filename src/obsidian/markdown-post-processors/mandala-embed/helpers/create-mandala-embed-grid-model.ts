@@ -13,6 +13,7 @@ const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
 
 export type MandalaEmbedCellModel = {
     section: string;
+    markdown: string;
     title: string;
     body: string;
     empty: boolean;
@@ -195,6 +196,7 @@ export const createMandalaEmbedGridModel = (
 
             return {
                 section,
+                markdown: content,
                 title: preview.title,
                 body: preview.body,
                 empty,

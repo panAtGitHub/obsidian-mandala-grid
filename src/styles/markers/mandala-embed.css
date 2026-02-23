@@ -1,48 +1,28 @@
 .internal-embed.mandala-embed-3x3 .markdown-embed-content {
     padding: 0;
     max-height: none;
+    overflow: hidden;
 }
 
 .internal-embed.mandala-embed-3x3 .markdown-preview-view {
     max-height: none;
 }
 
-.mandala-embed-3x3-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(3, minmax(0, 1fr));
+.mandala-embed-3x3-table {
     width: 100%;
-    min-height: 300px;
-    aspect-ratio: 1 / 1;
+    border-collapse: collapse;
+    table-layout: fixed;
     background: var(--background-secondary);
 }
 
 .mandala-embed-3x3-cell {
     position: relative;
-    border-left: 1px dashed var(--background-modifier-border);
-    border-top: 1px dashed var(--background-modifier-border);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    border: 1px solid var(--background-modifier-border);
+    padding: 0;
+    height: 250px;
+    vertical-align: top;
     overflow: hidden;
     background: var(--background-primary);
-}
-
-.mandala-embed-3x3-cell:nth-child(3n + 1) {
-    border-left: 2px solid var(--background-modifier-border);
-}
-
-.mandala-embed-3x3-cell:nth-child(-n + 3) {
-    border-top: 2px solid var(--background-modifier-border);
-}
-
-.mandala-embed-3x3-cell:nth-child(3n) {
-    border-right: 2px solid var(--background-modifier-border);
-}
-
-.mandala-embed-3x3-cell:nth-last-child(-n + 3) {
-    border-bottom: 2px solid var(--background-modifier-border);
 }
 
 .mandala-embed-3x3-cell.is-center {
@@ -53,38 +33,29 @@
     background: var(--background-secondary-alt);
 }
 
-.mandala-embed-3x3-cell-title {
-    font-weight: 600;
-    font-size: var(--font-text-size);
-    line-height: 1.25;
-    color: var(--text-normal);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+.mandala-embed-3x3-cell-content {
+    height: 100%;
+    overflow: auto;
+    padding: 10px 12px 18px;
 }
 
-.mandala-embed-3x3-cell-body {
-    font-size: calc(var(--font-text-size) * 0.9);
-    line-height: 1.35;
-    color: var(--text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-    white-space: pre-wrap;
-    word-break: break-word;
+.mandala-embed-3x3-cell-content > :first-child {
+    margin-top: 0;
+}
+
+.mandala-embed-3x3-cell-content > :last-child {
+    margin-bottom: 0;
 }
 
 .mandala-embed-3x3-cell-section {
     position: absolute;
-    right: 6px;
-    bottom: 4px;
+    right: 8px;
+    bottom: 2px;
     font-size: 10px;
     color: var(--text-faint);
     pointer-events: none;
     user-select: none;
+    background: var(--background-primary);
+    padding: 1px 4px;
+    border-radius: 4px;
 }
-

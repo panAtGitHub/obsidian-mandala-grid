@@ -1,4 +1,10 @@
-import { parseLinktext, TFile, type MarkdownPostProcessorContext } from 'obsidian';
+import {
+    MarkdownRenderChild,
+    MarkdownRenderer,
+    parseLinktext,
+    TFile,
+    type MarkdownPostProcessorContext,
+} from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
     createMandalaEmbedGridModel,
@@ -15,16 +21,36 @@ type EmbedTarget = {
     centerHeading: string | null;
 };
 
+const EMBED_WIKILINK_RE = /!\[\[([^\]]+)\]\]/gu;
+
 const isSkippedContext = (el: HTMLElement) =>
     el.classList.contains('lng-prev') || Boolean(el.closest('.lng-prev'));
 
-const renderGrid = (container: HTMLElement, model: MandalaEmbedGridModel) => {
-    const gridEl = document.createElement('div');
-    gridEl.className = 'mandala-embed-3x3-grid';
+const extractEmbedLinktextsFromSection = (sectionText: string) => {
+    const linktexts: string[] = [];
+    for (const match of sectionText.matchAll(EMBED_WIKILINK_RE)) {
+        const linktext = match[1]?.trim();
+        if (!linktext) continue;
+        linktexts.push(linktext);
+    }
+    return linktexts;
+};
+
+const renderGrid = async (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    container: HTMLElement,
+    model: MandalaEmbedGridModel,
+    sourceFile: TFile,
+) => {
+    const tableEl = document.createElement('table');
+    tableEl.className = 'mandala-embed-3x3-table';
+    const tbodyEl = document.createElement('tbody');
 
     for (const row of model.rows) {
+        const trEl = document.createElement('tr');
         for (const cell of row) {
-            const cellEl = document.createElement('div');
+            const cellEl = document.createElement('td');
             cellEl.className = 'mandala-embed-3x3-cell';
             if (cell.section === model.rows[1]?.[1]?.section) {
                 cellEl.classList.add('is-center');
@@ -33,31 +59,37 @@ const renderGrid = (container: HTMLElement, model: MandalaEmbedGridModel) => {
                 cellEl.classList.add('is-empty');
             }
 
-            if (cell.title) {
-                const titleEl = document.createElement('div');
-                titleEl.className = 'mandala-embed-3x3-cell-title';
-                titleEl.setText(cell.title);
-                cellEl.appendChild(titleEl);
-            }
-
-            if (cell.body) {
-                const bodyEl = document.createElement('div');
-                bodyEl.className = 'mandala-embed-3x3-cell-body';
-                bodyEl.setText(cell.body);
-                cellEl.appendChild(bodyEl);
-            }
-
             const sectionEl = document.createElement('span');
             sectionEl.className = 'mandala-embed-3x3-cell-section';
             sectionEl.setText(cell.section);
             cellEl.appendChild(sectionEl);
 
-            gridEl.appendChild(cellEl);
+            const contentEl = document.createElement('div');
+            contentEl.className = 'mandala-embed-3x3-cell-content markdown-rendered';
+            cellEl.appendChild(contentEl);
+
+            if (cell.markdown.trim()) {
+                const renderChild = new MarkdownRenderChild(contentEl);
+                ctx.addChild(renderChild);
+                await Promise.resolve(
+                    MarkdownRenderer.render(
+                        plugin.app,
+                        cell.markdown,
+                        contentEl,
+                        sourceFile.path,
+                        renderChild,
+                    ),
+                );
+            }
+
+            trEl.appendChild(cellEl);
         }
+        tbodyEl.appendChild(trEl);
     }
 
+    tableEl.appendChild(tbodyEl);
     container.empty();
-    container.appendChild(gridEl);
+    container.appendChild(tableEl);
 };
 
 const getEmbedContentEl = (embed: HTMLElement) => {
@@ -74,8 +106,9 @@ const resolveEmbedTarget = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     src: string | null,
+    sourceHint: string | null,
 ): EmbedTarget | null => {
-    const parsedSrc = parseMandalaEmbedSrc(src);
+    const parsedSrc = parseMandalaEmbedSrc(src) ?? parseMandalaEmbedSrc(sourceHint);
     if (!parsedSrc) return null;
 
     const { path, subpath } = parseLinktext(parsedSrc.linktext);
@@ -159,6 +192,10 @@ export const createRenderMandalaEmbedPostProcessor =
 
             const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
             if (embeds.length === 0) return;
+            const sectionInfo = ctx.getSectionInfo(el);
+            const sectionEmbedHints = sectionInfo
+                ? extractEmbedLinktextsFromSection(sectionInfo.text)
+                : [];
 
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
@@ -180,11 +217,13 @@ export const createRenderMandalaEmbedPostProcessor =
             };
 
             await Promise.all(
-                Array.from(embeds).map(async (embed) => {
+                Array.from(embeds).map(async (embed, index) => {
+                    const hint = sectionEmbedHints[index] ?? null;
                     const target = resolveEmbedTarget(
                         plugin,
                         ctx,
                         embed.getAttribute('src'),
+                        hint,
                     );
                     const contentEl = getEmbedContentEl(embed);
                     if (!target) {
@@ -214,7 +253,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     }
 
                     embed.classList.add('mandala-embed-3x3');
-                    renderGrid(contentEl, model);
+                    await renderGrid(plugin, ctx, contentEl, model, target.file);
                 }),
             );
         };
