@@ -111,9 +111,12 @@ const renderGrid = async (
     container.appendChild(tableEl);
 };
 
-const getEmbedContentEl = (embed: HTMLElement) => {
-    const contentEl = embed.querySelector<HTMLElement>('.markdown-embed-content');
-    if (contentEl) return contentEl;
+const queryEmbedContentEl = (embed: HTMLElement) =>
+    embed.querySelector<HTMLElement>('.markdown-embed-content');
+
+const getOrCreateEmbedContentEl = (embed: HTMLElement) => {
+    const existing = queryEmbedContentEl(embed);
+    if (existing) return existing;
 
     const created = document.createElement('div');
     created.className = 'markdown-embed-content';
@@ -224,17 +227,17 @@ const buildModelFromFile = async (
 
 const restoreNativeEmbed = (
     embed: HTMLElement,
-    contentEl: HTMLElement,
     originalEmbedContent: WeakMap<HTMLElement, Node[]>,
 ) => {
     const original = originalEmbedContent.get(embed);
-    if (original !== undefined) {
+    const contentEl = queryEmbedContentEl(embed);
+    if (original !== undefined && contentEl) {
         contentEl.empty();
         for (const node of original) {
             contentEl.appendChild(node.cloneNode(true));
         }
-        originalEmbedContent.delete(embed);
     }
+    originalEmbedContent.delete(embed);
     embed.classList.remove('mandala-embed-3x3');
     embed.classList.remove('mandala-embed-debug');
 };
@@ -287,12 +290,12 @@ export const createRenderMandalaEmbedPostProcessor =
             await Promise.all(
                 Array.from(embeds).map(async (embed) => {
                     const src = embed.getAttribute('src');
-                    const contentEl = getEmbedContentEl(embed);
                     const markerIntent = hasMarkerIntent(src);
                     const parsedSrc = parseMandalaEmbedSrc(src);
 
                     if (!parsedSrc) {
                         if (markerIntent && debugEnabled) {
+                            const contentEl = getOrCreateEmbedContentEl(embed);
                             ensureOriginalSnapshot(embed, contentEl);
                             renderDebugPanel(embed, contentEl, [
                                 'mandala debug: parse failed',
@@ -300,10 +303,11 @@ export const createRenderMandalaEmbedPostProcessor =
                             ]);
                             return;
                         }
-                        restoreNativeEmbed(embed, contentEl, originalEmbedContent);
+                        restoreNativeEmbed(embed, originalEmbedContent);
                         return;
                     }
 
+                    const contentEl = getOrCreateEmbedContentEl(embed);
                     const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
 
                     if (!target) {
@@ -321,7 +325,7 @@ export const createRenderMandalaEmbedPostProcessor =
                             ]);
                             return;
                         }
-                        restoreNativeEmbed(embed, contentEl, originalEmbedContent);
+                        restoreNativeEmbed(embed, originalEmbedContent);
                         return;
                     }
 
@@ -338,7 +342,7 @@ export const createRenderMandalaEmbedPostProcessor =
                             ]);
                             return;
                         }
-                        restoreNativeEmbed(embed, contentEl, originalEmbedContent);
+                        restoreNativeEmbed(embed, originalEmbedContent);
                         return;
                     }
 
@@ -353,7 +357,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     const timer = setTimeout(() => {
                         if (!embed.isConnected) return;
                         if (!embed.classList.contains('mandala-embed-3x3')) return;
-                        const latestContentEl = getEmbedContentEl(embed);
+                        const latestContentEl = getOrCreateEmbedContentEl(embed);
                         void renderGrid(
                             plugin,
                             ctx,
