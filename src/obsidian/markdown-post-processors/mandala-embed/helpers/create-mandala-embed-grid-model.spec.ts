@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createMandalaEmbedGridModel } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
+import {
+    createMandalaEmbedGridModel,
+    resolveMandalaSectionByHeading,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
 
 const buildMandalaMarkdown = () => `---
 mandala: true
@@ -12,7 +15,7 @@ Core body line
 - [ ] Task A
 [[Target|Shown]]
 <!--section: 1.2-->
-Theme B text
+## 2026-02-23
 <!--section: 1.3-->
 Theme C text
 <!--section: 1.4-->
@@ -162,5 +165,21 @@ mandala: true
         if (!model) return;
 
         expect(model.rows[1][1].section).toBe('1');
+    });
+
+    it('resolves section by heading text', () => {
+        const section = resolveMandalaSectionByHeading(
+            buildMandalaMarkdown(),
+            '2026-02-23',
+        );
+        expect(section).toBe('1.2');
+    });
+
+    it('returns null when heading cannot be mapped', () => {
+        const section = resolveMandalaSectionByHeading(
+            buildMandalaMarkdown(),
+            '2099-01-01',
+        );
+        expect(section).toBeNull();
     });
 });

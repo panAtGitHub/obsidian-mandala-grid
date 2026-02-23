@@ -22,6 +22,11 @@ export type MandalaEmbedGridModel = {
     rows: MandalaEmbedCellModel[][];
 };
 
+type ParsedMandalaEmbedDocument = {
+    document: ReturnType<typeof jsonToColumns>;
+    sections: ReturnType<typeof calculateMandalaTreeIndexes>;
+};
+
 const isMandalaDocument = (frontmatter: string, body: string) => {
     if (isMandalaFrontmatterEnabled(frontmatter)) {
         return true;
@@ -90,6 +95,68 @@ const parseToTree = (markdown: string, format: MandalaGridDocumentFormat) => {
     return htmlCommentToJson(markdown);
 };
 
+const parseMandalaEmbedDocument = (
+    markdown: string,
+): ParsedMandalaEmbedDocument | null => {
+    const { body, frontmatter } = extractFrontmatter(markdown);
+    if (!isMandalaDocument(frontmatter, body)) return null;
+
+    const format = toFormat(markdown);
+    const tree = parseToTree(body, format);
+    const document = jsonToColumns(tree);
+    const sections = calculateMandalaTreeIndexes(document.columns);
+    return {
+        document,
+        sections,
+    };
+};
+
+const HEADING_LINE_RE = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/u;
+
+const normalizeHeadingText = (value: string) =>
+    value
+        .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
+        .replace(/\[\[([^\]]+)\]\]/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+const toHeadingAnchor = (value: string) =>
+    normalizeHeadingText(value).replace(/\s+/g, '-');
+
+const extractHeadingText = (content: string) => {
+    const firstLine = content.split('\n')[0]?.trim() ?? '';
+    const matched = firstLine.match(HEADING_LINE_RE);
+    if (!matched?.[1]) return null;
+    return normalizeHeadingText(matched[1]);
+};
+
+export const resolveMandalaSectionByHeading = (
+    markdown: string,
+    headingSubpath: string | null | undefined,
+) => {
+    const targetHeading = headingSubpath?.trim();
+    if (!targetHeading) return null;
+    const parsed = parseMandalaEmbedDocument(markdown);
+    if (!parsed) return null;
+
+    const normalizedTarget = normalizeHeadingText(targetHeading);
+    const targetAnchor = toHeadingAnchor(targetHeading);
+
+    for (const [nodeId, section] of Object.entries(parsed.sections.id_section)) {
+        const content = parsed.document.content[nodeId]?.content ?? '';
+        const heading = extractHeadingText(content);
+        if (!heading) continue;
+        if (heading === normalizedTarget) return section;
+        if (toHeadingAnchor(heading) === targetAnchor) return section;
+    }
+
+    return null;
+};
+
 const resolveCenterSection = (
     requestedCenterSection: string | null | undefined,
     sectionToId: Record<string, string>,
@@ -108,13 +175,9 @@ export const createMandalaEmbedGridModel = (
     orientation: 'left-to-right' | 'south-start' | 'bottom-to-top',
     centerSection?: string | null,
 ): MandalaEmbedGridModel | null => {
-    const { body, frontmatter } = extractFrontmatter(markdown);
-    if (!isMandalaDocument(frontmatter, body)) return null;
-
-    const format = toFormat(markdown);
-    const tree = parseToTree(body, format);
-    const document = jsonToColumns(tree);
-    const sections = calculateMandalaTreeIndexes(document.columns);
+    const parsed = parseMandalaEmbedDocument(markdown);
+    if (!parsed) return null;
+    const { document, sections } = parsed;
     const center = resolveCenterSection(centerSection, sections.section_id);
     const layout = getMandalaLayout(orientation);
     const sectionRows = layout.themeGrid.map((row) =>
@@ -141,4 +204,3 @@ export const createMandalaEmbedGridModel = (
 
     return { rows };
 };
-

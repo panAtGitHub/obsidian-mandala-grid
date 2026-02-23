@@ -3,6 +3,7 @@ import type MandalaGrid from 'src/main';
 import {
     createMandalaEmbedGridModel,
     type MandalaEmbedGridModel,
+    resolveMandalaSectionByHeading,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
 import { parseMandalaEmbedSrc } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-src';
 
@@ -11,7 +12,7 @@ export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 
 type EmbedTarget = {
     file: TFile;
-    centerSection: string | null;
+    centerHeading: string | null;
 };
 
 const isSkippedContext = (el: HTMLElement) =>
@@ -78,14 +79,20 @@ const resolveEmbedTarget = (
     if (!parsedSrc) return null;
 
     const { path, subpath } = parseLinktext(parsedSrc.linktext);
-    if (!path || subpath) return null;
+    if (!path) return null;
 
     const file = plugin.app.metadataCache.getFirstLinkpathDest(path, ctx.sourcePath);
     if (!(file instanceof TFile) || file.extension !== 'md') return null;
 
+    const normalizedSubpath = subpath?.trim().replace(/^#+/u, '');
+    const centerHeading =
+        normalizedSubpath && !normalizedSubpath.startsWith('^')
+            ? normalizedSubpath
+            : null;
+
     return {
         file,
-        centerSection: parsedSrc.centerSection,
+        centerHeading,
     };
 };
 
@@ -96,9 +103,10 @@ const buildModelFromFile = async (
     plugin: MandalaGrid,
     file: TFile,
     orientation: MandalaEmbedOrientation,
-    centerSection: string | null,
+    centerHeading: string | null,
 ) => {
     const markdown = await plugin.app.vault.cachedRead(file);
+    const centerSection = resolveMandalaSectionByHeading(markdown, centerHeading);
     return createMandalaEmbedGridModel(markdown, orientation, centerSection);
 };
 
@@ -114,7 +122,7 @@ export const createRenderMandalaEmbedPostProcessor =
         const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
         const getModel = (target: EmbedTarget) => {
-            const center = target.centerSection ?? '1';
+            const center = target.centerHeading ?? 'root';
             const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
             const cached = modelCache.get(cacheKey);
             if (cached) return cached;
@@ -123,7 +131,7 @@ export const createRenderMandalaEmbedPostProcessor =
                 plugin,
                 target.file,
                 orientation,
-                target.centerSection,
+                target.centerHeading,
             ).catch(() => null);
             modelCache.set(cacheKey, loading);
             return loading;
@@ -148,4 +156,3 @@ export const createRenderMandalaEmbedPostProcessor =
             }),
         );
     };
-

@@ -7,29 +7,18 @@ describe('parseMandalaEmbedSrc', () => {
         expect(parseMandalaEmbedSrc('   ')).toBeNull();
     });
 
-    it('keeps plain embed source unchanged', () => {
-        expect(parseMandalaEmbedSrc('mandala')).toEqual({
-            linktext: 'mandala',
-            centerSection: null,
-        });
+    it('returns null when marker is missing', () => {
+        expect(parseMandalaEmbedSrc('mandala')).toBeNull();
+        expect(parseMandalaEmbedSrc('mandala#2026-02-23')).toBeNull();
     });
 
-    it('parses custom center section syntax', () => {
-        expect(parseMandalaEmbedSrc('mandala$3.1')).toEqual({
-            linktext: 'mandala',
-            centerSection: '3.1',
-        });
-    });
-
-    it('does not parse invalid section suffix', () => {
-        expect(parseMandalaEmbedSrc('mandala$abc')).toEqual({
-            linktext: 'mandala$abc',
-            centerSection: null,
-        });
+    it('parses marker-ended syntax as mandala embed source', () => {
         expect(parseMandalaEmbedSrc('mandala$')).toEqual({
-            linktext: 'mandala$',
-            centerSection: null,
+            linktext: 'mandala',
         });
+        expect(parseMandalaEmbedSrc('mandala#2026-02-23$')).toEqual({
+            linktext: 'mandala#2026-02-23',
+        });
+        expect(parseMandalaEmbedSrc('$')).toBeNull();
     });
 });
-
