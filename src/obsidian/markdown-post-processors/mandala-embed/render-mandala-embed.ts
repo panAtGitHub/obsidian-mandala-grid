@@ -2,6 +2,7 @@ import {
     MarkdownRenderChild,
     MarkdownRenderer,
     parseLinktext,
+    resolveSubpath,
     TFile,
     type MarkdownPostProcessorContext,
 } from 'obsidian';
@@ -30,6 +31,8 @@ const isSkippedContext = (el: HTMLElement) =>
 
 const hasMarkerIntent = (src: string | null) =>
     Boolean(src && /(?:\$|%24|%2524)/iu.test(src));
+const SECTION_COMMENT_LINE_RE =
+    /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
 
 const renderDebugPanel = (
     embed: HTMLElement,
@@ -196,8 +199,24 @@ const buildModelFromFile = async (
     centerSection: string | null,
 ) => {
     const markdown = await plugin.app.vault.cachedRead(file);
+    const resolveCenterSectionByOfficialSubpath = () => {
+        if (!centerHeading) return null;
+        const cache = plugin.app.metadataCache.getFileCache(file);
+        if (!cache) return null;
+        const subpathResult = resolveSubpath(cache, `#${centerHeading}`);
+        if (!subpathResult) return null;
+
+        const headingLine = subpathResult.start.line;
+        if (headingLine <= 0) return null;
+
+        const lines = markdown.split(/\r?\n/u);
+        const markerLine = lines[headingLine - 1];
+        const markerMatch = markerLine?.match(SECTION_COMMENT_LINE_RE);
+        return markerMatch?.[1] ?? null;
+    };
     const resolvedCenterSection =
         centerSection ??
+        resolveCenterSectionByOfficialSubpath() ??
         resolveMandalaSectionByHeading(markdown, centerHeading);
     return createMandalaEmbedGridModel(
         markdown,
