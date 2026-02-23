@@ -112,8 +112,17 @@ const renderGrid = async (
     container.appendChild(tableEl);
 };
 
-const queryMandalaHost = (embed: HTMLElement) =>
-    embed.querySelector<HTMLElement>(`.${MANDALA_EMBED_HOST_CLASS}`);
+const isMandalaHost = (element: Element) =>
+    element.classList.contains(MANDALA_EMBED_HOST_CLASS);
+
+const queryMandalaHost = (embed: HTMLElement) => {
+    const children = Array.from(embed.children);
+    for (const child of children) {
+        if (!(child instanceof HTMLElement)) continue;
+        if (isMandalaHost(child)) return child;
+    }
+    return null;
+};
 
 const getOrCreateMandalaHost = (embed: HTMLElement) => {
     const existing = queryMandalaHost(embed);
@@ -227,16 +236,41 @@ const buildModelFromFile = async (
 };
 
 const clearMandalaRender = (embed: HTMLElement) => {
-    const hadArtifacts =
-        embed.classList.contains('mandala-embed-3x3') ||
-        embed.classList.contains('mandala-embed-debug') ||
-        Boolean(queryMandalaHost(embed));
-    if (!hadArtifacts) return;
-
     const host = queryMandalaHost(embed);
     host?.remove();
     embed.classList.remove('mandala-embed-3x3');
     embed.classList.remove('mandala-embed-debug');
+};
+
+const formatUnknownError = (error: unknown) =>
+    error instanceof Error ? error.message : String(error);
+
+const scheduleMarkerGridRerender = (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    embed: HTMLElement,
+    model: MandalaEmbedGridModel,
+    sourceFile: TFile,
+    expectedSrc: string | null,
+) => {
+    const timer = setTimeout(() => {
+        if (!embed.isConnected) return;
+        const currentSrc = embed.getAttribute('src');
+        if (currentSrc !== expectedSrc) return;
+        if (!parseMandalaEmbedSrc(currentSrc)) {
+            clearMandalaRender(embed);
+            return;
+        }
+
+        const host = getOrCreateMandalaHost(embed);
+        embed.classList.add('mandala-embed-3x3');
+        embed.classList.remove('mandala-embed-debug');
+        void renderGrid(plugin, ctx, host, model, sourceFile).catch(() => {
+            clearMandalaRender(embed);
+        });
+    }, 0);
+
+    plugin.registerTimeout(timer);
 };
 
 export const createRenderMandalaEmbedPostProcessor =
@@ -274,65 +308,86 @@ export const createRenderMandalaEmbedPostProcessor =
                 Array.from(embeds).map(async (embed) => {
                     const src = embed.getAttribute('src');
                     const markerIntent = hasMarkerIntent(src);
-                    const parsedSrc = parseMandalaEmbedSrc(src);
+                    try {
+                        const parsedSrc = parseMandalaEmbedSrc(src);
 
-                    if (!parsedSrc) {
-                        if (markerIntent && debugEnabled) {
-                            const host = getOrCreateMandalaHost(embed);
-                            renderDebugPanel(embed, host, [
-                                'mandala debug: parse failed',
-                                `src: ${src ?? '<null>'}`,
-                            ]);
+                        if (!parsedSrc) {
+                            if (markerIntent && debugEnabled) {
+                                const host = getOrCreateMandalaHost(embed);
+                                renderDebugPanel(embed, host, [
+                                    'mandala debug: parse failed',
+                                    `src: ${src ?? '<null>'}`,
+                                ]);
+                                return;
+                            }
+                            // Keep native embed untouched when marker syntax is absent.
+                            clearMandalaRender(embed);
                             return;
                         }
-                        // Keep native embed untouched when marker syntax is absent.
-                        clearMandalaRender(embed);
-                        return;
-                    }
 
-                    const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
+                        const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
 
-                    if (!target) {
-                        if (markerIntent && debugEnabled) {
-                            const host = getOrCreateMandalaHost(embed);
-                            const parsedLink = parseLinktext(parsedSrc.linktext);
-                            renderDebugPanel(embed, host, [
-                                'mandala debug: target resolve failed',
-                                `src: ${src ?? '<null>'}`,
-                                `linktext: ${parsedSrc.linktext}`,
-                                `path: ${parsedLink.path ?? '<empty>'}`,
-                                `subpath: ${parsedLink.subpath ?? '<empty>'}`,
-                                `centerSection: ${parsedSrc.centerSection ?? '<null>'}`,
-                                `sourcePath: ${ctx.sourcePath}`,
-                            ]);
+                        if (!target) {
+                            if (markerIntent && debugEnabled) {
+                                const host = getOrCreateMandalaHost(embed);
+                                const parsedLink = parseLinktext(parsedSrc.linktext);
+                                renderDebugPanel(embed, host, [
+                                    'mandala debug: target resolve failed',
+                                    `src: ${src ?? '<null>'}`,
+                                    `linktext: ${parsedSrc.linktext}`,
+                                    `path: ${parsedLink.path ?? '<empty>'}`,
+                                    `subpath: ${parsedLink.subpath ?? '<empty>'}`,
+                                    `centerSection: ${parsedSrc.centerSection ?? '<null>'}`,
+                                    `sourcePath: ${ctx.sourcePath}`,
+                                ]);
+                                return;
+                            }
+                            clearMandalaRender(embed);
                             return;
                         }
-                        clearMandalaRender(embed);
-                        return;
-                    }
 
-                    const model = await getModel(target);
-                    if (!model || !embed.isConnected) {
+                        const model = await getModel(target);
+                        if (!model || !embed.isConnected) {
+                            if (markerIntent && debugEnabled && embed.isConnected) {
+                                const host = getOrCreateMandalaHost(embed);
+                                renderDebugPanel(embed, host, [
+                                    'mandala debug: model build failed',
+                                    `src: ${src ?? '<null>'}`,
+                                    `file: ${target.file.path}`,
+                                    `centerHeading: ${target.centerHeading ?? '<null>'}`,
+                                    `centerSection: ${target.centerSection ?? '<null>'}`,
+                                ]);
+                                return;
+                            }
+                            clearMandalaRender(embed);
+                            return;
+                        }
+
+                        const host = getOrCreateMandalaHost(embed);
+
+                        embed.classList.add('mandala-embed-3x3');
+                        embed.classList.remove('mandala-embed-debug');
+                        await renderGrid(plugin, ctx, host, model, target.file);
+                        scheduleMarkerGridRerender(
+                            plugin,
+                            ctx,
+                            embed,
+                            model,
+                            target.file,
+                            src,
+                        );
+                    } catch (error: unknown) {
                         if (markerIntent && debugEnabled && embed.isConnected) {
                             const host = getOrCreateMandalaHost(embed);
                             renderDebugPanel(embed, host, [
-                                'mandala debug: model build failed',
+                                'mandala debug: unexpected render error',
                                 `src: ${src ?? '<null>'}`,
-                                `file: ${target.file.path}`,
-                                `centerHeading: ${target.centerHeading ?? '<null>'}`,
-                                `centerSection: ${target.centerSection ?? '<null>'}`,
+                                `error: ${formatUnknownError(error)}`,
                             ]);
                             return;
                         }
                         clearMandalaRender(embed);
-                        return;
                     }
-
-                    const host = getOrCreateMandalaHost(embed);
-
-                    embed.classList.add('mandala-embed-3x3');
-                    embed.classList.remove('mandala-embed-debug');
-                    await renderGrid(plugin, ctx, host, model, target.file);
                 }),
             );
         };
