@@ -1,11 +1,11 @@
-.internal-embed.mandala-embed-3x3 .markdown-embed-content {
-    padding: 0;
-    max-height: none;
-    overflow: hidden;
+.internal-embed.mandala-embed-3x3 .markdown-embed-content,
+.internal-embed.mandala-embed-debug .markdown-embed-content {
+    display: none;
 }
 
-.internal-embed.mandala-embed-3x3 .markdown-preview-view {
-    max-height: none;
+.internal-embed .mandala-embed-host {
+    display: block;
+    padding: 0;
 }
 
 .mandala-embed-3x3-table {
@@ -58,10 +58,6 @@
     background: var(--background-primary);
     padding: 1px 4px;
     border-radius: 4px;
-}
-
-.internal-embed.mandala-embed-debug .markdown-embed-content {
-    padding: 0;
 }
 
 .mandala-embed-debug-panel {
