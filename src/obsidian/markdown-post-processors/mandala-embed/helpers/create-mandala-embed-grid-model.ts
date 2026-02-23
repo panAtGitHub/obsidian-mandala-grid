@@ -135,12 +135,46 @@ const extractHeadingText = (content: string) => {
     return normalizeHeadingText(matched[1]);
 };
 
+const resolveSectionByCommentHeadingPairs = (
+    markdown: string,
+    headingSubpath: string,
+) => {
+    const normalizedTarget = normalizeHeadingText(headingSubpath);
+    const targetAnchor = toHeadingAnchor(headingSubpath);
+    const markerHeadingRe =
+        /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*\r?\n\s*#{1,6}\s+(.+?)\s*#*\s*(?:\r?\n|$)/gmu;
+
+    let matched: RegExpExecArray | null = null;
+    while ((matched = markerHeadingRe.exec(markdown)) !== null) {
+        const section = matched[1];
+        const heading = matched[2];
+        if (!section || !heading) continue;
+
+        const normalizedHeading = normalizeHeadingText(heading);
+        if (normalizedHeading === normalizedTarget) {
+            return section;
+        }
+        if (toHeadingAnchor(heading) === targetAnchor) {
+            return section;
+        }
+    }
+
+    return null;
+};
+
 export const resolveMandalaSectionByHeading = (
     markdown: string,
     headingSubpath: string | null | undefined,
 ) => {
     const targetHeading = headingSubpath?.trim();
     if (!targetHeading) return null;
+
+    const sectionFromPairs = resolveSectionByCommentHeadingPairs(
+        markdown,
+        targetHeading,
+    );
+    if (sectionFromPairs) return sectionFromPairs;
+
     const parsed = parseMandalaEmbedDocument(markdown);
     if (!parsed) return null;
 
