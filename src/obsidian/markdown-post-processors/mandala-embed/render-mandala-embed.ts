@@ -227,6 +227,12 @@ const buildModelFromFile = async (
 };
 
 const clearMandalaRender = (embed: HTMLElement) => {
+    const hadArtifacts =
+        embed.classList.contains('mandala-embed-3x3') ||
+        embed.classList.contains('mandala-embed-debug') ||
+        Boolean(queryMandalaHost(embed));
+    if (!hadArtifacts) return;
+
     const host = queryMandalaHost(embed);
     host?.remove();
     embed.classList.remove('mandala-embed-3x3');
@@ -279,6 +285,7 @@ export const createRenderMandalaEmbedPostProcessor =
                             ]);
                             return;
                         }
+                        // Keep native embed untouched when marker syntax is absent.
                         clearMandalaRender(embed);
                         return;
                     }
@@ -326,22 +333,6 @@ export const createRenderMandalaEmbedPostProcessor =
                     embed.classList.add('mandala-embed-3x3');
                     embed.classList.remove('mandala-embed-debug');
                     await renderGrid(plugin, ctx, host, model, target.file);
-
-                    // Obsidian may update embed content asynchronously after post-processing.
-                    // Re-apply once on next tick to keep marker embeds in grid mode.
-                    const timer = setTimeout(() => {
-                        if (!embed.isConnected) return;
-                        if (!embed.classList.contains('mandala-embed-3x3')) return;
-                        const latestHost = getOrCreateMandalaHost(embed);
-                        void renderGrid(
-                            plugin,
-                            ctx,
-                            latestHost,
-                            model,
-                            target.file,
-                        );
-                    }, 0);
-                    plugin.registerTimeout(timer);
                 }),
             );
         };
