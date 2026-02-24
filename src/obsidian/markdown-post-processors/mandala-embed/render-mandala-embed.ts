@@ -72,15 +72,11 @@ const resolveEmbedTarget = (
         normalizedSubpath && !normalizedSubpath.startsWith('^')
             ? normalizedSubpath
             : null;
-    const centerSection =
-        parsedSrc.centerSection?.trim() && parsedSrc.centerSection.trim().length > 0
-            ? parsedSrc.centerSection.trim()
-            : null;
+    if (!centerHeading) return null;
 
     return {
         file,
         centerHeading,
-        centerSection,
     };
 };
 
@@ -92,7 +88,6 @@ const buildModelFromFile = async (
     file: TFile,
     orientation: MandalaEmbedOrientation,
     centerHeading: string | null,
-    centerSection: string | null,
 ) => {
     const markdown = await plugin.app.vault.cachedRead(file);
     const resolveCenterSectionByOfficialSubpath = () => {
@@ -111,8 +106,8 @@ const buildModelFromFile = async (
         return markerMatch?.[1] ?? null;
     };
 
-    const resolvedCenterSection =
-        centerSection ?? resolveCenterSectionByOfficialSubpath();
+    const resolvedCenterSection = resolveCenterSectionByOfficialSubpath();
+    if (!resolvedCenterSection) return null;
 
     return createMandalaEmbedGridModel(
         markdown,
@@ -138,8 +133,7 @@ export const createRenderMandalaEmbedPostProcessor =
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
             const getModel = (target: MandalaEmbedTarget) => {
-                const center =
-                    target.centerSection ?? target.centerHeading ?? 'root';
+                const center = target.centerHeading ?? 'root';
                 const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
                 const cached = modelCache.get(cacheKey);
                 if (cached) return cached;
@@ -149,7 +143,6 @@ export const createRenderMandalaEmbedPostProcessor =
                     target.file,
                     orientation,
                     target.centerHeading,
-                    target.centerSection,
                 ).catch(() => null);
                 modelCache.set(cacheKey, loading);
                 return loading;
@@ -176,7 +169,6 @@ export const createRenderMandalaEmbedPostProcessor =
                                 `linktext: ${parsedSrc.linktext}`,
                                 `path: ${parsedLink.path ?? '<empty>'}`,
                                 `subpath: ${parsedLink.subpath ?? '<empty>'}`,
-                                `centerSection: ${parsedSrc.centerSection ?? '<null>'}`,
                                 `sourcePath: ${ctx.sourcePath}`,
                             ]);
                             continue;
@@ -193,7 +185,6 @@ export const createRenderMandalaEmbedPostProcessor =
                                 `src: ${src ?? '<null>'}`,
                                 `file: ${target.file.path}`,
                                 `centerHeading: ${target.centerHeading ?? '<null>'}`,
-                                `centerSection: ${target.centerSection ?? '<null>'}`,
                             ]);
                             continue;
                         }

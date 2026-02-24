@@ -5,7 +5,6 @@ import { type ParsedMandalaEmbedSrc } from 'src/obsidian/markdown-post-processor
 export type MandalaEmbedTarget = {
     file: TFile;
     centerHeading: string | null;
-    centerSection: string | null;
 };
 
 export type MandalaEmbedManagedPayload = {
