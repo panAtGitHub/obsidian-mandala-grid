@@ -19,7 +19,8 @@
     position: relative;
     border: 1px solid var(--background-modifier-border);
     padding: 0;
-    height: 250px;
+    height: auto;
+    aspect-ratio: 1 / 1;
     vertical-align: top;
     overflow: hidden;
     background: var(--background-primary);
@@ -45,67 +46,6 @@
     box-sizing: border-box;
     overflow: auto;
     padding: 0;
-    line-height: 1.3;
-}
-
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    .markdown-preview-section,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    .markdown-preview-section
-    > div,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    .markdown-preview-section
-    .markdown-preview-pusher {
-    padding: 0 !important;
-    margin: 0 !important;
-    border: 0 !important;
-}
-
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    h1,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    h2,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    h3,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    h4,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    h5,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    h6,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    p,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    ul,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    ol {
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-}
-
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    li,
-.internal-embed.mandala-embed-3x3
-    .mandala-embed-3x3-cell-markdown
-    li > p {
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    line-height: inherit !important;
 }
 
 /* temporary probe styles for spacing diagnostics */

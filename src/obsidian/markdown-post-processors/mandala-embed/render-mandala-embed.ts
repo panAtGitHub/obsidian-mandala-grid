@@ -99,9 +99,11 @@ const collectProbeCellSnapshot = (
     const list = markdownEl.querySelector('ul,ol');
     const listItem = markdownEl.querySelector('li');
     const listItemParagraph = markdownEl.querySelector('li > p');
-    const firstBlock = markdownEl.querySelector(
-        '.markdown-preview-section > div:not(.markdown-preview-pusher) > :first-child',
-    );
+    const firstBlock =
+        markdownEl.querySelector(
+            '.markdown-preview-section > div:not(.markdown-preview-pusher) > :first-child',
+        ) ??
+        markdownEl.querySelector(':scope > :first-child');
     const previewSection = markdownEl.querySelector('.markdown-preview-section');
     const previewBody = markdownEl.querySelector(
         '.markdown-preview-section > div:not(.markdown-preview-pusher)',
@@ -144,12 +146,6 @@ const formatProbeCellSummary = (cell: ProbeCellSnapshot) => {
     const pusherOffset = cell.previewPusher?.offsetHeight ?? 0;
     return `${cell.section} h.mb=${headingBottom} ul.mt=${listTop} ul.mb=${listBottom} li.mb=${itemBottom} first.mb=${firstBottom} pusher.h=${pusherHeight}/${pusherMinHeight}(${pusherOffset})`;
 };
-
-const compactEmbedMarkdown = (markdown: string) =>
-    markdown
-        .replace(/\r\n/g, '\n')
-        .replace(/\n{2,}/g, '\n')
-        .trim();
 
 const renderDebugPanel = (
     embed: HTMLElement,
@@ -219,27 +215,14 @@ const renderGrid = async (
             }
             contentEl.appendChild(markdownEl);
 
-            const previewSectionEl = document.createElement('div');
-            previewSectionEl.className = 'markdown-preview-section';
-            markdownEl.appendChild(previewSectionEl);
-
-            const previewPusherEl = document.createElement('div');
-            previewPusherEl.className = 'markdown-preview-pusher';
-            previewSectionEl.appendChild(previewPusherEl);
-
-            const previewBodyEl = document.createElement('div');
-            previewSectionEl.appendChild(previewBodyEl);
-
-            const renderMarkdown = compactEmbedMarkdown(cell.markdown);
-
-            if (renderMarkdown) {
-                const renderChild = new MarkdownRenderChild(previewBodyEl);
+            if (cell.markdown.trim()) {
+                const renderChild = new MarkdownRenderChild(markdownEl);
                 ctx.addChild(renderChild);
                 await Promise.resolve(
                     MarkdownRenderer.render(
                         plugin.app,
-                        renderMarkdown,
-                        previewBodyEl,
+                        cell.markdown,
+                        markdownEl,
                         sourceFile.path,
                         renderChild,
                     ),
