@@ -15,11 +15,13 @@ import {
     parseMandalaEmbedSrc,
     type ParsedMandalaEmbedSrc,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-src';
+import { logger } from 'src/helpers/logger';
 
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 const MANDALA_EMBED_HOST_CLASS = 'mandala-embed-host';
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
+const MANDALA_EMBED_PROBE_CLASS = 'mandala-embed-probe';
 
 type EmbedTarget = {
     file: TFile;
@@ -35,6 +37,79 @@ const hasMarkerIntent = (src: string | null) =>
 const SECTION_COMMENT_LINE_RE =
     /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
 
+type ProbeBoxMetrics = {
+    marginTop: string;
+    marginBottom: string;
+    paddingTop: string;
+    paddingBottom: string;
+    lineHeight: string;
+    display: string;
+};
+
+type ProbeCellSnapshot = {
+    section: string;
+    heading: {
+        tag: string | null;
+        text: string | null;
+        metrics: ProbeBoxMetrics | null;
+    };
+    list: {
+        tag: string | null;
+        metrics: ProbeBoxMetrics | null;
+    };
+    listItem: ProbeBoxMetrics | null;
+    listItemParagraph: ProbeBoxMetrics | null;
+    firstBlock: {
+        tag: string | null;
+        metrics: ProbeBoxMetrics | null;
+    };
+};
+
+const readProbeBoxMetrics = (element: Element | null): ProbeBoxMetrics | null => {
+    if (!(element instanceof HTMLElement)) return null;
+    const style = getComputedStyle(element);
+    return {
+        marginTop: style.marginTop,
+        marginBottom: style.marginBottom,
+        paddingTop: style.paddingTop,
+        paddingBottom: style.paddingBottom,
+        lineHeight: style.lineHeight,
+        display: style.display,
+    };
+};
+
+const collectProbeCellSnapshot = (
+    markdownEl: HTMLElement,
+    section: string,
+): ProbeCellSnapshot => {
+    const heading = markdownEl.querySelector('h1,h2,h3,h4,h5,h6');
+    const list = markdownEl.querySelector('ul,ol');
+    const listItem = markdownEl.querySelector('li');
+    const listItemParagraph = markdownEl.querySelector('li > p');
+    const firstBlock = markdownEl.querySelector(
+        '.markdown-preview-section > div:not(.markdown-preview-pusher) > :first-child',
+    );
+
+    return {
+        section,
+        heading: {
+            tag: heading?.tagName ?? null,
+            text: heading instanceof HTMLElement ? heading.innerText.trim() : null,
+            metrics: readProbeBoxMetrics(heading),
+        },
+        list: {
+            tag: list?.tagName ?? null,
+            metrics: readProbeBoxMetrics(list),
+        },
+        listItem: readProbeBoxMetrics(listItem),
+        listItemParagraph: readProbeBoxMetrics(listItemParagraph),
+        firstBlock: {
+            tag: firstBlock?.tagName ?? null,
+            metrics: readProbeBoxMetrics(firstBlock),
+        },
+    };
+};
+
 const renderDebugPanel = (
     embed: HTMLElement,
     container: HTMLElement,
@@ -42,6 +117,7 @@ const renderDebugPanel = (
 ) => {
     embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
     embed.classList.remove('mandala-embed-3x3');
+    embed.classList.remove(MANDALA_EMBED_PROBE_CLASS);
     embed.classList.add('mandala-embed-debug');
     container.empty();
 
@@ -64,10 +140,14 @@ const renderGrid = async (
     container: HTMLElement,
     model: MandalaEmbedGridModel,
     sourceFile: TFile,
+    probeEnabled: boolean,
+    probePhase: string,
+    embedSrc: string | null,
 ) => {
     const tableEl = document.createElement('table');
     tableEl.className = 'mandala-embed-3x3-table';
     const tbodyEl = document.createElement('tbody');
+    const probeCells: ProbeCellSnapshot[] = [];
 
     for (const row of model.rows) {
         const trEl = document.createElement('tr');
@@ -93,6 +173,9 @@ const renderGrid = async (
             const markdownEl = document.createElement('div');
             markdownEl.className =
                 'mandala-embed-3x3-cell-markdown markdown-preview-view markdown-rendered';
+            if (probeEnabled) {
+                markdownEl.setAttribute('data-mandala-probe-section', cell.section);
+            }
             contentEl.appendChild(markdownEl);
 
             const previewSectionEl = document.createElement('div');
@@ -120,6 +203,10 @@ const renderGrid = async (
                 );
             }
 
+            if (probeEnabled) {
+                probeCells.push(collectProbeCellSnapshot(markdownEl, cell.section));
+            }
+
             trEl.appendChild(cellEl);
         }
         tbodyEl.appendChild(trEl);
@@ -128,6 +215,16 @@ const renderGrid = async (
     tableEl.appendChild(tbodyEl);
     container.empty();
     container.appendChild(tableEl);
+
+    if (probeEnabled) {
+        logger.error('[mandala-embed-probe]', {
+            phase: probePhase,
+            src: embedSrc ?? '<null>',
+            file: sourceFile.path,
+            cellCount: probeCells.length,
+            cells: probeCells,
+        });
+    }
 };
 
 const isMandalaHost = (element: Element) =>
@@ -258,6 +355,7 @@ const clearMandalaRender = (embed: HTMLElement) => {
         embed.getAttribute(MANDALA_EMBED_MANAGED_ATTR) === 'true' ||
         embed.classList.contains('mandala-embed-3x3') ||
         embed.classList.contains('mandala-embed-debug') ||
+        embed.classList.contains(MANDALA_EMBED_PROBE_CLASS) ||
         Boolean(queryMandalaHost(embed));
     if (!hadArtifacts) return;
 
@@ -266,6 +364,7 @@ const clearMandalaRender = (embed: HTMLElement) => {
     embed.removeAttribute(MANDALA_EMBED_MANAGED_ATTR);
     embed.classList.remove('mandala-embed-3x3');
     embed.classList.remove('mandala-embed-debug');
+    embed.classList.remove(MANDALA_EMBED_PROBE_CLASS);
 };
 
 const formatUnknownError = (error: unknown) =>
@@ -278,6 +377,7 @@ const scheduleMarkerGridRerender = (
     model: MandalaEmbedGridModel,
     sourceFile: TFile,
     expectedSrc: string | null,
+    probeEnabled: boolean,
 ) => {
     const rerenderOnce = (delay_ms: number) => {
         const timer = setTimeout(() => {
@@ -293,7 +393,17 @@ const scheduleMarkerGridRerender = (
             embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
             embed.classList.add('mandala-embed-3x3');
             embed.classList.remove('mandala-embed-debug');
-            void renderGrid(plugin, ctx, host, model, sourceFile).catch(() => {
+            embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
+            void renderGrid(
+                plugin,
+                ctx,
+                host,
+                model,
+                sourceFile,
+                probeEnabled,
+                `rerender-${delay_ms}ms`,
+                expectedSrc,
+            ).catch(() => {
                 clearMandalaRender(embed);
             });
         }, delay_ms);
@@ -339,10 +449,19 @@ export const createRenderMandalaEmbedPostProcessor =
             for (const embed of Array.from(embeds)) {
                 const src = embed.getAttribute('src');
                 const markerIntent = hasMarkerIntent(src);
+                const probeEnabled = markerIntent || debugEnabled;
+                embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
                 try {
                     const parsedSrc = parseMandalaEmbedSrc(src);
 
                     if (!parsedSrc) {
+                        if (markerIntent) {
+                            logger.error('[mandala-embed-probe]', {
+                                phase: 'parse-failed',
+                                src: src ?? '<null>',
+                                sourcePath: ctx.sourcePath,
+                            });
+                        }
                         if (markerIntent && debugEnabled) {
                             const host = getOrCreateMandalaHost(embed);
                             renderDebugPanel(embed, host, [
@@ -359,6 +478,15 @@ export const createRenderMandalaEmbedPostProcessor =
                     const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
 
                     if (!target) {
+                        if (markerIntent) {
+                            logger.error('[mandala-embed-probe]', {
+                                phase: 'target-failed',
+                                src: src ?? '<null>',
+                                linktext: parsedSrc.linktext,
+                                centerSection: parsedSrc.centerSection ?? '<null>',
+                                sourcePath: ctx.sourcePath,
+                            });
+                        }
                         if (markerIntent && debugEnabled) {
                             const host = getOrCreateMandalaHost(embed);
                             const parsedLink = parseLinktext(parsedSrc.linktext);
@@ -379,6 +507,16 @@ export const createRenderMandalaEmbedPostProcessor =
 
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
+                        if (markerIntent) {
+                            logger.error('[mandala-embed-probe]', {
+                                phase: 'model-failed',
+                                src: src ?? '<null>',
+                                file: target.file.path,
+                                centerHeading: target.centerHeading ?? '<null>',
+                                centerSection: target.centerSection ?? '<null>',
+                                embedConnected: embed.isConnected,
+                            });
+                        }
                         if (markerIntent && debugEnabled && embed.isConnected) {
                             const host = getOrCreateMandalaHost(embed);
                             renderDebugPanel(embed, host, [
@@ -399,7 +537,17 @@ export const createRenderMandalaEmbedPostProcessor =
                     embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
                     embed.classList.add('mandala-embed-3x3');
                     embed.classList.remove('mandala-embed-debug');
-                    await renderGrid(plugin, ctx, host, model, target.file);
+                    embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
+                    await renderGrid(
+                        plugin,
+                        ctx,
+                        host,
+                        model,
+                        target.file,
+                        probeEnabled,
+                        'initial',
+                        src,
+                    );
                     scheduleMarkerGridRerender(
                         plugin,
                         ctx,
@@ -407,8 +555,17 @@ export const createRenderMandalaEmbedPostProcessor =
                         model,
                         target.file,
                         src,
+                        probeEnabled,
                     );
                 } catch (error: unknown) {
+                    if (markerIntent) {
+                        logger.error('[mandala-embed-probe]', {
+                            phase: 'unexpected-error',
+                            src: src ?? '<null>',
+                            sourcePath: ctx.sourcePath,
+                            error: formatUnknownError(error),
+                        });
+                    }
                     if (markerIntent && debugEnabled && embed.isConnected) {
                         const host = getOrCreateMandalaHost(embed);
                         renderDebugPanel(embed, host, [
