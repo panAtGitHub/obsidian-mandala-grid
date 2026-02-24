@@ -19,6 +19,7 @@ import {
 import { logger } from 'src/helpers/logger';
 import { formatText } from 'src/view/actions/markdown-preview/helpers/format-text';
 import { markHiddenInfoElements } from 'src/view/actions/markdown-preview/helpers/mark-hidden-info-elements';
+import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
@@ -39,8 +40,157 @@ const isSkippedContext = (el: HTMLElement) =>
 
 const SECTION_COMMENT_LINE_RE =
     /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
+const SECTION_COMMENT_BLOCK_RE =
+    /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
+const TASK_LINE_RE = /^([ \t]*[-*+]\s*\[)([ xX])(\].*)$/gmu;
 
 const gridResizeCleanupByHost = new WeakMap<HTMLElement, () => void>();
+
+const findSectionRange = (markdown: string, section: string) => {
+    const markers = Array.from(markdown.matchAll(SECTION_COMMENT_BLOCK_RE));
+    for (let index = 0; index < markers.length; index += 1) {
+        const marker = markers[index];
+        if (marker[1]?.trim() !== section) continue;
+
+        const start = (marker.index ?? 0) + marker[0].length;
+        const end = markers[index + 1]?.index ?? markdown.length;
+        return { start, end };
+    }
+    return null;
+};
+
+const toggleTaskInSection = (
+    markdown: string,
+    section: string,
+    taskIndex: number,
+    checked: boolean,
+) => {
+    const range = findSectionRange(markdown, section);
+    if (!range) return null;
+
+    const sectionContent = markdown.slice(range.start, range.end);
+    let currentTaskIndex = -1;
+    for (const match of sectionContent.matchAll(TASK_LINE_RE)) {
+        currentTaskIndex += 1;
+        if (currentTaskIndex !== taskIndex) continue;
+
+        const marker = match[1];
+        const taskStateIndex =
+            range.start + (match.index ?? 0) + (marker?.length ?? 0);
+        const nextTaskState = checked ? 'x' : ' ';
+        if (!marker) return null;
+        if (taskStateIndex < 0 || taskStateIndex >= markdown.length) return null;
+        if (markdown[taskStateIndex] === nextTaskState) return markdown;
+        return `${markdown.slice(0, taskStateIndex)}${nextTaskState}${markdown.slice(taskStateIndex + 1)}`;
+    }
+
+    return null;
+};
+
+const persistCheckboxToggle = async (
+    plugin: MandalaGrid,
+    sourceFile: TFile,
+    section: string,
+    taskIndex: number,
+    checked: boolean,
+) => {
+    try {
+        await plugin.app.vault.process(sourceFile, (markdown) => {
+            const updated = toggleTaskInSection(
+                markdown,
+                section,
+                taskIndex,
+                checked,
+            );
+            return updated ?? markdown;
+        });
+    } catch (error: unknown) {
+        logger.error('[mandala-embed]', {
+            phase: 'toggle-checkbox-failed',
+            file: sourceFile.path,
+            section,
+            taskIndex,
+            checked,
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+};
+
+const enableRenderedCheckboxes = (container: HTMLElement) => {
+    for (const checkbox of Array.from(
+        container.querySelectorAll<HTMLInputElement>(
+            'input.task-list-item-checkbox[disabled]',
+        ),
+    )) {
+        checkbox.disabled = false;
+        checkbox.removeAttribute('disabled');
+    }
+};
+
+const registerCellInteractions = (
+    plugin: MandalaGrid,
+    renderChild: MarkdownRenderChild,
+    markdownEl: HTMLElement,
+    sourceFile: TFile,
+    section: string,
+) => {
+    const onLinkClick = (event: MouseEvent) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const anchor = target.closest('a');
+        if (!(anchor instanceof HTMLAnchorElement)) return;
+
+        if (anchor.classList.contains('internal-link')) {
+            const link =
+                anchor.getAttribute('data-href') ?? anchor.getAttribute('href');
+            if (!link) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            void plugin.app.workspace.openLinkText(
+                link,
+                sourceFile.path,
+                event.metaKey || event.ctrlKey,
+            );
+            return;
+        }
+
+        if (!anchor.classList.contains('external-link')) return;
+        const href = anchor.getAttribute('href') ?? '';
+        if (!isSafeExternalUrl(href)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        window.open(href, '_blank', 'noopener,noreferrer');
+    };
+
+    const onCheckboxChange = (event: Event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (!target.classList.contains('task-list-item-checkbox')) return;
+
+        const listItem = target.closest('.task-list-item');
+        if (!(listItem instanceof HTMLElement)) return;
+
+        const allItems = Array.from(markdownEl.querySelectorAll('.task-list-item'));
+        const taskIndex = allItems.indexOf(listItem);
+        if (taskIndex < 0) return;
+
+        listItem.setAttribute('data-task', target.checked ? 'x' : ' ');
+        listItem.toggleClass('is-checked', target.checked);
+        void persistCheckboxToggle(
+            plugin,
+            sourceFile,
+            section,
+            taskIndex,
+            target.checked,
+        );
+    };
+
+    renderChild.registerDomEvent(markdownEl, 'click', onLinkClick);
+    renderChild.registerDomEvent(markdownEl, 'change', onCheckboxChange);
+};
 
 const updateGridCellSize = (host: HTMLElement, gridEl: HTMLElement) => {
     const width = host.clientWidth;
@@ -147,6 +297,13 @@ const renderGrid = (
             if (cell.markdown.trim()) {
                 const renderChild = new MarkdownRenderChild(markdownEl);
                 ctx.addChild(renderChild);
+                registerCellInteractions(
+                    plugin,
+                    renderChild,
+                    markdownEl,
+                    sourceFile,
+                    cell.section,
+                );
                 const formatted = formatText(cell.markdown);
                 const renderResult = MarkdownRenderer.render(
                     plugin.app,
@@ -155,9 +312,10 @@ const renderGrid = (
                     sourceFile.path,
                     renderChild,
                 );
-                void Promise.resolve(renderResult).then(() =>
-                    markHiddenInfoElements(markdownEl),
-                );
+                void Promise.resolve(renderResult).then(() => {
+                    markHiddenInfoElements(markdownEl);
+                    enableRenderedCheckboxes(markdownEl);
+                });
             }
 
             gridEl.appendChild(cellEl);
