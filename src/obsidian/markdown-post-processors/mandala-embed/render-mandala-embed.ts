@@ -1,8 +1,6 @@
 import {
-    MarkdownRenderChild,
     parseLinktext,
     resolveSubpath,
-    setIcon,
     TFile,
     type MarkdownPostProcessorContext,
 } from 'obsidian';
@@ -16,407 +14,33 @@ import {
     type ParsedMandalaEmbedSrc,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-src';
 import { logger } from 'src/helpers/logger';
-import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
-import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
+import {
+    type MandalaEmbedTarget,
+    type MandalaEmbedManagedPayload,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller-types';
+import { MandalaEmbedController } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller';
 
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
-const MANDALA_EMBED_HOST_CLASS = 'mandala-embed-host';
-const MANDALA_EMBED_HEADER_CLASS = 'mandala-embed-host-header';
-const MANDALA_EMBED_BODY_CLASS = 'mandala-embed-host-body';
-const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
-const MANDALA_EMBED_CELL_SIZE_VAR = '--mandala-embed-cell-size';
 
-type EmbedTarget = {
-    file: TFile;
-    centerHeading: string | null;
-    centerSection: string | null;
-};
+const SECTION_COMMENT_LINE_RE =
+    /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
 
 const isSkippedContext = (el: HTMLElement) =>
     el.classList.contains('lng-prev') || Boolean(el.closest('.lng-prev'));
 
-const SECTION_COMMENT_LINE_RE =
-    /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
-const SECTION_COMMENT_BLOCK_RE =
-    /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
-const TASK_LINE_RE = /^([ \t]*[-*+]\s*\[)([ xX])(\].*)$/gmu;
+const controllerByEmbed = new WeakMap<HTMLElement, MandalaEmbedController>();
 
-const gridResizeCleanupByHost = new WeakMap<HTMLElement, () => void>();
-
-const findSectionRange = (markdown: string, section: string) => {
-    const markers = Array.from(markdown.matchAll(SECTION_COMMENT_BLOCK_RE));
-    for (let index = 0; index < markers.length; index += 1) {
-        const marker = markers[index];
-        if (marker[1]?.trim() !== section) continue;
-
-        const start = (marker.index ?? 0) + marker[0].length;
-        const end = markers[index + 1]?.index ?? markdown.length;
-        return { start, end };
-    }
-    return null;
-};
-
-const toggleTaskInSection = (
-    markdown: string,
-    section: string,
-    taskIndex: number,
-    checked: boolean,
-) => {
-    const range = findSectionRange(markdown, section);
-    if (!range) return null;
-
-    const sectionContent = markdown.slice(range.start, range.end);
-    let currentTaskIndex = -1;
-    for (const match of sectionContent.matchAll(TASK_LINE_RE)) {
-        currentTaskIndex += 1;
-        if (currentTaskIndex !== taskIndex) continue;
-
-        const marker = match[1];
-        const taskStateIndex =
-            range.start + (match.index ?? 0) + (marker?.length ?? 0);
-        const nextTaskState = checked ? 'x' : ' ';
-        if (!marker) return null;
-        if (taskStateIndex < 0 || taskStateIndex >= markdown.length) return null;
-        if (markdown[taskStateIndex] === nextTaskState) return markdown;
-        return `${markdown.slice(0, taskStateIndex)}${nextTaskState}${markdown.slice(taskStateIndex + 1)}`;
-    }
-
-    return null;
-};
-
-const persistCheckboxToggle = async (
+const getOrCreateController = (
     plugin: MandalaGrid,
-    sourceFile: TFile,
-    section: string,
-    taskIndex: number,
-    checked: boolean,
-) => {
-    try {
-        await plugin.app.vault.process(sourceFile, (markdown) => {
-            const updated = toggleTaskInSection(
-                markdown,
-                section,
-                taskIndex,
-                checked,
-            );
-            return updated ?? markdown;
-        });
-    } catch (error: unknown) {
-        logger.error('[mandala-embed]', {
-            phase: 'toggle-checkbox-failed',
-            file: sourceFile.path,
-            section,
-            taskIndex,
-            checked,
-            error: error instanceof Error ? error.message : String(error),
-        });
-    }
-};
-
-const enableRenderedCheckboxes = (container: HTMLElement) => {
-    for (const checkbox of Array.from(
-        container.querySelectorAll<HTMLInputElement>(
-            'input.task-list-item-checkbox[disabled]',
-        ),
-    )) {
-        checkbox.disabled = false;
-        checkbox.removeAttribute('disabled');
-    }
-};
-
-const registerCellInteractions = (
-    plugin: MandalaGrid,
-    renderChild: MarkdownRenderChild,
-    markdownEl: HTMLElement,
-    sourceFile: TFile,
-    section: string,
-) => {
-    const onLinkClick = (event: MouseEvent) => {
-        const target = event.target;
-        if (!(target instanceof Element)) return;
-
-        const anchor = target.closest('a');
-        if (!(anchor instanceof HTMLAnchorElement)) return;
-
-        if (anchor.classList.contains('internal-link')) {
-            const link =
-                anchor.getAttribute('data-href') ?? anchor.getAttribute('href');
-            if (!link) return;
-
-            event.preventDefault();
-            event.stopPropagation();
-            void plugin.app.workspace.openLinkText(
-                link,
-                sourceFile.path,
-                event.metaKey || event.ctrlKey,
-            );
-            return;
-        }
-
-        if (!anchor.classList.contains('external-link')) return;
-        const href = anchor.getAttribute('href') ?? '';
-        if (!isSafeExternalUrl(href)) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        window.open(href, '_blank', 'noopener,noreferrer');
-    };
-
-    const onCheckboxChange = (event: Event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement)) return;
-        if (!target.classList.contains('task-list-item-checkbox')) return;
-
-        const listItem = target.closest('.task-list-item');
-        if (!(listItem instanceof HTMLElement)) return;
-
-        const allItems = Array.from(markdownEl.querySelectorAll('.task-list-item'));
-        const taskIndex = allItems.indexOf(listItem);
-        if (taskIndex < 0) return;
-
-        listItem.setAttribute('data-task', target.checked ? 'x' : ' ');
-        listItem.toggleClass('is-checked', target.checked);
-        void persistCheckboxToggle(
-            plugin,
-            sourceFile,
-            section,
-            taskIndex,
-            target.checked,
-        );
-    };
-
-    renderChild.registerDomEvent(markdownEl, 'click', onLinkClick);
-    renderChild.registerDomEvent(markdownEl, 'change', onCheckboxChange);
-};
-
-const updateGridCellSize = (host: HTMLElement, gridEl: HTMLElement) => {
-    const width = host.clientWidth;
-    if (width <= 0) return;
-    const cellSize = Math.max(1, Math.floor(width / 3));
-    gridEl.style.setProperty(MANDALA_EMBED_CELL_SIZE_VAR, `${cellSize}px`);
-};
-
-const setupGridResizeObserver = (
-    ctx: MarkdownPostProcessorContext,
-    host: HTMLElement,
-    gridEl: HTMLElement,
-) => {
-    gridResizeCleanupByHost.get(host)?.();
-
-    let rafId = 0;
-    const scheduleUpdate = () => {
-        if (rafId !== 0) cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => {
-            rafId = 0;
-            updateGridCellSize(host, gridEl);
-        });
-    };
-
-    const observer = new ResizeObserver(() => scheduleUpdate());
-    observer.observe(host);
-    scheduleUpdate();
-
-    const cleanup = () => {
-        if (rafId !== 0) cancelAnimationFrame(rafId);
-        observer.disconnect();
-    };
-    gridResizeCleanupByHost.set(host, cleanup);
-
-    const cleanupChild = new MarkdownRenderChild(host);
-    cleanupChild.onunload = () => {
-        const currentCleanup = gridResizeCleanupByHost.get(host);
-        if (currentCleanup === cleanup) {
-            cleanup();
-            gridResizeCleanupByHost.delete(host);
-        }
-    };
-    ctx.addChild(cleanupChild);
-};
-
-const renderDebugPanel = (
     embed: HTMLElement,
-    container: HTMLElement,
-    lines: string[],
-) => {
-    embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
-    embed.classList.remove('mandala-embed-3x3');
-    embed.classList.add('mandala-embed-debug');
-    container.empty();
-
-    const panel = document.createElement('div');
-    panel.className = 'mandala-embed-debug-panel';
-
-    for (const line of lines) {
-        const row = document.createElement('div');
-        row.className = 'mandala-embed-debug-line';
-        row.setText(line);
-        panel.appendChild(row);
-    }
-
-    container.appendChild(panel);
-};
-
-const renderGrid = (
-    plugin: MandalaGrid,
-    ctx: MarkdownPostProcessorContext,
-    container: HTMLElement,
-    model: MandalaEmbedGridModel,
-    sourceFile: TFile,
-) => {
-    const gridEl = document.createElement('div');
-    gridEl.className = 'mandala-embed-3x3-grid';
-
-    for (const row of model.rows) {
-        for (const cell of row) {
-            const cellEl = document.createElement('div');
-            cellEl.className = 'mandala-embed-3x3-cell';
-            if (cell.section === model.rows[1]?.[1]?.section) {
-                cellEl.classList.add('is-center');
-            }
-            if (cell.empty) {
-                cellEl.classList.add('is-empty');
-            }
-
-            const sectionEl = document.createElement('span');
-            sectionEl.className = 'mandala-embed-3x3-cell-section';
-            sectionEl.setText(cell.section);
-            cellEl.appendChild(sectionEl);
-
-            const contentEl = document.createElement('div');
-            contentEl.className = 'mandala-embed-3x3-cell-content';
-            cellEl.appendChild(contentEl);
-
-            const markdownEl = document.createElement('div');
-            markdownEl.className =
-                'mandala-embed-3x3-cell-markdown markdown-rendered';
-            contentEl.appendChild(markdownEl);
-
-            if (cell.markdown.trim()) {
-                const renderChild = new MarkdownRenderChild(markdownEl);
-                ctx.addChild(renderChild);
-                registerCellInteractions(
-                    plugin,
-                    renderChild,
-                    markdownEl,
-                    sourceFile,
-                    cell.section,
-                );
-                const renderResult = renderMarkdownContent({
-                    app: plugin.app,
-                    content: cell.markdown,
-                    element: markdownEl,
-                    sourcePath: sourceFile.path,
-                    component: renderChild,
-                    applyFormatText: true,
-                    onAfterRender: enableRenderedCheckboxes,
-                });
-                void Promise.resolve(renderResult);
-            }
-
-            gridEl.appendChild(cellEl);
-        }
-    }
-
-    container.empty();
-    container.appendChild(gridEl);
-    setupGridResizeObserver(ctx, container, gridEl);
-};
-
-const isMandalaHost = (element: Element) =>
-    element.classList.contains(MANDALA_EMBED_HOST_CLASS);
-
-const queryDirectChildByClass = (parent: HTMLElement, className: string) => {
-    for (const child of Array.from(parent.children)) {
-        if (!(child instanceof HTMLElement)) continue;
-        if (child.classList.contains(className)) return child;
-    }
-    return null;
-};
-
-const queryMandalaHost = (embed: HTMLElement) => {
-    const children = Array.from(embed.children);
-    for (const child of children) {
-        if (!(child instanceof HTMLElement)) continue;
-        if (isMandalaHost(child)) return child;
-    }
-    return null;
-};
-
-const getOrCreateMandalaHost = (embed: HTMLElement) => {
-    const existing = queryMandalaHost(embed);
+): MandalaEmbedController => {
+    const existing = controllerByEmbed.get(embed);
     if (existing) return existing;
 
-    const created = document.createElement('div');
-    created.className = MANDALA_EMBED_HOST_CLASS;
-    embed.appendChild(created);
+    const created = new MandalaEmbedController(plugin, embed);
+    controllerByEmbed.set(embed, created);
     return created;
-};
-
-const getOrCreateHostSection = (
-    host: HTMLElement,
-    className: string,
-    tagName: 'div' | 'button' = 'div',
-) => {
-    const existing = queryDirectChildByClass(host, className);
-    if (existing) return existing;
-    const created = document.createElement(tagName);
-    created.className = className;
-    host.appendChild(created);
-    return created;
-};
-
-const getOrCreateMandalaHostLayout = (embed: HTMLElement) => {
-    const host = getOrCreateMandalaHost(embed);
-    const header = getOrCreateHostSection(host, MANDALA_EMBED_HEADER_CLASS);
-    const body = getOrCreateHostSection(host, MANDALA_EMBED_BODY_CLASS);
-
-    if (host.firstElementChild !== header) {
-        host.insertBefore(header, host.firstChild);
-    }
-    if (header.nextElementSibling !== body) {
-        host.insertBefore(body, header.nextSibling);
-    }
-
-    return { host, header, body };
-};
-
-const renderEmbedHeader = (
-    plugin: MandalaGrid,
-    ctx: MarkdownPostProcessorContext,
-    headerEl: HTMLElement,
-    target: EmbedTarget,
-    parsedSrc: ParsedMandalaEmbedSrc,
-) => {
-    headerEl.empty();
-
-    const titleEl = document.createElement('h1');
-    titleEl.className = 'mandala-embed-header-title';
-    titleEl.setText(target.centerHeading ?? target.file.basename);
-
-    const linkBtn = document.createElement('button');
-    linkBtn.className = 'mandala-embed-header-link';
-    linkBtn.type = 'button';
-    linkBtn.setAttribute('aria-label', 'Open embed target in note');
-    const linkIcon = document.createElement('span');
-    linkIcon.className = 'mandala-embed-header-link-icon';
-    setIcon(linkIcon, 'maximize-2');
-    linkBtn.appendChild(linkIcon);
-
-    const openTarget = (event: MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-        void plugin.app.workspace.openLinkText(
-            parsedSrc.linktext,
-            ctx.sourcePath,
-            false,
-        );
-    };
-
-    linkBtn.addEventListener('click', openTarget);
-
-    headerEl.appendChild(titleEl);
-    headerEl.appendChild(linkBtn);
 };
 
 const resolveMarkdownFile = (
@@ -436,7 +60,7 @@ const resolveEmbedTarget = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     parsedSrc: ParsedMandalaEmbedSrc,
-): EmbedTarget | null => {
+): MandalaEmbedTarget | null => {
     const { path, subpath } = parseLinktext(parsedSrc.linktext);
     if (!path) return null;
 
@@ -486,8 +110,10 @@ const buildModelFromFile = async (
         const markerMatch = markerLine?.match(SECTION_COMMENT_LINE_RE);
         return markerMatch?.[1] ?? null;
     };
+
     const resolvedCenterSection =
         centerSection ?? resolveCenterSectionByOfficialSubpath();
+
     return createMandalaEmbedGridModel(
         markdown,
         orientation,
@@ -495,68 +121,8 @@ const buildModelFromFile = async (
     );
 };
 
-const clearMandalaRender = (embed: HTMLElement) => {
-    const hadArtifacts =
-        embed.getAttribute(MANDALA_EMBED_MANAGED_ATTR) === 'true' ||
-        embed.classList.contains('mandala-embed-3x3') ||
-        embed.classList.contains('mandala-embed-debug') ||
-        Boolean(queryMandalaHost(embed));
-    if (!hadArtifacts) return;
-
-    const host = queryMandalaHost(embed);
-    if (host) {
-        const body = queryDirectChildByClass(host, MANDALA_EMBED_BODY_CLASS);
-        if (body) {
-            gridResizeCleanupByHost.get(body)?.();
-            gridResizeCleanupByHost.delete(body);
-        }
-    }
-    host?.remove();
-    embed.removeAttribute(MANDALA_EMBED_MANAGED_ATTR);
-    embed.classList.remove('mandala-embed-3x3');
-    embed.classList.remove('mandala-embed-debug');
-};
-
 const formatUnknownError = (error: unknown) =>
     error instanceof Error ? error.message : String(error);
-
-const scheduleMarkerGridRerender = (
-    plugin: MandalaGrid,
-    ctx: MarkdownPostProcessorContext,
-    embed: HTMLElement,
-    model: MandalaEmbedGridModel,
-    sourceFile: TFile,
-    expectedSrc: string | null,
-) => {
-    const rerenderOnce = (delay_ms: number) => {
-        const timer = setTimeout(() => {
-            if (!embed.isConnected) return;
-            const currentSrc = embed.getAttribute('src');
-            if (currentSrc !== expectedSrc) return;
-            if (!parseMandalaEmbedSrc(currentSrc)) {
-                clearMandalaRender(embed);
-                return;
-            }
-
-            const host = getOrCreateMandalaHost(embed);
-            const body =
-                queryDirectChildByClass(host, MANDALA_EMBED_BODY_CLASS) ?? host;
-            embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
-            embed.classList.add('mandala-embed-3x3');
-            embed.classList.remove('mandala-embed-debug');
-            try {
-                renderGrid(plugin, ctx, body, model, sourceFile);
-            } catch {
-                clearMandalaRender(embed);
-            }
-        }, delay_ms);
-
-        plugin.registerTimeout(timer);
-    };
-
-    rerenderOnce(0);
-    rerenderOnce(24);
-};
 
 export const createRenderMandalaEmbedPostProcessor =
     (plugin: MandalaGrid) => {
@@ -571,7 +137,7 @@ export const createRenderMandalaEmbedPostProcessor =
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
 
-            const getModel = (target: EmbedTarget) => {
+            const getModel = (target: MandalaEmbedTarget) => {
                 const center =
                     target.centerSection ?? target.centerHeading ?? 'root';
                 const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
@@ -590,23 +156,21 @@ export const createRenderMandalaEmbedPostProcessor =
             };
 
             for (const embed of Array.from(embeds)) {
+                const controller = getOrCreateController(plugin, embed);
                 const src = embed.getAttribute('src');
+
                 try {
                     const parsedSrc = parseMandalaEmbedSrc(src);
-
                     if (!parsedSrc) {
-                        // Keep native embed untouched when marker syntax is absent.
-                        clearMandalaRender(embed);
+                        controller.clear();
                         continue;
                     }
 
                     const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
-
                     if (!target) {
                         if (debugEnabled) {
-                            const { body } = getOrCreateMandalaHostLayout(embed);
                             const parsedLink = parseLinktext(parsedSrc.linktext);
-                            renderDebugPanel(embed, body, [
+                            controller.updateDebug([
                                 'mandala debug: target resolve failed',
                                 `src: ${src ?? '<null>'}`,
                                 `linktext: ${parsedSrc.linktext}`,
@@ -617,15 +181,14 @@ export const createRenderMandalaEmbedPostProcessor =
                             ]);
                             continue;
                         }
-                        clearMandalaRender(embed);
+                        controller.clear();
                         continue;
                     }
 
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
                         if (debugEnabled && embed.isConnected) {
-                            const { body } = getOrCreateMandalaHostLayout(embed);
-                            renderDebugPanel(embed, body, [
+                            controller.updateDebug([
                                 'mandala debug: model build failed',
                                 `src: ${src ?? '<null>'}`,
                                 `file: ${target.file.path}`,
@@ -634,25 +197,19 @@ export const createRenderMandalaEmbedPostProcessor =
                             ]);
                             continue;
                         }
-                        clearMandalaRender(embed);
+                        controller.clear();
                         continue;
                     }
 
-                    const { header, body } = getOrCreateMandalaHostLayout(embed);
-
-                    embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
-                    embed.classList.add('mandala-embed-3x3');
-                    embed.classList.remove('mandala-embed-debug');
-                    renderEmbedHeader(plugin, ctx, header, target, parsedSrc);
-                    renderGrid(plugin, ctx, body, model, target.file);
-                    scheduleMarkerGridRerender(
-                        plugin,
+                    const payload: MandalaEmbedManagedPayload = {
                         ctx,
-                        embed,
-                        model,
-                        target.file,
                         src,
-                    );
+                        sourcePath: ctx.sourcePath,
+                        target,
+                        parsedSrc,
+                        model,
+                    };
+                    controller.updateManaged(payload);
                 } catch (error: unknown) {
                     logger.error('[mandala-embed]', {
                         phase: 'unexpected-error',
@@ -660,16 +217,17 @@ export const createRenderMandalaEmbedPostProcessor =
                         sourcePath: ctx.sourcePath,
                         error: formatUnknownError(error),
                     });
+
                     if (debugEnabled && embed.isConnected) {
-                        const { body } = getOrCreateMandalaHostLayout(embed);
-                        renderDebugPanel(embed, body, [
+                        controller.updateDebug([
                             'mandala debug: unexpected render error',
                             `src: ${src ?? '<null>'}`,
                             `error: ${formatUnknownError(error)}`,
                         ]);
                         continue;
                     }
-                    clearMandalaRender(embed);
+
+                    controller.clear();
                 }
             }
         };
