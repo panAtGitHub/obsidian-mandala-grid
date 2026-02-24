@@ -14,6 +14,20 @@ const MANDALA_EMBED_HEADER_CLASS = 'mandala-embed-host-header';
 const MANDALA_EMBED_BODY_CLASS = 'mandala-embed-host-body';
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
 const MANDALA_EMBED_CELL_SIZE_VAR = '--mandala-embed-cell-size';
+const MANDALA_EMBED_FONT_SIZE_VAR = '--mandala-embed-font-size';
+const MANDALA_EMBED_HEADER_FONT_SIZE_VAR = '--mandala-embed-header-font-size';
+const MANDALA_EMBED_CONTENT_PADDING_Y_VAR = '--mandala-embed-content-padding-y';
+const MANDALA_EMBED_CONTENT_PADDING_X_VAR = '--mandala-embed-content-padding-x';
+const MANDALA_EMBED_CONTENT_PADDING_BOTTOM_VAR =
+    '--mandala-embed-content-padding-bottom';
+const MANDALA_EMBED_HEADER_PADDING_Y_VAR = '--mandala-embed-header-padding-y';
+const MANDALA_EMBED_HEADER_PADDING_X_VAR = '--mandala-embed-header-padding-x';
+const MANDALA_EMBED_HEADER_GAP_VAR = '--mandala-embed-header-gap';
+const MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR = '--mandala-embed-header-button-size';
+const MANDALA_EMBED_HEADER_ICON_SIZE_VAR = '--mandala-embed-header-icon-size';
+const MANDALA_EMBED_SECTION_FONT_SIZE_VAR = '--mandala-embed-section-font-size';
+const MANDALA_EMBED_LINE_HEIGHT_VAR = '--mandala-embed-line-height';
+const MANDALA_EMBED_COMPACT_CLASS = 'is-compact';
 const SECTION_COMMENT_BLOCK_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
 const TASK_LINE_RE = /^([ \t]*[-*+]\s*\[)([ xX])(\].*)$/gmu;
 
@@ -510,11 +524,81 @@ export class MandalaEmbedController {
     private attachResizeObserver(body: HTMLElement, gridEl: HTMLElement) {
         this.detachResizeObserver();
 
+        const clamp = (value: number, min: number, max: number) =>
+            Math.min(max, Math.max(min, value));
+
         const update = () => {
             const width = body.clientWidth;
             if (width <= 0) return;
             const cellSize = Math.max(1, Math.floor(width / 3));
+            const scale = clamp(cellSize / 120, 0.45, 1.15);
+
+            const contentFontSize = clamp(Math.round(16 * scale), 9, 16);
+            const headerFontSize = clamp(Math.round(contentFontSize * 1.15), 10, 18);
+            const sectionFontSize = clamp(Math.round(10 * scale), 7, 10);
+
+            const contentPaddingY = clamp(Math.round(8 * scale), 2, 8);
+            const contentPaddingX = clamp(Math.round(10 * scale), 2, 10);
+            const contentPaddingBottom = clamp(Math.round(14 * scale), 6, 14);
+
+            const headerPaddingY = clamp(Math.round(4 * scale), 2, 4);
+            const headerPaddingX = clamp(Math.round(8 * scale), 4, 8);
+            const headerGap = clamp(Math.round(8 * scale), 4, 8);
+            const headerButtonSize = clamp(Math.round(20 * scale), 14, 20);
+            const headerIconSize = clamp(Math.round(14 * scale), 10, 14);
+
+            const lineHeight = clamp(1.22 + scale * 0.2, 1.26, 1.42);
+
+            gridEl.classList.toggle(MANDALA_EMBED_COMPACT_CLASS, cellSize < 68);
             gridEl.style.setProperty(MANDALA_EMBED_CELL_SIZE_VAR, `${cellSize}px`);
+            gridEl.style.setProperty(
+                MANDALA_EMBED_FONT_SIZE_VAR,
+                `${contentFontSize}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_HEADER_FONT_SIZE_VAR,
+                `${headerFontSize}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_SECTION_FONT_SIZE_VAR,
+                `${sectionFontSize}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_CONTENT_PADDING_Y_VAR,
+                `${contentPaddingY}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_CONTENT_PADDING_X_VAR,
+                `${contentPaddingX}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_CONTENT_PADDING_BOTTOM_VAR,
+                `${contentPaddingBottom}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_HEADER_PADDING_Y_VAR,
+                `${headerPaddingY}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_HEADER_PADDING_X_VAR,
+                `${headerPaddingX}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_HEADER_GAP_VAR,
+                `${headerGap}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR,
+                `${headerButtonSize}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_HEADER_ICON_SIZE_VAR,
+                `${headerIconSize}px`,
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_LINE_HEIGHT_VAR,
+                lineHeight.toFixed(2),
+            );
         };
 
         const scheduleUpdate = () => {
