@@ -113,6 +113,65 @@
     overflow: auto;
     font-size: var(--mandala-embed-font-size, inherit);
     line-height: var(--mandala-embed-line-height, 1.4);
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    --scrollbar-thumb-bg: transparent;
+    --scrollbar-active-thumb-bg: transparent;
+    --scrollbar-bg: transparent;
+}
+
+.mandala-embed-3x3-cell-markdown::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.mandala-embed-3x3-cell-markdown::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.mandala-embed-3x3-cell:hover .mandala-embed-3x3-cell-markdown,
+.mandala-embed-3x3-cell:focus-within .mandala-embed-3x3-cell-markdown,
+.mandala-embed-3x3-cell-markdown:hover {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-muted) 70%, transparent)
+        transparent;
+}
+
+.mandala-embed-3x3-cell:hover .mandala-embed-3x3-cell-markdown::-webkit-scrollbar,
+.mandala-embed-3x3-cell:focus-within
+    .mandala-embed-3x3-cell-markdown::-webkit-scrollbar,
+.mandala-embed-3x3-cell-markdown:hover::-webkit-scrollbar {
+    width: var(--mandala-embed-scrollbar-size, 4px);
+    height: var(--mandala-embed-scrollbar-size, 4px);
+}
+
+.mandala-embed-3x3-cell:hover
+    .mandala-embed-3x3-cell-markdown::-webkit-scrollbar-thumb,
+.mandala-embed-3x3-cell:focus-within
+    .mandala-embed-3x3-cell-markdown::-webkit-scrollbar-thumb,
+.mandala-embed-3x3-cell-markdown:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text-muted) 70%, transparent);
+    border-radius: 999px;
+}
+
+.mandala-embed-3x3-cell-markdown :where(ul, ol) {
+    margin-block: 0;
+    padding-inline-start: 1.05em;
+}
+
+.mandala-embed-3x3-cell-markdown :where(li) {
+    margin-block: 0;
+    line-height: inherit;
+}
+
+.mandala-embed-3x3-cell-markdown :where(p) {
+    margin-block: 0;
+}
+
+.mandala-embed-3x3-cell-markdown :where(h1, h2, h3, h4, h5, h6) {
+    margin-top: 0;
+    margin-bottom: 0.1em;
+    line-height: 1.15;
 }
 
 .mandala-embed-3x3-cell-section {
@@ -129,7 +188,69 @@
     border-radius: 3px;
 }
 
-.mandala-embed-3x3-grid.is-compact .mandala-embed-3x3-cell-section {
+.mandala-embed-3x3-grid.is-density-compact .mandala-embed-3x3-cell-content {
+    padding: max(2px, var(--mandala-embed-content-padding-y, 8px))
+        max(2px, calc(var(--mandala-embed-content-padding-x, 10px) - 2px))
+        max(4px, calc(var(--mandala-embed-content-padding-bottom, 14px) - 4px));
+}
+
+.mandala-embed-3x3-grid.is-density-compact .mandala-embed-3x3-cell-markdown {
+    line-height: max(1.18, calc(var(--mandala-embed-line-height, 1.4) - 0.06));
+}
+
+.mandala-embed-3x3-grid.is-density-compact
+    .mandala-embed-3x3-cell-markdown
+    :where(ul, ol) {
+    padding-inline-start: 0.9em;
+}
+
+.internal-embed.mandala-embed-density-compact .mandala-embed-host-header {
+    padding: max(2px, var(--mandala-embed-header-padding-y, 4px))
+        max(4px, calc(var(--mandala-embed-header-padding-x, 8px) - 2px));
+}
+
+.internal-embed.mandala-embed-density-compact .mandala-embed-header-link {
+    width: max(13px, calc(var(--mandala-embed-header-button-size, 20px) - 2px));
+    height: max(13px, calc(var(--mandala-embed-header-button-size, 20px) - 2px));
+}
+
+.mandala-embed-3x3-grid.is-density-ultra .mandala-embed-3x3-cell-content {
+    padding: 2px 2px 4px;
+}
+
+.internal-embed.mandala-embed-density-ultra .mandala-embed-host-header {
+    padding: 2px 4px;
+    gap: 4px;
+}
+
+.internal-embed.mandala-embed-density-ultra .mandala-embed-header-title {
+    font-weight: 600;
+}
+
+.internal-embed.mandala-embed-density-ultra .mandala-embed-header-link {
+    width: 12px;
+    height: 12px;
+}
+
+.internal-embed.mandala-embed-density-ultra .mandala-embed-header-link-icon {
+    width: 10px;
+    height: 10px;
+}
+
+.mandala-embed-3x3-grid.is-density-ultra
+    .mandala-embed-3x3-cell-markdown
+    :where(ul, ol) {
+    padding-inline-start: 0.8em;
+}
+
+.mandala-embed-3x3-grid.is-density-ultra
+    .mandala-embed-3x3-cell-markdown
+    :where(h1, h2, h3, h4, h5, h6) {
+    margin-bottom: 0;
+}
+
+.mandala-embed-3x3-grid.is-density-compact .mandala-embed-3x3-cell-section,
+.mandala-embed-3x3-grid.is-density-ultra .mandala-embed-3x3-cell-section {
     display: none;
 }
 

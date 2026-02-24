@@ -27,7 +27,12 @@ const MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR = '--mandala-embed-header-button-size
 const MANDALA_EMBED_HEADER_ICON_SIZE_VAR = '--mandala-embed-header-icon-size';
 const MANDALA_EMBED_SECTION_FONT_SIZE_VAR = '--mandala-embed-section-font-size';
 const MANDALA_EMBED_LINE_HEIGHT_VAR = '--mandala-embed-line-height';
-const MANDALA_EMBED_COMPACT_CLASS = 'is-compact';
+const MANDALA_EMBED_SCROLLBAR_SIZE_VAR = '--mandala-embed-scrollbar-size';
+const MANDALA_EMBED_DENSITY_COMPACT_CLASS = 'is-density-compact';
+const MANDALA_EMBED_DENSITY_ULTRA_CLASS = 'is-density-ultra';
+const MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS =
+    'mandala-embed-density-compact';
+const MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS = 'mandala-embed-density-ultra';
 const SECTION_COMMENT_BLOCK_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
 const TASK_LINE_RE = /^([ \t]*[-*+]\s*\[)([ xX])(\].*)$/gmu;
 
@@ -462,6 +467,8 @@ export class MandalaEmbedController {
         this.embed.removeAttribute(MANDALA_EMBED_MANAGED_ATTR);
         this.embed.classList.remove('mandala-embed-3x3');
         this.embed.classList.remove('mandala-embed-debug');
+        this.embed.classList.remove(MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS);
+        this.embed.classList.remove(MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS);
     }
 
     private queryMandalaHost() {
@@ -533,23 +540,70 @@ export class MandalaEmbedController {
             const cellSize = Math.max(1, Math.floor(width / 3));
             const scale = clamp(cellSize / 120, 0.45, 1.15);
 
+            const isUltraDensity = cellSize < 72;
+            const isCompactDensity = !isUltraDensity && cellSize < 96;
+
             const contentFontSize = clamp(Math.round(16 * scale), 9, 16);
             const headerFontSize = clamp(Math.round(contentFontSize * 1.15), 10, 18);
             const sectionFontSize = clamp(Math.round(10 * scale), 7, 10);
 
-            const contentPaddingY = clamp(Math.round(8 * scale), 2, 8);
-            const contentPaddingX = clamp(Math.round(10 * scale), 2, 10);
-            const contentPaddingBottom = clamp(Math.round(14 * scale), 6, 14);
+            const contentPaddingY = clamp(
+                Math.round(8 * scale) - (isCompactDensity ? 1 : 0),
+                2,
+                8,
+            );
+            const contentPaddingX = clamp(
+                Math.round(10 * scale) - (isCompactDensity ? 2 : 0),
+                2,
+                10,
+            );
+            const contentPaddingBottom = clamp(
+                Math.round(14 * scale) - (isCompactDensity ? 3 : 0),
+                4,
+                14,
+            );
 
-            const headerPaddingY = clamp(Math.round(4 * scale), 2, 4);
-            const headerPaddingX = clamp(Math.round(8 * scale), 4, 8);
+            const headerPaddingY = clamp(
+                Math.round(4 * scale) - (isCompactDensity ? 1 : 0),
+                2,
+                4,
+            );
+            const headerPaddingX = clamp(
+                Math.round(8 * scale) - (isCompactDensity ? 1 : 0),
+                4,
+                8,
+            );
             const headerGap = clamp(Math.round(8 * scale), 4, 8);
-            const headerButtonSize = clamp(Math.round(20 * scale), 14, 20);
-            const headerIconSize = clamp(Math.round(14 * scale), 10, 14);
+            const headerButtonSize = clamp(
+                Math.round(20 * scale) - (isCompactDensity ? 2 : 0),
+                12,
+                20,
+            );
+            const headerIconSize = clamp(
+                Math.round(14 * scale) - (isCompactDensity ? 1 : 0),
+                10,
+                14,
+            );
 
-            const lineHeight = clamp(1.22 + scale * 0.2, 1.26, 1.42);
+            const lineHeight = clamp(1.18 + scale * 0.2, 1.22, 1.4);
+            const scrollbarSize = isUltraDensity ? 3 : isCompactDensity ? 4 : 5;
 
-            gridEl.classList.toggle(MANDALA_EMBED_COMPACT_CLASS, cellSize < 68);
+            gridEl.classList.toggle(
+                MANDALA_EMBED_DENSITY_COMPACT_CLASS,
+                isCompactDensity || isUltraDensity,
+            );
+            gridEl.classList.toggle(
+                MANDALA_EMBED_DENSITY_ULTRA_CLASS,
+                isUltraDensity,
+            );
+            this.embed.classList.toggle(
+                MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS,
+                isCompactDensity || isUltraDensity,
+            );
+            this.embed.classList.toggle(
+                MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS,
+                isUltraDensity,
+            );
             gridEl.style.setProperty(MANDALA_EMBED_CELL_SIZE_VAR, `${cellSize}px`);
             gridEl.style.setProperty(
                 MANDALA_EMBED_FONT_SIZE_VAR,
@@ -598,6 +652,10 @@ export class MandalaEmbedController {
             gridEl.style.setProperty(
                 MANDALA_EMBED_LINE_HEIGHT_VAR,
                 lineHeight.toFixed(2),
+            );
+            gridEl.style.setProperty(
+                MANDALA_EMBED_SCROLLBAR_SIZE_VAR,
+                `${scrollbarSize}px`,
             );
         };
 
