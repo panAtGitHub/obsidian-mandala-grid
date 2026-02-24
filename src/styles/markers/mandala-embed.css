@@ -58,7 +58,9 @@
     .mandala-embed-3x3-cell-markdown
     .markdown-preview-section
     .markdown-preview-pusher {
-    padding: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
 }
 
 .internal-embed.mandala-embed-3x3
@@ -88,8 +90,20 @@
 .internal-embed.mandala-embed-3x3
     .mandala-embed-3x3-cell-markdown
     ol {
-    margin-top: 0;
-    margin-bottom: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    li,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    li > p {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
 }
 
 /* temporary probe styles for spacing diagnostics */
