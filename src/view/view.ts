@@ -89,6 +89,9 @@ export class MandalaView extends TextFileView {
     dayPlanHotCores: Set<string> = new Set();
     minimapDom: MinimapDomElements | null = null;
     private pendingEphemeralState: unknown = null;
+    private hasPendingExplicitJump = false;
+    private focusMandalaSectionRequestId = 0;
+    private focusMandalaSectionTimer: number | null = null;
     private readonly onDestroyCallbacks: Set<Unsubscriber> = new Set();
     private activeFilePath: null | string;
     private lastLoadedBody = '';
@@ -174,6 +177,7 @@ export class MandalaView extends TextFileView {
     }
 
     async onUnloadFile() {
+        this.cancelFocusMandalaSection();
         if (this.component) {
             this.component.$destroy();
         }
@@ -225,6 +229,10 @@ export class MandalaView extends TextFileView {
     setEphemeralState(state: unknown) {
         super.setEphemeralState(state);
         if (!state) return;
+        if (this.isExplicitJumpState(state)) {
+            this.hasPendingExplicitJump = true;
+            this.cancelFocusMandalaSection();
+        }
         const documentLoaded =
             this.documentStore.getValue().document.columns.length > 0;
         if (!documentLoaded) {
@@ -232,11 +240,16 @@ export class MandalaView extends TextFileView {
             return;
         }
         if (typeof (state as { subpath?: string }).subpath === 'string') {
-            void this.handleSubpathJump(
-                (state as { subpath: string }).subpath,
-            );
+            void this.handleSubpathJump((state as { subpath: string }).subpath)
+                .finally(() => {
+                    this.hasPendingExplicitJump = false;
+                });
         } else if (typeof (state as { line?: number }).line === 'number') {
-            void this.handleLineJump((state as { line: number }).line);
+            void this.handleLineJump((state as { line: number }).line).finally(
+                () => {
+                    this.hasPendingExplicitJump = false;
+                },
+            );
         }
     }
 
@@ -413,7 +426,9 @@ export class MandalaView extends TextFileView {
             this.lastActivationNotice = null;
         }
         if (activation.targetSection) {
-            this.focusMandalaSection(activation.targetSection);
+            if (!this.shouldSkipAutoFocusToday()) {
+                this.focusMandalaSection(activation.targetSection);
+            }
         } else {
             this.restoreMandalaUiState(filePath);
         }
@@ -522,19 +537,25 @@ export class MandalaView extends TextFileView {
     );
 
     private focusMandalaSection(targetSection: string) {
+        this.cancelFocusMandalaSection();
         const currentNodeId = this.viewStore.getValue().document.activeNode;
         const currentSection = this.documentStore.getValue().sections.id_section[
             currentNodeId
         ];
         if (currentSection === targetSection) return;
 
+        const requestId = ++this.focusMandalaSectionRequestId;
         const startMs = performance.now();
         const run = (attempt: number) => {
+            if (requestId !== this.focusMandalaSectionRequestId) return;
             const nodeId =
                 this.documentStore.getValue().sections.section_id[targetSection];
             if (!nodeId) {
                 if (attempt < 20) {
-                    window.setTimeout(() => run(attempt + 1), 80);
+                    this.focusMandalaSectionTimer = window.setTimeout(
+                        () => run(attempt + 1),
+                        80,
+                    );
                 } else {
                     logger.debug('[perf][view] focusMandalaSection-timeout', {
                         file: this.file?.path,
@@ -546,6 +567,7 @@ export class MandalaView extends TextFileView {
                 return;
             }
 
+            this.focusMandalaSectionTimer = null;
             this.viewStore.dispatch({
                 type: 'view/mandala/subgrid/enter',
                 payload: { theme: targetSection },
@@ -562,7 +584,31 @@ export class MandalaView extends TextFileView {
             });
         };
 
-        window.setTimeout(() => run(0), 80);
+        this.focusMandalaSectionTimer = window.setTimeout(() => run(0), 80);
+    }
+
+    private shouldSkipAutoFocusToday() {
+        return (
+            this.hasPendingExplicitJump ||
+            this.isExplicitJumpState(this.pendingEphemeralState)
+        );
+    }
+
+    private isExplicitJumpState(state: unknown): boolean {
+        if (!state || typeof state !== 'object') return false;
+        const maybeState = state as { subpath?: unknown; line?: unknown };
+        return (
+            typeof maybeState.subpath === 'string' ||
+            typeof maybeState.line === 'number'
+        );
+    }
+
+    private cancelFocusMandalaSection() {
+        this.focusMandalaSectionRequestId += 1;
+        if (this.focusMandalaSectionTimer !== null) {
+            window.clearTimeout(this.focusMandalaSectionTimer);
+            this.focusMandalaSectionTimer = null;
+        }
     }
 
     private getMandalaProfileActivation(frontmatter: string) {
