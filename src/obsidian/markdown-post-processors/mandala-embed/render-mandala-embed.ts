@@ -488,7 +488,7 @@ export const createRenderMandalaEmbedPostProcessor =
             for (const embed of Array.from(embeds)) {
                 const src = embed.getAttribute('src');
                 const markerIntent = hasMarkerIntent(src);
-                const probeEnabled = markerIntent || debugEnabled;
+                const probeEnabled = debugEnabled;
                 embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
                 try {
                     const parsedSrc = parseMandalaEmbedSrc(src);
