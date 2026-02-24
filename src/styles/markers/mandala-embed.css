@@ -36,6 +36,13 @@
 .mandala-embed-3x3-cell-content {
     height: 100%;
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+.internal-embed.mandala-embed-3x3 .mandala-embed-3x3-cell-markdown {
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
     overflow: auto;
     padding: 10px 12px 18px;
 }

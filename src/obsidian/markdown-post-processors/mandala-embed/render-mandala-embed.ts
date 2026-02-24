@@ -87,17 +87,22 @@ const renderGrid = async (
             cellEl.appendChild(sectionEl);
 
             const contentEl = document.createElement('div');
-            contentEl.className = 'mandala-embed-3x3-cell-content markdown-rendered';
+            contentEl.className = 'mandala-embed-3x3-cell-content';
             cellEl.appendChild(contentEl);
 
+            const markdownEl = document.createElement('div');
+            markdownEl.className =
+                'mandala-embed-3x3-cell-markdown markdown-preview-view markdown-rendered';
+            contentEl.appendChild(markdownEl);
+
             if (cell.markdown.trim()) {
-                const renderChild = new MarkdownRenderChild(contentEl);
+                const renderChild = new MarkdownRenderChild(markdownEl);
                 ctx.addChild(renderChild);
                 await Promise.resolve(
                     MarkdownRenderer.render(
                         plugin.app,
                         cell.markdown,
-                        contentEl,
+                        markdownEl,
                         sourceFile.path,
                         renderChild,
                     ),
