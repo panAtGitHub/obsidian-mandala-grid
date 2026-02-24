@@ -1,6 +1,5 @@
 import {
     MarkdownRenderChild,
-    MarkdownRenderer,
     parseLinktext,
     resolveSubpath,
     setIcon,
@@ -17,9 +16,8 @@ import {
     type ParsedMandalaEmbedSrc,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-src';
 import { logger } from 'src/helpers/logger';
-import { formatText } from 'src/view/actions/markdown-preview/helpers/format-text';
-import { markHiddenInfoElements } from 'src/view/actions/markdown-preview/helpers/mark-hidden-info-elements';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
+import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
 
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
@@ -291,7 +289,7 @@ const renderGrid = (
 
             const markdownEl = document.createElement('div');
             markdownEl.className =
-                'mandala-embed-3x3-cell-markdown markdown-preview-view markdown-rendered';
+                'mandala-embed-3x3-cell-markdown markdown-rendered';
             contentEl.appendChild(markdownEl);
 
             if (cell.markdown.trim()) {
@@ -304,18 +302,16 @@ const renderGrid = (
                     sourceFile,
                     cell.section,
                 );
-                const formatted = formatText(cell.markdown);
-                const renderResult = MarkdownRenderer.render(
-                    plugin.app,
-                    formatted,
-                    markdownEl,
-                    sourceFile.path,
-                    renderChild,
-                );
-                void Promise.resolve(renderResult).then(() => {
-                    markHiddenInfoElements(markdownEl);
-                    enableRenderedCheckboxes(markdownEl);
+                const renderResult = renderMarkdownContent({
+                    app: plugin.app,
+                    content: cell.markdown,
+                    element: markdownEl,
+                    sourcePath: sourceFile.path,
+                    component: renderChild,
+                    applyFormatText: true,
+                    onAfterRender: enableRenderedCheckboxes,
                 });
+                void Promise.resolve(renderResult);
             }
 
             gridEl.appendChild(cellEl);
