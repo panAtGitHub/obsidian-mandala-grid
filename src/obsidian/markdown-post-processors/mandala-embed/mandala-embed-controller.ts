@@ -153,7 +153,7 @@ export class MandalaEmbedController {
     clear() {
         this.state = { mode: 'native' };
         this.cancelScheduledRender();
-        this.renderNow(this.nextGeneration());
+        void this.renderNow(this.nextGeneration());
     }
 
     private handleEmbedMutation() {
@@ -263,11 +263,11 @@ export class MandalaEmbedController {
         this.cancelScheduledRender();
         this.scheduledRaf = requestAnimationFrame(() => {
             this.scheduledRaf = null;
-            this.renderNow(generation);
+            void this.renderNow(generation);
         });
     }
 
-    private renderNow(generation: number) {
+    private async renderNow(generation: number) {
         if (generation !== this.generation) return;
 
         try {
@@ -281,15 +281,23 @@ export class MandalaEmbedController {
                 return;
             }
 
-            void this.renderManaged(generation, this.state.payload);
+            await this.renderManaged(generation, this.state.payload);
         } catch (error: unknown) {
-            logger.error('[mandala-embed]', {
-                phase: 'controller-render-failed',
-                src: this.embed.getAttribute('src') ?? '<null>',
-                error: formatUnknownError(error),
-            });
-            this.clearManagedArtifacts();
+            this.handleRenderFailure(generation, error);
         }
+    }
+
+    private handleRenderFailure(generation: number, error: unknown) {
+        // Ignore stale async failures from older generations to avoid
+        // clearing a newer successful render.
+        if (generation !== this.generation) return;
+
+        logger.error('[mandala-embed]', {
+            phase: 'controller-render-failed',
+            src: this.embed.getAttribute('src') ?? '<null>',
+            error: formatUnknownError(error),
+        });
+        this.clearManagedArtifacts();
     }
 
     private async renderManaged(
