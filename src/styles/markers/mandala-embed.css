@@ -61,6 +61,37 @@
     padding: 0;
 }
 
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    h1,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    h2,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    h3,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    h4,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    h5,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    h6,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    p,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    ul,
+.internal-embed.mandala-embed-3x3
+    .mandala-embed-3x3-cell-markdown
+    ol {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 /* temporary probe styles for spacing diagnostics */
 .internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown {
     outline: 1px dashed rgba(255, 165, 0, 0.75);
