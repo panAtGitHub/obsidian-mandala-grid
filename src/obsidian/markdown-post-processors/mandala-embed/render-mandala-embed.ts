@@ -95,14 +95,25 @@ const renderGrid = async (
                 'mandala-embed-3x3-cell-markdown markdown-preview-view markdown-rendered';
             contentEl.appendChild(markdownEl);
 
+            const previewSectionEl = document.createElement('div');
+            previewSectionEl.className = 'markdown-preview-section';
+            markdownEl.appendChild(previewSectionEl);
+
+            const previewPusherEl = document.createElement('div');
+            previewPusherEl.className = 'markdown-preview-pusher';
+            previewSectionEl.appendChild(previewPusherEl);
+
+            const previewBodyEl = document.createElement('div');
+            previewSectionEl.appendChild(previewBodyEl);
+
             if (cell.markdown.trim()) {
-                const renderChild = new MarkdownRenderChild(markdownEl);
+                const renderChild = new MarkdownRenderChild(previewBodyEl);
                 ctx.addChild(renderChild);
                 await Promise.resolve(
                     MarkdownRenderer.render(
                         plugin.app,
                         cell.markdown,
-                        markdownEl,
+                        previewBodyEl,
                         sourceFile.path,
                         renderChild,
                     ),
