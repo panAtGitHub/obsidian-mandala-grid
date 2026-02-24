@@ -1,5 +1,6 @@
 import {
     MarkdownRenderChild,
+    MarkdownRenderer,
     parseLinktext,
     resolveSubpath,
     TFile,
@@ -15,6 +16,8 @@ import {
     type ParsedMandalaEmbedSrc,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-src';
 import { logger } from 'src/helpers/logger';
+import { formatText } from 'src/view/actions/markdown-preview/helpers/format-text';
+import { markHiddenInfoElements } from 'src/view/actions/markdown-preview/helpers/mark-hidden-info-elements';
 
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
@@ -104,9 +107,11 @@ const renderDebugPanel = (
 };
 
 const renderGrid = (
+    plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     container: HTMLElement,
     model: MandalaEmbedGridModel,
+    sourceFile: TFile,
 ) => {
     const gridEl = document.createElement('div');
     gridEl.className = 'mandala-embed-3x3-grid';
@@ -131,24 +136,25 @@ const renderGrid = (
             contentEl.className = 'mandala-embed-3x3-cell-content';
             cellEl.appendChild(contentEl);
 
-            if (cell.title) {
-                const titleEl = document.createElement('div');
-                titleEl.className = 'mandala-embed-3x3-cell-title';
-                titleEl.setText(cell.title);
-                contentEl.appendChild(titleEl);
-            }
+            const markdownEl = document.createElement('div');
+            markdownEl.className =
+                'mandala-embed-3x3-cell-markdown markdown-preview-view markdown-rendered';
+            contentEl.appendChild(markdownEl);
 
-            if (cell.body) {
-                const bodyEl = document.createElement('div');
-                bodyEl.className = 'mandala-embed-3x3-cell-body';
-                bodyEl.setText(cell.body);
-                contentEl.appendChild(bodyEl);
-            }
-
-            if (!cell.title && !cell.body) {
-                const emptyEl = document.createElement('div');
-                emptyEl.className = 'mandala-embed-3x3-cell-empty';
-                contentEl.appendChild(emptyEl);
+            if (cell.markdown.trim()) {
+                const renderChild = new MarkdownRenderChild(markdownEl);
+                ctx.addChild(renderChild);
+                const formatted = formatText(cell.markdown);
+                const renderResult = MarkdownRenderer.render(
+                    plugin.app,
+                    formatted,
+                    markdownEl,
+                    sourceFile.path,
+                    renderChild,
+                );
+                void Promise.resolve(renderResult).then(() =>
+                    markHiddenInfoElements(markdownEl),
+                );
             }
 
             gridEl.appendChild(cellEl);
@@ -310,6 +316,7 @@ const scheduleMarkerGridRerender = (
     ctx: MarkdownPostProcessorContext,
     embed: HTMLElement,
     model: MandalaEmbedGridModel,
+    sourceFile: TFile,
     expectedSrc: string | null,
 ) => {
     const rerenderOnce = (delay_ms: number) => {
@@ -327,7 +334,7 @@ const scheduleMarkerGridRerender = (
             embed.classList.add('mandala-embed-3x3');
             embed.classList.remove('mandala-embed-debug');
             try {
-                renderGrid(ctx, host, model);
+                renderGrid(plugin, ctx, host, model, sourceFile);
             } catch {
                 clearMandalaRender(embed);
             }
@@ -425,12 +432,13 @@ export const createRenderMandalaEmbedPostProcessor =
                     embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
                     embed.classList.add('mandala-embed-3x3');
                     embed.classList.remove('mandala-embed-debug');
-                    renderGrid(ctx, host, model);
+                    renderGrid(plugin, ctx, host, model, target.file);
                     scheduleMarkerGridRerender(
                         plugin,
                         ctx,
                         embed,
                         model,
+                        target.file,
                         src,
                     );
                 } catch (error: unknown) {

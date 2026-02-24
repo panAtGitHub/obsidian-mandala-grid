@@ -36,39 +36,16 @@
 
 .mandala-embed-3x3-cell-content {
     height: 100%;
-    padding: 10px 12px 14px;
+    padding: 8px 10px 14px;
     box-sizing: border-box;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 
-.mandala-embed-3x3-cell-title {
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1.3;
-    color: var(--text-normal);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    word-break: break-word;
-}
-
-.mandala-embed-3x3-cell-body {
-    flex: 1;
-    min-height: 0;
+.mandala-embed-3x3-cell-markdown {
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
     overflow: auto;
-    font-size: 14px;
-    line-height: 1.45;
-    color: var(--text-muted);
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.mandala-embed-3x3-cell-empty {
-    flex: 1;
 }
 
 .mandala-embed-3x3-cell-section {
