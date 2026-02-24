@@ -25,9 +25,8 @@ export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 
 const SECTION_COMMENT_LINE_RE =
     /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
-
-const isSkippedContext = (el: HTMLElement) =>
-    el.classList.contains('lng-prev') || Boolean(el.closest('.lng-prev'));
+const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
+const MAX_MANAGED_ANCESTOR_DEPTH = 1;
 
 const controllerByEmbed = new WeakMap<HTMLElement, MandalaEmbedController>();
 
@@ -119,11 +118,32 @@ const buildModelFromFile = async (
 const formatUnknownError = (error: unknown) =>
     error instanceof Error ? error.message : String(error);
 
+const getManagedAncestorDepth = (embed: HTMLElement) => {
+    let depth = 0;
+    let cursor: HTMLElement | null = embed;
+
+    while (cursor) {
+        const parentEl: HTMLElement | null = cursor.parentElement;
+        if (!parentEl) break;
+
+        const parentWithClosest = parentEl as unknown as {
+            closest: (selector: string) => Element | null;
+        };
+        const candidateEl = parentWithClosest.closest(
+            `.internal-embed[${MANDALA_EMBED_MANAGED_ATTR}='true']`,
+        );
+        if (!(candidateEl instanceof HTMLElement)) break;
+
+        depth += 1;
+        cursor = candidateEl;
+    }
+
+    return depth;
+};
+
 export const createRenderMandalaEmbedPostProcessor =
     (plugin: MandalaGrid) => {
         return async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
-            if (isSkippedContext(el)) return;
-
             const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
             if (embeds.length === 0) return;
 
@@ -151,8 +171,22 @@ export const createRenderMandalaEmbedPostProcessor =
             for (const embed of Array.from(embeds)) {
                 const controller = getOrCreateController(plugin, embed);
                 const src = embed.getAttribute('src');
+                const managedAncestorDepth = getManagedAncestorDepth(embed);
 
                 try {
+                    if (managedAncestorDepth > MAX_MANAGED_ANCESTOR_DEPTH) {
+                        if (debugEnabled) {
+                            controller.updateDebug([
+                                'mandala debug: max nested depth reached',
+                                `src: ${src ?? '<null>'}`,
+                                `maxDepth: ${String(MAX_MANAGED_ANCESTOR_DEPTH)}`,
+                            ]);
+                        } else {
+                            controller.clear();
+                        }
+                        continue;
+                    }
+
                     const parsedSrc = parseMandalaEmbedSrc(src);
                     if (!parsedSrc) {
                         controller.clear();
