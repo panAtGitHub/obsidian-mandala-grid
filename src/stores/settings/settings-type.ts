@@ -93,7 +93,8 @@ export type Settings = {
         showLeftSidebar: boolean;
         showMandalaDetailSidebarDesktop: boolean;
         showMandalaDetailSidebarMobile: boolean;
-        detailSidebarPreviewMode: DetailSidebarPreviewMode;
+        detailSidebarPreviewModeDesktop: DetailSidebarPreviewMode;
+        detailSidebarPreviewModeMobile: DetailSidebarPreviewMode;
         mandalaDetailSidebarWidth: number;
         leftSidebarWidth: number;
         leftSidebarActiveTab: LeftSidebarTab;

@@ -99,6 +99,9 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         showMandalaDetailSidebar?: boolean;
         showMandalaDetailSidebarDesktop?: boolean;
         showMandalaDetailSidebarMobile?: boolean;
+        detailSidebarPreviewMode?: 'rendered' | 'source';
+        detailSidebarPreviewModeDesktop?: 'rendered' | 'source';
+        detailSidebarPreviewModeMobile?: 'rendered' | 'source';
         mandalaA4Mode?: boolean;
         mandalaA4Orientation?: 'portrait' | 'landscape';
         mandalaBackgroundMode?: 'none' | 'custom' | 'gray';
@@ -123,6 +126,16 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         viewSettings.showMandalaDetailSidebarMobile =
             viewSettings.showMandalaDetailSidebar;
         delete viewSettings.showMandalaDetailSidebar;
+    }
+    if (
+        viewSettings.detailSidebarPreviewMode === 'rendered' ||
+        viewSettings.detailSidebarPreviewMode === 'source'
+    ) {
+        viewSettings.detailSidebarPreviewModeDesktop =
+            viewSettings.detailSidebarPreviewMode;
+        viewSettings.detailSidebarPreviewModeMobile =
+            viewSettings.detailSidebarPreviewMode;
+        delete viewSettings.detailSidebarPreviewMode;
     }
     if (viewSettings.mandalaA4Mode === undefined) {
         viewSettings.mandalaA4Mode = false;

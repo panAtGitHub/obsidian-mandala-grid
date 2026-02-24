@@ -455,7 +455,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/view/detail-sidebar/set-preview-mode': (store, action) => {
         if (action.type !== 'settings/view/detail-sidebar/set-preview-mode')
             return;
-        store.view.detailSidebarPreviewMode = action.payload.mode;
+        if (Platform.isMobile) {
+            store.view.detailSidebarPreviewModeMobile = action.payload.mode;
+            return;
+        }
+        store.view.detailSidebarPreviewModeDesktop = action.payload.mode;
     },
     'settings/view/toggle-3x3-subgrid-nav-buttons-desktop': (store, action) => {
         if (
