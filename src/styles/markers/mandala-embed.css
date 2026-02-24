@@ -9,6 +9,62 @@
     padding: 0;
 }
 
+.internal-embed .mandala-embed-host-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.internal-embed .mandala-embed-host-body {
+    display: block;
+    width: 100%;
+}
+
+.internal-embed .mandala-embed-header-title {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--text-normal);
+    font: inherit;
+    font-weight: var(--font-semibold);
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.internal-embed .mandala-embed-header-link {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.internal-embed .mandala-embed-header-link:hover {
+    color: var(--text-normal);
+    background: var(--background-modifier-hover);
+}
+
+.internal-embed .mandala-embed-header-link-icon {
+    width: 14px;
+    height: 14px;
+}
+
 .mandala-embed-3x3-grid {
     display: grid;
     grid-template-columns: repeat(3, var(--mandala-embed-cell-size, 120px));

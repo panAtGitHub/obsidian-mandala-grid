@@ -3,6 +3,7 @@ import {
     MarkdownRenderer,
     parseLinktext,
     resolveSubpath,
+    setIcon,
     TFile,
     type MarkdownPostProcessorContext,
 } from 'obsidian';
@@ -22,6 +23,8 @@ import { markHiddenInfoElements } from 'src/view/actions/markdown-preview/helper
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 const MANDALA_EMBED_HOST_CLASS = 'mandala-embed-host';
+const MANDALA_EMBED_HEADER_CLASS = 'mandala-embed-host-header';
+const MANDALA_EMBED_BODY_CLASS = 'mandala-embed-host-body';
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
 const MANDALA_EMBED_CELL_SIZE_VAR = '--mandala-embed-cell-size';
 
@@ -169,6 +172,14 @@ const renderGrid = (
 const isMandalaHost = (element: Element) =>
     element.classList.contains(MANDALA_EMBED_HOST_CLASS);
 
+const queryDirectChildByClass = (parent: HTMLElement, className: string) => {
+    for (const child of Array.from(parent.children)) {
+        if (!(child instanceof HTMLElement)) continue;
+        if (child.classList.contains(className)) return child;
+    }
+    return null;
+};
+
 const queryMandalaHost = (embed: HTMLElement) => {
     const children = Array.from(embed.children);
     for (const child of children) {
@@ -186,6 +197,75 @@ const getOrCreateMandalaHost = (embed: HTMLElement) => {
     created.className = MANDALA_EMBED_HOST_CLASS;
     embed.appendChild(created);
     return created;
+};
+
+const getOrCreateHostSection = (
+    host: HTMLElement,
+    className: string,
+    tagName: 'div' | 'button' = 'div',
+) => {
+    const existing = queryDirectChildByClass(host, className);
+    if (existing) return existing;
+    const created = document.createElement(tagName);
+    created.className = className;
+    host.appendChild(created);
+    return created;
+};
+
+const getOrCreateMandalaHostLayout = (embed: HTMLElement) => {
+    const host = getOrCreateMandalaHost(embed);
+    const header = getOrCreateHostSection(host, MANDALA_EMBED_HEADER_CLASS);
+    const body = getOrCreateHostSection(host, MANDALA_EMBED_BODY_CLASS);
+
+    if (host.firstElementChild !== header) {
+        host.insertBefore(header, host.firstChild);
+    }
+    if (header.nextElementSibling !== body) {
+        host.insertBefore(body, header.nextSibling);
+    }
+
+    return { host, header, body };
+};
+
+const renderEmbedHeader = (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    headerEl: HTMLElement,
+    target: EmbedTarget,
+    parsedSrc: ParsedMandalaEmbedSrc,
+) => {
+    headerEl.empty();
+
+    const titleEl = document.createElement('button');
+    titleEl.className = 'mandala-embed-header-title';
+    titleEl.type = 'button';
+    titleEl.setAttribute('aria-label', 'Open embed target');
+    titleEl.setText(target.centerHeading ?? target.file.basename);
+
+    const linkBtn = document.createElement('button');
+    linkBtn.className = 'mandala-embed-header-link';
+    linkBtn.type = 'button';
+    linkBtn.setAttribute('aria-label', 'Open embed target in note');
+    const linkIcon = document.createElement('span');
+    linkIcon.className = 'mandala-embed-header-link-icon';
+    setIcon(linkIcon, 'link');
+    linkBtn.appendChild(linkIcon);
+
+    const openTarget = (event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void plugin.app.workspace.openLinkText(
+            parsedSrc.linktext,
+            ctx.sourcePath,
+            false,
+        );
+    };
+
+    titleEl.addEventListener('click', openTarget);
+    linkBtn.addEventListener('click', openTarget);
+
+    headerEl.appendChild(titleEl);
+    headerEl.appendChild(linkBtn);
 };
 
 const resolveMarkdownFile = (
@@ -299,8 +379,11 @@ const clearMandalaRender = (embed: HTMLElement) => {
 
     const host = queryMandalaHost(embed);
     if (host) {
-        gridResizeCleanupByHost.get(host)?.();
-        gridResizeCleanupByHost.delete(host);
+        const body = queryDirectChildByClass(host, MANDALA_EMBED_BODY_CLASS);
+        if (body) {
+            gridResizeCleanupByHost.get(body)?.();
+            gridResizeCleanupByHost.delete(body);
+        }
     }
     host?.remove();
     embed.removeAttribute(MANDALA_EMBED_MANAGED_ATTR);
@@ -330,11 +413,13 @@ const scheduleMarkerGridRerender = (
             }
 
             const host = getOrCreateMandalaHost(embed);
+            const body =
+                queryDirectChildByClass(host, MANDALA_EMBED_BODY_CLASS) ?? host;
             embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
             embed.classList.add('mandala-embed-3x3');
             embed.classList.remove('mandala-embed-debug');
             try {
-                renderGrid(plugin, ctx, host, model, sourceFile);
+                renderGrid(plugin, ctx, body, model, sourceFile);
             } catch {
                 clearMandalaRender(embed);
             }
@@ -393,9 +478,9 @@ export const createRenderMandalaEmbedPostProcessor =
 
                     if (!target) {
                         if (debugEnabled) {
-                            const host = getOrCreateMandalaHost(embed);
+                            const { body } = getOrCreateMandalaHostLayout(embed);
                             const parsedLink = parseLinktext(parsedSrc.linktext);
-                            renderDebugPanel(embed, host, [
+                            renderDebugPanel(embed, body, [
                                 'mandala debug: target resolve failed',
                                 `src: ${src ?? '<null>'}`,
                                 `linktext: ${parsedSrc.linktext}`,
@@ -413,8 +498,8 @@ export const createRenderMandalaEmbedPostProcessor =
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
                         if (debugEnabled && embed.isConnected) {
-                            const host = getOrCreateMandalaHost(embed);
-                            renderDebugPanel(embed, host, [
+                            const { body } = getOrCreateMandalaHostLayout(embed);
+                            renderDebugPanel(embed, body, [
                                 'mandala debug: model build failed',
                                 `src: ${src ?? '<null>'}`,
                                 `file: ${target.file.path}`,
@@ -427,12 +512,13 @@ export const createRenderMandalaEmbedPostProcessor =
                         continue;
                     }
 
-                    const host = getOrCreateMandalaHost(embed);
+                    const { header, body } = getOrCreateMandalaHostLayout(embed);
 
                     embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
                     embed.classList.add('mandala-embed-3x3');
                     embed.classList.remove('mandala-embed-debug');
-                    renderGrid(plugin, ctx, host, model, target.file);
+                    renderEmbedHeader(plugin, ctx, header, target, parsedSrc);
+                    renderGrid(plugin, ctx, body, model, target.file);
                     scheduleMarkerGridRerender(
                         plugin,
                         ctx,
@@ -449,8 +535,8 @@ export const createRenderMandalaEmbedPostProcessor =
                         error: formatUnknownError(error),
                     });
                     if (debugEnabled && embed.isConnected) {
-                        const host = getOrCreateMandalaHost(embed);
-                        renderDebugPanel(embed, host, [
+                        const { body } = getOrCreateMandalaHostLayout(embed);
+                        renderDebugPanel(embed, body, [
                             'mandala debug: unexpected render error',
                             `src: ${src ?? '<null>'}`,
                             `error: ${formatUnknownError(error)}`,
