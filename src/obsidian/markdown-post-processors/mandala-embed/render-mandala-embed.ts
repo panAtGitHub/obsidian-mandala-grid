@@ -44,6 +44,11 @@ type ProbeBoxMetrics = {
     paddingBottom: string;
     lineHeight: string;
     display: string;
+    height: string;
+    minHeight: string;
+    offsetHeight: number;
+    scrollHeight: number;
+    clientHeight: number;
 };
 
 type ProbeCellSnapshot = {
@@ -63,6 +68,9 @@ type ProbeCellSnapshot = {
         tag: string | null;
         metrics: ProbeBoxMetrics | null;
     };
+    previewSection: ProbeBoxMetrics | null;
+    previewBody: ProbeBoxMetrics | null;
+    previewPusher: ProbeBoxMetrics | null;
 };
 
 const readProbeBoxMetrics = (element: Element | null): ProbeBoxMetrics | null => {
@@ -75,6 +83,11 @@ const readProbeBoxMetrics = (element: Element | null): ProbeBoxMetrics | null =>
         paddingBottom: style.paddingBottom,
         lineHeight: style.lineHeight,
         display: style.display,
+        height: style.height,
+        minHeight: style.minHeight,
+        offsetHeight: element.offsetHeight,
+        scrollHeight: element.scrollHeight,
+        clientHeight: element.clientHeight,
     };
 };
 
@@ -88,6 +101,13 @@ const collectProbeCellSnapshot = (
     const listItemParagraph = markdownEl.querySelector('li > p');
     const firstBlock = markdownEl.querySelector(
         '.markdown-preview-section > div:not(.markdown-preview-pusher) > :first-child',
+    );
+    const previewSection = markdownEl.querySelector('.markdown-preview-section');
+    const previewBody = markdownEl.querySelector(
+        '.markdown-preview-section > div:not(.markdown-preview-pusher)',
+    );
+    const previewPusher = markdownEl.querySelector(
+        '.markdown-preview-section > .markdown-preview-pusher',
     );
 
     return {
@@ -107,7 +127,22 @@ const collectProbeCellSnapshot = (
             tag: firstBlock?.tagName ?? null,
             metrics: readProbeBoxMetrics(firstBlock),
         },
+        previewSection: readProbeBoxMetrics(previewSection),
+        previewBody: readProbeBoxMetrics(previewBody),
+        previewPusher: readProbeBoxMetrics(previewPusher),
     };
+};
+
+const formatProbeCellSummary = (cell: ProbeCellSnapshot) => {
+    const headingBottom = cell.heading.metrics?.marginBottom ?? '-';
+    const listTop = cell.list.metrics?.marginTop ?? '-';
+    const listBottom = cell.list.metrics?.marginBottom ?? '-';
+    const itemBottom = cell.listItem?.marginBottom ?? '-';
+    const firstBottom = cell.firstBlock.metrics?.marginBottom ?? '-';
+    const pusherHeight = cell.previewPusher?.height ?? '-';
+    const pusherMinHeight = cell.previewPusher?.minHeight ?? '-';
+    const pusherOffset = cell.previewPusher?.offsetHeight ?? 0;
+    return `${cell.section} h.mb=${headingBottom} ul.mt=${listTop} ul.mb=${listBottom} li.mb=${itemBottom} first.mb=${firstBottom} pusher.h=${pusherHeight}/${pusherMinHeight}(${pusherOffset})`;
 };
 
 const renderDebugPanel = (
@@ -147,7 +182,7 @@ const renderGrid = async (
     const tableEl = document.createElement('table');
     tableEl.className = 'mandala-embed-3x3-table';
     const tbodyEl = document.createElement('tbody');
-    const probeCells: ProbeCellSnapshot[] = [];
+    const probeTargets: Array<{ section: string; markdownEl: HTMLElement }> = [];
 
     for (const row of model.rows) {
         const trEl = document.createElement('tr');
@@ -204,7 +239,7 @@ const renderGrid = async (
             }
 
             if (probeEnabled) {
-                probeCells.push(collectProbeCellSnapshot(markdownEl, cell.section));
+                probeTargets.push({ section: cell.section, markdownEl });
             }
 
             trEl.appendChild(cellEl);
@@ -217,11 +252,15 @@ const renderGrid = async (
     container.appendChild(tableEl);
 
     if (probeEnabled) {
+        const probeCells = probeTargets.map(({ section, markdownEl }) =>
+            collectProbeCellSnapshot(markdownEl, section),
+        );
         logger.error('[mandala-embed-probe]', {
             phase: probePhase,
             src: embedSrc ?? '<null>',
             file: sourceFile.path,
             cellCount: probeCells.length,
+            cellSummary: probeCells.map(formatProbeCellSummary),
             cells: probeCells,
         });
     }
