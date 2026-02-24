@@ -145,6 +145,12 @@ const formatProbeCellSummary = (cell: ProbeCellSnapshot) => {
     return `${cell.section} h.mb=${headingBottom} ul.mt=${listTop} ul.mb=${listBottom} li.mb=${itemBottom} first.mb=${firstBottom} pusher.h=${pusherHeight}/${pusherMinHeight}(${pusherOffset})`;
 };
 
+const compactEmbedMarkdown = (markdown: string) =>
+    markdown
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{2,}/g, '\n')
+        .trim();
+
 const renderDebugPanel = (
     embed: HTMLElement,
     container: HTMLElement,
@@ -224,13 +230,15 @@ const renderGrid = async (
             const previewBodyEl = document.createElement('div');
             previewSectionEl.appendChild(previewBodyEl);
 
-            if (cell.markdown.trim()) {
+            const renderMarkdown = compactEmbedMarkdown(cell.markdown);
+
+            if (renderMarkdown) {
                 const renderChild = new MarkdownRenderChild(previewBodyEl);
                 ctx.addChild(renderChild);
                 await Promise.resolve(
                     MarkdownRenderer.render(
                         plugin.app,
-                        cell.markdown,
+                        renderMarkdown,
                         previewBodyEl,
                         sourceFile.path,
                         renderChild,
