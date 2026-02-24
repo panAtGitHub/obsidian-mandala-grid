@@ -32,8 +32,9 @@
 
 .internal-embed .mandala-embed-header-title {
     color: var(--text-normal);
-    font: inherit;
-    font-weight: var(--font-semibold);
+    font-size: var(--h1-size);
+    line-height: var(--h1-line-height);
+    font-weight: var(--h1-weight);
     text-align: left;
     margin: 0;
     padding: 0;
@@ -55,12 +56,14 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 0;
+    box-shadow: none;
+    outline: none;
 }
 
 .internal-embed .mandala-embed-header-link:hover {
     color: var(--text-normal);
-    background: var(--background-modifier-hover);
+    background: transparent;
 }
 
 .internal-embed .mandala-embed-header-link-icon {

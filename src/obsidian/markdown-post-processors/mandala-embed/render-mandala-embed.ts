@@ -236,7 +236,7 @@ const renderEmbedHeader = (
 ) => {
     headerEl.empty();
 
-    const titleEl = document.createElement('span');
+    const titleEl = document.createElement('h1');
     titleEl.className = 'mandala-embed-header-title';
     titleEl.setText(target.centerHeading ?? target.file.basename);
 
@@ -246,7 +246,7 @@ const renderEmbedHeader = (
     linkBtn.setAttribute('aria-label', 'Open embed target in note');
     const linkIcon = document.createElement('span');
     linkIcon.className = 'mandala-embed-header-link-icon';
-    setIcon(linkIcon, 'link');
+    setIcon(linkIcon, 'maximize-2');
     linkBtn.appendChild(linkIcon);
 
     const openTarget = (event: MouseEvent) => {
