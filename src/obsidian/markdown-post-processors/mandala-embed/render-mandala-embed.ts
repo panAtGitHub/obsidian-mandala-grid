@@ -236,10 +236,8 @@ const renderEmbedHeader = (
 ) => {
     headerEl.empty();
 
-    const titleEl = document.createElement('button');
+    const titleEl = document.createElement('span');
     titleEl.className = 'mandala-embed-header-title';
-    titleEl.type = 'button';
-    titleEl.setAttribute('aria-label', 'Open embed target');
     titleEl.setText(target.centerHeading ?? target.file.basename);
 
     const linkBtn = document.createElement('button');
@@ -261,7 +259,6 @@ const renderEmbedHeader = (
         );
     };
 
-    titleEl.addEventListener('click', openTarget);
     linkBtn.addEventListener('click', openTarget);
 
     headerEl.appendChild(titleEl);
