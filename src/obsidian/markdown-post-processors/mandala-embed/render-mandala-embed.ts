@@ -429,31 +429,6 @@ const resolveMarkdownFile = (
         return fromSource;
     }
 
-    const fromRoot = plugin.app.metadataCache.getFirstLinkpathDest(path, '');
-    if (fromRoot instanceof TFile && fromRoot.extension === 'md') {
-        return fromRoot;
-    }
-
-    const direct = plugin.app.vault.getAbstractFileByPath(path);
-    if (direct instanceof TFile && direct.extension === 'md') return direct;
-
-    const withExt = path.endsWith('.md') ? path : `${path}.md`;
-    const directWithExt = plugin.app.vault.getAbstractFileByPath(withExt);
-    if (directWithExt instanceof TFile && directWithExt.extension === 'md') {
-        return directWithExt;
-    }
-
-    const byName = plugin.app.vault
-        .getAllLoadedFiles()
-        .find(
-            (item) =>
-                item instanceof TFile &&
-                item.extension === 'md' &&
-                item.basename.toLowerCase() ===
-                    path.split('/').pop()?.trim().toLowerCase(),
-        );
-    if (byName instanceof TFile) return byName;
-
     return null;
 };
 
