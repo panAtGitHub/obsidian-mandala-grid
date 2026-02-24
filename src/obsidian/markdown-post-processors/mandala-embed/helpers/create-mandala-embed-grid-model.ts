@@ -27,35 +27,32 @@ const normalizeCellPreviewText = (raw: string) =>
         .replace(/^\s*\d+\.\s+/gm, '')
         .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
         .replace(/\[\[([^\]]+)\]\]/g, '$1')
-        .replace(/`([^`]+)`/g, '$1')
-        .replace(/\*\*([^*]+)\*\*/g, '$1')
-        .replace(/\*([^*]+)\*/g, '$1')
         .replace(/\s+/g, ' ')
         .trim();
 
-const truncate = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, Math.max(0, maxLength - 1)).trimEnd() + '…';
-};
+const buildCellMarkdown = (rawBody: string) =>
+    normalizeCellPreviewText(rawBody).slice(0, 150);
 
 const toCellPreview = (content: string) => {
     const lines = content.split('\n');
     const firstLine = lines[0]?.trim() ?? '';
-    const rest = lines.slice(1).join('\n');
 
     if (HEADING_RE.test(firstLine)) {
-        const title = normalizeCellPreviewText(firstLine.replace(HEADING_RE, ''));
-        const body = normalizeCellPreviewText(rest);
+        const title = buildCellMarkdown(firstLine.replace(HEADING_RE, '').trim());
+        const restLines = lines.slice(1);
+        const body = restLines.length
+            ? buildCellMarkdown(restLines.join('\n').trim().slice(0, 150))
+            : '';
         return {
-            title: truncate(title, 36),
-            body: truncate(body, 180),
+            title,
+            body,
         };
     }
 
-    const normalized = normalizeCellPreviewText(content);
+    const body = buildCellMarkdown(content.trim().slice(0, 150));
     return {
-        title: truncate(normalized, 48),
-        body: '',
+        title: '',
+        body,
     };
 };
 

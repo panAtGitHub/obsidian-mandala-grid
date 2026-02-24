@@ -79,6 +79,20 @@ describe('createMandalaEmbedGridModel', () => {
         expect(model.rows[0][0].body).toContain('Shown');
     });
 
+    it('renders plain first line as body instead of title in 3x3 mode', () => {
+        const model = createMandalaEmbedGridModel(
+            buildMandalaMarkdown(),
+            'left-to-right',
+        );
+        expect(model).not.toBeNull();
+        if (!model) return;
+
+        // section 1.3 has plain text first line: "Theme C text"
+        expect(model.rows[0][2].section).toBe('1.3');
+        expect(model.rows[0][2].title).toBe('');
+        expect(model.rows[0][2].body).toBe('Theme C text');
+    });
+
     it('maps positions based on orientation', () => {
         const model = createMandalaEmbedGridModel(
             buildMandalaMarkdown(),
@@ -176,7 +190,8 @@ mandala: true
 
         expect(model.rows[1][1].section).toBe('1.1');
         expect(model.rows[0][0].section).toBe('1.1.1');
-        expect(model.rows[0][0].title.startsWith('Child A')).toBe(true);
+        expect(model.rows[0][0].title).toBe('');
+        expect(model.rows[0][0].body.startsWith('Child A')).toBe(true);
     });
 
     it('falls back to root center when custom center is missing', () => {
