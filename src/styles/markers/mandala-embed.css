@@ -5,23 +5,23 @@
 
 .internal-embed .mandala-embed-host {
     display: block;
+    width: 100%;
     padding: 0;
 }
 
-.mandala-embed-3x3-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
+.mandala-embed-3x3-grid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--mandala-embed-cell-size, 120px));
+    grid-auto-rows: var(--mandala-embed-cell-size, 120px);
+    width: fit-content;
+    max-width: 100%;
     background: var(--background-secondary);
 }
 
 .mandala-embed-3x3-cell {
     position: relative;
     border: 1px solid var(--background-modifier-border);
-    padding: 0;
-    height: auto;
-    aspect-ratio: 1 / 1;
-    vertical-align: top;
+    box-sizing: border-box;
     overflow: hidden;
     background: var(--background-primary);
 }
@@ -36,82 +36,53 @@
 
 .mandala-embed-3x3-cell-content {
     height: 100%;
+    padding: 10px 12px 14px;
     box-sizing: border-box;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.internal-embed.mandala-embed-3x3 .mandala-embed-3x3-cell-markdown {
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
+.mandala-embed-3x3-cell-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-normal);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.mandala-embed-3x3-cell-body {
+    flex: 1;
+    min-height: 0;
     overflow: auto;
-    padding: 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--text-muted);
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
-/* temporary probe styles for spacing diagnostics */
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown {
-    outline: 1px dashed rgba(255, 165, 0, 0.75);
-    outline-offset: -1px;
-    background-color: rgba(255, 165, 0, 0.08);
-}
-
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown .markdown-preview-section {
-    outline: 1px dashed rgba(64, 143, 255, 0.75);
-    outline-offset: -1px;
-    background-color: rgba(64, 143, 255, 0.1);
-}
-
-.internal-embed.mandala-embed-probe
-    .mandala-embed-3x3-cell-markdown
-    .markdown-preview-section
-    > div {
-    background-color: rgba(0, 195, 170, 0.08);
-}
-
-.internal-embed.mandala-embed-probe
-    .mandala-embed-3x3-cell-markdown
-    .markdown-preview-section
-    .markdown-preview-pusher {
-    background-color: rgba(255, 70, 70, 0.12);
-}
-
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown h1,
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown h2,
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown h3,
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown h4,
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown h5,
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown h6 {
-    outline: 1px dotted rgba(255, 86, 86, 0.8);
-}
-
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown p {
-    outline: 1px dotted rgba(88, 199, 110, 0.8);
-}
-
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown ul,
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown ol {
-    outline: 1px dotted rgba(207, 96, 255, 0.8);
-}
-
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown li {
-    outline: 1px dotted rgba(255, 191, 0, 0.8);
-}
-
-.internal-embed.mandala-embed-probe .mandala-embed-3x3-cell-markdown li > p {
-    outline: 1px dotted rgba(0, 194, 255, 0.8);
+.mandala-embed-3x3-cell-empty {
+    flex: 1;
 }
 
 .mandala-embed-3x3-cell-section {
     position: absolute;
-    right: 8px;
-    bottom: 2px;
+    right: 6px;
+    bottom: 4px;
     font-size: 10px;
+    line-height: 1;
     color: var(--text-faint);
     pointer-events: none;
     user-select: none;
     background: var(--background-primary);
-    padding: 1px 4px;
-    border-radius: 4px;
+    padding: 1px 3px;
+    border-radius: 3px;
 }
 
 .mandala-embed-debug-panel {

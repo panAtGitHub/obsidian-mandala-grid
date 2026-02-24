@@ -1,6 +1,5 @@
 import {
     MarkdownRenderChild,
-    MarkdownRenderer,
     parseLinktext,
     resolveSubpath,
     TFile,
@@ -21,7 +20,7 @@ type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top'
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 const MANDALA_EMBED_HOST_CLASS = 'mandala-embed-host';
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
-const MANDALA_EMBED_PROBE_CLASS = 'mandala-embed-probe';
+const MANDALA_EMBED_CELL_SIZE_VAR = '--mandala-embed-cell-size';
 
 type EmbedTarget = {
     file: TFile;
@@ -32,119 +31,53 @@ type EmbedTarget = {
 const isSkippedContext = (el: HTMLElement) =>
     el.classList.contains('lng-prev') || Boolean(el.closest('.lng-prev'));
 
-const hasMarkerIntent = (src: string | null) =>
-    Boolean(src && /(?:\$|%24|%2524)/iu.test(src));
 const SECTION_COMMENT_LINE_RE =
     /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
 
-type ProbeBoxMetrics = {
-    marginTop: string;
-    marginBottom: string;
-    paddingTop: string;
-    paddingBottom: string;
-    lineHeight: string;
-    display: string;
-    height: string;
-    minHeight: string;
-    offsetHeight: number;
-    scrollHeight: number;
-    clientHeight: number;
+const gridResizeCleanupByHost = new WeakMap<HTMLElement, () => void>();
+
+const updateGridCellSize = (host: HTMLElement, gridEl: HTMLElement) => {
+    const width = host.clientWidth;
+    if (width <= 0) return;
+    const cellSize = Math.max(1, Math.floor(width / 3));
+    gridEl.style.setProperty(MANDALA_EMBED_CELL_SIZE_VAR, `${cellSize}px`);
 };
 
-type ProbeCellSnapshot = {
-    section: string;
-    heading: {
-        tag: string | null;
-        text: string | null;
-        metrics: ProbeBoxMetrics | null;
-    };
-    list: {
-        tag: string | null;
-        metrics: ProbeBoxMetrics | null;
-    };
-    listItem: ProbeBoxMetrics | null;
-    listItemParagraph: ProbeBoxMetrics | null;
-    firstBlock: {
-        tag: string | null;
-        metrics: ProbeBoxMetrics | null;
-    };
-    previewSection: ProbeBoxMetrics | null;
-    previewBody: ProbeBoxMetrics | null;
-    previewPusher: ProbeBoxMetrics | null;
-};
+const setupGridResizeObserver = (
+    ctx: MarkdownPostProcessorContext,
+    host: HTMLElement,
+    gridEl: HTMLElement,
+) => {
+    gridResizeCleanupByHost.get(host)?.();
 
-const readProbeBoxMetrics = (element: Element | null): ProbeBoxMetrics | null => {
-    if (!(element instanceof HTMLElement)) return null;
-    const style = getComputedStyle(element);
-    return {
-        marginTop: style.marginTop,
-        marginBottom: style.marginBottom,
-        paddingTop: style.paddingTop,
-        paddingBottom: style.paddingBottom,
-        lineHeight: style.lineHeight,
-        display: style.display,
-        height: style.height,
-        minHeight: style.minHeight,
-        offsetHeight: element.offsetHeight,
-        scrollHeight: element.scrollHeight,
-        clientHeight: element.clientHeight,
+    let rafId = 0;
+    const scheduleUpdate = () => {
+        if (rafId !== 0) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+            rafId = 0;
+            updateGridCellSize(host, gridEl);
+        });
     };
-};
 
-const collectProbeCellSnapshot = (
-    markdownEl: HTMLElement,
-    section: string,
-): ProbeCellSnapshot => {
-    const heading = markdownEl.querySelector('h1,h2,h3,h4,h5,h6');
-    const list = markdownEl.querySelector('ul,ol');
-    const listItem = markdownEl.querySelector('li');
-    const listItemParagraph = markdownEl.querySelector('li > p');
-    const firstBlock =
-        markdownEl.querySelector(
-            '.markdown-preview-section > div:not(.markdown-preview-pusher) > :first-child',
-        ) ??
-        markdownEl.querySelector(':scope > :first-child');
-    const previewSection = markdownEl.querySelector('.markdown-preview-section');
-    const previewBody = markdownEl.querySelector(
-        '.markdown-preview-section > div:not(.markdown-preview-pusher)',
-    );
-    const previewPusher = markdownEl.querySelector(
-        '.markdown-preview-section > .markdown-preview-pusher',
-    );
+    const observer = new ResizeObserver(() => scheduleUpdate());
+    observer.observe(host);
+    scheduleUpdate();
 
-    return {
-        section,
-        heading: {
-            tag: heading?.tagName ?? null,
-            text: heading instanceof HTMLElement ? heading.innerText.trim() : null,
-            metrics: readProbeBoxMetrics(heading),
-        },
-        list: {
-            tag: list?.tagName ?? null,
-            metrics: readProbeBoxMetrics(list),
-        },
-        listItem: readProbeBoxMetrics(listItem),
-        listItemParagraph: readProbeBoxMetrics(listItemParagraph),
-        firstBlock: {
-            tag: firstBlock?.tagName ?? null,
-            metrics: readProbeBoxMetrics(firstBlock),
-        },
-        previewSection: readProbeBoxMetrics(previewSection),
-        previewBody: readProbeBoxMetrics(previewBody),
-        previewPusher: readProbeBoxMetrics(previewPusher),
+    const cleanup = () => {
+        if (rafId !== 0) cancelAnimationFrame(rafId);
+        observer.disconnect();
     };
-};
+    gridResizeCleanupByHost.set(host, cleanup);
 
-const formatProbeCellSummary = (cell: ProbeCellSnapshot) => {
-    const headingBottom = cell.heading.metrics?.marginBottom ?? '-';
-    const listTop = cell.list.metrics?.marginTop ?? '-';
-    const listBottom = cell.list.metrics?.marginBottom ?? '-';
-    const itemBottom = cell.listItem?.marginBottom ?? '-';
-    const firstBottom = cell.firstBlock.metrics?.marginBottom ?? '-';
-    const pusherHeight = cell.previewPusher?.height ?? '-';
-    const pusherMinHeight = cell.previewPusher?.minHeight ?? '-';
-    const pusherOffset = cell.previewPusher?.offsetHeight ?? 0;
-    return `${cell.section} h.mb=${headingBottom} ul.mt=${listTop} ul.mb=${listBottom} li.mb=${itemBottom} first.mb=${firstBottom} pusher.h=${pusherHeight}/${pusherMinHeight}(${pusherOffset})`;
+    const cleanupChild = new MarkdownRenderChild(host);
+    cleanupChild.onunload = () => {
+        const currentCleanup = gridResizeCleanupByHost.get(host);
+        if (currentCleanup === cleanup) {
+            cleanup();
+            gridResizeCleanupByHost.delete(host);
+        }
+    };
+    ctx.addChild(cleanupChild);
 };
 
 const renderDebugPanel = (
@@ -154,7 +87,6 @@ const renderDebugPanel = (
 ) => {
     embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
     embed.classList.remove('mandala-embed-3x3');
-    embed.classList.remove(MANDALA_EMBED_PROBE_CLASS);
     embed.classList.add('mandala-embed-debug');
     container.empty();
 
@@ -171,25 +103,17 @@ const renderDebugPanel = (
     container.appendChild(panel);
 };
 
-const renderGrid = async (
-    plugin: MandalaGrid,
+const renderGrid = (
     ctx: MarkdownPostProcessorContext,
     container: HTMLElement,
     model: MandalaEmbedGridModel,
-    sourceFile: TFile,
-    probeEnabled: boolean,
-    probePhase: string,
-    embedSrc: string | null,
 ) => {
-    const tableEl = document.createElement('table');
-    tableEl.className = 'mandala-embed-3x3-table';
-    const tbodyEl = document.createElement('tbody');
-    const probeTargets: Array<{ section: string; markdownEl: HTMLElement }> = [];
+    const gridEl = document.createElement('div');
+    gridEl.className = 'mandala-embed-3x3-grid';
 
     for (const row of model.rows) {
-        const trEl = document.createElement('tr');
         for (const cell of row) {
-            const cellEl = document.createElement('td');
+            const cellEl = document.createElement('div');
             cellEl.className = 'mandala-embed-3x3-cell';
             if (cell.section === model.rows[1]?.[1]?.section) {
                 cellEl.classList.add('is-center');
@@ -207,54 +131,33 @@ const renderGrid = async (
             contentEl.className = 'mandala-embed-3x3-cell-content';
             cellEl.appendChild(contentEl);
 
-            const markdownEl = document.createElement('div');
-            markdownEl.className =
-                'mandala-embed-3x3-cell-markdown markdown-preview-view markdown-rendered';
-            if (probeEnabled) {
-                markdownEl.setAttribute('data-mandala-probe-section', cell.section);
-            }
-            contentEl.appendChild(markdownEl);
-
-            if (cell.markdown.trim()) {
-                const renderChild = new MarkdownRenderChild(markdownEl);
-                ctx.addChild(renderChild);
-                await Promise.resolve(
-                    MarkdownRenderer.render(
-                        plugin.app,
-                        cell.markdown,
-                        markdownEl,
-                        sourceFile.path,
-                        renderChild,
-                    ),
-                );
+            if (cell.title) {
+                const titleEl = document.createElement('div');
+                titleEl.className = 'mandala-embed-3x3-cell-title';
+                titleEl.setText(cell.title);
+                contentEl.appendChild(titleEl);
             }
 
-            if (probeEnabled) {
-                probeTargets.push({ section: cell.section, markdownEl });
+            if (cell.body) {
+                const bodyEl = document.createElement('div');
+                bodyEl.className = 'mandala-embed-3x3-cell-body';
+                bodyEl.setText(cell.body);
+                contentEl.appendChild(bodyEl);
             }
 
-            trEl.appendChild(cellEl);
+            if (!cell.title && !cell.body) {
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'mandala-embed-3x3-cell-empty';
+                contentEl.appendChild(emptyEl);
+            }
+
+            gridEl.appendChild(cellEl);
         }
-        tbodyEl.appendChild(trEl);
     }
 
-    tableEl.appendChild(tbodyEl);
     container.empty();
-    container.appendChild(tableEl);
-
-    if (probeEnabled) {
-        const probeCells = probeTargets.map(({ section, markdownEl }) =>
-            collectProbeCellSnapshot(markdownEl, section),
-        );
-        logger.error('[mandala-embed-probe]', {
-            phase: probePhase,
-            src: embedSrc ?? '<null>',
-            file: sourceFile.path,
-            cellCount: probeCells.length,
-            cellSummary: probeCells.map(formatProbeCellSummary),
-            cells: probeCells,
-        });
-    }
+    container.appendChild(gridEl);
+    setupGridResizeObserver(ctx, container, gridEl);
 };
 
 const isMandalaHost = (element: Element) =>
@@ -385,16 +288,18 @@ const clearMandalaRender = (embed: HTMLElement) => {
         embed.getAttribute(MANDALA_EMBED_MANAGED_ATTR) === 'true' ||
         embed.classList.contains('mandala-embed-3x3') ||
         embed.classList.contains('mandala-embed-debug') ||
-        embed.classList.contains(MANDALA_EMBED_PROBE_CLASS) ||
         Boolean(queryMandalaHost(embed));
     if (!hadArtifacts) return;
 
     const host = queryMandalaHost(embed);
+    if (host) {
+        gridResizeCleanupByHost.get(host)?.();
+        gridResizeCleanupByHost.delete(host);
+    }
     host?.remove();
     embed.removeAttribute(MANDALA_EMBED_MANAGED_ATTR);
     embed.classList.remove('mandala-embed-3x3');
     embed.classList.remove('mandala-embed-debug');
-    embed.classList.remove(MANDALA_EMBED_PROBE_CLASS);
 };
 
 const formatUnknownError = (error: unknown) =>
@@ -405,9 +310,7 @@ const scheduleMarkerGridRerender = (
     ctx: MarkdownPostProcessorContext,
     embed: HTMLElement,
     model: MandalaEmbedGridModel,
-    sourceFile: TFile,
     expectedSrc: string | null,
-    probeEnabled: boolean,
 ) => {
     const rerenderOnce = (delay_ms: number) => {
         const timer = setTimeout(() => {
@@ -423,19 +326,11 @@ const scheduleMarkerGridRerender = (
             embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
             embed.classList.add('mandala-embed-3x3');
             embed.classList.remove('mandala-embed-debug');
-            embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
-            void renderGrid(
-                plugin,
-                ctx,
-                host,
-                model,
-                sourceFile,
-                probeEnabled,
-                `rerender-${delay_ms}ms`,
-                expectedSrc,
-            ).catch(() => {
+            try {
+                renderGrid(ctx, host, model);
+            } catch {
                 clearMandalaRender(embed);
-            });
+            }
         }, delay_ms);
 
         plugin.registerTimeout(timer);
@@ -478,28 +373,10 @@ export const createRenderMandalaEmbedPostProcessor =
 
             for (const embed of Array.from(embeds)) {
                 const src = embed.getAttribute('src');
-                const markerIntent = hasMarkerIntent(src);
-                const probeEnabled = debugEnabled;
-                embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
                 try {
                     const parsedSrc = parseMandalaEmbedSrc(src);
 
                     if (!parsedSrc) {
-                        if (markerIntent) {
-                            logger.error('[mandala-embed-probe]', {
-                                phase: 'parse-failed',
-                                src: src ?? '<null>',
-                                sourcePath: ctx.sourcePath,
-                            });
-                        }
-                        if (markerIntent && debugEnabled) {
-                            const host = getOrCreateMandalaHost(embed);
-                            renderDebugPanel(embed, host, [
-                                'mandala debug: parse failed',
-                                `src: ${src ?? '<null>'}`,
-                            ]);
-                            continue;
-                        }
                         // Keep native embed untouched when marker syntax is absent.
                         clearMandalaRender(embed);
                         continue;
@@ -508,16 +385,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
 
                     if (!target) {
-                        if (markerIntent) {
-                            logger.error('[mandala-embed-probe]', {
-                                phase: 'target-failed',
-                                src: src ?? '<null>',
-                                linktext: parsedSrc.linktext,
-                                centerSection: parsedSrc.centerSection ?? '<null>',
-                                sourcePath: ctx.sourcePath,
-                            });
-                        }
-                        if (markerIntent && debugEnabled) {
+                        if (debugEnabled) {
                             const host = getOrCreateMandalaHost(embed);
                             const parsedLink = parseLinktext(parsedSrc.linktext);
                             renderDebugPanel(embed, host, [
@@ -537,17 +405,7 @@ export const createRenderMandalaEmbedPostProcessor =
 
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
-                        if (markerIntent) {
-                            logger.error('[mandala-embed-probe]', {
-                                phase: 'model-failed',
-                                src: src ?? '<null>',
-                                file: target.file.path,
-                                centerHeading: target.centerHeading ?? '<null>',
-                                centerSection: target.centerSection ?? '<null>',
-                                embedConnected: embed.isConnected,
-                            });
-                        }
-                        if (markerIntent && debugEnabled && embed.isConnected) {
+                        if (debugEnabled && embed.isConnected) {
                             const host = getOrCreateMandalaHost(embed);
                             renderDebugPanel(embed, host, [
                                 'mandala debug: model build failed',
@@ -567,36 +425,22 @@ export const createRenderMandalaEmbedPostProcessor =
                     embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
                     embed.classList.add('mandala-embed-3x3');
                     embed.classList.remove('mandala-embed-debug');
-                    embed.classList.toggle(MANDALA_EMBED_PROBE_CLASS, probeEnabled);
-                    await renderGrid(
-                        plugin,
-                        ctx,
-                        host,
-                        model,
-                        target.file,
-                        probeEnabled,
-                        'initial',
-                        src,
-                    );
+                    renderGrid(ctx, host, model);
                     scheduleMarkerGridRerender(
                         plugin,
                         ctx,
                         embed,
                         model,
-                        target.file,
                         src,
-                        probeEnabled,
                     );
                 } catch (error: unknown) {
-                    if (markerIntent) {
-                        logger.error('[mandala-embed-probe]', {
-                            phase: 'unexpected-error',
-                            src: src ?? '<null>',
-                            sourcePath: ctx.sourcePath,
-                            error: formatUnknownError(error),
-                        });
-                    }
-                    if (markerIntent && debugEnabled && embed.isConnected) {
+                    logger.error('[mandala-embed]', {
+                        phase: 'unexpected-error',
+                        src: src ?? '<null>',
+                        sourcePath: ctx.sourcePath,
+                        error: formatUnknownError(error),
+                    });
+                    if (debugEnabled && embed.isConnected) {
                         const host = getOrCreateMandalaHost(embed);
                         renderDebugPanel(embed, host, [
                             'mandala debug: unexpected render error',
