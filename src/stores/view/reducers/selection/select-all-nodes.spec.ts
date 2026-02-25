@@ -26,7 +26,7 @@ describe('selectAllNodes', () => {
                 column: '',
                 node: '',
             },
-        } as DocumentViewState;
+        } as unknown as DocumentViewState;
 
         expect(() => selectAllNodes(state, columns)).not.toThrow();
         expect(state.activeNode).toBe('n-1');
