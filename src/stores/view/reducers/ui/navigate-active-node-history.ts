@@ -1,3 +1,4 @@
+import { Column } from 'src/stores/document/document-state-type';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { updateNavigationState } from 'src/stores/document/reducers/history/helpers/update-navigation-state';
 import { DocumentViewState, ViewState } from 'src/stores/view/view-state-type';
@@ -16,6 +17,7 @@ export type NodeHistoryNavigationAction =
 export const navigateActiveNodeHistory = (
     documentState: DocumentViewState,
     state: Pick<ViewState, 'navigationHistory' | 'recentNodes'>,
+    columns: Column[],
     forward = false,
 ) => {
     const activeIndex = state.navigationHistory.state.activeIndex;
@@ -25,8 +27,8 @@ export const navigateActiveNodeHistory = (
         state.navigationHistory.state.activeIndex = newIndex;
         updateNavigationState(state.navigationHistory);
         state.navigationHistory = { ...state.navigationHistory };
-        updateActiveNode(documentState, newItem, null);
-        state.recentNodes.activeNode = newItem;
+        updateActiveNode(documentState, newItem, null, columns);
+        state.recentNodes.activeNode = documentState.activeNode;
         resetSelectionState(documentState);
     }
 };

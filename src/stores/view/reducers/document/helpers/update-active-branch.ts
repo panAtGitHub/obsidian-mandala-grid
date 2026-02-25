@@ -52,9 +52,7 @@ export const updateActiveBranch = (
     const nodeColumnIndex = findNodeColumn(columns, state.activeNode);
     const group = findGroupByNodeId(columns, state.activeNode);
     if (!group || nodeColumnIndex < 0) {
-        if (state.activeBranch.node === state.activeNode) {
-            state.activeBranch = createEmptyActiveBranch();
-        }
+        state.activeBranch = createEmptyActiveBranch();
         if (isDocumentAction) {
             state.activeNodesOfColumn = removeStaleActiveNodes(
                 columns,

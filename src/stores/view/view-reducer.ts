@@ -36,30 +36,30 @@ type ViewActionHandler = (
 ) => void;
 
 const handlers: Record<string, ViewActionHandler> = {
-    'view/set-active-node/mouse': (state, action) => {
+    'view/set-active-node/mouse': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse') return;
-        updateActiveNode(state.document, action.payload.id, state);
+        updateActiveNode(state.document, action.payload.id, state, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
-    'view/set-active-node/mouse-silent': (state, action) => {
+    'view/set-active-node/mouse-silent': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse-silent') return;
-        updateActiveNode(state.document, action.payload.id, state);
+        updateActiveNode(state.document, action.payload.id, state, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
-    'view/set-active-node/document': (state, action) => {
+    'view/set-active-node/document': (state, action, context) => {
         if (action.type !== 'view/set-active-node/document') return;
-        updateActiveNode(state.document, action.payload.id, state);
+        updateActiveNode(state.document, action.payload.id, state, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
-    'view/set-active-node/search': (state, action) => {
+    'view/set-active-node/search': (state, action, context) => {
         if (action.type !== 'view/set-active-node/search') return;
-        updateActiveNode(state.document, action.payload.id, state);
+        updateActiveNode(state.document, action.payload.id, state, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -121,10 +121,15 @@ const handlers: Record<string, ViewActionHandler> = {
             showStyleRulesModal: false,
         };
     },
-    'view/editor/enable-main-editor': (state, action) => {
+    'view/editor/enable-main-editor': (state, action, context) => {
         if (action.type !== 'view/editor/enable-main-editor') return;
         if (state.document.activeNode !== action.payload.nodeId) {
-            updateActiveNode(state.document, action.payload.nodeId, state);
+            updateActiveNode(
+                state.document,
+                action.payload.nodeId,
+                state,
+                context.columns,
+            );
         }
         enableEditMode(state.document, action.payload.nodeId, action.payload.isInSidebar);
     },
@@ -195,13 +200,13 @@ const handlers: Record<string, ViewActionHandler> = {
         if (action.type !== 'view/update-active-branch?source=document') return;
         updateActiveBranch(state.document, context.columns, true);
     },
-    'view/set-active-node/history/select-next': (state, action) => {
+    'view/set-active-node/history/select-next': (state, action, context) => {
         if (action.type !== 'view/set-active-node/history/select-next') return;
-        navigateActiveNodeHistory(state.document, state, true);
+        navigateActiveNodeHistory(state.document, state, context.columns, true);
     },
-    'view/set-active-node/history/select-previous': (state, action) => {
+    'view/set-active-node/history/select-previous': (state, action, context) => {
         if (action.type !== 'view/set-active-node/history/select-previous') return;
-        navigateActiveNodeHistory(state.document, state);
+        navigateActiveNodeHistory(state.document, state, context.columns);
     },
     'view/set-active-node/keyboard-jump': (state, action, context) => {
         if (action.type !== 'view/set-active-node/keyboard-jump') return;
@@ -223,9 +228,9 @@ const handlers: Record<string, ViewActionHandler> = {
         if (action.type !== 'view/selection/select-all') return;
         selectAllNodes(state.document, context.columns);
     },
-    'view/set-active-node/sequential/select-next': (state, action) => {
+    'view/set-active-node/sequential/select-next': (state, action, context) => {
         if (action.type !== 'view/set-active-node/sequential/select-next') return;
-        navigateActiveNode(state.document, state, action);
+        navigateActiveNode(state.document, state, action, context.columns);
     },
     'view/pinned-nodes/set-active-node': (state, action) => {
         if (action.type !== 'view/pinned-nodes/set-active-node') return;

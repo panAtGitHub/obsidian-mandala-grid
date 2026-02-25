@@ -38,6 +38,6 @@ export const jumpToNode = (
             true,
             Boolean(action.context?.shiftKey),
         );
-        updateActiveNode(documentViewState, nextNode, state);
+        updateActiveNode(documentViewState, nextNode, state, columns);
     }
 };

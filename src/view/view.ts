@@ -64,6 +64,7 @@ import {
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
 import { logger } from 'src/helpers/logger';
+import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -665,7 +666,7 @@ export class MandalaView extends TextFileView {
             (heading &&
                 this.findNodeByHeading(heading.text, heading.level)) ||
             this.getNodeIdByLine(result.start.line);
-        if (!nodeId) return;
+        if (!nodeId || !this.isNodeAlive(nodeId)) return;
         this.updateSubgridThemeForNode(nodeId);
         await selectCard(this, nodeId);
         if (heading) {
@@ -679,7 +680,7 @@ export class MandalaView extends TextFileView {
 
     private async handleLineJump(line: number) {
         const nodeId = this.getNodeIdByLine(line);
-        if (!nodeId) return;
+        if (!nodeId || !this.isNodeAlive(nodeId)) return;
         this.updateSubgridThemeForNode(nodeId);
         await selectCard(this, nodeId);
     }
@@ -687,7 +688,10 @@ export class MandalaView extends TextFileView {
     private getNodeIdByLine(line: number): string | null {
         const section = this.getSectionNumberForLine(line);
         if (!section) return null;
-        return this.documentStore.getValue().sections.section_id[section] || null;
+        const nodeId =
+            this.documentStore.getValue().sections.section_id[section] || null;
+        if (!nodeId || !this.isNodeAlive(nodeId)) return null;
+        return nodeId;
     }
 
     private updateSubgridThemeForNode(nodeId: string) {
@@ -719,22 +723,35 @@ export class MandalaView extends TextFileView {
         headingLevel?: number,
     ): string | null {
         const normalizedTarget = this.normalizeHeadingText(headingText);
-        const { content } = this.documentStore.getValue().document;
-        for (const [nodeId, node] of Object.entries(content)) {
-            const lines = node.content.split('\n');
-            for (const line of lines) {
-                const trimmed = line.trimStart();
-                const match = /^(#{1,6})\s+(.*)$/.exec(trimmed);
-                if (!match) continue;
-                const currentLevel = match[1].length;
-                if (headingLevel && currentLevel !== headingLevel) continue;
-                const text = match[2].replace(/\s*#+\s*$/, '').trim();
-                if (this.normalizeHeadingText(text) === normalizedTarget) {
-                    return nodeId;
+        const { columns, content } = this.documentStore.getValue().document;
+        for (const column of columns) {
+            for (const group of column.groups) {
+                for (const nodeId of group.nodes) {
+                    const node = content[nodeId];
+                    if (!node) continue;
+                    const lines = node.content.split('\n');
+                    for (const line of lines) {
+                        const trimmed = line.trimStart();
+                        const match = /^(#{1,6})\s+(.*)$/.exec(trimmed);
+                        if (!match) continue;
+                        const currentLevel = match[1].length;
+                        if (headingLevel && currentLevel !== headingLevel) continue;
+                        const text = match[2].replace(/\s*#+\s*$/, '').trim();
+                        if (
+                            this.normalizeHeadingText(text) === normalizedTarget
+                        ) {
+                            return nodeId;
+                        }
+                    }
                 }
             }
         }
         return null;
+    }
+
+    private isNodeAlive(nodeId: string) {
+        const columns = this.documentStore.getValue().document.columns;
+        return findNodeColumn(columns, nodeId) >= 0;
     }
 
     private normalizeHeadingText(text: string) {

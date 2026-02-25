@@ -1,4 +1,5 @@
 import { Content } from 'src/stores/document/document-state-type';
+import { logger } from 'src/helpers/logger';
 
 export type SetNodeContentAction = {
     type: 'document/update-node-content';
@@ -29,11 +30,16 @@ export const setNodeContent = (
     action: Pick<SetNodeContentAction, 'payload'>,
 ) => {
     const nodeContent = content[action.payload.nodeId];
+    if (!nodeContent) {
+        logger.warn(
+            '[document] ignore update-node-content for stale node',
+            action.payload.nodeId,
+        );
+        return false;
+    }
     const contentString = nodeContent?.content || '';
     if (contentString === action.payload.content) return false;
-    const nodeId = action.payload.nodeId;
-    if (!nodeContent) content[nodeId] = { content: action.payload.content };
-    else nodeContent.content = action.payload.content;
+    nodeContent.content = action.payload.content;
     return true;
 };
 
@@ -44,10 +50,10 @@ export const setMultipleNodeContent = (
     const changedNodeIds: string[] = [];
     for (const update of action.payload.updates) {
         const nodeContent = content[update.nodeId];
+        if (!nodeContent) continue;
         const current = nodeContent?.content || '';
         if (current === update.content) continue;
-        if (!nodeContent) content[update.nodeId] = { content: update.content };
-        else nodeContent.content = update.content;
+        nodeContent.content = update.content;
         changedNodeIds.push(update.nodeId);
     }
     return changedNodeIds;

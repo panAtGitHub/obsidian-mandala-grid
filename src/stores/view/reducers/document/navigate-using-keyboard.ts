@@ -39,6 +39,6 @@ export const navigateUsingKeyboard = (
                 action.payload.direction === 'down',
             Boolean(action.context.shiftKey),
         );
-        updateActiveNode(documentState, nextNode, state);
+        updateActiveNode(documentState, nextNode, state, columns);
     }
 };

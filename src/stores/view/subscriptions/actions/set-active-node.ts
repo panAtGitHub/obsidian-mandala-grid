@@ -1,5 +1,4 @@
 import { MandalaView } from 'src/view/view';
-import { getIdOfSection } from 'src/stores/view/subscriptions/helpers/get-id-of-section';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
 import { Snapshot } from 'src/stores/document/document-state-type';
 
@@ -46,10 +45,15 @@ export const setActiveNode = (
     }
 
     if (shouldSetActiveNode) {
+        const nextId =
+            section_id[newActiveSection] ||
+            (activeSectionOfView ? section_id[activeSectionOfView] : '') ||
+            documentState.document.columns[0]?.groups[0]?.nodes[0];
+        if (!nextId) return;
         view.viewStore.dispatch({
             type: 'view/set-active-node/document',
             payload: {
-                id: getIdOfSection(documentState.sections, newActiveSection),
+                id: nextId,
             },
         });
     }

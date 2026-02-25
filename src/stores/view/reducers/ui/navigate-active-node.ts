@@ -1,6 +1,6 @@
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { DocumentViewState, ViewState } from 'src/stores/view/view-state-type';
-import { Sections } from 'src/stores/document/document-state-type';
+import { Column, Sections } from 'src/stores/document/document-state-type';
 import { findNextNode } from 'src/lib/tree-utils/find/find-next-node';
 import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/reset-selection-state';
 
@@ -19,6 +19,7 @@ export const navigateActiveNode = (
     documentState: DocumentViewState,
     state: Pick<ViewState, 'navigationHistory' | 'outline'>,
     action: NodeNavigationAction,
+    columns: Column[],
 ) => {
     const nextNode = findNextNode(
         action.payload.sections,
@@ -27,7 +28,7 @@ export const navigateActiveNode = (
         action.context.outlineMode ? state.outline.hiddenNodes : null,
     );
     if (nextNode && nextNode !== documentState.activeNode) {
-        updateActiveNode(documentState, nextNode, state);
+        updateActiveNode(documentState, nextNode, state, columns);
         resetSelectionState(documentState);
     }
 };
