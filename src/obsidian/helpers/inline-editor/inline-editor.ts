@@ -79,7 +79,7 @@ export class InlineEditor {
 
         const content =
             this.view.documentStore.getValue().document.content[nodeId]
-                ?.content;
+                ?.content ?? '';
         this.setContent(content);
 
         target.append(this.containerEl);
