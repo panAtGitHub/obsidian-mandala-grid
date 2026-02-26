@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MarkdownView } from 'obsidian';
+    import { MarkdownView, Platform } from 'obsidian';
     import { getView } from 'src/view/components/container/context';
     import { onDestroy, onMount } from 'svelte';
     import { contentStore } from 'src/stores/document/derived/content-store';
@@ -91,6 +91,24 @@
         applyReadonlyAttributes();
     };
 
+    const blockMobilePreviewInteraction = (event: Event) => {
+        if (!Platform.isMobile) return;
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const blurMobileFocus = (event: FocusEvent) => {
+        if (!Platform.isMobile) return;
+        const target = event.target;
+        if (target instanceof HTMLElement) {
+            target.blur();
+        }
+        const activeEl = document.activeElement;
+        if (activeEl instanceof HTMLElement) {
+            activeEl.blur();
+        }
+    };
+
     const subscribeToNode = (nextNodeId: string) => {
         if (currentNodeId === nextNodeId) return;
         unsubscribe();
@@ -153,6 +171,11 @@
     class="source-preview-editor mandala-inline-editor mandala-inline-editor-readonly"
     role="textbox"
     aria-readonly="true"
+    on:mousedown|capture={blockMobilePreviewInteraction}
+    on:click|capture={blockMobilePreviewInteraction}
+    on:dblclick|capture={blockMobilePreviewInteraction}
+    on:touchend|capture={blockMobilePreviewInteraction}
+    on:focusin|capture={blurMobileFocus}
 />
 
 <style>
