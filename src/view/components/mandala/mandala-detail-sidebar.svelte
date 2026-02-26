@@ -183,11 +183,15 @@
             });
         }
     };
-    const handleMobileRenderedDoubleTapEdit = (
+    const handleMobilePreviewDoubleTapEdit = (
         event: CustomEvent<{ nodeId: string }>,
     ) => {
         if (!Platform.isMobile) return;
-        if ($detailSidebarPreviewMode !== 'rendered') return;
+        if (
+            $detailSidebarPreviewMode !== 'rendered' &&
+            $detailSidebarPreviewMode !== 'source'
+        )
+            return;
         const nodeId = event.detail?.nodeId;
         if (!nodeId) return;
         openNodeEditor(view, nodeId, {
@@ -256,14 +260,17 @@
                                 />
                             </div>
                         {:else if $detailSidebarPreviewMode === 'source'}
-                            <SourcePreview nodeId={$activeNodeId} />
+                            <SourcePreview
+                                nodeId={$activeNodeId}
+                                on:mobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
+                            />
                         {:else}
                             <Content
                                 nodeId={$activeNodeId}
                                 isInSidebar={false}
                                 mobileSidebarRenderedEditEnabled={Platform.isMobile &&
                                     $detailSidebarPreviewMode === 'rendered'}
-                                on:mobileRenderedDoubleTapEdit={handleMobileRenderedDoubleTapEdit}
+                                on:mobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
                             />
                         {/if}
                     {/key}

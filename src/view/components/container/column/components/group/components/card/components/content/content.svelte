@@ -1,26 +1,19 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
-    import {
-        handleLinks
-    } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
-    import {
-        getCursorPosition
-    } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/get-cursor-position';
+    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
+    import { getCursorPosition } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/get-cursor-position';
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
     import { contentStore } from 'src/stores/document/derived/content-store';
     import { isGrabbing } from './event-handlers/helpers/is-grabbing';
-    import {
-        ShowHiddenCardInfoStore,
-    } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
-    import {
-        setActiveSidebarNode
-    } from '../../../../../../../../../../stores/view/subscriptions/actions/set-active-sidebar-node';
+    import { ShowHiddenCardInfoStore } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
+    import { setActiveSidebarNode } from '../../../../../../../../../../stores/view/subscriptions/actions/set-active-sidebar-node';
     import { setActiveMainSplitNode } from './store-actions/set-active-main-split-node';
     import { enableEditModeInSidebar } from './store-actions/enable-edit-mode-in-sidebar';
     import { enableEditModeInMainSplit } from './store-actions/enable-edit-mode-in-main-split';
     import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
+    import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
 
     export let nodeId: string;
     export let isInSidebar: boolean;
@@ -29,15 +22,9 @@
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const dispatch = createEventDispatcher<{
-        mobileRenderedDoubleTapEdit: { nodeId: string };
+        mobilePreviewDoubleTapEdit: { nodeId: string };
     }>();
-    let lastMobileTapAt = 0;
-    let lastMobileTapNodeId: string | null = null;
-    let lastMobileTapX = 0;
-    let lastMobileTapY = 0;
-    const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
-    const MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS = 80;
-    const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
+    const doubleTapDetector = createMobileDoubleTapDetector();
 
     const setActiveNode = (e: MouseEvent) => {
         if (isInSidebar) {
@@ -68,13 +55,38 @@
     import { Platform } from 'obsidian';
     const isInteractiveTarget = (target: HTMLElement | null) =>
         Boolean(
-            target?.closest('button, input, textarea, select, [role="button"]'),
+            target?.closest('a, button, input, textarea, select, [role="button"]'),
         );
-    const resetMobileTapState = () => {
-        lastMobileTapAt = 0;
-        lastMobileTapNodeId = null;
-        lastMobileTapX = 0;
-        lastMobileTapY = 0;
+
+    const handleMobileTouchEnd = (e: TouchEvent) => {
+        if (!Platform.isMobile) return;
+        if (!mobileSidebarRenderedEditEnabled) {
+            doubleTapDetector.reset();
+            return;
+        }
+
+        const target = e.target as HTMLElement | null;
+        if (isInteractiveTarget(target)) {
+            doubleTapDetector.reset();
+            return;
+        }
+
+        const touch = e.changedTouches.item(0);
+        if (!touch) {
+            doubleTapDetector.reset();
+            return;
+        }
+
+        const isDoubleTap = doubleTapDetector.registerTap({
+            key: nodeId,
+            x: touch.clientX,
+            y: touch.clientY,
+        });
+        if (!isDoubleTap) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        dispatch('mobilePreviewDoubleTapEdit', { nodeId });
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -85,46 +97,16 @@
             const target = e.target as HTMLElement | null;
             const anchor = target?.closest('a');
             if (anchor) {
-                resetMobileTapState();
                 handleLinks(view, e);
                 return;
             }
 
             if (mobileSidebarRenderedEditEnabled) {
-                if (isInteractiveTarget(target)) {
-                    resetMobileTapState();
-                }
                 e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
-                if (isInteractiveTarget(target)) {
-                    return;
-                }
-                const now = Date.now();
-                const delta = now - lastMobileTapAt;
-                const dx = e.clientX - lastMobileTapX;
-                const dy = e.clientY - lastMobileTapY;
-                const distance = Math.hypot(dx, dy);
-                const isDoubleTap =
-                    delta >= MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS &&
-                    delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
-                    lastMobileTapNodeId === nodeId &&
-                    distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
-                lastMobileTapAt = now;
-                lastMobileTapNodeId = nodeId;
-                lastMobileTapX = e.clientX;
-                lastMobileTapY = e.clientY;
-                if (isDoubleTap) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    resetMobileTapState();
-                    dispatch('mobileRenderedDoubleTapEdit', { nodeId });
-                }
                 return;
             }
 
             setActiveNode(e);
-            if (isInteractiveTarget(target)) {
-                resetMobileTapState();
-            }
             e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
             return;
         }
@@ -154,6 +136,7 @@
 <div
     class="lng-prev markdown-preview-view markdown-preview-section markdown-rendered"
     on:click={handleClick}
+    on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={!$showHiddenCardInfo}
     use:markdownPreviewAction={nodeId}

@@ -1,14 +1,17 @@
 <script lang="ts">
     import { MarkdownView, Platform } from 'obsidian';
     import { getView } from 'src/view/components/container/context';
-    import { onDestroy, onMount } from 'svelte';
+    import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { contentStore } from 'src/stores/document/derived/content-store';
-    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+    import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
     export let nodeId: string;
 
     const view = getView();
+    const dispatch = createEventDispatcher<{
+        mobilePreviewDoubleTapEdit: { nodeId: string };
+    }>();
     const EDITABLE_NAV_KEYS = new Set([
         'ArrowUp',
         'ArrowDown',
@@ -33,12 +36,7 @@
     let unsubscribeReadonlyGuards: () => void = () => {};
     let unsubscribe: () => void = () => {};
     let currentNodeId = '';
-    let lastMobileTapAt = 0;
-    let lastMobileTapX = 0;
-    let lastMobileTapY = 0;
-    const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
-    const MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS = 80;
-    const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
+    const doubleTapDetector = createMobileDoubleTapDetector();
 
     const shouldBlockKeydown = (event: KeyboardEvent): boolean => {
         if (event.metaKey || event.ctrlKey) {
@@ -104,38 +102,34 @@
         event.stopPropagation();
     };
 
-    const resetMobileTapState = () => {
-        lastMobileTapAt = 0;
-        lastMobileTapX = 0;
-        lastMobileTapY = 0;
-    };
+    const isInteractiveTarget = (target: HTMLElement | null) =>
+        Boolean(
+            target?.closest('a, button, input, textarea, select, [role="button"]'),
+        );
 
     const handleMobilePreviewTouchEnd = (event: TouchEvent) => {
         if (!Platform.isMobile) return;
-        event.preventDefault();
-        event.stopPropagation();
-        const touch = event.changedTouches.item(0);
-        if (!touch || !nodeId) {
-            resetMobileTapState();
+        const target = event.target as HTMLElement | null;
+        if (isInteractiveTarget(target)) {
+            doubleTapDetector.reset();
             return;
         }
-        const now = Date.now();
-        const delta = now - lastMobileTapAt;
-        const dx = touch.clientX - lastMobileTapX;
-        const dy = touch.clientY - lastMobileTapY;
-        const distance = Math.hypot(dx, dy);
-        const isDoubleTap =
-            delta >= MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS &&
-            delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
-            distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
-        lastMobileTapAt = now;
-        lastMobileTapX = touch.clientX;
-        lastMobileTapY = touch.clientY;
-        if (!isDoubleTap) return;
-        resetMobileTapState();
-        openNodeEditor(view, nodeId, {
-            desktopIsInSidebar: true,
+        const touch = event.changedTouches.item(0);
+        if (!touch || !nodeId) {
+            doubleTapDetector.reset();
+            return;
+        }
+
+        const isDoubleTap = doubleTapDetector.registerTap({
+            key: nodeId,
+            x: touch.clientX,
+            y: touch.clientY,
         });
+        if (!isDoubleTap) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        dispatch('mobilePreviewDoubleTapEdit', { nodeId });
     };
 
     const blurMobileFocus = (event: FocusEvent) => {
