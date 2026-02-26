@@ -69,7 +69,9 @@ export const lang = {
     hk_copy_node_unformatted: '复制分支（纯文本）',
     hk_copy_node_without_subitems: '复制卡片',
     cm_copy_link_to_block: '复制块链接',
+    cm_copy_link_to_block_embed: '复制块链接（带 !）',
     cm_copy_heading_link: '复制标题链接',
+    cm_copy_heading_link_embed: '复制标题链接（带 !）',
     cm_section_color: '分区颜色',
     cm_clear_section_color: '清除颜色',
     toolbar_copy_search_results: 'Copy search results',
@@ -265,6 +267,11 @@ export const lang = {
         '详情侧边栏字体大小（手机）',
     settings_appearance_headings_font_size: '标题字体大小（em）',
     settings_appearance_inactive_node_opacity: 'Inactive cards opacity',
+    settings_display_context_menu_advanced: '右键菜单高级选项',
+    settings_display_copy_block_link_plain: '复制块链接（不带 !）',
+    settings_display_copy_block_link_embed: '复制块链接（带 !）',
+    settings_display_copy_heading_link_plain: '复制标题链接（不带 !）',
+    settings_display_copy_heading_link_embed: '复制标题链接（带 !）',
 
     // layout
     settings_layout_card_width: 'Card width',

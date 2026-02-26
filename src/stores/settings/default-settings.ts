@@ -1,4 +1,5 @@
 import { Settings } from './settings-type';
+import { DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 export const DEFAULT_CARD_WIDTH = 550;
 export const DEFAULT_CARDS_GAP = 6;
@@ -102,6 +103,12 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         show3x3SubgridNavButtonsMobile: true,
         show9x9ParallelNavButtonsDesktop: true,
         show9x9ParallelNavButtonsMobile: true,
+        contextMenuCopyLinkVisibilityDesktop: {
+            ...DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY,
+        },
+        contextMenuCopyLinkVisibilityMobile: {
+            ...DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY,
+        },
         mobileEditFontSizeOffset: 0,
         show9x9TitleOnly: false,
         squareLayout: false,

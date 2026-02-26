@@ -15,6 +15,7 @@ import {
 } from 'src/view/helpers/mandala/section-colors';
 import { startMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
 import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
+import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 type Props = {
     activeNode: string;
@@ -67,22 +68,50 @@ export const createSingleNodeContextMenuItems = (
         menuItems.push(...coreJumpItems);
         menuItems.push({ type: 'separator' });
     }
-    menuItems.push(
-        {
+    const copyLinkVisibility = resolveContextMenuCopyLinkVisibility(
+        view.plugin.settings.getValue().view,
+    );
+    const copyLinkItems: MenuItemObject[] = [];
+    if (copyLinkVisibility['block-plain']) {
+        copyLinkItems.push({
             title: lang.cm_copy_link_to_block,
             icon: 'links-coming-in',
             action: () => {
-                void copyLinkToBlock(view, false);
+                void copyLinkToBlock(view, false, { embed: false });
             },
-        },
-        {
+        });
+    }
+    if (copyLinkVisibility['block-embed']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_link_to_block_embed,
+            icon: 'links-coming-in',
+            action: () => {
+                void copyLinkToBlock(view, false, { embed: true });
+            },
+        });
+    }
+    if (copyLinkVisibility['heading-plain']) {
+        copyLinkItems.push({
             title: lang.cm_copy_heading_link,
             icon: 'heading-1',
             action: () => {
-                void copyLinkToHeading(view, activeNode);
+                void copyLinkToHeading(view, activeNode, { embed: false });
             },
-        },
-        { type: 'separator' },
+        });
+    }
+    if (copyLinkVisibility['heading-embed']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_heading_link_embed,
+            icon: 'heading-1',
+            action: () => {
+                void copyLinkToHeading(view, activeNode, { embed: true });
+            },
+        });
+    }
+    if (copyLinkItems.length > 0) {
+        menuItems.push(...copyLinkItems, { type: 'separator' });
+    }
+    menuItems.push(
         {
             title: isPinned
                 ? lang.cm_unpin_from_left_sidebar

@@ -1,4 +1,5 @@
 import {
+    ContextMenuCopyLinkVariant,
     CustomHotkeys,
     DetailSidebarPreviewMode,
     DocumentPreferences,
@@ -193,6 +194,13 @@ export type SettingsActions =
       }
     | {
           type: 'settings/view/toggle-9x9-parallel-nav-buttons-mobile';
+      }
+    | {
+          type: 'settings/view/context-menu-copy-link/set-visibility';
+          payload: {
+              variant: ContextMenuCopyLinkVariant;
+              visible: boolean;
+          };
       }
     | {
           type: 'settings/view/theme/set-inactive-node-opacity';

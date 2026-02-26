@@ -1,17 +1,26 @@
 <script lang="ts">
     import { Eye } from 'lucide-svelte';
+    import { lang } from 'src/lang/lang';
     import type { DetailSidebarPreviewMode } from 'src/stores/settings/settings-type';
 
     export let show = false;
     export let showHiddenCardInfo = false;
     export let show3x3SubgridNavButtons = true;
     export let show9x9ParallelNavButtons = true;
+    export let showCopyBlockPlain = true;
+    export let showCopyBlockEmbed = true;
+    export let showCopyHeadingPlain = true;
+    export let showCopyHeadingEmbed = true;
     export let detailSidebarPreviewMode: DetailSidebarPreviewMode = 'rendered';
 
     export let toggle: () => void;
     export let toggleHiddenCardInfo: () => void;
     export let toggle3x3SubgridNavButtons: () => void;
     export let toggle9x9ParallelNavButtons: () => void;
+    export let toggleCopyBlockPlain: () => void;
+    export let toggleCopyBlockEmbed: () => void;
+    export let toggleCopyHeadingPlain: () => void;
+    export let toggleCopyHeadingEmbed: () => void;
     export let updateDetailSidebarPreviewMode: (
         mode: DetailSidebarPreviewMode,
     ) => void;
@@ -98,6 +107,66 @@
                             on:change={toggle9x9ParallelNavButtons}
                         />
                         <span>{show9x9ParallelNavButtons ? '显示中' : '已隐藏'}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__subsection-title">
+                {lang.settings_display_context_menu_advanced}
+            </div>
+
+            <div class="view-options-menu__row">
+                <span>{lang.settings_display_copy_block_link_plain}</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCopyBlockPlain}
+                            on:change={toggleCopyBlockPlain}
+                        />
+                        <span>{showCopyBlockPlain ? '显示中' : '已隐藏'}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__row">
+                <span>{lang.settings_display_copy_block_link_embed}</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCopyBlockEmbed}
+                            on:change={toggleCopyBlockEmbed}
+                        />
+                        <span>{showCopyBlockEmbed ? '显示中' : '已隐藏'}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__row">
+                <span>{lang.settings_display_copy_heading_link_plain}</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCopyHeadingPlain}
+                            on:change={toggleCopyHeadingPlain}
+                        />
+                        <span>{showCopyHeadingPlain ? '显示中' : '已隐藏'}</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__row">
+                <span>{lang.settings_display_copy_heading_link_embed}</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCopyHeadingEmbed}
+                            on:change={toggleCopyHeadingEmbed}
+                        />
+                        <span>{showCopyHeadingEmbed ? '显示中' : '已隐藏'}</span>
                     </label>
                 </div>
             </div>

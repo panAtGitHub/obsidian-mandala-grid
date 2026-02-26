@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { extractFirstHeadingFromMarkdown } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-heading';
+import {
+    buildHeadingWikiLink,
+    extractFirstHeadingFromMarkdown,
+} from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-heading';
 
 describe('extractFirstHeadingFromMarkdown', () => {
     it('extracts the first heading text', () => {
@@ -34,5 +37,17 @@ plain text
 - list item
 `;
         expect(extractFirstHeadingFromMarkdown(input)).toBeNull();
+    });
+
+    it('builds plain heading wiki link', () => {
+        expect(buildHeadingWikiLink('2026年，日计划', '习惯打卡', false)).toBe(
+            '[[2026年，日计划#习惯打卡]]',
+        );
+    });
+
+    it('builds embed heading wiki link', () => {
+        expect(buildHeadingWikiLink('2026年，日计划', '习惯打卡', true)).toBe(
+            '![[2026年，日计划#习惯打卡]]',
+        );
     });
 });

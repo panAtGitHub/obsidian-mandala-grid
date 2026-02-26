@@ -8,6 +8,7 @@
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import { derived } from 'src/lib/store/derived';
     import {
+        ContextMenuCopyLinkVisibilityStore,
         DetailSidebarPreviewModeStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
@@ -55,6 +56,7 @@
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
     import Portal from 'src/view/components/container/shared/portal.svelte';
     import type {
+        ContextMenuCopyLinkVariant,
         DetailSidebarPreviewMode,
         LastExportPreset,
     } from 'src/stores/settings/settings-type';
@@ -98,6 +100,7 @@
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const contextMenuCopyLinkVisibility = ContextMenuCopyLinkVisibilityStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const themeDefaults = getDefaultTheme();
@@ -182,6 +185,37 @@
                 : 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop',
         });
     };
+
+    const setContextMenuCopyLinkVisibility = (
+        variant: ContextMenuCopyLinkVariant,
+        visible: boolean,
+    ) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/context-menu-copy-link/set-visibility',
+            payload: { variant, visible },
+        });
+    };
+
+    const toggleCopyBlockPlain = () =>
+        setContextMenuCopyLinkVisibility(
+            'block-plain',
+            !$contextMenuCopyLinkVisibility['block-plain'],
+        );
+    const toggleCopyBlockEmbed = () =>
+        setContextMenuCopyLinkVisibility(
+            'block-embed',
+            !$contextMenuCopyLinkVisibility['block-embed'],
+        );
+    const toggleCopyHeadingPlain = () =>
+        setContextMenuCopyLinkVisibility(
+            'heading-plain',
+            !$contextMenuCopyLinkVisibility['heading-plain'],
+        );
+    const toggleCopyHeadingEmbed = () =>
+        setContextMenuCopyLinkVisibility(
+            'heading-embed',
+            !$contextMenuCopyLinkVisibility['heading-embed'],
+        );
 
     const updateDetailSidebarPreviewMode = (mode: DetailSidebarPreviewMode) => {
         view.plugin.settings.dispatch({
@@ -1934,11 +1968,19 @@
                 showHiddenCardInfo={$showHiddenCardInfo}
                 show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                showCopyBlockPlain={$contextMenuCopyLinkVisibility['block-plain']}
+                showCopyBlockEmbed={$contextMenuCopyLinkVisibility['block-embed']}
+                showCopyHeadingPlain={$contextMenuCopyLinkVisibility['heading-plain']}
+                showCopyHeadingEmbed={$contextMenuCopyLinkVisibility['heading-embed']}
                 detailSidebarPreviewMode={$detailSidebarPreviewMode}
                 toggle={() => (showDisplayOptions = !showDisplayOptions)}
                 {toggleHiddenCardInfo}
                 {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
+                {toggleCopyBlockPlain}
+                {toggleCopyBlockEmbed}
+                {toggleCopyHeadingPlain}
+                {toggleCopyHeadingEmbed}
                 {updateDetailSidebarPreviewMode}
             />
 

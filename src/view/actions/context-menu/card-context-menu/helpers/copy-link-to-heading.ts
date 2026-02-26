@@ -1,6 +1,7 @@
 import { Notice } from 'obsidian';
 import { MandalaView } from 'src/view/view';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
+import { formatWikiLink } from 'src/view/actions/context-menu/card-context-menu/helpers/format-wiki-link';
 
 const ATX_HEADING_PATTERN = /^(#{1,6})\s+(.+)$/;
 const TRAILING_HEADING_MARKERS_PATTERN = /\s*#+\s*$/;
@@ -22,9 +23,20 @@ export const extractFirstHeadingFromMarkdown = (
     return null;
 };
 
+type CopyLinkToHeadingOptions = {
+    embed?: boolean;
+};
+
+export const buildHeadingWikiLink = (
+    fileName: string,
+    headingText: string,
+    embed = false,
+) => formatWikiLink(`${fileName}#${headingText}`, embed);
+
 export const copyLinkToHeading = async (
     view: MandalaView,
     activeNode: string,
+    options?: CopyLinkToHeadingOptions,
 ) => {
     const file = view.file;
     if (!file) return;
@@ -34,7 +46,7 @@ export const copyLinkToHeading = async (
     if (isEditing) {
         saveNodeContent(view);
         setTimeout(() => {
-            void copyLinkToHeading(view, activeNode);
+            void copyLinkToHeading(view, activeNode, options);
         }, 100);
         return;
     }
@@ -48,7 +60,11 @@ export const copyLinkToHeading = async (
         return;
     }
 
-    const link = `[[${file.basename}#${headingText}]]`;
+    const link = buildHeadingWikiLink(
+        file.basename,
+        headingText,
+        options?.embed ?? false,
+    );
     await navigator.clipboard.writeText(link);
     new Notice('Copied');
 };

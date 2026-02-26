@@ -67,6 +67,15 @@ export type LeftSidebarTab = 'pinned-cards' | 'recent-cards';
 export type RulesTab = 'global-rules' | 'document-rules';
 
 export type LinkPaneType = 'split' | 'tab';
+export type ContextMenuCopyLinkVariant =
+    | 'block-plain'
+    | 'block-embed'
+    | 'heading-plain'
+    | 'heading-embed';
+export type ContextMenuCopyLinkVisibility = Record<
+    ContextMenuCopyLinkVariant,
+    boolean
+>;
 export type DocumentsPreferences = Record<string, DocumentPreferences>;
 export type Settings = {
     documents: DocumentsPreferences;
@@ -115,6 +124,8 @@ export type Settings = {
         show3x3SubgridNavButtonsMobile: boolean;
         show9x9ParallelNavButtonsDesktop: boolean;
         show9x9ParallelNavButtonsMobile: boolean;
+        contextMenuCopyLinkVisibilityDesktop: ContextMenuCopyLinkVisibility;
+        contextMenuCopyLinkVisibilityMobile: ContextMenuCopyLinkVisibility;
         mobileEditFontSizeOffset: number;
         show9x9TitleOnly: boolean;
         squareLayout: boolean;

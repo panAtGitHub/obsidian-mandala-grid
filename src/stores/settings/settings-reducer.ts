@@ -11,6 +11,7 @@ import { setHotkeyAsBlank } from 'src/stores/settings/reducers/set-hotkey-as-bla
 import { persistCollapsedSections } from 'src/stores/settings/reducers/persist-collapsed-sections';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { Platform } from 'obsidian';
+import { normalizeContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 type SettingsActionHandler = (store: Settings, action: SettingsActions) => void;
 
@@ -503,6 +504,31 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         store.view.show9x9ParallelNavButtonsMobile = !(
             store.view.show9x9ParallelNavButtonsMobile ?? true
         );
+    },
+    'settings/view/context-menu-copy-link/set-visibility': (store, action) => {
+        if (
+            action.type !==
+            'settings/view/context-menu-copy-link/set-visibility'
+        ) {
+            return;
+        }
+        if (Platform.isMobile) {
+            const current = normalizeContextMenuCopyLinkVisibility(
+                store.view.contextMenuCopyLinkVisibilityMobile,
+            );
+            store.view.contextMenuCopyLinkVisibilityMobile = {
+                ...current,
+                [action.payload.variant]: action.payload.visible,
+            };
+            return;
+        }
+        const current = normalizeContextMenuCopyLinkVisibility(
+            store.view.contextMenuCopyLinkVisibilityDesktop,
+        );
+        store.view.contextMenuCopyLinkVisibilityDesktop = {
+            ...current,
+            [action.payload.variant]: action.payload.visible,
+        };
     },
     'settings/style-rules/set-active-tab': (store, action) => {
         if (action.type !== 'settings/style-rules/set-active-tab') return;

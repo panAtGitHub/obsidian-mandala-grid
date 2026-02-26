@@ -2,6 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { derived } from 'src/lib/store/derived';
 import MandalaGrid from 'src/main';
 import { Platform } from 'obsidian';
+import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 export const ViewSettingsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view);
@@ -97,6 +98,11 @@ export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
         Platform.isMobile
             ? state.view.show9x9ParallelNavButtonsMobile ?? true
             : state.view.show9x9ParallelNavButtonsDesktop ?? true,
+    );
+
+export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        resolveContextMenuCopyLinkVisibility(state.view),
     );
 
 export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
