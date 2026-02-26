@@ -35,26 +35,15 @@ describe('migrateSettings', () => {
         expect(settings.view.showMandalaDetailSidebarMobile).toBe(false);
     });
 
-    test('migrates legacy detailSidebarPreviewMode into desktop/mobile fields', () => {
-        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
-        settings.view.detailSidebarPreviewMode = 'source';
-
-        migrateSettings(settings);
-
-        expect(settings.view.detailSidebarPreviewModeDesktop).toBe('source');
-        expect(settings.view.detailSidebarPreviewModeMobile).toBe('source');
-        expect('detailSidebarPreviewMode' in settings.view).toBe(false);
-    });
-
-    test('legacy preview mode takes precedence when both legacy and split fields exist', () => {
+    test('drops legacy detailSidebarPreviewMode without overriding split fields', () => {
         const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
         settings.view.detailSidebarPreviewModeDesktop = 'rendered';
-        settings.view.detailSidebarPreviewModeMobile = 'rendered';
+        settings.view.detailSidebarPreviewModeMobile = 'source';
         settings.view.detailSidebarPreviewMode = 'source';
 
         migrateSettings(settings);
 
-        expect(settings.view.detailSidebarPreviewModeDesktop).toBe('source');
+        expect(settings.view.detailSidebarPreviewModeDesktop).toBe('rendered');
         expect(settings.view.detailSidebarPreviewModeMobile).toBe('source');
         expect('detailSidebarPreviewMode' in settings.view).toBe(false);
     });

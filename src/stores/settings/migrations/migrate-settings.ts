@@ -99,7 +99,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         showMandalaDetailSidebar?: boolean;
         showMandalaDetailSidebarDesktop?: boolean;
         showMandalaDetailSidebarMobile?: boolean;
-        detailSidebarPreviewMode?: 'rendered' | 'source';
+        detailSidebarPreviewMode?: unknown;
         detailSidebarPreviewModeDesktop?: 'rendered' | 'source';
         detailSidebarPreviewModeMobile?: 'rendered' | 'source';
         mandalaA4Mode?: boolean;
@@ -127,14 +127,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
             viewSettings.showMandalaDetailSidebar;
         delete viewSettings.showMandalaDetailSidebar;
     }
-    if (
-        viewSettings.detailSidebarPreviewMode === 'rendered' ||
-        viewSettings.detailSidebarPreviewMode === 'source'
-    ) {
-        viewSettings.detailSidebarPreviewModeDesktop =
-            viewSettings.detailSidebarPreviewMode;
-        viewSettings.detailSidebarPreviewModeMobile =
-            viewSettings.detailSidebarPreviewMode;
+    if ('detailSidebarPreviewMode' in viewSettings) {
         delete viewSettings.detailSidebarPreviewMode;
     }
     if (viewSettings.mandalaA4Mode === undefined) {
