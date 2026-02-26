@@ -5,6 +5,7 @@ import { Settings } from 'src/stores/settings/settings-type';
 
 type SettingsWithLegacySidebar = Settings & {
     view: Settings['view'] & {
+        maintainEditMode?: boolean;
         showMandalaDetailSidebar?: boolean;
         detailSidebarPreviewMode?: 'rendered' | 'source';
         show3x3SubgridNavButtons?: boolean;
@@ -65,6 +66,15 @@ describe('migrateSettings', () => {
         expect(settings.view.show9x9ParallelNavButtonsMobile).toBe(false);
         expect('show3x3SubgridNavButtons' in settings.view).toBe(false);
         expect('show9x9ParallelNavButtons' in settings.view).toBe(false);
+    });
+
+    test('drops legacy maintainEditMode field', () => {
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
+        settings.view.maintainEditMode = true;
+
+        migrateSettings(settings);
+
+        expect('maintainEditMode' in settings.view).toBe(false);
     });
 
     test('adds default mandalaView when missing', () => {

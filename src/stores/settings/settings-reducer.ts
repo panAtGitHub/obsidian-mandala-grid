@@ -343,10 +343,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/set-node-indentation-width') return;
         store.view.nodeIndentationWidth = action.payload.width;
     },
-    'settings/view/set-maintain-edit-mode': (store, action) => {
-        if (action.type !== 'settings/view/set-maintain-edit-mode') return;
-        store.view.maintainEditMode = action.payload.maintain;
-    },
     'settings/view/theme/set-inactive-node-opacity': (store, action) => {
         if (action.type !== 'settings/view/theme/set-inactive-node-opacity')
             return;

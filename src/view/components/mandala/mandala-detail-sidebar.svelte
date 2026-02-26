@@ -261,10 +261,8 @@
                             <Content
                                 nodeId={$activeNodeId}
                                 isInSidebar={false}
-                                active={null}
                                 mobileSidebarRenderedEditEnabled={Platform.isMobile &&
                                     $detailSidebarPreviewMode === 'rendered'}
-                                disableDesktopSingleClickEdit={true}
                                 on:mobileRenderedDoubleTapEdit={handleMobileRenderedDoubleTapEdit}
                             />
                         {/if}

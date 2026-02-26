@@ -7,7 +7,6 @@ import { LimitCardHeight } from 'src/view/actions/settings/components/limit-card
 import { DefaultDocumentFormat } from 'src/view/actions/settings/components/default-document-format';
 import { CardsGap } from 'src/view/actions/settings/components/cards-gap';
 import { CardIndentationWidth } from 'src/view/actions/settings/components/card-indentation-width';
-import { MaintainEditMode } from 'src/view/actions/settings/components/maintain-edit-mode';
 import { InactiveCardOpacity } from 'src/view/actions/settings/components/inactive-card-opacity';
 import { ActiveBranchColor } from 'src/view/actions/settings/components/active-branch-color';
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
@@ -45,11 +44,6 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     // general
     DefaultDocumentFormat(generalTab, settingsStore);
     LinkPaneType(generalTab, settingsStore);
-    MaintainEditMode(
-        generalTab,
-        settingsStore,
-        isMandala ? '自动聚焦详情编辑' : undefined,
-    );
     MandalaEmbedDebug(generalTab, settingsStore);
     /*AlwaysShowCardButtons(
         generalTab,

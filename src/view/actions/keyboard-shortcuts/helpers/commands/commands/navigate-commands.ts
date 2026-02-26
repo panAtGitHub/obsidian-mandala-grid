@@ -3,38 +3,11 @@ import { AllDirections } from 'src/stores/document/document-store-actions';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
 import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
-import { Platform } from 'obsidian';
 
 const outlineModeSelector = (view: MandalaView) =>
     view.plugin.settings.getValue().view.outlineMode;
 
-const maintainEditMode = (view: MandalaView) =>
-    view.plugin.settings.getValue().view.maintainEditMode;
-
-const maybeEnableEditMode = (view: MandalaView) => {
-    if (Platform.isMobile) return;
-    const viewState = view.viewStore.getValue();
-    const isEditing = viewState.document.editing.activeNodeId;
-    const activeNode = viewState.document.activeNode;
-    if (isEditing && maintainEditMode(view)) {
-        const isInSidebar = viewState.document.editing.isInSidebar;
-        setTimeout(() => {
-            const newActiveNode = view.viewStore.getValue().document.activeNode;
-            if (newActiveNode !== activeNode) {
-                view.viewStore.dispatch({
-                    type: 'view/editor/enable-main-editor',
-                    payload: {
-                        nodeId: newActiveNode,
-                        isInSidebar: isInSidebar,
-                    },
-                });
-            }
-        }, 16);
-    }
-};
-
 const spatialNavigation = (view: MandalaView, direction: AllDirections) => {
-    maybeEnableEditMode(view);
     if (view.mandalaMode === '3x3') {
         if (tryMandala3x3Navigation(view, direction)) return;
     }
@@ -56,7 +29,6 @@ const sequentialNavigation = (
     view: MandalaView,
     direction: 'forward' | 'back',
 ) => {
-    maybeEnableEditMode(view);
     view.viewStore.dispatch({
         type: 'view/set-active-node/sequential/select-next',
         payload: {

@@ -1,6 +1,5 @@
 <script lang="ts">
     import clx from 'classnames';
-    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Draggable from 'src/view/components/container/column/components/group/components/card/components/dnd/draggable.svelte';
@@ -111,11 +110,6 @@
             return;
         }
 
-        const maintainEditMode =
-            view.plugin.settings.getValue().view.maintainEditMode;
-        if (maintainEditMode && $showDetailSidebar) {
-            enableSidebarEditorForNode(view, nodeId);
-        }
     };
 
     const handleCardClick = (e: MouseEvent) => {
@@ -212,14 +206,12 @@
             <Content
                 {nodeId}
                 isInSidebar={false}
-                active={active ? ActiveStatus.node : null}
             />
         </Draggable>
     {:else}
         <Content
             {nodeId}
             isInSidebar={false}
-            active={active ? ActiveStatus.node : null}
         />
     {/if}
 

@@ -174,10 +174,6 @@ export type SettingsActions =
           };
       }
     | {
-          type: 'settings/view/set-maintain-edit-mode';
-          payload: { maintain: boolean };
-      }
-    | {
           type: 'settings/view/toggle-hidden-card-info';
       }
     | {

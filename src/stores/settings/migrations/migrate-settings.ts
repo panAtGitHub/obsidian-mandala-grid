@@ -102,6 +102,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         detailSidebarPreviewMode?: unknown;
         detailSidebarPreviewModeDesktop?: 'rendered' | 'source';
         detailSidebarPreviewModeMobile?: 'rendered' | 'source';
+        maintainEditMode?: unknown;
         mandalaA4Mode?: boolean;
         mandalaA4Orientation?: 'portrait' | 'landscape';
         mandalaBackgroundMode?: 'none' | 'custom' | 'gray';
@@ -129,6 +130,9 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
     if ('detailSidebarPreviewMode' in viewSettings) {
         delete viewSettings.detailSidebarPreviewMode;
+    }
+    if ('maintainEditMode' in viewSettings) {
+        delete viewSettings.maintainEditMode;
     }
     if (viewSettings.mandalaA4Mode === undefined) {
         viewSettings.mandalaA4Mode = false;

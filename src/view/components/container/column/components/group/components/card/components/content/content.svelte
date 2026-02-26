@@ -4,7 +4,6 @@
     import {
         handleLinks
     } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
-    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
     import {
         getCursorPosition
     } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/get-cursor-position';
@@ -13,7 +12,6 @@
     import { contentStore } from 'src/stores/document/derived/content-store';
     import { isGrabbing } from './event-handlers/helpers/is-grabbing';
     import {
-        MaintainEditMode,
         ShowHiddenCardInfoStore,
     } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
     import {
@@ -26,9 +24,7 @@
 
     export let nodeId: string;
     export let isInSidebar: boolean;
-    export let active: ActiveStatus | null;
     export let mobileSidebarRenderedEditEnabled = false;
-    export let disableDesktopSingleClickEdit = false;
 
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
@@ -66,16 +62,6 @@
             view.inlineEditor.setNodeCursor(nodeId, cursor);
         }
         enableEditMode();
-    };
-
-    const anotherNodeIsBeingEdited = () => {
-        const isNotActiveNode = active !== ActiveStatus.node;
-        const editingState = view.viewStore.getValue().document.editing;
-        return (
-            isNotActiveNode &&
-            editingState.activeNodeId &&
-            !editingState.isInSidebar
-        );
     };
 
     import { Platform } from 'obsidian';
@@ -137,19 +123,8 @@
             return;
         }
 
-        const maintainEditMode = get(MaintainEditMode(view));
-        const enableEditOnSingleClick =
-            !disableDesktopSingleClickEdit &&
-            maintainEditMode &&
-            !isInSidebar &&
-            anotherNodeIsBeingEdited();
-
-        if (enableEditOnSingleClick) {
-            enableEditModeAtCursor(e);
-        } else {
-            handleLinks(view, e);
-            setActiveNode(e);
-        }
+        handleLinks(view, e);
+        setActiveNode(e);
 
         // 内容层已完成点击处理，避免继续冒泡到外层卡片重复触发选择逻辑
         e.stopPropagation();

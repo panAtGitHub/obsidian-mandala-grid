@@ -109,7 +109,6 @@ export type Settings = {
         mandalaSectionColorOpacity: number;
         lastExportPreset: LastExportPreset | null;
         nodeIndentationWidth: number;
-        maintainEditMode: boolean;
         alwaysShowCardButtons: boolean;
         showHiddenCardInfo: boolean;
         show3x3SubgridNavButtonsDesktop: boolean;

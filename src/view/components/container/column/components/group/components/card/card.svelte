@@ -76,7 +76,7 @@
         <InlineEditor nodeId={node} {style} />
     {:else}
         <Draggable nodeId={node} {isInSidebar}>
-            <Content nodeId={node} {isInSidebar} {active} />
+            <Content nodeId={node} {isInSidebar} />
         </Draggable>
     {/if}
 
