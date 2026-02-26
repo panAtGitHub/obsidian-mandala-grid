@@ -8,6 +8,7 @@
     import {
         getCursorPosition
     } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/get-cursor-position';
+    import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
     import { contentStore } from 'src/stores/document/derived/content-store';
     import { isGrabbing } from './event-handlers/helpers/is-grabbing';
@@ -26,9 +27,20 @@
     export let nodeId: string;
     export let isInSidebar: boolean;
     export let active: ActiveStatus | null;
+    export let mobileSidebarRenderedEditEnabled = false;
+    export let disableDesktopSingleClickEdit = false;
 
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const dispatch = createEventDispatcher<{
+        mobileRenderedDoubleTapEdit: { nodeId: string };
+    }>();
+    let lastMobileTapAt = 0;
+    let lastMobileTapNodeId: string | null = null;
+    let lastMobileTapX = 0;
+    let lastMobileTapY = 0;
+    const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
+    const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
 
     const setActiveNode = (e: MouseEvent) => {
         if (isInSidebar) {
@@ -67,26 +79,70 @@
     };
 
     import { Platform } from 'obsidian';
+    const isInteractiveTarget = (target: HTMLElement | null) =>
+        Boolean(
+            target?.closest('button, input, textarea, select, [role="button"]'),
+        );
+    const resetMobileTapState = () => {
+        lastMobileTapAt = 0;
+        lastMobileTapNodeId = null;
+        lastMobileTapX = 0;
+        lastMobileTapY = 0;
+    };
 
     const handleClick = (e: MouseEvent) => {
         if (isGrabbing(view)) return;
-        
+
         // 移动端：仅激活节点，禁止任何编辑相关的副作用
         if (Platform.isMobile) {
             const target = e.target as HTMLElement | null;
-            const anchor = target?.closest('a.internal-link');
+            const anchor = target?.closest('a');
             if (anchor) {
+                resetMobileTapState();
                 handleLinks(view, e);
                 return;
             }
             setActiveNode(e);
+            if (
+                !mobileSidebarRenderedEditEnabled ||
+                isInteractiveTarget(target)
+            ) {
+                if (isInteractiveTarget(target)) {
+                    resetMobileTapState();
+                }
+                e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
+                return;
+            }
+            const now = Date.now();
+            const delta = now - lastMobileTapAt;
+            const dx = e.clientX - lastMobileTapX;
+            const dy = e.clientY - lastMobileTapY;
+            const distance = Math.hypot(dx, dy);
+            const isDoubleTap =
+                delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
+                lastMobileTapNodeId === nodeId &&
+                distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
+            lastMobileTapAt = now;
+            lastMobileTapNodeId = nodeId;
+            lastMobileTapX = e.clientX;
+            lastMobileTapY = e.clientY;
+            if (isDoubleTap) {
+                e.preventDefault();
+                e.stopPropagation();
+                resetMobileTapState();
+                dispatch('mobileRenderedDoubleTapEdit', { nodeId });
+                return;
+            }
             e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
             return;
         }
 
         const maintainEditMode = get(MaintainEditMode(view));
         const enableEditOnSingleClick =
-            maintainEditMode && !isInSidebar && anotherNodeIsBeingEdited();
+            !disableDesktopSingleClickEdit &&
+            maintainEditMode &&
+            !isInSidebar &&
+            anotherNodeIsBeingEdited();
 
         if (enableEditOnSingleClick) {
             enableEditModeAtCursor(e);

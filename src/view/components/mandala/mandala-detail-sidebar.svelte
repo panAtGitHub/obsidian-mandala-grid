@@ -75,12 +75,6 @@
     $: canJumpPrevCore = activeCoreNumber > 1;
 
     let editorContainer: HTMLElement;
-    let lastMobileTapAt = 0;
-    let lastMobileTapNodeId: string | null = null;
-    let lastMobileTapX = 0;
-    let lastMobileTapY = 0;
-    const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
-    const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
 
     $: isEditingInSidebar =
         !Platform.isMobile &&
@@ -189,41 +183,14 @@
             });
         }
     };
-    const isInteractiveTarget = (target: EventTarget | null) => {
-        if (!(target instanceof HTMLElement)) return false;
-        return Boolean(
-            target.closest(
-                'a, button, input, textarea, select, [role="button"], .mobile-subgrid-floating-controls',
-            ),
-        );
-    };
-
-    const handleMobileTap = (event: MouseEvent) => {
-        if (!Platform.isMobile || !$activeNodeId) return;
-        if (isInteractiveTarget(event.target)) {
-            lastMobileTapAt = 0;
-            lastMobileTapNodeId = null;
-            return;
-        }
-        const now = Date.now();
-        const delta = now - lastMobileTapAt;
-        const dx = event.clientX - lastMobileTapX;
-        const dy = event.clientY - lastMobileTapY;
-        const distance = Math.hypot(dx, dy);
-        const isDoubleTap =
-            delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
-            lastMobileTapNodeId === $activeNodeId &&
-            distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
-        lastMobileTapAt = now;
-        lastMobileTapNodeId = $activeNodeId;
-        lastMobileTapX = event.clientX;
-        lastMobileTapY = event.clientY;
-        if (!isDoubleTap) return;
-        event.preventDefault();
-        event.stopPropagation();
-        lastMobileTapAt = 0;
-        lastMobileTapNodeId = null;
-        openNodeEditor(view, $activeNodeId, {
+    const handleMobileRenderedDoubleTapEdit = (
+        event: CustomEvent<{ nodeId: string }>,
+    ) => {
+        if (!Platform.isMobile) return;
+        if ($detailSidebarPreviewMode !== 'rendered') return;
+        const nodeId = event.detail?.nodeId;
+        if (!nodeId) return;
+        openNodeEditor(view, nodeId, {
             desktopIsInSidebar: true,
         });
     };
@@ -274,7 +241,7 @@
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
     {#if $showSidebarStore}
-        <div class="sidebar-content" on:click|capture={handleMobileTap}>
+        <div class="sidebar-content">
             {#if $activeNodeId}
                 <div class="editor-wrapper">
                     {#key $activeNodeId}
@@ -295,6 +262,10 @@
                                 nodeId={$activeNodeId}
                                 isInSidebar={false}
                                 active={null}
+                                mobileSidebarRenderedEditEnabled={Platform.isMobile &&
+                                    $detailSidebarPreviewMode === 'rendered'}
+                                disableDesktopSingleClickEdit={true}
+                                on:mobileRenderedDoubleTapEdit={handleMobileRenderedDoubleTapEdit}
                             />
                         {/if}
                     {/key}
