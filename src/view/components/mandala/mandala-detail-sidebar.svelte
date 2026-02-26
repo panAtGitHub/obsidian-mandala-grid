@@ -76,6 +76,11 @@
 
     let editorContainer: HTMLElement;
     let lastMobileTapAt = 0;
+    let lastMobileTapNodeId: string | null = null;
+    let lastMobileTapX = 0;
+    let lastMobileTapY = 0;
+    const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
+    const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
 
     $: isEditingInSidebar =
         !Platform.isMobile &&
@@ -197,14 +202,27 @@
         if (!Platform.isMobile || !$activeNodeId) return;
         if (isInteractiveTarget(event.target)) {
             lastMobileTapAt = 0;
+            lastMobileTapNodeId = null;
             return;
         }
         const now = Date.now();
-        const isDoubleTap = now - lastMobileTapAt <= 320;
+        const delta = now - lastMobileTapAt;
+        const dx = event.clientX - lastMobileTapX;
+        const dy = event.clientY - lastMobileTapY;
+        const distance = Math.hypot(dx, dy);
+        const isDoubleTap =
+            delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
+            lastMobileTapNodeId === $activeNodeId &&
+            distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
         lastMobileTapAt = now;
+        lastMobileTapNodeId = $activeNodeId;
+        lastMobileTapX = event.clientX;
+        lastMobileTapY = event.clientY;
         if (!isDoubleTap) return;
         event.preventDefault();
         event.stopPropagation();
+        lastMobileTapAt = 0;
+        lastMobileTapNodeId = null;
         openNodeEditor(view, $activeNodeId, {
             desktopIsInSidebar: true,
         });
