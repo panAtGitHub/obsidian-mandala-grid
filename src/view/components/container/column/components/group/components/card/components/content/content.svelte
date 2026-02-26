@@ -36,6 +36,7 @@
     let lastMobileTapX = 0;
     let lastMobileTapY = 0;
     const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
+    const MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS = 80;
     const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
 
     const setActiveNode = (e: MouseEvent) => {
@@ -88,36 +89,41 @@
                 handleLinks(view, e);
                 return;
             }
-            setActiveNode(e);
-            if (
-                !mobileSidebarRenderedEditEnabled ||
-                isInteractiveTarget(target)
-            ) {
+
+            if (mobileSidebarRenderedEditEnabled) {
                 if (isInteractiveTarget(target)) {
                     resetMobileTapState();
                 }
                 e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
+                if (isInteractiveTarget(target)) {
+                    return;
+                }
+                const now = Date.now();
+                const delta = now - lastMobileTapAt;
+                const dx = e.clientX - lastMobileTapX;
+                const dy = e.clientY - lastMobileTapY;
+                const distance = Math.hypot(dx, dy);
+                const isDoubleTap =
+                    delta >= MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS &&
+                    delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
+                    lastMobileTapNodeId === nodeId &&
+                    distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
+                lastMobileTapAt = now;
+                lastMobileTapNodeId = nodeId;
+                lastMobileTapX = e.clientX;
+                lastMobileTapY = e.clientY;
+                if (isDoubleTap) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    resetMobileTapState();
+                    dispatch('mobileRenderedDoubleTapEdit', { nodeId });
+                }
                 return;
             }
-            const now = Date.now();
-            const delta = now - lastMobileTapAt;
-            const dx = e.clientX - lastMobileTapX;
-            const dy = e.clientY - lastMobileTapY;
-            const distance = Math.hypot(dx, dy);
-            const isDoubleTap =
-                delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
-                lastMobileTapNodeId === nodeId &&
-                distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
-            lastMobileTapAt = now;
-            lastMobileTapNodeId = nodeId;
-            lastMobileTapX = e.clientX;
-            lastMobileTapY = e.clientY;
-            if (isDoubleTap) {
-                e.preventDefault();
-                e.stopPropagation();
+
+            setActiveNode(e);
+            if (isInteractiveTarget(target)) {
                 resetMobileTapState();
-                dispatch('mobileRenderedDoubleTapEdit', { nodeId });
-                return;
             }
             e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
             return;
