@@ -67,9 +67,11 @@
     $: canExitSubgrid = Boolean($subgridTheme && $subgridTheme !== '1');
     $: canEnterSubgrid =
         !!$activeNodeId &&
-        !($subgridTheme &&
-                $subgridTheme.includes('.') &&
-                activeSection === $subgridTheme);
+        !(
+            $subgridTheme &&
+            $subgridTheme.includes('.') &&
+            activeSection === $subgridTheme
+        );
     $: canJumpPrevCore = activeCoreNumber > 1;
 
     let editorContainer: HTMLElement;
@@ -182,18 +184,27 @@
             });
         }
     };
-    const handleDblClick = () => {
-        if (Platform.isMobile && $activeNodeId) {
-            void startSectionNativeEditorSession(view, $activeNodeId);
-        }
+    const isInteractiveTarget = (target: EventTarget | null) => {
+        if (!(target instanceof HTMLElement)) return false;
+        return Boolean(
+            target.closest(
+                'a, button, input, textarea, select, [role="button"], .mobile-subgrid-floating-controls',
+            ),
+        );
     };
 
-    const handleMobileTap = () => {
+    const handleMobileTap = (event: MouseEvent) => {
         if (!Platform.isMobile || !$activeNodeId) return;
+        if (isInteractiveTarget(event.target)) {
+            lastMobileTapAt = 0;
+            return;
+        }
         const now = Date.now();
         const isDoubleTap = now - lastMobileTapAt <= 320;
         lastMobileTapAt = now;
         if (!isDoubleTap) return;
+        event.preventDefault();
+        event.stopPropagation();
         void startSectionNativeEditorSession(view, $activeNodeId);
     };
 
@@ -228,7 +239,6 @@
         event.stopPropagation();
         jumpCoreTheme(view, 'down');
     };
-
 </script>
 
 <div
@@ -244,11 +254,7 @@
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
     {#if $showSidebarStore}
-        <div
-            class="sidebar-content"
-            on:dblclick={handleDblClick}
-            on:click={handleMobileTap}
-        >
+        <div class="sidebar-content" on:click|capture={handleMobileTap}>
             {#if $activeNodeId}
                 <div class="editor-wrapper">
                     {#key $activeNodeId}
@@ -262,16 +268,14 @@
                                     style={$styleRules.get($activeNodeId)}
                                 />
                             </div>
+                        {:else if $detailSidebarPreviewMode === 'source'}
+                            <SourcePreview nodeId={$activeNodeId} />
                         {:else}
-                            {#if $detailSidebarPreviewMode === 'source'}
-                                <SourcePreview nodeId={$activeNodeId} />
-                            {:else}
-                                <Content
-                                    nodeId={$activeNodeId}
-                                    isInSidebar={false}
-                                    active={null}
-                                />
-                            {/if}
+                            <Content
+                                nodeId={$activeNodeId}
+                                isInSidebar={false}
+                                active={null}
+                            />
                         {/if}
                     {/key}
                 </div>
