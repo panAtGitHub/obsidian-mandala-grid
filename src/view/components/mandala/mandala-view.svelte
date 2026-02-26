@@ -452,8 +452,8 @@
             }
         }
     }
-    // 手机端全屏编辑状态判断
-    $: isMobilePopupEditing = Platform.isMobile && $editingState.activeNodeId && !$editingState.isInSidebar;
+    // 手机端编辑统一走原生 section 会话，不再走 InlineEditor 弹层路径。
+    let isMobilePopupEditing = false;
     $: isMobileFullScreenSearch = Platform.isMobile && $search.showInput;
 
     const handleSave = () => {

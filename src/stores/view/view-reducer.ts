@@ -28,6 +28,7 @@ import { collapseNode } from 'src/stores/view/reducers/outline/helpers/collapse-
 import { expandParentsOfActiveNode } from 'src/stores/view/reducers/outline/expand-parents-of-active-node';
 import { MandalaGridDocument } from 'src/stores/document/document-state-type';
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
+import { Platform } from 'obsidian';
 
 type ViewActionHandler = (
     state: ViewState,
@@ -123,6 +124,7 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/editor/enable-main-editor': (state, action, context) => {
         if (action.type !== 'view/editor/enable-main-editor') return;
+        if (Platform.isMobile) return;
         if (state.document.activeNode !== action.payload.nodeId) {
             updateActiveNode(
                 state.document,
@@ -135,6 +137,7 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/editor/enable-sidebar-editor': (state, action) => {
         if (action.type !== 'view/editor/enable-sidebar-editor') return;
+        if (Platform.isMobile) return;
         if (action.context.activeSidebarTab === 'pinned-cards') {
             if (state.pinnedNodes.activeNode !== action.payload.id) {
                 setActivePinnedNode(

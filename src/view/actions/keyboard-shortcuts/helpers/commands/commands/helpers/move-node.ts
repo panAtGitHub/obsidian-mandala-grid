@@ -1,12 +1,14 @@
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { MandalaView } from 'src/view/view';
+import { Platform } from 'obsidian';
 
 type EditingState = {
     editedNode: string;
 };
 
 const restoreEditingState = (view: MandalaView, state: EditingState) => {
+    if (Platform.isMobile) return;
     setTimeout(() => {
         view.viewStore.dispatch({
             type: 'view/editor/enable-main-editor',

@@ -19,7 +19,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
-    import { startSectionNativeEditorSession } from 'src/view/helpers/mandala/section-native-editor-session';
+    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
     const MIN_SIZE = 200;
@@ -205,7 +205,9 @@
         if (!isDoubleTap) return;
         event.preventDefault();
         event.stopPropagation();
-        void startSectionNativeEditorSession(view, $activeNodeId);
+        openNodeEditor(view, $activeNodeId, {
+            desktopIsInSidebar: true,
+        });
     };
 
     const applyObsidianIcon = (node: HTMLElement, iconName: string) => {

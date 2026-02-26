@@ -1,5 +1,6 @@
 import type { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
+import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
 
 export const setActiveMandalaNode = (
     view: MandalaView,
@@ -18,9 +19,8 @@ export const enableSidebarEditorForNode = (
     view: MandalaView,
     nodeId: string,
 ) => {
-    view.viewStore.dispatch({
-        type: 'view/editor/enable-main-editor',
-        payload: { nodeId, isInSidebar: true },
+    openNodeEditor(view, nodeId, {
+        desktopIsInSidebar: true,
     });
 };
 

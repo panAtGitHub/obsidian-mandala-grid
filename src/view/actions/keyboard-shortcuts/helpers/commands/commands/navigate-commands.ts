@@ -3,6 +3,7 @@ import { AllDirections } from 'src/stores/document/document-store-actions';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
 import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
+import { Platform } from 'obsidian';
 
 const outlineModeSelector = (view: MandalaView) =>
     view.plugin.settings.getValue().view.outlineMode;
@@ -11,6 +12,7 @@ const maintainEditMode = (view: MandalaView) =>
     view.plugin.settings.getValue().view.maintainEditMode;
 
 const maybeEnableEditMode = (view: MandalaView) => {
+    if (Platform.isMobile) return;
     const viewState = view.viewStore.getValue();
     const isEditing = viewState.document.editing.activeNodeId;
     const activeNode = viewState.document.activeNode;
