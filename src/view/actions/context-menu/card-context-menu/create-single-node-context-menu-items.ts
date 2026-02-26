@@ -2,6 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { MenuItemObject } from 'src/obsidian/context-menu/render-context-menu';
 import { lang } from 'src/lang/lang';
 import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-block';
+import { copyLinkToHeading } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-heading';
 import { togglePinNode } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 import {
@@ -72,6 +73,13 @@ export const createSingleNodeContextMenuItems = (
             icon: 'links-coming-in',
             action: () => {
                 void copyLinkToBlock(view, false);
+            },
+        },
+        {
+            title: lang.cm_copy_heading_link,
+            icon: 'heading-1',
+            action: () => {
+                void copyLinkToHeading(view, activeNode);
             },
         },
         { type: 'separator' },

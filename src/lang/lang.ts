@@ -69,6 +69,7 @@ export const lang = {
     hk_copy_node_unformatted: '复制分支（纯文本）',
     hk_copy_node_without_subitems: '复制卡片',
     cm_copy_link_to_block: '复制块链接',
+    cm_copy_heading_link: '复制标题链接',
     cm_section_color: '分区颜色',
     cm_clear_section_color: '清除颜色',
     toolbar_copy_search_results: 'Copy search results',
