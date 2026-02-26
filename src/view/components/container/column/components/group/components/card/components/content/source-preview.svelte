@@ -3,6 +3,7 @@
     import { getView } from 'src/view/components/container/context';
     import { onDestroy, onMount } from 'svelte';
     import { contentStore } from 'src/stores/document/derived/content-store';
+    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
     export let nodeId: string;
@@ -32,6 +33,12 @@
     let unsubscribeReadonlyGuards: () => void = () => {};
     let unsubscribe: () => void = () => {};
     let currentNodeId = '';
+    let lastMobileTapAt = 0;
+    let lastMobileTapX = 0;
+    let lastMobileTapY = 0;
+    const MOBILE_DOUBLE_TAP_WINDOW_MS = 360;
+    const MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS = 80;
+    const MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX = 32;
 
     const shouldBlockKeydown = (event: KeyboardEvent): boolean => {
         if (event.metaKey || event.ctrlKey) {
@@ -95,6 +102,40 @@
         if (!Platform.isMobile) return;
         event.preventDefault();
         event.stopPropagation();
+    };
+
+    const resetMobileTapState = () => {
+        lastMobileTapAt = 0;
+        lastMobileTapX = 0;
+        lastMobileTapY = 0;
+    };
+
+    const handleMobilePreviewTouchEnd = (event: TouchEvent) => {
+        if (!Platform.isMobile) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const touch = event.changedTouches.item(0);
+        if (!touch || !nodeId) {
+            resetMobileTapState();
+            return;
+        }
+        const now = Date.now();
+        const delta = now - lastMobileTapAt;
+        const dx = touch.clientX - lastMobileTapX;
+        const dy = touch.clientY - lastMobileTapY;
+        const distance = Math.hypot(dx, dy);
+        const isDoubleTap =
+            delta >= MOBILE_DOUBLE_TAP_MIN_INTERVAL_MS &&
+            delta <= MOBILE_DOUBLE_TAP_WINDOW_MS &&
+            distance <= MOBILE_DOUBLE_TAP_MAX_DISTANCE_PX;
+        lastMobileTapAt = now;
+        lastMobileTapX = touch.clientX;
+        lastMobileTapY = touch.clientY;
+        if (!isDoubleTap) return;
+        resetMobileTapState();
+        openNodeEditor(view, nodeId, {
+            desktopIsInSidebar: true,
+        });
     };
 
     const blurMobileFocus = (event: FocusEvent) => {
@@ -174,7 +215,7 @@
     on:mousedown|capture={blockMobilePreviewInteraction}
     on:click|capture={blockMobilePreviewInteraction}
     on:dblclick|capture={blockMobilePreviewInteraction}
-    on:touchend|capture={blockMobilePreviewInteraction}
+    on:touchend|capture={handleMobilePreviewTouchEnd}
     on:focusin|capture={blurMobileFocus}
 />
 
