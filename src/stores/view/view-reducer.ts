@@ -10,7 +10,6 @@ import { onDragEnd } from 'src/stores/view/reducers/document/on-drag-end';
 import { updateActiveBranch } from 'src/stores/view/reducers/document/helpers/update-active-branch';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { navigateUsingKeyboard } from 'src/stores/view/reducers/document/navigate-using-keyboard';
-import { navigateActiveNodeHistory } from 'src/stores/view/reducers/ui/navigate-active-node-history';
 import { jumpToNode } from 'src/stores/view/reducers/document/jump-to-node';
 
 import { removeDeletedNavigationItems } from 'src/stores/view/reducers/ui/helpers/remove-deleted-navigation-items';
@@ -21,11 +20,6 @@ import { setActivePinnedNode } from 'src/stores/view/reducers/pinned-cards/set-a
 import { setActiveRecentNode } from 'src/stores/view/reducers/recent-nodes/set-active-recent-node';
 import { toggleShowAllNodes } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
 import { resetPendingConfirmation } from 'src/stores/view/reducers/document/reset-pending-confirmation';
-import { toggleCollapseNode } from 'src/stores/view/reducers/outline/toggle-collapse-node';
-import { refreshCollapsedNodes } from 'src/stores/view/reducers/outline/refresh-collapsed-nodes';
-import { toggleCollapseAllNodes } from 'src/stores/view/reducers/outline/toggle-collapse-all-nodes';
-import { collapseNode } from 'src/stores/view/reducers/outline/helpers/collapse-node';
-import { expandParentsOfActiveNode } from 'src/stores/view/reducers/outline/expand-parents-of-active-node';
 import { MandalaGridDocument } from 'src/stores/document/document-state-type';
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { Platform } from 'obsidian';
@@ -80,16 +74,6 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/search/toggle-input': (state, action) => {
         if (action.type !== 'view/search/toggle-input') return;
         toggleSearchInput(state);
-    },
-    'view/snapshots/toggle-modal': (state, action) => {
-        if (action.type !== 'view/snapshots/toggle-modal') return;
-        const showHistorySidebar = state.ui.controls.showHistorySidebar;
-        state.ui.controls = {
-            showHistorySidebar: !showHistorySidebar,
-            showHelpSidebar: false,
-            showSettingsSidebar: false,
-            showStyleRulesModal: false,
-        };
     },
     'view/hotkeys/toggle-modal': (state, action) => {
         if (action.type !== 'view/hotkeys/toggle-modal') return;
@@ -203,14 +187,6 @@ const handlers: Record<string, ViewActionHandler> = {
         if (action.type !== 'view/update-active-branch?source=document') return;
         updateActiveBranch(state.document, context.columns, true);
     },
-    'view/set-active-node/history/select-next': (state, action, context) => {
-        if (action.type !== 'view/set-active-node/history/select-next') return;
-        navigateActiveNodeHistory(state.document, state, context.columns, true);
-    },
-    'view/set-active-node/history/select-previous': (state, action, context) => {
-        if (action.type !== 'view/set-active-node/history/select-previous') return;
-        navigateActiveNodeHistory(state.document, state, context.columns);
-    },
     'view/set-active-node/keyboard-jump': (state, action, context) => {
         if (action.type !== 'view/set-active-node/keyboard-jump') return;
         jumpToNode(state.document, state, action, context.columns);
@@ -285,18 +261,6 @@ const handlers: Record<string, ViewActionHandler> = {
         if (action.type !== 'view/hotkeys/update-conflicts') return;
         state.hotkeys.conflictingHotkeys = action.payload.conflicts;
     },
-    'view/outline/toggle-collapse-node': (state, action, context) => {
-        if (action.type !== 'view/outline/toggle-collapse-node') return;
-        toggleCollapseNode(state, context.columns, action.payload.id);
-    },
-    'view/outline/refresh-collapsed-nodes': (state, action, context) => {
-        if (action.type !== 'view/outline/refresh-collapsed-nodes') return;
-        refreshCollapsedNodes(state, context.columns);
-    },
-    'view/outline/toggle-collapse-all': (state, action, context) => {
-        if (action.type !== 'view/outline/toggle-collapse-all') return;
-        toggleCollapseAllNodes(state, context.columns);
-    },
     'view/selection/set-selection': (state, action) => {
         if (action.type !== 'view/selection/set-selection') return;
         state.document.selectedNodes = new Set(action.payload.ids);
@@ -344,14 +308,6 @@ const handlers: Record<string, ViewActionHandler> = {
         };
         state.ui.mandala = { ...state.ui.mandala };
     },
-    'view/outline/load-persisted-collapsed-parents': (state, action, context) => {
-        if (action.type !== 'view/outline/load-persisted-collapsed-parents') return;
-        for (const id of action.payload.collapsedIds) {
-            collapseNode(state, context.columns, id);
-        }
-        expandParentsOfActiveNode(state, context.columns);
-        state.outline = { ...state.outline };
-    },
 };
 
 const updateDocumentState = (
@@ -367,7 +323,6 @@ const updateDocumentState = (
 
     if (activeNode !== state.document.activeNode) {
         updateActiveBranch(state.document, context.columns, false);
-        expandParentsOfActiveNode(state, context.columns);
     }
 };
 

@@ -8,7 +8,6 @@ import { updateStyleRules } from 'src/stores/settings/reducers/update-style-rule
 import { CommandName } from 'src/lang/hotkey-groups';
 import { toggleEditorState } from 'src/stores/settings/reducers/toggle-editor-state';
 import { setHotkeyAsBlank } from 'src/stores/settings/reducers/set-hotkey-as-blank';
-import { persistCollapsedSections } from 'src/stores/settings/reducers/persist-collapsed-sections';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { Platform } from 'obsidian';
 import { normalizeContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
@@ -271,18 +270,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'view/modes/gap-between-cards/toggle') return;
         store.view.applyGapBetweenCards = !store.view.applyGapBetweenCards;
     },
-    'settings/view/modes/toggle-outline-mode': (store, action) => {
-        if (action.type !== 'settings/view/modes/toggle-outline-mode') return;
-        store.view.outlineMode = !store.view.outlineMode;
-        if (store.view.outlineMode) {
-            store.view.scrolling.centerActiveNodeH = false;
-            store.view.scrolling = {
-                ...store.view.scrolling,
-            };
-        }
-        store.view.mandalaMode =
-            store.view.mandalaMode === '9x9' ? '3x3' : '9x9';
-    },
     'settings/view/mandala/toggle-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/toggle-mode') return;
         store.view.mandalaMode =
@@ -303,10 +290,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.payload.width > 0) {
             store.view.mandalaDetailSidebarWidth = action.payload.width;
         }
-    },
-    'settings/view/set-node-indentation-width': (store, action) => {
-        if (action.type !== 'settings/view/set-node-indentation-width') return;
-        store.view.nodeIndentationWidth = action.payload.width;
     },
     'settings/view/theme/set-inactive-node-opacity': (store, action) => {
         if (action.type !== 'settings/view/theme/set-inactive-node-opacity')
@@ -377,11 +360,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/hotkeys/set-blank': (store, action) => {
         if (action.type !== 'settings/hotkeys/set-blank') return;
         setHotkeyAsBlank(store, action);
-    },
-    'settings/document/persist-collapsed-sections': (store, action) => {
-        if (action.type !== 'settings/document/persist-collapsed-sections')
-            return;
-        persistCollapsedSections(store, action);
     },
     'settings/view/set-always-show-card-buttons': (store, action) => {
         if (action.type !== 'settings/view/set-always-show-card-buttons')

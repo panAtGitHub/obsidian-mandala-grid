@@ -5,7 +5,6 @@ import { ActiveBranchBackground } from 'src/view/actions/settings/components/act
 import { CardWidth } from 'src/view/actions/settings/components/card-width';
 import { LimitCardHeight } from 'src/view/actions/settings/components/limit-card-height';
 import { CardsGap } from 'src/view/actions/settings/components/cards-gap';
-import { CardIndentationWidth } from 'src/view/actions/settings/components/card-indentation-width';
 import { InactiveCardOpacity } from 'src/view/actions/settings/components/inactive-card-opacity';
 import { ActiveBranchColor } from 'src/view/actions/settings/components/active-branch-color';
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
@@ -85,9 +84,6 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     }
     if (!isMandala) {
         CardsGap(layoutTab, settingsStore);
-    }
-    if (!isMandala) {
-        CardIndentationWidth(layoutTab, settingsStore);
     }
     if (!isMandala) {
         LimitCardHeight(layoutTab, settingsStore);

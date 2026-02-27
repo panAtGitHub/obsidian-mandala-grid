@@ -280,11 +280,7 @@ export const lang = {
         'Show card buttons on all cards, not just the active one',
 
     // outline
-    settings_layout_indentation_width: 'Card indentation',
-    controls_single_column: 'Outline mode',
     hk_toggle_mandala_mode: '切换 3×3 / 9×9',
-    card_btn_collapse_node: 'Collapse',
-    card_btn_expand_node: 'Expand',
     hkg_mandala: '九宫格',
 
     // toolbar

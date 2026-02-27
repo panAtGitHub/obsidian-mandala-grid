@@ -3,7 +3,6 @@ import { DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY } from 'src/stores/settings/h
 
 export const DEFAULT_CARD_WIDTH = 550;
 export const DEFAULT_CARDS_GAP = 6;
-export const DEFAULT_INDENTATION_WIDTH = 60;
 export const DEFAULT_INACTIVE_NODE_OPACITY = 25;
 export const DEFAULT_H1_FONT_SIZE_EM = 1.802;
 export const DEFAULT_SETTINGS = (): Settings => ({
@@ -87,7 +86,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         leftSidebarWidth: 500,
         leftSidebarActiveTab: 'pinned-cards',
         applyGapBetweenCards: false,
-        outlineMode: false,
         mandalaMode: '3x3',
         mandalaGridOrientation: 'left-to-right',
         mandalaA4Mode: false,
@@ -96,7 +94,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaGridBorderOpacity: 100,
         mandalaSectionColorOpacity: 100,
         lastExportPreset: null,
-        nodeIndentationWidth: DEFAULT_INDENTATION_WIDTH,
         alwaysShowCardButtons: false,
         showHiddenCardInfo: true,
         show3x3SubgridNavButtonsDesktop: true,

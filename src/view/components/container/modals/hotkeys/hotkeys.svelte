@@ -4,23 +4,12 @@
     import NumberOfConflicts from './status-bar.svelte';
     import { FilteredHotkeysStore } from '../../../../../stores/settings/derived/view-hotkeys-store';
     import { getView } from '../../context';
-    import {
-        DynamicLabelState
-    } from 'src/view/components/container/modals/hotkeys/components/helpers/get-dynamic-label';
-    import { OutlineModeStore } from '../../../../../stores/settings/derived/view-settings-store';
 
     import { X, Check } from 'lucide-svelte';
     import { Platform } from 'obsidian';
 
     const view = getView();
     const store = FilteredHotkeysStore(view);
-    const outlineMode = OutlineModeStore(view);
-    let labelState: DynamicLabelState;
-    $: {
-        labelState = {
-            outlineMode: $outlineMode,
-        };
-    }
 
     const closeHotkeys = () => {
         view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
@@ -63,7 +52,7 @@
     {/if}
     <div class="groups">
         {#each Object.entries($store.hotkeys) as [groupName, group] (groupName)}
-            <Group {groupName} {group} {labelState} />
+            <Group {groupName} {group} />
         {/each}
     </div>
     <NumberOfConflicts conflicts={$store.numberOfConflictingHotkeys}/>

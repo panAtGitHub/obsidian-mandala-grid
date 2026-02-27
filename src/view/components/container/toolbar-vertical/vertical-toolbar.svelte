@@ -13,7 +13,6 @@
     import {
         ApplyGapBetweenCardsStore,
         MandalaModeStore,
-        OutlineModeStore,
         ShowHiddenCardInfoStore,
         ShowMandalaDetailSidebarStore,
     } from '../../../../stores/settings/derived/view-settings-store';
@@ -44,7 +43,6 @@
     const showMinimap = showMinimapStore(view);
     const scrollSettingsStore = ScrollSettingsStore(view);
     const applyGapBetweenCards = ApplyGapBetweenCardsStore(view);
-    const outlineMode = OutlineModeStore(view);
     const mandalaMode = MandalaModeStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -56,7 +54,6 @@
             showMinimap,
             controls,
             scrollSettingsStore,
-            outlineMode,
             mandalaMode,
             applyGapBetweenCards,
             showHiddenCardInfo,
@@ -66,7 +63,6 @@
             showMinimap,
             controls,
             scrollSettingsStore,
-            outlineMode,
             mandalaMode,
             applyGapBetweenCards,
             showHiddenCardInfo,
@@ -78,7 +74,6 @@
                 'style-rules': controls.showStyleRulesModal,
                 'center-active-node-h': scrollSettingsStore.centerActiveNodeH,
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
-                'outline-mode': outlineMode,
                 'mandala-mode': mandalaMode === '9x9',
                 'mandala-detail-sidebar': showMandalaDetailSidebar,
                 'space-between-cards': applyGapBetweenCards,

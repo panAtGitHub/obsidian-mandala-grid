@@ -6,8 +6,6 @@ const actionPriorityRecord: Partial<Record<PluginAction['type'], number>> = {
     'view/set-active-node/keyboard-jump': 90,
     'view/set-active-node/sequential/select-next': 90,
     'view/set-active-node/keyboard': 90,
-    'view/set-active-node/history/select-previous': 90,
-    'view/set-active-node/history/select-next': 90,
     'view/set-active-node/mouse': 90,
     'view/set-active-node/mouse-silent': 0,
     'view/set-active-node/search': 30,
@@ -18,9 +16,6 @@ const actionPriorityRecord: Partial<Record<PluginAction['type'], number>> = {
     'view/set-active-node/document': 20,
     'view/editor/disable-main-editor': 20,
     'view/editor/enable-main-editor': 20,
-    'view/outline/toggle-collapse-node': 10,
-    'view/outline/refresh-collapsed-nodes': 10,
-    'view/outline/toggle-collapse-all': 10,
     'document/format-headings': 10,
     'view/left-sidebar/set-width': 10,
     'plugin/echo/workspace/active-leaf-change': 10,
@@ -42,8 +37,6 @@ const actionPriorityRecord: Partial<Record<PluginAction['type'], number>> = {
     'settings/view/toggle-vertical-scrolling-mode': 10,
     'settings/view/layout/set-limit-card-height': 10,
     'settings/view/set-zoom-level': 10,
-    'settings/view/modes/toggle-outline-mode': 10,
-    'settings/view/set-node-indentation-width': 10,
 };
 
 export const actionPriority = new Map(

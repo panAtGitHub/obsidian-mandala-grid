@@ -142,7 +142,6 @@ export type SettingsActions =
           payload: { tab: LeftSidebarTab };
       }
     | { type: 'view/modes/gap-between-cards/toggle' }
-    | { type: 'settings/view/modes/toggle-outline-mode' }
     | { type: 'settings/view/mandala/toggle-mode' }
     | { type: 'view/mandala-detail-sidebar/toggle' }
     | {
@@ -154,12 +153,6 @@ export type SettingsActions =
           payload: { tab: RulesTab };
       }
     | StyleRulesAction
-    | {
-          type: 'settings/view/set-node-indentation-width';
-          payload: {
-              width: number;
-          };
-      }
     | {
           type: 'settings/view/toggle-hidden-card-info';
       }
@@ -197,7 +190,6 @@ export type SettingsActions =
           payload: { color: string | undefined };
       }
     | HotkeySettingsActions
-    | PersistCollapsedSectionsAction
     | {
           type: 'settings/view/set-always-show-card-buttons';
           payload: {
@@ -284,13 +276,6 @@ export type SettingsActions =
                   | null;
           };
       };
-export type PersistCollapsedSectionsAction = {
-    type: 'settings/document/persist-collapsed-sections';
-    payload: {
-        path: string;
-        sections: string[];
-    };
-};
 export type PersistActiveNodeAction = {
     type: 'settings/document/persist-active-section';
     payload: {

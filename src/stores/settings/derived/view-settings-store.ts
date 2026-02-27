@@ -55,9 +55,6 @@ export const LeftSidebarActiveTabStore = (view: MandalaView) =>
 export const ApplyGapBetweenCardsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.applyGapBetweenCards);
 
-export const OutlineModeStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.outlineMode);
-
 export const MandalaModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaMode);
 

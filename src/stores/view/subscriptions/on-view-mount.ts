@@ -13,7 +13,6 @@ import { attachWheelScrollListener } from 'src/stores/view/subscriptions/event-l
 import { applyCardsGap } from 'src/stores/view/subscriptions/effects/css-variables/apply-cards-gap';
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 import { attachCloseModalsListener } from 'src/stores/view/subscriptions/attach-close-modals-listener';
-import { applyCardIndentationWidth } from 'src/stores/view/subscriptions/effects/css-variables/apply-card-indentation-width';
 import { attachCheckboxListener } from 'src/stores/view/subscriptions/effects/checkbox-listener/attach-checkbox-listener';
 import { watchViewSize } from 'src/stores/view/subscriptions/effects/view-size/watch-view-size';
 import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/css-variables/apply-inactive-node-opacity';
@@ -28,7 +27,6 @@ const applySettingsToView = (view: MandalaView) => {
     applyCssColor(view, 'activeBranchBg');
     applyCssColor(view, 'activeBranchColor');
     applyCardWidth(view, state.view.cardWidth);
-    applyCardIndentationWidth(view, state.view.nodeIndentationWidth);
     applyCardsGap(view, state.view.cardsGap);
     if (!view.container) return;
     applyZoomLevel(view, state.view.zoomLevel);

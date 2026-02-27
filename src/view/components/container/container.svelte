@@ -2,7 +2,7 @@
     import Column from './column/column.svelte';
     import { getView } from 'src/view/components/container/context';
     import { scrollOnDndX } from 'src/view/actions/dnd/scroll-on-dnd-x/scroll-on-dnd-x';
-    import { columnsStore, singleColumnStore } from 'src/stores/document/derived/columns-store';
+    import { columnsStore } from 'src/stores/document/derived/columns-store';
     import ColumnsBuffer from './buffers/columns-buffer.svelte';
     import { dndStore } from 'src/stores/view/derived/dnd-store';
     import { activeBranchStore } from 'src/stores/view/derived/active-branch-store';
@@ -24,19 +24,13 @@
     import { onMount } from 'svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import { zoomLevelStore } from 'src/stores/view/derived/zoom-level-store';
-    import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
     import { textIsSelected } from 'src/view/actions/context-menu/card-context-menu/helpers/text-is-selected';
-    import { OutlineStore } from 'src/stores/view/derived/outline-store';
     import { hideFloatingButtons } from 'src/view/actions/hide-floating-buttons';
     import { scrollOnDndY } from 'src/view/actions/dnd/scroll-on-dnd-y/scroll-on-dnd-y';
 
-    export let outlineMode: boolean;
-
     const view = getView();
 
-    const columns = outlineMode
-        ? singleColumnStore(view)
-        : columnsStore(view);
+    const columns = columnsStore(view);
     const dnd = dndStore(view);
     const activeBranch = activeBranchStore(view);
     const activeNode = activeNodeStore(view);
@@ -50,24 +44,9 @@
     $: parentNodes = new Set($activeBranch.sortedParentNodes);
     const groupParentIds = GroupParentIdsStore(view);
     const pinnedNodesArray = PinnedNodesStore(view);
-    const outline = OutlineStore(view);
     const alwaysShowCardButtons = AlwaysShowCardButtons(view);
     $: pinnedNodes = new Set<string>($pinnedNodesArray);
     const zoom = zoomLevelStore(view);
-    let allDndNodes: Set<string> = new Set();
-
-    $: {
-        if (outlineMode && $dnd.node) {
-            allDndNodes = new Set(
-                getAllChildren(
-                    view.documentStore.getValue().document.columns,
-                    $dnd.node,
-                ),
-            );
-        } else {
-            allDndNodes = new Set();
-        }
-    }
 
     const applyGap = ApplyGapBetweenCardsStore(view);
     const pendingConfirmation = PendingConfirmationStore(view);
@@ -107,7 +86,6 @@
     class={'columns-container ' +
         ($limitPreviewHeight ? ' limit-card-height' : '') +
         ($applyGap ? ' gap-between-cards' : '') +
-        (outlineMode ? ' outline-mode' : '') +
         ($zoom !== 1 ? ' zoom-enabled' : '')}
     id="columns-container"
     tabindex="0"
@@ -139,10 +117,6 @@
                 pendingConfirmation={$pendingConfirmation}
                 groupParentIds={$groupParentIds}
                 styleRules={$styleRules}
-                {outlineMode}
-                {allDndNodes}
-                collapsedParents={$outline.collapsedParents}
-                hiddenNodes={$outline.hiddenNodes}
                 alwaysShowCardButtons={$alwaysShowCardButtons}
             />
         {/each}

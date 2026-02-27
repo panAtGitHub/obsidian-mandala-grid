@@ -7,54 +7,6 @@
     }
 }
 
-.outline-mode {
-    --node-gap: 30px;
-
-    & .group {
-        background-color: transparent;
-        margin-bottom: 0;
-    }
-
-    & .group-has-active-child {
-        margin-bottom: 0;
-    }
-
-    & .active-parent-bridge-right {
-        display: none;
-    }
-
-    & .active-parent-bridge-left {
-        display: none;
-    }
-    & .active-node-bridge {
-        display: none;
-    }
-
-    & .active-node {
-        outline: 6px solid var(--background-active-parent) !important;
-    }
-
-    & .group-has-active-node {
-        & .inactive-node {
-            background-color: var(--background-active-parent);
-            opacity: 0.8;
-        }
-        & .inactive-node:hover {
-            background-color: var(--background-active-parent);
-            opacity: 0.8;
-        }
-    }
-
-    & .column {
-        /* to show outline card buttons*/
-        padding: 0 calc(1 / var(--zoom-level) * 50vw);
-    }
-
-    & .hidden-node {
-        display: none !important;
-    }
-}
-
 .gap-between-cards {
     --node-gap: var(--node-gap-setting);
     & .columns {

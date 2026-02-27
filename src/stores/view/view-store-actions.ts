@@ -6,7 +6,6 @@ import { SetDragCanceled } from 'src/stores/view/reducers/document/on-drag-end';
 import { UpdateActiveBranchAction } from 'src/stores/view/reducers/document/helpers/update-active-branch';
 import { JumpToNodeAction } from 'src/stores/view/reducers/document/jump-to-node';
 import { ChangeActiveNodeAction } from 'src/stores/view/reducers/document/navigate-using-keyboard';
-import { NodeHistoryNavigationAction } from 'src/stores/view/reducers/ui/navigate-active-node-history';
 import { ToggleFuzzySearchAction } from 'src/stores/view/reducers/search/toggle-fuzzy-search';
 import { NodeNavigationAction } from 'src/stores/view/reducers/ui/navigate-active-node';
 import { SetActivePinnedNodeAction } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
@@ -16,6 +15,7 @@ import { StyleRulesResult } from 'src/stores/view/subscriptions/effects/style-ru
 import { LeftSidebarTab } from 'src/stores/settings/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
+import { RemoveObsoleteNavigationItemsAction } from 'src/stores/view/reducers/ui/helpers/remove-deleted-navigation-items';
 
 export type MandalaActions =
     | {
@@ -45,15 +45,12 @@ export type ViewStoreAction =
     | ViewUIAction
     | ViewDocumentAction
     | NodeSelectionAction
-    | NodeHistoryNavigationAction
     | SidebarActions
     | StyleRulesViewActions
     | KeyboardEventAction
     | ViewHotkeysAction
-    | OutlineAction
     | SelectionActions
-    | MandalaActions
-    | PersistedStateActions;
+    | MandalaActions;
 
 export type SearchAction =
     | SetSearchQueryAction
@@ -64,7 +61,6 @@ export type SearchAction =
 
 export type ViewUIAction =
     | ToggleHelpSidebarAction
-    | ToggleHistorySidebarAction
     | ToggleSettingsSidebarAction
     | { type: 'view/close-modals'; payload?: { closeAllModals: boolean } }
     | { type: 'view/style-rules/toggle-modal' };
@@ -90,6 +86,7 @@ export type ViewDocumentAction =
     | SetDragStartedAction
     | SetDragCanceled
     | UpdateActiveBranchAction
+    | RemoveObsoleteNavigationItemsAction
     | {
         type: 'view/editor/disable/reset-confirmation';
     }
@@ -110,9 +107,6 @@ export type ViewDocumentAction =
         };
     }
     | { type: 'view/selection/clear-selection' };
-type ToggleHistorySidebarAction = {
-    type: 'view/snapshots/toggle-modal';
-};
 type ToggleHelpSidebarAction = {
     type: 'view/hotkeys/toggle-modal';
 };
@@ -191,26 +185,7 @@ export type UpdateConflictingHotkeysAction = {
     };
 };
 
-export type OutlineAction =
-    | {
-        type: 'view/outline/toggle-collapse-node';
-        payload: { id: string };
-    }
-    | {
-        type: 'view/outline/refresh-collapsed-nodes';
-    }
-    | {
-        type: 'view/outline/toggle-collapse-all';
-    };
-
 export type SelectionActions = {
     type: 'view/selection/set-selection';
     payload: { ids: string[] };
-};
-
-export type PersistedStateActions = {
-    type: 'view/outline/load-persisted-collapsed-parents';
-    payload: {
-        collapsedIds: string[];
-    };
 };

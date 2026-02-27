@@ -60,7 +60,7 @@ describe('lazy vertical scrolling', () => {
             payload: {
                 direction: 'left',
             },
-            context: { outlineMode: false },
+            context: {},
         } satisfies PluginAction;
         const output = [{ action: '20/active-node/vertical/reveal' }];
         const actual = lazyVerticalScrollingMode(context, action);

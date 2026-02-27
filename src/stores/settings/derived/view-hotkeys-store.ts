@@ -14,7 +14,6 @@ import {
 import { groupArrayByProperty } from 'src/helpers/array-helpers/group-array-by-property';
 import { lang } from 'src/lang/lang';
 import MandalaGrid from 'src/main';
-import { OutlineModeStore } from 'src/stores/settings/derived/view-settings-store';
 import { getDynamicLabel } from 'src/view/components/container/modals/hotkeys/components/helpers/get-dynamic-label';
 
 export const CustomHotkeysStore = (plugin: MandalaGrid) =>
@@ -144,19 +143,12 @@ export const ConflictLabeledHotkeysStore = (view: MandalaView) =>
 type GroupedHotkeys = Record<GroupName, StatefulViewCommand[]>;
 export const FilteredHotkeysStore = (view: MandalaView) =>
     derived(
-        [
-            ConflictLabeledHotkeysStore(view),
-            HotkeysSearchTerm(view),
-            OutlineModeStore(view),
-        ],
-        ([hotkeys, searchTerm, outlineMode]) => {
+        [ConflictLabeledHotkeysStore(view), HotkeysSearchTerm(view)],
+        ([hotkeys, searchTerm]) => {
             let array: StatefulViewCommand[] = [];
             if (searchTerm) {
                 array = hotkeys.hotkeys.filter((c) => {
-                    const fullName = getDynamicLabel(
-                        c.name,
-                        outlineMode,
-                    ).toLowerCase();
+                    const fullName = getDynamicLabel(c.name).toLowerCase();
                     return (
                         fullName.includes(searchTerm) ||
                         c.group.toLowerCase().includes(searchTerm)

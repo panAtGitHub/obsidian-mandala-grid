@@ -73,13 +73,9 @@
                 confirmDelete={$pendingConfirmation.deleteNode.has(node)}
                 isInSidebar={true}
                 section={$idSection[node]}
-                hasChildren={false}
                 selected={false}
                 pinned={false}
                 style={$styleRules.get(node)}
-                outlineMode={false}
-                collapsed={false}
-                hidden={false}
                 alwaysShowCardButtons={true}
             />
         {/each}

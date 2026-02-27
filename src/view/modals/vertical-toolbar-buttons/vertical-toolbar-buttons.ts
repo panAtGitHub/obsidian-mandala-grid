@@ -17,11 +17,9 @@ export type ToolbarButton =
     | 'style-rules'
     | 'center-active-node-h'
     | 'center-active-node-v'
-    | 'outline-mode'
     | 'mandala-mode'
     | 'space-between-cards'
     | 'hidden-card-info'
-    | 'snapshots-list'
     | 'undo'
     | 'redo'
      

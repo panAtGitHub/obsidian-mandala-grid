@@ -1,7 +1,7 @@
 <script lang="ts">
     import Group from './components/group/group.svelte';
     import { getView } from 'src/view/components/container/context';
-    import { groupsStore, singleColumnGroupStore } from 'src/stores/document/derived/groups-store';
+    import { groupsStore } from 'src/stores/document/derived/groups-store';
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
@@ -20,19 +20,13 @@
     export let searchQuery: string;
     export let searchResults: Map<string,NodeSearchResult>;
     export let pinnedNodes: Set<string>;
-    export let allDndNodes: Set<string>;
     export let groupParentIds: Set<string>;
     export let searching: boolean;
     export let idSection: Record<string, string>;
     export let styleRules: Map<string, NodeStyle>;
-    export let outlineMode: boolean;
-    export let collapsedParents: Set<string>;
-    export let hiddenNodes: Set<string>;
     export let alwaysShowCardButtons: boolean;
     const view = getView();
-    const groups = outlineMode
-        ? singleColumnGroupStore(view)
-        : groupsStore(view, columnId);
+    const groups = groupsStore(view, columnId);
 </script>
 
 <div class="column" id={columnId} >
@@ -57,10 +51,6 @@
                 {groupParentIds}
                 {pendingConfirmation}
                 {styleRules}
-                {outlineMode}
-                {allDndNodes}
-                {collapsedParents}
-                {hiddenNodes}
                 {alwaysShowCardButtons}
             />
         {/if}

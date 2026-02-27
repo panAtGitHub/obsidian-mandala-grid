@@ -4,9 +4,6 @@ import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/
 import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
 import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
 
-const outlineModeSelector = (view: MandalaView) =>
-    view.plugin.settings.getValue().view.outlineMode;
-
 const spatialNavigation = (view: MandalaView, direction: AllDirections) => {
     if (view.mandalaMode === '3x3') {
         if (tryMandala3x3Navigation(view, direction)) return;
@@ -19,25 +16,6 @@ const spatialNavigation = (view: MandalaView, direction: AllDirections) => {
         payload: {
             direction: direction,
         },
-        context: {
-            outlineMode: outlineModeSelector(view),
-        },
-    });
-};
-
-const sequentialNavigation = (
-    view: MandalaView,
-    direction: 'forward' | 'back',
-) => {
-    view.viewStore.dispatch({
-        type: 'view/set-active-node/sequential/select-next',
-        payload: {
-            direction,
-            sections: view.documentStore.getValue().sections,
-        },
-        context: {
-            outlineMode: outlineModeSelector(view),
-        },
     });
 };
 
@@ -48,11 +26,7 @@ export const navigateCommands = () => {
             name: 'go_right',
             callback: (view, event) => {
                 event.preventDefault();
-                if (!outlineModeSelector(view)) {
-                    spatialNavigation(view, 'right');
-                } else {
-                    spatialNavigation(view, 'down');
-                }
+                spatialNavigation(view, 'right');
             },
             hotkeys: [
                 { key: 'L', modifiers: [], editorState: 'editor-off' },
@@ -63,12 +37,7 @@ export const navigateCommands = () => {
             name: 'go_left',
             callback: (view, event) => {
                 event.preventDefault();
-
-                if (!outlineModeSelector(view)) {
-                    spatialNavigation(view, 'left');
-                } else {
-                    spatialNavigation(view, 'up');
-                }
+                spatialNavigation(view, 'left');
             },
             hotkeys: [
                 { key: 'H', modifiers: [], editorState: 'editor-off' },
@@ -79,11 +48,7 @@ export const navigateCommands = () => {
             name: 'go_down',
             callback: (view, event) => {
                 event.preventDefault();
-                if (!outlineModeSelector(view)) {
-                    spatialNavigation(view, 'down');
-                } else {
-                    sequentialNavigation(view, 'forward');
-                }
+                spatialNavigation(view, 'down');
             },
             hotkeys: [
                 { key: 'J', modifiers: [], editorState: 'editor-off' },
@@ -94,11 +59,7 @@ export const navigateCommands = () => {
             name: 'go_up',
             callback: (view, event) => {
                 event.preventDefault();
-                if (!outlineModeSelector(view)) {
-                    spatialNavigation(view, 'up');
-                } else {
-                    sequentialNavigation(view, 'back');
-                }
+                spatialNavigation(view, 'up');
             },
             hotkeys: [
                 { key: 'K', modifiers: [], editorState: 'editor-off' },
@@ -171,28 +132,6 @@ export const navigateCommands = () => {
             },
             hotkeys: [{ key: 'End', modifiers: [], editorState: 'editor-off' }],
         }, */
-        /*
-        {
-            name: 'navigate_back',
-            callback: (view, event) => {
-                event.preventDefault();
-                view.viewStore.dispatch({
-                    type: 'view/set-active-node/history/select-previous',
-                });
-            },
-            hotkeys: [{ key: 'J', modifiers: ['Alt'], editorState: 'both' }],
-        },
-        {
-            name: 'navigate_forward',
-            callback: (view, event) => {
-                event.preventDefault();
-                view.viewStore.dispatch({
-                    type: 'view/set-active-node/history/select-next',
-                });
-            },
-            hotkeys: [{ key: 'K', modifiers: ['Alt'], editorState: 'both' }],
-        },
-        */
     );
     return commands;
 };

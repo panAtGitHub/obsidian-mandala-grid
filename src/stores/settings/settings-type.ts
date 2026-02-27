@@ -105,7 +105,6 @@ export type Settings = {
         leftSidebarWidth: number;
         leftSidebarActiveTab: LeftSidebarTab;
         applyGapBetweenCards: boolean;
-        outlineMode: boolean;
         mandalaMode: MandalaMode;
         mandalaGridOrientation: MandalaGridOrientation;
         mandalaA4Mode: boolean;
@@ -114,7 +113,6 @@ export type Settings = {
         mandalaGridBorderOpacity: number;
         mandalaSectionColorOpacity: number;
         lastExportPreset: LastExportPreset | null;
-        nodeIndentationWidth: number;
         alwaysShowCardButtons: boolean;
         showHiddenCardInfo: boolean;
         show3x3SubgridNavButtonsDesktop: boolean;

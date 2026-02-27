@@ -21,7 +21,6 @@ export type AlignBranchContext = {
     activeBranch: ActiveBranch;
     container: HTMLElement;
     containerRect: DOMRect;
-    outlineMode: boolean;
     alignBranchSettings: AlignBranchSettings;
     state: AlignBranchState;
     activeNodesOfColumn: ActiveNodesOfColumn;
@@ -45,7 +44,6 @@ export const createContext = (
         container,
         activeNodesOfColumn: viewState.document.activeNodesOfColumn,
         containerRect: container.getBoundingClientRect(),
-        outlineMode: settings.view.outlineMode,
         alignBranchSettings: {
             centerActiveNodeH: settings.view.scrolling.centerActiveNodeH,
             centerActiveNodeV: settings.view.scrolling.centerActiveNodeV,

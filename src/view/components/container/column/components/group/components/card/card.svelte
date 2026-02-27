@@ -16,7 +16,6 @@
     export let node: NodeId;
     export let editing: boolean;
     export let active: ActiveStatus | null;
-    export let hasChildren: boolean;
     export let confirmDisableEdit: boolean;
     export let confirmDelete: boolean;
     export let section: string;
@@ -25,9 +24,6 @@
     export let isInSidebar = false;
     export let isSearchMatch = false;
     export let style: NodeStyle | undefined;
-    export let outlineMode: boolean;
-    export let collapsed: boolean;
-    export let hidden: boolean;
     export let alwaysShowCardButtons: boolean;
     const activeStatusClasses = {
         [ActiveStatus.node]: 'active-node',
@@ -36,22 +32,14 @@
         [ActiveStatus.sibling]: 'active-sibling',
     };
 
-    let depth = 0;
-    $: depth = section ? section.split('.').length - 1 : 0;
 </script>
 
 <div
-    style={outlineMode && depth > 0
-        ? `margin-left: calc(var(--node-indentation-width) * ${depth})`
-        : ''}
     class={clx(
         'mandala-card',
-        hidden ? 'hidden-node' : '',
         active
             ? activeStatusClasses[active]
-            : outlineMode
-              ? ' active-sibling'
-              : ' inactive-node',
+            : ' inactive-node',
         confirmDelete
             ? 'node-border--delete'
             : confirmDisableEdit
@@ -83,12 +71,9 @@
     <CardButtons
         {editing}
         nodeId={node}
-        {hasChildren}
         {isInSidebar}
-        {collapsed}
         {active}
         {alwaysShowCardButtons}
-        {outlineMode}
     />
     <TreeIndex
         activeStatus={active}

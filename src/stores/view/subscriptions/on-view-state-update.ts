@@ -50,9 +50,7 @@ export const onViewStateUpdate = (
 
     if (
         action.type === 'view/editor/disable-main-editor' ||
-        action.type === 'view/editor/disable-sidebar-editor' ||
-        action.type === 'view/set-active-node/history/select-next' ||
-        action.type === 'view/set-active-node/history/select-previous'
+        action.type === 'view/editor/disable-sidebar-editor'
     ) {
         focusContainer(view);
     }
