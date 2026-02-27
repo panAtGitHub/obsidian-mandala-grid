@@ -56,7 +56,6 @@ export const hotkeyGroups = {
         'extend_select_to_end_of_column',
         'select_all_nodes',
     ]),
-    [lang.hkg_history]: new Set(['undo_change', 'redo_change']),
     [lang.hkg_search]: new Set(['toggle_search_input']),
     [lang.hkg_clipboard]: new Set([
         'copy_node',

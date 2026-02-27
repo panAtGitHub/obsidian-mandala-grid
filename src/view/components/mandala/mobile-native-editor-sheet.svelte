@@ -1,10 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
-    import type { NodeStyle } from 'src/stores/settings/types/style-rules-types';
 
     export let nodeId: string;
-    export let nodeStyle: NodeStyle | undefined;
     export let fontSize: number;
     export let editorBodyEl: HTMLDivElement | null = null;
 
@@ -103,7 +101,6 @@
         >
             <InlineEditor
                 {nodeId}
-                style={nodeStyle}
                 absoluteFontSize={fontSize}
                 disableAutoResize={true}
             />

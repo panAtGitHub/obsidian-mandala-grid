@@ -24,15 +24,17 @@ describe('toggleEditorState', () => {
         const state = DEFAULT_SETTINGS();
         const action: ToggleEditorStateAction = {
             type: 'settings/hotkeys/toggle-editor-state',
-            payload: { command: 'undo_change', type: 'primary' },
+            payload: { command: 'add_parent_sibling', type: 'primary' },
         };
 
         toggleEditorState(state, action);
 
         expect(
-            state.hotkeys.customHotkeys.undo_change?.primary &&
-                'editorState' in state.hotkeys.customHotkeys.undo_change.primary
-                ? state.hotkeys.customHotkeys.undo_change.primary.editorState
+            state.hotkeys.customHotkeys.add_parent_sibling?.primary &&
+                'editorState' in
+                    state.hotkeys.customHotkeys.add_parent_sibling.primary
+                ? state.hotkeys.customHotkeys.add_parent_sibling.primary
+                      .editorState
                 : undefined,
         ).toBe('editor-on');
     });

@@ -257,7 +257,7 @@ const updateDocumentState = (
         affectedSection = getSectionOfId(state.sections, affectedNodeId);
     }
     const shouldUpdateSections =
-        e.dropOrMove || e.createOrDelete || e.changeHistory || e.clipboard;
+        e.dropOrMove || e.createOrDelete || e.clipboard;
     const skipSectionRefreshForMandalaV2Action =
         state.meta.isMandala &&
         state.meta.mandalaV2.enabled &&

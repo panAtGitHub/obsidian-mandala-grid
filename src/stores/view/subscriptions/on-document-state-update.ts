@@ -85,7 +85,7 @@ export const onDocumentStateUpdate = (
     }
 
     const structuralChange =
-        e.createOrDelete || e.dropOrMove || e.changeHistory || e.clipboard;
+        e.createOrDelete || e.dropOrMove || e.clipboard;
     if (structuralChange) {
         setActiveNode(view, action);
 
@@ -104,7 +104,7 @@ export const onDocumentStateUpdate = (
     }
 
     if (structuralChange) {
-        updateSelectedNodes(view, action, e.changeHistory!);
+        updateSelectedNodes(view);
     }
 
     // effects

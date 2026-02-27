@@ -96,6 +96,10 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         };
         delete settingsWithBackup.backup;
     }
+    const settingsWithLegacyRoot = settings as unknown as Settings & {
+        styleRules?: unknown;
+    };
+    delete settingsWithLegacyRoot.styleRules;
 
     const viewSettings = settings.view as {
         showMandalaDetailSidebar?: boolean;
@@ -122,6 +126,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         show3x3SubgridNavButtonsMobile?: boolean;
         show9x9ParallelNavButtonsDesktop?: boolean;
         show9x9ParallelNavButtonsMobile?: boolean;
+        leftSidebarActiveTab?: unknown;
     };
     if (typeof viewSettings.showMandalaDetailSidebar === 'boolean') {
         viewSettings.showMandalaDetailSidebarDesktop =
@@ -188,4 +193,30 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         }
         delete viewSettings.show9x9ParallelNavButtons;
     }
+    if (viewSettings.leftSidebarActiveTab !== 'pinned-cards') {
+        viewSettings.leftSidebarActiveTab = 'pinned-cards';
+    }
+
+    const legacyViewSettings = viewSettings as Record<string, unknown>;
+    for (const key of [
+        'showMinimap',
+        'minimapWidth',
+        'minimapPosition',
+        'showOutline',
+        'outlineMode',
+        'showRecentNodes',
+        'showHistory',
+        'showSnapshotHistory',
+        'showStyleRules',
+        'showStyleRulesPanel',
+        'styleRulesSidebarWidth',
+    ]) {
+        delete legacyViewSettings[key];
+    }
+
+    const customHotkeys = (
+        settings as Settings
+    ).hotkeys.customHotkeys as Record<string, unknown>;
+    delete customHotkeys.undo_change;
+    delete customHotkeys.redo_change;
 };

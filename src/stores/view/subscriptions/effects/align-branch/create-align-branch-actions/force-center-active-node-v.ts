@@ -13,9 +13,7 @@ export const forceCenterActiveNodeV = (action: PluginAction) => {
             action.type as DocumentStoreAction['type'],
         );
         centerActiveNodeV =
-            !!type.dropOrMove ||
-            !!type.changeHistory ||
-            !!type.createOrDelete;
+            !!type.dropOrMove || !!type.createOrDelete;
     }
     return centerActiveNodeV;
 };

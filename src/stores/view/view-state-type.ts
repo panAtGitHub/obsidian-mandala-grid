@@ -4,7 +4,6 @@ import {
     EditingState,
 } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
-import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
 export type ActiveNodesOfColumn = {
@@ -57,10 +56,6 @@ export type ViewState = {
     };
     document: DocumentViewState;
     pinnedNodes: PinnedNodes;
-    styleRules: {
-        nodeStyles: Map<string, NodeStyle>;
-        allMatches: Map<string, string[]>;
-    };
     keyboard: {
         shift: boolean;
     };

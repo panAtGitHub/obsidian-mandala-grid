@@ -139,15 +139,6 @@ export const lang = {
     error_cm_cant_split_node_identical: 'The result is the same as the input',
     modals_snapshots_split_node: 'Split section ',
 
-    // undo
-    controls_history: 'History',
-    controls_history_undo: 'Undo',
-    controls_history_redo: 'Redo',
-    hk_undo_change: '撤销更改',
-    hk_redo_change: '重做更改',
-    error_apply_snapshot_while_editing: 'Cannot apply a snapshot while editing',
-    hkg_history: '历史',
-
     // extract
     cmd_extract_branch: 'Extract to Mandala Grid',
     cm_extract_branch: '提取分支',
@@ -296,13 +287,7 @@ export const lang = {
 
     // sidebar
     toolbar_toggle_left_sidebar: 'Left sidebar',
-    controls_toggle_minimap: 'Document minimap',
-    cmd_toggle_minimap: 'Toggle document minimap',
     cmd_toggle_left_sidebar: 'Toggle left sidebar',
-
-    // recent sections
-    sidebar_tab_recent_nodes: 'Recently selected sections',
-    sidebar_no_recent_nodes: 'No recent sections',
 
     // pin sections
     cm_unpin_from_left_sidebar: '从左侧边栏取消固定',

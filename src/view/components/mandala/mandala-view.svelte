@@ -293,10 +293,6 @@
     );
     const documentState = derived(view.documentStore, (state) => state);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
-    const nodeStyles = derived(
-        view.viewStore,
-        (state) => state.styleRules.nodeStyles,
-    );
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
         return controls.showHelpSidebar || controls.showSettingsSidebar;
@@ -503,7 +499,6 @@
     {#if isMobilePopupEditing}
         <MobileNativeEditorSheet
             nodeId={$editingState.activeNodeId}
-            nodeStyle={$nodeStyles.get($editingState.activeNodeId)}
             fontSize={$mobilePopupFontSizeStore}
             bind:editorBodyEl={mobilePopupEditorBodyEl}
             on:save={handleSave}
@@ -575,7 +570,6 @@
                                             cell.nodeId,
                                         )}
                                         pinned={$pinnedNodes.has(cell.nodeId)}
-                                        style={$nodeStyles.get(cell.nodeId)}
                                         sectionColor={sectionBackground}
                                         draggable={false}
                                     />

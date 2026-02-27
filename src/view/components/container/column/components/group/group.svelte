@@ -6,7 +6,6 @@
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';
     import { nodesStore } from 'src/stores/document/derived/nodes-store';
-    import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
     export let groupId: string;
@@ -25,7 +24,6 @@
     export let searching: boolean;
     export let idSection: Record<string, string>;
     export let groupParentIds: Set<string>;
-    export let styleRules: Map<string, NodeStyle>;
     export let alwaysShowCardButtons: boolean;
     const view = getView();
     const nodes = nodesStore(view, columnId, groupId);
@@ -61,7 +59,6 @@
                     selected={selectedNodes.has(node)}
                     pinned={pinnedNodes.has(node)}
                     isSearchMatch={searchResults.has(node)}
-                    style={styleRules.get(node)}
                     {alwaysShowCardButtons}
                 />
             {/if}

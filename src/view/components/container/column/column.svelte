@@ -4,7 +4,6 @@
     import { groupsStore } from 'src/stores/document/derived/groups-store';
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';
-    import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
     export let columnId: string;
@@ -23,7 +22,6 @@
     export let groupParentIds: Set<string>;
     export let searching: boolean;
     export let idSection: Record<string, string>;
-    export let styleRules: Map<string, NodeStyle>;
     export let alwaysShowCardButtons: boolean;
     const view = getView();
     const groups = groupsStore(view, columnId);
@@ -50,7 +48,6 @@
                 {pinnedNodes}
                 {groupParentIds}
                 {pendingConfirmation}
-                {styleRules}
                 {alwaysShowCardButtons}
             />
         {/if}

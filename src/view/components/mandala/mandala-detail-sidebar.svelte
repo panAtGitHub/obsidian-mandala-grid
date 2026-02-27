@@ -12,7 +12,6 @@
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import SourcePreview from 'src/view/components/container/column/components/group/components/card/components/content/source-preview.svelte';
-    import { NodeStylesStore } from 'src/stores/view/derived/style-rules';
     import { Platform, setIcon } from 'obsidian';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
     import {
@@ -58,7 +57,6 @@
         view.documentStore,
         (state) => state.sections.id_section,
     );
-    const styleRules = NodeStylesStore(view);
     let activeSection: string | null = null;
     $: activeSection = $activeNodeId
         ? $idToSection[$activeNodeId] ?? null
@@ -256,7 +254,6 @@
                             >
                                 <InlineEditor
                                     nodeId={$activeNodeId}
-                                    style={$styleRules.get($activeNodeId)}
                                 />
                             </div>
                         {:else if $detailSidebarPreviewMode === 'source'}

@@ -52,10 +52,6 @@ export const defaultViewState = (): ViewState => ({
     pinnedNodes: {
         activeNode: '',
     },
-    styleRules: {
-        nodeStyles: new Map(),
-        allMatches: new Map(),
-    },
     keyboard: {
         shift: false,
     },

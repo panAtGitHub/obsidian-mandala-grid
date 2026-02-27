@@ -88,7 +88,7 @@
         display: flex;
         height: 100%;
         flex: 1 1 auto;
-        width: 0; /* ensures it shrinks properly when the minimap is visible */
+        width: 0; /* allows flexible shrink within the split layout */
         position: relative;
     }
 

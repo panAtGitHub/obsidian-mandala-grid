@@ -55,7 +55,6 @@ const createCommands = (plugin: MandalaGrid) => {
     // - lang.cmd_export_nodes_wo_subitems
     // - lang.cm_export_document
     // - lang.cm_eject_document
-    // - lang.cmd_toggle_minimap
     // - lang.cmd_toggle_left_sidebar
     // - lang.cmd_space_between_cards
 

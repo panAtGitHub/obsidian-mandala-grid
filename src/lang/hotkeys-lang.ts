@@ -19,8 +19,6 @@ export const hotkeysLang = {
     go_down: lang.hk_go_down,
     go_right: lang.hk_go_right,
     go_left: lang.hk_go_Left,
-    undo_change: lang.hk_undo_change,
-    redo_change: lang.hk_redo_change,
     move_node_up: lang.hk_move_node_up,
     move_node_down: lang.hk_move_node_down,
     move_node_right: lang.hk_move_node_right,

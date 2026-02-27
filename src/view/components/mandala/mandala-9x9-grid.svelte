@@ -46,11 +46,6 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
-
-    const nodeStyles = derived(
-        view.viewStore,
-        (state) => state.styleRules.nodeStyles,
-    );
     const sectionColors = SectionColorBySectionStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
@@ -88,7 +83,6 @@
                     {editing}
                     selected={$selectedNodes.has(nodeId)}
                     pinned={$pinnedNodes.has(nodeId)}
-                    style={$nodeStyles.get(nodeId)}
                     sectionColor={sectionColor}
                     draggable={section !== baseTheme}
                     gridCell={{ mode: '9x9', row, col }}

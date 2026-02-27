@@ -42,12 +42,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
             enable_edit_mode: {
                 primary: { key: 'Enter', modifiers: [] },
             },
-            undo_change: {
-                primary: { key: 'z', modifiers: ['Mod'] },
-            },
-            redo_change: {
-                primary: { key: 'y', modifiers: ['Mod'] },
-            },
             toggle_mandala_mode: {
                 primary: { key: 'l', modifiers: ['Mod'] },
             },

@@ -166,7 +166,6 @@ export const FilteredHotkeysStore = (view: MandalaView) =>
                     [lang.hkg_navigation]: [],
                     [lang.hkg_selection]: [],
                     [lang.hkg_scrolling]: [],
-                    [lang.hkg_history]: [],
                     [lang.hkg_search]: [],
                     [lang.hkg_zoom]: [],
                     [lang.hkg_mandala]: [],

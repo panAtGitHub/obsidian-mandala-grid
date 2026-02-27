@@ -4,7 +4,6 @@
 @import url('makdown/inline-editor.css');
 @import url('makdown/makdown-preview.css');
 @import url('card/dnd.css');
-@import url('card/style-rules.css');
 @import url('card/floating-card-button.css');
 @import url('view/buttons.css');
 @import url('view/modal.css');
@@ -14,7 +13,6 @@
 @import url('./helpers.css');
 @import url('markers/html-element-marker.css');
 @import url('markers/mandala-embed.css');
-@import url('./overrides.css');
 @import url('./layout/columns.css');
 @import url('./view/settings.css');
 @import url('./layout/modes.css');
