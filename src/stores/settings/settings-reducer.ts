@@ -49,12 +49,7 @@ const normalizeSectionColorAssignments = (
     return result;
 };
 
-const createDefaultDocumentPreferences = (
-    store: Settings,
-    _format: DocumentPreferences['documentFormat'] = store.general
-        .defaultDocumentFormat,
-): DocumentPreferences => ({
-    documentFormat: 'sections',
+const createDefaultDocumentPreferences = (): DocumentPreferences => ({
     viewType: 'mandala-grid',
     activeSection: null,
     outline: null,
@@ -68,7 +63,7 @@ const createDefaultDocumentPreferences = (
 
 const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
     if (!store.documents[path]) {
-        store.documents[path] = createDefaultDocumentPreferences(store);
+        store.documents[path] = createDefaultDocumentPreferences();
     }
     return store.documents[path];
 };
@@ -95,22 +90,13 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         delete store.documents[action.payload.path];
         delete store.styleRules.documents[action.payload.path];
     },
-    'settings/documents/set-document-format': (store, action) => {
-        if (action.type !== 'settings/documents/set-document-format') return;
-        if (!store.documents[action.payload.path]) {
-            store.documents[action.payload.path] = createDefaultDocumentPreferences(
-                store,
-                'sections',
-            );
-            return;
-        }
-        store.documents[action.payload.path].documentFormat = 'sections';
-    },
     'settings/documents/set-view-type': (store, action) => {
         if (action.type !== 'settings/documents/set-view-type') return;
-        if (store.documents[action.payload.path]) {
-            store.documents[action.payload.path].viewType = action.payload.type;
-        }
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.viewType = action.payload.type;
     },
     'settings/document/persist-active-section': (store, action) => {
         if (action.type !== 'settings/document/persist-active-section') return;
@@ -240,11 +226,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/view/set-zoom-level': (store, action) => {
         if (action.type !== 'settings/view/set-zoom-level') return;
         changeZoomLevel(store, action.payload);
-    },
-    'settings/general/set-default-document-format': (store, action) => {
-        if (action.type !== 'settings/general/set-default-document-format')
-            return;
-        store.general.defaultDocumentFormat = action.payload.format;
     },
     'settings/view/toggle-minimap': (store, action) => {
         if (action.type !== 'settings/view/toggle-minimap') return;

@@ -21,8 +21,6 @@ export type ScrollingSettings = {
     centerActiveNodeV: boolean;
 };
 
-export type MandalaGridDocumentFormat = 'sections';
-
 export type ViewType = 'mandala-grid' | 'markdown';
 export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
@@ -53,7 +51,6 @@ export type LastExportPreset = {
 };
 
 export type DocumentPreferences = {
-    documentFormat: MandalaGridDocumentFormat;
     viewType: ViewType;
     activeSection: string | null;
     outline: {
@@ -134,7 +131,6 @@ export type Settings = {
         hiddenVerticalToolbarButtons: ToolbarButton[];
     };
     general: {
-        defaultDocumentFormat: MandalaGridDocumentFormat;
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
     };

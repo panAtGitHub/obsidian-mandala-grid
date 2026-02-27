@@ -117,7 +117,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         hiddenVerticalToolbarButtons: [],
     },
     general: {
-        defaultDocumentFormat: 'sections',
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
     },

@@ -16,7 +16,6 @@ type DocumentAction = { type: string };
 const createDocumentPreferences = (
     sectionColors: NonNullable<DocumentPreferences['mandalaView']['sectionColors']>,
 ): DocumentPreferences => ({
-    documentFormat: 'sections',
     viewType: 'mandala-grid',
     activeSection: null,
     outline: null,

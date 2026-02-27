@@ -4,7 +4,6 @@ import { TFolder } from 'obsidian';
 import { createNewFolder } from 'src/obsidian/events/workspace/effects/create-new-folder';
 import { jsonToHtmlComment } from 'src/lib/data-conversion/json-to-x/json-to-html-comment';
 import { createNewFile } from 'src/obsidian/events/workspace/effects/create-new-file';
-import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { GingkoFile } from 'src/obsidian/events/workspace/effects/import-from-gingko/import-from-gingko';
 import { MANDALA_VIEW_TYPE } from 'src/view/view';
@@ -35,7 +34,6 @@ export const createMandalaGridDocumentsFromGingkoFiles = async (
             sections,
             file.basename,
         );
-        setDocumentFormat(plugin, createdFile.path);
         setViewType(plugin, createdFile.path, MANDALA_VIEW_TYPE);
     }
 };

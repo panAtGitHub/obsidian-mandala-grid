@@ -4,8 +4,6 @@ import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { MANDALA_VIEW_TYPE } from 'src/view/view';
 
-import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
-
 export const openFileInMandalaGrid = async (
     plugin: MandalaGrid,
     file: TFile,
@@ -13,5 +11,4 @@ export const openFileInMandalaGrid = async (
 ) => {
     const leaf = await openFile(plugin, file, newLeaf);
     toggleObsidianViewType(plugin, leaf, MANDALA_VIEW_TYPE);
-    setDocumentFormat(plugin, file.path);
 };

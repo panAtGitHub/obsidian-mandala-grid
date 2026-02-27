@@ -45,7 +45,6 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     for (const [path, pref] of Object.entries(settings.documents)) {
         if (typeof pref === 'boolean') {
             settings.documents[path] = {
-                documentFormat: 'sections',
                 viewType: 'mandala-grid',
                 activeSection: null,
                 outline: null,
@@ -53,10 +52,11 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
             };
         } else if (pref && typeof pref === 'object') {
             const legacyPref = pref as Settings['documents'][string] & {
+                documentFormat?: unknown;
                 pinnedSections?: unknown;
                 mandalaView?: unknown;
             };
-            legacyPref.documentFormat = 'sections';
+            delete legacyPref.documentFormat;
             legacyPref.outline = null;
             delete legacyPref.pinnedSections;
 
@@ -160,7 +160,10 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
     }
-    (settings as Settings).general.defaultDocumentFormat = 'sections';
+    const generalSettings = (settings as Settings).general as {
+        defaultDocumentFormat?: unknown;
+    };
+    delete generalSettings.defaultDocumentFormat;
 
     // Legacy compatibility: split old shared toggle flags into desktop/mobile.
     if (typeof viewSettings.show3x3SubgridNavButtons === 'boolean') {

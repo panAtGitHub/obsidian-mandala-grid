@@ -4,7 +4,6 @@ import { BackgroundColor } from 'src/view/actions/settings/components/background
 import { ActiveBranchBackground } from 'src/view/actions/settings/components/active-branch-background';
 import { CardWidth } from 'src/view/actions/settings/components/card-width';
 import { LimitCardHeight } from 'src/view/actions/settings/components/limit-card-height';
-import { DefaultDocumentFormat } from 'src/view/actions/settings/components/default-document-format';
 import { CardsGap } from 'src/view/actions/settings/components/cards-gap';
 import { CardIndentationWidth } from 'src/view/actions/settings/components/card-indentation-width';
 import { InactiveCardOpacity } from 'src/view/actions/settings/components/inactive-card-opacity';
@@ -42,7 +41,6 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     tabs.push({ element: layoutTab, name: 'Layout' });
 
     // general
-    DefaultDocumentFormat(generalTab, settingsStore);
     LinkPaneType(generalTab, settingsStore);
     MandalaEmbedDebug(generalTab, settingsStore);
     /*AlwaysShowCardButtons(

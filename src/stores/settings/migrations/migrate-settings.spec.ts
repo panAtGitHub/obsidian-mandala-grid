@@ -80,7 +80,6 @@ describe('migrateSettings', () => {
     test('adds default mandalaView when missing', () => {
         const settings = DEFAULT_SETTINGS();
         settings.documents['foo.md'] = {
-            documentFormat: 'sections',
             viewType: 'mandala-grid',
             activeSection: null,
             outline: null,

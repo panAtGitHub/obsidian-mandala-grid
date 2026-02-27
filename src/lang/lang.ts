@@ -165,7 +165,6 @@ export const lang = {
     cmd_export_nodes_wo_subitems: 'Export sections',
 
     // document format
-    settings_general_default_format: 'Default format',
     cm_document_format: '文档格式',
     settings_format_html_elements: 'HTML 元素（实验）',
     settings_format_html_comments: 'HTML 注释',

@@ -4,7 +4,6 @@ import {
     DetailSidebarPreviewMode,
     DocumentPreferences,
     LeftSidebarTab,
-    MandalaGridDocumentFormat,
     MandalaGridOrientation,
     MandalaSectionColorAssignments,
     LinkPaneType,
@@ -18,13 +17,6 @@ import { CommandName } from 'src/lang/hotkey-groups';
 import { Hotkey } from 'obsidian';
 
 export type SettingsActions =
-    | {
-          type: 'settings/documents/set-document-format';
-          payload: {
-              path: string;
-              format: MandalaGridDocumentFormat;
-          };
-      }
     | {
           type: 'settings/documents/set-view-type';
           payload: {
@@ -138,12 +130,6 @@ export type SettingsActions =
     | PersistMandalaViewStateAction
     | PersistMandalaPinnedSectionsAction
     | PersistMandalaSectionColorsAction
-    | {
-          type: 'settings/general/set-default-document-format';
-          payload: {
-              format: MandalaGridDocumentFormat;
-          };
-      }
     | {
           type: 'settings/view/toggle-minimap';
       }

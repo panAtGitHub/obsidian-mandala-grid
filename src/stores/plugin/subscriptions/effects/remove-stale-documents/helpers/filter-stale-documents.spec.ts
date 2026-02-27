@@ -9,7 +9,6 @@ type PartialSettings = Pick<Settings, 'documents'> & {
     styleRules: Pick<Settings['styleRules'], 'documents'>;
 };
 const sample: DocumentPreferences = {
-    documentFormat: 'sections',
     viewType: 'mandala-grid',
     activeSection: null,
     outline: null,
