@@ -56,14 +56,14 @@ describe('get-search-results-from-clipboard', () => {
             },
         };
         const output = `- #todo 1
+\t- #todo 1.1
 \t- #done 1.2
-- #todo 1.1
-- #todo 2.1
-\t- #done 2.1.1
-- #todo 2.1.1.1
+\t- #todo 2.1
+\t\t- #done 2.1.1
+\t\t\t- #todo 2.1.1.1
 - #todo 3
 \t- #done 3.1
-- #todo 3.2`;
+\t- #todo 3.2`;
         const documentClone = clone(document);
         const actual = getSearchResultsFromDocument(
             results,

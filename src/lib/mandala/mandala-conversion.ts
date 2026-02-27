@@ -1,5 +1,5 @@
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
-import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
+import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
 import { createMandalaMarkdownTemplate } from 'src/lib/mandala/create-mandala-markdown-template';
 
 export type MandalaConversionMode = 'template-with-content' | 'normalize-core';
@@ -19,7 +19,7 @@ export const analyzeMandalaContent = (
     const { body, frontmatter } = extractFrontmatter(markdown);
     const sectionSet = new Set<string>();
     for (const line of body.split('\n')) {
-        const parsed = parseHtmlCommentMarker(line);
+        const parsed = parseSectionMarker(line);
         if (!parsed) continue;
         sectionSet.add(parsed[2]);
     }
@@ -112,7 +112,7 @@ const ensureSectionChildren = (
     if (startIndex === -1) return body;
     const endIndex = (() => {
         for (let i = startIndex + 1; i < lines.length; i++) {
-            const parsed = parseHtmlCommentMarker(lines[i]);
+            const parsed = parseSectionMarker(lines[i]);
             if (!parsed) continue;
             const full = parsed[2];
             if (!full.startsWith(`${section}.`)) {
@@ -124,7 +124,7 @@ const ensureSectionChildren = (
 
     const existing = new Map<number, number>();
     for (let i = startIndex + 1; i < endIndex; i++) {
-        const parsed = parseHtmlCommentMarker(lines[i]);
+        const parsed = parseSectionMarker(lines[i]);
         if (!parsed) continue;
         const full = parsed[2];
         if (!full.startsWith(`${section}.`)) continue;
@@ -161,7 +161,7 @@ const ensureSectionChildren = (
 
 const findSectionIndex = (lines: string[], section: string) => {
     for (let i = 0; i < lines.length; i++) {
-        const parsed = parseHtmlCommentMarker(lines[i]);
+        const parsed = parseSectionMarker(lines[i]);
         if (parsed?.[2] === section) return i;
     }
     return -1;
@@ -169,7 +169,7 @@ const findSectionIndex = (lines: string[], section: string) => {
 
 const findNextSectionIndex = (lines: string[], start: number) => {
     for (let i = start; i < lines.length; i++) {
-        if (parseHtmlCommentMarker(lines[i])) return i;
+        if (parseSectionMarker(lines[i])) return i;
     }
     return -1;
 };

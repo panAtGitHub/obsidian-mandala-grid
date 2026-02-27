@@ -1,5 +1,9 @@
-import { DocumentProgressProps } from 'src/obsidian/status-bar/helpers/calculate-document-prorgess';
 import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+
+export type DocumentProgressProps = {
+    document: MandalaGridDocument;
+    activeNode: string;
+};
 
 export type WorkerEvent = {
     type: 'status-bar/calculate-document-progress';

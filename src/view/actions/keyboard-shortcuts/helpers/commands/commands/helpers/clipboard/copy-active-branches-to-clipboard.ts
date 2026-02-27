@@ -8,8 +8,10 @@ export const copyActiveBranchesToClipboard = async (
     isInSidebar: boolean,
 ) => {
     const nodes = getActiveNodes(view, isInSidebar);
+    const documentState = view.documentStore.getValue();
     const text = mapBranchesToText(
-        view.documentStore.getValue().document,
+        documentState.document,
+        documentState.sections,
         nodes,
         formatted ? 'sections' : 'unformatted-text',
     );

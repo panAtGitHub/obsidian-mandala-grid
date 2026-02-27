@@ -25,8 +25,10 @@ export const exportSelection = async (
 
     const nodes = getActiveNodes(view, false);
     if (includeSubItems) {
+        const documentState = view.documentStore.getValue();
         text = mapBranchesToText(
-            view.documentStore.getValue().document,
+            documentState.document,
+            documentState.sections,
             nodes,
             'unformatted-text',
         );

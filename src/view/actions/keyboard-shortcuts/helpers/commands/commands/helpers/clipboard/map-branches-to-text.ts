@@ -1,26 +1,46 @@
-import { getBranch } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/get-branch';
-import { branchToHtmlComment } from 'src/lib/data-conversion/branch-to-x/branch-to-html-comment';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
-import { branchToText } from 'src/lib/data-conversion/branch-to-x/branch-to-text';
+import { compareSectionIds, serializeSections } from 'src/mandala-v2';
+import {
+    MandalaGridDocument,
+    Sections,
+} from 'src/stores/document/document-state-type';
+import {
+    collectSubtreeSections,
+    collapseToRootSections,
+    getSortedUniqueSectionsFromNodes,
+} from 'src/view/helpers/mandala/section-export';
 
 export const mapBranchesToText = (
     document: MandalaGridDocument,
+    sections: Sections,
     nodes: Array<string>,
     format: 'sections' | 'unformatted-text',
 ) => {
-    const branches = nodes.map((node) =>
-        getBranch(document.columns, document.content, node, 'copy'),
-    );
+    const selectedSections = getSortedUniqueSectionsFromNodes(sections, nodes);
+    const rootSections = collapseToRootSections(selectedSections);
+    if (rootSections.length === 0) return '';
+    const orderedSections = Object.keys(sections.section_id).sort(compareSectionIds);
+    const subtreeSections = collectSubtreeSections(orderedSections, rootSections);
 
-    const isSingleNode =
-        nodes.length === 1 && Object.keys(branches[0].content).length === 1;
+    const serializableSections = subtreeSections.map((sectionId) => {
+        const nodeId = sections.section_id[sectionId];
+        return {
+            sectionId,
+            content: nodeId ? document.content[nodeId]?.content ?? '' : '',
+        };
+    });
 
-    if (isSingleNode) {
-        return branches[0].content[nodes[0]].content;
-    } else if (format === 'sections') {
-        return branchToHtmlComment(branches);
-    } else if (format === 'unformatted-text') {
-        return branchToText(branches);
+    const isSingleNodeWithoutSubtree =
+        rootSections.length === 1 &&
+        subtreeSections.length === 1 &&
+        subtreeSections[0] === rootSections[0];
+    if (isSingleNodeWithoutSubtree) {
+        return serializableSections[0].content;
+    }
+    if (format === 'sections') {
+        return serializeSections(serializableSections);
+    }
+    if (format === 'unformatted-text') {
+        return serializableSections.map((section) => section.content).join('\n\n');
     }
     throw new Error('Invalid format');
 };

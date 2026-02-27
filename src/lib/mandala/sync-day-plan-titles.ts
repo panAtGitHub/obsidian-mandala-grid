@@ -1,4 +1,4 @@
-import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
+import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
 import {
     parseDayPlanFrontmatter,
     slotsRecordToArray,
@@ -19,7 +19,7 @@ const parseSlotsFromFrontmatter = (frontmatter: string) => {
 const collectTargetSections = (body: string) => {
     const result = new Set<string>();
     for (const line of body.split('\n')) {
-        const parsed = parseHtmlCommentMarker(line);
+        const parsed = parseSectionMarker(line);
         if (!parsed) continue;
         const section = parsed[2];
         if (!/^\d+\.[1-8]$/.test(section)) continue;

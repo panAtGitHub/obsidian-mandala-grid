@@ -25,7 +25,6 @@ import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
-import { registerFilesMenuEvent } from 'src/obsidian/events/workspace/register-files-menu-event';
 import {
     createRenderMandalaEmbedPostProcessor,
     MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
@@ -122,7 +121,6 @@ export default class MandalaGrid extends Plugin {
 
     private registerEvents() {
         registerFileMenuEvent(this);
-        registerFilesMenuEvent(this);
         onVaultEvent(this);
         onWorkspaceEvent(this);
     }

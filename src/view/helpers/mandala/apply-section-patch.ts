@@ -1,4 +1,4 @@
-import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
+import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
 
 type SectionRange = {
     markerLine: number;
@@ -12,11 +12,11 @@ const findSectionRange = (
 ): SectionRange | null => {
     const lines = markdown.split('\n');
     for (let i = 0; i < lines.length; i++) {
-        const marker = parseHtmlCommentMarker(lines[i]);
+        const marker = parseSectionMarker(lines[i]);
         if (!marker || marker[2] !== section) continue;
         let nextMarkerLine = lines.length;
         for (let j = i + 1; j < lines.length; j++) {
-            if (parseHtmlCommentMarker(lines[j])) {
+            if (parseSectionMarker(lines[j])) {
                 nextMarkerLine = j;
                 break;
             }

@@ -1,37 +1,47 @@
 import {
-    ClipboardBranch,
     MandalaGridDocument,
     Sections,
 } from 'src/stores/document/document-state-type';
-import { clone } from 'src/helpers/clone';
-import { getBranch } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/get-branch';
-import { branchToOutline } from 'src/lib/data-conversion/branch-to-x/branch-to-outline';
-import { sortNodeIdsBySectionNumber } from 'src/lib/tree-utils/sort/sort-node-ids-by-section-number';
-import { sortNodeIdsByDepthDesc } from 'src/lib/tree-utils/sort/sort-node-ids-by-depth-desc';
+import { compareSectionIds } from 'src/mandala-v2';
+import {
+    collectSubtreeSections,
+    collapseToRootSections,
+    getSortedUniqueSectionsFromNodes,
+} from 'src/view/helpers/mandala/section-export';
+
+const toOutlineLine = (sectionId: string, content: string) => {
+    const depth = Math.max(0, sectionId.split('.').length - 1);
+    return `${'\t'.repeat(depth)}- ${content}`;
+};
 
 export const getSearchResultsFromDocument = (
     results: string[],
     document: MandalaGridDocument,
     sections: Sections,
 ) => {
-    const sortedByDepth = sortNodeIdsByDepthDesc(sections, results);
+    const selectedSections = getSortedUniqueSectionsFromNodes(sections, results);
+    const rootSections = collapseToRootSections(selectedSections);
+    if (rootSections.length === 0) return '';
 
-    const documentClone = clone(document);
+    const orderedSections = Object.keys(sections.section_id).sort(compareSectionIds);
+    const subtreeSections = collectSubtreeSections(orderedSections, rootSections);
 
-    const branches = sortedByDepth.map((node) =>
-        getBranch(documentClone.columns, documentClone.content, node, 'cut'),
-    );
-    const branchesMap = new Map<string, ClipboardBranch>(
-        branches.map((branch) => [branch.nodeId, branch]),
-    );
-    const rootNodes = Array.from(branchesMap.keys());
-    const sortedBranches = sortNodeIdsBySectionNumber(sections, rootNodes).map(
-        (id) => branchesMap.get(id),
-    ) as ClipboardBranch[];
+    const isSingleNodeWithoutSubtree =
+        rootSections.length === 1 &&
+        subtreeSections.length === 1 &&
+        subtreeSections[0] === rootSections[0];
+    if (isSingleNodeWithoutSubtree) {
+        const nodeId = sections.section_id[subtreeSections[0]];
+        return nodeId ? document.content[nodeId]?.content ?? '' : '';
+    }
 
-    const isASingleNode =
-        branches.length === 1 && branches[0].sortedChildGroups.length === 0;
-    return isASingleNode
-        ? branches[0].content[branches[0].nodeId].content
-        : branchToOutline(sortedBranches);
+    return subtreeSections
+        .map((sectionId) => {
+            const nodeId = sections.section_id[sectionId];
+            return toOutlineLine(
+                sectionId,
+                nodeId ? document.content[nodeId]?.content ?? '' : '',
+            );
+        })
+        .join('\n');
 };
