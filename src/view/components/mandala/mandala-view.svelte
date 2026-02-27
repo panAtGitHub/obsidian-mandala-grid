@@ -895,29 +895,6 @@
         );
     }
 
-    /* A4 视觉校对：外框与内容区边界 */
-    .mandala-a4-mode .mandala-scroll::before,
-    .mandala-a4-mode .mandala-scroll::after {
-        display: none;
-    }
-
-    .mandala-a4-mode .mandala-scroll::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        outline: 1px solid rgba(255, 0, 0, 0.6);
-        pointer-events: none;
-        box-sizing: border-box;
-    }
-
-    .mandala-a4-mode .mandala-scroll::after {
-        content: '';
-        position: absolute;
-        inset: var(--mandala-a4-margin);
-        outline: 1px dashed rgba(0, 128, 255, 0.8);
-        pointer-events: none;
-        box-sizing: border-box;
-    }
     .mandala-grid {
         display: grid;
         grid-template-columns: repeat(3, var(--node-width));

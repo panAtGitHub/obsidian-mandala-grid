@@ -82,7 +82,7 @@
                     <MandalaSearchResults results={$mandalaSearchResults} />
                 {/if}
             {:else}
-                <!-- Lineage 模式：显示导航按钮 -->
+                <!-- 非九宫格模式：显示导航按钮 -->
                 <SearchNavigationButtons
                     results={Array.from($search.results.keys())}
                 />

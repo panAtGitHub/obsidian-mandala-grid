@@ -29,6 +29,17 @@ const areSearchResultsEqual = (
     return true;
 };
 
+const areSearchResultKeysEqual = (
+    previous: Map<string, NodeSearchResult>,
+    next: Map<string, NodeSearchResult>,
+) => {
+    if (previous.size !== next.size) return false;
+    for (const key of previous.keys()) {
+        if (!next.has(key)) return false;
+    }
+    return true;
+};
+
 export const updateActiveNodeAfterSearch = (
     view: MandalaView,
     results: string[],
@@ -67,11 +78,7 @@ export const updateSearchResults = (view: MandalaView) => {
         });
     }
 
-    const newSearchResults = Array.from(results.keys()).sort().join('');
-    const previousSearchResults = Array.from(previousResults.keys())
-        .sort()
-        .join('');
-    if (previousSearchResults !== newSearchResults) {
+    if (!areSearchResultKeysEqual(previousResults, results)) {
         updateActiveNodeAfterSearch(view, Array.from(results.keys()));
     }
 };
