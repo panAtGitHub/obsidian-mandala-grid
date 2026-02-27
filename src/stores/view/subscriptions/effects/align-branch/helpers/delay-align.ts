@@ -12,18 +12,7 @@ export const delayAlign = (action: PluginAction) => {
     } else if (action.type === 'view/life-cycle/mount') {
         delay = 16;
     } else if (action.type === 'view/update-active-branch?source=document') {
-        const documentAction = action.context.documentAction;
-        if (
-            documentAction.type === 'document/add-node' ||
-            documentAction.type === 'document/drop-node'
-        ) {
-            delay = 16;
-        } else if (documentAction.type === 'document/move-node') {
-            const horizontalMove =
-                documentAction.payload.direction === 'left' ||
-                documentAction.payload.direction === 'right';
-            if (horizontalMove) delay = 16;
-        }
+        void action.context.documentAction;
     }
     return delay;
 };

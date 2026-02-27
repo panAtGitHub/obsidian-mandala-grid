@@ -72,7 +72,6 @@ export const createAlignBranchActions = (
 
     if (
         action.type === 'view/life-cycle/mount' ||
-        action.type === 'document/split-node' ||
         action.type === 'document/file/load-from-disk'
     ) {
         actions.push({ action: '50/inactive-columns/vertical/move-up' });

@@ -10,24 +10,10 @@ export const saveNodeAndInsertNode = (
     content = '',
     activeNodeId?: string,
 ) => {
+    void direction;
+    void content;
+    void activeNodeId;
     if (isEditing(view)) {
         saveNodeContent(view);
-    }
-    const nodeId =
-        activeNodeId || view.viewStore.getValue().document.activeNode;
-    if (view.documentStore.getValue().meta.isMandala) return;
-    view.documentStore.dispatch({
-        type: 'document/add-node',
-        payload: {
-            position: direction,
-            content,
-            activeNodeId: nodeId,
-        },
-    });
-    if (content) {
-        const newNodeId = view.viewStore.getValue().document.activeNode;
-        if (direction === 'down' || direction === 'right') {
-            view.inlineEditor.setNodeCursor(newNodeId, { line: 0, ch: 0 });
-        }
     }
 };

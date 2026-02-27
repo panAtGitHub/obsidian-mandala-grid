@@ -15,7 +15,7 @@ export const forceCenterActiveNodeV = (action: PluginAction) => {
         centerActiveNodeV =
             !!type.dropOrMove ||
             !!type.changeHistory ||
-            (!!type.createOrDelete && action.type !== 'document/add-node');
+            !!type.createOrDelete;
     }
     return centerActiveNodeV;
 };

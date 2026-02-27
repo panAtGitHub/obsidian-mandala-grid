@@ -8,15 +8,7 @@ export const lazyVerticalScrollingMode = (
 ) => {
     const actions: AlignBranchAction[] = [];
 
-    if (action.type === 'document/add-node') {
-        if (action.payload.position === 'right') {
-            actions.push({
-                action: '20/active-node/vertical/align-with-parent',
-            });
-        } else {
-            actions.push({ action: '20/active-node/vertical/reveal' });
-        }
-    } else if (
+    if (
         action.type === 'plugin/echo/workspace/resize' ||
         action.type === 'plugin/echo/workspace/active-leaf-change' ||
         action.type === 'view/left-sidebar/toggle' ||

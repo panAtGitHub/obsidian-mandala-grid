@@ -1,43 +1,8 @@
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { MandalaView } from 'src/view/view';
-import { Platform } from 'obsidian';
-
-type EditingState = {
-    editedNode: string;
-};
-
-const restoreEditingState = (view: MandalaView, state: EditingState) => {
-    if (Platform.isMobile) return;
-    setTimeout(() => {
-        view.viewStore.dispatch({
-            type: 'view/editor/enable-main-editor',
-            payload: {
-                nodeId: state.editedNode,
-            },
-        });
-    });
-};
 
 export const moveNode = (view: MandalaView, direction: AllDirections) => {
-    let state: null | EditingState = null;
-    if (view.inlineEditor.nodeId) {
-        state = {
-            editedNode: view.inlineEditor.nodeId,
-        };
-    }
+    void direction;
     saveNodeContent(view);
-
-    const document = view.viewStore.getValue().document;
-    if (view.documentStore.getValue().meta.isMandala) return;
-    view.documentStore.dispatch({
-        type: 'document/move-node',
-        payload: {
-            direction,
-            activeNodeId: document.activeNode,
-            selectedNodes: document.selectedNodes,
-        },
-    });
-
-    if (state) restoreEditingState(view, state);
 };

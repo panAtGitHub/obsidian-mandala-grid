@@ -5,22 +5,9 @@ export const deleteNode = (
     nodeId: string,
     includeSelection = false,
 ) => {
-    const documentStore = view.documentStore;
-    const documentState = documentStore.getValue();
     const viewState = view.viewStore.getValue();
     if (viewState.document.pendingConfirmation.deleteNode.has(nodeId)) {
-        const selectedNodes = includeSelection
-            ? viewState.document.selectedNodes
-            : undefined;
-        if (!documentState.meta.isMandala) {
-            documentStore.dispatch({
-                type: 'document/delete-node',
-                payload: {
-                    activeNodeId: nodeId,
-                    selectedNodes,
-                },
-            });
-        }
+        void includeSelection;
         view.viewStore.dispatch({
             type: 'view/delete-node/reset-confirmation',
         });

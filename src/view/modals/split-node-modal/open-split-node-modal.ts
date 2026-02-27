@@ -24,18 +24,10 @@ export const openSplitNodeModal = async (view: MandalaView) => {
         callbacks: {
             accept: () => {
                 modal.close();
-                const newContent = get(modal.state.content);
-                const mode = get(modal.state.mode);
-                if (mode && newContent !== nodeContent) {
-                    if (view.documentStore.getValue().meta.isMandala) return;
-                    view.documentStore.dispatch({
-                        type: 'document/split-node',
-                        payload: {
-                            target: activeNode,
-                            mode: mode,
-                        },
-                    });
-                }
+                void get(modal.state.content);
+                void get(modal.state.mode);
+                void nodeContent;
+                void activeNode;
             },
             reject: () => {
                 modal.close();

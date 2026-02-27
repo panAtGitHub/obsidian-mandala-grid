@@ -32,9 +32,7 @@ export const setActiveNode = (
         // active view of file should always update except for dnd events
         else if (
             view.isViewOfFile &&
-            (action.type === 'document/drop-node' ||
-                action.type === 'document/move-node' ||
-                action.type === 'document/mandala/swap')
+            action.type === 'document/mandala/swap'
         ) {
             shouldSetActiveNode = false;
         }

@@ -2,7 +2,6 @@ import { MandalaView } from 'src/view/view';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { setActiveNode } from 'src/stores/view/subscriptions/actions/set-active-node';
-import { enableEditMode } from 'src/stores/view/subscriptions/actions/enable-edit-mode';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 import { persistPinnedNodes } from 'src/stores/view/subscriptions/actions/persist-pinned-nodes';
 import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actions/update-stale-active-pinned-node';
@@ -104,12 +103,8 @@ export const onDocumentStateUpdate = (
         });
     }
 
-    if (structuralChange && type !== 'document/move-node') {
+    if (structuralChange) {
         updateSelectedNodes(view, action, e.changeHistory!);
-    }
-
-    if (type === 'document/add-node' && view.isActive) {
-        enableEditMode(viewStore, documentState);
     }
 
     // effects

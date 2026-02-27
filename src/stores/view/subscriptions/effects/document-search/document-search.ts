@@ -8,16 +8,6 @@ type SearchItem = { sectionId: string; nodeId: string; content: string };
 export type NodeSearchResult = FuseResult<SearchItem>;
 
 const STRUCTURAL_ACTIONS = new Set<DocumentStoreAction['type']>([
-    'document/add-node',
-    'document/delete-node',
-    'document/drop-node',
-    'document/move-node',
-    'document/merge-node',
-    'document/sort-direct-child-nodes',
-    'document/paste-node',
-    'document/cut-node',
-    'document/split-node',
-    'document/extract-node',
     'document/history/select-next-snapshot',
     'document/history/select-previous-snapshot',
     'document/history/select-snapshot',

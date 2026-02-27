@@ -38,19 +38,6 @@ type EarlyReturnHandler = (
     action: DocumentStoreAction,
 ) => void;
 
-const LEGACY_TREE_ACTIONS = new Set<DocumentStoreAction['type']>([
-    'document/add-node',
-    'document/delete-node',
-    'document/drop-node',
-    'document/move-node',
-    'document/paste-node',
-    'document/merge-node',
-    'document/extract-node',
-    'document/split-node',
-    'document/sort-direct-child-nodes',
-    'document/cut-node',
-]);
-
 const earlyReturnHandlers: Record<string, EarlyReturnHandler> = {
     'document/file/update-frontmatter': (state, action) => {
         if (action.type !== 'document/file/update-frontmatter') return;
@@ -90,9 +77,6 @@ const updateDocumentState = (
     let newActiveNodeId: null | string = null;
     let affectedNodeId: null | string = null;
     let needsMandalaV2MetaRebuild = false;
-    if (LEGACY_TREE_ACTIONS.has(action.type)) {
-        return NO_UPDATE;
-    }
     if (action.type === 'document/update-node-content') {
         const previousContent =
             state.document.content[action.payload.nodeId]?.content ?? '';

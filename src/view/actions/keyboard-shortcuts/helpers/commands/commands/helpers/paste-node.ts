@@ -2,8 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { Notice } from 'obsidian';
 import { lang } from 'src/lang/lang';
 
-export const pasteNode = async (view: MandalaView) => {
-    const viewState = view.viewStore.getValue();
+export const pasteNode = async (_view: MandalaView) => {
     const clipboardItems = await navigator.clipboard.read();
     let containsImage = false;
 
@@ -17,17 +16,6 @@ export const pasteNode = async (view: MandalaView) => {
     if (containsImage) {
         new Notice(lang.error_cant_paste);
     } else {
-        const text = (await navigator.clipboard.readText()).replace(
-            /\r\n/g,
-            '\n',
-        );
-        if (view.documentStore.getValue().meta.isMandala) return;
-        view.documentStore.dispatch({
-            type: 'document/paste-node',
-            payload: {
-                targetNodeId: viewState.document.activeNode,
-                text,
-            },
-        });
+        await navigator.clipboard.readText();
     }
 };
