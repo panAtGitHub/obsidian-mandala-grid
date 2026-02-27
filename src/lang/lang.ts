@@ -6,7 +6,6 @@ export const lang = {
     card_btn_reveal_in_editor: 'Reveal in editor',
     error_parent_not_found: (full: string) =>
         `Could not find the parent section of ${full}`,
-    modals_snapshots_document_loaded: 'Opened document',
     error_set_empty_data: 'Data is empty, but the file on disk is not',
     error_save_empty_data: "Can't save empty data",
 
@@ -28,7 +27,6 @@ export const lang = {
     hk_add_child_and_split: '新增子分区并在光标处拆分',
     card_btn_add_child_node: 'Add subsection',
     hkg_create_nodes: '新建',
-    modals_snapshots_created_node: 'Created section ',
 
     // edit
     settings_general_mandala_embed_debug: 'Mandala embed debug panel',
@@ -40,7 +38,6 @@ export const lang = {
         '编辑卡片并将光标置于开头',
     hk_enable_edit_mode_and_place_cursor_at_end: '编辑卡片并将光标置于末尾',
     hkg_edit_nodes: '编辑',
-    modals_snapshots_updated_node: 'Updated section ',
     modal_hk_editor_state_on: '仅在编辑器激活时启用',
     modal_hk_editor_state_off: '仅在编辑器未激活时启用',
     modal_hk_editor_state_both: '无论编辑器状态均启用',
@@ -55,7 +52,6 @@ export const lang = {
     hk_delete_section: '删除卡片',
     error_delete_last_node: 'Cannot delete this section',
     hkg_delete_nodes: '删除',
-    modals_snapshots_deleted_section: 'Deleted section ',
 
     // clipboard
     cm_copy: '复制',
@@ -79,12 +75,10 @@ export const lang = {
         'Copy search results without sub-items',
     toolbar_cut_search_results: 'Cut search results',
     hkg_clipboard: '剪贴板',
-    modals_snapshots_cut_section: 'Cut section ',
     cm_cut: '剪切',
     hk_cut_node: '剪切分支',
     cm_paste: '粘贴',
     hk_paste_node: '粘贴分支',
-    modals_snapshots_pasted_section: 'Pasted section ',
     error_cant_paste: 'Paste command failed. Try pasting directly into a card',
     /*hk_notice_copy: (
         size: number,
@@ -112,7 +106,6 @@ export const lang = {
     hk_merge_with_node_below: '与下方分支合并',
     error_hk_cant_merge_multiple_nodes: '不能合并多个分支',
     hkg_merge_nodes: '合并',
-    modals_snapshots_merged_node: 'Merged section ',
 
     // move
     hk_move_node_up: '向上移动分支',
@@ -120,7 +113,6 @@ export const lang = {
     hk_move_node_right: '向右移动分支',
     hk_move_node_left: '向左移动分支',
     hkg_move_nodes: '移动',
-    modals_snapshots_moved_node: 'Moved section ',
     cm_swap_position: '交换位置',
     notice_swap_select_target:
         'Source selected. Click a target card to swap, or press Esc to cancel.',
@@ -129,21 +121,16 @@ export const lang = {
     notice_swap_canceled: 'Swap canceled',
     notice_swap_no_targets: 'No valid swap targets found',
 
-    // dnd
-    modals_snapshots_dropped_node: 'Dropped section ',
-
     // split
     cm_split_node: '拆分卡片',
     error_cm_cant_split_node_that_has_children:
         'Cannot split a section that has sub-items',
     error_cm_cant_split_node_identical: 'The result is the same as the input',
-    modals_snapshots_split_node: 'Split section ',
 
     // extract
     cmd_extract_branch: 'Extract to Mandala Grid',
     cm_extract_branch: '提取分支',
     cm_extract_section: '提取卡片',
-    modals_snapshots_extracted_node: 'Extracted section ',
 
     // export
     cm_export_document: '导出文本文档',
@@ -155,18 +142,8 @@ export const lang = {
     cmd_export_branches_with_subitems: 'Export branches',
     cmd_export_nodes_wo_subitems: 'Export sections',
 
-    // document format
-    cm_document_format: '文档格式',
-    settings_format_html_elements: 'HTML 元素（实验）',
-    settings_format_html_comments: 'HTML 注释',
-    settings_format_outline: '大纲',
-    cm_change_format_to_html_element: 'Format: HTML elements (experimental)',
-    cm_change_format_to_document: 'Format: HTML comments',
-    cm_change_format_to_outline: 'Format: outline',
-
     // format
     cm_format_headings: '格式化标题',
-    modals_snapshots_formatted_headings: 'Formatted headings',
 
     // search
     tlb_search_toggle: 'Toggle search input',
@@ -313,7 +290,6 @@ export const lang = {
     cm_sort_child: '排序子项',
     cm_sort_child_nodes_asc: '升序',
     cm_sort_child_nodes_desc: '降序',
-    modals_snapshots_sorted_child_nodes: 'Sorted subsections of section ',
 
     // settings
     controls_settings: 'Settings',

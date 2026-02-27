@@ -261,7 +261,7 @@
             {/each}
         </div>
     {:else}
-        <NoItems variant="pinned" />
+        <NoItems />
     {/if}
 </div>
 

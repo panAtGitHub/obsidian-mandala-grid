@@ -87,24 +87,24 @@ export const onDocumentStateUpdate = (
     const structuralChange =
         e.createOrDelete || e.dropOrMove || e.clipboard;
     if (structuralChange) {
-        setActiveNode(view, action);
-
-        viewStore.dispatch({
-            type: 'view/update-active-branch?source=document',
-            context: {
-                documentAction: action,
-            },
+        viewStore.batch(() => {
+            setActiveNode(view, action);
+            viewStore.dispatch({
+                type: 'view/update-active-branch?source=document',
+                context: {
+                    documentAction: action,
+                },
+            });
+            updateSelectedNodes(view);
         });
-        documentStore.dispatch({
-            type: 'document/pinned-nodes/remove-stale-nodes',
+        documentStore.batch(() => {
+            documentStore.dispatch({
+                type: 'document/pinned-nodes/remove-stale-nodes',
+            });
+            documentStore.dispatch({
+                type: 'document/meta/refresh-group-parent-ids',
+            });
         });
-        documentStore.dispatch({
-            type: 'document/meta/refresh-group-parent-ids',
-        });
-    }
-
-    if (structuralChange) {
-        updateSelectedNodes(view);
     }
 
     // effects

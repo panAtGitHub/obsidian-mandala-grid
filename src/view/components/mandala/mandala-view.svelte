@@ -362,6 +362,15 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
+    let cachedDayPlanFrontmatter: string | null = null;
+    let cachedDayPlan = parseDayPlanFrontmatter('');
+    const getCachedDayPlan = (frontmatter: string) => {
+        if (frontmatter !== cachedDayPlanFrontmatter) {
+            cachedDayPlanFrontmatter = frontmatter;
+            cachedDayPlan = parseDayPlanFrontmatter(frontmatter);
+        }
+        return cachedDayPlan;
+    };
 
     $: {
         if ($mode && !$subgridTheme) {
@@ -417,7 +426,7 @@
     }
 
     $: {
-        const dayPlan = parseDayPlanFrontmatter($documentState.file.frontmatter);
+        const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
         const allowSubgridExpansion =
             !(dayPlan && dayPlan.daily_only_3x3 && $subgridTheme?.includes('.'));
         if (

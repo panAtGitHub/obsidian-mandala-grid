@@ -4,12 +4,18 @@ import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings
 import { Settings } from 'src/stores/settings/settings-type';
 
 type SettingsWithLegacySidebar = Settings & {
+    styleRules?: unknown;
     view: Settings['view'] & {
         maintainEditMode?: boolean;
         showMandalaDetailSidebar?: boolean;
         detailSidebarPreviewMode?: 'rendered' | 'source';
         show3x3SubgridNavButtons?: boolean;
         show9x9ParallelNavButtons?: boolean;
+        showMinimap?: boolean;
+        minimapWidth?: number;
+        minimapPosition?: 'left' | 'right';
+        outlineMode?: boolean;
+        leftSidebarActiveTab?: string;
     };
 };
 
@@ -93,5 +99,38 @@ describe('migrateSettings', () => {
             pinnedSections: [],
             sectionColors: {},
         });
+    });
+
+    test('cleans legacy root/view keys and normalizes sidebar tab', () => {
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
+        settings.styleRules = { rules: [] };
+        settings.view.showMinimap = true;
+        settings.view.minimapWidth = 240;
+        settings.view.minimapPosition = 'right';
+        settings.view.outlineMode = true;
+        (settings.view as Record<string, unknown>).leftSidebarActiveTab =
+            'recent-cards';
+
+        migrateSettings(settings);
+
+        expect('styleRules' in settings).toBe(false);
+        expect('showMinimap' in settings.view).toBe(false);
+        expect('minimapWidth' in settings.view).toBe(false);
+        expect('minimapPosition' in settings.view).toBe(false);
+        expect('outlineMode' in settings.view).toBe(false);
+        expect(settings.view.leftSidebarActiveTab).toBe('pinned-cards');
+    });
+
+    test('drops removed undo/redo custom hotkeys', () => {
+        const settings = DEFAULT_SETTINGS();
+        (settings.hotkeys.customHotkeys as Record<string, unknown>).undo_change =
+            { primary: { key: 'z', modifiers: ['Mod'] } };
+        (settings.hotkeys.customHotkeys as Record<string, unknown>).redo_change =
+            { primary: { key: 'y', modifiers: ['Mod'] } };
+
+        migrateSettings(settings);
+
+        expect('undo_change' in settings.hotkeys.customHotkeys).toBe(false);
+        expect('redo_change' in settings.hotkeys.customHotkeys).toBe(false);
     });
 });
