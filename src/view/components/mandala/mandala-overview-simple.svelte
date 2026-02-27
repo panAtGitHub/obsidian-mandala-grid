@@ -54,12 +54,7 @@
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
-        return (
-            controls.showHelpSidebar ||
-            controls.showSettingsSidebar ||
-            controls.showHistorySidebar ||
-            controls.showStyleRulesModal
-        );
+        return controls.showHelpSidebar || controls.showSettingsSidebar;
     });
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;

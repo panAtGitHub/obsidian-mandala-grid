@@ -7,11 +7,9 @@ import {
     MandalaGridOrientation,
     MandalaSectionColorAssignments,
     LinkPaneType,
-    RulesTab,
     ViewType,
 } from 'src/stores/settings/settings-type';
 import { ChangeZoomLevelAction } from 'src/stores/settings/reducers/change-zoom-level';
-import { StyleRulesAction } from 'src/stores/settings/reducers/update-style-rules/update-style-rules';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 import { CommandName } from 'src/lang/hotkey-groups';
 import { Hotkey } from 'obsidian';
@@ -131,9 +129,6 @@ export type SettingsActions =
     | PersistMandalaPinnedSectionsAction
     | PersistMandalaSectionColorsAction
     | {
-          type: 'settings/view/toggle-minimap';
-      }
-    | {
           type: 'view/left-sidebar/toggle';
       }
     | { type: 'view/left-sidebar/set-width'; payload: { width: number } }
@@ -148,11 +143,6 @@ export type SettingsActions =
           type: 'view/mandala-detail-sidebar/set-width';
           payload: { width: number };
       }
-    | {
-          type: 'settings/style-rules/set-active-tab';
-          payload: { tab: RulesTab };
-      }
-    | StyleRulesAction
     | {
           type: 'settings/view/toggle-hidden-card-info';
       }

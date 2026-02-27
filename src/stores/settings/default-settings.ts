@@ -76,7 +76,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         },
         limitPreviewHeight: true,
         zoomLevel: 1,
-        showMinimap: false,
         showLeftSidebar: false,
         showMandalaDetailSidebarDesktop: false,
         showMandalaDetailSidebarMobile: false,
@@ -116,14 +115,5 @@ export const DEFAULT_SETTINGS = (): Settings => ({
     general: {
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
-    },
-    styleRules: {
-        documents: {},
-        global: {
-            rules: [],
-        },
-        settings: {
-            activeTab: 'global-rules',
-        },
     },
 });

@@ -11,9 +11,7 @@ export const handleEscapeKey = (view: MandalaView) => {
     const swap = value.ui.mandala.swap;
     if (
         controls.showHelpSidebar ||
-        controls.showHistorySidebar ||
-        controls.showSettingsSidebar ||
-        controls.showStyleRulesModal
+        controls.showSettingsSidebar
     ) {
         viewStore.dispatch({
             type: 'view/close-modals',

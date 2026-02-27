@@ -9,13 +9,10 @@ import { ChangeActiveNodeAction } from 'src/stores/view/reducers/document/naviga
 import { ToggleFuzzySearchAction } from 'src/stores/view/reducers/search/toggle-fuzzy-search';
 import { NodeNavigationAction } from 'src/stores/view/reducers/ui/navigate-active-node';
 import { SetActivePinnedNodeAction } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
-import { SetActiveRecentNodeAction } from 'src/stores/view/reducers/recent-nodes/set-active-recent-node';
 import { ToggleShowAllNodesAction } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
-import { StyleRulesResult } from 'src/stores/view/subscriptions/effects/style-rules/helpers/process-style-rules';
 import { LeftSidebarTab } from 'src/stores/settings/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
-import { RemoveObsoleteNavigationItemsAction } from 'src/stores/view/reducers/ui/helpers/remove-deleted-navigation-items';
 
 export type MandalaActions =
     | {
@@ -46,7 +43,6 @@ export type ViewStoreAction =
     | ViewDocumentAction
     | NodeSelectionAction
     | SidebarActions
-    | StyleRulesViewActions
     | KeyboardEventAction
     | ViewHotkeysAction
     | SelectionActions
@@ -62,8 +58,7 @@ export type SearchAction =
 export type ViewUIAction =
     | ToggleHelpSidebarAction
     | ToggleSettingsSidebarAction
-    | { type: 'view/close-modals'; payload?: { closeAllModals: boolean } }
-    | { type: 'view/style-rules/toggle-modal' };
+    | { type: 'view/close-modals'; payload?: { closeAllModals: boolean } };
 
 export type ToggleEditModeAction = {
     type: 'view/editor/enable-main-editor';
@@ -86,7 +81,6 @@ export type ViewDocumentAction =
     | SetDragStartedAction
     | SetDragCanceled
     | UpdateActiveBranchAction
-    | RemoveObsoleteNavigationItemsAction
     | {
         type: 'view/editor/disable/reset-confirmation';
     }
@@ -128,12 +122,10 @@ export type NodeSelectionAction =
 
 export type SidebarActions =
     | PinnedNodesActions
-    | RecentNodesActions
     | EnableEditInSidebar
     | DisableEditInSidebar;
 
 export type PinnedNodesActions = SetActivePinnedNodeAction;
-export type RecentNodesActions = SetActiveRecentNodeAction;
 
 export type EnableEditInSidebar = {
     type: 'view/editor/enable-sidebar-editor';
@@ -149,15 +141,6 @@ export type DisableEditInSidebar = {
     type: 'view/editor/disable-sidebar-editor';
     context?: {
         modKey?: boolean;
-    };
-};
-
-export type StyleRulesViewActions = UpdateStyleRulesResultAction;
-
-export type UpdateStyleRulesResultAction = {
-    type: 'view/style-rules/update-results';
-    payload: {
-        results: StyleRulesResult | null;
     };
 };
 

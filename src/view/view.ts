@@ -38,14 +38,8 @@ import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { stringifyDocument } from 'src/view/helpers/stringify-document';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { DocumentSearch } from 'src/stores/view/subscriptions/effects/document-search/document-search';
-import {
-    MinimapDomElements,
-    MinimapState,
-} from 'src/stores/minimap/minimap-state-type';
-import { MinimapStoreAction } from 'src/stores/minimap/minimap-store-actions';
 import { AlignBranch } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
 import { lang } from 'src/lang/lang';
-import { DebouncedMinimapEffects } from 'src/stores/minimap/subscriptions/effects/debounced-minimap-effects';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
@@ -64,7 +58,6 @@ export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
 export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
 export type ViewStore = Store<ViewState, ViewStoreAction, MandalaGridDocument>;
-export type MinimapStore = Store<MinimapState, MinimapStoreAction>;
 export type SaveDocumentMode = 'content-only' | 'structural';
 export type SaveDocumentOptions = {
     mode?: SaveDocumentMode;
@@ -75,8 +68,6 @@ export class MandalaView extends TextFileView {
     component: Component;
     documentStore: DocumentStore;
     viewStore: ViewStore;
-    minimapStore: MinimapStore | null;
-    minimapEffects: DebouncedMinimapEffects;
     container: HTMLElement | null;
     inlineEditor: InlineEditor;
     documentSearch: DocumentSearch;
@@ -86,7 +77,6 @@ export class MandalaView extends TextFileView {
     mandalaMode: '3x3' | '9x9' = '3x3';
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
     dayPlanHotCores: Set<string> = new Set();
-    minimapDom: MinimapDomElements | null = null;
     private pendingEphemeralState: unknown = null;
     private hasPendingExplicitJump = false;
     private focusMandalaSectionRequestId = 0;
@@ -129,7 +119,6 @@ export class MandalaView extends TextFileView {
         this.id = id.view();
         this.documentSearch = new DocumentSearch(this);
         this.alignBranch = new AlignBranch(this);
-        this.minimapEffects = new DebouncedMinimapEffects();
     }
 
     get isActive() {
@@ -803,20 +792,6 @@ export class MandalaView extends TextFileView {
         const activation = resolveMandalaProfileActivation(frontmatter);
         this.cachedActivation = { frontmatter, activation };
         return activation;
-    }
-
-    setMinimapDom(dom: MinimapDomElements) {
-        this.minimapDom = dom;
-    }
-
-    getMinimapDom() {
-        invariant(this.minimapDom);
-        return this.minimapDom;
-    }
-
-    getMinimapStore() {
-        invariant(this.minimapStore);
-        return this.minimapStore;
     }
 
     private consumePendingEphemeralState() {

@@ -8,7 +8,6 @@
     import Button from '../shared/button.svelte';
     import {
         ScrollSettingsStore,
-        showMinimapStore,
     } from '../../../../stores/settings/derived/scrolling-store';
     import {
         ApplyGapBetweenCardsStore,
@@ -40,7 +39,6 @@
     };
 
     const controls = uiControlsStore(view);
-    const showMinimap = showMinimapStore(view);
     const scrollSettingsStore = ScrollSettingsStore(view);
     const applyGapBetweenCards = ApplyGapBetweenCardsStore(view);
     const mandalaMode = MandalaModeStore(view);
@@ -51,7 +49,6 @@
     const buttons = VerticalToolbarButtonsList(view);
     const activeStates = derived(
         [
-            showMinimap,
             controls,
             scrollSettingsStore,
             mandalaMode,
@@ -60,7 +57,6 @@
             showMandalaDetailSidebar,
         ],
         ([
-            showMinimap,
             controls,
             scrollSettingsStore,
             mandalaMode,
@@ -69,9 +65,7 @@
             showMandalaDetailSidebar,
         ]) => {
             return {
-                minimap: showMinimap,
                 settings: controls.showSettingsSidebar,
-                'style-rules': controls.showStyleRulesModal,
                 'center-active-node-h': scrollSettingsStore.centerActiveNodeH,
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
                 'mandala-mode': mandalaMode === '9x9',

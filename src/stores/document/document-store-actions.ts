@@ -1,5 +1,3 @@
-import { UndoRedoAction } from 'src/stores/document/reducers/history/undo-action';
-import { SelectSnapshotAction } from 'src/stores/document/reducers/history/select-snapshot';
 import { NodePosition } from 'src/lib/tree-utils/find/find-node-position';
 import { LoadDocumentAction } from 'src/stores/document/reducers/load-document-from-file/load-document-from-file';
 import {
@@ -28,7 +26,7 @@ export type SavedDocument = {
     frontmatter: string;
 };
 
-export type DocumentStoreAction = DocumentAction | HistoryAction;
+export type DocumentStoreAction = DocumentAction;
 
 export type DocumentAction =
     | LoadDocumentAction
@@ -48,7 +46,6 @@ export type DocumentAction =
     | PinnedNodesActions
     | MetaActions;
 
-export type HistoryAction = UndoRedoAction | SelectSnapshotAction;
 export type UndoableAction =
     | SetNodeContentAction
     | SetMultipleNodeContentAction

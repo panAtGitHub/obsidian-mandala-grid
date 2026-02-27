@@ -1,4 +1,3 @@
-import { NavigationHistory } from 'src/stores/document/document-state-type';
 import {
     ActiveBranch,
     DNDState,
@@ -31,9 +30,6 @@ export type DocumentViewState = {
 export type PinnedNodes = {
     activeNode: string;
 };
-export type RecentNodes = {
-    activeNode: string;
-};
 export type ViewState = {
     search: {
         query: string;
@@ -45,10 +41,8 @@ export type ViewState = {
     };
     ui: {
         controls: {
-            showHistorySidebar: boolean;
             showHelpSidebar: boolean;
             showSettingsSidebar: boolean;
-            showStyleRulesModal: boolean;
         };
         mandala: {
             subgridTheme: string | null;
@@ -62,9 +56,7 @@ export type ViewState = {
         };
     };
     document: DocumentViewState;
-    navigationHistory: NavigationHistory;
     pinnedNodes: PinnedNodes;
-    recentNodes: RecentNodes;
     styleRules: {
         nodeStyles: Map<string, NodeStyle>;
         allMatches: Map<string, string[]>;

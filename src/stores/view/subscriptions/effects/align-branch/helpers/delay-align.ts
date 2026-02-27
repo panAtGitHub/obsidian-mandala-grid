@@ -2,10 +2,7 @@ import { PluginAction } from 'src/stores/view/subscriptions/effects/align-branch
 
 export const delayAlign = (action: PluginAction) => {
     let delay = 0;
-    if (
-        action.type === 'view/left-sidebar/toggle' ||
-        action.type === 'settings/view/toggle-minimap'
-    ) {
+    if (action.type === 'view/left-sidebar/toggle') {
         delay = 300;
     } else if (action.type === 'plugin/echo/workspace/resize') {
         delay = 50;

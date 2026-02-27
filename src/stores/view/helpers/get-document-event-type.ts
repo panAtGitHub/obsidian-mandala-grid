@@ -22,10 +22,6 @@ const eventTypesDictionary: Partial<Record<ActionType, DocumentEventType>> = {
     'document/mandala/ensure-core-theme': { createOrDelete: true },
     'document/mandala/clear-empty-subgrids': { createOrDelete: true },
 
-    'document/history/select-next-snapshot': { changeHistory: true },
-    'document/history/select-previous-snapshot': { changeHistory: true },
-    'document/history/select-snapshot': { changeHistory: true },
-
 } as const;
 
 const documentEventTypes = new Map(Object.entries(eventTypesDictionary)) as Map<
@@ -41,9 +37,6 @@ export const getDocumentEventType = (type: ActionType): DocumentEventType => {
 
 export const STRUCTURE_AND_CONTENT = new Set<DocumentStoreAction['type']>([
     // full
-    'document/history/select-next-snapshot',
-    'document/history/select-previous-snapshot',
-    'document/history/select-snapshot',
     'document/file/load-from-disk',
 ]);
 

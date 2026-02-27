@@ -50,7 +50,7 @@ export const LeftSidebarWidthStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.leftSidebarWidth);
 
 export const LeftSidebarActiveTabStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.leftSidebarActiveTab);
+    derived(view.plugin.settings, () => 'pinned-cards');
 
 export const ApplyGapBetweenCardsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.applyGapBetweenCards);

@@ -12,9 +12,7 @@ import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
 
 export type ToolbarButton =
     | 'settings'
-    | 'minimap'
     | 'hotkeys'
-    | 'style-rules'
     | 'center-active-node-h'
     | 'center-active-node-v'
     | 'mandala-mode'

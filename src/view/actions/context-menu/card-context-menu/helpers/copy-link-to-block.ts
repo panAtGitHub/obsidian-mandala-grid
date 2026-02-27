@@ -22,11 +22,8 @@ export const copyLinkToBlock = async (
     const file = view.file;
     if (!file) return;
     const viewState = view.viewStore.getValue();
-    const activeTab = view.plugin.settings.getValue().view.leftSidebarActiveTab;
     const activeNode = isInSidebar
-        ? activeTab === 'pinned-cards'
-            ? viewState.pinnedNodes.activeNode
-            : viewState.recentNodes.activeNode
+        ? viewState.pinnedNodes.activeNode
         : viewState.document.activeNode;
 
     const isEditing = Boolean(viewState.document.editing.activeNodeId);

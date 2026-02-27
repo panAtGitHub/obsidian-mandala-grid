@@ -4,7 +4,6 @@ import {
     Settings,
 } from './settings-type';
 import { changeZoomLevel } from 'src/stores/settings/reducers/change-zoom-level';
-import { updateStyleRules } from 'src/stores/settings/reducers/update-style-rules/update-style-rules';
 import { CommandName } from 'src/lang/hotkey-groups';
 import { toggleEditorState } from 'src/stores/settings/reducers/toggle-editor-state';
 import { setHotkeyAsBlank } from 'src/stores/settings/reducers/set-hotkey-as-blank';
@@ -87,7 +86,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/documents/delete-document-preferences')
             return;
         delete store.documents[action.payload.path];
-        delete store.styleRules.documents[action.payload.path];
     },
     'settings/documents/set-view-type': (store, action) => {
         if (action.type !== 'settings/documents/set-view-type') return;
@@ -150,12 +148,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const preferences = store.documents[action.payload.oldPath];
         delete store.documents[action.payload.oldPath];
         store.documents[action.payload.newPath] = preferences;
-
-        if (store.styleRules.documents[action.payload.oldPath]) {
-            const rules = store.styleRules.documents[action.payload.oldPath];
-            delete store.styleRules.documents[action.payload.oldPath];
-            store.styleRules.documents[action.payload.newPath] = rules;
-        }
     },
     'settings/hotkeys/update-custom-hotkeys': (store, action) => {
         if (action.type !== 'settings/hotkeys/update-custom-hotkeys') return;
@@ -226,10 +218,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/set-zoom-level') return;
         changeZoomLevel(store, action.payload);
     },
-    'settings/view/toggle-minimap': (store, action) => {
-        if (action.type !== 'settings/view/toggle-minimap') return;
-        store.view.showMinimap = !store.view.showMinimap;
-    },
     'view/left-sidebar/toggle': (store, action) => {
         if (action.type !== 'view/left-sidebar/toggle') return;
         store.view.showLeftSidebar = !store.view.showLeftSidebar;
@@ -264,7 +252,7 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     },
     'view/left-sidebar/set-active-tab': (store, action) => {
         if (action.type !== 'view/left-sidebar/set-active-tab') return;
-        store.view.leftSidebarActiveTab = action.payload.tab;
+        store.view.leftSidebarActiveTab = 'pinned-cards';
     },
     'view/modes/gap-between-cards/toggle': (store, action) => {
         if (action.type !== 'view/modes/gap-between-cards/toggle') return;
@@ -472,10 +460,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             [action.payload.variant]: action.payload.visible,
         };
     },
-    'settings/style-rules/set-active-tab': (store, action) => {
-        if (action.type !== 'settings/style-rules/set-active-tab') return;
-        store.styleRules.settings.activeTab = action.payload.tab;
-    },
     'settings/general/set-link-pane-type': (store, action) => {
         if (action.type !== 'settings/general/set-link-pane-type') return;
         store.general.linkPaneType = action.payload.position;
@@ -536,14 +520,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
 };
 
 const updateState = (store: Settings, action: SettingsActions) => {
-    if (action.type.startsWith('settings/style-rules')) {
-        updateStyleRules(
-            store,
-            action as Parameters<typeof updateStyleRules>[1],
-        );
-        return;
-    }
-
     const handler = settingsHandlers[action.type];
     if (handler) {
         handler(store, action);

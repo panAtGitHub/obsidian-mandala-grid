@@ -2,7 +2,7 @@ import { Column } from 'src/stores/document/document-state-type';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { findNextActiveNodeOnKeyboardNavigation } from 'src/lib/tree-utils/find/find-next-active-node-on-keyboard-navigation';
-import { DocumentViewState, ViewState } from 'src/stores/view/view-state-type';
+import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { updateSelectionState } from 'src/stores/view/reducers/document/helpers/update-selection-state';
 
 export type ChangeActiveNodeAction = {
@@ -17,7 +17,6 @@ export type ChangeActiveNodeAction = {
 
 export const navigateUsingKeyboard = (
     documentState: DocumentViewState,
-    state: Pick<ViewState, 'navigationHistory'>,
     action: ChangeActiveNodeAction,
     columns: Column[],
 ) => {
@@ -38,6 +37,6 @@ export const navigateUsingKeyboard = (
                 action.payload.direction === 'down',
             Boolean(action.context?.shiftKey),
         );
-        updateActiveNode(documentState, nextNode, state, columns);
+        updateActiveNode(documentState, nextNode, columns);
     }
 };

@@ -235,12 +235,6 @@ const updateDocumentState = (
         } else {
             newActiveNodeId = loadDocumentFromFile(state, action);
         }
-    } else if (
-        action.type === 'document/history/select-snapshot' ||
-        action.type === 'document/history/select-previous-snapshot' ||
-        action.type === 'document/history/select-next-snapshot'
-    ) {
-        return NO_UPDATE;
     } else if (action.type === 'document/format-headings') {
         formatHeadings(state.document.content, state.sections);
         newActiveNodeId = getIdOfSection(

@@ -13,7 +13,6 @@ import { touchEventToMouseEvent } from 'src/obsidian/context-menu/touch-event-to
 const getContextMenuContext = (
     view: MandalaView,
     isInSidebar: boolean,
-    isInRecentCardsList: boolean,
 ) => {
     const viewState = view.viewStore.getValue();
     const multipleNodesAreSelected =
@@ -22,7 +21,7 @@ const getContextMenuContext = (
     const documentState = documentStore.getValue();
     const activeNode = viewState.document.activeNode;
     const isPinned =
-        (isInSidebar && !isInRecentCardsList) ||
+        isInSidebar ||
         documentState.pinnedNodes.Ids.includes(activeNode);
 
     const hasChildren = documentState.meta.groupParentIds.has(activeNode);
@@ -30,7 +29,6 @@ const getContextMenuContext = (
         activeNode,
         isPinned,
         isInSidebar,
-        isInRecentCardsList,
         multipleNodesAreSelected,
         hasChildren,
     };
@@ -52,24 +50,13 @@ export const showNodeContextMenu = (
     if (textIsSelected()) return;
 
     const isInSidebar = Boolean(target.closest('.sidebar'));
-    const isInRecentCardsList =
-        isInSidebar && Boolean(target.closest('.recent-cards-container'));
 
     const targetIsActive = closestCardElement.hasClass('active-node');
     if (!targetIsActive) {
-        selectInactiveCard(
-            view,
-            closestCardElement,
-            isInSidebar,
-            isInRecentCardsList,
-        );
+        selectInactiveCard(view, closestCardElement, isInSidebar);
     }
 
-    const context = getContextMenuContext(
-        view,
-        isInSidebar,
-        isInRecentCardsList,
-    );
+    const context = getContextMenuContext(view, isInSidebar);
     let menuItems: MenuItemObject[];
     if (context.isInSidebar) {
         menuItems = createSidebarContextMenuItems(view, context);

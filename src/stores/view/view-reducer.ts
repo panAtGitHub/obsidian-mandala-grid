@@ -12,12 +12,10 @@ import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/upda
 import { navigateUsingKeyboard } from 'src/stores/view/reducers/document/navigate-using-keyboard';
 import { jumpToNode } from 'src/stores/view/reducers/document/jump-to-node';
 
-import { removeDeletedNavigationItems } from 'src/stores/view/reducers/ui/helpers/remove-deleted-navigation-items';
 import { toggleFuzzySearch } from 'src/stores/view/reducers/search/toggle-fuzzy-search';
 import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/reset-selection-state';
 import { navigateActiveNode } from 'src/stores/view/reducers/ui/navigate-active-node';
 import { setActivePinnedNode } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
-import { setActiveRecentNode } from 'src/stores/view/reducers/recent-nodes/set-active-recent-node';
 import { toggleShowAllNodes } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
 import { resetPendingConfirmation } from 'src/stores/view/reducers/document/reset-pending-confirmation';
 import { MandalaGridDocument } from 'src/stores/document/document-state-type';
@@ -33,35 +31,35 @@ type ViewActionHandler = (
 const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/mouse': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse') return;
-        updateActiveNode(state.document, action.payload.id, state, context.columns);
+        updateActiveNode(state.document, action.payload.id, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
     'view/set-active-node/mouse-silent': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse-silent') return;
-        updateActiveNode(state.document, action.payload.id, state, context.columns);
+        updateActiveNode(state.document, action.payload.id, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
     'view/set-active-node/document': (state, action, context) => {
         if (action.type !== 'view/set-active-node/document') return;
-        updateActiveNode(state.document, action.payload.id, state, context.columns);
+        updateActiveNode(state.document, action.payload.id, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
     'view/set-active-node/search': (state, action, context) => {
         if (action.type !== 'view/set-active-node/search') return;
-        updateActiveNode(state.document, action.payload.id, state, context.columns);
+        updateActiveNode(state.document, action.payload.id, context.columns);
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
     },
     'view/set-active-node/keyboard': (state, action, context) => {
         if (action.type !== 'view/set-active-node/keyboard') return;
-        navigateUsingKeyboard(state.document, state, action, context.columns);
+        navigateUsingKeyboard(state.document, action, context.columns);
     },
     'view/search/set-query': (state, action) => {
         if (action.type !== 'view/search/set-query') return;
@@ -79,31 +77,25 @@ const handlers: Record<string, ViewActionHandler> = {
         if (action.type !== 'view/hotkeys/toggle-modal') return;
         const showHelpSidebar = state.ui.controls.showHelpSidebar;
         state.ui.controls = {
-            showHistorySidebar: false,
             showHelpSidebar: !showHelpSidebar,
             showSettingsSidebar: false,
-            showStyleRulesModal: false,
         };
     },
     'view/settings/toggle-modal': (state, action) => {
         if (action.type !== 'view/settings/toggle-modal') return;
         const showSettingsSidebar = state.ui.controls.showSettingsSidebar;
         state.ui.controls = {
-            showHistorySidebar: false,
             showHelpSidebar: false,
             showSettingsSidebar: !showSettingsSidebar,
-            showStyleRulesModal: false,
         };
     },
     'view/close-modals': (state, action) => {
         if (action.type !== 'view/close-modals') return;
         state.ui.controls = {
-            showHistorySidebar: false,
             showHelpSidebar: action.payload?.closeAllModals
                 ? false
                 : state.ui.controls.showHelpSidebar,
             showSettingsSidebar: false,
-            showStyleRulesModal: false,
         };
     },
     'view/editor/enable-main-editor': (state, action, context) => {
@@ -113,7 +105,6 @@ const handlers: Record<string, ViewActionHandler> = {
             updateActiveNode(
                 state.document,
                 action.payload.nodeId,
-                state,
                 context.columns,
             );
         }
@@ -127,14 +118,6 @@ const handlers: Record<string, ViewActionHandler> = {
                 setActivePinnedNode(
                     state.document,
                     state.pinnedNodes,
-                    action.payload.id,
-                );
-            }
-        } else if (action.context.activeSidebarTab === 'recent-cards') {
-            if (state.recentNodes.activeNode !== action.payload.id) {
-                setActiveRecentNode(
-                    state.document,
-                    state.recentNodes,
                     action.payload.id,
                 );
             }
@@ -189,11 +172,7 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/set-active-node/keyboard-jump': (state, action, context) => {
         if (action.type !== 'view/set-active-node/keyboard-jump') return;
-        jumpToNode(state.document, state, action, context.columns);
-    },
-    'view/active-node-history/delete-obsolete': (state, action) => {
-        if (action.type !== 'view/active-node-history/delete-obsolete') return;
-        removeDeletedNavigationItems(state, action.payload.content);
+        jumpToNode(state.document, action, context.columns);
     },
     'view/search/toggle-fuzzy-mode': (state, action) => {
         if (action.type !== 'view/search/toggle-fuzzy-mode') return;
@@ -209,39 +188,15 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/set-active-node/sequential/select-next': (state, action, context) => {
         if (action.type !== 'view/set-active-node/sequential/select-next') return;
-        navigateActiveNode(state.document, state, action, context.columns);
+        navigateActiveNode(state.document, action, context.columns);
     },
     'view/pinned-nodes/set-active-node': (state, action) => {
         if (action.type !== 'view/pinned-nodes/set-active-node') return;
         setActivePinnedNode(state.document, state.pinnedNodes, action.payload.id);
     },
-    'view/recent-nodes/set-active-node': (state, action) => {
-        if (action.type !== 'view/recent-nodes/set-active-node') return;
-        setActiveRecentNode(state.document, state.recentNodes, action.payload.id);
-    },
     'search/view/toggle-show-all-nodes': (state, action) => {
         if (action.type !== 'search/view/toggle-show-all-nodes') return;
         toggleShowAllNodes(state);
-    },
-    'view/style-rules/toggle-modal': (state, action) => {
-        if (action.type !== 'view/style-rules/toggle-modal') return;
-        const showStyleRulesModal = state.ui.controls.showStyleRulesModal;
-        state.ui.controls = {
-            showHistorySidebar: false,
-            showStyleRulesModal: !showStyleRulesModal,
-            showSettingsSidebar: false,
-            showHelpSidebar: false,
-        };
-    },
-    'view/style-rules/update-results': (state, action) => {
-        if (action.type !== 'view/style-rules/update-results') return;
-        if (!action.payload.results) {
-            state.styleRules.nodeStyles = new Map();
-            state.styleRules.allMatches = new Map();
-            return;
-        }
-        state.styleRules.nodeStyles = action.payload.results.nodeStyles;
-        state.styleRules.allMatches = action.payload.results.allMatches;
     },
     'view/keyboard/shift/up': (state, action) => {
         if (action.type !== 'view/keyboard/shift/up') return;

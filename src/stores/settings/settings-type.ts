@@ -1,5 +1,4 @@
 import { CommandName } from 'src/lang/hotkey-groups';
-import { StyleRule } from 'src/stores/settings/types/style-rules-types';
 import { PersistedViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 
@@ -59,9 +58,7 @@ export type DocumentPreferences = {
     mandalaView: MandalaViewDocumentPreferences;
 };
 
-export type LeftSidebarTab = 'pinned-cards' | 'recent-cards';
-
-export type RulesTab = 'global-rules' | 'document-rules';
+export type LeftSidebarTab = 'pinned-cards';
 
 export type LinkPaneType = 'split' | 'tab';
 export type ContextMenuCopyLinkVariant =
@@ -95,7 +92,6 @@ export type Settings = {
         scrolling: ScrollingSettings;
         limitPreviewHeight: boolean;
         zoomLevel: number;
-        showMinimap: boolean;
         showLeftSidebar: boolean;
         showMandalaDetailSidebarDesktop: boolean;
         showMandalaDetailSidebarMobile: boolean;
@@ -131,14 +127,5 @@ export type Settings = {
     general: {
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
-    };
-    styleRules: {
-        documents: { [path: string]: { rules: StyleRule[] } };
-        global: {
-            rules: StyleRule[];
-        };
-        settings: {
-            activeTab: RulesTab;
-        };
     };
 };

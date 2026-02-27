@@ -31,8 +31,6 @@ import {
     MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
 import {
-    minimapWorker,
-    rulesWorker,
     statusBarWorker,
 } from 'src/workers/worker-instances';
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
@@ -177,8 +175,6 @@ export default class MandalaGrid extends Plugin {
         for (const timeout of this.timeoutReferences) {
             clearTimeout(timeout);
         }
-        minimapWorker.terminate();
-        rulesWorker.terminate();
         statusBarWorker.terminate();
     }
 }

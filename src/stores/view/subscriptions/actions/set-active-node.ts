@@ -1,6 +1,5 @@
 import { MandalaView } from 'src/view/view';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
-import { Snapshot } from 'src/stores/document/document-state-type';
 
 export const setActiveNode = (
     view: MandalaView,
@@ -19,18 +18,8 @@ export const setActiveNode = (
     let shouldSetActiveNode = true;
 
     if (activeNodeExists) {
-        // keep the affected active section when undoing
-        if (action.type === 'document/history/select-previous-snapshot') {
-            const state = documentState.history.state;
-            const previousSnapshot: Snapshot =
-                documentState.history.items[state.activeIndex + 1];
-            const affectedSection = previousSnapshot.context.affectedSection;
-            if (section_id[affectedSection]) {
-                newActiveSection = affectedSection;
-            }
-        }
         // active view of file should always update except for dnd events
-        else if (
+        if (
             view.isViewOfFile &&
             action.type === 'document/mandala/swap'
         ) {

@@ -299,12 +299,7 @@
     );
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
-        return (
-            controls.showHelpSidebar ||
-            controls.showSettingsSidebar ||
-            controls.showHistorySidebar ||
-            controls.showStyleRulesModal
-        );
+        return controls.showHelpSidebar || controls.showSettingsSidebar;
     });
 
     let containerRef: HTMLElement | null = null;

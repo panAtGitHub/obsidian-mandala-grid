@@ -22,7 +22,6 @@ const actionPriorityRecord: Partial<Record<PluginAction['type'], number>> = {
     'plugin/echo/workspace/resize': 10,
     'plugin/echo/workspace/layout-ready': 10,
     'plugin/documents/update-active-view-of-document': 10,
-    'settings/view/toggle-minimap': 10,
     'view/left-sidebar/toggle': 10,
     'settings/view/layout/set-card-width': 10,
     'settings/view/layout/set-cards-gap': 10,

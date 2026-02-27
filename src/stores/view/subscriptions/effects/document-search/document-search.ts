@@ -8,9 +8,6 @@ type SearchItem = { sectionId: string; nodeId: string; content: string };
 export type NodeSearchResult = FuseResult<SearchItem>;
 
 const STRUCTURAL_ACTIONS = new Set<DocumentStoreAction['type']>([
-    'document/history/select-next-snapshot',
-    'document/history/select-previous-snapshot',
-    'document/history/select-snapshot',
     'document/mandala/ensure-children',
     'document/mandala/ensure-core-theme',
     'document/mandala/clear-empty-subgrids',
@@ -22,7 +19,6 @@ export class DocumentSearch {
     private fuzzySearch = false;
     private collection = new Map<string, SearchItem>();
     private collectionInitialized = false;
-    #searchTriggeredMinimap: boolean = false;
 
     private buildCollectionFromDocument = (documentState: DocumentState) => {
         this.collection.clear();
@@ -155,11 +151,4 @@ export class DocumentSearch {
         }
         return map;
     };
-
-    get searchTriggeredMinimap() {
-        return this.#searchTriggeredMinimap;
-    }
-    set searchTriggeredMinimap(value: boolean) {
-        this.#searchTriggeredMinimap = value;
-    }
 }
