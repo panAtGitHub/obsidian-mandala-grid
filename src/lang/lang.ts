@@ -282,13 +282,9 @@ export const lang = {
     // outline
     settings_layout_indentation_width: 'Card indentation',
     controls_single_column: 'Outline mode',
-    hk_toggle_outline_mode: '切换大纲模式',
     hk_toggle_mandala_mode: '切换 3×3 / 9×9',
     card_btn_collapse_node: 'Collapse',
     card_btn_expand_node: 'Expand',
-    hk_outline_toggle_collapse: '折叠/展开卡片',
-    hk_outline_toggle_collapse_all: '折叠/展开所有卡片',
-    hkg_outline: '大纲',
     hkg_mandala: '九宫格',
 
     // toolbar

@@ -162,15 +162,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [{ key: '0', modifiers: ['Mod'], editorState: 'both' }],
     }, */
-    /*{
-        name: 'toggle_outline_mode',
-        callback: (view) => {
-            view!.plugin.settings.dispatch({
-                type: 'settings/view/modes/toggle-outline-mode',
-            });
-        },
-        hotkeys: [{ key: 'o', modifiers: ['Alt'], editorState: 'both' }],
-    },*/
     /* {
         name: 'toggle_mandala_mode',
         callback: (view, e) => {
@@ -290,31 +281,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
             swapMandalaCell(view, 'right');
         },
         hotkeys: [],
-    }, */
-    /* {
-        name: 'toggle_collapse',
-        callback: (view, e) => {
-            e.preventDefault();
-            if (!get(singleColumnStore(view))) return;
-            view.viewStore.dispatch({
-                type: 'view/outline/toggle-collapse-node',
-                payload: {
-                    id: view.viewStore.getValue().document.activeNode,
-                },
-            });
-        },
-        hotkeys: [{ key: '=', modifiers: ['Alt'], editorState: 'both' }],
-    },
-    {
-        name: 'toggle_collapse_all',
-        callback: (view, e) => {
-            e.preventDefault();
-            if (!get(singleColumnStore(view))) return;
-            view.viewStore.dispatch({
-                type: 'view/outline/toggle-collapse-all',
-            });
-        },
-        hotkeys: [{ key: '=', modifiers: ['Alt', 'Mod'], editorState: 'both' }],
     }, */
     ];
 

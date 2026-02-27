@@ -73,11 +73,6 @@ export const hotkeyGroups = {
         'align_branch',
     ]),
     [lang.hkg_zoom]: new Set(['zoom_in', 'zoom_out', 'zoom_reset']),
-    [lang.hkg_outline]: new Set([
-        'toggle_outline_mode',
-        'toggle_collapse',
-        'toggle_collapse_all',
-    ]),
     [lang.hkg_mandala]: new Set([
         'enter_subgrid',
         'exit_subgrid',

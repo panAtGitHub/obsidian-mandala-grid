@@ -177,7 +177,6 @@ export const FilteredHotkeysStore = (view: MandalaView) =>
                     [lang.hkg_history]: [],
                     [lang.hkg_search]: [],
                     [lang.hkg_zoom]: [],
-                    [lang.hkg_outline]: [],
                     [lang.hkg_mandala]: [],
                 } satisfies GroupedHotkeys),
                 numberOfConflictingHotkeys: hotkeys.numberOfConflictingHotkeys,
