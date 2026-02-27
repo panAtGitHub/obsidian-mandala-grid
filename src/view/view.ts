@@ -43,7 +43,6 @@ import {
     MinimapState,
 } from 'src/stores/minimap/minimap-state-type';
 import { MinimapStoreAction } from 'src/stores/minimap/minimap-store-actions';
-import { StyleRulesProcessor } from 'src/stores/view/subscriptions/effects/style-rules/style-rules-processor';
 import { AlignBranch } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
 import { lang } from 'src/lang/lang';
 import { DebouncedMinimapEffects } from 'src/stores/minimap/subscriptions/effects/debounced-minimap-effects';
@@ -84,7 +83,6 @@ export class MandalaView extends TextFileView {
     container: HTMLElement | null;
     inlineEditor: InlineEditor;
     documentSearch: DocumentSearch;
-    rulesProcessor: StyleRulesProcessor;
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
@@ -133,7 +131,6 @@ export class MandalaView extends TextFileView {
 
         this.id = id.view();
         this.documentSearch = new DocumentSearch(this);
-        this.rulesProcessor = new StyleRulesProcessor(this);
         this.alignBranch = new AlignBranch(this);
         this.minimapEffects = new DebouncedMinimapEffects();
     }

@@ -26,9 +26,7 @@ export const loadDocumentFromFile = (
     state: DocumentState,
     action: LoadDocumentAction,
 ) => {
-    state.meta.isMandala = Boolean(
-        action.payload.document.frontmatter?.includes('mandala: true'),
-    );
+    state.meta.isMandala = true;
 
     if (action.payload.format !== 'sections') {
         throw new Error(

@@ -30,7 +30,6 @@ import {
     createRenderMandalaEmbedPostProcessor,
     MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
-import { removeHtmlElementMarkerInPreviewMode } from 'src/obsidian/markdown-post-processors/remove-html-element-marker-in-preview-mode';
 import {
     minimapWorker,
     rulesWorker,
@@ -71,9 +70,6 @@ export default class MandalaGrid extends Plugin {
         this.registerEvents();
         this.statusBar = new StatusBar(this);
         this.loadRibbonIcon();
-        this.registerMarkdownPostProcessor(
-            removeHtmlElementMarkerInPreviewMode,
-        );
         this.registerMarkdownPostProcessor(
             createRenderMandalaEmbedPostProcessor(this),
             MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,

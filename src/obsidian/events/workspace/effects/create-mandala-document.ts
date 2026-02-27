@@ -9,7 +9,6 @@ import { createMandalaMarkdownTemplate } from 'src/lib/mandala/create-mandala-ma
 
 export const createMandalaGridDocument = async (plugin: MandalaGrid) => {
     try {
-        const format = 'sections';
         const file = getActiveFile(plugin);
         let folder: TFolder | null = null;
         if (file) {
@@ -25,7 +24,7 @@ export const createMandalaGridDocument = async (plugin: MandalaGrid) => {
                 'Mandala',
             );
             if (newFile) {
-                await openFileInMandalaGrid(plugin, newFile, format, 'tab');
+                await openFileInMandalaGrid(plugin, newFile, 'tab');
             }
         }
     } catch (e) {

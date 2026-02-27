@@ -6,9 +6,6 @@ import invariant from 'tiny-invariant';
 import { openFileInMandalaGrid } from 'src/obsidian/events/workspace/effects/open-file-in-mandala';
 import { getFileNameOfExtractedBranch } from 'src/obsidian/commands/helpers/extract-branch/helpers/get-file-name-of-extracted-branch/get-file-name-of-extracted-branch';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
-import { getPersistedDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-persisted-document-format';
-import { branchToOutline } from 'src/lib/data-conversion/branch-to-x/branch-to-outline';
-import { branchToHtmlElement } from 'src/lib/data-conversion/branch-to-x/branch-to-html-element';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 
 export const extractBranch = async (view: MandalaView) => {
@@ -34,13 +31,7 @@ export const extractBranch = async (view: MandalaView) => {
             'copy',
         );
 
-        const format = getPersistedDocumentFormat(view);
-        const text =
-            format === 'outline'
-                ? branchToOutline([branch])
-                : format === 'html-element'
-                  ? branchToHtmlElement([branch])
-                  : branchToHtmlComment([branch]);
+        const text = branchToHtmlComment([branch]);
         const fileName = getFileNameOfExtractedBranch(
             branch.content[branch.nodeId].content,
             view.file.basename,
@@ -52,7 +43,7 @@ export const extractBranch = async (view: MandalaView) => {
             text,
             fileName,
         );
-        await openFileInMandalaGrid(view.plugin, newFile, format, 'split');
+        await openFileInMandalaGrid(view.plugin, newFile, 'split');
 
         view.documentStore.dispatch({
             type: 'document/extract-node',

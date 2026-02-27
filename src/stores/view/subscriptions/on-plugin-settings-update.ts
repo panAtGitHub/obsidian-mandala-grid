@@ -34,8 +34,6 @@ export const onPluginSettingsUpdate = (
     } else if (action.type === 'settings/view/set-zoom-level') {
         applyZoomLevel(view, state.view.zoomLevel);
         view.zoomFactor = state.view.zoomLevel;
-    } else if (action.type === 'settings/documents/set-document-format') {
-        void view.saveDocument();
     } else if (type === 'settings/view/set-node-indentation-width') {
         applyCardIndentationWidth(view, state.view.nodeIndentationWidth);
     } else if (type === 'settings/view/theme/set-inactive-node-opacity') {

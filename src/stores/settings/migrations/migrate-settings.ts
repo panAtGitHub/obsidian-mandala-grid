@@ -56,6 +56,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                 pinnedSections?: unknown;
                 mandalaView?: unknown;
             };
+            legacyPref.documentFormat = 'sections';
+            legacyPref.outline = null;
             delete legacyPref.pinnedSections;
 
             const mandalaViewRaw =
@@ -158,6 +160,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
     }
+    (settings as Settings).general.defaultDocumentFormat = 'sections';
 
     // Legacy compatibility: split old shared toggle flags into desktop/mobile.
     if (typeof viewSettings.show3x3SubgridNavButtons === 'boolean') {

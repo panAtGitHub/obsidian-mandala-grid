@@ -51,15 +51,13 @@ const normalizeSectionColorAssignments = (
 
 const createDefaultDocumentPreferences = (
     store: Settings,
-    format: DocumentPreferences['documentFormat'] = store.general
+    _format: DocumentPreferences['documentFormat'] = store.general
         .defaultDocumentFormat,
 ): DocumentPreferences => ({
-    documentFormat: format,
+    documentFormat: 'sections',
     viewType: 'mandala-grid',
     activeSection: null,
-    outline: {
-        collapsedSections: [],
-    },
+    outline: null,
     mandalaView: {
         gridOrientation: null,
         lastActiveSection: null,
@@ -102,12 +100,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (!store.documents[action.payload.path]) {
             store.documents[action.payload.path] = createDefaultDocumentPreferences(
                 store,
-                action.payload.format,
+                'sections',
             );
             return;
         }
-        store.documents[action.payload.path].documentFormat =
-            action.payload.format;
+        store.documents[action.payload.path].documentFormat = 'sections';
     },
     'settings/documents/set-view-type': (store, action) => {
         if (action.type !== 'settings/documents/set-view-type') return;
