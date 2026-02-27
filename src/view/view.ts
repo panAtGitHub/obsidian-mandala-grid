@@ -62,12 +62,18 @@ import {
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
+import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
 export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
 export type ViewStore = Store<ViewState, ViewStoreAction, MandalaGridDocument>;
 export type MinimapStore = Store<MinimapState, MinimapStoreAction>;
+export type SaveDocumentMode = 'content-only' | 'structural';
+export type SaveDocumentOptions = {
+    mode?: SaveDocumentMode;
+    changedSections?: string[];
+};
 
 export class MandalaView extends TextFileView {
     component: Component;
@@ -99,6 +105,7 @@ export class MandalaView extends TextFileView {
         | { frontmatter: string; activation: MandalaProfileActivation }
         | null = null;
     private lastActivationNotice: string | null = null;
+    private lastSaveBlockedNoticeKey: string | null = null;
     private readonly mandalaUiStateByPath = new Map<
         string,
         {
@@ -275,20 +282,36 @@ export class MandalaView extends TextFileView {
         onPluginError(error, location, action);
     };
 
-    saveDocument = () => {
+    saveDocument = (options: SaveDocumentOptions = {}) => {
         invariant(this.file);
         const state = this.documentStore.getValue();
         const saveStartedMs = performance.now();
+        const mode = options.mode ?? 'structural';
+        const changedSections = Array.from(
+            new Set(
+                (options.changedSections ?? []).filter(
+                    (section): section is string => typeof section === 'string',
+                ),
+            ),
+        );
         let body = '';
         if (state.meta.mandalaV2.enabled) {
             const prepareStartedMs = performance.now();
-            const prepared = prepareSaveSections(state.document, state.sections);
+            const prepared = prepareSaveSections(state.document, state.sections, {
+                parentToChildrenSlots: state.meta.mandalaV2.parentToChildrenSlots,
+                subtreeNonEmptyCountBySection:
+                    state.meta.mandalaV2.subtreeNonEmptyCountBySection,
+            });
             const prepareMs = Number(
                 (performance.now() - prepareStartedMs).toFixed(2),
             );
             if (prepared.blockedReasons.length > 0) {
                 const message = prepared.blockedReasons[0];
-                new Notice(message, 3500);
+                const blockedKey = `${state.meta.mandalaV2.revision}:${message}`;
+                if (this.lastSaveBlockedNoticeKey !== blockedKey) {
+                    this.lastSaveBlockedNoticeKey = blockedKey;
+                    new Notice(message, 3500);
+                }
                 logger.error('[mandala-v2] save blocked', {
                     file: this.file.path,
                     reason: message,
@@ -296,14 +319,58 @@ export class MandalaView extends TextFileView {
                 });
                 return;
             }
-            const serializeStartedMs = performance.now();
-            body = serializeSections(prepared.sections);
-            const serializeMs = Number(
-                (performance.now() - serializeStartedMs).toFixed(2),
-            );
+            this.lastSaveBlockedNoticeKey = null;
+
+            let usedFastPath = false;
+            let patchMs = 0;
+            let serializeMs = 0;
+            if (
+                mode === 'content-only' &&
+                changedSections.length > 0 &&
+                prepared.stats.droppedSectionCount === 0
+            ) {
+                const currentBody = extractFrontmatter(this.data).body;
+                let patchedBody = currentBody;
+                usedFastPath = true;
+                const patchStartedMs = performance.now();
+                for (const sectionId of changedSections) {
+                    const nodeId = state.sections.section_id[sectionId];
+                    if (!nodeId) {
+                        usedFastPath = false;
+                        break;
+                    }
+                    const replacement = state.document.content[nodeId]?.content ?? '';
+                    const patchResult = applySectionPatch(
+                        patchedBody,
+                        sectionId,
+                        replacement,
+                    );
+                    if (!patchResult) {
+                        usedFastPath = false;
+                        break;
+                    }
+                    patchedBody = patchResult.markdown;
+                }
+                patchMs = Number((performance.now() - patchStartedMs).toFixed(2));
+                if (usedFastPath) {
+                    body = patchedBody;
+                }
+            }
+
+            if (!usedFastPath) {
+                const serializeStartedMs = performance.now();
+                body = serializeSections(prepared.sections);
+                serializeMs = Number(
+                    (performance.now() - serializeStartedMs).toFixed(2),
+                );
+            }
+
             logger.debug('[perf][view] saveDocument', {
                 file: this.file.path,
+                mode,
+                used_fast_path: usedFastPath,
                 save_prepare_ms: prepareMs,
+                save_patch_ms: patchMs,
                 save_serialize_ms: serializeMs,
                 save_dropped_sections: prepared.stats.droppedSectionCount,
                 save_pruned_parents: prepared.stats.prunedParentCount,

@@ -3,6 +3,7 @@ import {
     parseSections,
     validateSectionsStructure,
 } from 'src/mandala-v2';
+import { buildSubtreeNonEmptyCountBySection } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
 import {
     DocumentState,
     MandalaGridDocument,
@@ -68,6 +69,14 @@ export const loadDocumentFromFile = (
         rootGroupId: documentV2.rootGroupId,
         orderedSections: documentV2.orderedSections,
         parentToChildrenSlots: documentV2.parentToChildrenSlots,
+        subtreeNonEmptyCountBySection: buildSubtreeNonEmptyCountBySection(
+            documentV2.content,
+            {
+                id_section: documentV2.nodeToSection,
+                section_id: documentV2.sectionToNode,
+            },
+            documentV2.orderedSections,
+        ),
         loadMetrics: {
             bytes: parsed.sourceBytes,
             sectionsCount: parsed.sections.length,

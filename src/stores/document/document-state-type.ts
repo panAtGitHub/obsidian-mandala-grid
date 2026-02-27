@@ -25,6 +25,7 @@ export type DocumentMeta = {
         rootGroupId: string | null;
         orderedSections: string[];
         parentToChildrenSlots: Record<string, Partial<Record<number, string>>>;
+        subtreeNonEmptyCountBySection: Record<string, number>;
         loadMetrics: {
             bytes: number;
             sectionsCount: number;

@@ -1,5 +1,6 @@
+import { __dev__, logger } from 'src/helpers/logger';
 import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
-import { DocumentState } from 'src/stores/document/document-state-type';
+import { DocumentState, Sections } from 'src/stores/document/document-state-type';
 
 const compareSectionIds = (a: string, b: string) => {
     const aParts = a.split('.').map(Number);
@@ -31,8 +32,56 @@ const getSlotOfDirectChild = (section: string, parentSection: string) => {
     return slot;
 };
 
-const rebuildMandalaV2MetaFromSections = (state: DocumentState) => {
-    const sectionIds = Object.keys(state.sections.section_id).sort(compareSectionIds);
+const isTextNonEmpty = (value: string) => value.length > 0;
+
+const assertSectionBijection = (sections: Sections) => {
+    if (!__dev__) return;
+    const sectionEntries = Object.entries(sections.section_id);
+    const idEntries = Object.entries(sections.id_section);
+    if (sectionEntries.length !== idEntries.length) {
+        throw new Error(
+            `[mandala-v2] section bijection mismatch: section_id=${sectionEntries.length}, id_section=${idEntries.length}`,
+        );
+    }
+    for (const [sectionId, nodeId] of sectionEntries) {
+        if (sections.id_section[nodeId] !== sectionId) {
+            throw new Error(
+                `[mandala-v2] section bijection broken at section "${sectionId}"`,
+            );
+        }
+    }
+};
+
+export const buildSubtreeNonEmptyCountBySection = (
+    documentContent: DocumentState['document']['content'],
+    sections: Sections,
+    orderedSections?: string[],
+) => {
+    const sortedSections =
+        orderedSections?.length && orderedSections.length > 0
+            ? [...orderedSections]
+            : Object.keys(sections.section_id).sort(compareSectionIds);
+    const subtreeNonEmptyCountBySection: Record<string, number> = {};
+
+    for (const sectionId of sortedSections) {
+        const nodeId = sections.section_id[sectionId];
+        const content = nodeId ? documentContent[nodeId]?.content ?? '' : '';
+        subtreeNonEmptyCountBySection[sectionId] = isTextNonEmpty(content) ? 1 : 0;
+    }
+
+    for (let i = sortedSections.length - 1; i >= 0; i -= 1) {
+        const sectionId = sortedSections[i];
+        const parent = getParentSection(sectionId);
+        if (!parent) continue;
+        subtreeNonEmptyCountBySection[parent] =
+            (subtreeNonEmptyCountBySection[parent] ?? 0) +
+            (subtreeNonEmptyCountBySection[sectionId] ?? 0);
+    }
+
+    return subtreeNonEmptyCountBySection;
+};
+
+const buildParentToChildrenSlots = (sectionIds: string[]) => {
     const parentToChildrenSlots: Record<string, Partial<Record<number, string>>> =
         {};
 
@@ -46,29 +95,58 @@ const rebuildMandalaV2MetaFromSections = (state: DocumentState) => {
         }
         parentToChildrenSlots[parent][slot] = sectionId;
     }
+    return parentToChildrenSlots;
+};
+
+export const rebuildMandalaV2MetaFromSections = (
+    state: DocumentState,
+    options: { bumpRevision?: boolean } = {},
+) => {
+    const bumpRevision = options.bumpRevision ?? true;
+    assertSectionBijection(state.sections);
+    const orderedSections = Object.keys(state.sections.section_id).sort(
+        compareSectionIds,
+    );
+    const parentToChildrenSlots = buildParentToChildrenSlots(orderedSections);
+    const subtreeNonEmptyCountBySection = buildSubtreeNonEmptyCountBySection(
+        state.document.content,
+        state.sections,
+        orderedSections,
+    );
 
     state.meta.mandalaV2 = {
         ...state.meta.mandalaV2,
-        revision: state.meta.mandalaV2.revision + 1,
-        orderedSections: sectionIds,
+        revision: bumpRevision
+            ? state.meta.mandalaV2.revision + 1
+            : state.meta.mandalaV2.revision,
+        orderedSections,
         parentToChildrenSlots,
+        subtreeNonEmptyCountBySection,
     };
+};
+
+type MutateOptions = {
+    commit?: boolean;
 };
 
 export const registerMandalaSection = (
     state: DocumentState,
     nodeId: string,
     sectionId: string,
+    options: MutateOptions = {},
 ) => {
     state.sections.section_id[sectionId] = nodeId;
     state.sections.id_section[nodeId] = sectionId;
-    rebuildMandalaV2MetaFromSections(state);
+    if (options.commit ?? true) {
+        rebuildMandalaV2MetaFromSections(state);
+    }
 };
 
 export const registerMandalaChildSections = (
     state: DocumentState,
     parentNodeId: string,
     createdNodeIds: string[],
+    options: MutateOptions = {},
 ) => {
     if (createdNodeIds.length === 0) return;
     const parentSection = state.sections.id_section[parentNodeId];
@@ -98,12 +176,15 @@ export const registerMandalaChildSections = (
         slotCursor += 1;
     }
 
-    rebuildMandalaV2MetaFromSections(state);
+    if (options.commit ?? true) {
+        rebuildMandalaV2MetaFromSections(state);
+    }
 };
 
 export const removeMandalaDescendantSectionsByParents = (
     state: DocumentState,
     parentNodeIds: string[],
+    options: MutateOptions = {},
 ) => {
     if (parentNodeIds.length === 0) return;
 
@@ -126,5 +207,42 @@ export const removeMandalaDescendantSectionsByParents = (
         delete state.sections.section_id[sectionId];
     }
 
+    if (options.commit ?? true) {
+        rebuildMandalaV2MetaFromSections(state);
+    }
+};
+
+export const applyMandalaContentDelta = (
+    state: DocumentState,
+    nodeId: string,
+    previousContent: string,
+    nextContent: string,
+) => {
+    if (!state.meta.mandalaV2.enabled) return;
+    const before = isTextNonEmpty(previousContent) ? 1 : 0;
+    const after = isTextNonEmpty(nextContent) ? 1 : 0;
+    const delta = after - before;
+    if (delta === 0) return;
+
+    const sectionId = state.sections.id_section[nodeId];
+    if (!sectionId) return;
+
+    const counts = state.meta.mandalaV2.subtreeNonEmptyCountBySection;
+    let current: string | null = sectionId;
+    while (current) {
+        const next = (counts[current] ?? 0) + delta;
+        counts[current] = next < 0 ? 0 : next;
+        current = getParentSection(current);
+    }
+};
+
+export const logMandalaIndexRepair = (
+    state: DocumentState,
+    reason: string,
+) => {
+    logger.warn('[mandala-v2] rebuild slot authority indexes', {
+        reason,
+        sections: Object.keys(state.sections.section_id).length,
+    });
     rebuildMandalaV2MetaFromSections(state);
 };

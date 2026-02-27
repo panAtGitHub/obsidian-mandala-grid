@@ -16,6 +16,53 @@ import {
 } from 'src/view/helpers/mandala/section-colors';
 import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
 
+const createSaveOptions = (
+    view: MandalaView,
+    action: DocumentStoreAction,
+): { mode: 'content-only' | 'structural'; changedSections?: string[] } => {
+    if (action.type === 'document/update-node-content') {
+        const sectionId = view.documentStore.getValue().sections.id_section[
+            action.payload.nodeId
+        ];
+        if (sectionId) {
+            return {
+                mode: 'content-only',
+                changedSections: [sectionId],
+            };
+        }
+    }
+    if (action.type === 'document/update-multiple-node-content') {
+        const sections = action.payload.updates
+            .map((update) => view.documentStore.getValue().sections.id_section[update.nodeId])
+            .filter((section): section is string => Boolean(section));
+        if (sections.length > 0) {
+            return {
+                mode: 'content-only',
+                changedSections: sections,
+            };
+        }
+    }
+    if (action.type === 'document/mandala/swap') {
+        const sourceSection = view.documentStore.getValue().sections.id_section[
+            action.payload.sourceNodeId
+        ];
+        const targetSection = view.documentStore.getValue().sections.id_section[
+            action.payload.targetNodeId
+        ];
+        return {
+            mode: 'content-only',
+            changedSections: [
+                sourceSection ?? '',
+                targetSection ?? '',
+            ].filter(Boolean),
+        };
+    }
+    if (action.type === 'document/format-headings') {
+        return { mode: 'structural' };
+    }
+    return { mode: 'structural' };
+};
+
 export const onDocumentStateUpdate = (
     view: MandalaView,
     action: DocumentStoreAction,
@@ -29,6 +76,7 @@ export const onDocumentStateUpdate = (
     const type = action.type;
 
     const e = getDocumentEventType(type);
+    view.documentSearch.applyDocumentAction(action, documentState);
     if (type === 'document/file/load-from-disk') {
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
@@ -71,11 +119,10 @@ export const onDocumentStateUpdate = (
     if (!container || !view.isViewOfFile) return;
 
     if (e.content || structuralChange) {
-        void view.saveDocument();
+        void view.saveDocument(createSaveOptions(view, action));
     }
 
     if (e.content || structuralChange) {
-        view.documentSearch.resetIndex();
         const query = viewStore.getValue().search.query;
         if (query) {
             view.viewStore.dispatch({

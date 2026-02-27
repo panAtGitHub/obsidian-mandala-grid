@@ -13,6 +13,7 @@ export const loadDocumentFromJSON = (
     state.meta.mandalaV2 = {
         ...state.meta.mandalaV2,
         enabled: false,
+        subtreeNonEmptyCountBySection: {},
         loadMetrics: null,
     };
 

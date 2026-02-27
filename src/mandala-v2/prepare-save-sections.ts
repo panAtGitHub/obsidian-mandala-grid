@@ -3,6 +3,7 @@ import {
     MandalaGridDocument,
     Sections,
 } from 'src/stores/document/document-state-type';
+import { buildSubtreeNonEmptyCountBySection } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
 
 type SerializableSection = {
     sectionId: MandalaSectionId;
@@ -19,21 +20,16 @@ type PrepareSaveSectionsResult = {
     };
 };
 
+type PrepareSaveSectionsOptions = {
+    parentToChildrenSlots?: Record<string, Partial<Record<number, string>>>;
+    subtreeNonEmptyCountBySection?: Record<string, number>;
+};
+
 const getParentSection = (sectionId: string) => {
     const lastDot = sectionId.lastIndexOf('.');
     if (lastDot < 0) return null;
     return sectionId.slice(0, lastDot);
 };
-
-const parseLastPart = (sectionId: string) => {
-    const part = sectionId.split('.').pop();
-    const value = Number(part);
-    return Number.isInteger(value) ? value : null;
-};
-
-const getDepth = (sectionId: string) => sectionId.split('.').length;
-
-const isTextEmpty = (value: string) => value.length === 0;
 
 const compareSectionIds = (a: string, b: string) => {
     const aParts = a.split('.').map(Number);
@@ -49,64 +45,94 @@ const compareSectionIds = (a: string, b: string) => {
     return 0;
 };
 
-const collectDescendants = (
-    sectionIds: string[],
-    sectionId: string,
-): string[] => {
-    const prefix = `${sectionId}.`;
-    return sectionIds.filter((id) => id.startsWith(prefix));
+const isTextEmpty = (value: string) => value.length === 0;
+
+const createParentToChildrenSlots = (sectionIds: string[]) => {
+    const slotsByParent: Record<string, Partial<Record<number, string>>> = {};
+    for (const sectionId of sectionIds) {
+        const parent = getParentSection(sectionId);
+        if (!parent) continue;
+        const slot = Number(sectionId.slice(sectionId.lastIndexOf('.') + 1));
+        if (!Number.isInteger(slot) || slot < 1 || slot > 8) continue;
+        if (!slotsByParent[parent]) {
+            slotsByParent[parent] = {};
+        }
+        slotsByParent[parent][slot] = sectionId;
+    }
+    return slotsByParent;
+};
+
+const createChildrenByParent = (sectionIds: string[]) => {
+    const childrenByParent = new Map<string, string[]>();
+    for (const sectionId of sectionIds) {
+        const parent = getParentSection(sectionId);
+        if (!parent) continue;
+        const list = childrenByParent.get(parent) ?? [];
+        list.push(sectionId);
+        childrenByParent.set(parent, list);
+    }
+    return childrenByParent;
+};
+
+const walkDescendants = (
+    root: string,
+    childrenByParent: Map<string, string[]>,
+    visit: (sectionId: string) => void,
+) => {
+    const stack = [...(childrenByParent.get(root) ?? [])];
+    while (stack.length > 0) {
+        const sectionId = stack.pop()!;
+        visit(sectionId);
+        const children = childrenByParent.get(sectionId);
+        if (!children || children.length === 0) continue;
+        for (let i = 0; i < children.length; i += 1) {
+            stack.push(children[i]);
+        }
+    }
 };
 
 export const prepareSaveSections = (
     document: Pick<MandalaGridDocument, 'content'>,
     sections: Sections,
+    options: PrepareSaveSectionsOptions = {},
 ): PrepareSaveSectionsResult => {
     const sectionIds = Object.keys(sections.section_id).sort(compareSectionIds);
-    const directChildren = new Map<string, Set<string>>();
-
-    for (const sectionId of sectionIds) {
-        const parent = getParentSection(sectionId);
-        if (!parent) continue;
-        const set = directChildren.get(parent) ?? new Set<string>();
-        set.add(sectionId);
-        directChildren.set(parent, set);
-    }
+    const parentToChildrenSlots =
+        options.parentToChildrenSlots ?? createParentToChildrenSlots(sectionIds);
+    const subtreeNonEmptyCountBySection =
+        options.subtreeNonEmptyCountBySection ??
+        buildSubtreeNonEmptyCountBySection(document.content, sections, sectionIds);
 
     const blockedReasons: string[] = [];
     const prunableParents: string[] = [];
 
-    for (const [parent, childrenSet] of directChildren) {
-        const children = Array.from(childrenSet);
-        const parentDepth = getDepth(parent);
-        const slots = new Map<number, string>();
-        for (const child of children) {
-            if (getDepth(child) !== parentDepth + 1) continue;
-            const slot = parseLastPart(child);
-            if (!slot || slot < 1 || slot > 8) continue;
-            slots.set(slot, child);
+    for (const [parent, slots] of Object.entries(parentToChildrenSlots)) {
+        const childSections: string[] = [];
+        let hasAllSlots = true;
+        for (let i = 1; i <= 8; i += 1) {
+            const sectionId = slots[i];
+            if (!sectionId) {
+                hasAllSlots = false;
+                break;
+            }
+            childSections.push(sectionId);
         }
+        if (!hasAllSlots) continue;
 
-        if (slots.size !== 8) continue;
-        const orderedChildren = Array.from({ length: 8 }, (_, index) =>
-            slots.get(index + 1),
-        );
-        if (orderedChildren.some((item) => !item)) continue;
-        const childIds = orderedChildren as string[];
-        const allDirectChildrenEmpty = childIds.every((childId) => {
-            const nodeId = sections.section_id[childId];
+        let allDirectChildrenEmpty = true;
+        for (const childSection of childSections) {
+            const nodeId = sections.section_id[childSection];
             const content = nodeId ? document.content[nodeId]?.content ?? '' : '';
-            return isTextEmpty(content);
-        });
+            if (!isTextEmpty(content)) {
+                allDirectChildrenEmpty = false;
+                break;
+            }
+        }
         if (!allDirectChildrenEmpty) continue;
 
-        const hasNonEmptyDescendant = childIds.some((childId) =>
-            collectDescendants(sectionIds, childId).some((descendantId) => {
-                const descendantNodeId = sections.section_id[descendantId];
-                const content = descendantNodeId
-                    ? document.content[descendantNodeId]?.content ?? ''
-                    : '';
-                return !isTextEmpty(content);
-            }),
+        const hasNonEmptyDescendant = childSections.some(
+            (childSection) =>
+                (subtreeNonEmptyCountBySection[childSection] ?? 0) > 0,
         );
 
         if (hasNonEmptyDescendant) {
@@ -155,11 +181,12 @@ export const prepareSaveSections = (
         selectedParentSet.add(parent);
     }
 
+    const childrenByParent = createChildrenByParent(sectionIds);
     const droppedSections = new Set<string>();
     for (const parent of selectedParents) {
-        for (const descendant of collectDescendants(sectionIds, parent)) {
-            droppedSections.add(descendant);
-        }
+        walkDescendants(parent, childrenByParent, (sectionId) => {
+            droppedSections.add(sectionId);
+        });
     }
 
     const serializableSections = sectionIds

@@ -34,6 +34,8 @@ import {
     swapMandalaNodes,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
 import {
+    applyMandalaContentDelta,
+    rebuildMandalaV2MetaFromSections,
     registerMandalaChildSections,
     registerMandalaSection,
     removeMandalaDescendantSectionsByParents,
@@ -83,6 +85,7 @@ const updateDocumentState = (
 ) => {
     let newActiveNodeId: null | string = null;
     let affectedNodeId: null | string = null;
+    let needsMandalaV2MetaRebuild = false;
     if (
         state.meta.isMandala &&
         (action.type === 'document/add-node' ||
@@ -98,12 +101,35 @@ const updateDocumentState = (
         return NO_UPDATE;
     }
     if (action.type === 'document/update-node-content') {
+        const previousContent =
+            state.document.content[action.payload.nodeId]?.content ?? '';
         const update = setNodeContent(state.document.content, action);
         if (!update) return NO_UPDATE;
+        applyMandalaContentDelta(
+            state,
+            action.payload.nodeId,
+            previousContent,
+            action.payload.content,
+        );
         newActiveNodeId = action.payload.nodeId;
     } else if (action.type === 'document/update-multiple-node-content') {
+        const previousContentByNodeId = new Map<string, string>();
+        for (const update of action.payload.updates) {
+            previousContentByNodeId.set(
+                update.nodeId,
+                state.document.content[update.nodeId]?.content ?? '',
+            );
+        }
         const changedNodeIds = setMultipleNodeContent(state.document.content, action);
         if (changedNodeIds.length === 0) return NO_UPDATE;
+        for (const nodeId of changedNodeIds) {
+            applyMandalaContentDelta(
+                state,
+                nodeId,
+                previousContentByNodeId.get(nodeId) ?? '',
+                state.document.content[nodeId]?.content ?? '',
+            );
+        }
         newActiveNodeId = changedNodeIds[0];
         affectedNodeId = changedNodeIds[0];
     } else if (action.type === 'document/mandala/swap') {
@@ -133,6 +159,10 @@ const updateDocumentState = (
             if (!(si >= 1 && si <= 8 && ti >= 1 && ti <= 8)) return NO_UPDATE;
         }
 
+        const sourceBefore =
+            state.document.content[action.payload.sourceNodeId]?.content ?? '';
+        const targetBefore =
+            state.document.content[action.payload.targetNodeId]?.content ?? '';
         swapMandalaNodes(
             state.document,
             action.payload.sourceNodeId,
@@ -142,6 +172,18 @@ const updateDocumentState = (
             state.pinnedNodes,
             action.payload.sourceNodeId,
             action.payload.targetNodeId,
+        );
+        applyMandalaContentDelta(
+            state,
+            action.payload.sourceNodeId,
+            sourceBefore,
+            state.document.content[action.payload.sourceNodeId]?.content ?? '',
+        );
+        applyMandalaContentDelta(
+            state,
+            action.payload.targetNodeId,
+            targetBefore,
+            state.document.content[action.payload.targetNodeId]?.content ?? '',
         );
         newActiveNodeId = action.payload.sourceNodeId;
         affectedNodeId = action.payload.sourceNodeId;
@@ -159,7 +201,9 @@ const updateDocumentState = (
             state,
             action.payload.parentNodeId,
             createdNodes,
+            { commit: false },
         );
+        needsMandalaV2MetaRebuild = true;
 
         newActiveNodeId = action.payload.parentNodeId;
         affectedNodeId = action.payload.parentNodeId;
@@ -172,40 +216,37 @@ const updateDocumentState = (
                 existingNodeId,
                 8,
             );
-            registerMandalaChildSections(state, existingNodeId, createdNodes);
-            if (createdNodes.length === 0) {
-                newActiveNodeId = existingNodeId;
-                affectedNodeId = existingNodeId;
-            } else {
-                newActiveNodeId = existingNodeId;
-                affectedNodeId = existingNodeId;
-            }
+            registerMandalaChildSections(state, existingNodeId, createdNodes, {
+                commit: false,
+            });
+            needsMandalaV2MetaRebuild = createdNodes.length > 0;
+            newActiveNodeId = existingNodeId;
+            affectedNodeId = existingNodeId;
         } else {
             const { nodeId } = ensureMandalaCoreTheme(state.document, theme);
-            registerMandalaSection(state, nodeId, theme);
-            ensureMandalaChildren(
+            registerMandalaSection(state, nodeId, theme, { commit: false });
+            const createdNodes = ensureMandalaChildren(
                 state.document,
                 nodeId,
                 8,
             );
-            const ensuredChildren =
-                state.document.columns
-                    .find((column) =>
-                        column.groups.some((group) => group.parentId === nodeId),
-                    )
-                    ?.groups.find((group) => group.parentId === nodeId)?.nodes ??
-                [];
-            registerMandalaChildSections(state, nodeId, ensuredChildren);
+            registerMandalaChildSections(state, nodeId, createdNodes, {
+                commit: false,
+            });
+            needsMandalaV2MetaRebuild = true;
             newActiveNodeId = nodeId;
             affectedNodeId = null;
         }
     } else if (action.type === 'document/mandala/clear-empty-subgrids') {
         const parentIds = action.payload.parentIds.filter(Boolean);
         if (parentIds.length === 0) return NO_UPDATE;
-        removeMandalaDescendantSectionsByParents(state, parentIds);
+        removeMandalaDescendantSectionsByParents(state, parentIds, {
+            commit: false,
+        });
         for (const parentId of parentIds) {
             deleteChildNodes(state.document, parentId);
         }
+        needsMandalaV2MetaRebuild = true;
         newActiveNodeId = action.payload.activeNodeId;
         affectedNodeId = action.payload.activeNodeId;
     } else if (action.type === 'document/add-node') {
@@ -310,6 +351,10 @@ const updateDocumentState = (
         !skipSectionRefreshForMandalaV2Action
     ) {
         updateSectionsDictionary(state);
+    }
+
+    if (needsMandalaV2MetaRebuild) {
+        rebuildMandalaV2MetaFromSections(state);
     }
 
     // if file was modified externally, try to maintain active section
