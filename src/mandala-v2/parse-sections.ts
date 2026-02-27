@@ -22,6 +22,7 @@ const normalizeSectionContent = (raw: string) => {
 };
 
 export const parseSections = (markdown: string): ParsedMandalaSections => {
+    const sourceBytes = encoder.encode(markdown).length;
     const matches: ParsedMandalaSection[] = [];
     for (const match of markdown.matchAll(SECTION_MARKER_RE)) {
         const id = match[1]?.trim();
@@ -37,7 +38,7 @@ export const parseSections = (markdown: string): ParsedMandalaSections => {
     }
 
     if (matches.length === 0) {
-        return { sections: [], sourceBytes: encoder.encode(markdown).length };
+        return { sections: [], sourceBytes };
     }
 
     for (let i = 0; i < matches.length; i += 1) {
@@ -49,6 +50,6 @@ export const parseSections = (markdown: string): ParsedMandalaSections => {
 
     return {
         sections: matches,
-        sourceBytes: encoder.encode(markdown).length,
+        sourceBytes,
     };
 };

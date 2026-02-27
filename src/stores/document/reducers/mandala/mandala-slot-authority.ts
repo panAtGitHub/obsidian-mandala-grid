@@ -1,26 +1,10 @@
 import { __dev__, logger } from 'src/helpers/logger';
 import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
 import { DocumentState, Sections } from 'src/stores/document/document-state-type';
-
-const compareSectionIds = (a: string, b: string) => {
-    const aParts = a.split('.').map(Number);
-    const bParts = b.split('.').map(Number);
-    const max = Math.max(aParts.length, bParts.length);
-    for (let i = 0; i < max; i += 1) {
-        const av = aParts[i];
-        const bv = bParts[i];
-        if (av === undefined) return -1;
-        if (bv === undefined) return 1;
-        if (av !== bv) return av - bv;
-    }
-    return 0;
-};
-
-const getParentSection = (section: string) => {
-    const lastDot = section.lastIndexOf('.');
-    if (lastDot === -1) return null;
-    return section.slice(0, lastDot);
-};
+import {
+    compareSectionIds,
+    getParentSection,
+} from 'src/mandala-v2/section-utils';
 
 const getSlotOfDirectChild = (section: string, parentSection: string) => {
     const parentParts = parentSection.split('.').length;

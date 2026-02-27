@@ -4,6 +4,10 @@ import {
     Sections,
 } from 'src/stores/document/document-state-type';
 import { buildSubtreeNonEmptyCountBySection } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
+import {
+    compareSectionIds,
+    getParentSection,
+} from 'src/mandala-v2/section-utils';
 
 type SerializableSection = {
     sectionId: MandalaSectionId;
@@ -23,26 +27,6 @@ type PrepareSaveSectionsResult = {
 type PrepareSaveSectionsOptions = {
     parentToChildrenSlots?: Record<string, Partial<Record<number, string>>>;
     subtreeNonEmptyCountBySection?: Record<string, number>;
-};
-
-const getParentSection = (sectionId: string) => {
-    const lastDot = sectionId.lastIndexOf('.');
-    if (lastDot < 0) return null;
-    return sectionId.slice(0, lastDot);
-};
-
-const compareSectionIds = (a: string, b: string) => {
-    const aParts = a.split('.').map(Number);
-    const bParts = b.split('.').map(Number);
-    const max = Math.max(aParts.length, bParts.length);
-    for (let i = 0; i < max; i += 1) {
-        const av = aParts[i];
-        const bv = bParts[i];
-        if (av === undefined) return -1;
-        if (bv === undefined) return 1;
-        if (av !== bv) return av - bv;
-    }
-    return 0;
 };
 
 const isTextEmpty = (value: string) => value.length === 0;

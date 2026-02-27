@@ -9,6 +9,7 @@ import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actio
 import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-active-pinned-node';
 import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/update-selected-nodes';
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
+import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import {
     createSectionColorIndex,
     serializeSectionColorMapForSettings,
@@ -125,12 +126,7 @@ export const onDocumentStateUpdate = (
     if (e.content || structuralChange) {
         const query = viewStore.getValue().search.query;
         if (query) {
-            view.viewStore.dispatch({
-                type: 'view/search/set-query',
-                payload: {
-                    query,
-                },
-            });
+            updateSearchResults(view);
         }
     }
     if (structuralChange) {

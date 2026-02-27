@@ -5,27 +5,15 @@ import {
     ParsedMandalaSection,
 } from 'src/mandala-v2/types';
 import { id } from 'src/helpers/id';
+import {
+    compareSectionIds,
+    parseSectionParts,
+} from 'src/mandala-v2/section-utils';
 
 type ParsedSectionParts = {
     id: MandalaSectionId;
     content: string;
     parts: number[];
-};
-
-const parseParts = (sectionId: string) => sectionId.split('.').map(Number);
-
-const compareSections = (a: string, b: string) => {
-    const aParts = parseParts(a);
-    const bParts = parseParts(b);
-    const max = Math.max(aParts.length, bParts.length);
-    for (let i = 0; i < max; i += 1) {
-        const av = aParts[i];
-        const bv = bParts[i];
-        if (av === undefined) return -1;
-        if (bv === undefined) return 1;
-        if (av !== bv) return av - bv;
-    }
-    return 0;
 };
 
 const toHash32 = (input: string) => {
@@ -62,9 +50,9 @@ const toParsedParts = (sections: ParsedMandalaSection[]): ParsedSectionParts[] =
         .map((section) => ({
             id: section.id,
             content: section.content,
-            parts: parseParts(section.id),
+            parts: parseSectionParts(section.id),
         }))
-        .sort((a, b) => compareSections(a.id, b.id));
+        .sort((a, b) => compareSectionIds(a.id, b.id));
 };
 
 const toParentSection = (section: ParsedSectionParts): MandalaSectionId | null => {

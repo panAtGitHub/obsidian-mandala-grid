@@ -32,7 +32,7 @@ export class DocumentSearch {
     private fuzzySearch = false;
     private collection = new Map<string, SearchItem>();
     private collectionInitialized = false;
-    #searchTriggeredMinimap: boolean;
+    #searchTriggeredMinimap: boolean = false;
 
     private buildCollectionFromDocument = (documentState: DocumentState) => {
         this.collection.clear();

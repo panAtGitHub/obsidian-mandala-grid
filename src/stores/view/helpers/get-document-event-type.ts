@@ -79,5 +79,4 @@ export const STRUCTURE_ONLY = new Set<DocumentStoreAction['type']>([
     'document/mandala/ensure-children',
     'document/mandala/ensure-core-theme',
     'document/mandala/clear-empty-subgrids',
-    'document/mandala/clear-empty-subgrids',
 ]);
