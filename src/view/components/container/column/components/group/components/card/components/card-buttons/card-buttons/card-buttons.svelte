@@ -1,7 +1,5 @@
 <script lang="ts">
-    import DeleteNodeButton from './components/delete-node-button.svelte';
     import EditNodeButton from './components/edit-node-button.svelte';
-    import CreateCardButton from './components/create-card-button.svelte';
     import FocusCardButton from './components/focus-card-button.svelte';
     import CollapseCardButton from './components/collapse-card-button.svelte';
     import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
@@ -18,12 +16,7 @@
 
 {#if active === ActiveStatus.node || alwaysShowCardButtons}
     {#if !editing}
-        {#if !isInSidebar}
-            <CreateCardButton position="up" {nodeId} />
-            <CreateCardButton position="right" {nodeId} />
-            <CreateCardButton position="down" {nodeId} />
-            <DeleteNodeButton {nodeId} />
-        {:else}
+        {#if isInSidebar}
             <FocusCardButton {nodeId} />
         {/if}
     {/if}

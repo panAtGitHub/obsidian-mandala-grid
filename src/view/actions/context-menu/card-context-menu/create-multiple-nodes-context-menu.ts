@@ -3,7 +3,6 @@ import { MenuItemObject } from 'src/obsidian/context-menu/render-context-menu';
 import { lang } from 'src/lang/lang';
 import { copyActiveBranchesToClipboard } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/copy-active-branches-to-clipboard';
 import { copyActiveNodesToClipboard } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/copy-active-nodes-to-clipboard';
-import { cutNode } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/cut-node';
 import { exportSelection } from 'src/view/actions/context-menu/card-context-menu/helpers/export-selection';
 
 export const createMultipleNodesContextMenu = (view: MandalaView) => {
@@ -35,14 +34,6 @@ export const createMultipleNodesContextMenu = (view: MandalaView) => {
                 },
             ],
         },
-        {
-            title: lang.cm_cut,
-            icon: 'scissors',
-            action: () => {
-                void cutNode(view);
-            },
-        },
-        { type: 'separator' },
         {
             title: lang.cm_export_selection,
             icon: 'file-text',
