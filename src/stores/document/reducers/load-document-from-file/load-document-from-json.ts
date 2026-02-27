@@ -10,6 +10,11 @@ export const loadDocumentFromJSON = (
 ) => {
     state.document.columns = document.columns;
     state.document.content = document.content;
+    state.meta.mandalaV2 = {
+        ...state.meta.mandalaV2,
+        enabled: false,
+        loadMetrics: null,
+    };
 
     const activeNode = state.document.columns[0].groups[0].nodes[0];
     invariant(activeNode);

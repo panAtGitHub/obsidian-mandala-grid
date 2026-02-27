@@ -3,7 +3,6 @@ import { DocumentStoreAction } from 'src/stores/document/document-store-actions'
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { setActiveNode } from 'src/stores/view/subscriptions/actions/set-active-node';
 import { enableEditMode } from 'src/stores/view/subscriptions/actions/enable-edit-mode';
-import { removeObsoleteNavigationItems } from 'src/stores/view/subscriptions/actions/remove-obsolete-navigation-items';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 import { persistPinnedNodes } from 'src/stores/view/subscriptions/actions/persist-pinned-nodes';
 import { updateStaleActivePinnedNode } from 'src/stores/view/subscriptions/actions/update-stale-active-pinned-node';
@@ -48,9 +47,6 @@ export const onDocumentStateUpdate = (
                 documentAction: action,
             },
         });
-        viewStore.dispatch({
-            type: 'view/outline/refresh-collapsed-nodes',
-        });
         documentStore.dispatch({
             type: 'document/pinned-nodes/remove-stale-nodes',
         });
@@ -67,23 +63,9 @@ export const onDocumentStateUpdate = (
         enableEditMode(viewStore, documentState);
     }
 
-    if (
-        type === 'document/delete-node' ||
-        type === 'document/cut-node' ||
-        e.changeHistory ||
-        type === 'document/extract-node' ||
-        type === 'document/file/load-from-disk' ||
-        type === 'document/split-node'
-    ) {
-        removeObsoleteNavigationItems(viewStore, documentState);
-    }
-
     // effects
     if (e.content) {
         view.alignBranch.align(action);
-    }
-    if (structuralChange || e.content) {
-        void view.rulesProcessor.onDocumentUpdate(action);
     }
 
     if (!container || !view.isViewOfFile) return;
@@ -93,10 +75,6 @@ export const onDocumentStateUpdate = (
     }
 
     if (e.content || structuralChange) {
-        if (view.minimapStore) {
-            view.minimapEffects.drawDocument(view);
-        }
-
         view.documentSearch.resetIndex();
         const query = viewStore.getValue().search.query;
         if (query) {

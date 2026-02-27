@@ -97,17 +97,16 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
 /**
  * 从 Fuse.js 搜索结果转换为 Mandala 搜索结果
  * @param fuseResults Fuse 搜索引擎返回的结果 Map
- * @param idToSection nodeId 到 section 的映射
  * @returns 按 section 层级排序的搜索结果数组
  */
 export function convertToMandalaResults(
-    fuseResults: Map<string, NodeSearchResult>,
-    idToSection: Record<string, string>
+    fuseResults: Map<string, NodeSearchResult>
 ): MandalaSearchResult[] {
     const results: MandalaSearchResult[] = [];
 
-    for (const [nodeId, fuseResult] of fuseResults) {
-        const section = idToSection[nodeId];
+    for (const [sectionId, fuseResult] of fuseResults) {
+        const section = fuseResult.item.sectionId || sectionId;
+        const nodeId = fuseResult.item.nodeId;
         if (!section) continue;
 
         results.push({

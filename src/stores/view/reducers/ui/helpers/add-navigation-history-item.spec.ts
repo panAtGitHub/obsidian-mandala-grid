@@ -3,7 +3,7 @@ import { NavigationHistory } from 'src/stores/document/document-state-type';
 import { addNavigationHistoryItem } from 'src/stores/view/reducers/ui/helpers/add-navigation-history-item';
 
 describe('add navigation history item', () => {
-    it('should not add a duplicate', () => {
+    it('does not mutate history when navigation history is disabled', () => {
         const input: NavigationHistory = {
             state: {
                 activeIndex: 3,
@@ -27,7 +27,7 @@ describe('add navigation history item', () => {
         addNavigationHistoryItem({ navigationHistory: input }, '4');
         expect(input).toEqual(output);
     });
-    it('should correct active index', () => {
+    it('keeps existing stale history untouched', () => {
         const input: NavigationHistory = {
             state: {
                 activeIndex: 2,
@@ -44,7 +44,7 @@ describe('add navigation history item', () => {
                 canGoForward: false,
                 canGoBack: true,
             },
-            items: ['1', '4', '3'],
+            items: ['1', '4', '3', '4'],
             context: undefined,
         };
 

@@ -20,7 +20,7 @@ describe('toggleEditorState', () => {
         ).toBe('editor-on');
     });
 
-    test('uses default command editorState when available', () => {
+    test('falls back when removed command has no defaults', () => {
         const state = DEFAULT_SETTINGS();
         const action: ToggleEditorStateAction = {
             type: 'settings/hotkeys/toggle-editor-state',
@@ -34,6 +34,6 @@ describe('toggleEditorState', () => {
                 'editorState' in state.hotkeys.customHotkeys.undo_change.primary
                 ? state.hotkeys.customHotkeys.undo_change.primary.editorState
                 : undefined,
-        ).toBe('both');
+        ).toBe('editor-on');
     });
 });

@@ -8,9 +8,12 @@ export const detectDocumentFormat = (text: string, strict = true) => {
     const { body } = extractFrontmatter(text);
 
     if (hasNHtmlCommentMarker(body, 1)) return 'sections';
-    if (hasNHtmlElementMarker(body, 1)) return 'html-element';
-    if (isOutline(body)) return 'outline';
+
+    // Main document path is sections-only. Non-strict mode is kept for
+    // clipboard import compatibility.
     if (!strict) {
+        if (hasNHtmlElementMarker(body, 1)) return 'html-element';
+        if (isOutline(body)) return 'outline';
         if (hasNBulletListItems(text, 1)) return 'outline';
     }
 };

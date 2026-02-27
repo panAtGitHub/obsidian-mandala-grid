@@ -17,14 +17,14 @@ describe('detectDocumentFormat', () => {
         expect(result).toBe('sections');
     });
 
-    it('should return "outline" when bullet points are found', () => {
+    it('should return undefined for outline in strict mode', () => {
         const text = ['---', 'key: value', '---', '- item 1', '- item 2'].join(
             '\n',
         );
 
         const result = detectDocumentFormat(text);
 
-        expect(result).toBe('outline');
+        expect(result).toBeUndefined();
     });
 
     it('should return undefined when no delimiter or bullet points are found', () => {
@@ -63,6 +63,13 @@ describe('detectDocumentFormat', () => {
 
         expect(result).toBe('sections');
     });
+    it('should detect html-element in non-strict mode', () => {
+        const text = '<span data-section="1"></span>\nTitle';
+        const result = detectDocumentFormat(text, false);
+
+        expect(result).toBe('html-element');
+    });
+
     it('should detect single bullet text in non-strict mode', () => {
         const text = '- 1';
         const result = detectDocumentFormat(text, false);

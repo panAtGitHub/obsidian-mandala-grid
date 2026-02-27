@@ -1,6 +1,5 @@
 import { navigateCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/navigate-commands';
 import { editCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/edit-commands';
-import { historyCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/history-commands';
 import { MandalaView } from 'src/view/view';
 import { Hotkey } from 'obsidian';
 import { CommandName, GroupName } from 'src/lang/hotkey-groups';
@@ -43,7 +42,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         // ...moveCommands(),
         // ...mergeCommands(),
         // ...clipboardCommands(),
-        ...historyCommands(),
         // ...selectionCommands(),
         // ...scrollCommands(),
         /* {

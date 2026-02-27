@@ -2,7 +2,6 @@ import { lang } from 'src/lang/lang';
 import {
     Keyboard,
     Minus as ZoomOut,
-    Palette,
     PanelRightInactive as PanelRight,
     Plus as ZoomIn,
     RotateCcw,
@@ -50,11 +49,6 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
                 label: lang.controls_hotkeys,
                 icon: Keyboard,
             },
-            {
-                id: 'style-rules',
-                label: lang.controls_rules,
-                icon: Palette,
-            },
         ],
     },
     {
@@ -68,33 +62,8 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
         ],
     },
     {
-        id: 'scroll',
-        buttons: [
-            {
-                id: 'center-active-node-h',
-                label: lang.controls_toggle_scrolling_mode_horizontal,
-                icon: customIcons.alignH,
-            },
-            {
-                id: 'center-active-node-v',
-                label: lang.controls_toggle_scrolling_mode_vertical,
-                icon: customIcons.alignV,
-            },
-        ],
-    },
-    {
         id: 'display',
         buttons: [
-            {
-                id: 'outline-mode',
-                label: lang.controls_single_column,
-                icon: customIcons.outline,
-            },
-            {
-                id: 'space-between-cards',
-                label: lang.controls_gap_between_cards,
-                icon: customIcons.gap,
-            },
             {
                 id: 'hidden-card-info',
                 label: lang.controls_toggle_hidden_card_info,

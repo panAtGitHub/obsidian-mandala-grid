@@ -17,7 +17,6 @@ import { applyCardIndentationWidth } from 'src/stores/view/subscriptions/effects
 import { attachCheckboxListener } from 'src/stores/view/subscriptions/effects/checkbox-listener/attach-checkbox-listener';
 import { watchViewSize } from 'src/stores/view/subscriptions/effects/view-size/watch-view-size';
 import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/css-variables/apply-inactive-node-opacity';
-import { loadCollapsedSectionsFromSettings } from 'src/stores/view/subscriptions/actions/view/load-collapsed-sections-from-settings';
 import { applyHeadingsFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-headings-font-size';
 
 const applySettingsToView = (view: MandalaView) => {
@@ -44,7 +43,6 @@ export const onViewMount = (view: MandalaView) => {
     // actions
     if (!view.file) return subscriptions;
     setInitialActiveNode(view);
-    loadCollapsedSectionsFromSettings(view);
     if (view.isActive && isEmptyDocument(documentState.document.content)) {
         enableEditMode(viewStore, documentState);
     }
@@ -59,7 +57,6 @@ export const onViewMount = (view: MandalaView) => {
     attachWheelScrollListener(view);
     documentStore.dispatch({ type: 'document/meta/refresh-group-parent-ids' });
     attachCloseModalsListener(view);
-    void view.rulesProcessor.onRulesUpdate();
     view.zoomFactor = view.plugin.settings.getValue().view.zoomLevel;
 
     subscriptions.add(watchViewSize(view));

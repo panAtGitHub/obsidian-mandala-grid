@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { NavigationHistory } from 'src/stores/document/document-state-type';
 import { removeDeletedNavigationItems } from 'src/stores/view/reducers/ui/helpers/remove-deleted-navigation-items';
 
-describe('add navigation history item', () => {
-    it('case 1', () => {
+describe('remove deleted navigation items', () => {
+    it('keeps history untouched when feature is disabled (case 1)', () => {
         const content = {
             1: { content: '' },
             2: { content: '' },
@@ -34,7 +34,7 @@ describe('add navigation history item', () => {
         removeDeletedNavigationItems({ navigationHistory: input }, content);
         expect(input).toEqual(output);
     });
-    it('case 2', () => {
+    it('keeps history untouched when feature is disabled (case 2)', () => {
         const content = {
             1: { content: '' },
             2: { content: '' },
@@ -53,11 +53,11 @@ describe('add navigation history item', () => {
 
         const output: NavigationHistory = {
             state: {
-                activeIndex: 1,
+                activeIndex: 3,
                 canGoForward: false,
                 canGoBack: true,
             },
-            items: ['1', '4'],
+            items: ['1', '4', '3', '4'],
             context: undefined,
         };
 

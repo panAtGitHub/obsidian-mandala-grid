@@ -19,6 +19,19 @@ export type DocumentMeta = {
      * 通过 frontmatter 标记（例如 `mandala: true`）在加载时识别。
      */
     isMandala: boolean;
+    mandalaV2: {
+        enabled: boolean;
+        revision: number;
+        rootGroupId: string | null;
+        orderedSections: string[];
+        parentToChildrenSlots: Record<string, Partial<Record<number, string>>>;
+        loadMetrics: {
+            bytes: number;
+            sectionsCount: number;
+            parseMs: number;
+            buildMs: number;
+        } | null;
+    };
 };
 export type DocumentState = {
     document: MandalaGridDocument;

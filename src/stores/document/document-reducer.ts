@@ -7,22 +7,11 @@ import {
 } from 'src/stores/document/reducers/content/set-node-content';
 import { deleteNode } from 'src/stores/document/reducers/delete-node/delete-node';
 import { moveNode } from 'src/stores/document/reducers/move-node/move-node';
-import {
-    Content,
-    DocumentState,
-    SnapshotContext,
-} from 'src/stores/document/document-state-type';
+import { DocumentState } from 'src/stores/document/document-state-type';
 import { mergeNode } from 'src/stores/document/reducers/merge-node/merge-node';
-import { addSnapshot } from 'src/stores/document/reducers/history/add-snapshot';
-import { selectSnapshot } from 'src/stores/document/reducers/history/select-snapshot';
-import { undoAction } from 'src/stores/document/reducers/history/undo-action';
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
-import { redoAction } from 'src/stores/document/reducers/history/redo-action';
 
-import {
-    DocumentStoreAction,
-    UndoableAction,
-} from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
 import { formatHeadings } from 'src/stores/document/reducers/content/format-content/format-headings';
 import { pasteNode } from 'src/stores/document/reducers/clipboard/paste-node/paste-node';
 import { updateSectionsDictionary } from 'src/stores/document/reducers/state/update-sections-dictionary';
@@ -88,8 +77,6 @@ const updateDocumentState = (
 ) => {
     let newActiveNodeId: null | string = null;
     let affectedNodeId: null | string = null;
-    let affectedNodeContent: Content[string] | null = null;
-    let affectedNodes: string[] | undefined = undefined;
     if (
         state.meta.isMandala &&
         (action.type === 'document/add-node' ||
@@ -113,7 +100,6 @@ const updateDocumentState = (
         if (changedNodeIds.length === 0) return NO_UPDATE;
         newActiveNodeId = changedNodeIds[0];
         affectedNodeId = changedNodeIds[0];
-        affectedNodes = changedNodeIds;
     } else if (action.type === 'document/mandala/swap') {
         const sourceSection =
             state.sections.id_section[action.payload.sourceNodeId];
@@ -161,7 +147,6 @@ const updateDocumentState = (
 
         newActiveNodeId = action.payload.parentNodeId;
         affectedNodeId = action.payload.parentNodeId;
-        affectedNodes = createdNodes;
     } else if (action.type === 'document/mandala/ensure-core-theme') {
         const theme = action.payload.theme;
         const existingNodeId = state.sections.section_id[theme];
@@ -177,18 +162,16 @@ const updateDocumentState = (
             } else {
                 newActiveNodeId = existingNodeId;
                 affectedNodeId = existingNodeId;
-                affectedNodes = createdNodes;
             }
         } else {
             const { nodeId } = ensureMandalaCoreTheme(state.document, theme);
-            const createdNodes = ensureMandalaChildren(
+            ensureMandalaChildren(
                 state.document,
                 nodeId,
                 8,
             );
             newActiveNodeId = nodeId;
             affectedNodeId = null;
-            affectedNodes = createdNodes;
         }
     } else if (action.type === 'document/mandala/clear-empty-subgrids') {
         const parentIds = action.payload.parentIds.filter(Boolean);
@@ -206,8 +189,6 @@ const updateDocumentState = (
             action.payload.content,
         );
     } else if (action.type === 'document/delete-node') {
-        affectedNodeContent =
-            state.document.content[action.payload.activeNodeId];
         newActiveNodeId = deleteNode(
             state.document,
             action.payload.activeNodeId,
@@ -215,7 +196,6 @@ const updateDocumentState = (
         );
         affectedNodeId = action.payload.activeNodeId;
     } else if (action.type === 'document/extract-node') {
-        affectedNodeContent = state.document.content[action.payload.nodeId];
         const update = setNodeContent(state.document.content, {
             payload: {
                 nodeId: action.payload.nodeId,
@@ -227,7 +207,6 @@ const updateDocumentState = (
         newActiveNodeId = action.payload.nodeId;
     } else if (action.type === 'document/split-node') {
         affectedNodeId = action.payload.target;
-        affectedNodeContent = state.document.content[affectedNodeId];
         newActiveNodeId = splitNode(state.document, action);
     } else if (action.type === 'document/drop-node') {
         dropNode(state.document, action);
@@ -237,8 +216,6 @@ const updateDocumentState = (
         newActiveNodeId = action.payload.activeNodeId;
         affectedNodeId = newActiveNodeId;
     } else if (action.type === 'document/merge-node') {
-        affectedNodeContent =
-            state.document.content[action.payload.activeNodeId];
         newActiveNodeId = mergeNode(state.document, action);
         affectedNodeId = action.payload.activeNodeId;
     } else if (action.type === 'document/sort-direct-child-nodes') {
@@ -254,15 +231,12 @@ const updateDocumentState = (
         } else {
             newActiveNodeId = loadDocumentFromFile(state, action);
         }
-    } else if (action.type === 'document/history/select-snapshot') {
-        selectSnapshot(state.document, state.history, action);
-        state.history = { ...state.history };
-    } else if (action.type === 'document/history/select-previous-snapshot') {
-        undoAction(state.document, state.history);
-        state.history = { ...state.history };
-    } else if (action.type === 'document/history/select-next-snapshot') {
-        redoAction(state.document, state.history);
-        state.history = { ...state.history };
+    } else if (
+        action.type === 'document/history/select-snapshot' ||
+        action.type === 'document/history/select-previous-snapshot' ||
+        action.type === 'document/history/select-next-snapshot'
+    ) {
+        return NO_UPDATE;
     } else if (action.type === 'document/format-headings') {
         formatHeadings(state.document.content, state.sections);
         newActiveNodeId = getIdOfSection(
@@ -272,9 +246,7 @@ const updateDocumentState = (
     } else if (action.type === 'document/paste-node') {
         const result = pasteNode(state.document, action);
         newActiveNodeId = result.nextNode;
-        affectedNodes = result.rootNodes;
     } else if (action.type === 'document/cut-node') {
-        affectedNodeContent = state.document.content[action.payload.nodeId];
         newActiveNodeId = deleteNode(
             state.document,
             action.payload.nodeId,
@@ -296,7 +268,12 @@ const updateDocumentState = (
     if (affectedNodeId) {
         affectedSection = getSectionOfId(state.sections, affectedNodeId);
     }
-    if (e.dropOrMove || e.createOrDelete || e.changeHistory || e.clipboard) {
+    const shouldUpdateSections =
+        e.dropOrMove || e.createOrDelete || e.changeHistory || e.clipboard;
+    const skipSectionRefreshForV2Load =
+        action.type === 'document/file/load-from-disk' &&
+        state.meta.mandalaV2.enabled;
+    if (shouldUpdateSections && !skipSectionRefreshForV2Load) {
         updateSectionsDictionary(state);
     }
 
@@ -317,26 +294,9 @@ const updateDocumentState = (
             state.sections,
             newActiveNodeId,
         );
-        affectedNodeId = affectedNodeId || newActiveNodeId;
-        affectedNodeContent =
-            affectedNodeContent || state.document.content[affectedNodeId];
-
-        const context: SnapshotContext = {
-            numberOfSections: Object.keys(state.document.content).length,
-            affectedSection: affectedSection || newActiveSection,
-            newActiveSection,
-            action: action as UndoableAction,
-            contentOfAffectedSection:
-                affectedNodeContent?.content?.substring(0, 300) || '',
-            numberOfCharacters: Object.values(state.document.content)
-                .map((x) => x.content.length)
-                .reduce((acc, v) => acc + v),
-            affectedSections: affectedNodes
-                ? affectedNodes.map((id) => state.sections.id_section[id])
-                : undefined,
+        state.history.context = {
+            activeSection: affectedSection || newActiveSection,
         };
-        addSnapshot(state.document, state.history, context);
-        state.history = { ...state.history };
     }
 };
 

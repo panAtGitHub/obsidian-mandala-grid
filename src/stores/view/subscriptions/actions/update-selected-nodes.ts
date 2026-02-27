@@ -13,7 +13,7 @@ export const updateSelectedNodes = (
     if (action.type === 'document/paste-node' || changeHistory) {
         const history = documentState.history;
         const snapshot = history.items[history.state.activeIndex];
-        if (snapshot.context.affectedSections) {
+        if (snapshot?.context?.affectedSections) {
             clear = false;
             const ids = snapshot.context.affectedSections.map((section) =>
                 getIdOfSection(documentState.sections, section),

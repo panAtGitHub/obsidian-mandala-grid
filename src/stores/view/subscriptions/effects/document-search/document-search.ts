@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import Fuse, { FuseResult } from 'fuse.js';
 
-type SearchItem = { id: string; content: string };
+type SearchItem = { sectionId: string; nodeId: string; content: string };
 
 export type NodeSearchResult = FuseResult<SearchItem>;
 
@@ -13,12 +13,15 @@ export class DocumentSearch {
     private updateIndex = () => {
         const documentState = this.view.documentStore.getValue();
         const viewState = this.view.viewStore.getValue();
-        const items: { id: string; content: string }[] = [];
-        for (const id of Object.keys(documentState.document.content)) {
-            const content = documentState.document.content[id]?.content;
+        const items: SearchItem[] = [];
+        for (const nodeId of Object.keys(documentState.document.content)) {
+            const sectionId = documentState.sections.id_section[nodeId];
+            if (!sectionId) continue;
+            const content = documentState.document.content[nodeId]?.content;
             if (content) {
                 items.push({
-                    id,
+                    sectionId,
+                    nodeId,
                     content,
                 });
             }
@@ -43,7 +46,7 @@ export class DocumentSearch {
         const results = this.fuse!.search(query);
         const map: Map<string, NodeSearchResult> = new Map();
         for (const result of results) {
-            map.set(result.item.id, result);
+            map.set(result.item.sectionId, result);
         }
         return map;
     };

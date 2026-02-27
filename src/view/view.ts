@@ -21,7 +21,6 @@ import {
     DocumentState,
     MandalaGridDocument,
 } from 'src/stores/document/document-state-type';
-import { clone } from 'src/helpers/clone';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
 import { ViewState } from 'src/stores/view/view-state-type';
@@ -36,9 +35,7 @@ import invariant from 'tiny-invariant';
 import { customIcons } from 'src/helpers/load-custom-icons';
 
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
-import { getPersistedDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-persisted-document-format';
 import { stringifyDocument } from 'src/view/helpers/stringify-document';
-import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { DocumentSearch } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import {
@@ -53,7 +50,6 @@ import { DebouncedMinimapEffects } from 'src/stores/minimap/subscriptions/effect
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
-import { detectDocumentFormat } from 'src/lib/format-detection/detect-document-format';
 import {
     MandalaGridDocumentFormat,
 } from 'src/stores/settings/settings-type';
@@ -65,6 +61,7 @@ import {
 } from 'src/lib/mandala/mandala-profile';
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { serializeSectionsFromDocument } from 'src/mandala-v2';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -93,6 +90,7 @@ export class MandalaView extends TextFileView {
     private hasPendingExplicitJump = false;
     private focusMandalaSectionRequestId = 0;
     private focusMandalaSectionTimer: number | null = null;
+    private firstRenderProbeRequestId: number | null = null;
     private readonly onDestroyCallbacks: Set<Unsubscriber> = new Set();
     private activeFilePath: null | string;
     private lastLoadedBody = '';
@@ -179,6 +177,7 @@ export class MandalaView extends TextFileView {
 
     async onUnloadFile() {
         this.cancelFocusMandalaSection();
+        this.cancelFirstRenderProbe();
         if (this.component) {
             this.component.$destroy();
         }
@@ -278,10 +277,11 @@ export class MandalaView extends TextFileView {
 
     saveDocument = () => {
         invariant(this.file);
-        const state = clone(this.documentStore.getValue());
-        const data: string =
-            state.file.frontmatter +
-            stringifyDocument(state.document, getPersistedDocumentFormat(this));
+        const state = this.documentStore.getValue();
+        const body = state.meta.mandalaV2.enabled
+            ? serializeSectionsFromDocument(state.document, state.sections)
+            : stringifyDocument(state.document, 'sections');
+        const data: string = state.file.frontmatter + body;
         if (data !== this.data) {
             if (data.trim().length === 0) {
                 throw new Error(lang.error_save_empty_data);
@@ -350,8 +350,8 @@ export class MandalaView extends TextFileView {
 
         const documentState = this.documentStore.getValue();
         const viewState = this.viewStore.getValue();
-        const format = this.getDocumentFormat(body);
-        const emptyStore = documentState.history.items.length === 0;
+        const format: MandalaGridDocumentFormat = 'sections';
+        const emptyStore = documentState.document.columns.length === 0;
         const bodyHasChanged = body !== this.lastLoadedBody;
         const frontmatterHasChanged = frontmatter !== this.lastLoadedFrontmatter;
 
@@ -401,15 +401,22 @@ export class MandalaView extends TextFileView {
                 nextActiveSection,
             );
             const loadCostMs = performance.now() - loadStartMs;
+            const loadMetrics =
+                this.documentStore.getValue().meta.mandalaV2.loadMetrics;
             this.lastLoadedBody = body;
             this.lastLoadedFrontmatter = frontmatter;
             if (this.isActive && event !== 'view-mount') {
                 new Notice('Document updated externally');
             }
             loadedFromDisk = true;
+            this.scheduleFirstRenderProbe(startMs, event);
             logger.debug('[perf][view] loadFullDocument', {
                 file: this.file?.path,
                 event,
+                bytes: loadMetrics?.bytes ?? 0,
+                sections_count: loadMetrics?.sectionsCount ?? 0,
+                parse_ms: loadMetrics?.parseMs ?? 0,
+                build_ms: loadMetrics?.buildMs ?? 0,
                 loadCostMs: Number(loadCostMs.toFixed(2)),
                 nextActiveSection,
             });
@@ -436,13 +443,23 @@ export class MandalaView extends TextFileView {
         logger.debug('[perf][view] loadDocumentToStore', {
             file: this.file?.path,
             event,
+            bytes: this.documentStore.getValue().meta.mandalaV2.loadMetrics?.bytes ?? 0,
+            sections_count:
+                this.documentStore.getValue().meta.mandalaV2.loadMetrics
+                    ?.sectionsCount ?? 0,
+            parse_ms:
+                this.documentStore.getValue().meta.mandalaV2.loadMetrics
+                    ?.parseMs ?? 0,
+            build_ms:
+                this.documentStore.getValue().meta.mandalaV2.loadMetrics
+                    ?.buildMs ?? 0,
             emptyStore,
             bodyHasChanged,
             frontmatterHasChanged,
             loadedFromDisk,
             kind: activation.kind,
             activationCostMs: Number(activationCostMs.toFixed(2)),
-            totalCostMs: Number((performance.now() - startMs).toFixed(2)),
+            switch_total_ms: Number((performance.now() - startMs).toFixed(2)),
         });
     };
 
@@ -496,21 +513,6 @@ export class MandalaView extends TextFileView {
             type: 'view/mandala/swap/cancel',
         });
         this.mandalaActiveCell9x9 = activeCell9x9;
-    }
-
-    private getDocumentFormat(body: string) {
-        let format: MandalaGridDocumentFormat;
-        format = getPersistedDocumentFormat(this, false);
-        if (format) {
-            return format;
-        }
-
-        format =
-            detectDocumentFormat(body) ||
-            this.plugin.settings.getValue().general.defaultDocumentFormat;
-
-        setDocumentFormat(this.plugin, this.file!.path, format);
-        return format;
     }
 
     private collectSectionIdsFromBody(body: string) {
@@ -609,6 +611,38 @@ export class MandalaView extends TextFileView {
         if (this.focusMandalaSectionTimer !== null) {
             window.clearTimeout(this.focusMandalaSectionTimer);
             this.focusMandalaSectionTimer = null;
+        }
+    }
+
+    private scheduleFirstRenderProbe(
+        loadStartedMs: number,
+        event?: 'view-mount',
+    ) {
+        this.cancelFirstRenderProbe();
+        this.firstRenderProbeRequestId = window.requestAnimationFrame(() => {
+            this.firstRenderProbeRequestId = window.requestAnimationFrame(() => {
+                this.firstRenderProbeRequestId = null;
+                const loadMetrics =
+                    this.documentStore.getValue().meta.mandalaV2.loadMetrics;
+                logger.debug('[perf][view] firstRender', {
+                    file: this.file?.path,
+                    event,
+                    bytes: loadMetrics?.bytes ?? 0,
+                    sections_count: loadMetrics?.sectionsCount ?? 0,
+                    parse_ms: loadMetrics?.parseMs ?? 0,
+                    build_ms: loadMetrics?.buildMs ?? 0,
+                    first_render_ms: Number(
+                        (performance.now() - loadStartedMs).toFixed(2),
+                    ),
+                });
+            });
+        });
+    }
+
+    private cancelFirstRenderProbe() {
+        if (this.firstRenderProbeRequestId !== null) {
+            window.cancelAnimationFrame(this.firstRenderProbeRequestId);
+            this.firstRenderProbeRequestId = null;
         }
     }
 

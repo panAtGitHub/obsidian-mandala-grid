@@ -4,9 +4,7 @@ import { getViewEventType } from 'src/stores/view/helpers/get-view-event-type';
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 import { persistActiveNodeInPluginSettings } from 'src/stores/view/subscriptions/actions/persist-active-node-in-plugin-settings';
-import { showSearchResultsInMinimap } from 'src/stores/view/subscriptions/effects/show-search-results-in-minimap';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
-import { persistCollapsedSections } from 'src/stores/view/subscriptions/actions/settings/persist-collapsed-sections';
 
 export const onViewStateUpdate = (
     view: MandalaView,
@@ -31,17 +29,6 @@ export const onViewStateUpdate = (
         persistActiveNodeInPluginSettings(view);
         void view.plugin.statusBar.updateProgressIndicatorAndChildCount(view);
     }
-    if (activeNodeChange) {
-        if (view.minimapStore) {
-            view.minimapStore.dispatch({
-                type: 'minimap/set-active-node',
-                payload: {
-                    id: viewState.document.activeNode,
-                },
-            });
-        }
-    }
-
     if (action.type === 'view/search/set-query') {
         updateSearchResults(view);
     }
@@ -75,14 +62,6 @@ export const onViewStateUpdate = (
         }
     }
 
-    if (
-        action.type === 'view/search/set-results' ||
-        action.type === 'view/search/toggle-input' ||
-        action.type === 'view/search/set-query'
-    ) {
-        showSearchResultsInMinimap(view);
-    }
-
     if (action.type === 'view/hotkeys/toggle-modal') {
         if (viewState.ui.controls.showHelpSidebar) {
             view.viewStore.dispatch({
@@ -93,13 +72,4 @@ export const onViewStateUpdate = (
             });
         }
     }
-
-    if (
-        action.type === 'view/outline/toggle-collapse-all' ||
-        action.type === 'view/outline/toggle-collapse-node' ||
-        action.type === 'view/outline/refresh-collapsed-nodes'
-    ) {
-        persistCollapsedSections(view);
-    }
-
 };

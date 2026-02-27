@@ -55,12 +55,6 @@ export const onPluginSettingsUpdate = (
                 conflicts: getUsedHotkeys(view.plugin),
             },
         });
-    } else if (type === 'settings/view/modes/toggle-outline-mode') {
-        if (state.view.outlineMode) {
-            view.viewStore.dispatch({
-                type: 'view/outline/refresh-collapsed-nodes',
-            });
-        }
     }
 
     const shouldAlign =
@@ -69,7 +63,6 @@ export const onPluginSettingsUpdate = (
         type === 'settings/view/set-zoom-level' ||
         type === 'settings/view/layout/set-card-width' ||
         type === 'settings/view/layout/set-limit-card-height' ||
-        type === 'settings/view/toggle-minimap' ||
         type === 'settings/view/toggle-horizontal-scrolling-mode' ||
         type === 'settings/view/toggle-vertical-scrolling-mode' ||
         type === 'settings/view/layout/set-cards-gap' ||
@@ -81,19 +74,4 @@ export const onPluginSettingsUpdate = (
     if (view.isActive && type === 'settings/view/set-zoom-level') {
         focusContainer(view);
     }
-
-    const shouldUpdateStyleRules =
-        type === 'settings/style-rules/add' ||
-        type === 'settings/style-rules/update' ||
-        type === 'settings/style-rules/delete' ||
-        type === 'settings/style-rules/update-condition' ||
-        type === 'settings/style-rules/enable-rule' ||
-        type === 'settings/style-rules/disable-rule' ||
-        type === 'settings/style-rules/move' ||
-        type === 'settings/style-rules/update-style' ||
-        type === 'settings/style-rules/toggle-global';
-    if (shouldUpdateStyleRules) {
-        void view.rulesProcessor.onRulesUpdate();
-    }
-
 };

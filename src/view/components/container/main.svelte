@@ -8,8 +8,6 @@
     import MandalaViewComponent from 'src/view/components/mandala/mandala-view.svelte';
     import HotkeysModal from 'src/view/components/container/modals/hotkeys/hotkeys.svelte';
     import SettingsModal from 'src/view/components/container/modals/settings/settings.svelte';
-    import SnapshotsListModal from 'src/view/components/container/modals/snapshots-list/file-histoy.svelte';
-    import StyleRulesModal from 'src/view/components/container/style-rules/style-rules.svelte';
     import { MandalaView } from 'src/view/view';
     import { localFontStore } from 'src/stores/local-font-store';
     import {
@@ -76,17 +74,11 @@
             />
         {/if}
         <MandalaViewComponent />
-        {#if $controls.showHistorySidebar}
-            <SnapshotsListModal />
-        {/if}
         {#if $controls.showHelpSidebar}
             <HotkeysModal />
         {/if}
         {#if $controls.showSettingsSidebar}
             <SettingsModal />
-        {/if}
-        {#if $controls.showStyleRulesModal}
-            <StyleRulesModal />
         {/if}
     </div>
 </div>
