@@ -49,9 +49,6 @@ import { DebouncedMinimapEffects } from 'src/stores/minimap/subscriptions/effect
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
-import {
-    MandalaGridDocumentFormat,
-} from 'src/stores/settings/settings-type';
 import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
 import {
@@ -431,7 +428,7 @@ export class MandalaView extends TextFileView {
                 save_total_ms: Number((performance.now() - saveStartedMs).toFixed(2)),
             });
         } else {
-            body = stringifyDocument(state.document, 'sections');
+            body = stringifyDocument(state.document);
         }
         const data: string = state.file.frontmatter + body;
         if (data !== this.data) {
@@ -502,7 +499,6 @@ export class MandalaView extends TextFileView {
 
         const documentState = this.documentStore.getValue();
         const viewState = this.viewStore.getValue();
-        const format: MandalaGridDocumentFormat = 'sections';
         const emptyStore = documentState.document.columns.length === 0;
         const bodyHasChanged = body !== this.lastLoadedBody;
         const frontmatterHasChanged = frontmatter !== this.lastLoadedFrontmatter;
@@ -549,7 +545,6 @@ export class MandalaView extends TextFileView {
                 this,
                 body,
                 frontmatter,
-                format,
                 nextActiveSection,
             );
             const loadCostMs = performance.now() - loadStartMs;

@@ -21,7 +21,7 @@ export type ScrollingSettings = {
     centerActiveNodeV: boolean;
 };
 
-export type MandalaGridDocumentFormat = 'outline' | 'sections' | 'html-element';
+export type MandalaGridDocumentFormat = 'sections';
 
 export type ViewType = 'mandala-grid' | 'markdown';
 export type DetailSidebarPreviewMode = 'rendered' | 'source';

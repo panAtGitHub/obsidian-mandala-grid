@@ -35,7 +35,7 @@ export const createMandalaGridDocumentsFromGingkoFiles = async (
             sections,
             file.basename,
         );
-        setDocumentFormat(plugin, createdFile.path, 'sections');
+        setDocumentFormat(plugin, createdFile.path);
         setViewType(plugin, createdFile.path, MANDALA_VIEW_TYPE);
     }
 };

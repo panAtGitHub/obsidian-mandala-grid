@@ -10,13 +10,11 @@ import {
 } from 'src/stores/document/document-state-type';
 import { SavedDocument } from 'src/stores/document/document-store-actions';
 import invariant from 'tiny-invariant';
-import { MandalaGridDocumentFormat } from 'src/stores/settings/settings-type';
 
 export type LoadDocumentAction = {
     type: 'document/file/load-from-disk';
     payload: {
         document: SavedDocument;
-        format: MandalaGridDocumentFormat;
         activeSection: string | null;
         __test_document__?: MandalaGridDocument;
     };
@@ -27,12 +25,6 @@ export const loadDocumentFromFile = (
     action: LoadDocumentAction,
 ) => {
     state.meta.isMandala = true;
-
-    if (action.payload.format !== 'sections') {
-        throw new Error(
-            `MandalaGrid only supports sections format, got "${action.payload.format}"`,
-        );
-    }
 
     const parseStartMs = performance.now();
     const parsed = parseSections(action.payload.document.data);

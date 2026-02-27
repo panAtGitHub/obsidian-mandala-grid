@@ -49,14 +49,30 @@ describe('map active branches to text', () => {
             selectedNodes: new Set([n1, n2]),
             activeNode: n2,
         };
-        const output = `- 1
-\t- 1.1
-\t- 1.2
-\t- 1.3
-- 2
-\t- 2.1
-\t- 2.2
-\t- 2.3`;
+        const output = `
+<!--section: 1-->
+1
+
+<!--section: 1.1-->
+1.1
+
+<!--section: 1.2-->
+1.2
+
+<!--section: 1.3-->
+1.3
+
+<!--section: 2-->
+2
+
+<!--section: 2.1-->
+2.1
+
+<!--section: 2.2-->
+2.2
+
+<!--section: 2.3-->
+2.3`;
 
         expect(
             mapBranchesToText(
@@ -64,7 +80,7 @@ describe('map active branches to text', () => {
                 action.selectedNodes.size > 0
                     ? Array.from(action.selectedNodes)
                     : [action.activeNode],
-                'outline',
+                'sections',
             ),
         ).toEqual(output);
     });

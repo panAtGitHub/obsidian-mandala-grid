@@ -13,5 +13,5 @@ export const openFileInMandalaGrid = async (
 ) => {
     const leaf = await openFile(plugin, file, newLeaf);
     toggleObsidianViewType(plugin, leaf, MANDALA_VIEW_TYPE);
-    setDocumentFormat(plugin, file.path, 'sections');
+    setDocumentFormat(plugin, file.path);
 };

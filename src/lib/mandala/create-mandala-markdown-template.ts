@@ -42,5 +42,5 @@ const createMandalaDocument = (): MandalaGridDocument => {
 export const createMandalaMarkdownTemplate = () => {
     const frontmatter = `---\nmandala: true\n---\n`;
     const document = createMandalaDocument();
-    return frontmatter + stringifyDocument(document, 'sections');
+    return frontmatter + stringifyDocument(document);
 };
