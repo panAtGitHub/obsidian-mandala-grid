@@ -296,43 +296,29 @@ export class MandalaView extends TextFileView {
         );
         let body = '';
         if (state.meta.mandalaV2.enabled) {
-            const prepareStartedMs = performance.now();
-            const prepared = prepareSaveSections(state.document, state.sections, {
-                parentToChildrenSlots: state.meta.mandalaV2.parentToChildrenSlots,
-                subtreeNonEmptyCountBySection:
-                    state.meta.mandalaV2.subtreeNonEmptyCountBySection,
-            });
-            const prepareMs = Number(
-                (performance.now() - prepareStartedMs).toFixed(2),
-            );
-            if (prepared.blockedReasons.length > 0) {
-                const message = prepared.blockedReasons[0];
-                const blockedKey = `${state.meta.mandalaV2.revision}:${message}`;
-                if (this.lastSaveBlockedNoticeKey !== blockedKey) {
-                    this.lastSaveBlockedNoticeKey = blockedKey;
-                    new Notice(message, 3500);
-                }
-                logger.error('[mandala-v2] save blocked', {
-                    file: this.file.path,
-                    reason: message,
-                    blocked_parents: prepared.stats.blockedParentCount,
-                });
-                return;
-            }
-            this.lastSaveBlockedNoticeKey = null;
-
             let usedFastPath = false;
+            let prepareMs = 0;
             let patchMs = 0;
             let serializeMs = 0;
-            if (
+            let droppedSectionCount = 0;
+            let prunedParentCount = 0;
+            let blockedParentCount = 0;
+
+            const canTryEarlyPatch =
                 mode === 'content-only' &&
                 changedSections.length > 0 &&
-                prepared.stats.droppedSectionCount === 0
-            ) {
+                changedSections.every((sectionId) => {
+                    const nodeId = state.sections.section_id[sectionId];
+                    if (!nodeId) return false;
+                    const replacement = state.document.content[nodeId]?.content ?? '';
+                    return replacement.length > 0;
+                });
+
+            if (canTryEarlyPatch) {
+                const patchStartedMs = performance.now();
                 const currentBody = extractFrontmatter(this.data).body;
                 let patchedBody = currentBody;
                 usedFastPath = true;
-                const patchStartedMs = performance.now();
                 for (const sectionId of changedSections) {
                     const nodeId = state.sections.section_id[sectionId];
                     if (!nodeId) {
@@ -351,18 +337,88 @@ export class MandalaView extends TextFileView {
                     }
                     patchedBody = patchResult.markdown;
                 }
-                patchMs = Number((performance.now() - patchStartedMs).toFixed(2));
+                patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
                 if (usedFastPath) {
                     body = patchedBody;
+                    this.lastSaveBlockedNoticeKey = null;
                 }
             }
 
             if (!usedFastPath) {
-                const serializeStartedMs = performance.now();
-                body = serializeSections(prepared.sections);
-                serializeMs = Number(
-                    (performance.now() - serializeStartedMs).toFixed(2),
+                const prepareStartedMs = performance.now();
+                const prepared = prepareSaveSections(state.document, state.sections, {
+                    parentToChildrenSlots:
+                        state.meta.mandalaV2.parentToChildrenSlots,
+                    subtreeNonEmptyCountBySection:
+                        state.meta.mandalaV2.subtreeNonEmptyCountBySection,
+                });
+                prepareMs = Number(
+                    (performance.now() - prepareStartedMs).toFixed(2),
                 );
+                droppedSectionCount = prepared.stats.droppedSectionCount;
+                prunedParentCount = prepared.stats.prunedParentCount;
+                blockedParentCount = prepared.stats.blockedParentCount;
+
+                if (prepared.blockedReasons.length > 0) {
+                    const message = prepared.blockedReasons[0];
+                    const blockedKey =
+                        `${this.file.path}:${state.meta.mandalaV2.revision}:${message}`;
+                    if (this.lastSaveBlockedNoticeKey !== blockedKey) {
+                        this.lastSaveBlockedNoticeKey = blockedKey;
+                        new Notice(message, 3500);
+                    }
+                    logger.error('[mandala-v2] save blocked', {
+                        file: this.file.path,
+                        reason: message,
+                        blocked_parents: prepared.stats.blockedParentCount,
+                    });
+                    return;
+                }
+                this.lastSaveBlockedNoticeKey = null;
+
+                if (
+                    mode === 'content-only' &&
+                    changedSections.length > 0 &&
+                    prepared.stats.droppedSectionCount === 0
+                ) {
+                    const patchStartedMs = performance.now();
+                    const currentBody = extractFrontmatter(this.data).body;
+                    let patchedBody = currentBody;
+                    usedFastPath = true;
+                    for (const sectionId of changedSections) {
+                        const nodeId = state.sections.section_id[sectionId];
+                        if (!nodeId) {
+                            usedFastPath = false;
+                            break;
+                        }
+                        const replacement =
+                            state.document.content[nodeId]?.content ?? '';
+                        const patchResult = applySectionPatch(
+                            patchedBody,
+                            sectionId,
+                            replacement,
+                        );
+                        if (!patchResult) {
+                            usedFastPath = false;
+                            break;
+                        }
+                        patchedBody = patchResult.markdown;
+                    }
+                    patchMs += Number(
+                        (performance.now() - patchStartedMs).toFixed(2),
+                    );
+                    if (usedFastPath) {
+                        body = patchedBody;
+                    }
+                }
+
+                if (!usedFastPath) {
+                    const serializeStartedMs = performance.now();
+                    body = serializeSections(prepared.sections);
+                    serializeMs = Number(
+                        (performance.now() - serializeStartedMs).toFixed(2),
+                    );
+                }
             }
 
             logger.debug('[perf][view] saveDocument', {
@@ -372,9 +428,9 @@ export class MandalaView extends TextFileView {
                 save_prepare_ms: prepareMs,
                 save_patch_ms: patchMs,
                 save_serialize_ms: serializeMs,
-                save_dropped_sections: prepared.stats.droppedSectionCount,
-                save_pruned_parents: prepared.stats.prunedParentCount,
-                save_blocked_count: prepared.stats.blockedParentCount,
+                save_dropped_sections: droppedSectionCount,
+                save_pruned_parents: prunedParentCount,
+                save_blocked_count: blockedParentCount,
                 save_total_ms: Number((performance.now() - saveStartedMs).toFixed(2)),
             });
         } else {

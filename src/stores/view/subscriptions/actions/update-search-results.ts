@@ -1,4 +1,33 @@
 import { MandalaView } from 'src/view/view';
+import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
+
+const searchResultScore = (result: NodeSearchResult) => result.score ?? -1;
+const searchResultRefIndex = (result: NodeSearchResult) => result.refIndex ?? -1;
+
+const areSearchResultsEqual = (
+    previous: Map<string, NodeSearchResult>,
+    next: Map<string, NodeSearchResult>,
+) => {
+    if (previous.size !== next.size) return false;
+    const previousEntries = Array.from(previous.entries());
+    const nextEntries = Array.from(next.entries());
+    for (let i = 0; i < previousEntries.length; i += 1) {
+        const [prevSectionId, prevResult] = previousEntries[i];
+        const nextEntry = nextEntries[i];
+        if (!nextEntry) return false;
+        const [nextSectionId, nextResult] = nextEntry;
+        if (prevSectionId !== nextSectionId) return false;
+        if (prevResult.item.nodeId !== nextResult.item.nodeId) return false;
+        if (prevResult.item.content !== nextResult.item.content) return false;
+        if (searchResultScore(prevResult) !== searchResultScore(nextResult)) {
+            return false;
+        }
+        if (searchResultRefIndex(prevResult) !== searchResultRefIndex(nextResult)) {
+            return false;
+        }
+    }
+    return true;
+};
 
 export const updateActiveNodeAfterSearch = (
     view: MandalaView,
@@ -27,16 +56,19 @@ export const updateSearchResults = (view: MandalaView) => {
 
     const query = viewState.search.query;
     if (!query) return;
+    const previousResults = viewState.search.results;
     const results = view.documentSearch.search(query);
-    view.viewStore.dispatch({
-        type: 'view/search/set-results',
-        payload: {
-            results: results,
-        },
-    });
+    if (!areSearchResultsEqual(previousResults, results)) {
+        view.viewStore.dispatch({
+            type: 'view/search/set-results',
+            payload: {
+                results: results,
+            },
+        });
+    }
 
     const newSearchResults = Array.from(results.keys()).sort().join('');
-    const previousSearchResults = Array.from(viewState.search.results.keys())
+    const previousSearchResults = Array.from(previousResults.keys())
         .sort()
         .join('');
     if (previousSearchResults !== newSearchResults) {

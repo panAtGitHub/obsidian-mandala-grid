@@ -12,23 +12,9 @@ import { persistCollapsedSections } from 'src/stores/settings/reducers/persist-c
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { Platform } from 'obsidian';
 import { normalizeContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
+import { compareSectionIds } from 'src/mandala-v2/section-utils';
 
 type SettingsActionHandler = (store: Settings, action: SettingsActions) => void;
-
-const compareSectionIds = (a: string, b: string) => {
-    const aParts = a.split('.').map((part) => Number(part));
-    const bParts = b.split('.').map((part) => Number(part));
-    const maxLen = Math.max(aParts.length, bParts.length);
-    for (let i = 0; i < maxLen; i += 1) {
-        const aVal = aParts[i];
-        const bVal = bParts[i];
-        if (aVal === undefined) return -1;
-        if (bVal === undefined) return 1;
-        if (aVal === bVal) continue;
-        return aVal - bVal;
-    }
-    return 0;
-};
 
 const normalizeSectionIds = (sections: string[]) =>
     Array.from(new Set(sections)).sort(compareSectionIds);

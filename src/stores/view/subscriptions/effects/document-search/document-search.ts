@@ -100,7 +100,8 @@ export class DocumentSearch {
         documentState: DocumentState,
     ) => {
         if (action.type === 'document/file/load-from-disk') {
-            this.buildCollectionFromDocument(documentState);
+            this.collectionInitialized = false;
+            this.collection.clear();
             this.fuse = null;
             return;
         }

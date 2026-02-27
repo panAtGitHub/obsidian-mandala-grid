@@ -1,4 +1,7 @@
 import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
+import { compareSectionIds } from 'src/mandala-v2/section-utils';
+
+export { compareSectionIds };
 
 export const SECTION_COLOR_KEYS = [
     '1_white',
@@ -35,21 +38,6 @@ export const applyOpacityToHex = (color: string, opacity: number) => {
     const b = parseInt(hex.slice(4, 6), 16);
     const alpha = Math.min(1, Math.max(0, opacity));
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
-export const compareSectionIds = (a: string, b: string) => {
-    const aParts = a.split('.').map((part) => Number(part));
-    const bParts = b.split('.').map((part) => Number(part));
-    const maxLen = Math.max(aParts.length, bParts.length);
-    for (let i = 0; i < maxLen; i += 1) {
-        const aVal = aParts[i];
-        const bVal = bParts[i];
-        if (aVal === undefined) return -1;
-        if (bVal === undefined) return 1;
-        if (aVal === bVal) continue;
-        return aVal - bVal;
-    }
-    return 0;
 };
 
 const createEmptySectionColorMap = (): SectionColorMap => ({
