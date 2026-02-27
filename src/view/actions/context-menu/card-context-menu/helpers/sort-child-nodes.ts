@@ -5,6 +5,7 @@ export const sortChildNodes = (
     activeNode: string,
     order: 'ascending' | 'descending',
 ) => {
+    if (view.documentStore.getValue().meta.isMandala) return;
     view.documentStore.dispatch({
         type: 'document/sort-direct-child-nodes',
         payload: {

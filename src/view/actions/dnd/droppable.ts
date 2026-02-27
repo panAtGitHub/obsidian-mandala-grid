@@ -1,4 +1,3 @@
-import { Direction } from 'src/stores/document/document-store-actions';
 import { isId } from 'src/helpers/id';
 import { getView } from 'src/view/components/container/context';
 
@@ -119,24 +118,6 @@ export const droppable = (node: HTMLElement) => {
                     }
                 }
             }
-        } else if (isId.node(data) && sections.id_section[data]) {
-            documentStore.dispatch({
-                type: 'document/drop-node',
-                payload: {
-                    droppedNodeId: data,
-                    targetNodeId: targetCard.id,
-                    position: getDropPosition(event, targetCard) as Direction,
-                },
-            });
-        } else if (!view.viewStore.getValue().document.editing.activeNodeId) {
-            documentStore.dispatch({
-                type: 'document/paste-node',
-                payload: {
-                    targetNodeId: targetCard.id,
-                    text: data,
-                    position: getDropPosition(event, targetCard) as Direction,
-                },
-            });
         }
         viewStore.dispatch({
             type: 'view/dnd/set-drag-ended',

@@ -21,6 +21,7 @@ export const pasteNode = async (view: MandalaView) => {
             /\r\n/g,
             '\n',
         );
+        if (view.documentStore.getValue().meta.isMandala) return;
         view.documentStore.dispatch({
             type: 'document/paste-node',
             payload: {

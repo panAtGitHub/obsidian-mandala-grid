@@ -5,6 +5,7 @@ import { sortNodeIdsBySectionNumber } from 'src/lib/tree-utils/sort/sort-node-id
 
 export const cutSearchResults = (view: MandalaView) => {
     void copySearchResultsToClipboard(view);
+    if (view.documentStore.getValue().meta.isMandala) return;
     const viewState = view.viewStore.getValue();
     const documentState = view.documentStore.getValue();
     const results = Array.from(viewState.search.results.keys());

@@ -44,7 +44,7 @@ export const extractBranch = async (view: MandalaView) => {
             fileName,
         );
         await openFileInMandalaGrid(view.plugin, newFile, 'split');
-
+        if (view.documentStore.getValue().meta.isMandala) return;
         view.documentStore.dispatch({
             type: 'document/extract-node',
             payload: {

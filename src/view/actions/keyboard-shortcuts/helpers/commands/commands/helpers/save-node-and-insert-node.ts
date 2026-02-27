@@ -15,6 +15,7 @@ export const saveNodeAndInsertNode = (
     }
     const nodeId =
         activeNodeId || view.viewStore.getValue().document.activeNode;
+    if (view.documentStore.getValue().meta.isMandala) return;
     view.documentStore.dispatch({
         type: 'document/add-node',
         payload: {

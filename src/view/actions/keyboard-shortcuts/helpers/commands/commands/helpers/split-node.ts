@@ -4,6 +4,7 @@ import { SplitNodeMode } from 'src/stores/document/reducers/split-node/split-nod
 
 export const splitNode = (view: MandalaView, mode: SplitNodeMode) => {
     saveNodeContent(view);
+    if (view.documentStore.getValue().meta.isMandala) return;
     view.documentStore.dispatch({
         type: 'document/split-node',
         payload: {

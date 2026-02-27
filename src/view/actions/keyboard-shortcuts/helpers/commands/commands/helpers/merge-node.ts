@@ -8,6 +8,7 @@ export const mergeNode = (view: MandalaView, direction: VerticalDirection) => {
     if (view.viewStore.getValue().document.selectedNodes.size > 1) {
         throw new Error(lang.error_hk_cant_merge_multiple_nodes);
     }
+    if (view.documentStore.getValue().meta.isMandala) return;
     view.documentStore.dispatch({
         type: 'document/merge-node',
         payload: {

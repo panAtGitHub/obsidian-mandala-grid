@@ -29,6 +29,7 @@ export const moveNode = (view: MandalaView, direction: AllDirections) => {
     saveNodeContent(view);
 
     const document = view.viewStore.getValue().document;
+    if (view.documentStore.getValue().meta.isMandala) return;
     view.documentStore.dispatch({
         type: 'document/move-node',
         payload: {
