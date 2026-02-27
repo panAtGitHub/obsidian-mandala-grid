@@ -7,7 +7,18 @@ const SECTION_MARKER_RE = /<!--\s*section:\s*([0-9]+(?:\.[0-9]+)*)\s*-->/g;
 const encoder = new TextEncoder();
 
 const normalizeSectionContent = (raw: string) => {
-    return raw.replace(/^\r?\n/, '').trim();
+    let normalized = raw;
+    if (normalized.startsWith('\r\n')) {
+        normalized = normalized.slice(2);
+    } else if (normalized.startsWith('\n')) {
+        normalized = normalized.slice(1);
+    }
+    if (normalized.endsWith('\r\n')) {
+        normalized = normalized.slice(0, -2);
+    } else if (normalized.endsWith('\n')) {
+        normalized = normalized.slice(0, -1);
+    }
+    return normalized;
 };
 
 export const parseSections = (markdown: string): ParsedMandalaSections => {

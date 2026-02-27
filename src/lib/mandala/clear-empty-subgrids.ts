@@ -8,7 +8,7 @@ export type ClearEmptySubgridsPlan = {
 
 const isEmptyContent = (document: MandalaGridDocument, nodeId: string) => {
     const value = document.content[nodeId]?.content ?? '';
-    return value.trim().length === 0;
+    return value.length === 0;
 };
 
 const getDirectChildren = (document: MandalaGridDocument, parentId: string) => {

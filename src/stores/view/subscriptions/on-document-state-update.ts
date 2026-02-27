@@ -127,6 +127,7 @@ export const onDocumentStateUpdate = (
                 });
             }
         }
+        persistPinnedNodes(view);
     }
     if (
         pinnedNodesUpdate ||

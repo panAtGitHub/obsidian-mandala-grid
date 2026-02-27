@@ -23,7 +23,7 @@ export const compareSectionIds = (a: string, b: string) => {
     return 0;
 };
 
-const normalizeSectionContent = (value: string) => value.trim();
+const normalizeSectionContent = (value: string) => value;
 
 export const serializeSections = (
     sections: {

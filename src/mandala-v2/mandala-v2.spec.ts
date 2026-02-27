@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildMandalaDocumentV2 } from 'src/mandala-v2/build-state';
 import { parseSections } from 'src/mandala-v2/parse-sections';
+import { prepareSaveSections } from 'src/mandala-v2/prepare-save-sections';
 import { serializeSections } from 'src/mandala-v2/serialize-sections';
 import { validateSectionsStructure } from 'src/mandala-v2/validate-structure';
 
@@ -136,5 +137,124 @@ describe('mandala-v2 serializer', () => {
             'B',
             'C',
         ]);
+    });
+
+    it('preserves whitespace-only content as non-empty text', () => {
+        const markdown = ['<!--section: 1-->', ' ', '<!--section: 2-->', ''].join(
+            '\n',
+        );
+        const parsed = parseSections(markdown);
+        const serialized = serializeSections(
+            parsed.sections.map((section) => ({
+                sectionId: section.id,
+                content: section.content,
+            })),
+        );
+        const parsedAgain = parseSections(serialized);
+
+        expect(parsedAgain.sections[0].content).toBe(' ');
+        expect(parsedAgain.sections[1].content).toBe('');
+    });
+});
+
+describe('mandala-v2 save prepare', () => {
+    it('prunes fully empty 8-slot subgrids', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '1.1': 'n11',
+                '1.2': 'n12',
+                '1.3': 'n13',
+                '1.4': 'n14',
+                '1.5': 'n15',
+                '1.6': 'n16',
+                '1.7': 'n17',
+                '1.8': 'n18',
+                '2': 'n2',
+            },
+            id_section: {
+                n1: '1',
+                n11: '1.1',
+                n12: '1.2',
+                n13: '1.3',
+                n14: '1.4',
+                n15: '1.5',
+                n16: '1.6',
+                n17: '1.7',
+                n18: '1.8',
+                n2: '2',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: 'Root' },
+                n11: { content: '' },
+                n12: { content: '' },
+                n13: { content: '' },
+                n14: { content: '' },
+                n15: { content: '' },
+                n16: { content: '' },
+                n17: { content: '' },
+                n18: { content: '' },
+                n2: { content: 'B' },
+            },
+        };
+
+        const result = prepareSaveSections(document, sections);
+
+        expect(result.blockedReasons).toEqual([]);
+        expect(result.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+            '2',
+        ]);
+        expect(result.stats.prunedParentCount).toBe(1);
+    });
+
+    it('blocks save when direct slots are empty but deeper descendants are not', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '1.1': 'n11',
+                '1.2': 'n12',
+                '1.3': 'n13',
+                '1.4': 'n14',
+                '1.5': 'n15',
+                '1.6': 'n16',
+                '1.7': 'n17',
+                '1.8': 'n18',
+                '1.1.1': 'n111',
+            },
+            id_section: {
+                n1: '1',
+                n11: '1.1',
+                n12: '1.2',
+                n13: '1.3',
+                n14: '1.4',
+                n15: '1.5',
+                n16: '1.6',
+                n17: '1.7',
+                n18: '1.8',
+                n111: '1.1.1',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: 'Root' },
+                n11: { content: '' },
+                n12: { content: '' },
+                n13: { content: '' },
+                n14: { content: '' },
+                n15: { content: '' },
+                n16: { content: '' },
+                n17: { content: '' },
+                n18: { content: '' },
+                n111: { content: 'deep' },
+            },
+        };
+
+        const result = prepareSaveSections(document, sections);
+
+        expect(result.blockedReasons.length).toBe(1);
+        expect(result.stats.blockedParentCount).toBe(1);
     });
 });

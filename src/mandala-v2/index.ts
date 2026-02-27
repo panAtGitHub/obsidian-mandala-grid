@@ -13,6 +13,7 @@ export const mandalaEngineV2: MandalaEngineV2 = {
 
 export { buildMandalaDocumentV2 } from 'src/mandala-v2/build-state';
 export { parseSections } from 'src/mandala-v2/parse-sections';
+export { prepareSaveSections } from 'src/mandala-v2/prepare-save-sections';
 export {
     compareSectionIds,
     serializeSections,

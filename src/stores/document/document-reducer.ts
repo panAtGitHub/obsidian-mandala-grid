@@ -33,6 +33,12 @@ import {
     ensureMandalaCoreTheme,
     swapMandalaNodes,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
+import {
+    registerMandalaChildSections,
+    registerMandalaSection,
+    removeMandalaDescendantSectionsByParents,
+} from 'src/stores/document/reducers/mandala/mandala-slot-authority';
+import { swapPinnedNodeState } from 'src/stores/document/reducers/pinned-nodes/swap-pinned-node-state';
 
 type EarlyReturnHandler = (
     state: DocumentState,
@@ -132,6 +138,11 @@ const updateDocumentState = (
             action.payload.sourceNodeId,
             action.payload.targetNodeId,
         );
+        swapPinnedNodeState(
+            state.pinnedNodes,
+            action.payload.sourceNodeId,
+            action.payload.targetNodeId,
+        );
         newActiveNodeId = action.payload.sourceNodeId;
         affectedNodeId = action.payload.sourceNodeId;
     } else if (action.type === 'document/mandala/ensure-children') {
@@ -144,6 +155,11 @@ const updateDocumentState = (
             8,
         );
         if (createdNodes.length === 0) return NO_UPDATE;
+        registerMandalaChildSections(
+            state,
+            action.payload.parentNodeId,
+            createdNodes,
+        );
 
         newActiveNodeId = action.payload.parentNodeId;
         affectedNodeId = action.payload.parentNodeId;
@@ -156,6 +172,7 @@ const updateDocumentState = (
                 existingNodeId,
                 8,
             );
+            registerMandalaChildSections(state, existingNodeId, createdNodes);
             if (createdNodes.length === 0) {
                 newActiveNodeId = existingNodeId;
                 affectedNodeId = existingNodeId;
@@ -165,17 +182,27 @@ const updateDocumentState = (
             }
         } else {
             const { nodeId } = ensureMandalaCoreTheme(state.document, theme);
+            registerMandalaSection(state, nodeId, theme);
             ensureMandalaChildren(
                 state.document,
                 nodeId,
                 8,
             );
+            const ensuredChildren =
+                state.document.columns
+                    .find((column) =>
+                        column.groups.some((group) => group.parentId === nodeId),
+                    )
+                    ?.groups.find((group) => group.parentId === nodeId)?.nodes ??
+                [];
+            registerMandalaChildSections(state, nodeId, ensuredChildren);
             newActiveNodeId = nodeId;
             affectedNodeId = null;
         }
     } else if (action.type === 'document/mandala/clear-empty-subgrids') {
         const parentIds = action.payload.parentIds.filter(Boolean);
         if (parentIds.length === 0) return NO_UPDATE;
+        removeMandalaDescendantSectionsByParents(state, parentIds);
         for (const parentId of parentIds) {
             deleteChildNodes(state.document, parentId);
         }
@@ -270,10 +297,18 @@ const updateDocumentState = (
     }
     const shouldUpdateSections =
         e.dropOrMove || e.createOrDelete || e.changeHistory || e.clipboard;
+    const skipSectionRefreshForMandalaV2Action =
+        state.meta.isMandala &&
+        state.meta.mandalaV2.enabled &&
+        action.type.startsWith('document/mandala/');
     const skipSectionRefreshForV2Load =
         action.type === 'document/file/load-from-disk' &&
         state.meta.mandalaV2.enabled;
-    if (shouldUpdateSections && !skipSectionRefreshForV2Load) {
+    if (
+        shouldUpdateSections &&
+        !skipSectionRefreshForV2Load &&
+        !skipSectionRefreshForMandalaV2Action
+    ) {
         updateSectionsDictionary(state);
     }
 

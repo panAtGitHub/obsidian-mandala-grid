@@ -61,7 +61,7 @@ import {
 } from 'src/lib/mandala/mandala-profile';
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
-import { serializeSectionsFromDocument } from 'src/mandala-v2';
+import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -278,9 +278,41 @@ export class MandalaView extends TextFileView {
     saveDocument = () => {
         invariant(this.file);
         const state = this.documentStore.getValue();
-        const body = state.meta.mandalaV2.enabled
-            ? serializeSectionsFromDocument(state.document, state.sections)
-            : stringifyDocument(state.document, 'sections');
+        const saveStartedMs = performance.now();
+        let body = '';
+        if (state.meta.mandalaV2.enabled) {
+            const prepareStartedMs = performance.now();
+            const prepared = prepareSaveSections(state.document, state.sections);
+            const prepareMs = Number(
+                (performance.now() - prepareStartedMs).toFixed(2),
+            );
+            if (prepared.blockedReasons.length > 0) {
+                const message = prepared.blockedReasons[0];
+                new Notice(message, 3500);
+                logger.error('[mandala-v2] save blocked', {
+                    file: this.file.path,
+                    reason: message,
+                    blocked_parents: prepared.stats.blockedParentCount,
+                });
+                return;
+            }
+            const serializeStartedMs = performance.now();
+            body = serializeSections(prepared.sections);
+            const serializeMs = Number(
+                (performance.now() - serializeStartedMs).toFixed(2),
+            );
+            logger.debug('[perf][view] saveDocument', {
+                file: this.file.path,
+                save_prepare_ms: prepareMs,
+                save_serialize_ms: serializeMs,
+                save_dropped_sections: prepared.stats.droppedSectionCount,
+                save_pruned_parents: prepared.stats.prunedParentCount,
+                save_blocked_count: prepared.stats.blockedParentCount,
+                save_total_ms: Number((performance.now() - saveStartedMs).toFixed(2)),
+            });
+        } else {
+            body = stringifyDocument(state.document, 'sections');
+        }
         const data: string = state.file.frontmatter + body;
         if (data !== this.data) {
             if (data.trim().length === 0) {

@@ -1,7 +1,6 @@
 import { id } from 'src/helpers/id';
 import { SilentError } from 'src/lib/errors/errors';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
-import { findNodePosition } from 'src/lib/tree-utils/find/find-node-position';
 import { sortGroups } from 'src/lib/tree-utils/sort/sort-groups';
 import { MandalaGridDocument } from 'src/stores/document/document-state-type';
 
@@ -14,26 +13,17 @@ export type MandalaSwapAction = {
 };
 
 export const swapMandalaNodes = (
-    document: Pick<MandalaGridDocument, 'columns'>,
+    document: Pick<MandalaGridDocument, 'content'>,
     sourceNodeId: string,
     targetNodeId: string,
 ) => {
     if (sourceNodeId === targetNodeId) return;
-    const a = findNodePosition(document.columns, sourceNodeId);
-    const b = findNodePosition(document.columns, targetNodeId);
-    if (!a || !b) throw new SilentError('could not find node position');
-
-    const groupA = document.columns[a.columnIndex].groups[a.groupIndex];
-    const groupB = document.columns[b.columnIndex].groups[b.groupIndex];
-
-    groupA.nodes[a.nodeIndex] = targetNodeId;
-    groupB.nodes[b.nodeIndex] = sourceNodeId;
-
-    // ensure reactive updates
-    groupA.nodes = [...groupA.nodes];
-    if (groupB !== groupA) {
-        groupB.nodes = [...groupB.nodes];
-    }
+    const source = document.content[sourceNodeId];
+    const target = document.content[targetNodeId];
+    if (!source || !target) throw new SilentError('could not find node content');
+    const sourceContent = source.content;
+    source.content = target.content;
+    target.content = sourceContent;
 };
 
 export type MandalaEnsureChildrenAction = {
