@@ -12,9 +12,11 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
 import {
     parseMandalaEmbedReference,
+    type MandalaEmbedReferenceLike,
     type ParsedMandalaEmbedReference,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
 import { mapRenderedEmbedsToCache } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-cache';
+import { mapRenderedEmbedsToSectionReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-section-references';
 import { logger } from 'src/helpers/logger';
 import {
     type MandalaEmbedTarget,
@@ -165,6 +167,14 @@ const resolveCachedReferencesForEmbeds = (
     );
 };
 
+const resolveSectionReferencesForEmbeds = (
+    ctx: MarkdownPostProcessorContext,
+    embeds: HTMLElement[],
+) =>
+    mapRenderedEmbedsToSectionReferences(embeds, (embed) =>
+        ctx.getSectionInfo(embed),
+    );
+
 const doesEmbedTargetMatchReference = (
     plugin: MandalaGrid,
     sourcePath: string,
@@ -189,6 +199,10 @@ const doesEmbedTargetMatchReference = (
             normalizeComparableSubpath(parsedReference.subpath)
     );
 };
+
+const isMandalaEmbedReferenceLike = (
+    reference: MandalaEmbedReferenceLike | undefined,
+): reference is MandalaEmbedReferenceLike => Boolean(reference);
 
 const getManagedAncestorDepth = (embed: HTMLElement) => {
     let depth = 0;
@@ -225,6 +239,10 @@ export const createRenderMandalaEmbedPostProcessor =
                 plugin.settings.getValue().view.mandalaEmbedDebug ?? false;
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
+            const sectionReferenceByEmbed = resolveSectionReferencesForEmbeds(
+                ctx,
+                embeds,
+            );
             const cachedReferenceByEmbed = resolveCachedReferencesForEmbeds(
                 plugin,
                 ctx,
@@ -250,6 +268,7 @@ export const createRenderMandalaEmbedPostProcessor =
             for (const embed of embeds) {
                 const controller = getOrCreateController(plugin, embed);
                 const src = embed.getAttribute('src');
+                const sectionReference = sectionReferenceByEmbed.get(embed);
                 const cachedReference = cachedReferenceByEmbed.get(embed);
                 const managedAncestorDepth = getManagedAncestorDepth(embed);
 
@@ -267,39 +286,44 @@ export const createRenderMandalaEmbedPostProcessor =
                         continue;
                     }
 
-                    const parsedReference =
-                        parseMandalaEmbedReference(cachedReference ?? null);
-                    const isMarkedReference =
-                        cachedReference?.displayText?.trim() === '$';
+                    const referenceCandidates = [
+                        sectionReference,
+                        cachedReference,
+                    ].filter(isMandalaEmbedReferenceLike);
+                    const isMarkedReference = referenceCandidates.some(
+                        (reference) => reference?.displayText?.trim() === '$',
+                    );
+
+                    let parsedReference: ParsedMandalaEmbedReference | null = null;
+                    let matchedReferenceOriginal = '<empty>';
+
+                    for (const referenceCandidate of referenceCandidates) {
+                        const nextParsedReference =
+                            parseMandalaEmbedReference(referenceCandidate);
+                        if (!nextParsedReference) continue;
+                        if (
+                            !doesEmbedTargetMatchReference(
+                                plugin,
+                                ctx.sourcePath,
+                                src,
+                                nextParsedReference.linktext,
+                            )
+                        ) {
+                            continue;
+                        }
+                        parsedReference = nextParsedReference;
+                        matchedReferenceOriginal =
+                            referenceCandidate?.original ?? '<empty>';
+                        break;
+                    }
+
                     if (!parsedReference) {
                         if (debugEnabled && isMarkedReference) {
                             controller.updateDebug([
                                 'mandala debug: marker parse failed',
                                 `src: ${src ?? '<null>'}`,
-                                `link: ${cachedReference?.link ?? '<empty>'}`,
-                                `displayText: ${cachedReference?.displayText ?? '<empty>'}`,
-                                `original: ${cachedReference?.original ?? '<empty>'}`,
-                            ]);
-                            continue;
-                        }
-                        controller.clear();
-                        continue;
-                    }
-
-                    if (
-                        !doesEmbedTargetMatchReference(
-                            plugin,
-                            ctx.sourcePath,
-                            src,
-                            parsedReference.linktext,
-                        )
-                    ) {
-                        if (debugEnabled) {
-                            controller.updateDebug([
-                                'mandala debug: embed target mismatch',
-                                `src: ${src ?? '<null>'}`,
-                                `linktext: ${parsedReference.linktext}`,
-                                `original: ${cachedReference?.original ?? '<empty>'}`,
+                                `sectionOriginal: ${sectionReference?.original ?? '<empty>'}`,
+                                `cachedOriginal: ${cachedReference?.original ?? '<empty>'}`,
                             ]);
                             continue;
                         }
@@ -321,6 +345,7 @@ export const createRenderMandalaEmbedPostProcessor =
                                 'mandala debug: target resolve failed',
                                 `src: ${src ?? '<null>'}`,
                                 `linktext: ${parsedReference.linktext}`,
+                                `original: ${matchedReferenceOriginal}`,
                                 `path: ${parsedLink.path ?? '<empty>'}`,
                                 `subpath: ${parsedLink.subpath ?? '<empty>'}`,
                                 `sourcePath: ${ctx.sourcePath}`,
