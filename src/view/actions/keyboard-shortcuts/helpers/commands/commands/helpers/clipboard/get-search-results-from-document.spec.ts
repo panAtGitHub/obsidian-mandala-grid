@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import { getSearchResultsFromDocument } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/get-search-results-from-document';
-import { calculateColumnTreeIndexes } from 'src/stores/view/subscriptions/helpers/calculate-tree-index';
 import { clone } from 'src/helpers/clone';
 
 describe('get-search-results-from-clipboard', () => {
@@ -65,10 +64,36 @@ describe('get-search-results-from-clipboard', () => {
 \t- #done 3.1
 \t- #todo 3.2`;
         const documentClone = clone(document);
+        const sections = {
+            id_section: {
+                [n1]: '1',
+                [n1_1]: '1.1',
+                [n1_2]: '1.2',
+                [n2]: '2',
+                [n2_1]: '2.1',
+                [n2_1_1]: '2.1.1',
+                [n2_1_1_1]: '2.1.1.1',
+                [n3]: '3',
+                [n3_1]: '3.1',
+                [n3_2]: '3.2',
+            },
+            section_id: {
+                '1': n1,
+                '1.1': n1_1,
+                '1.2': n1_2,
+                '2': n2,
+                '2.1': n2_1,
+                '2.1.1': n2_1_1,
+                '2.1.1.1': n2_1_1_1,
+                '3': n3,
+                '3.1': n3_1,
+                '3.2': n3_2,
+            },
+        };
         const actual = getSearchResultsFromDocument(
             results,
             document,
-            calculateColumnTreeIndexes(document.columns),
+            sections,
         );
         expect(actual).toEqual(output);
         expect(document).toEqual(documentClone);

@@ -8,7 +8,6 @@ import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event
 
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
 import { formatHeadings } from 'src/stores/document/reducers/content/format-content/format-headings';
-import { updateSectionsDictionary } from 'src/stores/document/reducers/state/update-sections-dictionary';
 import { getIdOfSection } from 'src/stores/view/subscriptions/helpers/get-id-of-section';
 import { getSectionOfId } from 'src/stores/view/subscriptions/helpers/get-section-of-id';
 import { pinNode } from 'src/stores/document/reducers/pinned-nodes/pin-node';
@@ -16,7 +15,6 @@ import { unpinNode } from 'src/stores/document/reducers/pinned-nodes/unpin-node'
 import { removeStalePinnedNodes } from 'src/stores/document/reducers/pinned-nodes/remove-stale-pinned-nodes';
 import { loadPinnedNodes } from 'src/stores/document/reducers/pinned-nodes/load-pinned-nodes';
 import { refreshGroupParentIds } from 'src/stores/document/reducers/meta/refresh-group-parent-ids';
-import { loadDocumentFromJSON } from 'src/stores/document/reducers/load-document-from-file/load-document-from-json';
 import { NO_UPDATE } from 'src/lib/store/store';
 import { deleteChildNodes } from 'src/lib/tree-utils/delete/delete-child-nodes';
 import {
@@ -227,14 +225,7 @@ const updateDocumentState = (
         newActiveNodeId = action.payload.activeNodeId;
         affectedNodeId = action.payload.activeNodeId;
     } else if (action.type === 'document/file/load-from-disk') {
-        if (action.payload.__test_document__) {
-            newActiveNodeId = loadDocumentFromJSON(
-                state,
-                action.payload.__test_document__,
-            );
-        } else {
-            newActiveNodeId = loadDocumentFromFile(state, action);
-        }
+        newActiveNodeId = loadDocumentFromFile(state, action);
     } else if (action.type === 'document/format-headings') {
         formatHeadings(state.document.content, state.sections);
         newActiveNodeId = getIdOfSection(
@@ -255,22 +246,6 @@ const updateDocumentState = (
 
     if (affectedNodeId) {
         affectedSection = getSectionOfId(state.sections, affectedNodeId);
-    }
-    const shouldUpdateSections =
-        e.dropOrMove || e.createOrDelete || e.clipboard;
-    const skipSectionRefreshForMandalaV2Action =
-        state.meta.isMandala &&
-        state.meta.mandalaV2.enabled &&
-        action.type.startsWith('document/mandala/');
-    const skipSectionRefreshForV2Load =
-        action.type === 'document/file/load-from-disk' &&
-        state.meta.mandalaV2.enabled;
-    if (
-        shouldUpdateSections &&
-        !skipSectionRefreshForV2Load &&
-        !skipSectionRefreshForMandalaV2Action
-    ) {
-        updateSectionsDictionary(state);
     }
 
     if (needsMandalaV2MetaRebuild) {

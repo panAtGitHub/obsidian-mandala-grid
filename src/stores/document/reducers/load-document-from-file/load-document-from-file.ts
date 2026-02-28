@@ -4,10 +4,7 @@ import {
     validateSectionsStructure,
 } from 'src/mandala-v2';
 import { buildSubtreeNonEmptyCountBySection } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
-import {
-    DocumentState,
-    MandalaGridDocument,
-} from 'src/stores/document/document-state-type';
+import { DocumentState } from 'src/stores/document/document-state-type';
 import { SavedDocument } from 'src/stores/document/document-store-actions';
 import invariant from 'tiny-invariant';
 
@@ -16,7 +13,6 @@ export type LoadDocumentAction = {
     payload: {
         document: SavedDocument;
         activeSection: string | null;
-        __test_document__?: MandalaGridDocument;
     };
 };
 
