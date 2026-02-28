@@ -420,7 +420,7 @@ export class MandalaEmbedController {
             event.preventDefault();
             event.stopPropagation();
             void this.plugin.app.workspace.openLinkText(
-                payload.parsedSrc.linktext,
+                payload.parsedReference.linktext,
                 payload.sourcePath,
                 false,
             );

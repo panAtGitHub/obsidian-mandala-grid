@@ -2,6 +2,7 @@ import {
     parseLinktext,
     resolveSubpath,
     TFile,
+    type EmbedCache,
     type MarkdownPostProcessorContext,
 } from 'obsidian';
 import type MandalaGrid from 'src/main';
@@ -10,9 +11,10 @@ import {
     type MandalaEmbedGridModel,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
 import {
-    parseMandalaEmbedSrc,
-    type ParsedMandalaEmbedSrc,
-} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-src';
+    parseMandalaEmbedReference,
+    type ParsedMandalaEmbedReference,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
+import { mapRenderedEmbedsToCache } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-cache';
 import { logger } from 'src/helpers/logger';
 import {
     type MandalaEmbedTarget,
@@ -58,9 +60,9 @@ const resolveMarkdownFile = (
 const resolveEmbedTarget = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
-    parsedSrc: ParsedMandalaEmbedSrc,
+    parsedReference: ParsedMandalaEmbedReference,
 ): MandalaEmbedTarget | null => {
-    const { path, subpath } = parseLinktext(parsedSrc.linktext);
+    const { path, subpath } = parseLinktext(parsedReference.linktext);
     if (!path) return null;
 
     const file = resolveMarkdownFile(plugin, path, ctx.sourcePath);
@@ -118,6 +120,76 @@ const buildModelFromFile = async (
 const formatUnknownError = (error: unknown) =>
     error instanceof Error ? error.message : String(error);
 
+const safeDecodeUriComponent = (value: string) => {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+};
+
+const normalizeComparableSubpath = (value: string | null | undefined) => {
+    let normalized = value?.trim().replace(/^#+/u, '') ?? '';
+    for (let index = 0; index < 3; index += 1) {
+        const decoded = safeDecodeUriComponent(normalized);
+        if (decoded === normalized) break;
+        normalized = decoded;
+    }
+    return normalized;
+};
+
+const resolveSourceMarkdownFile = (
+    plugin: MandalaGrid,
+    sourcePath: string,
+): TFile | null => {
+    const file = plugin.app.vault.getFileByPath(sourcePath);
+    if (file instanceof TFile && file.extension === 'md') {
+        return file;
+    }
+
+    return null;
+};
+
+const resolveCachedReferencesForEmbeds = (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    embeds: HTMLElement[],
+) => {
+    const sourceFile = resolveSourceMarkdownFile(plugin, ctx.sourcePath);
+    if (!sourceFile) return new Map<HTMLElement, EmbedCache>();
+
+    const cachedEmbeds =
+        plugin.app.metadataCache.getFileCache(sourceFile)?.embeds ?? [];
+    return mapRenderedEmbedsToCache(embeds, cachedEmbeds, (embed) =>
+        ctx.getSectionInfo(embed),
+    );
+};
+
+const doesEmbedTargetMatchReference = (
+    plugin: MandalaGrid,
+    sourcePath: string,
+    src: string | null,
+    linktext: string,
+) => {
+    if (!src) return false;
+
+    const parsedSrc = parseLinktext(src);
+    const parsedReference = parseLinktext(linktext);
+    const embedFile = resolveMarkdownFile(plugin, parsedSrc.path, sourcePath);
+    const referenceFile = resolveMarkdownFile(
+        plugin,
+        parsedReference.path,
+        sourcePath,
+    );
+    if (!embedFile || !referenceFile) return false;
+
+    return (
+        embedFile.path === referenceFile.path &&
+        normalizeComparableSubpath(parsedSrc.subpath) ===
+            normalizeComparableSubpath(parsedReference.subpath)
+    );
+};
+
 const getManagedAncestorDepth = (embed: HTMLElement) => {
     let depth = 0;
     let cursor: HTMLElement | null = embed;
@@ -144,13 +216,20 @@ const getManagedAncestorDepth = (embed: HTMLElement) => {
 export const createRenderMandalaEmbedPostProcessor =
     (plugin: MandalaGrid) => {
         return async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
-            const embeds = el.querySelectorAll<HTMLElement>('.internal-embed');
+            const embeds = Array.from(
+                el.querySelectorAll<HTMLElement>('.internal-embed'),
+            );
             if (embeds.length === 0) return;
 
             const debugEnabled =
                 plugin.settings.getValue().view.mandalaEmbedDebug ?? false;
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
+            const cachedReferenceByEmbed = resolveCachedReferencesForEmbeds(
+                plugin,
+                ctx,
+                embeds,
+            );
 
             const getModel = (target: MandalaEmbedTarget) => {
                 const center = target.centerHeading ?? 'root';
@@ -168,9 +247,10 @@ export const createRenderMandalaEmbedPostProcessor =
                 return loading;
             };
 
-            for (const embed of Array.from(embeds)) {
+            for (const embed of embeds) {
                 const controller = getOrCreateController(plugin, embed);
                 const src = embed.getAttribute('src');
+                const cachedReference = cachedReferenceByEmbed.get(embed);
                 const managedAncestorDepth = getManagedAncestorDepth(embed);
 
                 try {
@@ -187,20 +267,60 @@ export const createRenderMandalaEmbedPostProcessor =
                         continue;
                     }
 
-                    const parsedSrc = parseMandalaEmbedSrc(src);
-                    if (!parsedSrc) {
+                    const parsedReference =
+                        parseMandalaEmbedReference(cachedReference ?? null);
+                    const isMarkedReference =
+                        cachedReference?.displayText?.trim() === '$';
+                    if (!parsedReference) {
+                        if (debugEnabled && isMarkedReference) {
+                            controller.updateDebug([
+                                'mandala debug: marker parse failed',
+                                `src: ${src ?? '<null>'}`,
+                                `link: ${cachedReference?.link ?? '<empty>'}`,
+                                `displayText: ${cachedReference?.displayText ?? '<empty>'}`,
+                                `original: ${cachedReference?.original ?? '<empty>'}`,
+                            ]);
+                            continue;
+                        }
                         controller.clear();
                         continue;
                     }
 
-                    const target = resolveEmbedTarget(plugin, ctx, parsedSrc);
+                    if (
+                        !doesEmbedTargetMatchReference(
+                            plugin,
+                            ctx.sourcePath,
+                            src,
+                            parsedReference.linktext,
+                        )
+                    ) {
+                        if (debugEnabled) {
+                            controller.updateDebug([
+                                'mandala debug: embed target mismatch',
+                                `src: ${src ?? '<null>'}`,
+                                `linktext: ${parsedReference.linktext}`,
+                                `original: ${cachedReference?.original ?? '<empty>'}`,
+                            ]);
+                            continue;
+                        }
+                        controller.clear();
+                        continue;
+                    }
+
+                    const target = resolveEmbedTarget(
+                        plugin,
+                        ctx,
+                        parsedReference,
+                    );
                     if (!target) {
                         if (debugEnabled) {
-                            const parsedLink = parseLinktext(parsedSrc.linktext);
+                            const parsedLink = parseLinktext(
+                                parsedReference.linktext,
+                            );
                             controller.updateDebug([
                                 'mandala debug: target resolve failed',
                                 `src: ${src ?? '<null>'}`,
-                                `linktext: ${parsedSrc.linktext}`,
+                                `linktext: ${parsedReference.linktext}`,
                                 `path: ${parsedLink.path ?? '<empty>'}`,
                                 `subpath: ${parsedLink.subpath ?? '<empty>'}`,
                                 `sourcePath: ${ctx.sourcePath}`,
@@ -231,7 +351,7 @@ export const createRenderMandalaEmbedPostProcessor =
                         src,
                         sourcePath: ctx.sourcePath,
                         target,
-                        parsedSrc,
+                        parsedReference,
                         model,
                     };
                     controller.updateManaged(payload);
