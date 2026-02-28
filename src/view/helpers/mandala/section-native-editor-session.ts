@@ -6,6 +6,7 @@ import {
     applySectionPatch,
     getSectionContentBySection,
 } from 'src/view/helpers/mandala/apply-section-patch';
+import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
 
 type SectionEditSession = {
     tempFilePath: string;
@@ -141,10 +142,7 @@ const switchBackToMandala = async (
 
 const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
     sessionByTempFilePath.delete(tempFilePath);
-    const tempFile = getFileByPath(view, tempFilePath);
-    if (tempFile) {
-        await view.app.fileManager.trashFile(tempFile);
-    }
+    await deleteSectionSessionTempFile(view, tempFilePath);
     await removeSessionFolderIfEmpty(view);
 };
 
