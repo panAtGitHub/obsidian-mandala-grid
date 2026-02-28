@@ -73,4 +73,47 @@ describe('get-search-results-from-clipboard', () => {
         expect(actual).toEqual(output);
         expect(document).toEqual(documentClone);
     });
+
+    test('preserves outline indentation for multiline node content', () => {
+        const root = 'root';
+        const n1 = 'n1';
+        const n1_1 = 'n1_1';
+        const n2 = 'n2';
+        const document = {
+            columns: [
+                {
+                    id: 'c0',
+                    groups: [{ nodes: [n1, n2], parentId: root }],
+                },
+                {
+                    id: 'c1',
+                    groups: [{ nodes: [n1_1], parentId: n1 }],
+                },
+            ],
+            content: {
+                [n1]: { content: 'Parent line 1\nParent line 2' },
+                [n1_1]: { content: 'Child line 1\nChild line 2' },
+                [n2]: { content: 'Sibling' },
+            },
+        };
+        const sections = {
+            id_section: {
+                [n1]: '1',
+                [n1_1]: '1.1',
+                [n2]: '2',
+            },
+            section_id: {
+                '1': n1,
+                '1.1': n1_1,
+                '2': n2,
+            },
+        };
+
+        const actual = getSearchResultsFromDocument([n1], document, sections);
+
+        expect(actual).toEqual(`- Parent line 1
+  Parent line 2
+\t- Child line 1
+\t  Child line 2`);
+    });
 });

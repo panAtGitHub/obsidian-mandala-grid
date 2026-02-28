@@ -163,6 +163,7 @@ export default class MandalaGrid extends Plugin {
 
     onunload() {
         super.onunload();
+        this.statusBar?.clear();
         if (this.saveSettingsTimeout) {
             clearTimeout(this.saveSettingsTimeout);
             this.saveSettingsTimeout = null;

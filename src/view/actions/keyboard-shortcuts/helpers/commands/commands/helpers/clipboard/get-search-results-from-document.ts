@@ -11,7 +11,16 @@ import {
 
 const toOutlineLine = (sectionId: string, content: string) => {
     const depth = Math.max(0, sectionId.split('.').length - 1);
-    return `${'\t'.repeat(depth)}- ${content}`;
+    const indent = '\t'.repeat(depth);
+    const lines = content.split('\n');
+    if (lines.length === 0) {
+        return `${indent}- `;
+    }
+    return lines
+        .map((line, index) =>
+            index === 0 ? `${indent}- ${line}` : `${indent}  ${line}`,
+        )
+        .join('\n');
 };
 
 export const getSearchResultsFromDocument = (
