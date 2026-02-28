@@ -16,6 +16,7 @@ import {
     type ParsedMandalaEmbedReference,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
 import { mapRenderedEmbedsToCache } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-cache';
+import { mapRenderedEmbedsToMarkdownReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-markdown-references';
 import { mapRenderedEmbedsToSectionReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-section-references';
 import { logger } from 'src/helpers/logger';
 import {
@@ -23,6 +24,7 @@ import {
     type MandalaEmbedManagedPayload,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller-types';
 import { MandalaEmbedController } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller';
+import { findRenderedMarkdown } from 'src/view/actions/markdown-preview/helpers/rendered-markdown-registry';
 
 type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
@@ -175,6 +177,16 @@ const resolveSectionReferencesForEmbeds = (
         ctx.getSectionInfo(embed),
     );
 
+const resolveRenderedMarkdownReferencesForEmbeds = (
+    el: HTMLElement,
+    embeds: HTMLElement[],
+) => {
+    const markdown = findRenderedMarkdown(el);
+    if (!markdown) return new Map<HTMLElement, MandalaEmbedReferenceLike>();
+
+    return mapRenderedEmbedsToMarkdownReferences(embeds, markdown);
+};
+
 const doesEmbedTargetMatchReference = (
     plugin: MandalaGrid,
     sourcePath: string,
@@ -239,6 +251,8 @@ export const createRenderMandalaEmbedPostProcessor =
                 plugin.settings.getValue().view.mandalaEmbedDebug ?? false;
             const orientation = getOrientation(plugin);
             const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
+            const renderedMarkdownReferenceByEmbed =
+                resolveRenderedMarkdownReferencesForEmbeds(el, embeds);
             const sectionReferenceByEmbed = resolveSectionReferencesForEmbeds(
                 ctx,
                 embeds,
@@ -268,6 +282,8 @@ export const createRenderMandalaEmbedPostProcessor =
             for (const embed of embeds) {
                 const controller = getOrCreateController(plugin, embed);
                 const src = embed.getAttribute('src');
+                const renderedMarkdownReference =
+                    renderedMarkdownReferenceByEmbed.get(embed);
                 const sectionReference = sectionReferenceByEmbed.get(embed);
                 const cachedReference = cachedReferenceByEmbed.get(embed);
                 const managedAncestorDepth = getManagedAncestorDepth(embed);
@@ -287,6 +303,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     }
 
                     const referenceCandidates = [
+                        renderedMarkdownReference,
                         sectionReference,
                         cachedReference,
                     ].filter(isMandalaEmbedReferenceLike);
@@ -322,6 +339,7 @@ export const createRenderMandalaEmbedPostProcessor =
                             controller.updateDebug([
                                 'mandala debug: marker parse failed',
                                 `src: ${src ?? '<null>'}`,
+                                `renderedOriginal: ${renderedMarkdownReference?.original ?? '<empty>'}`,
                                 `sectionOriginal: ${sectionReference?.original ?? '<empty>'}`,
                                 `cachedOriginal: ${cachedReference?.original ?? '<empty>'}`,
                             ]);
