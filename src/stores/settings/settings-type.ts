@@ -28,9 +28,7 @@ export type MandalaGridOrientation =
     | 'south-start'
     | 'left-to-right'
     | 'bottom-to-top';
-export type MandalaSectionColorAssignments = Partial<
-    Record<string, string[]>
->;
+export type MandalaSectionColorAssignments = Partial<Record<string, string[]>>;
 export type MandalaViewDocumentPreferences = {
     gridOrientation: MandalaGridOrientation | null;
     lastActiveSection: string | null;
@@ -65,7 +63,8 @@ export type ContextMenuCopyLinkVariant =
     | 'block-plain'
     | 'block-embed'
     | 'heading-plain'
-    | 'heading-embed';
+    | 'heading-embed'
+    | 'heading-embed-dollar';
 export type ContextMenuCopyLinkVisibility = Record<
     ContextMenuCopyLinkVariant,
     boolean

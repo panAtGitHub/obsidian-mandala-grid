@@ -8,6 +8,7 @@ describe('normalizeContextMenuCopyLinkVisibility', () => {
             'block-embed': true,
             'heading-plain': true,
             'heading-embed': true,
+            'heading-embed-dollar': true,
         });
     });
 
@@ -16,12 +17,14 @@ describe('normalizeContextMenuCopyLinkVisibility', () => {
             normalizeContextMenuCopyLinkVisibility({
                 'block-plain': false,
                 'heading-embed': false,
+                'heading-embed-dollar': false,
             }),
         ).toEqual({
             'block-plain': false,
             'block-embed': true,
             'heading-plain': true,
             'heading-embed': false,
+            'heading-embed-dollar': false,
         });
     });
 });

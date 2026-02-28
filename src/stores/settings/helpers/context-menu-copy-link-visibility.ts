@@ -10,6 +10,7 @@ export const DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY: ContextMenuCopyLinkVisib
         'block-embed': true,
         'heading-plain': true,
         'heading-embed': true,
+        'heading-embed-dollar': true,
     };
 
 export const normalizeContextMenuCopyLinkVisibility = (
@@ -19,11 +20,10 @@ export const normalizeContextMenuCopyLinkVisibility = (
     'block-embed': value?.['block-embed'] ?? true,
     'heading-plain': value?.['heading-plain'] ?? true,
     'heading-embed': value?.['heading-embed'] ?? true,
+    'heading-embed-dollar': value?.['heading-embed-dollar'] ?? true,
 });
 
-export const resolveContextMenuCopyLinkVisibility = (
-    view: Settings['view'],
-) =>
+export const resolveContextMenuCopyLinkVisibility = (view: Settings['view']) =>
     Platform.isMobile
         ? normalizeContextMenuCopyLinkVisibility(
               view.contextMenuCopyLinkVisibilityMobile,

@@ -25,13 +25,15 @@ export const extractFirstHeadingFromMarkdown = (
 
 type CopyLinkToHeadingOptions = {
     embed?: boolean;
+    alias?: string;
 };
 
 export const buildHeadingWikiLink = (
     fileName: string,
     headingText: string,
     embed = false,
-) => formatWikiLink(`${fileName}#${headingText}`, embed);
+    alias?: string,
+) => formatWikiLink(`${fileName}#${headingText}`, embed, alias);
 
 export const copyLinkToHeading = async (
     view: MandalaView,
@@ -64,6 +66,7 @@ export const copyLinkToHeading = async (
         file.basename,
         headingText,
         options?.embed ?? false,
+        options?.alias,
     );
     await navigator.clipboard.writeText(link);
     new Notice('Copied');

@@ -3,7 +3,12 @@
     import { Printer, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform, TFile, btoa } from 'obsidian';
-    import { afterUpdate, createEventDispatcher, onDestroy, onMount } from 'svelte';
+    import {
+        afterUpdate,
+        createEventDispatcher,
+        onDestroy,
+        onMount,
+    } from 'svelte';
     import { toPng } from 'html-to-image';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import { derived } from 'src/lib/store/derived';
@@ -81,12 +86,10 @@
     let isExportModeModalOpen = false;
     let exportModalPosition: { left: number; top: number } | null = null;
     let exportDragOffset: { x: number; y: number } | null = null;
-    let exportDragCandidate:
-        | {
-              offsetX: number;
-              offsetY: number;
-          }
-        | null = null;
+    let exportDragCandidate: {
+        offsetX: number;
+        offsetY: number;
+    } | null = null;
     let exportModalInlineStyle: string | undefined = undefined;
 
     const a4Mode = MandalaA4ModeStore(view);
@@ -100,7 +103,8 @@
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
-    const contextMenuCopyLinkVisibility = ContextMenuCopyLinkVisibilityStore(view);
+    const contextMenuCopyLinkVisibility =
+        ContextMenuCopyLinkVisibilityStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const themeDefaults = getDefaultTheme();
@@ -216,6 +220,11 @@
             'heading-embed',
             !$contextMenuCopyLinkVisibility['heading-embed'],
         );
+    const toggleCopyHeadingEmbedDollar = () =>
+        setContextMenuCopyLinkVisibility(
+            'heading-embed-dollar',
+            !$contextMenuCopyLinkVisibility['heading-embed-dollar'],
+        );
 
     const updateDetailSidebarPreviewMode = (mode: DetailSidebarPreviewMode) => {
         view.plugin.settings.dispatch({
@@ -310,7 +319,6 @@
     ) {
         includeSidebarInPngScreen = $showMandalaDetailSidebar;
     }
-
 
     let showImmersiveOptions = false;
     let showPanoramaOptions = false;
@@ -789,7 +797,10 @@
         return vars;
     };
 
-    const applyCssVariables = (element: HTMLElement, vars: Record<string, string>) => {
+    const applyCssVariables = (
+        element: HTMLElement,
+        vars: Record<string, string>,
+    ) => {
         element.setCssProps(vars);
     };
 
@@ -1118,7 +1129,9 @@
             const borderColor = computed.getPropertyValue(
                 '--mandala-border-color',
             );
-            const sourceRoot = source.closest('.mandala-root') as HTMLElement | null;
+            const sourceRoot = source.closest(
+                '.mandala-root',
+            ) as HTMLElement | null;
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
             layer.classList.add('mandala-a4-mode');
@@ -1142,8 +1155,7 @@
             ]);
             applyCssVariables(layer, cssVars);
             applyInlineStyles(layer, {
-                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
-                    `${$borderOpacity}%`,
+                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${$borderOpacity}%`,
             });
             if (borderColor.trim().length > 0) {
                 applyInlineStyles(layer, {
@@ -1453,7 +1465,10 @@
         await view.plugin.app.fileManager.processFrontMatter(
             view.file,
             (frontmatter) => {
-                const frontmatterRecord = frontmatter as Record<string, unknown>;
+                const frontmatterRecord = frontmatter as Record<
+                    string,
+                    unknown
+                >;
                 const currentPlan = frontmatterRecord.mandala_plan;
                 if (!currentPlan || typeof currentPlan !== 'object') return;
                 frontmatterRecord.mandala_plan = {
@@ -1491,7 +1506,8 @@
                 if (!nodeId) continue;
                 const slotTitle = normalizedSlots[i - 1];
                 if (!slotTitle) continue;
-                const content = refreshed.document.content[nodeId]?.content ?? '';
+                const content =
+                    refreshed.document.content[nodeId]?.content ?? '';
                 view.documentStore.dispatch({
                     type: 'document/update-node-content',
                     payload: {
@@ -1562,11 +1578,11 @@
         );
         if (!selected) return;
 
-        const normalizedSlots = Array.from(
-            { length: 8 },
-            (_, index) => normalizeSlotTitle(selected.slots[index] ?? ''),
+        const normalizedSlots = Array.from({ length: 8 }, (_, index) =>
+            normalizeSlotTitle(selected.slots[index] ?? ''),
         );
-        const isDayPlan = await updateDayPlanSlotsInFrontmatter(normalizedSlots);
+        const isDayPlan =
+            await updateDayPlanSlotsInFrontmatter(normalizedSlots);
         if (isDayPlan) {
             applyDayPlanSlotsToAllCoreThemes(normalizedSlots);
             new Notice('已根据文档前置区调整的标题进行全局替换。');
@@ -1783,8 +1799,14 @@
 
         let left = Math.max(0, visibleViewport.left + padding);
         let top = Math.max(0, visibleViewport.top + padding);
-        let width = Math.max(260, visibleViewport.right - visibleViewport.left - padding * 2);
-        let height = Math.max(220, visibleViewport.bottom - visibleViewport.top - padding * 2);
+        let width = Math.max(
+            260,
+            visibleViewport.right - visibleViewport.left - padding * 2,
+        );
+        let height = Math.max(
+            220,
+            visibleViewport.bottom - visibleViewport.top - padding * 2,
+        );
 
         if (!keyboardLikelyOpen) {
             const rect = view.contentEl.getBoundingClientRect();
@@ -1826,14 +1848,8 @@
         document.addEventListener('click', handleClickOutside);
         window.addEventListener('resize', handleViewportChange);
         window.addEventListener('orientationchange', handleViewportChange);
-        window.visualViewport?.addEventListener(
-            'resize',
-            handleViewportChange,
-        );
-        window.visualViewport?.addEventListener(
-            'scroll',
-            handleViewportChange,
-        );
+        window.visualViewport?.addEventListener('resize', handleViewportChange);
+        window.visualViewport?.addEventListener('scroll', handleViewportChange);
         document.addEventListener('focusin', handleViewportChange, true);
         handleViewportChange();
     };
@@ -1968,10 +1984,21 @@
                 showHiddenCardInfo={$showHiddenCardInfo}
                 show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
-                showCopyBlockPlain={$contextMenuCopyLinkVisibility['block-plain']}
-                showCopyBlockEmbed={$contextMenuCopyLinkVisibility['block-embed']}
-                showCopyHeadingPlain={$contextMenuCopyLinkVisibility['heading-plain']}
-                showCopyHeadingEmbed={$contextMenuCopyLinkVisibility['heading-embed']}
+                showCopyBlockPlain={$contextMenuCopyLinkVisibility[
+                    'block-plain'
+                ]}
+                showCopyBlockEmbed={$contextMenuCopyLinkVisibility[
+                    'block-embed'
+                ]}
+                showCopyHeadingPlain={$contextMenuCopyLinkVisibility[
+                    'heading-plain'
+                ]}
+                showCopyHeadingEmbed={$contextMenuCopyLinkVisibility[
+                    'heading-embed'
+                ]}
+                showCopyHeadingEmbedDollar={$contextMenuCopyLinkVisibility[
+                    'heading-embed-dollar'
+                ]}
                 detailSidebarPreviewMode={$detailSidebarPreviewMode}
                 toggle={() => (showDisplayOptions = !showDisplayOptions)}
                 {toggleHiddenCardInfo}
@@ -1981,6 +2008,7 @@
                 {toggleCopyBlockEmbed}
                 {toggleCopyHeadingPlain}
                 {toggleCopyHeadingEmbed}
+                {toggleCopyHeadingEmbedDollar}
                 {updateDetailSidebarPreviewMode}
             />
 
@@ -2012,7 +2040,9 @@
                 </div>
                 <div class="view-options-menu__content">
                     <div class="view-options-menu__label">快捷键设置</div>
-                    <div class="view-options-menu__desc">打开快捷键设置面板</div>
+                    <div class="view-options-menu__desc">
+                        打开快捷键设置面板
+                    </div>
                 </div>
             </button>
 
@@ -2026,7 +2056,10 @@
                 {applyTemplateToCurrentTheme}
             />
 
-            <button class="view-options-menu__item" on:click={openExportModeModal}>
+            <button
+                class="view-options-menu__item"
+                on:click={openExportModeModal}
+            >
                 <div class="view-options-menu__icon">
                     <Printer class="view-options-menu__icon-svg" size={18} />
                 </div>
@@ -2082,7 +2115,10 @@
                 <span class="view-options-menu__title">
                     导出模式（临时会话，按住标题可移动）
                 </span>
-                <button class="view-options-menu__close" on:click={closeExportMode}>
+                <button
+                    class="view-options-menu__close"
+                    on:click={closeExportMode}
+                >
                     <X class="icon" size={16} />
                 </button>
             </div>
@@ -2091,7 +2127,9 @@
                     <div class="view-options-menu__note">
                         仅本次导出生效，关闭后恢复编辑状态。
                     </div>
-                    <div class="view-options-menu__subsection-title">1. 导出目标</div>
+                    <div class="view-options-menu__subsection-title">
+                        1. 导出目标
+                    </div>
                     <div class="export-target-tabs">
                         <button
                             class="export-target-tab"
@@ -2117,25 +2155,37 @@
                     </div>
                     <div class="export-mode-status">
                         <span class="export-mode-badge">{exportModeLabel}</span>
-                        <span class="export-mode-badge export-mode-badge--muted">
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
                             {exportModeHint}
                         </span>
                     </div>
                     <div class="export-appearance-status">
-                        <span class="export-mode-badge export-mode-badge--muted">
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
                             {appearanceStyleLabel}
                         </span>
-                        <span class="export-mode-badge export-mode-badge--muted">
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
                             {appearanceShapeLabel}
                         </span>
-                        <span class="export-mode-badge export-mode-badge--muted">
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
                             {appearanceBackgroundLabel}
                         </span>
-                        <span class="export-mode-badge export-mode-badge--muted">
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
                             {appearanceOrientationLabel}
                         </span>
                     </div>
-                    <div class="view-options-menu__subsection-title">2. 专属选项</div>
+                    <div class="view-options-menu__subsection-title">
+                        2. 专属选项
+                    </div>
                     {#if exportMode === 'png-screen'}
                         <div class="view-options-menu__row">
                             <label class="view-options-menu__inline-option">
@@ -2150,7 +2200,10 @@
                     {:else if exportMode === 'pdf-a4'}
                         <div class="view-options-menu__row">
                             <span>A4 方向</span>
-                            <select value={$a4Orientation} on:change={_updateA4Orientation}>
+                            <select
+                                value={$a4Orientation}
+                                on:change={_updateA4Orientation}
+                            >
                                 <option value="portrait">纵向</option>
                                 <option value="landscape">横向</option>
                             </select>
@@ -2169,7 +2222,8 @@
                         <button
                             class="export-style-toggle"
                             on:click={() =>
-                                (showExportStyleDetails = !showExportStyleDetails)}
+                                (showExportStyleDetails =
+                                    !showExportStyleDetails)}
                         >
                             {showExportStyleDetails ? '收起' : '展开'}
                         </button>
@@ -2226,7 +2280,10 @@
                         >
                             采用上一次导出设置
                         </button>
-                        <button class="view-options-menu__subitem" on:click={closeExportMode}>
+                        <button
+                            class="view-options-menu__subitem"
+                            on:click={closeExportMode}
+                        >
                             取消设置并退出
                         </button>
                     </div>

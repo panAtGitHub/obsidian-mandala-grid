@@ -50,4 +50,10 @@ plain text
             '![[2026年，日计划#习惯打卡]]',
         );
     });
+
+    it('builds embed heading wiki link with $ alias', () => {
+        expect(
+            buildHeadingWikiLink('写作，一页纸工具', '一页纸工具', true, '$'),
+        ).toBe('![[写作，一页纸工具#一页纸工具|$]]');
+    });
 });

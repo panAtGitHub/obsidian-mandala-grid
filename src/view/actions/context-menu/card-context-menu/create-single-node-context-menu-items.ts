@@ -26,7 +26,8 @@ export const createSingleNodeContextMenuItems = (
     { isPinned, activeNode }: Props,
 ) => {
     const isMandala = view.documentStore.getValue().meta.isMandala;
-    const section = view.documentStore.getValue().sections.id_section[activeNode];
+    const section =
+        view.documentStore.getValue().sections.id_section[activeNode];
     let cachedSectionColorMap: ReturnType<
         typeof parseSectionColorsFromPersistedState
     > | null = null;
@@ -39,7 +40,8 @@ export const createSingleNodeContextMenuItems = (
         next: ReturnType<typeof parseSectionColorsFromPersistedState>,
     ) => {
         if (!view.file) return;
-        const current = serializeSectionColorMapForSettings(getSectionColorMap());
+        const current =
+            serializeSectionColorMapForSettings(getSectionColorMap());
         const normalizedNext = serializeSectionColorMapForSettings(next);
         if (JSON.stringify(current) === JSON.stringify(normalizedNext)) return;
         cachedSectionColorMap = next;
@@ -108,6 +110,18 @@ export const createSingleNodeContextMenuItems = (
             },
         });
     }
+    if (copyLinkVisibility['heading-embed-dollar']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_heading_link_embed_dollar,
+            icon: 'heading-1',
+            action: () => {
+                void copyLinkToHeading(view, activeNode, {
+                    embed: true,
+                    alias: '$',
+                });
+            },
+        });
+    }
     if (copyLinkItems.length > 0) {
         menuItems.push(...copyLinkItems, { type: 'separator' });
     }
@@ -131,8 +145,7 @@ export const createSingleNodeContextMenuItems = (
                               const sectionColorMap = getSectionColorMap();
                               const sectionColorIndex =
                                   createSectionColorIndex(sectionColorMap);
-                              const activeColorKey =
-                                  sectionColorIndex[section];
+                              const activeColorKey = sectionColorIndex[section];
                               const palette = document.createElement('div');
                               palette.className = 'mandala-color-palette';
                               for (const key of SECTION_COLOR_KEYS) {

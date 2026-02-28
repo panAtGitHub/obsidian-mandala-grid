@@ -33,8 +33,7 @@ export const lang = {
         'Show in-place debug panel for ![[...#...|$]] embeds when rendering fails',
     card_btn_edit: 'Edit',
     hk_enable_edit_mode: '编辑卡片',
-    hk_enable_edit_mode_and_place_cursor_at_start:
-        '编辑卡片并将光标置于开头',
+    hk_enable_edit_mode_and_place_cursor_at_start: '编辑卡片并将光标置于开头',
     hk_enable_edit_mode_and_place_cursor_at_end: '编辑卡片并将光标置于末尾',
     hkg_edit_nodes: '编辑',
     modal_hk_editor_state_on: '仅在编辑器激活时启用',
@@ -67,6 +66,7 @@ export const lang = {
     cm_copy_link_to_block_embed: '复制块链接（带 !）',
     cm_copy_heading_link: '复制标题链接',
     cm_copy_heading_link_embed: '复制标题链接（带 !）',
+    cm_copy_heading_link_embed_dollar: '复制标题链接（带 ! 与 |$）',
     cm_section_color: '分区颜色',
     cm_clear_section_color: '清除颜色',
     toolbar_copy_search_results: 'Copy search results',
@@ -219,12 +219,10 @@ export const lang = {
     settings_theme_active_branch_color: 'Active branch text color',
     settings_appearance_font_size: '字体大小',
     settings_appearance_font_sizes_group: '字体设置',
-    settings_appearance_mandala_font_size_3x3_desktop:
-        '3×3 格子字体大小（PC）',
+    settings_appearance_mandala_font_size_3x3_desktop: '3×3 格子字体大小（PC）',
     settings_appearance_mandala_font_size_3x3_mobile:
         '3×3 格子字体大小（手机）',
-    settings_appearance_mandala_font_size_9x9_desktop:
-        '9×9 格子字体大小（PC）',
+    settings_appearance_mandala_font_size_9x9_desktop: '9×9 格子字体大小（PC）',
     settings_appearance_mandala_font_size_9x9_mobile:
         '9×9 格子字体大小（手机）',
     settings_appearance_mandala_font_size_sidebar_desktop:
@@ -238,6 +236,8 @@ export const lang = {
     settings_display_copy_block_link_embed: '复制块链接（带 !）',
     settings_display_copy_heading_link_plain: '复制标题链接（不带 !）',
     settings_display_copy_heading_link_embed: '复制标题链接（带 !）',
+    settings_display_copy_heading_link_embed_dollar:
+        '复制标题链接（带 ! 与 |$）',
 
     // layout
     settings_layout_card_width: 'Card width',

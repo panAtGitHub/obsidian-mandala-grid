@@ -11,6 +11,7 @@
     export let showCopyBlockEmbed = true;
     export let showCopyHeadingPlain = true;
     export let showCopyHeadingEmbed = true;
+    export let showCopyHeadingEmbedDollar = true;
     export let detailSidebarPreviewMode: DetailSidebarPreviewMode = 'rendered';
 
     export let toggle: () => void;
@@ -21,6 +22,7 @@
     export let toggleCopyBlockEmbed: () => void;
     export let toggleCopyHeadingPlain: () => void;
     export let toggleCopyHeadingEmbed: () => void;
+    export let toggleCopyHeadingEmbedDollar: () => void;
     export let updateDetailSidebarPreviewMode: (
         mode: DetailSidebarPreviewMode,
     ) => void;
@@ -39,7 +41,9 @@
 {#if show}
     <div class="view-options-menu__submenu">
         <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">详情侧边栏预览</div>
+            <div class="view-options-menu__subsection-title">
+                详情侧边栏预览
+            </div>
 
             <div class="view-options-menu__row">
                 <span>预览样式</span>
@@ -92,7 +96,11 @@
                             checked={show3x3SubgridNavButtons}
                             on:change={toggle3x3SubgridNavButtons}
                         />
-                        <span>{show3x3SubgridNavButtons ? '显示中' : '已隐藏'}</span>
+                        <span
+                            >{show3x3SubgridNavButtons
+                                ? '显示中'
+                                : '已隐藏'}</span
+                        >
                     </label>
                 </div>
             </div>
@@ -106,7 +114,11 @@
                             checked={show9x9ParallelNavButtons}
                             on:change={toggle9x9ParallelNavButtons}
                         />
-                        <span>{show9x9ParallelNavButtons ? '显示中' : '已隐藏'}</span>
+                        <span
+                            >{show9x9ParallelNavButtons
+                                ? '显示中'
+                                : '已隐藏'}</span
+                        >
                     </label>
                 </div>
             </div>
@@ -152,7 +164,8 @@
                             checked={showCopyHeadingPlain}
                             on:change={toggleCopyHeadingPlain}
                         />
-                        <span>{showCopyHeadingPlain ? '显示中' : '已隐藏'}</span>
+                        <span>{showCopyHeadingPlain ? '显示中' : '已隐藏'}</span
+                        >
                     </label>
                 </div>
             </div>
@@ -166,7 +179,26 @@
                             checked={showCopyHeadingEmbed}
                             on:change={toggleCopyHeadingEmbed}
                         />
-                        <span>{showCopyHeadingEmbed ? '显示中' : '已隐藏'}</span>
+                        <span>{showCopyHeadingEmbed ? '显示中' : '已隐藏'}</span
+                        >
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__row">
+                <span
+                    >{lang.settings_display_copy_heading_link_embed_dollar}</span
+                >
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCopyHeadingEmbedDollar}
+                            on:change={toggleCopyHeadingEmbedDollar}
+                        />
+                        <span>
+                            {showCopyHeadingEmbedDollar ? '显示中' : '已隐藏'}
+                        </span>
                     </label>
                 </div>
             </div>
