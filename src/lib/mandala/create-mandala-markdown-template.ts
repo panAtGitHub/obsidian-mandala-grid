@@ -4,8 +4,8 @@ const createInitialMandalaSections = () => {
     const sections: { sectionId: string; content: string }[] = [
         { sectionId: '1', content: '' },
     ];
-    for (let i = 2; i <= 9; i += 1) {
-        sections.push({ sectionId: String(i), content: '' });
+    for (let i = 1; i <= 8; i += 1) {
+        sections.push({ sectionId: `1.${i}`, content: '' });
     }
     return sections;
 };
