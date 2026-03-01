@@ -87,10 +87,6 @@
             loadExistingLayout(activeCustomLayout);
             return;
         }
-        if (customLayouts[0]) {
-            loadExistingLayout(customLayouts[0]);
-            return;
-        }
         showEmptyState();
     };
 
