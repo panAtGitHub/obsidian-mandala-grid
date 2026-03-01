@@ -54,6 +54,7 @@ export const loadDocumentFromFile = (
         revision: state.meta.mandalaV2.revision + 1,
         rootGroupId: documentV2.rootGroupId,
         orderedSections: documentV2.orderedSections,
+        lastMutation: null,
         parentToChildrenSlots: documentV2.parentToChildrenSlots,
         subtreeNonEmptyCountBySection: buildSubtreeNonEmptyCountBySection(
             documentV2.content,

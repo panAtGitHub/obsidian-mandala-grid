@@ -20,7 +20,7 @@ import { deleteChildNodes } from 'src/lib/tree-utils/delete/delete-child-nodes';
 import {
     ensureMandalaChildren,
     ensureMandalaCoreTheme,
-    swapMandalaSubtreeSections,
+    swapMandalaSubtreePayload,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
 import {
     applyMandalaContentDelta,
@@ -53,8 +53,7 @@ const earlyReturnHandlers: Record<string, EarlyReturnHandler> = {
         removeStalePinnedNodes(state.pinnedNodes, state.sections);
     },
     'document/pinned-nodes/load-from-settings': (state, action) => {
-        if (action.type !== 'document/pinned-nodes/load-from-settings')
-            return;
+        if (action.type !== 'document/pinned-nodes/load-from-settings') return;
         loadPinnedNodes(
             state.pinnedNodes,
             state.sections,
@@ -74,6 +73,7 @@ const updateDocumentState = (
     let newActiveNodeId: null | string = null;
     let affectedNodeId: null | string = null;
     let needsMandalaV2MetaRebuild = false;
+    state.meta.mandalaV2.lastMutation = null;
     if (action.type === 'document/update-node-content') {
         const previousContent =
             state.document.content[action.payload.nodeId]?.content ?? '';
@@ -94,7 +94,10 @@ const updateDocumentState = (
                 state.document.content[update.nodeId]?.content ?? '',
             );
         }
-        const changedNodeIds = setMultipleNodeContent(state.document.content, action);
+        const changedNodeIds = setMultipleNodeContent(
+            state.document.content,
+            action,
+        );
         if (changedNodeIds.length === 0) return NO_UPDATE;
         for (const nodeId of changedNodeIds) {
             applyMandalaContentDelta(
@@ -133,11 +136,16 @@ const updateDocumentState = (
             if (!(si >= 1 && si <= 8 && ti >= 1 && ti <= 8)) return NO_UPDATE;
         }
 
-        swapMandalaSubtreeSections(
-            state.sections,
+        const mutation = swapMandalaSubtreePayload(
+            state,
             sourceSection,
             targetSection,
         );
+        state.meta.mandalaV2.lastMutation = {
+            actionType: action.type,
+            changedSections: mutation.changedSections,
+            structural: mutation.structural,
+        };
         needsMandalaV2MetaRebuild = true;
         newActiveNodeId = action.payload.sourceNodeId;
         affectedNodeId = action.payload.sourceNodeId;

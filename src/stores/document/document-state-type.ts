@@ -24,6 +24,11 @@ export type DocumentMeta = {
         revision: number;
         rootGroupId: string | null;
         orderedSections: string[];
+        lastMutation: {
+            actionType: string;
+            changedSections: string[];
+            structural: boolean;
+        } | null;
         parentToChildrenSlots: Record<string, Partial<Record<number, string>>>;
         subtreeNonEmptyCountBySection: Record<string, number>;
         loadMetrics: {

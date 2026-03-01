@@ -20,3 +20,42 @@ export const getParentSection = (sectionId: string) => {
     if (lastDot < 0) return null;
     return sectionId.slice(0, lastDot);
 };
+
+export const isSectionInSubtree = (sectionId: string, rootSection: string) =>
+    sectionId === rootSection || sectionId.startsWith(`${rootSection}.`);
+
+export const swapSectionPrefix = (
+    sectionId: string,
+    fromSection: string,
+    toSection: string,
+) => {
+    if (sectionId === fromSection) return toSection;
+    return `${toSection}${sectionId.slice(fromSection.length)}`;
+};
+
+export const swapSectionSubtreeIds = (
+    sectionIds: string[],
+    sourceSection: string,
+    targetSection: string,
+) =>
+    Array.from(
+        new Set(
+            sectionIds.map((sectionId) => {
+                if (isSectionInSubtree(sectionId, sourceSection)) {
+                    return swapSectionPrefix(
+                        sectionId,
+                        sourceSection,
+                        targetSection,
+                    );
+                }
+                if (isSectionInSubtree(sectionId, targetSection)) {
+                    return swapSectionPrefix(
+                        sectionId,
+                        targetSection,
+                        sourceSection,
+                    );
+                }
+                return sectionId;
+            }),
+        ),
+    ).sort(compareSectionIds);

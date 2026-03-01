@@ -34,6 +34,7 @@ export const defaultDocumentState = (): DocumentState => ({
             revision: 0,
             rootGroupId: null,
             orderedSections: [],
+            lastMutation: null,
             parentToChildrenSlots: {},
             subtreeNonEmptyCountBySection: {},
             loadMetrics: null,

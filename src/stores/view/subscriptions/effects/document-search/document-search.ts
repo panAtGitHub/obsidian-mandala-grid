@@ -25,7 +25,8 @@ export class DocumentSearch {
         for (const [sectionId, nodeId] of Object.entries(
             documentState.sections.section_id,
         )) {
-            const content = documentState.document.content[nodeId]?.content ?? '';
+            const content =
+                documentState.document.content[nodeId]?.content ?? '';
             if (content.length === 0) continue;
             this.collection.set(sectionId, {
                 sectionId,
@@ -58,7 +59,10 @@ export class DocumentSearch {
         }
     };
 
-    private upsertSection = (documentState: DocumentState, sectionId: string) => {
+    private upsertSection = (
+        documentState: DocumentState,
+        sectionId: string,
+    ) => {
         const nodeId = documentState.sections.section_id[sectionId];
         if (!nodeId) {
             this.collection.delete(sectionId);
@@ -98,7 +102,8 @@ export class DocumentSearch {
         }
 
         if (action.type === 'document/update-node-content') {
-            const sectionId = documentState.sections.id_section[action.payload.nodeId];
+            const sectionId =
+                documentState.sections.id_section[action.payload.nodeId];
             if (!sectionId) return;
             this.upsertSection(documentState, sectionId);
             this.updateFuseCollection();
@@ -107,7 +112,8 @@ export class DocumentSearch {
 
         if (action.type === 'document/update-multiple-node-content') {
             for (const update of action.payload.updates) {
-                const sectionId = documentState.sections.id_section[update.nodeId];
+                const sectionId =
+                    documentState.sections.id_section[update.nodeId];
                 if (!sectionId) continue;
                 this.upsertSection(documentState, sectionId);
             }
@@ -116,6 +122,16 @@ export class DocumentSearch {
         }
 
         if (action.type === 'document/mandala/swap') {
+            const mutation = documentState.meta.mandalaV2.lastMutation;
+            if (mutation?.actionType === action.type && !mutation.structural) {
+                if (mutation.changedSections.length > 0) {
+                    for (const sectionId of mutation.changedSections) {
+                        this.upsertSection(documentState, sectionId);
+                    }
+                    this.updateFuseCollection();
+                }
+                return;
+            }
             this.collectionInitialized = false;
             this.fuse = null;
             return;

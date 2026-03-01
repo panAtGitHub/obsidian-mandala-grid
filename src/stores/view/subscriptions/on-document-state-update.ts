@@ -15,14 +15,19 @@ import {
 } from 'src/view/helpers/mandala/section-colors';
 import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
 
+type SaveOptions = {
+    mode: 'content-only' | 'structural';
+    changedSections?: string[];
+} | null;
+
 const createSaveOptions = (
     view: MandalaView,
     action: DocumentStoreAction,
-): { mode: 'content-only' | 'structural'; changedSections?: string[] } => {
+): SaveOptions => {
+    const documentState = view.documentStore.getValue();
     if (action.type === 'document/update-node-content') {
-        const sectionId = view.documentStore.getValue().sections.id_section[
-            action.payload.nodeId
-        ];
+        const sectionId =
+            documentState.sections.id_section[action.payload.nodeId];
         if (sectionId) {
             return {
                 mode: 'content-only',
@@ -32,7 +37,7 @@ const createSaveOptions = (
     }
     if (action.type === 'document/update-multiple-node-content') {
         const sections = action.payload.updates
-            .map((update) => view.documentStore.getValue().sections.id_section[update.nodeId])
+            .map((update) => documentState.sections.id_section[update.nodeId])
             .filter((section): section is string => Boolean(section));
         if (sections.length > 0) {
             return {
@@ -42,6 +47,16 @@ const createSaveOptions = (
         }
     }
     if (action.type === 'document/mandala/swap') {
+        const mutation = documentState.meta.mandalaV2.lastMutation;
+        if (mutation?.actionType === action.type) {
+            if (!mutation.structural && mutation.changedSections.length === 0) {
+                return null;
+            }
+            return {
+                mode: mutation.structural ? 'structural' : 'content-only',
+                changedSections: mutation.changedSections,
+            };
+        }
         return { mode: 'structural' };
     }
     if (action.type === 'document/format-headings') {
@@ -71,8 +86,7 @@ export const onDocumentStateUpdate = (
         loadPinnedNodesToDocument(view);
     }
 
-    const structuralChange =
-        e.createOrDelete || e.dropOrMove || e.clipboard;
+    const structuralChange = e.createOrDelete || e.dropOrMove || e.clipboard;
     if (structuralChange) {
         viewStore.batch(() => {
             setActiveNode(view, action);
@@ -102,7 +116,10 @@ export const onDocumentStateUpdate = (
     if (!container || !view.isViewOfFile) return;
 
     if (e.content || structuralChange) {
-        void view.saveDocument(createSaveOptions(view, action));
+        const saveOptions = createSaveOptions(view, action);
+        if (saveOptions) {
+            void view.saveDocument(saveOptions);
+        }
     }
 
     if (e.content || structuralChange) {

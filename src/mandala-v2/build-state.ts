@@ -30,7 +30,7 @@ const toHash32 = (input: string) => {
     return hash >>> 0;
 };
 
-const stableNodeId = (sectionId: string, usedIds: Set<string>) => {
+export const createStableNodeId = (sectionId: string, usedIds: Set<string>) => {
     let salt = 0;
     while (salt < 1000) {
         const seed = salt === 0 ? sectionId : `${sectionId}#${salt}`;
@@ -45,7 +45,9 @@ const stableNodeId = (sectionId: string, usedIds: Set<string>) => {
     return id.node();
 };
 
-const toParsedParts = (sections: ParsedMandalaSection[]): ParsedSectionParts[] => {
+const toParsedParts = (
+    sections: ParsedMandalaSection[],
+): ParsedSectionParts[] => {
     return sections
         .map((section) => ({
             id: section.id,
@@ -55,7 +57,9 @@ const toParsedParts = (sections: ParsedMandalaSection[]): ParsedSectionParts[] =
         .sort((a, b) => compareSectionIds(a.id, b.id));
 };
 
-const toParentSection = (section: ParsedSectionParts): MandalaSectionId | null => {
+const toParentSection = (
+    section: ParsedSectionParts,
+): MandalaSectionId | null => {
     if (section.parts.length <= 1) return null;
     return section.parts.slice(0, -1).join('.');
 };
@@ -65,42 +69,30 @@ const createColumnId = (index: number) => {
     return `c${encoded}`;
 };
 
-export const buildMandalaDocumentV2 = (
-    props: BuildMandalaDocumentV2Props,
-): MandalaDocumentV2 => {
-    const parsed = toParsedParts(props.sections);
-    const maxDepth = parsed.reduce(
-        (acc, section) => Math.max(acc, section.parts.length),
+export const MANDALA_ROOT_GROUP_ID = 'r00000000';
+
+export const buildMandalaColumnsFromSections = (
+    orderedSections: string[],
+    sectionToNode: Record<string, string>,
+    rootGroupId = MANDALA_ROOT_GROUP_ID,
+) => {
+    const maxDepth = orderedSections.reduce(
+        (acc, sectionId) => Math.max(acc, parseSectionParts(sectionId).length),
         1,
     );
     const columns = Array.from({ length: maxDepth }, (_, index) => ({
         id: createColumnId(index),
         groups: [] as { parentId: string; nodes: string[] }[],
     }));
-    const content: MandalaDocumentV2['content'] = {};
-    const contentBySection: MandalaDocumentV2['contentBySection'] = {};
-    const sectionToNode: Record<string, string> = {};
-    const nodeToSection: Record<string, string> = {};
-    const parentToChildrenSlots: Record<
-        string,
-        Partial<Record<number, MandalaSectionId>>
-    > = {};
-    const orderedSections = parsed.map((section) => section.id);
-    const rootGroupId = 'r00000000';
     const groupMaps = columns.map(
         () => new Map<string, { parentId: string; nodes: string[] }>(),
     );
-    const usedNodeIds = new Set<string>();
 
-    for (const section of parsed) {
-        const nodeId = stableNodeId(section.id, usedNodeIds);
-        sectionToNode[section.id] = nodeId;
-        nodeToSection[nodeId] = section.id;
-    }
-
-    for (const section of parsed) {
-        const depthIndex = section.parts.length - 1;
-        const parentSection = toParentSection(section);
+    for (const sectionId of orderedSections) {
+        const parts = parseSectionParts(sectionId);
+        const depthIndex = parts.length - 1;
+        const parentSection =
+            parts.length <= 1 ? null : parts.slice(0, -1).join('.');
         const parentNodeId = parentSection
             ? sectionToNode[parentSection]
             : rootGroupId;
@@ -113,8 +105,40 @@ export const buildMandalaDocumentV2 = (
             };
             currentColumnGroups.set(parentNodeId, group);
         }
+        group.nodes.push(sectionToNode[sectionId]);
+    }
+
+    for (let i = 0; i < columns.length; i += 1) {
+        columns[i].groups = Array.from(groupMaps[i].values());
+    }
+
+    return columns;
+};
+
+export const buildMandalaDocumentV2 = (
+    props: BuildMandalaDocumentV2Props,
+): MandalaDocumentV2 => {
+    const parsed = toParsedParts(props.sections);
+    const content: MandalaDocumentV2['content'] = {};
+    const contentBySection: MandalaDocumentV2['contentBySection'] = {};
+    const sectionToNode: Record<string, string> = {};
+    const nodeToSection: Record<string, string> = {};
+    const parentToChildrenSlots: Record<
+        string,
+        Partial<Record<number, MandalaSectionId>>
+    > = {};
+    const orderedSections = parsed.map((section) => section.id);
+    const usedNodeIds = new Set<string>();
+
+    for (const section of parsed) {
+        const nodeId = createStableNodeId(section.id, usedNodeIds);
+        sectionToNode[section.id] = nodeId;
+        nodeToSection[nodeId] = section.id;
+    }
+
+    for (const section of parsed) {
         const nodeId = sectionToNode[section.id];
-        group.nodes.push(nodeId);
+        const parentSection = toParentSection(section);
         content[nodeId] = {
             content: section.content,
         };
@@ -129,9 +153,12 @@ export const buildMandalaDocumentV2 = (
         }
     }
 
-    for (let i = 0; i < columns.length; i += 1) {
-        columns[i].groups = Array.from(groupMaps[i].values());
-    }
+    const rootGroupId = MANDALA_ROOT_GROUP_ID;
+    const columns = buildMandalaColumnsFromSections(
+        orderedSections,
+        sectionToNode,
+        rootGroupId,
+    );
 
     return {
         columns,

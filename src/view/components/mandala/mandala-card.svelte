@@ -76,7 +76,7 @@
             style?.styleVariant === 'background-color'
           ? style.color
           : null;
-    $: displaySection = $idToSection[nodeId] ?? section;
+    $: displaySection = section || $idToSection[nodeId] || '';
     $: textTone = getReadableTextTone(
         contrastBackgroundColor,
         getThemeTone(),
@@ -109,7 +109,6 @@
         if (isMobile) {
             return;
         }
-
     };
 
     const handleCardClick = (e: MouseEvent) => {
@@ -188,9 +187,7 @@
         }
     }}
 >
-    {#if style &&
-        !((sectionColor || shouldForceActiveBackground) &&
-            style.styleVariant === 'background-color')}
+    {#if style && !((sectionColor || shouldForceActiveBackground) && style.styleVariant === 'background-color')}
         <CardStyle {style} />
     {/if}
 
@@ -203,16 +200,10 @@
         />
     {:else if draggable}
         <Draggable {nodeId} isInSidebar={false} dragActivation="whole-card">
-            <Content
-                {nodeId}
-                isInSidebar={false}
-            />
+            <Content {nodeId} isInSidebar={false} />
         </Draggable>
     {:else}
-        <Content
-            {nodeId}
-            isInSidebar={false}
-        />
+        <Content {nodeId} isInSidebar={false} />
     {/if}
 
     <div class="mandala-section-label">{displaySection}</div>

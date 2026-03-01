@@ -1,5 +1,8 @@
 import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
-import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import {
+    compareSectionIds,
+    swapSectionSubtreeIds,
+} from 'src/mandala-v2/section-utils';
 
 export { compareSectionIds };
 
@@ -53,18 +56,6 @@ const createEmptySectionColorMap = (): SectionColorMap => ({
 
 const normalizeSectionIds = (sections: string[]) =>
     Array.from(new Set(sections)).sort(compareSectionIds);
-
-const isSectionInSubtree = (section: string, rootSection: string) =>
-    section === rootSection || section.startsWith(`${rootSection}.`);
-
-const swapSectionPrefix = (
-    section: string,
-    fromSection: string,
-    toSection: string,
-) => {
-    if (section === fromSection) return toSection;
-    return `${toSection}${section.slice(fromSection.length)}`;
-};
 
 const normalizeSectionIdsFromUnknown = (value: unknown) => {
     if (Array.isArray(value)) {
@@ -173,23 +164,7 @@ export const swapSectionSubtreeColors = (
     const next = createEmptySectionColorMap();
     for (const key of SECTION_COLOR_KEYS) {
         next[key] = normalizeSectionIds(
-            map[key].map((section) => {
-                if (isSectionInSubtree(section, sourceSection)) {
-                    return swapSectionPrefix(
-                        section,
-                        sourceSection,
-                        targetSection,
-                    );
-                }
-                if (isSectionInSubtree(section, targetSection)) {
-                    return swapSectionPrefix(
-                        section,
-                        targetSection,
-                        sourceSection,
-                    );
-                }
-                return section;
-            }),
+            swapSectionSubtreeIds(map[key], sourceSection, targetSection),
         );
     }
     return next;
