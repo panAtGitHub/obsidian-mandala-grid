@@ -249,6 +249,7 @@
     <Portal>
         <div
             class="custom-layout-modal__overlay"
+            on:click={onClose}
             on:mousedown|stopPropagation
             on:touchstart|stopPropagation
         />

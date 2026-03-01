@@ -1876,9 +1876,16 @@
         });
     };
 
-    // 点击外部关闭菜单 - 使用全局点击事件
+    // 点击外部关闭菜单。自定义布局弹窗通过 Portal 渲染，
+    // 这里需要把弹窗本体和遮罩层都视为“菜单内部”，避免点击时误关菜单。
     const handleClickOutside = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
+        if (
+            target.closest('.custom-layout-modal') ||
+            target.closest('.custom-layout-modal__overlay')
+        ) {
+            return;
+        }
         if (
             !target.closest('.view-options-menu') &&
             !target.closest('.js-view-options-trigger')
