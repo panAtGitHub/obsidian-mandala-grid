@@ -37,6 +37,7 @@ const normalizeSectionColors = (value: unknown) => {
 const createDefaultMandalaView = () => ({
     gridOrientation: null as MandalaGridOrientation | null,
     lastActiveSection: null as string | null,
+    subgridTheme: null as string | null,
     pinnedSections: [] as string[],
     sectionColors: {} as Record<string, string[]>,
 });
@@ -78,6 +79,10 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                     lastActiveSection:
                         typeof mandalaViewRaw.lastActiveSection === 'string'
                             ? mandalaViewRaw.lastActiveSection
+                            : null,
+                    subgridTheme:
+                        typeof mandalaViewRaw.subgridTheme === 'string'
+                            ? mandalaViewRaw.subgridTheme
                             : null,
                     pinnedSections: normalizeSectionIds(
                         mandalaViewRaw.pinnedSections,

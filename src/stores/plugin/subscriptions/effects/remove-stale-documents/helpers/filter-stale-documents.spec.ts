@@ -13,6 +13,7 @@ const sample: DocumentPreferences = {
     mandalaView: {
         gridOrientation: null,
         lastActiveSection: null,
+        subgridTheme: null,
         pinnedSections: [],
         sectionColors: {},
     },

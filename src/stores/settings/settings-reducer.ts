@@ -54,6 +54,7 @@ const createDefaultDocumentPreferences = (): DocumentPreferences => ({
     mandalaView: {
         gridOrientation: null,
         lastActiveSection: null,
+        subgridTheme: null,
         pinnedSections: [],
         sectionColors: {},
     },
@@ -71,6 +72,7 @@ const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => 
         preferences.mandalaView = {
             gridOrientation: null,
             lastActiveSection: null,
+            subgridTheme: null,
             pinnedSections: [],
             sectionColors: {},
         };
@@ -113,6 +115,7 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const mandalaView = getOrCreateMandalaViewPreferences(preferences);
         mandalaView.gridOrientation = action.payload.gridOrientation;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
+        mandalaView.subgridTheme = action.payload.subgridTheme;
     },
     'settings/documents/persist-mandala-pinned-sections': (store, action) => {
         if (

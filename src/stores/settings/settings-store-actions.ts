@@ -279,6 +279,7 @@ export type PersistMandalaViewStateAction = {
         path: string;
         gridOrientation: MandalaGridOrientation;
         lastActiveSection: string | null;
+        subgridTheme: string | null;
     };
 };
 export type PersistMandalaPinnedSectionsAction = {

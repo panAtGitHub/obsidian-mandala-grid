@@ -56,6 +56,7 @@ import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
 import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
+import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -635,7 +636,13 @@ export class MandalaView extends TextFileView {
                 this.focusMandalaSection(activation.targetSection);
             }
         } else {
-            this.restoreMandalaUiState(filePath);
+            const fallbackSubgridTheme = resolveRestoredSubgridTheme({
+                existingSections: sectionsInBody,
+                persistedSubgridTheme:
+                    persistedMandalaViewState?.subgridTheme ?? null,
+                lastActiveSection: nextActiveSection ?? null,
+            });
+            this.restoreMandalaUiState(filePath, fallbackSubgridTheme);
         }
         logger.debug('[perf][view] loadDocumentToStore', {
             file: this.file?.path,
@@ -674,6 +681,7 @@ export class MandalaView extends TextFileView {
         const activeNodeId = viewState.document.activeNode;
         const lastActiveSection =
             documentState.sections.id_section[activeNodeId] ?? null;
+        const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
         const gridOrientation =
             this.plugin.settings.getValue().view.mandalaGridOrientation;
         const currentMandalaViewState =
@@ -681,7 +689,8 @@ export class MandalaView extends TextFileView {
         if (
             currentMandalaViewState?.gridOrientation === gridOrientation &&
             (currentMandalaViewState?.lastActiveSection ?? null) ===
-                lastActiveSection
+                lastActiveSection &&
+            (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme
         ) {
             return;
         }
@@ -691,13 +700,14 @@ export class MandalaView extends TextFileView {
                 path,
                 gridOrientation,
                 lastActiveSection,
+                subgridTheme,
             },
         });
     }
 
-    private restoreMandalaUiState(path: string) {
+    private restoreMandalaUiState(path: string, fallbackSubgridTheme = '1') {
         const nextState = this.mandalaUiStateByPath.get(path);
-        const subgridTheme = nextState?.subgridTheme ?? '1';
+        const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
         const activeCell9x9 = nextState?.activeCell9x9 ?? null;
 
         this.viewStore.dispatch({

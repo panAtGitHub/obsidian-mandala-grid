@@ -32,6 +32,7 @@ export type MandalaSectionColorAssignments = Partial<Record<string, string[]>>;
 export type MandalaViewDocumentPreferences = {
     gridOrientation: MandalaGridOrientation | null;
     lastActiveSection: string | null;
+    subgridTheme: string | null;
     pinnedSections: string[];
     sectionColors: MandalaSectionColorAssignments;
 };

@@ -96,6 +96,7 @@ describe('migrateSettings', () => {
         expect(settings.documents['foo.md'].mandalaView).toEqual({
             gridOrientation: null,
             lastActiveSection: null,
+            subgridTheme: null,
             pinnedSections: [],
             sectionColors: {},
         });
