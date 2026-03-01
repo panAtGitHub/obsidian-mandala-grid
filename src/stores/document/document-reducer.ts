@@ -227,7 +227,7 @@ const updateDocumentState = (
         return;
     }
 
-    const e = getDocumentEventType(action.type);
+    const e = getDocumentEventType(action, state);
 
     let affectedSection: string | null = null;
 

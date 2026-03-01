@@ -1,6 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { _electron as electron, ElectronApplication, Page } from '@playwright/test';
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const repoRoot = process.cwd();
@@ -12,6 +12,14 @@ const obsidianDirName = path.basename(obsidianDir);
 const devPluginDir = path.join(obsidianDir, 'plugins', 'mandala-grid-dev');
 const pluginDir = path.join(obsidianDir, 'plugins', 'mandala-grid');
 const pluginFiles = ['main.js', 'styles.css', 'manifest.json'] as const;
+
+const normalizeExecutablePath = (executablePath: string) => {
+    if (!executablePath.endsWith('.app')) {
+        return executablePath;
+    }
+    const appName = path.basename(executablePath, '.app');
+    return path.join(executablePath, 'Contents', 'MacOS', appName);
+};
 
 type TestVaultFile = {
     path: string;
@@ -41,11 +49,25 @@ type TestObsidianApp = {
             pushHistory: boolean,
             focus: boolean,
         ) => Promise<void>;
+        activeLeaf?: {
+            view?: TestMandalaView;
+        } | null;
     };
     plugins?: {
         enabledPlugins?: {
             has: (pluginId: string) => boolean;
         };
+    };
+};
+
+type TestMandalaView = {
+    documentStore: {
+        getValue: () => {
+            sections: {
+                section_id: Record<string, string>;
+            };
+        };
+        dispatch: (action: unknown) => void;
     };
 };
 
@@ -86,7 +108,7 @@ export const launchObsidian = async () => {
 
     await prepareVault();
     electronApp = await electron.launch({
-        executablePath,
+        executablePath: normalizeExecutablePath(executablePath),
         args: [vaultPath],
     });
     page = await electronApp.firstWindow();
@@ -146,4 +168,63 @@ export const openMandalaFile = async (obsidianPage: Page, filePath: string) => {
         await app.workspace.setActiveLeaf(leaf, true, true);
     }, filePath);
     await obsidianPage.locator('.mandala-view').waitFor();
+};
+
+export const swapMandalaSections = async (
+    obsidianPage: Page,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    await obsidianPage.evaluate(
+        ({ sourceSection, targetSection }) => {
+            const app = (window as unknown as { app: TestObsidianApp }).app;
+            const view = app.workspace.activeLeaf?.view;
+            if (!view?.documentStore) {
+                throw new Error('Mandala view is not active');
+            }
+            const state = view.documentStore.getValue();
+            const sourceNodeId = state.sections.section_id[sourceSection];
+            const targetNodeId = state.sections.section_id[targetSection];
+            if (!sourceNodeId || !targetNodeId) {
+                throw new Error(
+                    `Missing mandala sections: ${sourceSection}, ${targetSection}`,
+                );
+            }
+            view.documentStore.dispatch({
+                type: 'document/mandala/swap',
+                payload: { sourceNodeId, targetNodeId },
+            });
+        },
+        { sourceSection, targetSection },
+    );
+};
+
+export const updateMandalaSectionContent = async (
+    obsidianPage: Page,
+    section: string,
+    content: string,
+) => {
+    await obsidianPage.evaluate(
+        ({ section, content }) => {
+            const app = (window as unknown as { app: TestObsidianApp }).app;
+            const view = app.workspace.activeLeaf?.view;
+            if (!view?.documentStore) {
+                throw new Error('Mandala view is not active');
+            }
+            const state = view.documentStore.getValue();
+            const nodeId = state.sections.section_id[section];
+            if (!nodeId) {
+                throw new Error(`Missing mandala section: ${section}`);
+            }
+            view.documentStore.dispatch({
+                type: 'document/update-node-content',
+                payload: { nodeId, content },
+            });
+        },
+        { section, content },
+    );
+};
+
+export const readVaultMarkdownFile = async (filePath: string) => {
+    return readFile(path.join(vaultPath, filePath), 'utf8');
 };

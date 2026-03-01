@@ -1,10 +1,12 @@
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentState } from 'src/stores/document/document-state-type';
 
 export type DocumentEventType = {
     content?: boolean;
     dropOrMove?: boolean;
     createOrDelete?: boolean;
     clipboard?: boolean;
+    structural?: boolean;
 };
 
 type ActionType = DocumentStoreAction['type'];
@@ -29,6 +31,31 @@ const documentEventTypes = new Map(Object.entries(eventTypesDictionary)) as Map<
 
 const none = {};
 
-export const getDocumentEventType = (type: ActionType): DocumentEventType => {
+const resolveMandalaSwapType = (
+    documentState?: Pick<DocumentState, 'meta'>,
+): DocumentEventType => {
+    const baseType = documentEventTypes.get('document/mandala/swap') || none;
+    const mutation = documentState?.meta.mandalaV2.lastMutation;
+    if (
+        mutation?.actionType === 'document/mandala/swap' &&
+        mutation.structural
+    ) {
+        return {
+            ...baseType,
+            createOrDelete: true,
+            structural: true,
+        };
+    }
+    return baseType;
+};
+
+export const getDocumentEventType = (
+    action: ActionType | DocumentStoreAction,
+    documentState?: Pick<DocumentState, 'meta'>,
+): DocumentEventType => {
+    const type = typeof action === 'string' ? action : action.type;
+    if (type === 'document/mandala/swap') {
+        return resolveMandalaSwapType(documentState);
+    }
     return documentEventTypes.get(type) || none;
 };

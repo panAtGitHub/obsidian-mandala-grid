@@ -55,6 +55,7 @@ import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
 import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
+import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -94,8 +95,8 @@ export class MandalaView extends TextFileView {
     } | null = null;
     private lastActivationNotice: string | null = null;
     private lastSaveBlockedNoticeKey: string | null = null;
-    private pendingPersistSnapshot: { path: string; data: string } | null =
-        null;
+    private readonly persistSnapshotQueue: PersistSnapshotQueue;
+    private readonly persistSnapshotErrorKeys = new Map<string, string>();
     private readonly mandalaUiStateByPath = new Map<
         string,
         {
@@ -128,6 +129,13 @@ export class MandalaView extends TextFileView {
         this.id = id.view();
         this.documentSearch = new DocumentSearch(this);
         this.alignBranch = new AlignBranch(this);
+        this.persistSnapshotQueue = new PersistSnapshotQueue({
+            delayMs: 2000,
+            persist: (path, data) => this.persistSnapshot(path, data),
+            onError: ({ path, error }) => {
+                this.handlePersistSnapshotError(path, error);
+            },
+        });
     }
 
     get isActive() {
@@ -165,7 +173,9 @@ export class MandalaView extends TextFileView {
                     this.inlineEditor.unloadNode();
                 }
                 if (previousPath) {
-                    void this.flushPendingPersistSnapshot(previousPath);
+                    void this.flushAllPendingPersistSnapshots().catch(
+                        () => undefined,
+                    );
                     void this.persistMandalaUiState(previousPath);
                 }
             }
@@ -198,9 +208,7 @@ export class MandalaView extends TextFileView {
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
         }
-        if (this.activeFilePath) {
-            await this.flushPendingPersistSnapshot(this.activeFilePath);
-        }
+        await this.flushAllPendingPersistSnapshots().catch(() => undefined);
         if (this.component) {
             this.component.$destroy();
         }
@@ -230,9 +238,7 @@ export class MandalaView extends TextFileView {
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
         }
-        if (this.activeFilePath) {
-            void this.flushPendingPersistSnapshot(this.activeFilePath);
-        }
+        void this.flushAllPendingPersistSnapshots().catch(() => undefined);
         this.data = '';
     }
 
@@ -726,44 +732,32 @@ export class MandalaView extends TextFileView {
         250,
     );
 
-    private readonly debouncedPersistSnapshot = debounce(
-        (path: string, data: string) => {
-            void this.persistSnapshot(path, data).catch(() => undefined);
-        },
-        2000,
-        true,
-    );
-
     private queuePersistSnapshot(path: string, data: string) {
-        this.pendingPersistSnapshot = { path, data };
-        this.debouncedPersistSnapshot(path, data);
+        this.persistSnapshotQueue.queue(path, data);
     }
 
-    private async flushPendingPersistSnapshot(path: string) {
-        const snapshot = this.pendingPersistSnapshot;
-        if (!snapshot || snapshot.path !== path) return;
-        this.debouncedPersistSnapshot.cancel();
-        await this.persistSnapshot(snapshot.path, snapshot.data);
+    private async flushAllPendingPersistSnapshots() {
+        await this.persistSnapshotQueue.flushAll();
     }
 
     private async persistSnapshot(path: string, data: string) {
         const abstractFile = this.app.vault.getAbstractFileByPath(path);
         if (!(abstractFile instanceof TFile)) return;
-        try {
-            await this.app.vault.process(abstractFile, () => data);
-            if (
-                this.pendingPersistSnapshot?.path === path &&
-                this.pendingPersistSnapshot?.data === data
-            ) {
-                this.pendingPersistSnapshot = null;
-            }
-        } catch (error) {
-            logger.error('[mandala-view] persist snapshot failed', {
-                file: path,
-                error:
-                    error instanceof Error ? error.message : String(error),
-            });
+        await this.app.vault.process(abstractFile, () => data);
+        this.persistSnapshotErrorKeys.delete(path);
+    }
+
+    private handlePersistSnapshotError(path: string, error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        const errorKey = `${path}:${message}`;
+        if (this.persistSnapshotErrorKeys.get(path) !== errorKey) {
+            this.persistSnapshotErrorKeys.set(path, errorKey);
+            new Notice(`Failed to save ${path}`);
         }
+        logger.error('[mandala-view] persist snapshot failed', {
+            file: path,
+            error: message,
+        });
     }
 
     private focusMandalaSection(targetSection: string) {

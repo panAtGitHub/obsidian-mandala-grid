@@ -78,7 +78,7 @@ export const onDocumentStateUpdate = (
     viewStore.setContext(documentState.document);
     const type = action.type;
 
-    const e = getDocumentEventType(type);
+    const e = getDocumentEventType(action, documentState);
     view.documentSearch.applyDocumentAction(action, documentState);
     if (type === 'document/file/load-from-disk') {
         // needed when the file was modified externally

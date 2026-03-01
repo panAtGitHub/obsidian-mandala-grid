@@ -6,15 +6,11 @@ export const isStructuralDocumentChange = (
     documentState: DocumentState,
     action: DocumentStoreAction,
 ) => {
-    const type = getDocumentEventType(action.type);
-    if (type.createOrDelete || type.dropOrMove || type.clipboard) {
-        return true;
-    }
-
-    if (action.type !== 'document/mandala/swap') {
-        return false;
-    }
-
-    const mutation = documentState.meta.mandalaV2.lastMutation;
-    return mutation?.actionType === action.type && mutation.structural;
+    const type = getDocumentEventType(action, documentState);
+    return Boolean(
+        type.structural ||
+            type.createOrDelete ||
+            type.dropOrMove ||
+            type.clipboard,
+    );
 };

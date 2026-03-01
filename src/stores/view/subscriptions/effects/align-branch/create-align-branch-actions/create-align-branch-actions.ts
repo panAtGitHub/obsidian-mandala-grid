@@ -24,6 +24,7 @@ export type CreateActionsContext = Pick<
     | 'previousActiveBranch'
     | 'activeBranch'
     | 'alignBranchSettings'
+    | 'documentState'
 >;
 export const createAlignBranchActions = (
     context: CreateActionsContext,
@@ -54,7 +55,7 @@ export const createAlignBranchActions = (
         actions.push({ action: '20/active-node/horizontal/reveal' });
     }
 
-    if (settings.centerActiveNodeV || forceCenterActiveNodeV(action)) {
+    if (settings.centerActiveNodeV || forceCenterActiveNodeV(context, action)) {
         actions.push({ action: '20/active-node/vertical/center' });
         actions.push({ action: '30/parents/vertical/center' });
         actions.push({ action: '40/children/vertical/center' });

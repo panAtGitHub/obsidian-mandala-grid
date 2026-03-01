@@ -3,6 +3,9 @@ import {
     closeObsidian,
     launchObsidian,
     openMandalaFile,
+    readVaultMarkdownFile,
+    swapMandalaSections,
+    updateMandalaSectionContent,
     upsertMarkdownFile,
 } from '../helpers/obsidian-app';
 
@@ -57,5 +60,39 @@ test('switches between mandala files and keeps rendering stable', async () => {
     await expect(page.locator('.mandala-card')).toContainText('Gamma center');
 
     await openMandalaFile(page, 'e2e-smoke-a.md');
+    await expect(page.locator('.mandala-card')).toContainText('Alpha center');
+});
+
+test('persists swap and edits across file switches', async () => {
+    const { page } = await launchObsidian();
+    await upsertMarkdownFile(
+        page,
+        'e2e-swap-a.md',
+        sectionsFile('Alpha center', 'Beta side'),
+    );
+    await upsertMarkdownFile(
+        page,
+        'e2e-swap-b.md',
+        sectionsFile('Gamma center', 'Delta side'),
+    );
+
+    await openMandalaFile(page, 'e2e-swap-a.md');
+    await swapMandalaSections(page, '1', '2');
+    await updateMandalaSectionContent(page, '1', 'Beta moved and edited');
+
+    await openMandalaFile(page, 'e2e-swap-b.md');
+    await expect(page.locator('.mandala-card')).toContainText('Gamma center');
+
+    await expect
+        .poll(async () => readVaultMarkdownFile('e2e-swap-a.md'))
+        .toContain('Beta moved and edited');
+    await expect
+        .poll(async () => readVaultMarkdownFile('e2e-swap-a.md'))
+        .toContain('<!--section: 2-->\nAlpha center');
+
+    await openMandalaFile(page, 'e2e-swap-a.md');
+    await expect(page.locator('.mandala-card')).toContainText(
+        'Beta moved and edited',
+    );
     await expect(page.locator('.mandala-card')).toContainText('Alpha center');
 });
