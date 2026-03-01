@@ -66,9 +66,9 @@ describe('mandala-v2 validator', () => {
 
         const errors = validateSectionsStructure(parsed);
 
-        expect(errors.some((error) => error.reason.includes('continuous'))).toBe(
-            true,
-        );
+        expect(
+            errors.some((error) => error.reason.includes('continuous')),
+        ).toBe(true);
     });
 });
 
@@ -103,9 +103,14 @@ describe('mandala-v2 serializer', () => {
 
         expect(first).toBe(second);
         expect(first).toBe(
-            ['<!--section: 1-->', 'A', '<!--section: 2-->', 'C', '<!--section: 2.7-->', 'B'].join(
-                '\n',
-            ),
+            [
+                '<!--section: 1-->',
+                'A',
+                '<!--section: 2-->',
+                'C',
+                '<!--section: 2.7-->',
+                'B',
+            ].join('\n'),
         );
     });
 
@@ -140,9 +145,12 @@ describe('mandala-v2 serializer', () => {
     });
 
     it('preserves whitespace-only content as non-empty text', () => {
-        const markdown = ['<!--section: 1-->', ' ', '<!--section: 2-->', ''].join(
-            '\n',
-        );
+        const markdown = [
+            '<!--section: 1-->',
+            ' ',
+            '<!--section: 2-->',
+            '',
+        ].join('\n');
         const parsed = parseSections(markdown);
         const serialized = serializeSections(
             parsed.sections.map((section) => ({
@@ -195,6 +203,58 @@ describe('mandala-v2 save prepare', () => {
                 n15: { content: '' },
                 n16: { content: '' },
                 n17: { content: '' },
+                n18: { content: '' },
+                n2: { content: 'B' },
+            },
+        };
+
+        const result = prepareSaveSections(document, sections);
+
+        expect(result.blockedReasons).toEqual([]);
+        expect(result.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+            '2',
+        ]);
+        expect(result.stats.prunedParentCount).toBe(1);
+    });
+
+    it('prunes whitespace-only 8-slot subgrids', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '1.1': 'n11',
+                '1.2': 'n12',
+                '1.3': 'n13',
+                '1.4': 'n14',
+                '1.5': 'n15',
+                '1.6': 'n16',
+                '1.7': 'n17',
+                '1.8': 'n18',
+                '2': 'n2',
+            },
+            id_section: {
+                n1: '1',
+                n11: '1.1',
+                n12: '1.2',
+                n13: '1.3',
+                n14: '1.4',
+                n15: '1.5',
+                n16: '1.6',
+                n17: '1.7',
+                n18: '1.8',
+                n2: '2',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: 'Root' },
+                n11: { content: '\n' },
+                n12: { content: '   ' },
+                n13: { content: '\n\n' },
+                n14: { content: '\t' },
+                n15: { content: '' },
+                n16: { content: ' \n ' },
+                n17: { content: '\r\n' },
                 n18: { content: '' },
                 n2: { content: 'B' },
             },

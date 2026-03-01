@@ -37,6 +37,32 @@ describe('mandala-slot-authority', () => {
         expect(counts['1']).toBe(2);
     });
 
+    it('ignores whitespace-only mandala content in subtree counts', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '1.1': 'n11',
+                '1.2': 'n12',
+            },
+            id_section: {
+                n1: '1',
+                n11: '1.1',
+                n12: '1.2',
+            },
+        };
+        const content = {
+            n1: { content: '\n' },
+            n11: { content: ' \n\t' },
+            n12: { content: 'B' },
+        };
+
+        const counts = buildSubtreeNonEmptyCountBySection(content, sections);
+
+        expect(counts['1.1']).toBe(0);
+        expect(counts['1.2']).toBe(1);
+        expect(counts['1']).toBe(1);
+    });
+
     it('applies content delta only along ancestor chain', () => {
         const state = defaultDocumentState();
         state.meta.mandalaV2.enabled = true;
@@ -93,8 +119,12 @@ describe('mandala-slot-authority', () => {
         expect(state.meta.mandalaV2.revision).toBe(5);
         expect(state.meta.mandalaV2.parentToChildrenSlots['1'][1]).toBe('1.1');
         expect(state.meta.mandalaV2.parentToChildrenSlots['1'][8]).toBe('1.8');
-        expect(state.meta.mandalaV2.parentToChildrenSlots['1.8'][2]).toBe('1.8.2');
-        expect(state.meta.mandalaV2.subtreeNonEmptyCountBySection['1.8']).toBe(1);
+        expect(state.meta.mandalaV2.parentToChildrenSlots['1.8'][2]).toBe(
+            '1.8.2',
+        );
+        expect(state.meta.mandalaV2.subtreeNonEmptyCountBySection['1.8']).toBe(
+            1,
+        );
         expect(state.meta.mandalaV2.subtreeNonEmptyCountBySection['1']).toBe(1);
     });
 });

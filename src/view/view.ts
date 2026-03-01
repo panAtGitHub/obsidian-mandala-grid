@@ -48,6 +48,7 @@ import {
     MandalaProfileActivation,
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
+import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
@@ -298,7 +299,7 @@ export class MandalaView extends TextFileView {
                 const nodeId = state.sections.section_id[sectionId];
                 if (!nodeId) return false;
                 const replacement = state.document.content[nodeId]?.content ?? '';
-                return replacement.length > 0;
+                return isNonEmptyMandalaContent(replacement);
             });
 
         if (canTryEarlyPatch) {

@@ -1,6 +1,10 @@
 import { __dev__, logger } from 'src/helpers/logger';
+import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
-import { DocumentState, Sections } from 'src/stores/document/document-state-type';
+import {
+    DocumentState,
+    Sections,
+} from 'src/stores/document/document-state-type';
 import {
     compareSectionIds,
     getParentSection,
@@ -15,8 +19,6 @@ const getSlotOfDirectChild = (section: string, parentSection: string) => {
     if (!Number.isInteger(slot) || slot < 1 || slot > 8) return null;
     return slot;
 };
-
-const isTextNonEmpty = (value: string) => value.length > 0;
 
 const assertSectionBijection = (sections: Sections) => {
     if (!__dev__) return;
@@ -50,7 +52,11 @@ export const buildSubtreeNonEmptyCountBySection = (
     for (const sectionId of sortedSections) {
         const nodeId = sections.section_id[sectionId];
         const content = nodeId ? documentContent[nodeId]?.content ?? '' : '';
-        subtreeNonEmptyCountBySection[sectionId] = isTextNonEmpty(content) ? 1 : 0;
+        subtreeNonEmptyCountBySection[sectionId] = isNonEmptyMandalaContent(
+            content,
+        )
+            ? 1
+            : 0;
     }
 
     for (let i = sortedSections.length - 1; i >= 0; i -= 1) {
@@ -66,8 +72,10 @@ export const buildSubtreeNonEmptyCountBySection = (
 };
 
 const buildParentToChildrenSlots = (sectionIds: string[]) => {
-    const parentToChildrenSlots: Record<string, Partial<Record<number, string>>> =
-        {};
+    const parentToChildrenSlots: Record<
+        string,
+        Partial<Record<number, string>>
+    > = {};
 
     for (const sectionId of sectionIds) {
         const parent = getParentSection(sectionId);
@@ -174,7 +182,10 @@ export const removeMandalaDescendantSectionsByParents = (
 
     const sectionsToDelete = new Set<string>();
     for (const parentNodeId of parentNodeIds) {
-        const descendants = getAllChildren(state.document.columns, parentNodeId);
+        const descendants = getAllChildren(
+            state.document.columns,
+            parentNodeId,
+        );
         for (const nodeId of descendants) {
             const sectionId = state.sections.id_section[nodeId];
             if (sectionId) {
@@ -203,8 +214,8 @@ export const applyMandalaContentDelta = (
     nextContent: string,
 ) => {
     if (!state.meta.mandalaV2.enabled) return;
-    const before = isTextNonEmpty(previousContent) ? 1 : 0;
-    const after = isTextNonEmpty(nextContent) ? 1 : 0;
+    const before = isNonEmptyMandalaContent(previousContent) ? 1 : 0;
+    const after = isNonEmptyMandalaContent(nextContent) ? 1 : 0;
     const delta = after - before;
     if (delta === 0) return;
 
@@ -220,10 +231,7 @@ export const applyMandalaContentDelta = (
     }
 };
 
-export const logMandalaIndexRepair = (
-    state: DocumentState,
-    reason: string,
-) => {
+export const logMandalaIndexRepair = (state: DocumentState, reason: string) => {
     logger.warn('[mandala-v2] rebuild slot authority indexes', {
         reason,
         sections: Object.keys(state.sections.section_id).length,

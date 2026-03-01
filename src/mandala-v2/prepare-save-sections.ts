@@ -1,3 +1,4 @@
+import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { MandalaSectionId } from 'src/mandala-v2/types';
 import {
     MandalaGridDocument,
@@ -28,8 +29,6 @@ type PrepareSaveSectionsOptions = {
     parentToChildrenSlots?: Record<string, Partial<Record<number, string>>>;
     subtreeNonEmptyCountBySection?: Record<string, number>;
 };
-
-const isTextEmpty = (value: string) => value.length === 0;
 
 const createParentToChildrenSlots = (sectionIds: string[]) => {
     const slotsByParent: Record<string, Partial<Record<number, string>>> = {};
@@ -82,10 +81,15 @@ export const prepareSaveSections = (
 ): PrepareSaveSectionsResult => {
     const sectionIds = Object.keys(sections.section_id).sort(compareSectionIds);
     const parentToChildrenSlots =
-        options.parentToChildrenSlots ?? createParentToChildrenSlots(sectionIds);
+        options.parentToChildrenSlots ??
+        createParentToChildrenSlots(sectionIds);
     const subtreeNonEmptyCountBySection =
         options.subtreeNonEmptyCountBySection ??
-        buildSubtreeNonEmptyCountBySection(document.content, sections, sectionIds);
+        buildSubtreeNonEmptyCountBySection(
+            document.content,
+            sections,
+            sectionIds,
+        );
 
     const blockedReasons: string[] = [];
     const prunableParents: string[] = [];
@@ -106,8 +110,10 @@ export const prepareSaveSections = (
         let allDirectChildrenEmpty = true;
         for (const childSection of childSections) {
             const nodeId = sections.section_id[childSection];
-            const content = nodeId ? document.content[nodeId]?.content ?? '' : '';
-            if (!isTextEmpty(content)) {
+            const content = nodeId
+                ? document.content[nodeId]?.content ?? ''
+                : '';
+            if (!isEmptyMandalaContent(content)) {
                 allDirectChildrenEmpty = false;
                 break;
             }
@@ -135,7 +141,9 @@ export const prepareSaveSections = (
                 const nodeId = sections.section_id[sectionId];
                 return {
                     sectionId,
-                    content: nodeId ? document.content[nodeId]?.content ?? '' : '',
+                    content: nodeId
+                        ? document.content[nodeId]?.content ?? ''
+                        : '',
                 };
             }),
             blockedReasons,
