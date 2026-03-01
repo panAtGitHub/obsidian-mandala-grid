@@ -52,6 +52,7 @@ import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
 import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
+import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -805,6 +806,7 @@ export class MandalaView extends TextFileView {
         if (!this.file) return;
         const cache = this.app.metadataCache.getFileCache(this.file);
         if (!cache) return;
+        const state = this.documentStore.getValue();
         const result = resolveSubpath(
             cache,
             subpath,
@@ -818,10 +820,14 @@ export class MandalaView extends TextFileView {
                     level: result.current.level,
                 }
                 : null;
-        const nodeId =
-            (heading &&
-                this.findNodeByHeading(heading.text, heading.level)) ||
-            this.getNodeIdByLine(result.start.line);
+        const nodeId = resolveSubpathJumpNodeId({
+            markdown: this.data,
+            document: state.document,
+            sections: state.sections,
+            line: result.start.line,
+            headingText: heading?.text,
+            headingLevel: heading?.level,
+        });
         if (!nodeId || !this.isNodeAlive(nodeId)) return;
         this.updateSubgridThemeForNode(nodeId);
         await selectCard(this, nodeId);

@@ -57,5 +57,19 @@ export const debounce = <T extends (...args: never[]) => void>(fn: T) => fn;
 export const addIcon = () => {};
 export const parseYaml = (_input: string): unknown => ({});
 export const stringifyYaml = (_input: unknown): string => '';
+export const parseLinktext = (linktext: string) => {
+    const hashIndex = linktext.indexOf('#');
+    if (hashIndex < 0) {
+        return {
+            path: linktext,
+            subpath: '',
+        };
+    }
+
+    return {
+        path: linktext.slice(0, hashIndex),
+        subpath: linktext.slice(hashIndex + 1),
+    };
+};
 export const resolveSubpath = () => null;
 export const stripHeading = (value: string) => value;
