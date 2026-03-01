@@ -9,6 +9,7 @@ import { setActivePinnedNode } from 'src/stores/view/subscriptions/actions/set-a
 import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/update-selected-nodes';
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
+import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helpers/is-structural-document-change';
 import {
     serializeSectionColorMapForSettings,
     swapSectionSubtreeColors,
@@ -86,7 +87,7 @@ export const onDocumentStateUpdate = (
         loadPinnedNodesToDocument(view);
     }
 
-    const structuralChange = e.createOrDelete || e.dropOrMove || e.clipboard;
+    const structuralChange = isStructuralDocumentChange(documentState, action);
     if (structuralChange) {
         viewStore.batch(() => {
             setActiveNode(view, action);

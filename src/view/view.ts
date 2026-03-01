@@ -5,6 +5,7 @@ import {
     IconName,
     Notice,
     Scope,
+    TFile,
     TextFileView,
     WorkspaceLeaf,
     resolveSubpath,
@@ -87,11 +88,14 @@ export class MandalaView extends TextFileView {
     private activeFilePath: null | string;
     private lastLoadedBody = '';
     private lastLoadedFrontmatter = '';
-    private cachedActivation:
-        | { frontmatter: string; activation: MandalaProfileActivation }
-        | null = null;
+    private cachedActivation: {
+        frontmatter: string;
+        activation: MandalaProfileActivation;
+    } | null = null;
     private lastActivationNotice: string | null = null;
     private lastSaveBlockedNoticeKey: string | null = null;
+    private pendingPersistSnapshot: { path: string; data: string } | null =
+        null;
     private readonly mandalaUiStateByPath = new Map<
         string,
         {
@@ -110,7 +114,11 @@ export class MandalaView extends TextFileView {
             documentReducer,
             this.onViewStoreError as OnError<DocumentStoreAction>,
         );
-        this.viewStore = new Store<ViewState, ViewStoreAction, MandalaGridDocument>(
+        this.viewStore = new Store<
+            ViewState,
+            ViewStoreAction,
+            MandalaGridDocument
+        >(
             defaultViewState(),
             viewReducer,
             this.onViewStoreError as OnError<ViewStoreAction>,
@@ -139,25 +147,42 @@ export class MandalaView extends TextFileView {
         return this.data;
     }
 
-    setViewData(data: string): void {
+    setViewData(data: string, clear = false): void {
         if (!this.activeFilePath && this.file) {
             this.activeFilePath = this.file?.path;
             void this.loadInitialData();
         } else {
-            this.data = data;
             if (!this.isViewOfFile || !this.file) return;
 
+            const previousPath = this.activeFilePath;
             const nextPath = this.file.path;
-                const switchedFile = this.activeFilePath !== nextPath;
-                if (switchedFile) {
-                    if (this.activeFilePath) {
-                        void this.persistMandalaUiState(this.activeFilePath);
-                    }
-                    this.activeFilePath = nextPath;
-                    this.lastLoadedBody = '';
-                    this.lastLoadedFrontmatter = '';
+            const switchedFile = previousPath !== nextPath;
+            const changingFile = clear || switchedFile;
+
+            if (changingFile) {
+                this.debouncedLoadDocumentToStore.cancel();
+                if (this.inlineEditor) {
+                    this.inlineEditor.unloadNode();
+                }
+                if (previousPath) {
+                    void this.flushPendingPersistSnapshot(previousPath);
+                    void this.persistMandalaUiState(previousPath);
+                }
+            }
+
+            this.data = data;
+
+            if (switchedFile) {
+                this.activeFilePath = nextPath;
+                this.lastLoadedBody = '';
+                this.lastLoadedFrontmatter = '';
                 this.cachedActivation = null;
                 this.lastActivationNotice = null;
+                this.loadDocumentToStore();
+                return;
+            }
+
+            if (clear) {
                 this.loadDocumentToStore();
                 return;
             }
@@ -166,9 +191,16 @@ export class MandalaView extends TextFileView {
         }
     }
 
-    async onUnloadFile() {
+    async onUnloadFile(_file?: TFile) {
         this.cancelFocusMandalaSection();
         this.cancelFirstRenderProbe();
+        this.debouncedLoadDocumentToStore.cancel();
+        if (this.inlineEditor) {
+            this.inlineEditor.unloadNode();
+        }
+        if (this.activeFilePath) {
+            await this.flushPendingPersistSnapshot(this.activeFilePath);
+        }
         if (this.component) {
             this.component.$destroy();
         }
@@ -194,6 +226,13 @@ export class MandalaView extends TextFileView {
     }
 
     clear(): void {
+        this.debouncedLoadDocumentToStore.cancel();
+        if (this.inlineEditor) {
+            this.inlineEditor.unloadNode();
+        }
+        if (this.activeFilePath) {
+            void this.flushPendingPersistSnapshot(this.activeFilePath);
+        }
         this.data = '';
     }
 
@@ -231,10 +270,11 @@ export class MandalaView extends TextFileView {
             return;
         }
         if (typeof (state as { subpath?: string }).subpath === 'string') {
-            void this.handleSubpathJump((state as { subpath: string }).subpath)
-                .finally(() => {
-                    this.hasPendingExplicitJump = false;
-                });
+            void this.handleSubpathJump(
+                (state as { subpath: string }).subpath,
+            ).finally(() => {
+                this.hasPendingExplicitJump = false;
+            });
         } else if (typeof (state as { line?: number }).line === 'number') {
             void this.handleLineJump((state as { line: number }).line).finally(
                 () => {
@@ -298,7 +338,8 @@ export class MandalaView extends TextFileView {
             changedSections.every((sectionId) => {
                 const nodeId = state.sections.section_id[sectionId];
                 if (!nodeId) return false;
-                const replacement = state.document.content[nodeId]?.content ?? '';
+                const replacement =
+                    state.document.content[nodeId]?.content ?? '';
                 return isNonEmptyMandalaContent(replacement);
             });
 
@@ -313,7 +354,8 @@ export class MandalaView extends TextFileView {
                     usedFastPath = false;
                     break;
                 }
-                const replacement = state.document.content[nodeId]?.content ?? '';
+                const replacement =
+                    state.document.content[nodeId]?.content ?? '';
                 const patchResult = applySectionPatch(
                     patchedBody,
                     sectionId,
@@ -334,12 +376,16 @@ export class MandalaView extends TextFileView {
 
         if (!usedFastPath) {
             const prepareStartedMs = performance.now();
-            const prepared = prepareSaveSections(state.document, state.sections, {
-                parentToChildrenSlots:
-                    state.meta.mandalaV2.parentToChildrenSlots,
-                subtreeNonEmptyCountBySection:
-                    state.meta.mandalaV2.subtreeNonEmptyCountBySection,
-            });
+            const prepared = prepareSaveSections(
+                state.document,
+                state.sections,
+                {
+                    parentToChildrenSlots:
+                        state.meta.mandalaV2.parentToChildrenSlots,
+                    subtreeNonEmptyCountBySection:
+                        state.meta.mandalaV2.subtreeNonEmptyCountBySection,
+                },
+            );
             prepareMs = Number(
                 (performance.now() - prepareStartedMs).toFixed(2),
             );
@@ -349,8 +395,7 @@ export class MandalaView extends TextFileView {
 
             if (prepared.blockedReasons.length > 0) {
                 const message = prepared.blockedReasons[0];
-                const blockedKey =
-                    `${this.file.path}:${state.meta.mandalaV2.revision}:${message}`;
+                const blockedKey = `${this.file.path}:${state.meta.mandalaV2.revision}:${message}`;
                 if (this.lastSaveBlockedNoticeKey !== blockedKey) {
                     this.lastSaveBlockedNoticeKey = blockedKey;
                     new Notice(message, 3500);
@@ -419,7 +464,9 @@ export class MandalaView extends TextFileView {
             save_dropped_sections: droppedSectionCount,
             save_pruned_parents: prunedParentCount,
             save_blocked_count: blockedParentCount,
-            save_total_ms: Number((performance.now() - saveStartedMs).toFixed(2)),
+            save_total_ms: Number(
+                (performance.now() - saveStartedMs).toFixed(2),
+            ),
         });
         const data: string = state.file.frontmatter + body;
         if (data !== this.data) {
@@ -430,7 +477,10 @@ export class MandalaView extends TextFileView {
             const parsed = extractFrontmatter(data);
             this.lastLoadedBody = parsed.body;
             this.lastLoadedFrontmatter = parsed.frontmatter;
-            this.requestSave();
+            const persistPath = this.activeFilePath ?? this.file?.path ?? null;
+            if (persistPath) {
+                this.queuePersistSnapshot(persistPath, data);
+            }
         }
     };
 
@@ -492,7 +542,8 @@ export class MandalaView extends TextFileView {
         const viewState = this.viewStore.getValue();
         const emptyStore = documentState.document.columns.length === 0;
         const bodyHasChanged = body !== this.lastLoadedBody;
-        const frontmatterHasChanged = frontmatter !== this.lastLoadedFrontmatter;
+        const frontmatterHasChanged =
+            frontmatter !== this.lastLoadedFrontmatter;
 
         const isEditing = Boolean(viewState.document.editing.activeNodeId);
 
@@ -517,10 +568,11 @@ export class MandalaView extends TextFileView {
             });
         }
         const sectionsInBody = this.collectSectionIdsFromBody(body);
-        const persistedMandalaLastActiveSection = this.getExistingSectionFromBody(
-            sectionsInBody,
-            persistedMandalaViewState?.lastActiveSection ?? null,
-        );
+        const persistedMandalaLastActiveSection =
+            this.getExistingSectionFromBody(
+                sectionsInBody,
+                persistedMandalaViewState?.lastActiveSection ?? null,
+            );
         const persistedActiveSection = this.getExistingSectionFromBody(
             sectionsInBody,
             documentPreferences?.activeSection ?? null,
@@ -532,12 +584,7 @@ export class MandalaView extends TextFileView {
         let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             const loadStartMs = performance.now();
-            loadFullDocument(
-                this,
-                body,
-                frontmatter,
-                nextActiveSection,
-            );
+            loadFullDocument(this, body, frontmatter, nextActiveSection);
             const loadCostMs = performance.now() - loadStartMs;
             const loadMetrics =
                 this.documentStore.getValue().meta.mandalaV2.loadMetrics;
@@ -581,7 +628,9 @@ export class MandalaView extends TextFileView {
         logger.debug('[perf][view] loadDocumentToStore', {
             file: this.file?.path,
             event,
-            bytes: this.documentStore.getValue().meta.mandalaV2.loadMetrics?.bytes ?? 0,
+            bytes:
+                this.documentStore.getValue().meta.mandalaV2.loadMetrics
+                    ?.bytes ?? 0,
             sections_count:
                 this.documentStore.getValue().meta.mandalaV2.loadMetrics
                     ?.sectionsCount ?? 0,
@@ -677,12 +726,51 @@ export class MandalaView extends TextFileView {
         250,
     );
 
+    private readonly debouncedPersistSnapshot = debounce(
+        (path: string, data: string) => {
+            void this.persistSnapshot(path, data).catch(() => undefined);
+        },
+        2000,
+        true,
+    );
+
+    private queuePersistSnapshot(path: string, data: string) {
+        this.pendingPersistSnapshot = { path, data };
+        this.debouncedPersistSnapshot(path, data);
+    }
+
+    private async flushPendingPersistSnapshot(path: string) {
+        const snapshot = this.pendingPersistSnapshot;
+        if (!snapshot || snapshot.path !== path) return;
+        this.debouncedPersistSnapshot.cancel();
+        await this.persistSnapshot(snapshot.path, snapshot.data);
+    }
+
+    private async persistSnapshot(path: string, data: string) {
+        const abstractFile = this.app.vault.getAbstractFileByPath(path);
+        if (!(abstractFile instanceof TFile)) return;
+        try {
+            await this.app.vault.process(abstractFile, () => data);
+            if (
+                this.pendingPersistSnapshot?.path === path &&
+                this.pendingPersistSnapshot?.data === data
+            ) {
+                this.pendingPersistSnapshot = null;
+            }
+        } catch (error) {
+            logger.error('[mandala-view] persist snapshot failed', {
+                file: path,
+                error:
+                    error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
+
     private focusMandalaSection(targetSection: string) {
         this.cancelFocusMandalaSection();
         const currentNodeId = this.viewStore.getValue().document.activeNode;
-        const currentSection = this.documentStore.getValue().sections.id_section[
-            currentNodeId
-        ];
+        const currentSection =
+            this.documentStore.getValue().sections.id_section[currentNodeId];
         if (currentSection === targetSection) return;
 
         const requestId = ++this.focusMandalaSectionRequestId;
@@ -690,7 +778,9 @@ export class MandalaView extends TextFileView {
         const run = (attempt: number) => {
             if (requestId !== this.focusMandalaSectionRequestId) return;
             const nodeId =
-                this.documentStore.getValue().sections.section_id[targetSection];
+                this.documentStore.getValue().sections.section_id[
+                    targetSection
+                ];
             if (!nodeId) {
                 if (attempt < 20) {
                     this.focusMandalaSectionTimer = window.setTimeout(
@@ -702,7 +792,9 @@ export class MandalaView extends TextFileView {
                         file: this.file?.path,
                         targetSection,
                         attempts: attempt + 1,
-                        costMs: Number((performance.now() - startMs).toFixed(2)),
+                        costMs: Number(
+                            (performance.now() - startMs).toFixed(2),
+                        ),
                     });
                 }
                 return;
@@ -758,22 +850,25 @@ export class MandalaView extends TextFileView {
     ) {
         this.cancelFirstRenderProbe();
         this.firstRenderProbeRequestId = window.requestAnimationFrame(() => {
-            this.firstRenderProbeRequestId = window.requestAnimationFrame(() => {
-                this.firstRenderProbeRequestId = null;
-                const loadMetrics =
-                    this.documentStore.getValue().meta.mandalaV2.loadMetrics;
-                logger.debug('[perf][view] firstRender', {
-                    file: this.file?.path,
-                    event,
-                    bytes: loadMetrics?.bytes ?? 0,
-                    sections_count: loadMetrics?.sectionsCount ?? 0,
-                    parse_ms: loadMetrics?.parseMs ?? 0,
-                    build_ms: loadMetrics?.buildMs ?? 0,
-                    first_render_ms: Number(
-                        (performance.now() - loadStartedMs).toFixed(2),
-                    ),
-                });
-            });
+            this.firstRenderProbeRequestId = window.requestAnimationFrame(
+                () => {
+                    this.firstRenderProbeRequestId = null;
+                    const loadMetrics =
+                        this.documentStore.getValue().meta.mandalaV2
+                            .loadMetrics;
+                    logger.debug('[perf][view] firstRender', {
+                        file: this.file?.path,
+                        event,
+                        bytes: loadMetrics?.bytes ?? 0,
+                        sections_count: loadMetrics?.sectionsCount ?? 0,
+                        parse_ms: loadMetrics?.parseMs ?? 0,
+                        build_ms: loadMetrics?.buildMs ?? 0,
+                        first_render_ms: Number(
+                            (performance.now() - loadStartedMs).toFixed(2),
+                        ),
+                    });
+                },
+            );
         });
     }
 
@@ -808,18 +903,18 @@ export class MandalaView extends TextFileView {
         const cache = this.app.metadataCache.getFileCache(this.file);
         if (!cache) return;
         const state = this.documentStore.getValue();
-        const result = resolveSubpath(
-            cache,
-            subpath,
-        ) as HeadingSubpathResult | BlockSubpathResult | null;
+        const result = resolveSubpath(cache, subpath) as
+            | HeadingSubpathResult
+            | BlockSubpathResult
+            | null;
         if (!result) return;
 
         const heading =
             result.type === 'heading'
                 ? {
-                    text: result.current.heading,
-                    level: result.current.level,
-                }
+                      text: result.current.heading,
+                      level: result.current.level,
+                  }
                 : null;
         const nodeId = resolveSubpathJumpNodeId({
             markdown: this.data,
@@ -833,11 +928,7 @@ export class MandalaView extends TextFileView {
         this.updateSubgridThemeForNode(nodeId);
         await selectCard(this, nodeId);
         if (heading) {
-            this.scrollHeadingIntoView(
-                nodeId,
-                heading.text,
-                heading.level,
-            );
+            this.scrollHeadingIntoView(nodeId, heading.text, heading.level);
         }
     }
 
@@ -863,8 +954,7 @@ export class MandalaView extends TextFileView {
             this.documentStore.getValue().sections.id_section[nodeId];
         if (!section) return;
         const parts = section.split('.');
-        const theme =
-            parts.length > 1 ? parts.slice(0, -1).join('.') : section;
+        const theme = parts.length > 1 ? parts.slice(0, -1).join('.') : section;
         this.viewStore.dispatch({
             type: 'view/mandala/subgrid/enter',
             payload: { theme },
@@ -898,7 +988,8 @@ export class MandalaView extends TextFileView {
                         const match = /^(#{1,6})\s+(.*)$/.exec(trimmed);
                         if (!match) continue;
                         const currentLevel = match[1].length;
-                        if (headingLevel && currentLevel !== headingLevel) continue;
+                        if (headingLevel && currentLevel !== headingLevel)
+                            continue;
                         const text = match[2].replace(/\s*#+\s*$/, '').trim();
                         if (
                             this.normalizeHeadingText(text) === normalizedTarget
@@ -918,7 +1009,9 @@ export class MandalaView extends TextFileView {
     }
 
     private normalizeHeadingText(text: string) {
-        return stripHeading(text || '').trim().toLowerCase();
+        return stripHeading(text || '')
+            .trim()
+            .toLowerCase();
     }
 
     private scrollHeadingIntoView(
@@ -927,7 +1020,9 @@ export class MandalaView extends TextFileView {
         headingLevel?: number,
     ) {
         setTimeout(() => {
-            const card = this.container?.querySelector<HTMLElement>(`#${nodeId}`);
+            const card = this.container?.querySelector<HTMLElement>(
+                `#${nodeId}`,
+            );
             if (!card) return;
             const headingElements = Array.from(
                 card.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'),
@@ -938,12 +1033,8 @@ export class MandalaView extends TextFileView {
                     const level = Number(h.tagName.slice(1));
                     if (headingLevel && headingLevel !== level) return false;
                     const text =
-                        h.dataset.heading?.toString() ||
-                        h.textContent ||
-                        '';
-                    return (
-                        this.normalizeHeadingText(text) === normalizedTarget
-                    );
+                        h.dataset.heading?.toString() || h.textContent || '';
+                    return this.normalizeHeadingText(text) === normalizedTarget;
                 }) || card;
             target.scrollIntoView({
                 behavior: 'smooth',
