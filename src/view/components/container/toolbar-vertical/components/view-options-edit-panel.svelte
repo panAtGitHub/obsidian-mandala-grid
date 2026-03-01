@@ -52,13 +52,7 @@
     export let resetCardsGap: () => void;
 
     export let selectGridLayout: (layoutId: string) => void;
-    export let addCustomGridLayout: () => void;
-    export let updateCustomGridLayout: (
-        id: string,
-        name: string,
-        pattern: string,
-    ) => void;
-    export let deleteCustomGridLayout: (id: string) => void;
+    export let openCustomLayoutModal: () => void;
 </script>
 
 {#if showTrigger}
@@ -411,9 +405,7 @@
             {selectedLayoutId}
             {customLayouts}
             onSelectLayout={selectGridLayout}
-            onAddCustomLayout={addCustomGridLayout}
-            onUpdateCustomLayout={updateCustomGridLayout}
-            onDeleteCustomLayout={deleteCustomGridLayout}
+            onOpenCustomLayoutModal={openCustomLayoutModal}
         />
     </div>
 {/if}

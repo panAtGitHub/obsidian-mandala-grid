@@ -529,6 +529,19 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         };
         store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
     },
+    'settings/view/mandala/create-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/create-custom-grid-layout')
+            return;
+        const currentLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        );
+        const nextLayout: MandalaCustomLayout = {
+            id: action.payload.layout.id,
+            name: action.payload.layout.name.trim() || '未命名布局',
+            pattern: normalizeCustomMandalaPattern(action.payload.layout.pattern),
+        };
+        store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
+    },
     'settings/view/mandala/update-custom-grid-layout': (store, action) => {
         if (action.type !== 'settings/view/mandala/update-custom-grid-layout')
             return;

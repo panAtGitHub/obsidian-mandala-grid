@@ -240,6 +240,10 @@ export type SettingsActions =
           payload: { layout: MandalaCustomLayout };
       }
     | {
+          type: 'settings/view/mandala/create-custom-grid-layout';
+          payload: { layout: MandalaCustomLayout };
+      }
+    | {
           type: 'settings/view/mandala/update-custom-grid-layout';
           payload: { id: string; name: string; pattern: string };
       }

@@ -3,15 +3,15 @@ import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
 import { settingsReducer } from 'src/stores/settings/settings-reducer';
 
 describe('settingsReducer custom grid layouts', () => {
-    test('adds and selects a custom layout', () => {
+    test('creates and selects a custom layout', () => {
         const settings = DEFAULT_SETTINGS();
 
         settingsReducer(settings, {
-            type: 'settings/view/mandala/add-custom-grid-layout',
+            type: 'settings/view/mandala/create-custom-grid-layout',
             payload: {
                 layout: {
                     id: 'custom:1',
-                    name: '顺时针',
+                    name: ' 顺时针 ',
                     pattern: '123405678',
                 },
             },
@@ -22,6 +22,7 @@ describe('settingsReducer custom grid layouts', () => {
         });
 
         expect(settings.view.mandalaGridCustomLayouts).toHaveLength(1);
+        expect(settings.view.mandalaGridCustomLayouts[0]?.name).toBe('顺时针');
         expect(settings.view.mandalaGridSelectedLayoutId).toBe('custom:1');
         expect(settings.view.mandalaGridOrientation).toBe('custom');
     });

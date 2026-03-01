@@ -59,6 +59,7 @@
     import ViewOptionsFontPanel from './components/view-options-font-panel.svelte';
     import ViewOptionsDisplayPanel from './components/view-options-display-panel.svelte';
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
+    import ViewOptionsCustomLayoutModal from './components/view-options-custom-layout-modal.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
     import Portal from 'src/view/components/container/shared/portal.svelte';
     import type {
@@ -93,6 +94,7 @@
         offsetY: number;
     } | null = null;
     let exportModalInlineStyle: string | undefined = undefined;
+    let isCustomLayoutModalOpen = false;
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
@@ -747,17 +749,19 @@
         });
     };
 
-    const addCustomGridLayout = () => {
-        const layout: MandalaCustomLayout = {
-            id: `custom:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            name: '我的排序',
-            pattern: '123405678',
-        };
+    const openCustomLayoutModal = () => {
+        isCustomLayoutModalOpen = true;
+    };
+
+    const closeCustomLayoutModal = () => {
+        isCustomLayoutModalOpen = false;
+    };
+
+    const createCustomGridLayout = (layout: MandalaCustomLayout) => {
         view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/add-custom-grid-layout',
+            type: 'settings/view/mandala/create-custom-grid-layout',
             payload: { layout },
         });
-        selectGridLayout(layout.id);
     };
 
     const updateCustomGridLayout = (
@@ -1673,6 +1677,7 @@
         showTemplateOptions = false;
         showImmersiveOptions = false;
         showPanoramaOptions = false;
+        isCustomLayoutModalOpen = false;
     };
 
     const openHotkeysModal = () => {
@@ -2018,9 +2023,7 @@
                 {updateCardsGap}
                 {resetCardsGap}
                 {selectGridLayout}
-                {addCustomGridLayout}
-                {updateCustomGridLayout}
-                {deleteCustomGridLayout}
+                {openCustomLayoutModal}
             />
 
             <ViewOptionsDisplayPanel
@@ -2314,9 +2317,7 @@
                                 {updateCardsGap}
                                 {resetCardsGap}
                                 {selectGridLayout}
-                                {addCustomGridLayout}
-                                {updateCustomGridLayout}
-                                {deleteCustomGridLayout}
+                                {openCustomLayoutModal}
                             />
                         </div>
                     {/if}
@@ -2346,6 +2347,18 @@
         </div>
     </Portal>
 {/if}
+
+<ViewOptionsCustomLayoutModal
+    open={isCustomLayoutModalOpen}
+    {isMobile}
+    activeLayoutId={$selectedLayoutId}
+    customLayouts={$customLayouts}
+    onClose={closeCustomLayoutModal}
+    onSelectLayout={selectGridLayout}
+    onCreateCustomLayout={createCustomGridLayout}
+    onUpdateCustomLayout={updateCustomGridLayout}
+    onDeleteCustomLayout={deleteCustomGridLayout}
+/>
 
 <style>
     .export-mode-overlay {
