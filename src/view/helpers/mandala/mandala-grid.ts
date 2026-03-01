@@ -1,22 +1,28 @@
-import type { MandalaGridOrientation } from 'src/stores/settings/settings-type';
+import type {
+    BuiltinMandalaGridOrientation,
+    MandalaCustomLayout,
+    MandalaGridOrientation,
+} from 'src/stores/settings/settings-type';
+import {
+    BUILTIN_MANDALA_LAYOUT_PATTERNS,
+    coreGridToPattern,
+    findMandalaCustomLayout,
+    getFallbackCustomPattern,
+    normalizeCustomMandalaPattern,
+    patternToCoreGrid,
+    resolveMandalaLayoutId,
+} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
 
-export const coreGrid = [
-    ['2', '3', '4'],
-    ['5', '1', '6'],
-    ['7', '8', '9'],
-] as const;
-
-const coreGridSouthStart = [
-    ['7', '4', '8'],
-    ['3', '1', '5'],
-    ['6', '2', '9'],
-] as const;
-
-const coreGridBottomToTop = [
-    ['7', '8', '9'],
-    ['5', '1', '6'],
-    ['2', '3', '4'],
-] as const;
+type MandalaLayout = {
+    coreGrid: readonly (readonly string[])[];
+    coreSlots: string[];
+    positions: Record<string, { row: number; col: number }>;
+    themeBlocks: Array<string | null>;
+    themeGrid: Array<Array<string | null>>;
+    slotPositions: Record<string, { row: number; col: number }>;
+    childSlots: Array<string | null>;
+    previewPattern: string;
+};
 
 const buildCoreSlots = (
     grid: readonly (readonly string[])[],
@@ -62,18 +68,9 @@ const buildSlotPositions = (
     return mapping;
 };
 
-type MandalaLayout = {
-    coreGrid: readonly (readonly string[])[];
-    coreSlots: string[];
-    positions: Record<string, { row: number; col: number }>;
-    themeBlocks: Array<string | null>;
-    themeGrid: Array<Array<string | null>>;
-    slotPositions: Record<string, { row: number; col: number }>;
-    childSlots: Array<string | null>;
-};
-
 const createLayout = (
     grid: readonly (readonly string[])[],
+    previewPattern = coreGridToPattern(grid),
 ): MandalaLayout => {
     const themeGrid = buildThemeGrid(grid);
     return {
@@ -84,30 +81,88 @@ const createLayout = (
         themeGrid,
         slotPositions: buildSlotPositions(themeGrid),
         childSlots: buildChildSlots(themeGrid),
+        previewPattern,
     };
 };
 
-const layoutMaps: Record<MandalaGridOrientation, MandalaLayout> = {
-    'left-to-right': createLayout(coreGrid),
-    'south-start': createLayout(coreGridSouthStart),
-    'bottom-to-top': createLayout(coreGridBottomToTop),
+const builtinLayoutMaps: Record<BuiltinMandalaGridOrientation, MandalaLayout> = {
+    'left-to-right': createLayout(
+        patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS['left-to-right']),
+        BUILTIN_MANDALA_LAYOUT_PATTERNS['left-to-right'],
+    ),
+    'south-start': createLayout(
+        patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start']),
+        BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start'],
+    ),
 };
 
-export const getMandalaLayout = (orientation: MandalaGridOrientation) =>
-    layoutMaps[orientation] ?? layoutMaps['left-to-right'];
+const customLayoutCache = new Map<string, MandalaLayout>();
 
-export const coreSlots = layoutMaps['left-to-right'].coreSlots;
-export const themeGrid = layoutMaps['left-to-right'].themeGrid;
-export const slotPositions = layoutMaps['left-to-right'].slotPositions;
-export const childSlots = layoutMaps['left-to-right'].childSlots;
-export const positions = layoutMaps['left-to-right'].positions;
-export const themeBlocks = layoutMaps['left-to-right'].themeBlocks;
+const getCustomMandalaLayout = (pattern: string) => {
+    const normalizedPattern = normalizeCustomMandalaPattern(
+        pattern || getFallbackCustomPattern(),
+    );
+    const cached = customLayoutCache.get(normalizedPattern);
+    if (cached) return cached;
+    const layout = createLayout(
+        patternToCoreGrid(normalizedPattern),
+        normalizedPattern,
+    );
+    customLayoutCache.set(normalizedPattern, layout);
+    return layout;
+};
+
+export const getBuiltinMandalaLayout = (
+    orientation: BuiltinMandalaGridOrientation,
+) => builtinLayoutMaps[orientation];
+
+export const getMandalaLayout = (
+    orientation: MandalaGridOrientation,
+    customPattern = getFallbackCustomPattern(),
+) => {
+    if (orientation === 'south-start') {
+        return builtinLayoutMaps['south-start'];
+    }
+    if (orientation === 'custom') {
+        return getCustomMandalaLayout(customPattern);
+    }
+    return builtinLayoutMaps['left-to-right'];
+};
+
+export const getMandalaLayoutById = (
+    selectedLayoutId: string | null | undefined,
+    customLayouts: MandalaCustomLayout[],
+) => {
+    const resolvedId = resolveMandalaLayoutId(selectedLayoutId, customLayouts);
+    if (resolvedId.startsWith('custom:')) {
+        const customLayout = findMandalaCustomLayout(customLayouts, resolvedId);
+        return getCustomMandalaLayout(customLayout?.pattern ?? getFallbackCustomPattern());
+    }
+    return getMandalaLayout(
+        resolvedId === 'builtin:south-start' ? 'south-start' : 'left-to-right',
+    );
+};
+
+export const coreSlots = builtinLayoutMaps['left-to-right'].coreSlots;
+export const themeGrid = builtinLayoutMaps['left-to-right'].themeGrid;
+export const slotPositions = builtinLayoutMaps['left-to-right'].slotPositions;
+export const childSlots = builtinLayoutMaps['left-to-right'].childSlots;
+export const positions = builtinLayoutMaps['left-to-right'].positions;
+export const themeBlocks = builtinLayoutMaps['left-to-right'].themeBlocks;
 
 export const posOfSection3x3 = (
     section: string,
-    orientation: MandalaGridOrientation = 'left-to-right',
+    selectedLayoutIdOrOrientation: string,
+    customLayouts: MandalaCustomLayout[] = [],
 ): { row: number; col: number } | null => {
-    const { slotPositions } = getMandalaLayout(orientation);
+    const layout = selectedLayoutIdOrOrientation.startsWith('builtin:') ||
+        selectedLayoutIdOrOrientation.startsWith('custom:')
+        ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
+        : getMandalaLayout(
+              selectedLayoutIdOrOrientation as MandalaGridOrientation,
+              customLayouts[0]?.pattern,
+          );
+    const { slotPositions } = layout;
     if (section === '1') return { row: 1, col: 1 };
     if (!section.includes('.')) return null;
     const parts = section.split('.');
@@ -118,10 +173,18 @@ export const posOfSection3x3 = (
 
 export const posOfSection9x9 = (
     section: string,
-    orientation: MandalaGridOrientation = 'left-to-right',
+    selectedLayoutIdOrOrientation: string,
     baseTheme = '1',
+    customLayouts: MandalaCustomLayout[] = [],
 ): { row: number; col: number } | null => {
-    const { slotPositions } = getMandalaLayout(orientation);
+    const layout = selectedLayoutIdOrOrientation.startsWith('builtin:') ||
+        selectedLayoutIdOrOrientation.startsWith('custom:')
+        ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
+        : getMandalaLayout(
+              selectedLayoutIdOrOrientation as MandalaGridOrientation,
+              customLayouts[0]?.pattern,
+          );
+    const { slotPositions } = layout;
 
     if (section === baseTheme) return { row: 4, col: 4 };
     if (!section.startsWith(`${baseTheme}.`)) return null;
@@ -149,14 +212,22 @@ export const posOfSection9x9 = (
 export const sectionAtCell9x9 = (
     row: number,
     col: number,
-    orientation: MandalaGridOrientation = 'left-to-right',
+    selectedLayoutIdOrOrientation: string,
     baseTheme = '1',
+    customLayouts: MandalaCustomLayout[] = [],
 ): string | null => {
+    const layout = selectedLayoutIdOrOrientation.startsWith('builtin:') ||
+        selectedLayoutIdOrOrientation.startsWith('custom:')
+        ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
+        : getMandalaLayout(
+              selectedLayoutIdOrOrientation as MandalaGridOrientation,
+              customLayouts[0]?.pattern,
+          );
     const blockRow = Math.floor(row / 3);
     const blockCol = Math.floor(col / 3);
     const localRow = row % 3;
     const localCol = col % 3;
-    const { themeGrid: layoutThemeGrid } = getMandalaLayout(orientation);
+    const { themeGrid: layoutThemeGrid } = layout;
 
     const blockSlot =
         blockRow === 1 && blockCol === 1

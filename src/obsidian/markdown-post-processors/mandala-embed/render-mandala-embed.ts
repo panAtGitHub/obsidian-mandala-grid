@@ -26,7 +26,7 @@ import {
 import { MandalaEmbedController } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller';
 import { findRenderedMarkdown } from 'src/view/actions/markdown-preview/helpers/rendered-markdown-registry';
 
-type MandalaEmbedOrientation = 'left-to-right' | 'south-start' | 'bottom-to-top';
+type MandalaEmbedOrientation = 'left-to-right' | 'south-start';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
 
 const SECTION_COMMENT_LINE_RE =
@@ -86,7 +86,9 @@ const resolveEmbedTarget = (
 };
 
 const getOrientation = (plugin: MandalaGrid): MandalaEmbedOrientation =>
-    plugin.settings.getValue().view.mandalaGridOrientation ?? 'left-to-right';
+    plugin.settings.getValue().view.mandalaGridOrientation === 'south-start'
+        ? 'south-start'
+        : 'left-to-right';
 
 const buildModelFromFile = async (
     plugin: MandalaGrid,

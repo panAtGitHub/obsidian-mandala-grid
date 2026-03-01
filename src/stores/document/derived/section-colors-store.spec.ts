@@ -21,6 +21,7 @@ const createDocumentPreferences = (
     outline: null,
     mandalaView: {
         gridOrientation: null,
+        selectedLayoutId: null,
         lastActiveSection: null,
         subgridTheme: null,
         pinnedSections: [],

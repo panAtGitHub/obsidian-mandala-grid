@@ -1,6 +1,8 @@
 <script lang="ts">
     import { Grid3x3, RotateCcw } from 'lucide-svelte';
+    import type { MandalaCustomLayout } from 'src/stores/settings/settings-type';
     import ColorSwatchInput from '../color-swatch-input.svelte';
+    import ViewOptionsGridLayoutPanel from './view-options-grid-layout-panel.svelte';
 
     export let show = false;
     export let showTrigger = true;
@@ -18,8 +20,8 @@
     export let sectionColorOpacity = 0;
     export let squareLayout = false;
     export let cardsGap = 0;
-    export let gridOrientation: 'south-start' | 'left-to-right' | 'bottom-to-top' =
-        'south-start';
+    export let selectedLayoutId = 'builtin:left-to-right';
+    export let customLayouts: MandalaCustomLayout[] = [];
 
     export let toggle: () => void;
     export let updateWhiteThemeMode: (enabled: boolean) => void;
@@ -49,9 +51,14 @@
     export let updateCardsGap: (event: Event) => void;
     export let resetCardsGap: () => void;
 
-    export let updateGridOrientation: (
-        orientation: 'south-start' | 'left-to-right' | 'bottom-to-top',
+    export let selectGridLayout: (layoutId: string) => void;
+    export let addCustomGridLayout: () => void;
+    export let updateCustomGridLayout: (
+        id: string,
+        name: string,
+        pattern: string,
     ) => void;
+    export let deleteCustomGridLayout: (id: string) => void;
 </script>
 
 {#if showTrigger}
@@ -400,37 +407,13 @@
             </label>
         </div>
 
-        <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">九宫格方位布局</div>
-            <div class="view-options-menu__row view-options-menu__row--inline">
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-grid-orientation"
-                        checked={gridOrientation === 'south-start'}
-                        on:change={() => updateGridOrientation('south-start')}
-                    />
-                    <span>从南开始</span>
-                </label>
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-grid-orientation"
-                        checked={gridOrientation === 'left-to-right'}
-                        on:change={() => updateGridOrientation('left-to-right')}
-                    />
-                    <span>从左到右（Z形）</span>
-                </label>
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-grid-orientation"
-                        checked={gridOrientation === 'bottom-to-top'}
-                        on:change={() => updateGridOrientation('bottom-to-top')}
-                    />
-                    <span>从下到上（S形）</span>
-                </label>
-            </div>
-        </div>
+        <ViewOptionsGridLayoutPanel
+            {selectedLayoutId}
+            {customLayouts}
+            onSelectLayout={selectGridLayout}
+            onAddCustomLayout={addCustomGridLayout}
+            onUpdateCustomLayout={updateCustomGridLayout}
+            onDeleteCustomLayout={deleteCustomGridLayout}
+        />
     </div>
 {/if}

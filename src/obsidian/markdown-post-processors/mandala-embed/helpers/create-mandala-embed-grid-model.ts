@@ -156,7 +156,7 @@ const resolveCenterSection = (
 
 export const createMandalaEmbedGridModel = (
     markdown: string,
-    orientation: 'left-to-right' | 'south-start' | 'bottom-to-top',
+    orientation: 'left-to-right' | 'south-start',
     centerSection?: string | null,
 ): MandalaEmbedGridModel | null => {
     const parsed = parseMandalaEmbedDocument(markdown);

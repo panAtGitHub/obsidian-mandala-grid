@@ -95,11 +95,106 @@ describe('migrateSettings', () => {
 
         expect(settings.documents['foo.md'].mandalaView).toEqual({
             gridOrientation: null,
+            selectedLayoutId: null,
             lastActiveSection: null,
             subgridTheme: null,
             pinnedSections: [],
             sectionColors: {},
         });
+    });
+
+    test('migrates legacy grid orientation into selected layout id', () => {
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar & {
+            view: Settings['view'] & {
+                mandalaGridSelectedLayoutId?: string;
+            };
+        };
+        settings.view.mandalaGridOrientation = 'south-start';
+        delete (settings.view as Record<string, unknown>).mandalaGridSelectedLayoutId;
+        settings.documents['foo.md'] = {
+            viewType: 'mandala-grid',
+            activeSection: null,
+            outline: null,
+            mandalaView: {
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: null,
+                lastActiveSection: null,
+                subgridTheme: null,
+                pinnedSections: [],
+                sectionColors: {},
+            },
+        };
+
+        migrateSettings(settings);
+
+        expect(settings.view.mandalaGridSelectedLayoutId).toBe(
+            'builtin:south-start',
+        );
+        expect(settings.documents['foo.md'].mandalaView.selectedLayoutId).toBe(
+            'builtin:left-to-right',
+        );
+    });
+
+    test('falls back removed bottom-to-top orientation to left-to-right', () => {
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
+        (settings.view as Record<string, unknown>).mandalaGridOrientation =
+            'bottom-to-top';
+        settings.documents['foo.md'] = {
+            viewType: 'mandala-grid',
+            activeSection: null,
+            outline: null,
+            mandalaView: {
+                gridOrientation: 'custom',
+                selectedLayoutId: 'custom:missing',
+                lastActiveSection: null,
+                subgridTheme: null,
+                pinnedSections: [],
+                sectionColors: {},
+            },
+        };
+
+        migrateSettings(settings);
+
+        expect(settings.view.mandalaGridSelectedLayoutId).toBe(
+            'builtin:left-to-right',
+        );
+        expect(settings.documents['foo.md'].mandalaView.selectedLayoutId).toBe(
+            'builtin:left-to-right',
+        );
+    });
+
+    test('normalizes custom layout list and invalid selected ids', () => {
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
+        (
+            settings.view as Settings['view'] & {
+                mandalaGridSelectedLayoutId?: string;
+                mandalaGridCustomLayouts?: unknown;
+            }
+        ).mandalaGridSelectedLayoutId = 'custom:missing';
+        (
+            settings.view as Settings['view'] & {
+                mandalaGridCustomLayouts?: unknown;
+            }
+        ).mandalaGridCustomLayouts = [
+            {
+                id: 'custom:1',
+                name: '',
+                pattern: 'invalid',
+            },
+        ];
+
+        migrateSettings(settings);
+
+        expect(settings.view.mandalaGridCustomLayouts).toEqual([
+            {
+                id: 'custom:1',
+                name: '未命名布局',
+                pattern: '123405678',
+            },
+        ]);
+        expect(settings.view.mandalaGridSelectedLayoutId).toBe(
+            'builtin:left-to-right',
+        );
     });
 
     test('cleans legacy root/view keys and normalizes sidebar tab', () => {

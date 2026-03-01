@@ -1,5 +1,6 @@
 import {
     DocumentPreferences,
+    MandalaCustomLayout,
     MandalaSectionColorAssignments,
     Settings,
 } from './settings-type';
@@ -11,6 +12,11 @@ import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { Platform } from 'obsidian';
 import { normalizeContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import {
+    layoutIdToOrientation,
+    normalizeCustomMandalaPattern,
+    normalizeMandalaCustomLayouts,
+} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
 
 type SettingsActionHandler = (store: Settings, action: SettingsActions) => void;
 
@@ -53,6 +59,7 @@ const createDefaultDocumentPreferences = (): DocumentPreferences => ({
     outline: null,
     mandalaView: {
         gridOrientation: null,
+        selectedLayoutId: null,
         lastActiveSection: null,
         subgridTheme: null,
         pinnedSections: [],
@@ -71,6 +78,7 @@ const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => 
     if (!preferences.mandalaView || typeof preferences.mandalaView !== 'object') {
         preferences.mandalaView = {
             gridOrientation: null,
+            selectedLayoutId: null,
             lastActiveSection: null,
             subgridTheme: null,
             pinnedSections: [],
@@ -114,6 +122,7 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         );
         const mandalaView = getOrCreateMandalaViewPreferences(preferences);
         mandalaView.gridOrientation = action.payload.gridOrientation;
+        mandalaView.selectedLayoutId = action.payload.selectedLayoutId;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
         mandalaView.subgridTheme = action.payload.subgridTheme;
     },
@@ -493,6 +502,60 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/mandala/set-grid-orientation')
             return;
         store.view.mandalaGridOrientation = action.payload.orientation;
+        if (action.payload.orientation === 'left-to-right') {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:left-to-right';
+        } else if (action.payload.orientation === 'south-start') {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:south-start';
+        }
+    },
+    'settings/view/mandala/select-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/select-grid-layout') return;
+        store.view.mandalaGridSelectedLayoutId = action.payload.layoutId;
+        store.view.mandalaGridOrientation = layoutIdToOrientation(
+            action.payload.layoutId,
+        );
+    },
+    'settings/view/mandala/add-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/add-custom-grid-layout')
+            return;
+        const currentLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        );
+        const nextLayout: MandalaCustomLayout = {
+            id: action.payload.layout.id,
+            name:
+                action.payload.layout.name.trim() || '未命名布局',
+            pattern: normalizeCustomMandalaPattern(action.payload.layout.pattern),
+        };
+        store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
+    },
+    'settings/view/mandala/update-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/update-custom-grid-layout')
+            return;
+        store.view.mandalaGridCustomLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        ).map((layout) =>
+            layout.id === action.payload.id
+                ? {
+                      ...layout,
+                      name: action.payload.name.trim() || '未命名布局',
+                      pattern: normalizeCustomMandalaPattern(
+                          action.payload.pattern,
+                      ),
+                  }
+                : layout,
+        );
+    },
+    'settings/view/mandala/delete-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/delete-custom-grid-layout')
+            return;
+        store.view.mandalaGridCustomLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        ).filter((layout) => layout.id !== action.payload.id);
+        if (store.view.mandalaGridSelectedLayoutId === action.payload.id) {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:left-to-right';
+            store.view.mandalaGridOrientation = 'left-to-right';
+        }
     },
     'settings/view/mandala/toggle-a4-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/toggle-a4-mode') return;

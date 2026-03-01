@@ -9,7 +9,8 @@
         MandalaDetailSidebarWidthStore,
         MandalaModeStore,
         MandalaBackgroundModeStore,
-        MandalaGridOrientationStore,
+        MandalaGridCustomLayoutsStore,
+        MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
         Show3x3SubgridNavButtonsStore,
         ShowMandalaDetailSidebarStore,
@@ -20,7 +21,7 @@
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
-        getMandalaLayout,
+        getMandalaLayoutById,
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
@@ -55,7 +56,8 @@
     $: isPortrait = $layout.isPortrait;
 
     const mode = MandalaModeStore(view);
-    const gridOrientation = MandalaGridOrientationStore(view);
+    const selectedLayoutId = MandalaGridSelectedLayoutIdStore(view);
+    const customLayouts = MandalaGridCustomLayoutsStore(view);
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
@@ -418,15 +420,17 @@
                 const cell = view.mandalaActiveCell9x9;
                 const pos = posOfSection9x9(
                     section,
-                    $gridOrientation,
+                    $selectedLayoutId,
                     baseTheme,
+                    $customLayouts,
                 );
                 if (cell) {
                     const mapped = sectionAtCell9x9(
                         cell.row,
                         cell.col,
-                        $gridOrientation,
+                        $selectedLayoutId,
                         baseTheme,
+                        $customLayouts,
                     );
                     if (!mapped || mapped !== section) {
                         setActiveCell9x9(view, pos ?? null);
@@ -553,7 +557,10 @@
             >
                 {#if $mode === '3x3'}
                     {@const theme = $subgridTheme ?? '1'}
-                    {@const layout = getMandalaLayout($gridOrientation)}
+                    {@const layout = getMandalaLayoutById(
+                        $selectedLayoutId,
+                        $customLayouts,
+                    )}
                     {@const sections = layout.childSlots.map((slot) =>
                         slot ? `${theme}.${slot}` : theme,
                     )}

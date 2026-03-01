@@ -19,13 +19,14 @@
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
         MandalaBorderOpacityStore,
+        MandalaGridCustomLayoutsStore,
         MandalaFontSize3x3DesktopStore,
         MandalaFontSize3x3MobileStore,
         MandalaFontSize9x9DesktopStore,
         MandalaFontSize9x9MobileStore,
         MandalaFontSizeSidebarDesktopStore,
         MandalaFontSizeSidebarMobileStore,
-        MandalaGridOrientationStore,
+        MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
         ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
@@ -64,6 +65,7 @@
         ContextMenuCopyLinkVariant,
         DetailSidebarPreviewMode,
         LastExportPreset,
+        MandalaCustomLayout,
     } from 'src/stores/settings/settings-type';
     import {
         closeExportModeModal,
@@ -99,7 +101,8 @@
     const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
-    const gridOrientation = MandalaGridOrientationStore(view);
+    const selectedLayoutId = MandalaGridSelectedLayoutIdStore(view);
+    const customLayouts = MandalaGridCustomLayoutsStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
@@ -253,7 +256,7 @@
     let appearanceStyleLabel = '风格：沉浸';
     let appearanceShapeLabel = '形状：自适应';
     let appearanceBackgroundLabel = '背景：无背景';
-    let appearanceOrientationLabel = '方位：南起';
+    let appearanceOrientationLabel = '方位：从左到右';
 
     const setExportMode = (mode: ExportMode) => {
         exportMode = mode;
@@ -306,12 +309,20 @@
             : $backgroundMode === 'gray'
               ? '背景：灰色间隔'
               : '背景：无背景';
-    $: appearanceOrientationLabel =
-        $gridOrientation === 'left-to-right'
-            ? '方位：Z形'
-            : $gridOrientation === 'bottom-to-top'
-              ? '方位：S形'
-              : '方位：南起';
+    $: appearanceOrientationLabel = (() => {
+        if ($selectedLayoutId === 'builtin:south-start') {
+            return '方位：从南开始';
+        }
+        if ($selectedLayoutId === 'builtin:left-to-right') {
+            return '方位：从左到右';
+        }
+        const selectedCustomLayout =
+            $customLayouts.find((layout) => layout.id === $selectedLayoutId) ??
+            null;
+        return selectedCustomLayout
+            ? `方位：自定义 / ${selectedCustomLayout.name}`
+            : '方位：从左到右';
+    })();
     $: if (
         isExportModeModalOpen &&
         exportMode === 'png-screen' &&
@@ -728,13 +739,42 @@
         });
     };
 
-    const updateGridOrientation = (
-        orientation: 'south-start' | 'left-to-right' | 'bottom-to-top',
-    ) => {
-        if (orientation === $gridOrientation) return;
+    const selectGridLayout = (layoutId: string) => {
+        if (layoutId === $selectedLayoutId) return;
         view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-grid-orientation',
-            payload: { orientation },
+            type: 'settings/view/mandala/select-grid-layout',
+            payload: { layoutId },
+        });
+    };
+
+    const addCustomGridLayout = () => {
+        const layout: MandalaCustomLayout = {
+            id: `custom:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            name: '我的排序',
+            pattern: '123405678',
+        };
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/add-custom-grid-layout',
+            payload: { layout },
+        });
+        selectGridLayout(layout.id);
+    };
+
+    const updateCustomGridLayout = (
+        id: string,
+        name: string,
+        pattern: string,
+    ) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/update-custom-grid-layout',
+            payload: { id, name, pattern },
+        });
+    };
+
+    const deleteCustomGridLayout = (id: string) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/delete-custom-grid-layout',
+            payload: { id },
         });
     };
 
@@ -1953,7 +1993,8 @@
                 sectionColorOpacity={$sectionColorOpacity}
                 squareLayout={$squareLayout}
                 cardsGap={$cardsGap}
-                gridOrientation={$gridOrientation}
+                selectedLayoutId={$selectedLayoutId}
+                customLayouts={$customLayouts}
                 toggle={() => (showEditOptions = !showEditOptions)}
                 {updateWhiteThemeMode}
                 {toggleImmersiveOptions}
@@ -1976,7 +2017,10 @@
                 {stepCardsGap}
                 {updateCardsGap}
                 {resetCardsGap}
-                {updateGridOrientation}
+                {selectGridLayout}
+                {addCustomGridLayout}
+                {updateCustomGridLayout}
+                {deleteCustomGridLayout}
             />
 
             <ViewOptionsDisplayPanel
@@ -2245,7 +2289,8 @@
                                 sectionColorOpacity={$sectionColorOpacity}
                                 squareLayout={$squareLayout}
                                 cardsGap={$cardsGap}
-                                gridOrientation={$gridOrientation}
+                                selectedLayoutId={$selectedLayoutId}
+                                customLayouts={$customLayouts}
                                 toggle={() => undefined}
                                 {updateWhiteThemeMode}
                                 {toggleImmersiveOptions}
@@ -2268,7 +2313,10 @@
                                 {stepCardsGap}
                                 {updateCardsGap}
                                 {resetCardsGap}
-                                {updateGridOrientation}
+                                {selectGridLayout}
+                                {addCustomGridLayout}
+                                {updateCustomGridLayout}
+                                {deleteCustomGridLayout}
                             />
                         </div>
                     {/if}

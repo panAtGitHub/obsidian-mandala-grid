@@ -1,10 +1,20 @@
-import { MandalaGridOrientation, Settings } from 'src/stores/settings/settings-type';
+import {
+    MandalaGridOrientation,
+    Settings,
+} from 'src/stores/settings/settings-type';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
+import {
+    BUILTIN_MANDALA_LAYOUT_IDS,
+    layoutIdToOrientation,
+    legacyOrientationToLayoutId,
+    normalizeMandalaCustomLayouts,
+    resolveMandalaLayoutId,
+} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
 
 const VALID_GRID_ORIENTATIONS = new Set([
     'south-start',
     'left-to-right',
-    'bottom-to-top',
+    'custom',
 ]);
 
 const isMandalaGridOrientation = (
@@ -36,13 +46,30 @@ const normalizeSectionColors = (value: unknown) => {
 
 const createDefaultMandalaView = () => ({
     gridOrientation: null as MandalaGridOrientation | null,
+    selectedLayoutId: null as string | null,
     lastActiveSection: null as string | null,
     subgridTheme: null as string | null,
     pinnedSections: [] as string[],
     sectionColors: {} as Record<string, string[]>,
 });
 
+const normalizeDocumentSelectedLayoutId = (
+    value: unknown,
+    legacyOrientation: MandalaGridOrientation | null,
+    customLayouts: Settings['view']['mandalaGridCustomLayouts'],
+) => {
+    if (typeof value === 'string' && value.trim().length > 0) {
+        return resolveMandalaLayoutId(value, customLayouts);
+    }
+    const legacyLayoutId = legacyOrientationToLayoutId(legacyOrientation);
+    return legacyLayoutId ?? null;
+};
+
 export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
+    const settingsViewRecord = settings.view as Record<string, unknown>;
+    const normalizedCustomLayouts = normalizeMandalaCustomLayouts(
+        settingsViewRecord.mandalaGridCustomLayouts,
+    );
     for (const [path, pref] of Object.entries(settings.documents)) {
         if (typeof pref === 'boolean') {
             settings.documents[path] = {
@@ -70,12 +97,27 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
             if (!mandalaViewRaw) {
                 legacyPref.mandalaView = createDefaultMandalaView();
             } else {
-                legacyPref.mandalaView = {
-                    gridOrientation: isMandalaGridOrientation(
-                        mandalaViewRaw.gridOrientation,
-                    )
+                const rawLegacyOrientation =
+                    typeof mandalaViewRaw.gridOrientation === 'string'
                         ? mandalaViewRaw.gridOrientation
-                        : null,
+                        : null;
+                const legacyOrientation = isMandalaGridOrientation(
+                    mandalaViewRaw.gridOrientation,
+                )
+                    ? mandalaViewRaw.gridOrientation
+                    : rawLegacyOrientation === 'bottom-to-top'
+                      ? 'left-to-right'
+                      : null;
+                const selectedLayoutId = normalizeDocumentSelectedLayoutId(
+                    mandalaViewRaw.selectedLayoutId,
+                    legacyOrientation,
+                    normalizedCustomLayouts,
+                );
+                legacyPref.mandalaView = {
+                    gridOrientation: selectedLayoutId
+                        ? layoutIdToOrientation(selectedLayoutId)
+                        : legacyOrientation,
+                    selectedLayoutId,
                     lastActiveSection:
                         typeof mandalaViewRaw.lastActiveSection === 'string'
                             ? mandalaViewRaw.lastActiveSection
@@ -118,10 +160,9 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         mandalaA4Orientation?: 'portrait' | 'landscape';
         mandalaBackgroundMode?: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity?: number;
-        mandalaGridOrientation?:
-            | 'south-start'
-            | 'left-to-right'
-            | 'bottom-to-top';
+        mandalaGridOrientation?: MandalaGridOrientation;
+        mandalaGridSelectedLayoutId?: unknown;
+        mandalaGridCustomLayouts?: unknown;
         mandalaShowSectionColors?: boolean;
         mandalaSectionColorOpacity?: number;
         mandalaGrayBackground?: boolean;
@@ -167,6 +208,25 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (viewSettings.mandalaGridOrientation === undefined) {
         viewSettings.mandalaGridOrientation = 'left-to-right';
     }
+    const normalizedViewCustomLayouts = normalizeMandalaCustomLayouts(
+        viewSettings.mandalaGridCustomLayouts,
+    );
+    viewSettings.mandalaGridCustomLayouts = normalizedViewCustomLayouts;
+    const legacyViewLayoutId =
+        legacyOrientationToLayoutId(viewSettings.mandalaGridOrientation) ??
+        BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'];
+    const selectedLayoutId =
+        typeof viewSettings.mandalaGridSelectedLayoutId === 'string'
+            ? resolveMandalaLayoutId(
+                  viewSettings.mandalaGridSelectedLayoutId,
+                  normalizedViewCustomLayouts,
+              )
+            : resolveMandalaLayoutId(
+                  legacyViewLayoutId,
+                  normalizedViewCustomLayouts,
+              );
+    viewSettings.mandalaGridSelectedLayoutId = selectedLayoutId;
+    viewSettings.mandalaGridOrientation = layoutIdToOrientation(selectedLayoutId);
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
     }

@@ -7,7 +7,7 @@
         setActiveMandalaNode,
     } from 'src/view/helpers/mandala/node-editing';
     import { derived } from 'src/lib/store/derived';
-    import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
+    import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import {
         executeMandalaSwap,
@@ -89,13 +89,15 @@
     // Reactive store for cells
     const buildCells = (
         state: ReturnType<typeof view.documentStore.getValue>,
-        orientation: string,
+        nextSelectedLayoutId: string,
+        nextCustomLayouts: ReturnType<
+            typeof view.plugin.settings.getValue
+        >['view']['mandalaGridCustomLayouts'],
         baseTheme: string,
     ) => {
-        const layout = getMandalaLayout(
-            orientation === 'south-start' || orientation === 'bottom-to-top'
-                ? orientation
-                : 'left-to-right',
+        const layout = getMandalaLayoutById(
+            nextSelectedLayoutId,
+            nextCustomLayouts,
         );
         const list = [];
         for (let row = 0; row < 9; row++) {
@@ -188,16 +190,26 @@
     const cells = {
         subscribe: (run: (value: ReturnType<typeof buildCells>) => void) => {
             let documentState = view.documentStore.getValue();
-            let orientation =
-                view.plugin.settings.getValue().view.mandalaGridOrientation ??
-                'left-to-right';
+            let nextSelectedLayoutId =
+                view.plugin.settings.getValue().view
+                    .mandalaGridSelectedLayoutId ?? 'builtin:left-to-right';
+            let nextCustomLayouts =
+                view.plugin.settings.getValue().view.mandalaGridCustomLayouts ??
+                [];
 
             const update = () => {
                 const activeNodeId =
                     view.viewStore.getValue().document.activeNode;
                 const section = documentState.sections.id_section[activeNodeId];
                 const theme = getBaseTheme(section);
-                run(buildCells(documentState, orientation, theme));
+                run(
+                    buildCells(
+                        documentState,
+                        nextSelectedLayoutId,
+                        nextCustomLayouts,
+                        theme,
+                    ),
+                );
             };
 
             const unsubDoc = view.documentStore.subscribe((state) => {
@@ -206,8 +218,10 @@
             });
 
             const unsubSettings = view.plugin.settings.subscribe((settings) => {
-                orientation =
-                    settings.view.mandalaGridOrientation ?? 'left-to-right';
+                nextSelectedLayoutId =
+                    settings.view.mandalaGridSelectedLayoutId ??
+                    'builtin:left-to-right';
+                nextCustomLayouts = settings.view.mandalaGridCustomLayouts ?? [];
                 update();
             });
 

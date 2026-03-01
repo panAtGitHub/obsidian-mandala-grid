@@ -24,13 +24,19 @@ export type ViewType = 'mandala-grid' | 'markdown';
 export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
 export type MandalaMode = '3x3' | '9x9';
+export type BuiltinMandalaGridOrientation = 'left-to-right' | 'south-start';
 export type MandalaGridOrientation =
-    | 'south-start'
-    | 'left-to-right'
-    | 'bottom-to-top';
+    | BuiltinMandalaGridOrientation
+    | 'custom';
+export type MandalaCustomLayout = {
+    id: string;
+    name: string;
+    pattern: string;
+};
 export type MandalaSectionColorAssignments = Partial<Record<string, string[]>>;
 export type MandalaViewDocumentPreferences = {
     gridOrientation: MandalaGridOrientation | null;
+    selectedLayoutId: string | null;
     lastActiveSection: string | null;
     subgridTheme: string | null;
     pinnedSections: string[];
@@ -103,6 +109,8 @@ export type Settings = {
         applyGapBetweenCards: boolean;
         mandalaMode: MandalaMode;
         mandalaGridOrientation: MandalaGridOrientation;
+        mandalaGridSelectedLayoutId: string;
+        mandalaGridCustomLayouts: MandalaCustomLayout[];
         mandalaA4Mode: boolean;
         mandalaA4Orientation: 'portrait' | 'landscape';
         mandalaBackgroundMode: 'none' | 'custom' | 'gray';

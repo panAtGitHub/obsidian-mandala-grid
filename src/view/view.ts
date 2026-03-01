@@ -57,6 +57,11 @@ import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch'
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
+import {
+    layoutIdToOrientation,
+    legacyOrientationToLayoutId,
+    resolveMandalaLayoutId,
+} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -568,15 +573,24 @@ export class MandalaView extends TextFileView {
         const filePath = this.file?.path ?? '';
         const documentPreferences = settings.documents[filePath];
         const persistedMandalaViewState = documentPreferences?.mandalaView;
-        const currentGridOrientation = settings.view.mandalaGridOrientation;
-        const nextGridOrientation =
-            persistedMandalaViewState?.gridOrientation ??
-            currentGridOrientation;
-        if (nextGridOrientation !== currentGridOrientation) {
+        const customLayouts = settings.view.mandalaGridCustomLayouts;
+        const currentSelectedLayoutId = resolveMandalaLayoutId(
+            settings.view.mandalaGridSelectedLayoutId,
+            customLayouts,
+        );
+        const persistedSelectedLayoutId =
+            persistedMandalaViewState?.selectedLayoutId ??
+            legacyOrientationToLayoutId(
+                persistedMandalaViewState?.gridOrientation ?? null,
+            );
+        const nextSelectedLayoutId = persistedSelectedLayoutId
+            ? resolveMandalaLayoutId(persistedSelectedLayoutId, customLayouts)
+            : currentSelectedLayoutId;
+        if (nextSelectedLayoutId !== currentSelectedLayoutId) {
             this.plugin.settings.dispatch({
-                type: 'settings/view/mandala/set-grid-orientation',
+                type: 'settings/view/mandala/select-grid-layout',
                 payload: {
-                    orientation: nextGridOrientation,
+                    layoutId: nextSelectedLayoutId,
                 },
             });
         }
@@ -682,11 +696,17 @@ export class MandalaView extends TextFileView {
         const lastActiveSection =
             documentState.sections.id_section[activeNodeId] ?? null;
         const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
-        const gridOrientation =
-            this.plugin.settings.getValue().view.mandalaGridOrientation;
+        const settings = this.plugin.settings.getValue();
+        const selectedLayoutId = resolveMandalaLayoutId(
+            settings.view.mandalaGridSelectedLayoutId,
+            settings.view.mandalaGridCustomLayouts,
+        );
+        const gridOrientation = layoutIdToOrientation(selectedLayoutId);
         const currentMandalaViewState =
-            this.plugin.settings.getValue().documents[path]?.mandalaView;
+            settings.documents[path]?.mandalaView;
         if (
+            (currentMandalaViewState?.selectedLayoutId ?? null) ===
+                selectedLayoutId &&
             currentMandalaViewState?.gridOrientation === gridOrientation &&
             (currentMandalaViewState?.lastActiveSection ?? null) ===
                 lastActiveSection &&
@@ -699,6 +719,7 @@ export class MandalaView extends TextFileView {
             payload: {
                 path,
                 gridOrientation,
+                selectedLayoutId,
                 lastActiveSection,
                 subgridTheme,
             },

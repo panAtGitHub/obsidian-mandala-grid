@@ -81,6 +81,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         applyGapBetweenCards: false,
         mandalaMode: '3x3',
         mandalaGridOrientation: 'left-to-right',
+        mandalaGridSelectedLayoutId: 'builtin:left-to-right',
+        mandalaGridCustomLayouts: [],
         mandalaA4Mode: false,
         mandalaA4Orientation: 'landscape',
         mandalaBackgroundMode: 'custom',

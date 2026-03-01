@@ -4,6 +4,7 @@ import {
     DetailSidebarPreviewMode,
     DocumentPreferences,
     LeftSidebarTab,
+    MandalaCustomLayout,
     MandalaGridOrientation,
     MandalaSectionColorAssignments,
     LinkPaneType,
@@ -231,6 +232,22 @@ export type SettingsActions =
           payload: { orientation: MandalaGridOrientation };
       }
     | {
+          type: 'settings/view/mandala/select-grid-layout';
+          payload: { layoutId: string };
+      }
+    | {
+          type: 'settings/view/mandala/add-custom-grid-layout';
+          payload: { layout: MandalaCustomLayout };
+      }
+    | {
+          type: 'settings/view/mandala/update-custom-grid-layout';
+          payload: { id: string; name: string; pattern: string };
+      }
+    | {
+          type: 'settings/view/mandala/delete-custom-grid-layout';
+          payload: { id: string };
+      }
+    | {
           type: 'settings/view/mandala/toggle-a4-mode';
       }
     | {
@@ -278,6 +295,7 @@ export type PersistMandalaViewStateAction = {
     payload: {
         path: string;
         gridOrientation: MandalaGridOrientation;
+        selectedLayoutId: string | null;
         lastActiveSection: string | null;
         subgridTheme: string | null;
     };
