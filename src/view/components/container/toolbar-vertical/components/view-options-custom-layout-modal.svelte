@@ -404,7 +404,7 @@
                                 当前预览
                             </div>
                             <div class="custom-layout-modal__preview-grid">
-                                {#each previewRows as row (row)}
+                                {#each previewRows as row, rowIndex (`preview-${rowIndex}`)}
                                     <div class="custom-layout-modal__preview-row">
                                         {row}
                                     </div>
