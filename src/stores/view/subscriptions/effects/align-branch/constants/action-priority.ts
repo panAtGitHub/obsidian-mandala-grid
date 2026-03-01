@@ -13,6 +13,8 @@ const actionPriorityRecord: Partial<Record<PluginAction['type'], number>> = {
     'view/align-branch/reveal-node': 30,
     'view/selection/select-all': 30,
     'document/update-node-content': 30,
+    'document/update-multiple-node-content': 30,
+    'document/mandala/swap': 30,
     'view/set-active-node/document': 20,
     'view/editor/disable-main-editor': 20,
     'view/editor/enable-main-editor': 20,

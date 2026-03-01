@@ -95,6 +95,7 @@ export class MandalaView extends TextFileView {
     } | null = null;
     private lastActivationNotice: string | null = null;
     private lastSaveBlockedNoticeKey: string | null = null;
+    private lastPersistTransitionNoticeKey: string | null = null;
     private readonly persistSnapshotQueue: PersistSnapshotQueue;
     private readonly persistSnapshotErrorKeys = new Map<string, string>();
     private readonly mandalaUiStateByPath = new Map<
@@ -173,8 +174,8 @@ export class MandalaView extends TextFileView {
                     this.inlineEditor.unloadNode();
                 }
                 if (previousPath) {
-                    void this.flushAllPendingPersistSnapshots().catch(
-                        () => undefined,
+                    void this.flushPendingPersistSnapshotsForTransition(
+                        switchedFile ? 'switch-file' : 'replace-view-data',
                     );
                     void this.persistMandalaUiState(previousPath);
                 }
@@ -208,7 +209,12 @@ export class MandalaView extends TextFileView {
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
         }
-        await this.flushAllPendingPersistSnapshots().catch(() => undefined);
+        const flushed = await this.flushPendingPersistSnapshotsForTransition(
+            'close-view',
+        );
+        if (!flushed) {
+            return;
+        }
         if (this.component) {
             this.component.$destroy();
         }
@@ -238,7 +244,7 @@ export class MandalaView extends TextFileView {
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
         }
-        void this.flushAllPendingPersistSnapshots().catch(() => undefined);
+        void this.flushPendingPersistSnapshotsForTransition('clear-view');
         this.data = '';
     }
 
@@ -740,6 +746,25 @@ export class MandalaView extends TextFileView {
         await this.persistSnapshotQueue.flushAll();
     }
 
+    private async flushPendingPersistSnapshotsForTransition(
+        reason:
+            | 'switch-file'
+            | 'replace-view-data'
+            | 'clear-view'
+            | 'close-view',
+    ) {
+        try {
+            await this.flushAllPendingPersistSnapshots();
+            if (this.lastPersistTransitionNoticeKey?.startsWith(`${reason}:`)) {
+                this.lastPersistTransitionNoticeKey = null;
+            }
+            return true;
+        } catch (error) {
+            this.handlePersistTransitionError(reason, error);
+            return false;
+        }
+    }
+
     private async persistSnapshot(path: string, data: string) {
         const abstractFile = this.app.vault.getAbstractFileByPath(path);
         if (!(abstractFile instanceof TFile)) return;
@@ -756,6 +781,31 @@ export class MandalaView extends TextFileView {
         }
         logger.error('[mandala-view] persist snapshot failed', {
             file: path,
+            error: message,
+        });
+    }
+
+    private handlePersistTransitionError(
+        reason: 'switch-file' | 'replace-view-data' | 'clear-view' | 'close-view',
+        error: unknown,
+    ) {
+        const message = error instanceof Error ? error.message : String(error);
+        const noticeKey = `${reason}:${message}`;
+        if (this.lastPersistTransitionNoticeKey !== noticeKey) {
+            this.lastPersistTransitionNoticeKey = noticeKey;
+            const actionLabel =
+                reason === 'close-view'
+                    ? 'closing the view'
+                    : reason === 'clear-view'
+                      ? 'clearing the view'
+                      : 'switching files';
+            new Notice(
+                `Pending changes were not fully saved before ${actionLabel}.`,
+                3500,
+            );
+        }
+        logger.error('[mandala-view] persist transition failed', {
+            reason,
             error: message,
         });
     }

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import {
+    canLaunchObsidianElectron,
     closeObsidian,
     launchObsidian,
     openMandalaFile,
@@ -19,7 +20,11 @@ ${childTitle}
 <!--section: 3-->
 `;
 
-test.skip(!process.env.OBSIDIAN_EXECUTABLE_PATH, 'requires Obsidian app path');
+test.skip(
+    !process.env.OBSIDIAN_EXECUTABLE_PATH ||
+        !canLaunchObsidianElectron(process.env.OBSIDIAN_EXECUTABLE_PATH),
+    'requires a GUI-launchable Obsidian Electron executable',
+);
 
 test.afterAll(async () => {
     await closeObsidian();

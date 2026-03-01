@@ -1,5 +1,6 @@
 /* eslint-disable import/no-nodejs-modules */
 import { _electron as electron, ElectronApplication, Page } from '@playwright/test';
+import { spawnSync } from 'node:child_process';
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -19,6 +20,24 @@ const normalizeExecutablePath = (executablePath: string) => {
     }
     const appName = path.basename(executablePath, '.app');
     return path.join(executablePath, 'Contents', 'MacOS', appName);
+};
+
+export const canLaunchObsidianElectron = (
+    executablePath = process.env.OBSIDIAN_EXECUTABLE_PATH,
+) => {
+    if (!executablePath) {
+        return false;
+    }
+    const normalizedPath = normalizeExecutablePath(executablePath);
+    const probe = spawnSync(normalizedPath, ['help'], {
+        encoding: 'utf8',
+        timeout: 2000,
+    });
+    if (probe.error) {
+        return false;
+    }
+    const output = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
+    return !output.includes('Obsidian CLI');
 };
 
 type TestVaultFile = {
@@ -104,6 +123,11 @@ export const launchObsidian = async () => {
     const executablePath = process.env.OBSIDIAN_EXECUTABLE_PATH;
     if (!executablePath) {
         throw new Error('OBSIDIAN_EXECUTABLE_PATH is required for e2e tests');
+    }
+    if (!canLaunchObsidianElectron(executablePath)) {
+        throw new Error(
+            'OBSIDIAN_EXECUTABLE_PATH points to a CLI-only Obsidian build that Playwright cannot launch via electron.launch',
+        );
     }
 
     await prepareVault();
