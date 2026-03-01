@@ -20,7 +20,7 @@ import { deleteChildNodes } from 'src/lib/tree-utils/delete/delete-child-nodes';
 import {
     ensureMandalaChildren,
     ensureMandalaCoreTheme,
-    swapMandalaNodes,
+    swapMandalaSubtreeSections,
 } from 'src/stores/document/reducers/mandala/swap-mandala-nodes';
 import {
     applyMandalaContentDelta,
@@ -29,7 +29,6 @@ import {
     registerMandalaSection,
     removeMandalaDescendantSectionsByParents,
 } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
-import { swapPinnedNodeState } from 'src/stores/document/reducers/pinned-nodes/swap-pinned-node-state';
 
 type EarlyReturnHandler = (
     state: DocumentState,
@@ -134,32 +133,12 @@ const updateDocumentState = (
             if (!(si >= 1 && si <= 8 && ti >= 1 && ti <= 8)) return NO_UPDATE;
         }
 
-        const sourceBefore =
-            state.document.content[action.payload.sourceNodeId]?.content ?? '';
-        const targetBefore =
-            state.document.content[action.payload.targetNodeId]?.content ?? '';
-        swapMandalaNodes(
-            state.document,
-            action.payload.sourceNodeId,
-            action.payload.targetNodeId,
+        swapMandalaSubtreeSections(
+            state.sections,
+            sourceSection,
+            targetSection,
         );
-        swapPinnedNodeState(
-            state.pinnedNodes,
-            action.payload.sourceNodeId,
-            action.payload.targetNodeId,
-        );
-        applyMandalaContentDelta(
-            state,
-            action.payload.sourceNodeId,
-            sourceBefore,
-            state.document.content[action.payload.sourceNodeId]?.content ?? '',
-        );
-        applyMandalaContentDelta(
-            state,
-            action.payload.targetNodeId,
-            targetBefore,
-            state.document.content[action.payload.targetNodeId]?.content ?? '',
-        );
+        needsMandalaV2MetaRebuild = true;
         newActiveNodeId = action.payload.sourceNodeId;
         affectedNodeId = action.payload.sourceNodeId;
     } else if (action.type === 'document/mandala/ensure-children') {

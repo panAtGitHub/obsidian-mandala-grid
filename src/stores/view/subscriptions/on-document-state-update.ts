@@ -10,9 +10,8 @@ import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/updat
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import {
-    createSectionColorIndex,
     serializeSectionColorMapForSettings,
-    swapSectionColors,
+    swapSectionSubtreeColors,
 } from 'src/view/helpers/mandala/section-colors';
 import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
 
@@ -43,19 +42,7 @@ const createSaveOptions = (
         }
     }
     if (action.type === 'document/mandala/swap') {
-        const sourceSection = view.documentStore.getValue().sections.id_section[
-            action.payload.sourceNodeId
-        ];
-        const targetSection = view.documentStore.getValue().sections.id_section[
-            action.payload.targetNodeId
-        ];
-        return {
-            mode: 'content-only',
-            changedSections: [
-                sourceSection ?? '',
-                targetSection ?? '',
-            ].filter(Boolean),
-        };
+        return { mode: 'structural' };
     }
     if (action.type === 'document/format-headings') {
         return { mode: 'structural' };
@@ -147,15 +134,18 @@ export const onDocumentStateUpdate = (
             documentState.sections.id_section[action.payload.targetNodeId];
         if (sourceSection && targetSection) {
             const sectionColorMap = getCurrentFileSectionColorMap(view);
-            const index = createSectionColorIndex(sectionColorMap);
-            const sourceColor = index[sourceSection] ?? null;
-            const targetColor = index[targetSection] ?? null;
-            if (sourceColor !== targetColor) {
-                const nextMap = swapSectionColors(
-                    sectionColorMap,
-                    sourceSection,
-                    targetSection,
-                );
+            const nextMap = swapSectionSubtreeColors(
+                sectionColorMap,
+                sourceSection,
+                targetSection,
+            );
+            const currentSerialized = JSON.stringify(
+                serializeSectionColorMapForSettings(sectionColorMap),
+            );
+            const nextSerialized = JSON.stringify(
+                serializeSectionColorMapForSettings(nextMap),
+            );
+            if (currentSerialized !== nextSerialized) {
                 view.plugin.settings.dispatch({
                     type: 'settings/documents/persist-mandala-section-colors',
                     payload: {

@@ -54,6 +54,18 @@ const createEmptySectionColorMap = (): SectionColorMap => ({
 const normalizeSectionIds = (sections: string[]) =>
     Array.from(new Set(sections)).sort(compareSectionIds);
 
+const isSectionInSubtree = (section: string, rootSection: string) =>
+    section === rootSection || section.startsWith(`${rootSection}.`);
+
+const swapSectionPrefix = (
+    section: string,
+    fromSection: string,
+    toSection: string,
+) => {
+    if (section === fromSection) return toSection;
+    return `${toSection}${section.slice(fromSection.length)}`;
+};
+
 const normalizeSectionIdsFromUnknown = (value: unknown) => {
     if (Array.isArray(value)) {
         const rawSections = value as unknown[];
@@ -146,5 +158,39 @@ export const swapSectionColors = (
 
     let next = setSectionColor(map, sourceSection, targetColor);
     next = setSectionColor(next, targetSection, sourceColor);
+    return next;
+};
+
+export const swapSectionSubtreeColors = (
+    map: SectionColorMap,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    if (!sourceSection || !targetSection || sourceSection === targetSection) {
+        return map;
+    }
+
+    const next = createEmptySectionColorMap();
+    for (const key of SECTION_COLOR_KEYS) {
+        next[key] = normalizeSectionIds(
+            map[key].map((section) => {
+                if (isSectionInSubtree(section, sourceSection)) {
+                    return swapSectionPrefix(
+                        section,
+                        sourceSection,
+                        targetSection,
+                    );
+                }
+                if (isSectionInSubtree(section, targetSection)) {
+                    return swapSectionPrefix(
+                        section,
+                        targetSection,
+                        sourceSection,
+                    );
+                }
+                return section;
+            }),
+        );
+    }
     return next;
 };

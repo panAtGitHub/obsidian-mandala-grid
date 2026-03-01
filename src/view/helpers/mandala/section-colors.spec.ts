@@ -5,6 +5,7 @@ import {
     serializeSectionColorMap,
     setSectionColor,
     swapSectionColors,
+    swapSectionSubtreeColors,
     type SectionColorMap,
 } from 'src/view/helpers/mandala/section-colors';
 
@@ -70,6 +71,18 @@ describe('section-colors', () => {
         const next = swapSectionColors(map, '2.1', '2.2');
 
         expect(next['2_rose']).toEqual(['2.2']);
+    });
+
+    it('swaps colors for whole descendant subtrees', () => {
+        const map = createMap({
+            '2_rose': ['2.3', '2.3.7'],
+            '6_blue': ['2.7.2', '9.1'],
+        });
+
+        const next = swapSectionSubtreeColors(map, '2.3', '2.7');
+
+        expect(next['2_rose']).toEqual(['2.7', '2.7.7']);
+        expect(next['6_blue']).toEqual(['2.3.2', '9.1']);
     });
 
     it('parses persisted pinned sections with sorted unique values', () => {

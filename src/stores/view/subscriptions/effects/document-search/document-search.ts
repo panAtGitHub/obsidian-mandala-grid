@@ -116,13 +116,8 @@ export class DocumentSearch {
         }
 
         if (action.type === 'document/mandala/swap') {
-            const sourceSection =
-                documentState.sections.id_section[action.payload.sourceNodeId];
-            const targetSection =
-                documentState.sections.id_section[action.payload.targetNodeId];
-            if (sourceSection) this.upsertSection(documentState, sourceSection);
-            if (targetSection) this.upsertSection(documentState, targetSection);
-            this.updateFuseCollection();
+            this.collectionInitialized = false;
+            this.fuse = null;
             return;
         }
 

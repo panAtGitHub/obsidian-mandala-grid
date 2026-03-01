@@ -2,7 +2,10 @@ import { id } from 'src/helpers/id';
 import { SilentError } from 'src/lib/errors/errors';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 import { sortGroups } from 'src/lib/tree-utils/sort/sort-groups';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import {
+    MandalaGridDocument,
+    Sections,
+} from 'src/stores/document/document-state-type';
 
 export type MandalaSwapAction = {
     type: 'document/mandala/swap';
@@ -12,18 +15,62 @@ export type MandalaSwapAction = {
     };
 };
 
-export const swapMandalaNodes = (
-    document: Pick<MandalaGridDocument, 'content'>,
-    sourceNodeId: string,
-    targetNodeId: string,
+const isSectionInSubtree = (sectionId: string, rootSection: string) =>
+    sectionId === rootSection || sectionId.startsWith(`${rootSection}.`);
+
+const swapSectionPrefix = (
+    sectionId: string,
+    fromSection: string,
+    toSection: string,
 ) => {
-    if (sourceNodeId === targetNodeId) return;
-    const source = document.content[sourceNodeId];
-    const target = document.content[targetNodeId];
-    if (!source || !target) throw new SilentError('could not find node content');
-    const sourceContent = source.content;
-    source.content = target.content;
-    target.content = sourceContent;
+    if (sectionId === fromSection) return toSection;
+    return `${toSection}${sectionId.slice(fromSection.length)}`;
+};
+
+export const swapMandalaSubtreeSections = (
+    sections: Sections,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    if (sourceSection === targetSection) return;
+
+    const sourceEntries: Array<[string, string]> = [];
+    const targetEntries: Array<[string, string]> = [];
+
+    for (const [sectionId, nodeId] of Object.entries(sections.section_id)) {
+        if (isSectionInSubtree(sectionId, sourceSection)) {
+            sourceEntries.push([sectionId, nodeId]);
+            continue;
+        }
+        if (isSectionInSubtree(sectionId, targetSection)) {
+            targetEntries.push([sectionId, nodeId]);
+        }
+    }
+
+    for (const [sectionId, nodeId] of [...sourceEntries, ...targetEntries]) {
+        delete sections.section_id[sectionId];
+        delete sections.id_section[nodeId];
+    }
+
+    for (const [sectionId, nodeId] of sourceEntries) {
+        const nextSectionId = swapSectionPrefix(
+            sectionId,
+            sourceSection,
+            targetSection,
+        );
+        sections.section_id[nextSectionId] = nodeId;
+        sections.id_section[nodeId] = nextSectionId;
+    }
+
+    for (const [sectionId, nodeId] of targetEntries) {
+        const nextSectionId = swapSectionPrefix(
+            sectionId,
+            targetSection,
+            sourceSection,
+        );
+        sections.section_id[nextSectionId] = nodeId;
+        sections.id_section[nodeId] = nextSectionId;
+    }
 };
 
 export type MandalaEnsureChildrenAction = {
