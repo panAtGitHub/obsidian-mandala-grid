@@ -747,6 +747,7 @@
             type: 'settings/view/mandala/select-grid-layout',
             payload: { layoutId },
         });
+        view.persistCurrentMandalaLayout(layoutId);
     };
 
     const openCustomLayoutModal = () => {

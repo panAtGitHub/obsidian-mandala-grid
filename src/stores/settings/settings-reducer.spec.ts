@@ -46,4 +46,42 @@ describe('settingsReducer custom grid layouts', () => {
         );
         expect(settings.view.mandalaGridOrientation).toBe('left-to-right');
     });
+
+    test('persists per-document mandala layout without affecting other files', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'south-start',
+                selectedLayoutId: 'builtin:south-start',
+                lastActiveSection: '2',
+                subgridTheme: '2',
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'b.md',
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: 'builtin:left-to-right',
+                lastActiveSection: '3',
+                subgridTheme: '3',
+            },
+        });
+
+        expect(settings.documents['a.md']?.mandalaView).toMatchObject({
+            selectedLayoutId: 'builtin:south-start',
+            gridOrientation: 'south-start',
+            lastActiveSection: '2',
+            subgridTheme: '2',
+        });
+        expect(settings.documents['b.md']?.mandalaView).toMatchObject({
+            selectedLayoutId: 'builtin:left-to-right',
+            gridOrientation: 'left-to-right',
+            lastActiveSection: '3',
+            subgridTheme: '3',
+        });
+    });
 });

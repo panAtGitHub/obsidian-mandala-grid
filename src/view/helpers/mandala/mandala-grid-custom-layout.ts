@@ -2,6 +2,7 @@ import type {
     BuiltinMandalaGridOrientation,
     MandalaCustomLayout,
     MandalaGridOrientation,
+    Settings,
 } from 'src/stores/settings/settings-type';
 
 export const DEFAULT_MANDALA_CUSTOM_PATTERN = '123405678';
@@ -137,4 +138,29 @@ export const normalizeMandalaCustomLayouts = (value: unknown) => {
         });
     }
     return layouts;
+};
+
+export const resolveDocumentMandalaLayoutId = ({
+    path,
+    settings,
+}: {
+    path: string | null | undefined;
+    settings: Pick<Settings, 'documents' | 'view'>;
+}) => {
+    const customLayouts = settings.view.mandalaGridCustomLayouts ?? [];
+    const documentPreferences = path ? settings.documents[path] : undefined;
+    const persistedLayoutId =
+        documentPreferences?.mandalaView?.selectedLayoutId ??
+        legacyOrientationToLayoutId(
+            documentPreferences?.mandalaView?.gridOrientation ?? null,
+        );
+
+    if (persistedLayoutId) {
+        return resolveMandalaLayoutId(persistedLayoutId, customLayouts);
+    }
+
+    return resolveMandalaLayoutId(
+        settings.view.mandalaGridSelectedLayoutId,
+        customLayouts,
+    );
 };

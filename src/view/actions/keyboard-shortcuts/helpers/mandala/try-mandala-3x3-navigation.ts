@@ -25,9 +25,7 @@ export const tryMandala3x3Navigation = (
     if (!activeSectionRaw) return false;
 
     const subgridTheme = view.viewStore.getValue().ui.mandala.subgridTheme;
-    const selectedLayoutId =
-        view.plugin.settings.getValue().view.mandalaGridSelectedLayoutId ??
-        'builtin:left-to-right';
+    const selectedLayoutId = view.getCurrentMandalaLayoutId();
     const customLayouts =
         view.plugin.settings.getValue().view.mandalaGridCustomLayouts ?? [];
     const { slotPositions, themeGrid } = getMandalaLayoutById(

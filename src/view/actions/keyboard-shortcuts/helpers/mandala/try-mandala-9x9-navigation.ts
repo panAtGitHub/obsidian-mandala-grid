@@ -25,9 +25,7 @@ export const tryMandala9x9Navigation = (
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSection = docState.sections.id_section[activeNodeId];
 
-    const selectedLayoutId =
-        view.plugin.settings.getValue().view.mandalaGridSelectedLayoutId ??
-        'builtin:left-to-right';
+    const selectedLayoutId = view.getCurrentMandalaLayoutId();
     const customLayouts =
         view.plugin.settings.getValue().view.mandalaGridCustomLayouts ?? [];
     const baseTheme = activeSection ? activeSection.split('.')[0] : '1';

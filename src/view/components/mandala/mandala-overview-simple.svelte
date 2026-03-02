@@ -190,9 +190,7 @@
     const cells = {
         subscribe: (run: (value: ReturnType<typeof buildCells>) => void) => {
             let documentState = view.documentStore.getValue();
-            let nextSelectedLayoutId =
-                view.plugin.settings.getValue().view
-                    .mandalaGridSelectedLayoutId ?? 'builtin:left-to-right';
+            let nextSelectedLayoutId = view.getCurrentMandalaLayoutId();
             let nextCustomLayouts =
                 view.plugin.settings.getValue().view.mandalaGridCustomLayouts ??
                 [];
@@ -218,9 +216,9 @@
             });
 
             const unsubSettings = view.plugin.settings.subscribe((settings) => {
-                nextSelectedLayoutId =
-                    settings.view.mandalaGridSelectedLayoutId ??
-                    'builtin:left-to-right';
+                nextSelectedLayoutId = view.getCurrentMandalaLayoutId(
+                    settings,
+                );
                 nextCustomLayouts = settings.view.mandalaGridCustomLayouts ?? [];
                 update();
             });

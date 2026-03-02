@@ -59,7 +59,7 @@ import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
 import {
     layoutIdToOrientation,
-    legacyOrientationToLayoutId,
+    resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
 
@@ -156,6 +156,17 @@ export class MandalaView extends TextFileView {
         return path
             ? this.id === this.plugin.store.getValue().documents[path]?.viewId
             : false;
+    }
+
+    getCurrentFilePath() {
+        return this.activeFilePath ?? this.file?.path ?? null;
+    }
+
+    getCurrentMandalaLayoutId(settings = this.plugin.settings.getValue()) {
+        return resolveDocumentMandalaLayoutId({
+            path: this.getCurrentFilePath(),
+            settings,
+        });
     }
 
     getViewData(): string {
@@ -574,19 +585,16 @@ export class MandalaView extends TextFileView {
         const documentPreferences = settings.documents[filePath];
         const persistedMandalaViewState = documentPreferences?.mandalaView;
         const customLayouts = settings.view.mandalaGridCustomLayouts;
-        const currentSelectedLayoutId = resolveMandalaLayoutId(
+        const currentSelectedLayoutId = resolveDocumentMandalaLayoutId({
+            path: filePath,
+            settings,
+        });
+        const globalSelectedLayoutId = resolveMandalaLayoutId(
             settings.view.mandalaGridSelectedLayoutId,
             customLayouts,
         );
-        const persistedSelectedLayoutId =
-            persistedMandalaViewState?.selectedLayoutId ??
-            legacyOrientationToLayoutId(
-                persistedMandalaViewState?.gridOrientation ?? null,
-            );
-        const nextSelectedLayoutId = persistedSelectedLayoutId
-            ? resolveMandalaLayoutId(persistedSelectedLayoutId, customLayouts)
-            : currentSelectedLayoutId;
-        if (nextSelectedLayoutId !== currentSelectedLayoutId) {
+        const nextSelectedLayoutId = currentSelectedLayoutId;
+        if (nextSelectedLayoutId !== globalSelectedLayoutId) {
             this.plugin.settings.dispatch({
                 type: 'settings/view/mandala/select-grid-layout',
                 payload: {
@@ -697,10 +705,10 @@ export class MandalaView extends TextFileView {
             documentState.sections.id_section[activeNodeId] ?? null;
         const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
         const settings = this.plugin.settings.getValue();
-        const selectedLayoutId = resolveMandalaLayoutId(
-            settings.view.mandalaGridSelectedLayoutId,
-            settings.view.mandalaGridCustomLayouts,
-        );
+        const selectedLayoutId = resolveDocumentMandalaLayoutId({
+            path,
+            settings,
+        });
         const gridOrientation = layoutIdToOrientation(selectedLayoutId);
         const currentMandalaViewState =
             settings.documents[path]?.mandalaView;
@@ -720,6 +728,42 @@ export class MandalaView extends TextFileView {
                 path,
                 gridOrientation,
                 selectedLayoutId,
+                lastActiveSection,
+                subgridTheme,
+            },
+        });
+    }
+
+    persistCurrentMandalaLayout(layoutId: string) {
+        const path = this.activeFilePath ?? this.file?.path ?? null;
+        if (!path) return;
+
+        const viewState = this.viewStore.getValue();
+        const documentState = this.documentStore.getValue();
+        const activeNodeId = viewState.document.activeNode;
+        const lastActiveSection =
+            documentState.sections.id_section[activeNodeId] ?? null;
+        const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
+        const gridOrientation = layoutIdToOrientation(layoutId);
+        const currentMandalaViewState =
+            this.plugin.settings.getValue().documents[path]?.mandalaView;
+
+        if (
+            (currentMandalaViewState?.selectedLayoutId ?? null) === layoutId &&
+            currentMandalaViewState?.gridOrientation === gridOrientation &&
+            (currentMandalaViewState?.lastActiveSection ?? null) ===
+                lastActiveSection &&
+            (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme
+        ) {
+            return;
+        }
+
+        this.plugin.settings.dispatch({
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path,
+                gridOrientation,
+                selectedLayoutId: layoutId,
                 lastActiveSection,
                 subgridTheme,
             },

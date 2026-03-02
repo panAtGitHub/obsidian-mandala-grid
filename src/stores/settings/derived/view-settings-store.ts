@@ -64,7 +64,7 @@ export const MandalaGridOrientationStore = (view: MandalaView) =>
 export const MandalaGridSelectedLayoutIdStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
-        (state) => state.view.mandalaGridSelectedLayoutId,
+        (state) => view.getCurrentMandalaLayoutId(state),
     );
 
 export const MandalaGridCustomLayoutsStore = (view: MandalaView) =>

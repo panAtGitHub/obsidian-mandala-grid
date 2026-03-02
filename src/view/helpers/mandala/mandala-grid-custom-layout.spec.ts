@@ -6,8 +6,10 @@ import {
     normalizeMandalaCustomLayouts,
     patternToGrid,
     patternToPreviewRows,
+    resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
+import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
 
 describe('mandala-grid-custom-layout', () => {
     test('converts pattern to grid and back', () => {
@@ -47,5 +49,44 @@ describe('mandala-grid-custom-layout', () => {
         expect(resolveMandalaLayoutId('custom:missing', customLayouts)).toBe(
             BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'],
         );
+    });
+
+    test('prefers document layout over global layout', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.mandalaGridSelectedLayoutId =
+            BUILTIN_MANDALA_LAYOUT_IDS['south-start'];
+        settings.documents['a.md'] = {
+            viewType: 'mandala-grid',
+            activeSection: null,
+            outline: null,
+            mandalaView: {
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'],
+                lastActiveSection: null,
+                subgridTheme: null,
+                pinnedSections: [],
+                sectionColors: {},
+            },
+        };
+
+        expect(
+            resolveDocumentMandalaLayoutId({
+                path: 'a.md',
+                settings,
+            }),
+        ).toBe(BUILTIN_MANDALA_LAYOUT_IDS['left-to-right']);
+    });
+
+    test('falls back to global layout when document layout is missing', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.mandalaGridSelectedLayoutId =
+            BUILTIN_MANDALA_LAYOUT_IDS['south-start'];
+
+        expect(
+            resolveDocumentMandalaLayoutId({
+                path: 'a.md',
+                settings,
+            }),
+        ).toBe(BUILTIN_MANDALA_LAYOUT_IDS['south-start']);
     });
 });
