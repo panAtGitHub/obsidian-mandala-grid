@@ -26,10 +26,9 @@
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import {
-        getReadableTextTone,
         type ThemeTone,
-        type TextTone,
     } from 'src/view/helpers/mandala/contrast-text-tone';
+    import { buildMandalaCardStyle } from 'src/view/components/mandala/mandala-card-style';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -43,7 +42,6 @@
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
     export let draggable: boolean;
-    export let forceActiveBackground = false;
     export let gridCell: { mode: '9x9'; row: number; col: number } | null =
         null;
 
@@ -61,43 +59,18 @@
             .getComputedStyle(document.body)
             .getPropertyValue('--background-primary')
             .trim();
-    let contrastBackgroundColor: string | null = null;
-    let textTone: TextTone | null = null;
     let cardStyle: string | undefined;
     let displaySection = section;
-    let shouldForceActiveBackground = false;
+    let shouldHideBackgroundStyle = false;
 
-    $: shouldForceActiveBackground = forceActiveBackground && active;
-    $: contrastBackgroundColor = sectionColor
-        ? shouldForceActiveBackground
-            ? null
-            : sectionColor
-        : !shouldForceActiveBackground &&
-            style?.styleVariant === 'background-color'
-          ? style.color
-          : null;
     $: displaySection = section || $idToSection[nodeId] || '';
-    $: textTone = getReadableTextTone(
-        contrastBackgroundColor,
-        getThemeTone(),
-        getThemeUnderlayColor(),
-    );
-    $: cardStyle = [
-        shouldForceActiveBackground
-            ? 'background-color: var(--background-active-node) !important'
-            : sectionColor
-              ? `background-color: ${sectionColor}`
-              : '',
-        !shouldForceActiveBackground && textTone === 'dark'
-            ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b'
-            : '',
-        !shouldForceActiveBackground && textTone === 'light'
-            ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce'
-            : '',
-    ]
-        .filter((chunk) => chunk.length > 0)
-        .join('; ');
-    $: cardStyle = cardStyle.length > 0 ? cardStyle : undefined;
+    $: ({ cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
+        active,
+        sectionColor,
+        style,
+        themeTone: getThemeTone(),
+        themeUnderlayColor: getThemeUnderlayColor(),
+    }));
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
@@ -187,7 +160,7 @@
         }
     }}
 >
-    {#if style && !((sectionColor || shouldForceActiveBackground) && style.styleVariant === 'background-color')}
+    {#if style && !(shouldHideBackgroundStyle && style.styleVariant === 'background-color')}
         <CardStyle {style} />
     {/if}
 

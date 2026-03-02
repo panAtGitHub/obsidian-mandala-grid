@@ -595,7 +595,6 @@
                                         nodeId={cell.nodeId}
                                         section={cell.section}
                                         active={cell.nodeId === $activeNodeId}
-                                        forceActiveBackground={true}
                                         editing={$editingState.activeNodeId ===
                                             cell.nodeId &&
                                             !$editingState.isInSidebar &&
@@ -1026,14 +1025,13 @@
         border-left-color: transparent !important;
     }
 
-    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
-    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node) {
+    .mandala-root--3 :global(.mandala-card.active-node),
+    .mandala-root--3 :global(.mandala-card.node-border--selected) {
         position: relative;
     }
 
-    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
-    .mandala-white-theme.mandala-root--3
-        :global(.mandala-card.active-node)::after {
+    .mandala-root--3 :global(.mandala-card.active-node)::after,
+    .mandala-root--3 :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
         inset: 2px;
