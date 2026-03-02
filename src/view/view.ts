@@ -4,6 +4,7 @@ import {
     debounce,
     IconName,
     Notice,
+    Platform,
     Scope,
     TFile,
     TextFileView,
@@ -166,6 +167,41 @@ export class MandalaView extends TextFileView {
         return resolveDocumentMandalaLayoutId({
             path: this.getCurrentFilePath(),
             settings,
+        });
+    }
+
+    isMandalaDetailSidebarVisible(settings = this.plugin.settings.getValue()) {
+        const path = this.getCurrentFilePath();
+        const persisted = path ? settings.documents[path]?.mandalaView : null;
+        return Platform.isMobile
+            ? persisted?.showDetailSidebarMobile ??
+                  settings.view.showMandalaDetailSidebarMobile
+            : persisted?.showDetailSidebarDesktop ??
+                  settings.view.showMandalaDetailSidebarDesktop;
+    }
+
+    toggleCurrentMandalaDetailSidebar() {
+        const nextEnabled = !this.isMandalaDetailSidebarVisible();
+        const settings = this.plugin.settings.getValue();
+        const globalEnabled = Platform.isMobile
+            ? settings.view.showMandalaDetailSidebarMobile
+            : settings.view.showMandalaDetailSidebarDesktop;
+
+        if (nextEnabled !== globalEnabled) {
+            this.plugin.settings.dispatch({
+                type: 'view/mandala-detail-sidebar/toggle',
+            });
+        }
+
+        this.persistCurrentMandalaViewState({
+            showDetailSidebarDesktop: Platform.isMobile
+                ? settings.documents[this.getCurrentFilePath() ?? '']
+                      ?.mandalaView?.showDetailSidebarDesktop ?? null
+                : nextEnabled,
+            showDetailSidebarMobile: Platform.isMobile
+                ? nextEnabled
+                : settings.documents[this.getCurrentFilePath() ?? '']
+                      ?.mandalaView?.showDetailSidebarMobile ?? null,
         });
     }
 
@@ -698,30 +734,65 @@ export class MandalaView extends TextFileView {
             activeCell9x9: viewState.ui.mandala.activeCell9x9,
         });
 
+        this.persistCurrentMandalaViewState(undefined, path);
+    }
+
+    persistCurrentMandalaLayout(layoutId: string) {
+        this.persistCurrentMandalaViewState({ selectedLayoutId: layoutId });
+    }
+
+    private persistCurrentMandalaViewState(
+        overrides?: {
+            selectedLayoutId?: string | null;
+            showDetailSidebarDesktop?: boolean | null;
+            showDetailSidebarMobile?: boolean | null;
+        },
+        explicitPath?: string,
+    ) {
+        const path = explicitPath ?? this.getCurrentFilePath();
+        if (!path) return;
+
+        const viewState = this.viewStore.getValue();
         const documentState = this.documentStore.getValue();
         if (!documentState.meta.isMandala) return;
+
+        const settings = this.plugin.settings.getValue();
         const activeNodeId = viewState.document.activeNode;
         const lastActiveSection =
             documentState.sections.id_section[activeNodeId] ?? null;
         const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
-        const settings = this.plugin.settings.getValue();
-        const selectedLayoutId = resolveDocumentMandalaLayoutId({
-            path,
-            settings,
-        });
+        const selectedLayoutId =
+            overrides?.selectedLayoutId ??
+            resolveDocumentMandalaLayoutId({
+                path,
+                settings,
+            });
         const gridOrientation = layoutIdToOrientation(selectedLayoutId);
-        const currentMandalaViewState =
-            settings.documents[path]?.mandalaView;
+        const currentMandalaViewState = settings.documents[path]?.mandalaView;
+        const showDetailSidebarDesktop =
+            overrides?.showDetailSidebarDesktop ??
+            currentMandalaViewState?.showDetailSidebarDesktop ??
+            settings.view.showMandalaDetailSidebarDesktop;
+        const showDetailSidebarMobile =
+            overrides?.showDetailSidebarMobile ??
+            currentMandalaViewState?.showDetailSidebarMobile ??
+            settings.view.showMandalaDetailSidebarMobile;
+
         if (
             (currentMandalaViewState?.selectedLayoutId ?? null) ===
                 selectedLayoutId &&
             currentMandalaViewState?.gridOrientation === gridOrientation &&
             (currentMandalaViewState?.lastActiveSection ?? null) ===
                 lastActiveSection &&
-            (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme
+            (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme &&
+            (currentMandalaViewState?.showDetailSidebarDesktop ?? null) ===
+                showDetailSidebarDesktop &&
+            (currentMandalaViewState?.showDetailSidebarMobile ?? null) ===
+                showDetailSidebarMobile
         ) {
             return;
         }
+
         this.plugin.settings.dispatch({
             type: 'settings/documents/persist-mandala-view-state',
             payload: {
@@ -730,42 +801,8 @@ export class MandalaView extends TextFileView {
                 selectedLayoutId,
                 lastActiveSection,
                 subgridTheme,
-            },
-        });
-    }
-
-    persistCurrentMandalaLayout(layoutId: string) {
-        const path = this.activeFilePath ?? this.file?.path ?? null;
-        if (!path) return;
-
-        const viewState = this.viewStore.getValue();
-        const documentState = this.documentStore.getValue();
-        const activeNodeId = viewState.document.activeNode;
-        const lastActiveSection =
-            documentState.sections.id_section[activeNodeId] ?? null;
-        const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
-        const gridOrientation = layoutIdToOrientation(layoutId);
-        const currentMandalaViewState =
-            this.plugin.settings.getValue().documents[path]?.mandalaView;
-
-        if (
-            (currentMandalaViewState?.selectedLayoutId ?? null) === layoutId &&
-            currentMandalaViewState?.gridOrientation === gridOrientation &&
-            (currentMandalaViewState?.lastActiveSection ?? null) ===
-                lastActiveSection &&
-            (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme
-        ) {
-            return;
-        }
-
-        this.plugin.settings.dispatch({
-            type: 'settings/documents/persist-mandala-view-state',
-            payload: {
-                path,
-                gridOrientation,
-                selectedLayoutId: layoutId,
-                lastActiveSection,
-                subgridTheme,
+                showDetailSidebarDesktop,
+                showDetailSidebarMobile,
             },
         });
     }

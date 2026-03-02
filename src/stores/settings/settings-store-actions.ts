@@ -302,6 +302,8 @@ export type PersistMandalaViewStateAction = {
         selectedLayoutId: string | null;
         lastActiveSection: string | null;
         subgridTheme: string | null;
+        showDetailSidebarDesktop: boolean | null;
+        showDetailSidebarMobile: boolean | null;
     };
 };
 export type PersistMandalaPinnedSectionsAction = {

@@ -39,6 +39,8 @@ export type MandalaViewDocumentPreferences = {
     selectedLayoutId: string | null;
     lastActiveSection: string | null;
     subgridTheme: string | null;
+    showDetailSidebarDesktop: boolean | null;
+    showDetailSidebarMobile: boolean | null;
     pinnedSections: string[];
     sectionColors: MandalaSectionColorAssignments;
 };

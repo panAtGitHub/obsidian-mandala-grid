@@ -13,9 +13,7 @@ export const enableEditModeInMainSplit = (
         !editing.isInSidebar
     )
         return;
-    const showDetailSidebar = Platform.isMobile
-        ? view.plugin.settings.getValue().view.showMandalaDetailSidebarMobile
-        : view.plugin.settings.getValue().view.showMandalaDetailSidebarDesktop;
+    const showDetailSidebar = view.isMandalaDetailSidebarVisible();
     openNodeEditor(view, nodeId, {
         desktopIsInSidebar: showDetailSidebar,
     });

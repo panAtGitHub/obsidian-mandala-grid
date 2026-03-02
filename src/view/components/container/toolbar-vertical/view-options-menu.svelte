@@ -278,9 +278,7 @@
 
     const updateMandalaDetailSidebar = (enabled: boolean) => {
         if (enabled !== $showMandalaDetailSidebar) {
-            view.plugin.settings.dispatch({
-                type: 'view/mandala-detail-sidebar/toggle',
-            });
+            view.toggleCurrentMandalaDetailSidebar();
         }
     };
 

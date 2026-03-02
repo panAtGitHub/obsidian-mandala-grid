@@ -42,14 +42,10 @@ export const editCommands = () => {
             name: 'enable_edit_mode',
             callback: (view, event) => {
                 event.preventDefault();
-                let showDetailSidebar =
-                    view.plugin.settings.getValue().view
-                        .showMandalaDetailSidebarDesktop;
+                let showDetailSidebar = view.isMandalaDetailSidebarVisible();
                 let nodeId = view.viewStore.getValue().document.activeNode;
                 if (view.mandalaMode === '9x9' && view.mandalaActiveCell9x9) {
-                    const orientation =
-                        view.plugin.settings.getValue().view
-                            .mandalaGridOrientation ?? 'left-to-right';
+                    const orientation = view.getCurrentMandalaLayoutId();
                     const activeSection =
                         view.documentStore.getValue().sections.id_section[
                             nodeId
@@ -74,9 +70,7 @@ export const editCommands = () => {
                             nodeId;
                     }
                     if (!Platform.isMobile && !showDetailSidebar) {
-                        view.plugin.settings.dispatch({
-                            type: 'view/mandala-detail-sidebar/toggle',
-                        });
+                        view.toggleCurrentMandalaDetailSidebar();
                         showDetailSidebar = true;
                     }
                 }

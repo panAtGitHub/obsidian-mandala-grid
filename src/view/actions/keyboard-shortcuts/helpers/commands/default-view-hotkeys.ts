@@ -240,9 +240,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         callback: (view, e) => {
             e.preventDefault();
             e.stopPropagation();
-            view.plugin.settings.dispatch({
-                type: 'view/mandala-detail-sidebar/toggle',
-            });
+            view.toggleCurrentMandalaDetailSidebar();
         },
         hotkeys: [{ key: ']', modifiers: ['Mod'], editorState: 'editor-off' }],
     },

@@ -37,11 +37,7 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                     buttons: [
                         {
                             label: '详情侧边栏',
-                            onClick: () => {
-                                view.plugin.settings.dispatch({
-                                    type: 'view/mandala-detail-sidebar/toggle',
-                                });
-                            },
+                            onClick: () => view.toggleCurrentMandalaDetailSidebar(),
                             icon: PanelRight,
                             id: 'mandala-detail-sidebar' as unknown as ToolbarButton,
                         },

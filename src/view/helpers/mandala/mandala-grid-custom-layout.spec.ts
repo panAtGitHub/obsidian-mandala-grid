@@ -64,6 +64,8 @@ describe('mandala-grid-custom-layout', () => {
                 selectedLayoutId: BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'],
                 lastActiveSection: null,
                 subgridTheme: null,
+                showDetailSidebarDesktop: null,
+                showDetailSidebarMobile: null,
                 pinnedSections: [],
                 sectionColors: {},
             },

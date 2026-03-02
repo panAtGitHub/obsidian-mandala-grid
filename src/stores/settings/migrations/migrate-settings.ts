@@ -49,6 +49,8 @@ const createDefaultMandalaView = () => ({
     selectedLayoutId: null as string | null,
     lastActiveSection: null as string | null,
     subgridTheme: null as string | null,
+    showDetailSidebarDesktop: null as boolean | null,
+    showDetailSidebarMobile: null as boolean | null,
     pinnedSections: [] as string[],
     sectionColors: {} as Record<string, string[]>,
 });
@@ -125,6 +127,16 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                     subgridTheme:
                         typeof mandalaViewRaw.subgridTheme === 'string'
                             ? mandalaViewRaw.subgridTheme
+                            : null,
+                    showDetailSidebarDesktop:
+                        typeof mandalaViewRaw.showDetailSidebarDesktop ===
+                        'boolean'
+                            ? mandalaViewRaw.showDetailSidebarDesktop
+                            : null,
+                    showDetailSidebarMobile:
+                        typeof mandalaViewRaw.showDetailSidebarMobile ===
+                        'boolean'
+                            ? mandalaViewRaw.showDetailSidebarMobile
                             : null,
                     pinnedSections: normalizeSectionIds(
                         mandalaViewRaw.pinnedSections,

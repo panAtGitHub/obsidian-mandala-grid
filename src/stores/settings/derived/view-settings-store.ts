@@ -117,10 +117,7 @@ export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
 export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
-        (state) =>
-            Platform.isMobile
-                ? state.view.showMandalaDetailSidebarMobile
-                : state.view.showMandalaDetailSidebarDesktop,
+        (state) => view.isMandalaDetailSidebarVisible(state),
     );
 
 export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>

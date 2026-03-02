@@ -62,6 +62,8 @@ const createDefaultDocumentPreferences = (): DocumentPreferences => ({
         selectedLayoutId: null,
         lastActiveSection: null,
         subgridTheme: null,
+        showDetailSidebarDesktop: null,
+        showDetailSidebarMobile: null,
         pinnedSections: [],
         sectionColors: {},
     },
@@ -81,6 +83,8 @@ const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => 
             selectedLayoutId: null,
             lastActiveSection: null,
             subgridTheme: null,
+            showDetailSidebarDesktop: null,
+            showDetailSidebarMobile: null,
             pinnedSections: [],
             sectionColors: {},
         };
@@ -125,6 +129,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         mandalaView.selectedLayoutId = action.payload.selectedLayoutId;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
         mandalaView.subgridTheme = action.payload.subgridTheme;
+        mandalaView.showDetailSidebarDesktop =
+            action.payload.showDetailSidebarDesktop;
+        mandalaView.showDetailSidebarMobile =
+            action.payload.showDetailSidebarMobile;
     },
     'settings/documents/persist-mandala-pinned-sections': (store, action) => {
         if (

@@ -19,14 +19,16 @@ const createDocumentPreferences = (
     viewType: 'mandala-grid',
     activeSection: null,
     outline: null,
-    mandalaView: {
-        gridOrientation: null,
-        selectedLayoutId: null,
-        lastActiveSection: null,
-        subgridTheme: null,
-        pinnedSections: [],
-        sectionColors,
-    },
+        mandalaView: {
+            gridOrientation: null,
+            selectedLayoutId: null,
+            lastActiveSection: null,
+            subgridTheme: null,
+            showDetailSidebarDesktop: null,
+            showDetailSidebarMobile: null,
+            pinnedSections: [],
+            sectionColors,
+        },
 });
 
 const createTestContext = (initialPath = 'a.md') => {
