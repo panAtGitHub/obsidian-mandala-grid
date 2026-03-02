@@ -238,10 +238,7 @@ describe('migrateSettings', () => {
 
     test('adds defaults for table highlight settings when missing', () => {
         const settings = DEFAULT_SETTINGS();
-        const legacyView = settings.view as Settings['view'] & {
-            mandalaGridHighlightColor?: unknown;
-            mandalaGridHighlightWidth?: number;
-        };
+        const legacyView = settings.view as Record<string, unknown>;
         delete legacyView.mandalaGridHighlightWidth;
         legacyView.mandalaGridHighlightColor = 123;
 
