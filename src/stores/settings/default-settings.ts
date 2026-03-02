@@ -5,6 +5,8 @@ export const DEFAULT_CARD_WIDTH = 550;
 export const DEFAULT_CARDS_GAP = 6;
 export const DEFAULT_INACTIVE_NODE_OPACITY = 25;
 export const DEFAULT_H1_FONT_SIZE_EM = 1.802;
+export const DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR = '#418cff';
+export const DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH = 2;
 export const DEFAULT_SETTINGS = (): Settings => ({
     documents: {},
     hotkeys: {
@@ -87,6 +89,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaA4Orientation: 'landscape',
         mandalaBackgroundMode: 'custom',
         mandalaGridBorderOpacity: 100,
+        mandalaGridHighlightWidth: DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
         mandalaSectionColorOpacity: 100,
         lastExportPreset: null,
         alwaysShowCardButtons: false,

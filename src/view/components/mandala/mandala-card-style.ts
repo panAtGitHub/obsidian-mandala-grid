@@ -11,6 +11,7 @@ type BuildMandalaCardStyleOptions = {
     style: NodeStyle | undefined;
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
+    preserveActiveBackground?: boolean;
 };
 
 type MandalaCardStyleState = {
@@ -20,26 +21,41 @@ type MandalaCardStyleState = {
     shouldHideBackgroundStyle: boolean;
 };
 
-const getBackgroundColor = ({
+const getContrastBackgroundColor = ({
+    active,
     sectionColor,
+    preserveActiveBackground = false,
     style,
 }: Pick<
     BuildMandalaCardStyleOptions,
-    'sectionColor' | 'style'
+    'active' | 'sectionColor' | 'style' | 'preserveActiveBackground'
 >): string | null => {
-    if (sectionColor) return sectionColor;
-    if (style?.styleVariant === 'background-color') return style.color;
+    const shouldForceActiveBackground = active && !preserveActiveBackground;
+    if (sectionColor && !shouldForceActiveBackground) return sectionColor;
+    if (
+        style?.styleVariant === 'background-color' &&
+        !shouldForceActiveBackground
+    ) {
+        return style.color;
+    }
     return null;
 };
 
 export const buildMandalaCardStyle = ({
-    active: _active,
+    active,
     sectionColor,
+    preserveActiveBackground = false,
     style,
     themeTone,
     themeUnderlayColor,
 }: BuildMandalaCardStyleOptions): MandalaCardStyleState => {
-    const backgroundColor = getBackgroundColor({ sectionColor, style });
+    const shouldForceActiveBackground = active && !preserveActiveBackground;
+    const backgroundColor = getContrastBackgroundColor({
+        active,
+        sectionColor,
+        preserveActiveBackground,
+        style,
+    });
     const textTone = getReadableTextTone(
         backgroundColor,
         themeTone,
@@ -47,11 +63,15 @@ export const buildMandalaCardStyle = ({
     );
 
     const cardStyle = [
-        backgroundColor ? `background-color: ${backgroundColor}` : '',
-        textTone === 'dark'
+        shouldForceActiveBackground
+            ? 'background-color: var(--background-active-node) !important'
+            : sectionColor
+              ? `background-color: ${sectionColor}`
+              : '',
+        !shouldForceActiveBackground && textTone === 'dark'
             ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b'
             : '',
-        textTone === 'light'
+        !shouldForceActiveBackground && textTone === 'light'
             ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce'
             : '',
     ]
@@ -63,7 +83,8 @@ export const buildMandalaCardStyle = ({
         textTone,
         cardStyle: cardStyle.length > 0 ? cardStyle : undefined,
         shouldHideBackgroundStyle: Boolean(
-            backgroundColor && style?.styleVariant === 'background-color',
+            (sectionColor || shouldForceActiveBackground) &&
+                style?.styleVariant === 'background-color',
         ),
     };
 };

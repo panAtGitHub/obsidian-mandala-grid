@@ -20,6 +20,8 @@
         MandalaBackgroundModeStore,
         MandalaBorderOpacityStore,
         MandalaGridCustomLayoutsStore,
+        MandalaGridHighlightColorStore,
+        MandalaGridHighlightWidthStore,
         MandalaFontSize3x3DesktopStore,
         MandalaFontSize3x3MobileStore,
         MandalaFontSize9x9DesktopStore,
@@ -41,6 +43,8 @@
         DEFAULT_CARDS_GAP,
         DEFAULT_INACTIVE_NODE_OPACITY,
         DEFAULT_H1_FONT_SIZE_EM,
+        DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
+        DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
     } from 'src/stores/settings/default-settings';
     import {
         appendMandalaTemplate,
@@ -99,6 +103,8 @@
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
+    const gridHighlightColorStore = MandalaGridHighlightColorStore(view);
+    const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
@@ -144,6 +150,12 @@
         (state) =>
             state.view.theme.activeBranchColor ??
             themeDefaults.activeBranchColor,
+    );
+    const gridHighlightColor = derived(
+        view.plugin.settings,
+        (state) =>
+            state.view.mandalaGridHighlightColor ??
+            DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
     );
     const inactiveNodeOpacity = derived(
         view.plugin.settings,
@@ -369,6 +381,8 @@
 
     const clampGap = (value: number) => Math.min(20, Math.max(0, value));
     const clampOpacity = (value: number) => Math.min(100, Math.max(0, value));
+    const clampGridHighlightWidth = (value: number) =>
+        Math.min(8, Math.max(1, value));
     const clampFontSize = (value: number) => Math.min(36, Math.max(6, value));
     const clampH1FontSize = (value: number) => Math.min(4, Math.max(1, value));
     const roundToDecimal = (value: number, decimalPlaces: number) =>
@@ -436,6 +450,13 @@
         });
     };
 
+    const updateGridHighlightWidthValue = (value: number) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-highlight-width',
+            payload: { width: clampGridHighlightWidth(value) },
+        });
+    };
+
     const updateInactiveNodeOpacityValue = (value: number) => {
         view.plugin.settings.dispatch({
             type: 'settings/view/theme/set-inactive-node-opacity',
@@ -499,6 +520,10 @@
         updateSectionColorOpacityValue(value);
     };
 
+    const updateGridHighlightWidth = createNumericInputHandler(
+        updateGridHighlightWidthValue,
+    );
+
     const updateInactiveNodeOpacity = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
@@ -532,6 +557,10 @@
     const stepBorderOpacity = (current: number, delta: number) => {
         updateBorderOpacityValue(current + delta);
     };
+
+    const stepGridHighlightWidth = createStepHandler(
+        updateGridHighlightWidthValue,
+    );
 
     const stepInactiveOpacity = (current: number, delta: number) => {
         updateInactiveNodeOpacityValue(current + delta);
@@ -597,12 +626,32 @@
         });
     };
 
+    const updateGridHighlightColor = (event: Event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-highlight-color',
+            payload: { color: target.value },
+        });
+    };
+
+    const resetGridHighlightColor = () => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-highlight-color',
+            payload: { color: undefined },
+        });
+    };
+
     const resetInactiveNodeOpacity = () => {
         updateInactiveNodeOpacityValue(DEFAULT_INACTIVE_NODE_OPACITY);
     };
 
     const resetCardsGap = () => {
         updateCardsGapValue(DEFAULT_CARDS_GAP);
+    };
+
+    const resetGridHighlightWidth = () => {
+        updateGridHighlightWidthValue(DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH);
     };
 
     const resetFontSize3x3 = () => {
@@ -643,6 +692,8 @@
         backgroundMode: 'none' | 'custom' | 'gray';
         sectionColorOpacity: number;
         borderOpacity: number;
+        gridHighlightColor?: string;
+        gridHighlightWidth: number;
         whiteThemeMode: boolean;
         squareLayout: boolean;
         showMandalaDetailSidebar: boolean;
@@ -659,6 +710,8 @@
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
             borderOpacity: $borderOpacity,
+            gridHighlightColor: $gridHighlightColorStore,
+            gridHighlightWidth: $gridHighlightWidth,
             whiteThemeMode: $whiteThemeMode,
             squareLayout: $squareLayout,
             showMandalaDetailSidebar: $showMandalaDetailSidebar,
@@ -672,6 +725,15 @@
         updateBackgroundMode(config.backgroundMode);
         updateSectionColorOpacityValue(config.sectionColorOpacity);
         updateBorderOpacityValue(config.borderOpacity);
+        if (config.gridHighlightColor) {
+            view.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-grid-highlight-color',
+                payload: { color: config.gridHighlightColor },
+            });
+        } else {
+            resetGridHighlightColor();
+        }
+        updateGridHighlightWidthValue(config.gridHighlightWidth);
         updateSquareLayout(config.squareLayout);
         updateMandalaDetailSidebar(config.showMandalaDetailSidebar);
         view.plugin.settings.dispatch({
@@ -709,6 +771,10 @@
             backgroundMode: preset.backgroundMode,
             sectionColorOpacity: preset.sectionColorOpacity,
             borderOpacity: preset.borderOpacity,
+            gridHighlightColor: preset.gridHighlightColor,
+            gridHighlightWidth:
+                preset.gridHighlightWidth ??
+                DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
             whiteThemeMode: preset.whiteThemeMode,
             squareLayout: preset.squareLayout,
             showMandalaDetailSidebar:
@@ -726,6 +792,8 @@
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
             borderOpacity: $borderOpacity,
+            gridHighlightColor: $gridHighlightColorStore,
+            gridHighlightWidth: $gridHighlightWidth,
             whiteThemeMode: $whiteThemeMode,
             squareLayout: $squareLayout,
         };
@@ -1199,7 +1267,15 @@
             applyCssVariables(layer, cssVars);
             applyInlineStyles(layer, {
                 ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${$borderOpacity}%`,
+                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]:
+                    `${$gridHighlightWidth}px`,
             });
+            if ($gridHighlightColorStore?.trim().length) {
+                applyInlineStyles(layer, {
+                    ['--mandala-grid-highlight-color' as keyof CSSStyleDeclaration]:
+                        $gridHighlightColorStore,
+                });
+            }
             if (borderColor.trim().length > 0) {
                 applyInlineStyles(layer, {
                     ['--mandala-border-color' as keyof CSSStyleDeclaration]:
@@ -2000,6 +2076,8 @@
                 activeBranchColor={$activeBranchColor}
                 inactiveNodeOpacity={$inactiveNodeOpacity}
                 borderOpacity={$borderOpacity}
+                gridHighlightColor={$gridHighlightColor}
+                gridHighlightWidth={$gridHighlightWidth}
                 backgroundMode={$backgroundMode}
                 sectionColorOpacity={$sectionColorOpacity}
                 squareLayout={$squareLayout}
@@ -2021,6 +2099,11 @@
                 {resetInactiveNodeOpacity}
                 {stepBorderOpacity}
                 {updateBorderOpacity}
+                {updateGridHighlightColor}
+                {resetGridHighlightColor}
+                {stepGridHighlightWidth}
+                {updateGridHighlightWidth}
+                {resetGridHighlightWidth}
                 {updateBackgroundMode}
                 {stepOpacity}
                 {updateSectionColorOpacity}

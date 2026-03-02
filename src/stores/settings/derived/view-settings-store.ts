@@ -147,6 +147,18 @@ export const MandalaSectionColorOpacityStore = (view: MandalaView) =>
         (state) => state.view.mandalaSectionColorOpacity,
     );
 
+export const MandalaGridHighlightColorStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridHighlightColor,
+    );
+
+export const MandalaGridHighlightWidthStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridHighlightWidth,
+    );
+
 export const HiddenVerticalToolbarButtons = (plugin: MandalaGrid) =>
     derived(
         plugin.settings,

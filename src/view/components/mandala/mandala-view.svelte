@@ -6,6 +6,8 @@
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBorderOpacityStore,
+        MandalaGridHighlightColorStore,
+        MandalaGridHighlightWidthStore,
         MandalaDetailSidebarWidthStore,
         MandalaModeStore,
         MandalaBackgroundModeStore,
@@ -61,6 +63,8 @@
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
+    const gridHighlightColor = MandalaGridHighlightColorStore(view);
+    const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -520,7 +524,8 @@
     class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight ||
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --mandala-grid-highlight-color: {$gridHighlightColor ||
+        'var(--mandala-color-selection)'}; --mandala-grid-highlight-width: {$gridHighlightWidth}px; --vvh: {visualViewportHeight ||
         window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px; --vkf: {keyboardOverlayFallback}px;"
 >
     {#if isMobilePopupEditing}
@@ -595,6 +600,7 @@
                                         nodeId={cell.nodeId}
                                         section={cell.section}
                                         active={cell.nodeId === $activeNodeId}
+                                        preserveActiveBackground={$whiteThemeMode}
                                         editing={$editingState.activeNodeId ===
                                             cell.nodeId &&
                                             !$editingState.isInSidebar &&
@@ -1025,17 +1031,27 @@
         border-left-color: transparent !important;
     }
 
-    .mandala-root--3 :global(.mandala-card.active-node),
-    .mandala-root--3 :global(.mandala-card.node-border--selected) {
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
+    .mandala-a4-mode.mandala-root--3
+        :global(.mandala-card.node-border--selected),
+    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected) {
         position: relative;
     }
 
-    .mandala-root--3 :global(.mandala-card.active-node)::after,
-    .mandala-root--3 :global(.mandala-card.node-border--selected)::after {
+    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
+    .mandala-a4-mode.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after,
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
         inset: 2px;
-        border: 2px solid var(--mandala-color-selection);
+        border: var(--mandala-grid-highlight-width, 2px) solid
+            var(--mandala-grid-highlight-color, var(--mandala-color-selection));
         pointer-events: none;
         box-sizing: border-box;
         border-radius: 0;

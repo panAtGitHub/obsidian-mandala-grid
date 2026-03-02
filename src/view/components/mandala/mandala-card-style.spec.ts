@@ -2,10 +2,25 @@ import { describe, expect, it } from 'vitest';
 import { buildMandalaCardStyle } from './mandala-card-style';
 
 describe('buildMandalaCardStyle', () => {
-    it('keeps section background color when the card is active', () => {
+    it('keeps existing active background behavior by default', () => {
         const state = buildMandalaCardStyle({
             active: true,
             sectionColor: 'rgba(103, 127, 239, 0.65)',
+            style: undefined,
+            themeTone: 'light',
+        });
+
+        expect(state.backgroundColor).toBeNull();
+        expect(state.cardStyle).toContain(
+            'background-color: var(--background-active-node) !important',
+        );
+    });
+
+    it('keeps section background color when table style asks to preserve it', () => {
+        const state = buildMandalaCardStyle({
+            active: true,
+            sectionColor: 'rgba(103, 127, 239, 0.65)',
+            preserveActiveBackground: true,
             style: undefined,
             themeTone: 'light',
         });
@@ -16,10 +31,11 @@ describe('buildMandalaCardStyle', () => {
         );
     });
 
-    it('keeps custom card background color when the card is active', () => {
+    it('keeps custom card background color only when preserve mode is enabled', () => {
         const state = buildMandalaCardStyle({
             active: true,
             sectionColor: null,
+            preserveActiveBackground: true,
             style: {
                 color: '#2B3040',
                 styleVariant: 'background-color',
@@ -28,11 +44,11 @@ describe('buildMandalaCardStyle', () => {
         });
 
         expect(state.backgroundColor).toBe('#2B3040');
-        expect(state.cardStyle).toContain('background-color: #2B3040');
-        expect(state.shouldHideBackgroundStyle).toBe(true);
+        expect(state.cardStyle).not.toContain('background-color: #2B3040');
+        expect(state.shouldHideBackgroundStyle).toBe(false);
     });
 
-    it('does not inject an active background when no custom background exists', () => {
+    it('injects the active background when no custom background exists by default', () => {
         const state = buildMandalaCardStyle({
             active: true,
             sectionColor: null,
@@ -41,13 +57,16 @@ describe('buildMandalaCardStyle', () => {
         });
 
         expect(state.backgroundColor).toBeNull();
-        expect(state.cardStyle).toBeUndefined();
+        expect(state.cardStyle).toContain(
+            'background-color: var(--background-active-node) !important',
+        );
     });
 
     it('keeps text contrast tokens for dark custom backgrounds', () => {
         const state = buildMandalaCardStyle({
             active: true,
             sectionColor: null,
+            preserveActiveBackground: true,
             style: {
                 color: '#2B3040',
                 styleVariant: 'background-color',

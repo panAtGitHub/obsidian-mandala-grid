@@ -594,6 +594,22 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/mandala/set-border-opacity') return;
         store.view.mandalaGridBorderOpacity = action.payload.opacity;
     },
+    'settings/view/mandala/set-grid-highlight-color': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-grid-highlight-color') {
+            return;
+        }
+        if (action.payload.color) {
+            store.view.mandalaGridHighlightColor = action.payload.color;
+        } else {
+            delete store.view.mandalaGridHighlightColor;
+        }
+    },
+    'settings/view/mandala/set-grid-highlight-width': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-grid-highlight-width') {
+            return;
+        }
+        store.view.mandalaGridHighlightWidth = action.payload.width;
+    },
     'settings/view/mandala/set-section-color-opacity': (store, action) => {
         if (action.type !== 'settings/view/mandala/set-section-color-opacity')
             return;

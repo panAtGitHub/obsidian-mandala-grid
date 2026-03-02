@@ -52,6 +52,8 @@ export type LastExportPreset = {
     backgroundMode: 'none' | 'custom' | 'gray';
     sectionColorOpacity: number;
     borderOpacity: number;
+    gridHighlightColor?: string;
+    gridHighlightWidth?: number;
     whiteThemeMode: boolean;
     squareLayout: boolean;
 };
@@ -117,6 +119,8 @@ export type Settings = {
         mandalaA4Orientation: 'portrait' | 'landscape';
         mandalaBackgroundMode: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity: number;
+        mandalaGridHighlightColor?: string;
+        mandalaGridHighlightWidth: number;
         mandalaSectionColorOpacity: number;
         lastExportPreset: LastExportPreset | null;
         alwaysShowCardButtons: boolean;

@@ -1,8 +1,9 @@
+import { DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH } from 'src/stores/settings/default-settings';
+import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import {
     MandalaGridOrientation,
     Settings,
 } from 'src/stores/settings/settings-type';
-import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import {
     BUILTIN_MANDALA_LAYOUT_IDS,
     layoutIdToOrientation,
@@ -172,6 +173,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         mandalaA4Orientation?: 'portrait' | 'landscape';
         mandalaBackgroundMode?: 'none' | 'custom' | 'gray';
         mandalaGridBorderOpacity?: number;
+        mandalaGridHighlightColor?: unknown;
+        mandalaGridHighlightWidth?: number;
         mandalaGridOrientation?: MandalaGridOrientation;
         mandalaGridSelectedLayoutId?: unknown;
         mandalaGridCustomLayouts?: unknown;
@@ -216,6 +219,13 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
     if (viewSettings.mandalaGridBorderOpacity === undefined) {
         viewSettings.mandalaGridBorderOpacity = 100;
+    }
+    if (typeof viewSettings.mandalaGridHighlightColor !== 'string') {
+        delete viewSettings.mandalaGridHighlightColor;
+    }
+    if (viewSettings.mandalaGridHighlightWidth === undefined) {
+        viewSettings.mandalaGridHighlightWidth =
+            DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH;
     }
     if (viewSettings.mandalaGridOrientation === undefined) {
         viewSettings.mandalaGridOrientation = 'left-to-right';

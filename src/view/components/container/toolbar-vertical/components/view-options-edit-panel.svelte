@@ -16,6 +16,8 @@
     export let inactiveNodeOpacity = 0;
 
     export let borderOpacity = 0;
+    export let gridHighlightColor = '';
+    export let gridHighlightWidth = 2;
     export let backgroundMode: 'none' | 'custom' | 'gray' = 'none';
     export let sectionColorOpacity = 0;
     export let squareLayout = false;
@@ -41,6 +43,11 @@
 
     export let stepBorderOpacity: (current: number, delta: number) => void;
     export let updateBorderOpacity: (event: Event) => void;
+    export let updateGridHighlightColor: (event: Event) => void;
+    export let resetGridHighlightColor: () => void;
+    export let stepGridHighlightWidth: (current: number, delta: number) => void;
+    export let updateGridHighlightWidth: (event: Event) => void;
+    export let resetGridHighlightWidth: () => void;
 
     export let updateBackgroundMode: (mode: 'none' | 'custom' | 'gray') => void;
     export let stepOpacity: (current: number, delta: number) => void;
@@ -226,6 +233,75 @@
                         <div class="view-options-menu__subsection-title">
                             线框选项
                         </div>
+                        <div class="view-options-menu__row">
+                            <span>高亮框颜色</span>
+                            <div class="view-options-menu__row-controls">
+                                <ColorSwatchInput
+                                    value={gridHighlightColor}
+                                    onInput={updateGridHighlightColor}
+                                    ariaLabel="选择表格风格高亮框颜色"
+                                />
+                                <button
+                                    class="view-options-menu__reset"
+                                    type="button"
+                                    on:click={resetGridHighlightColor}
+                                    aria-label="重置高亮框颜色"
+                                >
+                                    <RotateCcw size={14} />
+                                </button>
+                            </div>
+                        </div>
+                        <label class="view-options-menu__row">
+                            <span>高亮框粗细</span>
+                            <div class="view-options-menu__range">
+                                <button
+                                    class="view-options-menu__range-step"
+                                    type="button"
+                                    on:click={() =>
+                                        stepGridHighlightWidth(
+                                            gridHighlightWidth,
+                                            -1,
+                                        )}
+                                >
+                                    -
+                                </button>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="8"
+                                    step="1"
+                                    value={gridHighlightWidth}
+                                    on:input={updateGridHighlightWidth}
+                                />
+                                <button
+                                    class="view-options-menu__range-step"
+                                    type="button"
+                                    on:click={() =>
+                                        stepGridHighlightWidth(
+                                            gridHighlightWidth,
+                                            1,
+                                        )}
+                                >
+                                    +
+                                </button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="8"
+                                    step="1"
+                                    value={gridHighlightWidth}
+                                    on:input={updateGridHighlightWidth}
+                                />
+                                <button
+                                    class="view-options-menu__reset"
+                                    type="button"
+                                    on:click={resetGridHighlightWidth}
+                                    aria-label="重置高亮框粗细"
+                                >
+                                    <RotateCcw size={14} />
+                                </button>
+                            </div>
+                        </label>
                         <label class="view-options-menu__row">
                             <span>线框透明度</span>
                             <div class="view-options-menu__range">

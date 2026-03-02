@@ -235,4 +235,20 @@ describe('migrateSettings', () => {
         expect('undo_change' in settings.hotkeys.customHotkeys).toBe(false);
         expect('redo_change' in settings.hotkeys.customHotkeys).toBe(false);
     });
+
+    test('adds defaults for table highlight settings when missing', () => {
+        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar & {
+            view: Settings['view'] & {
+                mandalaGridHighlightColor?: unknown;
+                mandalaGridHighlightWidth?: number;
+            };
+        };
+        delete settings.view.mandalaGridHighlightWidth;
+        settings.view.mandalaGridHighlightColor = 123;
+
+        migrateSettings(settings);
+
+        expect(settings.view.mandalaGridHighlightWidth).toBe(2);
+        expect('mandalaGridHighlightColor' in settings.view).toBe(false);
+    });
 });

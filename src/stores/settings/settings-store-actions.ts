@@ -267,6 +267,14 @@ export type SettingsActions =
           payload: { opacity: number };
       }
     | {
+          type: 'settings/view/mandala/set-grid-highlight-color';
+          payload: { color: string | undefined };
+      }
+    | {
+          type: 'settings/view/mandala/set-grid-highlight-width';
+          payload: { width: number };
+      }
+    | {
           type: 'settings/view/mandala/set-section-color-opacity';
           payload: { opacity: number };
       }
@@ -281,6 +289,8 @@ export type SettingsActions =
                         backgroundMode: 'none' | 'custom' | 'gray';
                         sectionColorOpacity: number;
                         borderOpacity: number;
+                        gridHighlightColor?: string;
+                        gridHighlightWidth?: number;
                         whiteThemeMode: boolean;
                         squareLayout: boolean;
                     }
