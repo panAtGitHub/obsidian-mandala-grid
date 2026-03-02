@@ -237,14 +237,13 @@ describe('migrateSettings', () => {
     });
 
     test('adds defaults for table highlight settings when missing', () => {
-        const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar & {
-            view: Settings['view'] & {
-                mandalaGridHighlightColor?: unknown;
-                mandalaGridHighlightWidth?: number;
-            };
+        const settings = DEFAULT_SETTINGS();
+        const legacyView = settings.view as Settings['view'] & {
+            mandalaGridHighlightColor?: unknown;
+            mandalaGridHighlightWidth?: number;
         };
-        delete settings.view.mandalaGridHighlightWidth;
-        settings.view.mandalaGridHighlightColor = 123;
+        delete legacyView.mandalaGridHighlightWidth;
+        legacyView.mandalaGridHighlightColor = 123;
 
         migrateSettings(settings);
 
