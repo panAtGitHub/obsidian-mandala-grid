@@ -1,5 +1,6 @@
 <script lang="ts">
     import clx from 'classnames';
+    import { Pin } from 'lucide-svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Draggable from 'src/view/components/container/column/components/group/components/card/components/dnd/draggable.svelte';
@@ -25,10 +26,12 @@
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
-    import {
-        type ThemeTone,
-    } from 'src/view/helpers/mandala/contrast-text-tone';
+    import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
     import { buildMandalaCardStyle } from 'src/view/components/mandala/mandala-card-style';
+    import {
+        buildMandalaCardMetaState,
+        type SectionIndicatorVariant,
+    } from 'src/view/components/mandala/mandala-card-meta';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -43,6 +46,7 @@
     export let sectionColor: string | null = null;
     export let draggable: boolean;
     export let preserveActiveBackground = false;
+    export let sectionIndicatorVariant: SectionIndicatorVariant = 'plain';
     export let gridCell: { mode: '9x9'; row: number; col: number } | null =
         null;
 
@@ -63,6 +67,9 @@
     let cardStyle: string | undefined;
     let displaySection = section;
     let shouldHideBackgroundStyle = false;
+    let showSectionCapsule = false;
+    let capsuleTextTone: 'dark' | 'light' | null = null;
+    let capsuleStyle: string | undefined;
 
     $: displaySection = section || $idToSection[nodeId] || '';
     $: ({ cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
@@ -73,6 +80,17 @@
         themeTone: getThemeTone(),
         themeUnderlayColor: getThemeUnderlayColor(),
     }));
+    $: ({ showCapsule: showSectionCapsule, textTone: capsuleTextTone } =
+        buildMandalaCardMetaState({
+            variant: sectionIndicatorVariant,
+            sectionColor,
+            themeTone: getThemeTone(),
+            themeUnderlayColor: getThemeUnderlayColor(),
+        }));
+    $: capsuleStyle =
+        showSectionCapsule && sectionColor
+            ? `--mandala-card-meta-bg: ${sectionColor}`
+            : undefined;
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
@@ -181,7 +199,29 @@
         <Content {nodeId} isInSidebar={false} />
     {/if}
 
-    <div class="mandala-section-label">{displaySection}</div>
+    {#if showSectionCapsule}
+        <div
+            class={clx(
+                'mandala-card-meta',
+                'mandala-card-meta--capsule',
+                capsuleTextTone
+                    ? `mandala-card-meta--tone-${capsuleTextTone}`
+                    : undefined,
+            )}
+            style={capsuleStyle}
+        >
+            <span class="mandala-card-meta__pin-slot" aria-hidden="true">
+                {#if pinned}
+                    <Pin size={10} strokeWidth={2.2} />
+                {/if}
+            </span>
+            <span class="mandala-card-meta__section">{displaySection}</span>
+        </div>
+    {:else}
+        <div class="mandala-card-meta mandala-card-meta--plain">
+            {displaySection}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -205,14 +245,52 @@
         z-index: 10;
     }
 
-    .mandala-section-label {
+    .mandala-card-meta {
         position: absolute;
         top: 6px;
         right: 8px;
         font-size: 12px;
-        opacity: 0.7;
         user-select: none;
         pointer-events: none;
+        z-index: 1;
+    }
+
+    .mandala-card-meta--plain {
+        opacity: 0.7;
+    }
+
+    .mandala-card-meta--capsule {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 18px;
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: var(--mandala-card-meta-bg);
+        color: var(--text-muted);
+    }
+
+    .mandala-card-meta__pin-slot {
+        width: 10px;
+        min-width: 10px;
+        height: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: currentColor;
+        opacity: 0.9;
+    }
+
+    .mandala-card-meta__section {
+        line-height: 1;
+    }
+
+    .mandala-card-meta--tone-dark {
+        color: #2f3a48;
+    }
+
+    .mandala-card-meta--tone-light {
+        color: #d0d8e6;
     }
 
     .mandala-card--swap-source {
