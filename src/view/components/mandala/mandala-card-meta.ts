@@ -9,26 +9,31 @@ export type SectionIndicatorVariant = 'plain' | 'section-capsule';
 type BuildMandalaCardMetaStateOptions = {
     variant: SectionIndicatorVariant;
     sectionColor: string | null;
+    pinned: boolean;
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
 };
 
 type MandalaCardMetaState = {
-    showCapsule: boolean;
+    showBackground: boolean;
+    showPin: boolean;
     textTone: TextTone | null;
 };
 
 export const buildMandalaCardMetaState = ({
     variant,
     sectionColor,
+    pinned,
     themeTone,
     themeUnderlayColor,
 }: BuildMandalaCardMetaStateOptions): MandalaCardMetaState => {
-    const showCapsule = variant === 'section-capsule' && Boolean(sectionColor);
+    const interactiveMeta = variant === 'section-capsule';
+    const showBackground = interactiveMeta && Boolean(sectionColor);
 
     return {
-        showCapsule,
-        textTone: showCapsule
+        showBackground,
+        showPin: interactiveMeta && pinned,
+        textTone: showBackground
             ? getReadableTextTone(sectionColor, themeTone, themeUnderlayColor)
             : null,
     };

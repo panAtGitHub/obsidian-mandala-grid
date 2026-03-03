@@ -67,9 +67,10 @@
     let cardStyle: string | undefined;
     let displaySection = section;
     let shouldHideBackgroundStyle = false;
-    let showSectionCapsule = false;
+    let showSectionBackground = false;
+    let showSectionPin = false;
     let capsuleTextTone: 'dark' | 'light' | null = null;
-    let capsuleStyle: string | undefined;
+    let metaStyle: string | undefined;
 
     $: displaySection = section || $idToSection[nodeId] || '';
     $: ({ cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
@@ -80,15 +81,19 @@
         themeTone: getThemeTone(),
         themeUnderlayColor: getThemeUnderlayColor(),
     }));
-    $: ({ showCapsule: showSectionCapsule, textTone: capsuleTextTone } =
-        buildMandalaCardMetaState({
-            variant: sectionIndicatorVariant,
-            sectionColor,
-            themeTone: getThemeTone(),
-            themeUnderlayColor: getThemeUnderlayColor(),
-        }));
-    $: capsuleStyle =
-        showSectionCapsule && sectionColor
+    $: ({
+        showBackground: showSectionBackground,
+        showPin: showSectionPin,
+        textTone: capsuleTextTone,
+    } = buildMandalaCardMetaState({
+        variant: sectionIndicatorVariant,
+        sectionColor,
+        pinned,
+        themeTone: getThemeTone(),
+        themeUnderlayColor: getThemeUnderlayColor(),
+    }));
+    $: metaStyle =
+        showSectionBackground && sectionColor
             ? `--mandala-card-meta-bg: ${sectionColor}`
             : undefined;
 
@@ -199,29 +204,25 @@
         <Content {nodeId} isInSidebar={false} />
     {/if}
 
-    {#if showSectionCapsule}
-        <div
-            class={clx(
-                'mandala-card-meta',
-                'mandala-card-meta--capsule',
-                capsuleTextTone
-                    ? `mandala-card-meta--tone-${capsuleTextTone}`
-                    : undefined,
-            )}
-            style={capsuleStyle}
-        >
-            <span class="mandala-card-meta__pin-slot" aria-hidden="true">
-                {#if pinned}
-                    <Pin size={10} strokeWidth={2.2} />
-                {/if}
+    <div
+        class={clx(
+            'mandala-card-meta',
+            showSectionBackground
+                ? 'mandala-card-meta--with-bg'
+                : 'mandala-card-meta--without-bg',
+            showSectionBackground && capsuleTextTone
+                ? `mandala-card-meta--tone-${capsuleTextTone}`
+                : undefined,
+        )}
+        style={metaStyle}
+    >
+        {#if showSectionPin}
+            <span class="mandala-card-meta__pin" aria-hidden="true">
+                <Pin size={10} strokeWidth={2.2} />
             </span>
-            <span class="mandala-card-meta__section">{displaySection}</span>
-        </div>
-    {:else}
-        <div class="mandala-card-meta mandala-card-meta--plain">
-            {displaySection}
-        </div>
-    {/if}
+        {/if}
+        <span class="mandala-card-meta__section">{displaySection}</span>
+    </div>
 </div>
 
 <style>
@@ -249,20 +250,16 @@
         position: absolute;
         top: 6px;
         right: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         font-size: 12px;
         user-select: none;
         pointer-events: none;
         z-index: 1;
     }
 
-    .mandala-card-meta--plain {
-        opacity: 0.7;
-    }
-
-    .mandala-card-meta--capsule {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
+    .mandala-card-meta--with-bg {
         min-height: 18px;
         padding: 1px 6px;
         border-radius: 6px;
@@ -270,10 +267,11 @@
         color: var(--text-muted);
     }
 
-    .mandala-card-meta__pin-slot {
-        width: 10px;
-        min-width: 10px;
-        height: 10px;
+    .mandala-card-meta--without-bg {
+        opacity: 0.7;
+    }
+
+    .mandala-card-meta__pin {
         display: inline-flex;
         align-items: center;
         justify-content: center;
