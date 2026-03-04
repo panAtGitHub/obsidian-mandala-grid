@@ -4,7 +4,10 @@ import {
     type ThemeTone,
 } from 'src/view/helpers/mandala/contrast-text-tone';
 
-export type SectionIndicatorVariant = 'plain' | 'section-capsule';
+export type SectionIndicatorVariant =
+    | 'plain'
+    | 'plain-with-pin'
+    | 'section-capsule';
 
 type BuildMandalaCardMetaStateOptions = {
     variant: SectionIndicatorVariant;
@@ -28,11 +31,12 @@ export const buildMandalaCardMetaState = ({
     themeUnderlayColor,
 }: BuildMandalaCardMetaStateOptions): MandalaCardMetaState => {
     const interactiveMeta = variant === 'section-capsule';
+    const plainWithPin = variant === 'plain-with-pin';
     const showBackground = interactiveMeta && Boolean(sectionColor);
 
     return {
         showBackground,
-        showPin: interactiveMeta && pinned,
+        showPin: (interactiveMeta || plainWithPin) && pinned,
         textTone: showBackground
             ? getReadableTextTone(sectionColor, themeTone, themeUnderlayColor)
             : null,

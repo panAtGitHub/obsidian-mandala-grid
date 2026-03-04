@@ -603,7 +603,7 @@
                                         preserveActiveBackground={$whiteThemeMode}
                                         sectionIndicatorVariant={!$whiteThemeMode
                                             ? 'section-capsule'
-                                            : 'plain'}
+                                            : 'plain-with-pin'}
                                         editing={$editingState.activeNodeId ===
                                             cell.nodeId &&
                                             !$editingState.isInSidebar &&

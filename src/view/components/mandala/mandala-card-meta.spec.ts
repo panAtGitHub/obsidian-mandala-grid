@@ -66,4 +66,17 @@ describe('buildMandalaCardMetaState', () => {
         expect(state.showPin).toBe(false);
         expect(state.textTone).toBeNull();
     });
+
+    it('shows pin without background for plain-with-pin mode', () => {
+        const state = buildMandalaCardMetaState({
+            variant: 'plain-with-pin',
+            sectionColor: null,
+            pinned: true,
+            themeTone: 'light',
+        });
+
+        expect(state.showBackground).toBe(false);
+        expect(state.showPin).toBe(true);
+        expect(state.textTone).toBeNull();
+    });
 });
