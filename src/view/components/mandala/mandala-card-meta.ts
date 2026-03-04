@@ -4,66 +4,37 @@ import {
     type ThemeTone,
 } from 'src/view/helpers/mandala/contrast-text-tone';
 
-export type SectionIndicatorVariant =
-    | 'plain'
-    | 'section-capsule'
-    | 'table-lite';
+export type SectionIndicatorVariant = 'plain' | 'section-capsule';
 
 type BuildMandalaCardMetaStateOptions = {
     variant: SectionIndicatorVariant;
     sectionColor: string | null;
     pinned: boolean;
-    active: boolean;
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
 };
 
-export type MandalaCardMetaBackgroundStyle = 'none' | 'section' | 'neutral';
-
 type MandalaCardMetaState = {
     showBackground: boolean;
     showPin: boolean;
-    tone: TextTone | null;
-    backgroundStyle: MandalaCardMetaBackgroundStyle;
+    textTone: TextTone | null;
 };
 
 export const buildMandalaCardMetaState = ({
     variant,
     sectionColor,
     pinned,
-    active,
     themeTone,
     themeUnderlayColor,
 }: BuildMandalaCardMetaStateOptions): MandalaCardMetaState => {
-    if (variant === 'section-capsule') {
-        const showBackground = Boolean(sectionColor);
-        return {
-            showBackground,
-            showPin: pinned,
-            tone: showBackground
-                ? getReadableTextTone(
-                      sectionColor,
-                      themeTone,
-                      themeUnderlayColor,
-                  )
-                : null,
-            backgroundStyle: showBackground ? 'section' : 'none',
-        };
-    }
-
-    if (variant === 'table-lite') {
-        return {
-            showBackground: active,
-            showPin: pinned,
-            tone: null,
-            backgroundStyle: active ? 'neutral' : 'none',
-        };
-    }
+    const interactiveMeta = variant === 'section-capsule';
+    const showBackground = interactiveMeta && Boolean(sectionColor);
 
     return {
-        showBackground: false,
-        showPin: false,
-        tone: null,
-        backgroundStyle: 'none',
+        showBackground,
+        showPin: interactiveMeta && pinned,
+        textTone: showBackground
+            ? getReadableTextTone(sectionColor, themeTone, themeUnderlayColor)
+            : null,
     };
 };

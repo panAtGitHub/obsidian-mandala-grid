@@ -1,7 +1,6 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
-    import { Pin } from 'lucide-svelte';
     import { onMount } from 'svelte';
     import {
         openSidebarAndEditMandalaNode,
@@ -43,10 +42,6 @@
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
-    );
-    const pinnedNodes = derived(
-        view.documentStore,
-        (state) => new Set(state.pinnedNodes.Ids),
     );
     const idToSection = derived(
         view.documentStore,
@@ -221,9 +216,10 @@
             });
 
             const unsubSettings = view.plugin.settings.subscribe((settings) => {
-                nextSelectedLayoutId = view.getCurrentMandalaLayoutId(settings);
-                nextCustomLayouts =
-                    settings.view.mandalaGridCustomLayouts ?? [];
+                nextSelectedLayoutId = view.getCurrentMandalaLayoutId(
+                    settings,
+                );
+                nextCustomLayouts = settings.view.mandalaGridCustomLayouts ?? [];
                 update();
             });
 
@@ -242,7 +238,7 @@
     };
 
     let styledCells: Array<
-        (typeof $cells)[number] & { background: string | null; pinned: boolean }
+        (typeof $cells)[number] & { background: string | null }
     > = [];
 
     $: {
@@ -257,11 +253,7 @@
                 : $backgroundMode === 'gray' && cell.isGrayBlock
                   ? `color-mix(in srgb, var(--mandala-gray-block-base) ${$sectionColorOpacity}%, transparent)`
                   : null;
-            return {
-                ...cell,
-                background,
-                pinned: Boolean(cell.nodeId && $pinnedNodes.has(cell.nodeId)),
-            };
+            return { ...cell, background };
         });
     }
 
@@ -436,43 +428,26 @@
                 on:click={() => onCellClick(cell)}
                 on:dblclick={() => onCellDblClick(cell)}
             >
-                {#if cell.section}
-                    <span
-                        class="cell-meta"
-                        class:cell-meta--active={(cell.nodeId &&
-                            cell.nodeId === $activeNodeId &&
-                            !$activeCell) ||
-                            ($activeCell &&
-                                cell.row === $activeCell.row &&
-                                cell.col === $activeCell.col)}
-                    >
-                        {#if cell.pinned}
-                            <span class="cell-meta__pin" aria-hidden="true">
-                                <Pin size={8} strokeWidth={2.2} />
-                            </span>
-                        {/if}
-                        <span class="cell-meta__section">{cell.section}</span>
-                    </span>
-                {/if}
                 <div class="cell-content">
                     {#if cell.titleMarkdown}
-                        <div
-                            class="cell-title"
-                            use:renderCellMarkdown={cell.titleMarkdown}
-                        ></div>
+                        <div class="cell-title" use:renderCellMarkdown={cell.titleMarkdown}>
+                        </div>
                     {/if}
                     {#if !$showTitleOnly && cell.bodyMarkdown}
-                        <div
-                            class="cell-body"
-                            use:renderCellMarkdown={cell.bodyMarkdown}
-                        ></div>
+                        <div class="cell-body" use:renderCellMarkdown={cell.bodyMarkdown}>
+                        </div>
                     {/if}
                 </div>
+                {#if cell.section}
+                    <span class="cell-debug">{cell.section}</span>
+                {/if}
             </div>
         {/each}
     </div>
 
-    {#if !Platform.isMobile && $show9x9ParallelNavButtons && !$hasOpenOverlayModal}
+    {#if !Platform.isMobile &&
+        $show9x9ParallelNavButtons &&
+        !$hasOpenOverlayModal}
         {#if currentCoreNumber > 1}
             <button
                 class="parallel-nav-button parallel-nav-button--left"
@@ -496,7 +471,11 @@
             on:click={jumpToNextCore}
         >
             <span class="parallel-nav-button__icon">
-                <MandalaNavIcon direction="right" size={16} strokeWidth={2.3} />
+                <MandalaNavIcon
+                    direction="right"
+                    size={16}
+                    strokeWidth={2.3}
+                />
             </span>
         </button>
     {/if}
@@ -646,38 +625,14 @@
         opacity: 0.6;
     }
 
-    .cell-meta {
+    .cell-debug {
         position: absolute;
-        top: 4px;
-        right: 4px;
-        display: inline-flex;
-        align-items: center;
-        gap: 2px;
-        max-width: calc(100% - 8px);
-        font-size: 9px;
+        bottom: 1px;
+        right: 1px;
+        font-size: 8px;
         color: var(--text-faint);
-        opacity: 0.56;
+        opacity: 0.5;
         pointer-events: none;
-        white-space: nowrap;
-    }
-
-    .cell-meta--active {
-        color: var(--text-muted);
-        opacity: 0.9;
-    }
-
-    .cell-meta__pin {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: currentColor;
-        opacity: 0.92;
-    }
-
-    .cell-meta__section {
-        line-height: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
     .simple-cell.is-title-only .cell-content {
         justify-content: center;
@@ -729,8 +684,11 @@
             var(--background-modifier-border) 45%
         );
         box-shadow:
-            0 0 0 1px
-                color-mix(in srgb, var(--interactive-accent) 45%, transparent),
+            0 0 0 1px color-mix(
+                in srgb,
+                var(--interactive-accent) 45%,
+                transparent
+            ),
             var(--shadow-s);
         transform: translate(-50%, -50%) translateY(-1px);
     }
