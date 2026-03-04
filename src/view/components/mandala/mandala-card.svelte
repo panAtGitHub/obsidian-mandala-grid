@@ -30,6 +30,7 @@
     import { buildMandalaCardStyle } from 'src/view/components/mandala/mandala-card-style';
     import {
         buildMandalaCardMetaState,
+        type MandalaCardMetaBackgroundStyle,
         type SectionIndicatorVariant,
     } from 'src/view/components/mandala/mandala-card-meta';
 
@@ -67,9 +68,10 @@
     let cardStyle: string | undefined;
     let displaySection = section;
     let shouldHideBackgroundStyle = false;
-    let showSectionBackground = false;
+    let _showSectionBackground = false;
     let showSectionPin = false;
     let capsuleTextTone: 'dark' | 'light' | null = null;
+    let metaBackgroundStyle: MandalaCardMetaBackgroundStyle = 'none';
     let metaStyle: string | undefined;
 
     $: displaySection = section || $idToSection[nodeId] || '';
@@ -82,18 +84,20 @@
         themeUnderlayColor: getThemeUnderlayColor(),
     }));
     $: ({
-        showBackground: showSectionBackground,
+        showBackground: _showSectionBackground,
         showPin: showSectionPin,
-        textTone: capsuleTextTone,
+        tone: capsuleTextTone,
+        backgroundStyle: metaBackgroundStyle,
     } = buildMandalaCardMetaState({
         variant: sectionIndicatorVariant,
         sectionColor,
         pinned,
+        active,
         themeTone: getThemeTone(),
         themeUnderlayColor: getThemeUnderlayColor(),
     }));
     $: metaStyle =
-        showSectionBackground && sectionColor
+        metaBackgroundStyle === 'section' && sectionColor
             ? `--mandala-card-meta-bg: ${sectionColor}`
             : undefined;
 
@@ -207,10 +211,18 @@
     <div
         class={clx(
             'mandala-card-meta',
-            showSectionBackground
-                ? 'mandala-card-meta--with-bg'
-                : 'mandala-card-meta--without-bg',
-            showSectionBackground && capsuleTextTone
+            metaBackgroundStyle === 'section'
+                ? 'mandala-card-meta--with-section-bg'
+                : metaBackgroundStyle === 'neutral'
+                  ? 'mandala-card-meta--with-neutral-bg'
+                  : 'mandala-card-meta--without-bg',
+            metaBackgroundStyle === 'neutral'
+                ? 'mandala-card-meta--table-lite'
+                : undefined,
+            metaBackgroundStyle === 'neutral' && active
+                ? 'mandala-card-meta--table-lite-active'
+                : undefined,
+            metaBackgroundStyle === 'section' && capsuleTextTone
                 ? `mandala-card-meta--tone-${capsuleTextTone}`
                 : undefined,
         )}
@@ -259,7 +271,7 @@
         z-index: 1;
     }
 
-    .mandala-card-meta--with-bg {
+    .mandala-card-meta--with-section-bg {
         min-height: 18px;
         padding: 1px 6px;
         border-radius: 6px;
@@ -267,8 +279,29 @@
         color: var(--text-muted);
     }
 
+    .mandala-card-meta--with-neutral-bg {
+        min-height: 18px;
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: color-mix(
+            in srgb,
+            var(--background-modifier-border) 30%,
+            var(--background-primary) 70%
+        );
+    }
+
     .mandala-card-meta--without-bg {
         opacity: 0.7;
+    }
+
+    .mandala-card-meta--table-lite {
+        opacity: 0.68;
+        color: var(--text-muted);
+    }
+
+    .mandala-card-meta--table-lite-active {
+        opacity: 0.96;
+        color: var(--text-normal);
     }
 
     .mandala-card-meta__pin {

@@ -601,9 +601,9 @@
                                         section={cell.section}
                                         active={cell.nodeId === $activeNodeId}
                                         preserveActiveBackground={$whiteThemeMode}
-                                        sectionIndicatorVariant={!$whiteThemeMode
-                                            ? 'section-capsule'
-                                            : 'plain'}
+                                        sectionIndicatorVariant={$whiteThemeMode
+                                            ? 'table-lite'
+                                            : 'section-capsule'}
                                         editing={$editingState.activeNodeId ===
                                             cell.nodeId &&
                                             !$editingState.isInSidebar &&
