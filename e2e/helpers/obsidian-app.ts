@@ -1,4 +1,3 @@
-/* eslint-disable import/no-nodejs-modules */
 import { _electron as electron, ElectronApplication, Page } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -7,7 +6,6 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 const vaultPath = path.join(repoRoot, 'temp', 'vault');
 // E2E bootstraps an isolated test vault directly on disk before Obsidian starts.
-// eslint-disable-next-line obsidianmd/hardcoded-config-path
 const obsidianDir = path.join(vaultPath, '.obsidian');
 const obsidianDirName = path.basename(obsidianDir);
 const devPluginDir = path.join(obsidianDir, 'plugins', 'mandala-grid-dev');

@@ -272,7 +272,7 @@ export class MandalaView extends TextFileView {
             this.component.$destroy();
         }
         if (this.file?.path) {
-            await this.persistMandalaUiState(this.file.path);
+            this.persistMandalaUiState(this.file.path);
         }
         this.activeFilePath = null;
         this.lastLoadedBody = '';
@@ -727,7 +727,7 @@ export class MandalaView extends TextFileView {
         });
     };
 
-    private async persistMandalaUiState(path: string) {
+    private persistMandalaUiState(path: string) {
         const viewState = this.viewStore.getValue();
         this.mandalaUiStateByPath.set(path, {
             subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',

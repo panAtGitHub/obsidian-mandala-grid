@@ -14,8 +14,9 @@ describe('PersistSnapshotQueue', () => {
         const persisted: Array<{ path: string; data: string }> = [];
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: async (path, data) => {
+            persist: (path, data) => {
                 persisted.push({ path, data });
+                return Promise.resolve();
             },
         });
 
@@ -34,8 +35,9 @@ describe('PersistSnapshotQueue', () => {
         const persisted: Array<{ path: string; data: string }> = [];
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: async (path, data) => {
+            persist: (path, data) => {
                 persisted.push({ path, data });
+                return Promise.resolve();
             },
         });
 
@@ -52,11 +54,12 @@ describe('PersistSnapshotQueue', () => {
         const persisted: Array<{ path: string; data: string }> = [];
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: async (path, data) => {
+            persist: (path, data) => {
                 if (path === 'a.md' && failA) {
                     throw new Error('disk busy');
                 }
                 persisted.push({ path, data });
+                return Promise.resolve();
             },
         });
 
