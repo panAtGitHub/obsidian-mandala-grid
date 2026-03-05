@@ -68,8 +68,6 @@ export default defineConfig([
             '@typescript-eslint': tseslint.plugin,
         },
         rules: {
-            'import/no-nodejs-modules': 'off',
-            'obsidianmd/hardcoded-config-path': 'off',
             'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': [
                 'error',

@@ -1,23 +1,17 @@
 import { _electron as electron, ElectronApplication, Page } from '@playwright/test';
-import { spawnSync } from 'node:child_process';
-import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 
 const repoRoot = process.cwd();
-const vaultPath = path.join(repoRoot, 'temp', 'vault');
-// E2E bootstraps an isolated test vault directly on disk before Obsidian starts.
-const obsidianDir = path.join(vaultPath, '.obsidian');
-const obsidianDirName = path.basename(obsidianDir);
-const devPluginDir = path.join(obsidianDir, 'plugins', 'mandala-grid-dev');
-const pluginDir = path.join(obsidianDir, 'plugins', 'mandala-grid');
+const vaultPath = `${repoRoot}/temp/vault`;
 const pluginFiles = ['main.js', 'styles.css', 'manifest.json'] as const;
 
 const normalizeExecutablePath = (executablePath: string) => {
     if (!executablePath.endsWith('.app')) {
         return executablePath;
     }
-    const appName = path.basename(executablePath, '.app');
-    return path.join(executablePath, 'Contents', 'MacOS', appName);
+    const pathParts = executablePath.split('/');
+    const appBundleName = pathParts[pathParts.length - 1] ?? '';
+    const appName = appBundleName.replace(/\.app$/, '');
+    return `${executablePath}/Contents/MacOS/${appName}`;
 };
 
 export const canLaunchObsidianElectron = (
@@ -26,16 +20,12 @@ export const canLaunchObsidianElectron = (
     if (!executablePath) {
         return false;
     }
-    const normalizedPath = normalizeExecutablePath(executablePath);
-    const probe = spawnSync(normalizedPath, ['help'], {
-        encoding: 'utf8',
-        timeout: 2000,
-    });
-    if (probe.error) {
-        return false;
-    }
-    const output = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
-    return !output.includes('Obsidian CLI');
+    const normalizedPath = normalizeExecutablePath(executablePath).toLowerCase();
+    return (
+        normalizedPath.includes('/contents/macos/') ||
+        normalizedPath.endsWith('.app') ||
+        normalizedPath.endsWith('.exe')
+    );
 };
 
 type TestVaultFile = {
@@ -55,9 +45,17 @@ type TestWorkspaceLeaf = {
 
 type TestObsidianApp = {
     vault: {
+        configDir: string;
         getAbstractFileByPath: (filePath: string) => TestVaultFile | null;
+        cachedRead: (file: TestVaultFile) => Promise<string>;
         modify: (file: TestVaultFile, content: string) => Promise<void>;
         create: (filePath: string, content: string) => Promise<void>;
+        adapter: {
+            exists: (path: string) => Promise<boolean>;
+            mkdir: (path: string) => Promise<void>;
+            read: (path: string) => Promise<string>;
+            write: (path: string, content: string) => Promise<void>;
+        };
     };
     workspace: {
         getLeaf: (newLeaf: boolean) => TestWorkspaceLeaf;
@@ -74,6 +72,10 @@ type TestObsidianApp = {
         enabledPlugins?: {
             has: (pluginId: string) => boolean;
         };
+        enablePluginAndSave?: (pluginId: string) => Promise<void>;
+        disablePluginAndSave?: (pluginId: string) => Promise<void>;
+        enablePlugin?: (pluginId: string) => Promise<void>;
+        savePluginList?: () => Promise<void>;
     };
 };
 
@@ -91,27 +93,64 @@ type TestMandalaView = {
 let electronApp: ElectronApplication | null = null;
 let page: Page | null = null;
 
-const prepareVault = async () => {
-    await mkdir(pluginDir, { recursive: true });
-    for (const file of pluginFiles) {
-        await cp(path.join(devPluginDir, file), path.join(pluginDir, file));
-    }
-    await writeFile(
-        path.join(obsidianDir, 'community-plugins.json'),
-        JSON.stringify(['mandala-grid'], null, 2),
-    );
-    await writeFile(
-        path.join(obsidianDir, 'core-plugins.json'),
-        JSON.stringify([], null, 2),
-    );
-    await writeFile(
-        path.join(obsidianDir, 'app.json'),
-        JSON.stringify({ legacyEditor: false }, null, 2),
-    );
-    await writeFile(
-        path.join(vaultPath, '.gitignore'),
-        `${obsidianDirName}/workspace*.json\n`,
-    );
+const prepareVaultInApp = async (obsidianPage: Page) => {
+    await obsidianPage.evaluate(async ({ pluginFiles }) => {
+        const app = (window as unknown as { app?: TestObsidianApp }).app;
+        if (!app) {
+            throw new Error('Obsidian app is not ready');
+        }
+        const configDir = app.vault.configDir;
+        const sourcePluginDir = `${configDir}/plugins/mandala-grid-dev`;
+        const targetPluginDir = `${configDir}/plugins/mandala-grid`;
+
+        const targetExists = await app.vault.adapter.exists(targetPluginDir);
+        if (!targetExists) {
+            await app.vault.adapter.mkdir(targetPluginDir);
+        }
+
+        for (const file of pluginFiles) {
+            const sourcePath = `${sourcePluginDir}/${file}`;
+            const targetPath = `${targetPluginDir}/${file}`;
+            const content = await app.vault.adapter.read(sourcePath);
+            await app.vault.adapter.write(targetPath, content);
+        }
+
+        await app.vault.adapter.write(
+            `${configDir}/community-plugins.json`,
+            JSON.stringify(['mandala-grid'], null, 2),
+        );
+        await app.vault.adapter.write(
+            `${configDir}/core-plugins.json`,
+            JSON.stringify([], null, 2),
+        );
+        await app.vault.adapter.write(
+            `${configDir}/app.json`,
+            JSON.stringify({ legacyEditor: false }, null, 2),
+        );
+
+        const pluginManager = app.plugins;
+        if (!pluginManager) {
+            throw new Error('Obsidian plugin manager is not available');
+        }
+        if (
+            pluginManager.enabledPlugins?.has('mandala-grid') &&
+            pluginManager.disablePluginAndSave
+        ) {
+            await pluginManager.disablePluginAndSave('mandala-grid');
+        }
+        if (pluginManager.enablePluginAndSave) {
+            await pluginManager.enablePluginAndSave('mandala-grid');
+            return;
+        }
+        if (pluginManager.enablePlugin) {
+            await pluginManager.enablePlugin('mandala-grid');
+            if (pluginManager.savePluginList) {
+                await pluginManager.savePluginList();
+            }
+            return;
+        }
+        throw new Error('Unable to enable mandala-grid plugin in e2e');
+    }, { pluginFiles });
 };
 
 export const launchObsidian = async () => {
@@ -122,18 +161,21 @@ export const launchObsidian = async () => {
     if (!executablePath) {
         throw new Error('OBSIDIAN_EXECUTABLE_PATH is required for e2e tests');
     }
-    if (!canLaunchObsidianElectron(executablePath)) {
+    if (
+        process.platform !== 'linux' &&
+        !canLaunchObsidianElectron(executablePath)
+    ) {
         throw new Error(
             'OBSIDIAN_EXECUTABLE_PATH points to a CLI-only Obsidian build that Playwright cannot launch via electron.launch',
         );
     }
 
-    await prepareVault();
     electronApp = await electron.launch({
         executablePath: normalizeExecutablePath(executablePath),
         args: [vaultPath],
     });
     page = await electronApp.firstWindow();
+    await prepareVaultInApp(page);
     await page.waitForFunction(() => {
         const app = (window as unknown as { app?: TestObsidianApp }).app;
         return Boolean(app?.plugins?.enabledPlugins?.has('mandala-grid'));
@@ -248,5 +290,15 @@ export const updateMandalaSectionContent = async (
 };
 
 export const readVaultMarkdownFile = async (filePath: string) => {
-    return readFile(path.join(vaultPath, filePath), 'utf8');
+    if (!page) {
+        throw new Error('Obsidian page is not ready');
+    }
+    return page.evaluate(async (filePath) => {
+        const app = (window as unknown as { app: TestObsidianApp }).app;
+        const file = app.vault.getAbstractFileByPath(filePath);
+        if (!file) {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        return app.vault.cachedRead(file);
+    }, filePath);
 };
