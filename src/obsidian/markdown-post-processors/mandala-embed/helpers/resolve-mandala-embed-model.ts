@@ -2,6 +2,7 @@ import { parseLinktext, resolveSubpath, TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
     createMandalaEmbedGridModel,
+    resolveMandalaSectionByHeading,
     type MandalaEmbedGridModel,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
 import { type ParsedMandalaEmbedReference } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
@@ -91,7 +92,9 @@ export const buildMandalaEmbedModel = async (
         return markerMatch?.[1] ?? null;
     };
 
-    const resolvedCenterSection = resolveCenterSectionByOfficialSubpath();
+    const resolvedCenterSection =
+        resolveCenterSectionByOfficialSubpath() ??
+        resolveMandalaSectionByHeading(markdown, target.centerHeading);
     if (!resolvedCenterSection) return null;
 
     return createMandalaEmbedGridModel(

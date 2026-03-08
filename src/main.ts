@@ -1,4 +1,5 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { type Extension } from '@codemirror/state';
 import { MANDALA_VIEW_TYPE, MandalaView } from './view/view';
 import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
 import { around } from 'monkey-around';
@@ -31,6 +32,10 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
 import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
 import {
+    registerMandalaEmbedRefreshEvents,
+    rerenderOpenMarkdownPreviews,
+} from 'src/obsidian/events/workspace/register-mandala-embed-refresh-events';
+import {
     statusBarWorker,
 } from 'src/workers/worker-instances';
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
@@ -47,8 +52,11 @@ export default class MandalaGrid extends Plugin {
     statusBar: StatusBar;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
     private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
+    private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null = null;
     private isSavingSettings = false;
     private hasPendingSettingsSave = false;
+    private readonly mandalaSourceEmbedExtensions: Extension[] = [];
+    private lastMandalaGridOrientation: string | null = null;
     viewType: DocumentsPreferences = {};
 
     async onload() {
@@ -58,6 +66,8 @@ export default class MandalaGrid extends Plugin {
             pluginReducer,
             onPluginError,
         );
+        this.lastMandalaGridOrientation =
+            this.settings.getValue().view.mandalaGridOrientation;
         loadCustomIcons();
         this.registerView(
             MANDALA_VIEW_TYPE,
@@ -72,7 +82,8 @@ export default class MandalaGrid extends Plugin {
             createRenderMandalaEmbedPostProcessor(this),
             MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
         );
-        this.registerEditorExtension(createMandalaSourceEmbedExtension(this));
+        this.replaceMandalaSourceEmbedExtensions();
+        this.registerEditorExtension(this.mandalaSourceEmbedExtensions);
         this.app.workspace.updateOptions();
     }
 
@@ -106,9 +117,28 @@ export default class MandalaGrid extends Plugin {
         );
         this.settings.subscribe((_state, _action, initialRun) => {
             if (initialRun) return;
+            const nextOrientation =
+                this.settings.getValue().view.mandalaGridOrientation;
+            if (this.lastMandalaGridOrientation !== nextOrientation) {
+                this.lastMandalaGridOrientation = nextOrientation;
+                this.scheduleMandalaEmbedRefresh();
+            }
             this.queueSettingsSave();
         });
         settingsSubscriptions(this);
+    }
+
+    scheduleMandalaEmbedRefresh(delay_ms: number = 120) {
+        if (this.refreshMandalaEmbedTimeout) {
+            clearTimeout(this.refreshMandalaEmbedTimeout);
+        }
+
+        this.refreshMandalaEmbedTimeout = setTimeout(() => {
+            this.refreshMandalaEmbedTimeout = null;
+            this.replaceMandalaSourceEmbedExtensions();
+            this.app.workspace.updateOptions();
+            rerenderOpenMarkdownPreviews(this);
+        }, delay_ms);
     }
 
     private queueSettingsSave(delay_ms: number = 250) {
@@ -126,6 +156,15 @@ export default class MandalaGrid extends Plugin {
         registerFileMenuEvent(this);
         onVaultEvent(this);
         onWorkspaceEvent(this);
+        registerMandalaEmbedRefreshEvents(this);
+    }
+
+    private replaceMandalaSourceEmbedExtensions() {
+        this.mandalaSourceEmbedExtensions.splice(
+            0,
+            this.mandalaSourceEmbedExtensions.length,
+            createMandalaSourceEmbedExtension(this),
+        );
     }
 
     registerTimeout(timeout: ReturnType<typeof setTimeout>) {
@@ -170,6 +209,10 @@ export default class MandalaGrid extends Plugin {
         if (this.saveSettingsTimeout) {
             clearTimeout(this.saveSettingsTimeout);
             this.saveSettingsTimeout = null;
+        }
+        if (this.refreshMandalaEmbedTimeout) {
+            clearTimeout(this.refreshMandalaEmbedTimeout);
+            this.refreshMandalaEmbedTimeout = null;
         }
         if (this.hasPendingSettingsSave) {
             void this.saveSettings();

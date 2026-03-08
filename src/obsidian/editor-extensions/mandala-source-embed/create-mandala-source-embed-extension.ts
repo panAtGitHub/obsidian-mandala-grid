@@ -12,11 +12,9 @@ import {
 } from '@codemirror/view';
 import {
     Component,
-    MarkdownRenderChild,
     TFile,
     editorInfoField,
     editorLivePreviewField,
-    setIcon,
 } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
@@ -33,9 +31,12 @@ import {
     type ResolvedMandalaEmbedModel,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
 import {
-    applyMandalaEmbedResponsiveSizing,
-} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/apply-mandala-embed-responsive-sizing';
-import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
+    attachMandalaEmbedResponsiveSizing,
+    buildMandalaEmbedGrid,
+    createMandalaEmbedHostLayout,
+    getMandalaEmbedTitle,
+    renderMandalaEmbedHeader,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 
 const EMBED_REGEXP = /!\[\[[^\]\n]+?\]\]/gmu;
@@ -155,100 +156,33 @@ class MandalaSourceEmbedWidget extends WidgetType {
             const resolved = await this.loadResolvedModel();
             if (!resolved || isDestroyed() || !root.isConnected) return;
 
-            const host = document.createElement('div');
-            host.className = 'mandala-embed-host';
+            const { host, header, body } = createMandalaEmbedHostLayout();
             root.classList.add('mandala-embed-3x3');
 
-            const header = document.createElement('div');
-            header.className = 'mandala-embed-host-header';
-            host.appendChild(header);
-
-            const titleEl = document.createElement('h1');
-            titleEl.className = 'mandala-embed-header-title';
-            titleEl.setText(
-                resolved.target.centerHeading ?? resolved.target.file.basename,
-            );
-            header.appendChild(titleEl);
-
-            const linkBtn = document.createElement('button');
-            linkBtn.className = 'mandala-embed-header-link';
-            linkBtn.type = 'button';
-            linkBtn.setAttribute('aria-label', 'Open embed target in note');
-            header.appendChild(linkBtn);
-
-            const linkIcon = document.createElement('span');
-            linkIcon.className = 'mandala-embed-header-link-icon';
-            setIcon(linkIcon, 'maximize-2');
-            linkBtn.appendChild(linkIcon);
-
-            const body = document.createElement('div');
-            body.className = 'mandala-embed-host-body';
-            host.appendChild(body);
-
-            const gridEl = document.createElement('div');
-            gridEl.className = 'mandala-embed-3x3-grid';
-            body.appendChild(gridEl);
-            const detachResponsiveSizing = applyMandalaEmbedResponsiveSizing({
-                rootEl: root,
-                bodyEl: body,
-                gridEl,
+            renderMandalaEmbedHeader({
+                headerEl: header,
+                title: getMandalaEmbedTitle(resolved.target),
+                attachOpenTargetClick: (button, listener) =>
+                    component.registerDomEvent(button, 'click', listener),
+                onOpenTarget: (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void this.plugin.app.workspace.openLinkText(
+                        this.linktext,
+                        this.sourceFile.path,
+                        false,
+                    );
+                },
             });
-            component.register(() => detachResponsiveSizing());
 
-            for (const row of resolved.model.rows) {
-                for (const cell of row) {
-                    if (isDestroyed() || !root.isConnected) return;
-
-                    const cellEl = document.createElement('div');
-                    cellEl.className = 'mandala-embed-3x3-cell';
-                    cellEl.dataset.mandalaSection = cell.section;
-                    if (cell.section === resolved.model.rows[1]?.[1]?.section) {
-                        cellEl.classList.add('is-center');
-                    }
-                    if (cell.empty) {
-                        cellEl.classList.add('is-empty');
-                    }
-
-                    const sectionEl = document.createElement('span');
-                    sectionEl.className = 'mandala-embed-3x3-cell-section';
-                    sectionEl.setText(cell.section);
-                    cellEl.appendChild(sectionEl);
-
-                    const contentEl = document.createElement('div');
-                    contentEl.className = 'mandala-embed-3x3-cell-content';
-                    cellEl.appendChild(contentEl);
-
-                    const markdownEl = document.createElement('div');
-                    markdownEl.className =
-                        'mandala-embed-3x3-cell-markdown markdown-rendered';
-                    contentEl.appendChild(markdownEl);
-
-                    if (cell.markdown.trim()) {
-                        const renderChild = new MarkdownRenderChild(markdownEl);
-                        component.addChild(renderChild);
-                        await renderMarkdownContent({
-                            app: this.plugin.app,
-                            content: cell.markdown,
-                            element: markdownEl,
-                            sourcePath: resolved.target.file.path,
-                            component: renderChild,
-                            applyFormatText: true,
-                        });
-                    }
-
-                    gridEl.appendChild(cellEl);
-                }
-            }
-
-            component.registerDomEvent(linkBtn, 'click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                void this.plugin.app.workspace.openLinkText(
-                    this.linktext,
-                    this.sourceFile.path,
-                    false,
-                );
+            const gridEl = await buildMandalaEmbedGrid({
+                plugin: this.plugin,
+                model: resolved.model,
+                sourcePath: resolved.target.file.path,
+                registerMarkdownChild: (child) => component.addChild(child),
+                isCanceled: () => isDestroyed() || !root.isConnected,
             });
+            if (!gridEl) return;
 
             component.registerDomEvent(body, 'click', (event) => {
                 const target = event.target;
@@ -282,7 +216,14 @@ class MandalaSourceEmbedWidget extends WidgetType {
                 window.open(href, '_blank', 'noopener,noreferrer');
             });
 
+            body.appendChild(gridEl);
             root.replaceChildren(host);
+            const detachResponsiveSizing = attachMandalaEmbedResponsiveSizing({
+                rootEl: root,
+                bodyEl: body,
+                gridEl,
+            });
+            component.register(() => detachResponsiveSizing());
         } catch (error: unknown) {
             logger.error('[mandala-source-embed]', {
                 phase: 'widget-render-failed',

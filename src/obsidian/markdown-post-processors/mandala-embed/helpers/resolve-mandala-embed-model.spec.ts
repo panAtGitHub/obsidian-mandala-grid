@@ -142,6 +142,43 @@ describe('resolveMandalaEmbedModel', () => {
         expect(resolved).toBeNull();
     });
 
+    it('falls back to comment-heading scanning when official subpath resolution misses', async () => {
+        const sourceFile = createMarkdownFile('source.md');
+        const targetFile = createMarkdownFile('target.md');
+        const plugin = {
+            app: {
+                metadataCache: {
+                    getFirstLinkpathDest: vi.fn(() => targetFile),
+                    getFileCache: vi.fn(() => ({})),
+                },
+                vault: {
+                    cachedRead: vi.fn(async () => buildMandalaMarkdown()),
+                },
+            },
+            settings: {
+                getValue: () => ({
+                    view: {
+                        mandalaGridOrientation: 'left-to-right',
+                    },
+                }),
+            },
+        } as never;
+        mockedResolveSubpath.mockReturnValue(null);
+
+        const resolved = await resolveMandalaEmbedModel(
+            plugin,
+            sourceFile,
+            {
+                linktext: 'target#一页纸工具',
+            },
+            'left-to-right',
+        );
+
+        expect(resolved?.target.file.path).toBe('target.md');
+        expect(resolved?.target.centerHeading).toBe('一页纸工具');
+        expect(resolved?.model.rows[1]?.[1]?.section).toBe('1');
+    });
+
     it('rejects file-only and block references at target resolution time', () => {
         const sourceFile = createMarkdownFile('source.md');
         const targetFile = createMarkdownFile('target.md');

@@ -1,22 +1,22 @@
-import {
-    MarkdownRenderChild,
-    setIcon,
-    type TFile,
-} from 'obsidian';
+import { type TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { logger } from 'src/helpers/logger';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
-import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
 import { type MandalaEmbedManagedPayload } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller-types';
 import {
-    applyMandalaEmbedResponsiveSizing,
     MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS,
     MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/apply-mandala-embed-responsive-sizing';
+import {
+    attachMandalaEmbedResponsiveSizing,
+    buildMandalaEmbedGrid,
+    getMandalaEmbedTitle,
+    MANDALA_EMBED_BODY_CLASS,
+    MANDALA_EMBED_HEADER_CLASS,
+    MANDALA_EMBED_HOST_CLASS,
+    renderMandalaEmbedHeader,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
 
-const MANDALA_EMBED_HOST_CLASS = 'mandala-embed-host';
-const MANDALA_EMBED_HEADER_CLASS = 'mandala-embed-host-header';
-const MANDALA_EMBED_BODY_CLASS = 'mandala-embed-host-body';
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
 const SECTION_COMMENT_BLOCK_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
 const TASK_LINE_RE = /^([ \t]*[-*+]\s*\[)([ xX])(\].*)$/gmu;
@@ -318,100 +318,39 @@ export class MandalaEmbedController {
         this.embed.classList.add('mandala-embed-3x3');
         this.embed.classList.remove('mandala-embed-debug');
 
-        this.renderHeader(header, payload);
+        renderMandalaEmbedHeader({
+            headerEl: header,
+            title: getMandalaEmbedTitle(payload.target),
+            onOpenTarget: (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                void this.plugin.app.workspace.openLinkText(
+                    payload.parsedReference.linktext,
+                    payload.sourcePath,
+                    false,
+                );
+            },
+        });
         this.ensureBodyListeners(body);
 
-        const gridEl = document.createElement('div');
-        gridEl.className = 'mandala-embed-3x3-grid';
-
-        for (const row of payload.model.rows) {
-            for (const cell of row) {
-                if (generation !== this.generation) return;
-
-                const cellEl = document.createElement('div');
-                cellEl.className = 'mandala-embed-3x3-cell';
-                cellEl.dataset.mandalaSection = cell.section;
-                if (cell.section === payload.model.rows[1]?.[1]?.section) {
-                    cellEl.classList.add('is-center');
-                }
-                if (cell.empty) {
-                    cellEl.classList.add('is-empty');
-                }
-
-                const sectionEl = document.createElement('span');
-                sectionEl.className = 'mandala-embed-3x3-cell-section';
-                sectionEl.setText(cell.section);
-                cellEl.appendChild(sectionEl);
-
-                const contentEl = document.createElement('div');
-                contentEl.className = 'mandala-embed-3x3-cell-content';
-                cellEl.appendChild(contentEl);
-
-                const markdownEl = document.createElement('div');
-                markdownEl.className =
-                    'mandala-embed-3x3-cell-markdown markdown-rendered';
-                contentEl.appendChild(markdownEl);
-
-                if (cell.markdown.trim()) {
-                    const renderChild = new MarkdownRenderChild(markdownEl);
-                    payload.ctx.addChild(renderChild);
-                    await renderMarkdownContent({
-                        app: this.plugin.app,
-                        content: cell.markdown,
-                        element: markdownEl,
-                        sourcePath: payload.target.file.path,
-                        component: renderChild,
-                        applyFormatText: true,
-                        onAfterRender: enableRenderedCheckboxes,
-                    });
-                    if (generation !== this.generation) return;
-                }
-
-                gridEl.appendChild(cellEl);
-            }
-        }
+        const gridEl = await buildMandalaEmbedGrid({
+            plugin: this.plugin,
+            model: payload.model,
+            sourcePath: payload.target.file.path,
+            registerMarkdownChild: (child) => payload.ctx.addChild(child),
+            onAfterCellMarkdownRender: enableRenderedCheckboxes,
+            isCanceled: () =>
+                generation !== this.generation ||
+                !this.embed.isConnected ||
+                this.embed.getAttribute('src') !== payload.src,
+        });
+        if (!gridEl) return;
 
         if (generation !== this.generation) return;
 
         body.empty();
         body.appendChild(gridEl);
         this.attachResponsiveSizing(body, gridEl);
-    }
-
-    private renderHeader(
-        headerEl: HTMLElement,
-        payload: MandalaEmbedManagedPayload,
-    ) {
-        headerEl.empty();
-
-        const titleEl = document.createElement('h1');
-        titleEl.className = 'mandala-embed-header-title';
-        titleEl.setText(
-            payload.target.centerHeading ?? payload.target.file.basename,
-        );
-
-        const linkBtn = document.createElement('button');
-        linkBtn.className = 'mandala-embed-header-link';
-        linkBtn.type = 'button';
-        linkBtn.setAttribute('aria-label', 'Open embed target in note');
-
-        const linkIcon = document.createElement('span');
-        linkIcon.className = 'mandala-embed-header-link-icon';
-        setIcon(linkIcon, 'maximize-2');
-        linkBtn.appendChild(linkIcon);
-
-        linkBtn.addEventListener('click', (event: MouseEvent) => {
-            event.preventDefault();
-            event.stopPropagation();
-            void this.plugin.app.workspace.openLinkText(
-                payload.parsedReference.linktext,
-                payload.sourcePath,
-                false,
-            );
-        });
-
-        headerEl.appendChild(titleEl);
-        headerEl.appendChild(linkBtn);
     }
 
     private renderDebug(lines: string[]) {
@@ -515,7 +454,7 @@ export class MandalaEmbedController {
 
     private attachResponsiveSizing(body: HTMLElement, gridEl: HTMLElement) {
         this.detachResponsiveSizing?.();
-        this.detachResponsiveSizing = applyMandalaEmbedResponsiveSizing({
+        this.detachResponsiveSizing = attachMandalaEmbedResponsiveSizing({
             rootEl: this.embed,
             bodyEl: body,
             gridEl,
