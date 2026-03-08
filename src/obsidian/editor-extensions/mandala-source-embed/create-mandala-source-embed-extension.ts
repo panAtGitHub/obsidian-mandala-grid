@@ -66,8 +66,7 @@ class MandalaSourceEmbedWidget extends WidgetType {
 
     toDOM(view: EditorView): HTMLElement {
         const root = document.createElement('div');
-        root.className = 'internal-embed mandala-source-embed-widget';
-        root.setAttribute('data-mandala-managed', 'true');
+        root.className = 'mandala-source-embed-widget';
 
         const component = new Component();
         let destroyed = false;
