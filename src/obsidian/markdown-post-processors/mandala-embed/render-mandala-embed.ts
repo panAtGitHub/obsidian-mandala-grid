@@ -1,4 +1,5 @@
 import {
+    MarkdownView,
     parseLinktext,
     resolveSubpath,
     TFile,
@@ -157,19 +158,50 @@ const resolveSourceMarkdownFile = (
     return null;
 };
 
+const resolveCandidateSourceMarkdownFiles = (
+    plugin: MandalaGrid,
+    sourcePath: string,
+) => {
+    const candidates: TFile[] = [];
+    const seenPaths = new Set<string>();
+
+    const addCandidate = (file: TFile | null) => {
+        if (!(file instanceof TFile) || file.extension !== 'md') return;
+        if (seenPaths.has(file.path)) return;
+
+        seenPaths.add(file.path);
+        candidates.push(file);
+    };
+
+    addCandidate(resolveSourceMarkdownFile(plugin, sourcePath));
+
+    const activeFile = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.file;
+    addCandidate(activeFile instanceof TFile ? activeFile : null);
+
+    return candidates;
+};
+
 const resolveCachedReferencesForEmbeds = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     embeds: HTMLElement[],
 ) => {
-    const sourceFile = resolveSourceMarkdownFile(plugin, ctx.sourcePath);
-    if (!sourceFile) return new Map<HTMLElement, EmbedCache>();
-
-    const cachedEmbeds =
-        plugin.app.metadataCache.getFileCache(sourceFile)?.embeds ?? [];
-    return mapRenderedEmbedsToCache(embeds, cachedEmbeds, (embed) =>
-        ctx.getSectionInfo(embed),
+    const sourceFiles = resolveCandidateSourceMarkdownFiles(
+        plugin,
+        ctx.sourcePath,
     );
+    for (const sourceFile of sourceFiles) {
+        const cachedEmbeds =
+            plugin.app.metadataCache.getFileCache(sourceFile)?.embeds ?? [];
+        const matched = mapRenderedEmbedsToCache(embeds, cachedEmbeds, (embed) =>
+            ctx.getSectionInfo(embed),
+        );
+        if (matched.size > 0) {
+            return matched;
+        }
+    }
+
+    return new Map<HTMLElement, EmbedCache>();
 };
 
 const resolveSectionReferencesForEmbeds = (
@@ -212,31 +244,45 @@ const resolveDocumentReferencesForEmbeds = async (
     ctx: MarkdownPostProcessorContext,
     embeds: HTMLElement[],
 ) => {
-    const sourceFile = resolveSourceMarkdownFile(plugin, ctx.sourcePath);
-    if (!sourceFile) return new Map<HTMLElement, MandalaEmbedReferenceLike>();
-
-    const markdown = await plugin.app.vault.cachedRead(sourceFile).catch(() => null);
-    if (!markdown) return new Map<HTMLElement, MandalaEmbedReferenceLike>();
-
-    return mapRenderedEmbedsToDocumentReferences(
-        embeds,
-        markdown,
-        (embed) => {
-            const src = embed.getAttribute('src');
-            if (!src) return null;
-            return buildComparableEmbedTargetKey(plugin, ctx.sourcePath, src);
-        },
-        (reference) => {
-            const parsedReference = parseMandalaEmbedReference(reference);
-            if (!parsedReference) return null;
-
-            return buildComparableEmbedTargetKey(
-                plugin,
-                ctx.sourcePath,
-                parsedReference.linktext,
-            );
-        },
+    const sourceFiles = resolveCandidateSourceMarkdownFiles(
+        plugin,
+        ctx.sourcePath,
     );
+    for (const sourceFile of sourceFiles) {
+        const markdown = await plugin.app.vault
+            .cachedRead(sourceFile)
+            .catch(() => null);
+        if (!markdown) continue;
+
+        const matched = mapRenderedEmbedsToDocumentReferences(
+            embeds,
+            markdown,
+            (embed) => {
+                const src = embed.getAttribute('src');
+                if (!src) return null;
+                return buildComparableEmbedTargetKey(
+                    plugin,
+                    sourceFile.path,
+                    src,
+                );
+            },
+            (reference) => {
+                const parsedReference = parseMandalaEmbedReference(reference);
+                if (!parsedReference) return null;
+
+                return buildComparableEmbedTargetKey(
+                    plugin,
+                    sourceFile.path,
+                    parsedReference.linktext,
+                );
+            },
+        );
+        if (matched.size > 0) {
+            return matched;
+        }
+    }
+
+    return new Map<HTMLElement, MandalaEmbedReferenceLike>();
 };
 
 const doesEmbedTargetMatchReference = (
