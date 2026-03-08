@@ -29,6 +29,7 @@ import {
     createRenderMandalaEmbedPostProcessor,
     MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
+import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
 import {
     statusBarWorker,
 } from 'src/workers/worker-instances';
@@ -71,6 +72,7 @@ export default class MandalaGrid extends Plugin {
             createRenderMandalaEmbedPostProcessor(this),
             MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
         );
+        this.registerEditorExtension(createMandalaSourceEmbedExtension(this));
     }
 
     async saveSettings() {

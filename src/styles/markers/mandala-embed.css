@@ -1,3 +1,18 @@
+.mandala-source-embed-widget {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+}
+
+.mandala-source-embed-widget__fallback {
+    display: block;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-small);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 .internal-embed[data-mandala-managed='true'].mandala-embed-3x3 .markdown-embed-content,
 .internal-embed[data-mandala-managed='true'].mandala-embed-debug .markdown-embed-content {
     display: none;

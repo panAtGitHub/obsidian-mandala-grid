@@ -1,25 +1,25 @@
 import {
-    MarkdownView,
     parseLinktext,
-    resolveSubpath,
     TFile,
     type EmbedCache,
     type MarkdownPostProcessorContext,
 } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
-    createMandalaEmbedGridModel,
-    type MandalaEmbedGridModel,
-} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
-import {
     parseMandalaEmbedReference,
     type MandalaEmbedReferenceLike,
     type ParsedMandalaEmbedReference,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
-import { mapRenderedEmbedsToDocumentReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-document-references';
 import { mapRenderedEmbedsToCache } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-cache';
 import { mapRenderedEmbedsToMarkdownReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-markdown-references';
 import { mapRenderedEmbedsToSectionReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-section-references';
+import { type MandalaEmbedGridModel } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/create-mandala-embed-grid-model';
+import {
+    buildMandalaEmbedModel,
+    buildMandalaEmbedModelCacheKey,
+    getMandalaEmbedOrientation,
+    resolveMandalaEmbedTarget,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
 import { logger } from 'src/helpers/logger';
 import {
     type MandalaEmbedTarget,
@@ -28,11 +28,7 @@ import {
 import { MandalaEmbedController } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller';
 import { findRenderedMarkdown } from 'src/view/actions/markdown-preview/helpers/rendered-markdown-registry';
 
-type MandalaEmbedOrientation = 'left-to-right' | 'south-start';
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
-
-const SECTION_COMMENT_LINE_RE =
-    /^\s*<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->\s*$/u;
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
 const MAX_MANAGED_ANCESTOR_DEPTH = 1;
 
@@ -50,158 +46,24 @@ const getOrCreateController = (
     return created;
 };
 
-const resolveMarkdownFile = (
-    plugin: MandalaGrid,
-    path: string,
-    sourcePath: string,
-) => {
-    const fromSource = plugin.app.metadataCache.getFirstLinkpathDest(path, sourcePath);
-    if (fromSource instanceof TFile && fromSource.extension === 'md') {
-        return fromSource;
-    }
-
-    return null;
-};
-
-const resolveEmbedTarget = (
-    plugin: MandalaGrid,
-    ctx: MarkdownPostProcessorContext,
-    parsedReference: ParsedMandalaEmbedReference,
-): MandalaEmbedTarget | null => {
-    const { path, subpath } = parseLinktext(parsedReference.linktext);
-    if (!path) return null;
-
-    const file = resolveMarkdownFile(plugin, path, ctx.sourcePath);
-    if (!(file instanceof TFile) || file.extension !== 'md') return null;
-
-    const normalizedSubpath = subpath?.trim().replace(/^#+/u, '');
-    const centerHeading =
-        normalizedSubpath && !normalizedSubpath.startsWith('^')
-            ? normalizedSubpath
-            : null;
-    if (!centerHeading) return null;
-
-    return {
-        file,
-        centerHeading,
-    };
-};
-
-const getOrientation = (plugin: MandalaGrid): MandalaEmbedOrientation =>
-    plugin.settings.getValue().view.mandalaGridOrientation === 'south-start'
-        ? 'south-start'
-        : 'left-to-right';
-
-const buildModelFromFile = async (
-    plugin: MandalaGrid,
-    file: TFile,
-    orientation: MandalaEmbedOrientation,
-    centerHeading: string | null,
-) => {
-    const markdown = await plugin.app.vault.cachedRead(file);
-    const resolveCenterSectionByOfficialSubpath = () => {
-        if (!centerHeading) return null;
-        const cache = plugin.app.metadataCache.getFileCache(file);
-        if (!cache) return null;
-        const subpathResult = resolveSubpath(cache, `#${centerHeading}`);
-        if (!subpathResult) return null;
-
-        const headingLine = subpathResult.start.line;
-        if (headingLine <= 0) return null;
-
-        const lines = markdown.split(/\r?\n/u);
-        const markerLine = lines[headingLine - 1];
-        const markerMatch = markerLine?.match(SECTION_COMMENT_LINE_RE);
-        return markerMatch?.[1] ?? null;
-    };
-
-    const resolvedCenterSection = resolveCenterSectionByOfficialSubpath();
-    if (!resolvedCenterSection) return null;
-
-    return createMandalaEmbedGridModel(
-        markdown,
-        orientation,
-        resolvedCenterSection,
-    );
-};
-
 const formatUnknownError = (error: unknown) =>
     error instanceof Error ? error.message : String(error);
-
-const safeDecodeUriComponent = (value: string) => {
-    try {
-        return decodeURIComponent(value);
-    } catch {
-        return value;
-    }
-};
-
-const normalizeComparableSubpath = (value: string | null | undefined) => {
-    let normalized = value?.trim().replace(/^#+/u, '') ?? '';
-    for (let index = 0; index < 3; index += 1) {
-        const decoded = safeDecodeUriComponent(normalized);
-        if (decoded === normalized) break;
-        normalized = decoded;
-    }
-    return normalized;
-};
-
-const resolveSourceMarkdownFile = (
-    plugin: MandalaGrid,
-    sourcePath: string,
-): TFile | null => {
-    const file = plugin.app.vault.getFileByPath(sourcePath);
-    if (file instanceof TFile && file.extension === 'md') {
-        return file;
-    }
-
-    return null;
-};
-
-const resolveCandidateSourceMarkdownFiles = (
-    plugin: MandalaGrid,
-    sourcePath: string,
-) => {
-    const candidates: TFile[] = [];
-    const seenPaths = new Set<string>();
-
-    const addCandidate = (file: TFile | null) => {
-        if (!(file instanceof TFile) || file.extension !== 'md') return;
-        if (seenPaths.has(file.path)) return;
-
-        seenPaths.add(file.path);
-        candidates.push(file);
-    };
-
-    addCandidate(resolveSourceMarkdownFile(plugin, sourcePath));
-
-    const activeFile = plugin.app.workspace.getActiveViewOfType(MarkdownView)?.file;
-    addCandidate(activeFile instanceof TFile ? activeFile : null);
-
-    return candidates;
-};
 
 const resolveCachedReferencesForEmbeds = (
     plugin: MandalaGrid,
     ctx: MarkdownPostProcessorContext,
     embeds: HTMLElement[],
 ) => {
-    const sourceFiles = resolveCandidateSourceMarkdownFiles(
-        plugin,
-        ctx.sourcePath,
-    );
-    for (const sourceFile of sourceFiles) {
-        const cachedEmbeds =
-            plugin.app.metadataCache.getFileCache(sourceFile)?.embeds ?? [];
-        const matched = mapRenderedEmbedsToCache(embeds, cachedEmbeds, (embed) =>
-            ctx.getSectionInfo(embed),
-        );
-        if (matched.size > 0) {
-            return matched;
-        }
+    const sourceFile = plugin.app.vault.getFileByPath(ctx.sourcePath);
+    if (!(sourceFile instanceof TFile) || sourceFile.extension !== 'md') {
+        return new Map<HTMLElement, EmbedCache>();
     }
 
-    return new Map<HTMLElement, EmbedCache>();
+    const cachedEmbeds =
+        plugin.app.metadataCache.getFileCache(sourceFile)?.embeds ?? [];
+    return mapRenderedEmbedsToCache(embeds, cachedEmbeds, (embed) =>
+        ctx.getSectionInfo(embed),
+    );
 };
 
 const resolveSectionReferencesForEmbeds = (
@@ -222,92 +84,24 @@ const resolveRenderedMarkdownReferencesForEmbeds = (
     return mapRenderedEmbedsToMarkdownReferences(embeds, markdown);
 };
 
-const buildComparableEmbedTargetKey = (
-    plugin: MandalaGrid,
-    sourcePath: string,
-    linktext: string,
-) => {
-    const { path, subpath } = parseLinktext(linktext);
-    if (!path) return null;
-
-    const file = resolveMarkdownFile(plugin, path, sourcePath);
-    if (!file) return null;
-
-    const normalizedSubpath = normalizeComparableSubpath(subpath);
-    if (!normalizedSubpath || normalizedSubpath.startsWith('^')) return null;
-
-    return `${file.path}::${normalizedSubpath}`;
-};
-
-const resolveDocumentReferencesForEmbeds = async (
-    plugin: MandalaGrid,
-    ctx: MarkdownPostProcessorContext,
-    embeds: HTMLElement[],
-) => {
-    const sourceFiles = resolveCandidateSourceMarkdownFiles(
-        plugin,
-        ctx.sourcePath,
-    );
-    for (const sourceFile of sourceFiles) {
-        const markdown = await plugin.app.vault
-            .cachedRead(sourceFile)
-            .catch(() => null);
-        if (!markdown) continue;
-
-        const matched = mapRenderedEmbedsToDocumentReferences(
-            embeds,
-            markdown,
-            (embed) => {
-                const src = embed.getAttribute('src');
-                if (!src) return null;
-                return buildComparableEmbedTargetKey(
-                    plugin,
-                    sourceFile.path,
-                    src,
-                );
-            },
-            (reference) => {
-                const parsedReference = parseMandalaEmbedReference(reference);
-                if (!parsedReference) return null;
-
-                return buildComparableEmbedTargetKey(
-                    plugin,
-                    sourceFile.path,
-                    parsedReference.linktext,
-                );
-            },
-        );
-        if (matched.size > 0) {
-            return matched;
-        }
-    }
-
-    return new Map<HTMLElement, MandalaEmbedReferenceLike>();
-};
-
 const doesEmbedTargetMatchReference = (
     plugin: MandalaGrid,
-    sourcePath: string,
+    sourceFile: TFile | null,
     src: string | null,
     linktext: string,
 ) => {
-    if (!src) return false;
+    if (!sourceFile || !src) return false;
 
-    const embedTargetKey = buildComparableEmbedTargetKey(
-        plugin,
-        sourcePath,
-        src,
-    );
-    const referenceTargetKey = buildComparableEmbedTargetKey(
-        plugin,
-        sourcePath,
+    const embedTarget = resolveMandalaEmbedTarget(plugin, sourceFile, {
+        linktext: src,
+    });
+    const referenceTarget = resolveMandalaEmbedTarget(plugin, sourceFile, {
         linktext,
-    );
+    });
 
     return (
-        embedTargetKey !== null &&
-        referenceTargetKey !== null &&
-        embedTargetKey === referenceTargetKey
+        embedTarget?.file.path === referenceTarget?.file.path &&
+        embedTarget?.centerHeading === referenceTarget?.centerHeading
     );
 };
 
@@ -345,11 +139,15 @@ export const createRenderMandalaEmbedPostProcessor =
                 el.querySelectorAll<HTMLElement>('.internal-embed'),
             );
             if (embeds.length === 0) return;
+            const sourceFile = plugin.app.vault.getFileByPath(ctx.sourcePath);
 
             const debugEnabled =
                 plugin.settings.getValue().view.mandalaEmbedDebug ?? false;
-            const orientation = getOrientation(plugin);
-            const modelCache = new Map<string, Promise<MandalaEmbedGridModel | null>>();
+            const orientation = getMandalaEmbedOrientation(plugin);
+            const modelCache = new Map<
+                string,
+                Promise<MandalaEmbedGridModel | null>
+            >();
             const renderedMarkdownReferenceByEmbed =
                 resolveRenderedMarkdownReferencesForEmbeds(el, embeds);
             const sectionReferenceByEmbed = resolveSectionReferencesForEmbeds(
@@ -361,30 +159,22 @@ export const createRenderMandalaEmbedPostProcessor =
                 ctx,
                 embeds,
             );
-            let documentReferenceByEmbedPromise:
-                | Promise<Map<HTMLElement, MandalaEmbedReferenceLike>>
-                | null = null;
 
             const getModel = (target: MandalaEmbedTarget) => {
-                const center = target.centerHeading ?? 'root';
-                const cacheKey = `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
+                const cacheKey = buildMandalaEmbedModelCacheKey(
+                    target,
+                    orientation,
+                );
                 const cached = modelCache.get(cacheKey);
                 if (cached) return cached;
 
-                const loading = buildModelFromFile(
+                const loading = buildMandalaEmbedModel(
                     plugin,
-                    target.file,
+                    target,
                     orientation,
-                    target.centerHeading,
                 ).catch(() => null);
                 modelCache.set(cacheKey, loading);
                 return loading;
-            };
-
-            const getDocumentReferenceByEmbed = () => {
-                documentReferenceByEmbedPromise ??=
-                    resolveDocumentReferencesForEmbeds(plugin, ctx, embeds);
-                return documentReferenceByEmbedPromise;
             };
 
             for (const embed of embeds) {
@@ -429,7 +219,7 @@ export const createRenderMandalaEmbedPostProcessor =
                         if (
                             !doesEmbedTargetMatchReference(
                                 plugin,
-                                ctx.sourcePath,
+                                sourceFile instanceof TFile ? sourceFile : null,
                                 src,
                                 nextParsedReference.linktext,
                             )
@@ -440,29 +230,6 @@ export const createRenderMandalaEmbedPostProcessor =
                         matchedReferenceOriginal =
                             referenceCandidate?.original ?? '<empty>';
                         break;
-                    }
-
-                    if (!parsedReference) {
-                        const documentReferenceByEmbed =
-                            await getDocumentReferenceByEmbed();
-                        const documentReference =
-                            documentReferenceByEmbed.get(embed);
-                        const nextParsedReference = parseMandalaEmbedReference(
-                            documentReference ?? null,
-                        );
-                        if (
-                            nextParsedReference &&
-                            doesEmbedTargetMatchReference(
-                                plugin,
-                                ctx.sourcePath,
-                                src,
-                                nextParsedReference.linktext,
-                            )
-                        ) {
-                            parsedReference = nextParsedReference;
-                            matchedReferenceOriginal =
-                                documentReference?.original ?? '<empty>';
-                        }
                     }
 
                     if (!parsedReference) {
@@ -480,9 +247,22 @@ export const createRenderMandalaEmbedPostProcessor =
                         continue;
                     }
 
-                    const target = resolveEmbedTarget(
+                    if (!(sourceFile instanceof TFile) || sourceFile.extension !== 'md') {
+                        if (debugEnabled) {
+                            controller.updateDebug([
+                                'mandala debug: source file resolve failed',
+                                `src: ${src ?? '<null>'}`,
+                                `sourcePath: ${ctx.sourcePath}`,
+                            ]);
+                            continue;
+                        }
+                        controller.clear();
+                        continue;
+                    }
+
+                    const target = resolveMandalaEmbedTarget(
                         plugin,
-                        ctx,
+                        sourceFile,
                         parsedReference,
                     );
                     if (!target) {

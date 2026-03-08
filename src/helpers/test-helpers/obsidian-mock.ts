@@ -1,5 +1,9 @@
+import { StateField } from '@codemirror/state';
+
 export class App {}
-export class Plugin {}
+export class Plugin {
+    registerEditorExtension(_extension: unknown) {}
+}
 export class Notice {
     constructor(_message?: string) {}
 }
@@ -15,18 +19,65 @@ export class WorkspaceLeaf {}
 export class TAbstractFile {}
 export class TFile extends TAbstractFile {
     path = '';
+    basename = '';
+    extension = 'md';
+    stat = {
+        mtime: 0,
+    };
 }
 export class TFolder extends TAbstractFile {
     path = '';
 }
 export class Editor {}
 export class TextFileView {}
+export class Component {
+    private unloadCallbacks: Array<() => void> = [];
+
+    load() {}
+
+    unload() {
+        for (const callback of this.unloadCallbacks.splice(0)) {
+            callback();
+        }
+    }
+
+    register(callback: () => void) {
+        this.unloadCallbacks.push(callback);
+    }
+
+    registerDomEvent(
+        el: HTMLElement,
+        type: string,
+        handler: EventListenerOrEventListenerObject,
+        options?: AddEventListenerOptions | boolean,
+    ) {
+        el.addEventListener(type, handler, options);
+        this.register(() => el.removeEventListener(type, handler, options));
+    }
+
+    addChild(_child: Component) {}
+}
 export class FuzzySuggestModal<T> {
     getItems(): T[] {
         return [];
     }
 }
-export class MarkdownRenderer {}
+export class MarkdownRenderChild extends Component {
+    constructor(_containerEl: HTMLElement) {
+        super();
+    }
+}
+export class MarkdownRenderer {
+    static async render(
+        _app: App,
+        markdown: string,
+        el: HTMLElement,
+        _sourcePath: string,
+        _component: Component,
+    ) {
+        el.textContent = markdown;
+    }
+}
 
 export type IconName = string;
 export type Modifier = string;
@@ -48,6 +99,18 @@ export type EditorPosition = {
     ch: number;
 };
 
+export const editorInfoField = StateField.define<{
+    file?: TFile | null;
+}>({
+    create: () => ({ file: null }),
+    update: (value) => value,
+});
+
+export const editorLivePreviewField = StateField.define<boolean>({
+    create: () => false,
+    update: (value) => value,
+});
+
 export const Platform = {
     isMobile: false,
     isDesktop: true,
@@ -55,6 +118,9 @@ export const Platform = {
 
 export const debounce = <T extends (...args: never[]) => void>(fn: T) => fn;
 export const addIcon = () => {};
+export const setIcon = (parent: HTMLElement, iconId: string) => {
+    parent.dataset.icon = iconId;
+};
 export const parseYaml = (_input: string): unknown => ({});
 export const stringifyYaml = (_input: unknown): string => '';
 export const parseLinktext = (linktext: string) => {
