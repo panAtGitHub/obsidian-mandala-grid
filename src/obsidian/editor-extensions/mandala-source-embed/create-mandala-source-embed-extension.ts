@@ -32,6 +32,9 @@ import {
     resolveMandalaEmbedTarget,
     type ResolvedMandalaEmbedModel,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
+import {
+    applyMandalaEmbedResponsiveSizing,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/apply-mandala-embed-responsive-sizing';
 import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 
@@ -182,6 +185,12 @@ class MandalaSourceEmbedWidget extends WidgetType {
             const gridEl = document.createElement('div');
             gridEl.className = 'mandala-embed-3x3-grid';
             body.appendChild(gridEl);
+            const detachResponsiveSizing = applyMandalaEmbedResponsiveSizing({
+                rootEl: root,
+                bodyEl: body,
+                gridEl,
+            });
+            component.register(() => detachResponsiveSizing());
 
             for (const row of resolved.model.rows) {
                 for (const cell of row) {

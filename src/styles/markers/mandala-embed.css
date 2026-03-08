@@ -1,6 +1,6 @@
 .mandala-source-embed-widget {
     display: block;
-    width: fit-content;
+    width: 100%;
     max-width: 100%;
     white-space: normal;
 }
