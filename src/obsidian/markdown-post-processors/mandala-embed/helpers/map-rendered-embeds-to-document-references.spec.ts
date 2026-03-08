@@ -41,8 +41,12 @@ describe('mapRenderedEmbedsToDocumentReferences', () => {
     });
 
     it('consumes duplicate matches in document order', () => {
-        const first = { dataset: { src: 'file#heading' } } as HTMLElement;
-        const second = { dataset: { src: 'file#heading' } } as HTMLElement;
+        const first = {
+            dataset: { src: 'file#heading' },
+        } as unknown as HTMLElement;
+        const second = {
+            dataset: { src: 'file#heading' },
+        } as unknown as HTMLElement;
 
         const matched = mapRenderedEmbedsToDocumentReferences(
             [first, second],
@@ -61,7 +65,9 @@ describe('mapRenderedEmbedsToDocumentReferences', () => {
     });
 
     it('ignores embeds without the dollar alias marker', () => {
-        const embed = { dataset: { src: 'file#heading' } } as HTMLElement;
+        const embed = {
+            dataset: { src: 'file#heading' },
+        } as unknown as HTMLElement;
 
         const matched = mapRenderedEmbedsToDocumentReferences(
             [embed],
@@ -74,8 +80,12 @@ describe('mapRenderedEmbedsToDocumentReferences', () => {
     });
 
     it('keeps rejecting file-only and block dollar embeds', () => {
-        const fileOnly = { dataset: { src: 'file' } } as HTMLElement;
-        const block = { dataset: { src: 'file#^block-id' } } as HTMLElement;
+        const fileOnly = {
+            dataset: { src: 'file' },
+        } as unknown as HTMLElement;
+        const block = {
+            dataset: { src: 'file#^block-id' },
+        } as unknown as HTMLElement;
 
         const matched = mapRenderedEmbedsToDocumentReferences(
             [fileOnly, block],
