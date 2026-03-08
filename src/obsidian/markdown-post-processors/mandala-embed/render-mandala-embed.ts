@@ -15,6 +15,7 @@ import {
     type MandalaEmbedReferenceLike,
     type ParsedMandalaEmbedReference,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
+import { mapRenderedEmbedsToDocumentReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-document-references';
 import { mapRenderedEmbedsToCache } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-cache';
 import { mapRenderedEmbedsToMarkdownReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-markdown-references';
 import { mapRenderedEmbedsToSectionReferences } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/map-rendered-embeds-to-section-references';
@@ -189,6 +190,55 @@ const resolveRenderedMarkdownReferencesForEmbeds = (
     return mapRenderedEmbedsToMarkdownReferences(embeds, markdown);
 };
 
+const buildComparableEmbedTargetKey = (
+    plugin: MandalaGrid,
+    sourcePath: string,
+    linktext: string,
+) => {
+    const { path, subpath } = parseLinktext(linktext);
+    if (!path) return null;
+
+    const file = resolveMarkdownFile(plugin, path, sourcePath);
+    if (!file) return null;
+
+    const normalizedSubpath = normalizeComparableSubpath(subpath);
+    if (!normalizedSubpath || normalizedSubpath.startsWith('^')) return null;
+
+    return `${file.path}::${normalizedSubpath}`;
+};
+
+const resolveDocumentReferencesForEmbeds = async (
+    plugin: MandalaGrid,
+    ctx: MarkdownPostProcessorContext,
+    embeds: HTMLElement[],
+) => {
+    const sourceFile = resolveSourceMarkdownFile(plugin, ctx.sourcePath);
+    if (!sourceFile) return new Map<HTMLElement, MandalaEmbedReferenceLike>();
+
+    const markdown = await plugin.app.vault.cachedRead(sourceFile).catch(() => null);
+    if (!markdown) return new Map<HTMLElement, MandalaEmbedReferenceLike>();
+
+    return mapRenderedEmbedsToDocumentReferences(
+        embeds,
+        markdown,
+        (embed) => {
+            const src = embed.getAttribute('src');
+            if (!src) return null;
+            return buildComparableEmbedTargetKey(plugin, ctx.sourcePath, src);
+        },
+        (reference) => {
+            const parsedReference = parseMandalaEmbedReference(reference);
+            if (!parsedReference) return null;
+
+            return buildComparableEmbedTargetKey(
+                plugin,
+                ctx.sourcePath,
+                parsedReference.linktext,
+            );
+        },
+    );
+};
+
 const doesEmbedTargetMatchReference = (
     plugin: MandalaGrid,
     sourcePath: string,
@@ -197,20 +247,21 @@ const doesEmbedTargetMatchReference = (
 ) => {
     if (!src) return false;
 
-    const parsedSrc = parseLinktext(src);
-    const parsedReference = parseLinktext(linktext);
-    const embedFile = resolveMarkdownFile(plugin, parsedSrc.path, sourcePath);
-    const referenceFile = resolveMarkdownFile(
+    const embedTargetKey = buildComparableEmbedTargetKey(
         plugin,
-        parsedReference.path,
         sourcePath,
+        src,
     );
-    if (!embedFile || !referenceFile) return false;
+    const referenceTargetKey = buildComparableEmbedTargetKey(
+        plugin,
+        sourcePath,
+        linktext,
+    );
 
     return (
-        embedFile.path === referenceFile.path &&
-        normalizeComparableSubpath(parsedSrc.subpath) ===
-            normalizeComparableSubpath(parsedReference.subpath)
+        embedTargetKey !== null &&
+        referenceTargetKey !== null &&
+        embedTargetKey === referenceTargetKey
     );
 };
 
@@ -264,6 +315,9 @@ export const createRenderMandalaEmbedPostProcessor =
                 ctx,
                 embeds,
             );
+            let documentReferenceByEmbedPromise:
+                | Promise<Map<HTMLElement, MandalaEmbedReferenceLike>>
+                | null = null;
 
             const getModel = (target: MandalaEmbedTarget) => {
                 const center = target.centerHeading ?? 'root';
@@ -279,6 +333,12 @@ export const createRenderMandalaEmbedPostProcessor =
                 ).catch(() => null);
                 modelCache.set(cacheKey, loading);
                 return loading;
+            };
+
+            const getDocumentReferenceByEmbed = () => {
+                documentReferenceByEmbedPromise ??=
+                    resolveDocumentReferencesForEmbeds(plugin, ctx, embeds);
+                return documentReferenceByEmbedPromise;
             };
 
             for (const embed of embeds) {
@@ -334,6 +394,29 @@ export const createRenderMandalaEmbedPostProcessor =
                         matchedReferenceOriginal =
                             referenceCandidate?.original ?? '<empty>';
                         break;
+                    }
+
+                    if (!parsedReference) {
+                        const documentReferenceByEmbed =
+                            await getDocumentReferenceByEmbed();
+                        const documentReference =
+                            documentReferenceByEmbed.get(embed);
+                        const nextParsedReference = parseMandalaEmbedReference(
+                            documentReference ?? null,
+                        );
+                        if (
+                            nextParsedReference &&
+                            doesEmbedTargetMatchReference(
+                                plugin,
+                                ctx.sourcePath,
+                                src,
+                                nextParsedReference.linktext,
+                            )
+                        ) {
+                            parsedReference = nextParsedReference;
+                            matchedReferenceOriginal =
+                                documentReference?.original ?? '<empty>';
+                        }
                     }
 
                     if (!parsedReference) {
