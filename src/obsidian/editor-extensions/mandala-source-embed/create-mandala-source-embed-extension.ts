@@ -9,7 +9,6 @@ import {
     type DecorationSet,
     EditorView,
     WidgetType,
-    keymap,
 } from '@codemirror/view';
 import {
     Component,
@@ -21,7 +20,7 @@ import {
 } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
-    doesSelectionTouchMandalaSourceEmbedRange,
+    doesSelectionTouchMandalaSourceEmbedLine,
     resolveMandalaSourceEmbedMatch,
     type ResolvedMandalaSourceEmbedMatch,
 } from 'src/obsidian/editor-extensions/mandala-source-embed/helpers/resolve-mandala-source-embed-match';
@@ -64,8 +63,6 @@ type MandalaSourceEmbedFieldValue = {
     candidates: MandalaSourceEmbedCandidate[];
     decorations: DecorationSet;
 };
-
-type VerticalNavigationDirection = 'up' | 'down';
 
 const componentByDom = new WeakMap<HTMLElement, Component>();
 
@@ -322,38 +319,6 @@ const getSelectionRanges = (state: EditorState): SelectionRangeLike[] =>
         to: range.to,
     }));
 
-const resolveAdjacentMandalaSourceEmbedCandidate = ({
-    state,
-    candidates,
-    direction,
-}: {
-    state: EditorState;
-    candidates: MandalaSourceEmbedCandidate[];
-    direction: VerticalNavigationDirection;
-}) => {
-    if (state.selection.ranges.length !== 1) return null;
-
-    const mainSelection = state.selection.main;
-    if (!mainSelection.empty) return null;
-
-    const currentLine = state.doc.lineAt(mainSelection.head);
-    const targetLineNumber =
-        direction === 'down'
-            ? currentLine.number + 1
-            : currentLine.number - 1;
-
-    if (targetLineNumber < 1 || targetLineNumber > state.doc.lines) {
-        return null;
-    }
-
-    return (
-        candidates.find(
-            (candidate) =>
-                state.doc.lineAt(candidate.from).number === targetLineNumber,
-        ) ?? null
-    );
-};
-
 const collectCandidates = (
     state: EditorState,
     livePreview: boolean,
@@ -393,6 +358,7 @@ const collectCandidates = (
 
 const buildDecorations = (
     plugin: MandalaGrid,
+    state: EditorState,
     sourceFile: TFile | null,
     candidates: MandalaSourceEmbedCandidate[],
     selectionRanges: SelectionRangeLike[],
@@ -430,11 +396,12 @@ const buildDecorations = (
     };
 
     for (const candidate of candidates) {
+        const line = state.doc.lineAt(candidate.from);
         if (
-            doesSelectionTouchMandalaSourceEmbedRange(
+            doesSelectionTouchMandalaSourceEmbedLine(
                 selectionRanges,
-                candidate.from,
-                candidate.to,
+                line.from,
+                line.to,
             )
         ) {
             continue;
@@ -474,6 +441,7 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
             const candidates = collectCandidates(state, livePreview, sourceFile);
             const decorations = buildDecorations(
                 plugin,
+                state,
                 sourceFile,
                 candidates,
                 getSelectionRanges(state),
@@ -520,6 +488,7 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
                 candidates: nextCandidates,
                 decorations: buildDecorations(
                     plugin,
+                    transaction.state,
                     nextSourceFile,
                     nextCandidates,
                     getSelectionRanges(transaction.state),
@@ -527,72 +496,12 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
             };
         },
         provide(field) {
-            return [
-                EditorView.decorations.from(field, (value) => value.decorations),
-                EditorView.atomicRanges.from(
-                    field,
-                    (value) => () => value.decorations,
-                ),
-            ];
+            return EditorView.decorations.from(
+                field,
+                (value) => value.decorations,
+            );
         },
     });
 
-    const navigationKeymap = keymap.of([
-        {
-            key: 'ArrowDown',
-            run(view) {
-                const fieldValue = view.state.field(field, false);
-                if (!fieldValue?.livePreview || fieldValue.candidates.length === 0) {
-                    return false;
-                }
-
-                const candidate = resolveAdjacentMandalaSourceEmbedCandidate({
-                    state: view.state,
-                    candidates: fieldValue.candidates,
-                    direction: 'down',
-                });
-                if (!candidate) return false;
-
-                view.dispatch({
-                    selection: {
-                        anchor: getMandalaSourceEmbedEditAnchor(
-                            candidate.from,
-                            candidate.to,
-                        ),
-                    },
-                    scrollIntoView: true,
-                });
-                return true;
-            },
-        },
-        {
-            key: 'ArrowUp',
-            run(view) {
-                const fieldValue = view.state.field(field, false);
-                if (!fieldValue?.livePreview || fieldValue.candidates.length === 0) {
-                    return false;
-                }
-
-                const candidate = resolveAdjacentMandalaSourceEmbedCandidate({
-                    state: view.state,
-                    candidates: fieldValue.candidates,
-                    direction: 'up',
-                });
-                if (!candidate) return false;
-
-                view.dispatch({
-                    selection: {
-                        anchor: getMandalaSourceEmbedEditAnchor(
-                            candidate.from,
-                            candidate.to,
-                        ),
-                    },
-                    scrollIntoView: true,
-                });
-                return true;
-            },
-        },
-    ]);
-
-    return Prec.highest([field, navigationKeymap]);
+    return Prec.highest(field);
 };

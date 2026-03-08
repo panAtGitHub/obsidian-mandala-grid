@@ -15,17 +15,17 @@ export type ResolvedMandalaSourceEmbedMatch = {
     parsedReference: ParsedMandalaEmbedReference;
 };
 
-export const doesSelectionTouchMandalaSourceEmbedRange = (
+export const doesSelectionTouchMandalaSourceEmbedLine = (
     selectionRanges: SelectionRangeLike[],
-    from: number,
-    to: number,
+    lineFrom: number,
+    lineTo: number,
 ) =>
     selectionRanges.some((selection) => {
         if (selection.from === selection.to) {
-            return selection.from > from && selection.to < to;
+            return selection.from >= lineFrom && selection.to <= lineTo;
         }
 
-        return selection.from < to && selection.to > from;
+        return selection.from <= lineTo && selection.to >= lineFrom;
     });
 
 export const resolveMandalaSourceEmbedMatch = ({
@@ -45,7 +45,9 @@ export const resolveMandalaSourceEmbedMatch = ({
 }): ResolvedMandalaSourceEmbedMatch | null => {
     if (textBeforeMatch.trim().length > 0) return null;
     if (textAfterMatch.trim().length > 0) return null;
-    if (doesSelectionTouchMandalaSourceEmbedRange(selectionRanges, from, to)) {
+    const lineFrom = from - textBeforeMatch.length;
+    const lineTo = to + textAfterMatch.length;
+    if (doesSelectionTouchMandalaSourceEmbedLine(selectionRanges, lineFrom, lineTo)) {
         return null;
     }
 

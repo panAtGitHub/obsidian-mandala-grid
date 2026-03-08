@@ -57,7 +57,7 @@ describe('resolveMandalaSourceEmbedMatch', () => {
         expect(resolved).toBeNull();
     });
 
-    it('keeps the widget when the caret is exactly at the embed boundary', () => {
+    it('falls back to raw syntax when the caret is exactly at the embed boundary on the same line', () => {
         const resolved = resolveMandalaSourceEmbedMatch({
             matchText: '![[写作，一页纸工具#一页纸工具|$]]',
             from: 10,
@@ -67,8 +67,6 @@ describe('resolveMandalaSourceEmbedMatch', () => {
             selectionRanges: [{ from: 34, to: 34 }],
         });
 
-        expect(resolved?.parsedReference.linktext).toBe(
-            '写作，一页纸工具#一页纸工具',
-        );
+        expect(resolved).toBeNull();
     });
 });
