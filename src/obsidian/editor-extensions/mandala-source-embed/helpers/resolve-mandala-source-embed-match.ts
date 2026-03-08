@@ -20,9 +20,13 @@ const selectionTouchesRange = (
     from: number,
     to: number,
 ) =>
-    selectionRanges.some(
-        (selection) => selection.from <= to && selection.to >= from,
-    );
+    selectionRanges.some((selection) => {
+        if (selection.from === selection.to) {
+            return selection.from > from && selection.to < to;
+        }
+
+        return selection.from < to && selection.to > from;
+    });
 
 export const resolveMandalaSourceEmbedMatch = ({
     matchText,

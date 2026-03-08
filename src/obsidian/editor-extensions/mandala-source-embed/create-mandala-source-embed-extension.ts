@@ -45,6 +45,7 @@ class MandalaSourceEmbedWidget extends WidgetType {
         private readonly linktext: string,
         private readonly original: string,
         private readonly from: number,
+        private readonly to: number,
         private readonly loadResolvedModel: LoadResolvedModel,
     ) {
         super();
@@ -88,8 +89,10 @@ class MandalaSourceEmbedWidget extends WidgetType {
 
             event.preventDefault();
             event.stopPropagation();
+            const editAnchor =
+                this.to - this.from > 1 ? Math.min(this.from + 1, this.to - 1) : this.from;
             view.dispatch({
-                selection: { anchor: this.from },
+                selection: { anchor: editAnchor },
                 scrollIntoView: true,
             });
             view.focus();
@@ -329,6 +332,7 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
                         resolved.parsedReference.linktext,
                         resolved.reference.original,
                         from,
+                        to,
                         () =>
                             getResolvedModel(
                                 sourceFile,

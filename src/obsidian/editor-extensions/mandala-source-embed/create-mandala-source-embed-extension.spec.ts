@@ -106,6 +106,19 @@ describe('createMandalaSourceEmbedExtension', () => {
         ).toHaveLength(1);
     });
 
+    it('keeps the widget when the caret is exactly after the embed', () => {
+        const doc = '![[写作，一页纸工具#一页纸工具|$]]';
+        const { view } = mountEditor({
+            doc,
+            anchor: doc.length,
+        });
+        trackView(view);
+
+        expect(
+            view.dom.querySelector('.mandala-source-embed-widget'),
+        ).not.toBeNull();
+    });
+
     it('does not render widgets for file-only, block, or non-dollar embeds', () => {
         const invalidDocs = [
             '![[写作，一页纸工具#一页纸工具]]\n',
