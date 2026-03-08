@@ -1,3 +1,4 @@
+import { Prec } from '@codemirror/state';
 import {
     Decoration,
     type DecorationSet,
@@ -339,44 +340,47 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
         },
     });
 
-    return ViewPlugin.fromClass(
-        class {
-            decorations: DecorationSet;
+    return Prec.highest(
+        ViewPlugin.fromClass(
+            class {
+                decorations: DecorationSet;
 
-            constructor(view: EditorView) {
-                this.decorations = this.createDecorations(view);
-            }
-
-            update(update: ViewUpdate) {
-                const livePreviewEnabled =
-                    update.view.state.field(editorLivePreviewField, false) === true;
-                if (!livePreviewEnabled) {
-                    this.decorations = Decoration.none;
-                    return;
+                constructor(view: EditorView) {
+                    this.decorations = this.createDecorations(view);
                 }
 
-                if (update.selectionSet) {
-                    this.decorations = this.createDecorations(update.view);
-                    return;
+                update(update: ViewUpdate) {
+                    const livePreviewEnabled =
+                        update.view.state.field(editorLivePreviewField, false) ===
+                        true;
+                    if (!livePreviewEnabled) {
+                        this.decorations = Decoration.none;
+                        return;
+                    }
+
+                    if (update.selectionSet) {
+                        this.decorations = this.createDecorations(update.view);
+                        return;
+                    }
+
+                    if (update.docChanged || update.viewportChanged) {
+                        this.decorations = decorator.updateDeco(
+                            update as never,
+                            this.decorations,
+                        );
+                    }
                 }
 
-                if (update.docChanged || update.viewportChanged) {
-                    this.decorations = decorator.updateDeco(
-                        update as never,
-                        this.decorations,
-                    );
+                private createDecorations(view: EditorView) {
+                    const livePreviewEnabled =
+                        view.state.field(editorLivePreviewField, false) === true;
+                    if (!livePreviewEnabled) return Decoration.none;
+                    return decorator.createDeco(view);
                 }
-            }
-
-            private createDecorations(view: EditorView) {
-                const livePreviewEnabled =
-                    view.state.field(editorLivePreviewField, false) === true;
-                if (!livePreviewEnabled) return Decoration.none;
-                return decorator.createDeco(view);
-            }
-        },
-        {
-            decorations: (value) => value.decorations,
-        },
+            },
+            {
+                decorations: (value) => value.decorations,
+            },
+        ),
     );
 };

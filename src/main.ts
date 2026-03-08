@@ -73,6 +73,7 @@ export default class MandalaGrid extends Plugin {
             MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
         );
         this.registerEditorExtension(createMandalaSourceEmbedExtension(this));
+        this.app.workspace.updateOptions();
     }
 
     async saveSettings() {
