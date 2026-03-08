@@ -1,11 +1,13 @@
-import { Prec } from '@codemirror/state';
+import {
+    Prec,
+    RangeSetBuilder,
+    StateField,
+    type EditorState,
+} from '@codemirror/state';
 import {
     Decoration,
     type DecorationSet,
     EditorView,
-    MatchDecorator,
-    type ViewUpdate,
-    ViewPlugin,
     WidgetType,
 } from '@codemirror/view';
 import {
@@ -17,17 +19,21 @@ import {
     setIcon,
 } from 'obsidian';
 import type MandalaGrid from 'src/main';
-import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
-import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
-import { resolveMandalaSourceEmbedMatch } from 'src/obsidian/editor-extensions/mandala-source-embed/helpers/resolve-mandala-source-embed-match';
+import {
+    doesSelectionTouchMandalaSourceEmbedRange,
+    resolveMandalaSourceEmbedMatch,
+    type ResolvedMandalaSourceEmbedMatch,
+} from 'src/obsidian/editor-extensions/mandala-source-embed/helpers/resolve-mandala-source-embed-match';
+import { logger } from 'src/helpers/logger';
 import {
     buildMandalaEmbedModelCacheKey,
     getMandalaEmbedOrientation,
-    resolveMandalaEmbedTarget,
     resolveMandalaEmbedModel,
+    resolveMandalaEmbedTarget,
     type ResolvedMandalaEmbedModel,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
-import { logger } from 'src/helpers/logger';
+import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
+import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 
 const EMBED_REGEXP = /!\[\[[^\]\n]+?\]\]/gmu;
 
@@ -35,6 +41,25 @@ const formatUnknownError = (error: unknown) =>
     error instanceof Error ? error.message : String(error);
 
 type LoadResolvedModel = () => Promise<ResolvedMandalaEmbedModel | null>;
+
+type SelectionRangeLike = {
+    from: number;
+    to: number;
+};
+
+type MandalaSourceEmbedCandidate = {
+    from: number;
+    to: number;
+    reference: ResolvedMandalaSourceEmbedMatch['reference'];
+    parsedReference: ResolvedMandalaSourceEmbedMatch['parsedReference'];
+};
+
+type MandalaSourceEmbedFieldValue = {
+    sourceFile: TFile | null;
+    livePreview: boolean;
+    candidates: MandalaSourceEmbedCandidate[];
+    decorations: DecorationSet;
+};
 
 const componentByDom = new WeakMap<HTMLElement, Component>();
 
@@ -88,8 +113,12 @@ class MandalaSourceEmbedWidget extends WidgetType {
 
             event.preventDefault();
             event.stopPropagation();
+
             const editAnchor =
-                this.to - this.from > 1 ? Math.min(this.from + 1, this.to - 1) : this.from;
+                this.to - this.from > 1
+                    ? Math.min(this.from + 1, this.to - 1)
+                    : this.from;
+
             view.dispatch({
                 selection: { anchor: editAnchor },
                 scrollIntoView: true,
@@ -104,8 +133,7 @@ class MandalaSourceEmbedWidget extends WidgetType {
     }
 
     destroy(dom: HTMLElement): void {
-        const component = componentByDom.get(dom);
-        component?.unload();
+        componentByDom.get(dom)?.unload();
     }
 
     ignoreEvent(): boolean {
@@ -264,29 +292,89 @@ class MandalaSourceEmbedWidget extends WidgetType {
     }
 }
 
-export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
+const resolveSourceFile = (state: EditorState) => {
+    const fileInfo = state.field(editorInfoField, false);
+    const sourceFile = fileInfo?.file;
+
+    return sourceFile instanceof TFile && sourceFile.extension === 'md'
+        ? sourceFile
+        : null;
+};
+
+const getSelectionRanges = (state: EditorState): SelectionRangeLike[] =>
+    state.selection.ranges.map((range) => ({
+        from: range.from,
+        to: range.to,
+    }));
+
+const collectCandidates = (
+    state: EditorState,
+    livePreview: boolean,
+    sourceFile: TFile | null,
+) => {
+    if (!livePreview || !sourceFile) return [];
+
+    const docText = state.doc.toString();
+    const candidates: MandalaSourceEmbedCandidate[] = [];
+    const regexp = new RegExp(EMBED_REGEXP);
+    let match: RegExpExecArray | null = null;
+
+    while ((match = regexp.exec(docText)) !== null) {
+        const from = match.index;
+        const to = from + (match[0]?.length ?? 0);
+        const line = state.doc.lineAt(from);
+        const resolved = resolveMandalaSourceEmbedMatch({
+            matchText: match[0] ?? '',
+            from,
+            to,
+            textBeforeMatch: state.doc.sliceString(line.from, from),
+            textAfterMatch: state.doc.sliceString(to, line.to),
+            selectionRanges: [],
+        });
+        if (!resolved) continue;
+
+        candidates.push({
+            from,
+            to,
+            reference: resolved.reference,
+            parsedReference: resolved.parsedReference,
+        });
+    }
+
+    return candidates;
+};
+
+const buildDecorations = (
+    plugin: MandalaGrid,
+    sourceFile: TFile | null,
+    candidates: MandalaSourceEmbedCandidate[],
+    selectionRanges: SelectionRangeLike[],
+) => {
+    if (!sourceFile || candidates.length === 0) return Decoration.none;
+
     const modelCache = new Map<string, Promise<ResolvedMandalaEmbedModel | null>>();
+    const orientation = getMandalaEmbedOrientation(plugin);
+    const builder = new RangeSetBuilder<Decoration>();
 
     const getResolvedModel = (
-        sourceFile: TFile,
+        nextSourceFile: TFile,
         linktext: string,
     ): Promise<ResolvedMandalaEmbedModel | null> => {
-        const orientation = getMandalaEmbedOrientation(plugin);
         const parsedReference = { linktext };
         const target = resolveMandalaEmbedTarget(
             plugin,
-            sourceFile,
+            nextSourceFile,
             parsedReference,
         );
         const cacheKey = target
             ? buildMandalaEmbedModelCacheKey(target, orientation)
-            : `${sourceFile.path}::${orientation}::${linktext}`;
+            : `${nextSourceFile.path}::${orientation}::${linktext}`;
         const cached = modelCache.get(cacheKey);
         if (cached) return cached;
 
         const loading = resolveMandalaEmbedModel(
             plugin,
-            sourceFile,
+            nextSourceFile,
             parsedReference,
             orientation,
         ).catch(() => null);
@@ -294,96 +382,113 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
         return loading;
     };
 
-    const decorator = new MatchDecorator({
-        regexp: EMBED_REGEXP,
-        decorate: (add, from, to, match, view) => {
-            const isLivePreview =
-                view.state.field(editorLivePreviewField, false) === true;
-            if (!isLivePreview) return;
+    for (const candidate of candidates) {
+        if (
+            doesSelectionTouchMandalaSourceEmbedRange(
+                selectionRanges,
+                candidate.from,
+                candidate.to,
+            )
+        ) {
+            continue;
+        }
 
-            const fileInfo = view.state.field(editorInfoField, false);
-            const sourceFile = fileInfo?.file;
-            if (!(sourceFile instanceof TFile) || sourceFile.extension !== 'md') {
-                return;
+        builder.add(
+            candidate.from,
+            candidate.to,
+            Decoration.replace({
+                block: true,
+                widget: new MandalaSourceEmbedWidget(
+                    plugin,
+                    sourceFile,
+                    candidate.parsedReference.linktext,
+                    candidate.reference.original,
+                    candidate.from,
+                    candidate.to,
+                    () =>
+                        getResolvedModel(
+                            sourceFile,
+                            candidate.parsedReference.linktext,
+                        ),
+                ),
+            }),
+        );
+    }
+
+    return builder.finish();
+};
+
+export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
+    const field = StateField.define<MandalaSourceEmbedFieldValue>({
+        create(state) {
+            const livePreview =
+                state.field(editorLivePreviewField, false) === true;
+            const sourceFile = resolveSourceFile(state);
+            const candidates = collectCandidates(state, livePreview, sourceFile);
+            const decorations = buildDecorations(
+                plugin,
+                sourceFile,
+                candidates,
+                getSelectionRanges(state),
+            );
+
+            return {
+                sourceFile,
+                livePreview,
+                candidates,
+                decorations,
+            };
+        },
+        update(value, transaction) {
+            const nextLivePreview =
+                transaction.state.field(editorLivePreviewField, false) === true;
+            const nextSourceFile = resolveSourceFile(transaction.state);
+            const sourceChanged =
+                value.sourceFile?.path !== nextSourceFile?.path;
+            const livePreviewChanged = value.livePreview !== nextLivePreview;
+            const shouldRecollect =
+                transaction.docChanged || sourceChanged || livePreviewChanged;
+            const nextCandidates = shouldRecollect
+                ? collectCandidates(
+                      transaction.state,
+                      nextLivePreview,
+                      nextSourceFile,
+                  )
+                : value.candidates;
+            const shouldRebuildDecorations =
+                shouldRecollect || transaction.selection;
+
+            if (!shouldRebuildDecorations) {
+                return {
+                    sourceFile: nextSourceFile,
+                    livePreview: nextLivePreview,
+                    candidates: nextCandidates,
+                    decorations: value.decorations,
+                };
             }
 
-            const line = view.state.doc.lineAt(from);
-            const resolved = resolveMandalaSourceEmbedMatch({
-                matchText: match[0] ?? '',
-                from,
-                to,
-                textBeforeMatch: view.state.doc.sliceString(line.from, from),
-                textAfterMatch: view.state.doc.sliceString(to, line.to),
-                selectionRanges: view.state.selection.ranges.map((range) => ({
-                    from: range.from,
-                    to: range.to,
-                })),
-            });
-            if (!resolved) return;
-
-            add(
-                from,
-                to,
-                Decoration.replace({
-                    widget: new MandalaSourceEmbedWidget(
-                        plugin,
-                        sourceFile,
-                        resolved.parsedReference.linktext,
-                        resolved.reference.original,
-                        from,
-                        to,
-                        () =>
-                            getResolvedModel(
-                                sourceFile,
-                                resolved.parsedReference.linktext,
-                            ),
-                    ),
-                }),
-            );
+            return {
+                sourceFile: nextSourceFile,
+                livePreview: nextLivePreview,
+                candidates: nextCandidates,
+                decorations: buildDecorations(
+                    plugin,
+                    nextSourceFile,
+                    nextCandidates,
+                    getSelectionRanges(transaction.state),
+                ),
+            };
+        },
+        provide(field) {
+            return [
+                EditorView.decorations.from(field, (value) => value.decorations),
+                EditorView.atomicRanges.from(
+                    field,
+                    (value) => () => value.decorations,
+                ),
+            ];
         },
     });
 
-    return Prec.highest(
-        ViewPlugin.fromClass(
-            class {
-                decorations: DecorationSet;
-
-                constructor(view: EditorView) {
-                    this.decorations = this.createDecorations(view);
-                }
-
-                update(update: ViewUpdate) {
-                    const livePreviewEnabled =
-                        update.view.state.field(editorLivePreviewField, false) ===
-                        true;
-                    if (!livePreviewEnabled) {
-                        this.decorations = Decoration.none;
-                        return;
-                    }
-
-                    if (update.selectionSet) {
-                        this.decorations = this.createDecorations(update.view);
-                        return;
-                    }
-
-                    if (update.docChanged || update.viewportChanged) {
-                        this.decorations = decorator.updateDeco(
-                            update as never,
-                            this.decorations,
-                        );
-                    }
-                }
-
-                private createDecorations(view: EditorView) {
-                    const livePreviewEnabled =
-                        view.state.field(editorLivePreviewField, false) === true;
-                    if (!livePreviewEnabled) return Decoration.none;
-                    return decorator.createDeco(view);
-                }
-            },
-            {
-                decorations: (value) => value.decorations,
-            },
-        ),
-    );
+    return Prec.highest(field);
 };

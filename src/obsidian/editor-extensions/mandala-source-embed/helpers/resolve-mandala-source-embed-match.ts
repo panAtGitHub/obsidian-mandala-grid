@@ -15,7 +15,7 @@ export type ResolvedMandalaSourceEmbedMatch = {
     parsedReference: ParsedMandalaEmbedReference;
 };
 
-const selectionTouchesRange = (
+export const doesSelectionTouchMandalaSourceEmbedRange = (
     selectionRanges: SelectionRangeLike[],
     from: number,
     to: number,
@@ -45,7 +45,9 @@ export const resolveMandalaSourceEmbedMatch = ({
 }): ResolvedMandalaSourceEmbedMatch | null => {
     if (textBeforeMatch.trim().length > 0) return null;
     if (textAfterMatch.trim().length > 0) return null;
-    if (selectionTouchesRange(selectionRanges, from, to)) return null;
+    if (doesSelectionTouchMandalaSourceEmbedRange(selectionRanges, from, to)) {
+        return null;
+    }
 
     const reference = extractEmbedReferencesFromMarkdown(matchText)[0] ?? null;
     if (!reference) return null;
