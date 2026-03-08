@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, runScopeHandlers } from '@codemirror/view';
 import { TFile, editorInfoField, editorLivePreviewField } from 'obsidian';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
@@ -164,6 +164,55 @@ describe('createMandalaSourceEmbedExtension', () => {
         expect(
             view.dom.querySelector('.mandala-source-embed-widget'),
         ).not.toBeNull();
+    });
+
+    it('moves into the embed source when ArrowDown is pressed from the previous line', () => {
+        const doc = ['上一行', '![[写作，一页纸工具#一页纸工具|$]]', '下一行', ''].join(
+            '\n',
+        );
+        const embedStart = doc.indexOf('![[写作，一页纸工具#一页纸工具|$]]');
+        const { view } = mountEditor({
+            doc,
+            anchor: 0,
+        });
+        trackView(view);
+
+        const handled = runScopeHandlers(
+            view,
+            new KeyboardEvent('keydown', { key: 'ArrowDown' }),
+            'editor',
+        );
+
+        expect(handled).toBe(true);
+        expect(view.state.selection.main.head).toBe(embedStart + 1);
+        expect(
+            view.dom.querySelector('.mandala-source-embed-widget'),
+        ).toBeNull();
+    });
+
+    it('moves into the embed source when ArrowUp is pressed from the next line', () => {
+        const doc = ['上一行', '![[写作，一页纸工具#一页纸工具|$]]', '下一行', ''].join(
+            '\n',
+        );
+        const embedStart = doc.indexOf('![[写作，一页纸工具#一页纸工具|$]]');
+        const nextLineAnchor = doc.lastIndexOf('下一行');
+        const { view } = mountEditor({
+            doc,
+            anchor: nextLineAnchor,
+        });
+        trackView(view);
+
+        const handled = runScopeHandlers(
+            view,
+            new KeyboardEvent('keydown', { key: 'ArrowUp' }),
+            'editor',
+        );
+
+        expect(handled).toBe(true);
+        expect(view.state.selection.main.head).toBe(embedStart + 1);
+        expect(
+            view.dom.querySelector('.mandala-source-embed-widget'),
+        ).toBeNull();
     });
 
     it('does not render widgets outside live preview', () => {

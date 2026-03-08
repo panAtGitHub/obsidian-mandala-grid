@@ -9,6 +9,7 @@ import {
     type DecorationSet,
     EditorView,
     WidgetType,
+    keymap,
 } from '@codemirror/view';
 import {
     Component,
@@ -64,7 +65,12 @@ type MandalaSourceEmbedFieldValue = {
     decorations: DecorationSet;
 };
 
+type VerticalNavigationDirection = 'up' | 'down';
+
 const componentByDom = new WeakMap<HTMLElement, Component>();
+
+const getMandalaSourceEmbedEditAnchor = (from: number, to: number) =>
+    to - from > 1 ? Math.min(from + 1, to - 1) : from;
 
 class MandalaSourceEmbedWidget extends WidgetType {
     constructor(
@@ -117,10 +123,10 @@ class MandalaSourceEmbedWidget extends WidgetType {
             event.preventDefault();
             event.stopPropagation();
 
-            const editAnchor =
-                this.to - this.from > 1
-                    ? Math.min(this.from + 1, this.to - 1)
-                    : this.from;
+            const editAnchor = getMandalaSourceEmbedEditAnchor(
+                this.from,
+                this.to,
+            );
 
             view.dispatch({
                 selection: { anchor: editAnchor },
@@ -316,6 +322,38 @@ const getSelectionRanges = (state: EditorState): SelectionRangeLike[] =>
         to: range.to,
     }));
 
+const resolveAdjacentMandalaSourceEmbedCandidate = ({
+    state,
+    candidates,
+    direction,
+}: {
+    state: EditorState;
+    candidates: MandalaSourceEmbedCandidate[];
+    direction: VerticalNavigationDirection;
+}) => {
+    if (state.selection.ranges.length !== 1) return null;
+
+    const mainSelection = state.selection.main;
+    if (!mainSelection.empty) return null;
+
+    const currentLine = state.doc.lineAt(mainSelection.head);
+    const targetLineNumber =
+        direction === 'down'
+            ? currentLine.number + 1
+            : currentLine.number - 1;
+
+    if (targetLineNumber < 1 || targetLineNumber > state.doc.lines) {
+        return null;
+    }
+
+    return (
+        candidates.find(
+            (candidate) =>
+                state.doc.lineAt(candidate.from).number === targetLineNumber,
+        ) ?? null
+    );
+};
+
 const collectCandidates = (
     state: EditorState,
     livePreview: boolean,
@@ -499,5 +537,62 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
         },
     });
 
-    return Prec.highest(field);
+    const navigationKeymap = keymap.of([
+        {
+            key: 'ArrowDown',
+            run(view) {
+                const fieldValue = view.state.field(field, false);
+                if (!fieldValue?.livePreview || fieldValue.candidates.length === 0) {
+                    return false;
+                }
+
+                const candidate = resolveAdjacentMandalaSourceEmbedCandidate({
+                    state: view.state,
+                    candidates: fieldValue.candidates,
+                    direction: 'down',
+                });
+                if (!candidate) return false;
+
+                view.dispatch({
+                    selection: {
+                        anchor: getMandalaSourceEmbedEditAnchor(
+                            candidate.from,
+                            candidate.to,
+                        ),
+                    },
+                    scrollIntoView: true,
+                });
+                return true;
+            },
+        },
+        {
+            key: 'ArrowUp',
+            run(view) {
+                const fieldValue = view.state.field(field, false);
+                if (!fieldValue?.livePreview || fieldValue.candidates.length === 0) {
+                    return false;
+                }
+
+                const candidate = resolveAdjacentMandalaSourceEmbedCandidate({
+                    state: view.state,
+                    candidates: fieldValue.candidates,
+                    direction: 'up',
+                });
+                if (!candidate) return false;
+
+                view.dispatch({
+                    selection: {
+                        anchor: getMandalaSourceEmbedEditAnchor(
+                            candidate.from,
+                            candidate.to,
+                        ),
+                    },
+                    scrollIntoView: true,
+                });
+                return true;
+            },
+        },
+    ]);
+
+    return Prec.highest([field, navigationKeymap]);
 };
