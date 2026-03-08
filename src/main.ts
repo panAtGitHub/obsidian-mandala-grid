@@ -32,8 +32,11 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
 import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
 import {
+    getOpenMandalaEmbedRefreshViews,
     registerMandalaEmbedRefreshEvents,
+    rerenderMarkdownPreviewsBySourcePaths,
     rerenderOpenMarkdownPreviews,
+    resolveMandalaEmbedRefreshPlan,
 } from 'src/obsidian/events/workspace/register-mandala-embed-refresh-events';
 import {
     statusBarWorker,
@@ -55,6 +58,9 @@ export default class MandalaGrid extends Plugin {
     private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null = null;
     private isSavingSettings = false;
     private hasPendingSettingsSave = false;
+    private pendingMandalaEmbedRefreshAll = false;
+    private pendingMandalaEmbedChangedPaths = new Set<string>();
+    private mandalaEmbedRefreshEpoch = 0;
     private readonly mandalaSourceEmbedExtensions: Extension[] = [];
     private lastMandalaGridOrientation: string | null = null;
     viewType: DocumentsPreferences = {};
@@ -121,23 +127,80 @@ export default class MandalaGrid extends Plugin {
                 this.settings.getValue().view.mandalaGridOrientation;
             if (this.lastMandalaGridOrientation !== nextOrientation) {
                 this.lastMandalaGridOrientation = nextOrientation;
-                this.scheduleMandalaEmbedRefresh();
+                this.scheduleMandalaEmbedRefresh({
+                    forceAll: true,
+                });
             }
             this.queueSettingsSave();
         });
         settingsSubscriptions(this);
     }
 
-    scheduleMandalaEmbedRefresh(delay_ms: number = 120) {
+    getMandalaEmbedRefreshEpoch() {
+        return this.mandalaEmbedRefreshEpoch;
+    }
+
+    scheduleMandalaEmbedRefresh({
+        delay_ms = 120,
+        changedPaths = [],
+        forceAll = false,
+    }: {
+        delay_ms?: number;
+        changedPaths?: Iterable<string>;
+        forceAll?: boolean;
+    } = {}) {
+        if (forceAll) {
+            this.pendingMandalaEmbedRefreshAll = true;
+        } else {
+            for (const path of changedPaths) {
+                if (path.trim().length === 0) continue;
+                this.pendingMandalaEmbedChangedPaths.add(path);
+            }
+        }
+
         if (this.refreshMandalaEmbedTimeout) {
             clearTimeout(this.refreshMandalaEmbedTimeout);
         }
 
         this.refreshMandalaEmbedTimeout = setTimeout(() => {
             this.refreshMandalaEmbedTimeout = null;
-            this.replaceMandalaSourceEmbedExtensions();
-            this.app.workspace.updateOptions();
-            rerenderOpenMarkdownPreviews(this);
+            const forceAllRefresh = this.pendingMandalaEmbedRefreshAll;
+            const changedPathSet = new Set(this.pendingMandalaEmbedChangedPaths);
+            this.pendingMandalaEmbedRefreshAll = false;
+            this.pendingMandalaEmbedChangedPaths.clear();
+
+            if (forceAllRefresh) {
+                this.mandalaEmbedRefreshEpoch += 1;
+                this.replaceMandalaSourceEmbedExtensions();
+                this.app.workspace.updateOptions();
+                rerenderOpenMarkdownPreviews(this);
+                return;
+            }
+
+            const refreshPlan = resolveMandalaEmbedRefreshPlan(
+                this,
+                getOpenMandalaEmbedRefreshViews(this),
+                changedPathSet,
+            );
+            if (
+                !refreshPlan.refreshEditors &&
+                refreshPlan.previewSourcePaths.size === 0
+            ) {
+                return;
+            }
+
+            if (refreshPlan.refreshEditors) {
+                this.mandalaEmbedRefreshEpoch += 1;
+                this.replaceMandalaSourceEmbedExtensions();
+                this.app.workspace.updateOptions();
+            }
+
+            if (refreshPlan.previewSourcePaths.size > 0) {
+                rerenderMarkdownPreviewsBySourcePaths(
+                    this,
+                    refreshPlan.previewSourcePaths,
+                );
+            }
         }, delay_ms);
     }
 

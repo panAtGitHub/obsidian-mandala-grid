@@ -1,4 +1,4 @@
-import { type TFile } from 'obsidian';
+import { MarkdownRenderChild, type TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { logger } from 'src/helpers/logger';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
@@ -126,6 +126,7 @@ export class MandalaEmbedController {
     private scheduledRaf: number | null = null;
     private detachResponsiveSizing: (() => void) | null = null;
     private observedBody: HTMLElement | null = null;
+    private renderScope: MarkdownRenderChild | null = null;
 
     private readonly embedObserver: MutationObserver;
     private readonly onBodyClickBound: (event: Event) => void;
@@ -317,10 +318,13 @@ export class MandalaEmbedController {
         this.embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
         this.embed.classList.add('mandala-embed-3x3');
         this.embed.classList.remove('mandala-embed-debug');
+        const renderScope = this.replaceRenderScope(payload);
 
         renderMandalaEmbedHeader({
             headerEl: header,
             title: getMandalaEmbedTitle(payload.target),
+            attachOpenTargetClick: (button, listener) =>
+                renderScope.registerDomEvent(button, 'click', listener),
             onOpenTarget: (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -337,7 +341,7 @@ export class MandalaEmbedController {
             plugin: this.plugin,
             model: payload.model,
             sourcePath: payload.target.file.path,
-            registerMarkdownChild: (child) => payload.ctx.addChild(child),
+            registerMarkdownChild: (child) => renderScope.addChild(child),
             onAfterCellMarkdownRender: enableRenderedCheckboxes,
             isCanceled: () =>
                 generation !== this.generation ||
@@ -355,6 +359,7 @@ export class MandalaEmbedController {
 
     private renderDebug(lines: string[]) {
         const { body } = this.getOrCreateHostLayout();
+        this.clearRenderScope();
 
         this.embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
         this.embed.classList.remove('mandala-embed-3x3');
@@ -385,6 +390,7 @@ export class MandalaEmbedController {
         this.detachBodyListeners();
         this.detachResponsiveSizing?.();
         this.detachResponsiveSizing = null;
+        this.clearRenderScope();
 
         const host = this.queryMandalaHost();
         host?.remove();
@@ -459,5 +465,19 @@ export class MandalaEmbedController {
             bodyEl: body,
             gridEl,
         });
+    }
+
+    private replaceRenderScope(payload: MandalaEmbedManagedPayload) {
+        this.clearRenderScope();
+
+        const renderScope = new MarkdownRenderChild(this.embed);
+        payload.ctx.addChild(renderScope);
+        this.renderScope = renderScope;
+        return renderScope;
+    }
+
+    private clearRenderScope() {
+        this.renderScope?.unload();
+        this.renderScope = null;
     }
 }

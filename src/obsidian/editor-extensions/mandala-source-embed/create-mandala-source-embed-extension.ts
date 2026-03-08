@@ -25,6 +25,7 @@ import {
 import { logger } from 'src/helpers/logger';
 import {
     buildMandalaEmbedModelCacheKey,
+    buildMandalaEmbedRenderKey,
     getMandalaEmbedOrientation,
     resolveMandalaEmbedModel,
     resolveMandalaEmbedTarget,
@@ -76,6 +77,7 @@ class MandalaSourceEmbedWidget extends WidgetType {
         private readonly sourceFile: TFile,
         private readonly linktext: string,
         private readonly original: string,
+        private readonly renderKey: string,
         private readonly from: number,
         private readonly to: number,
         private readonly loadResolvedModel: LoadResolvedModel,
@@ -86,6 +88,7 @@ class MandalaSourceEmbedWidget extends WidgetType {
     eq(other: WidgetType) {
         return (
             other instanceof MandalaSourceEmbedWidget &&
+            other.renderKey === this.renderKey &&
             other.sourceFile.path === this.sourceFile.path &&
             other.linktext === this.linktext &&
             other.original === this.original
@@ -308,6 +311,7 @@ const buildDecorations = (
 
     const modelCache = new Map<string, Promise<ResolvedMandalaEmbedModel | null>>();
     const orientation = getMandalaEmbedOrientation(plugin);
+    const refreshEpoch = plugin.getMandalaEmbedRefreshEpoch();
     const builder = new RangeSetBuilder<Decoration>();
 
     const getResolvedModel = (
@@ -358,6 +362,21 @@ const buildDecorations = (
                     sourceFile,
                     candidate.parsedReference.linktext,
                     candidate.reference.original,
+                    (() => {
+                        const target = resolveMandalaEmbedTarget(
+                            plugin,
+                            sourceFile,
+                            candidate.parsedReference,
+                        );
+
+                        return target
+                            ? buildMandalaEmbedRenderKey(
+                                  target,
+                                  orientation,
+                                  refreshEpoch,
+                              )
+                            : `${sourceFile.path}::${orientation}::${candidate.parsedReference.linktext}::${candidate.reference.original}::${String(refreshEpoch)}`;
+                    })(),
                     candidate.from,
                     candidate.to,
                     () =>

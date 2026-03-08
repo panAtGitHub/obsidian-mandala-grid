@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TFile, resolveSubpath } from 'obsidian';
 import {
     buildMandalaEmbedModelCacheKey,
+    buildMandalaEmbedRenderKey,
     getMandalaEmbedOrientation,
     resolveMandalaEmbedModel,
     resolveMandalaEmbedTarget,
@@ -214,5 +215,19 @@ describe('resolveMandalaEmbedModel', () => {
         expect(
             buildMandalaEmbedModelCacheKey(target, 'left-to-right'),
         ).toContain('一页纸工具');
+    });
+
+    it('builds render keys that include the refresh epoch', () => {
+        const target = {
+            file: createMarkdownFile('target.md'),
+            centerHeading: '一页纸工具',
+        };
+
+        expect(
+            buildMandalaEmbedRenderKey(target, 'left-to-right', 3),
+        ).toContain('::3');
+        expect(
+            buildMandalaEmbedRenderKey(target, 'left-to-right', 3),
+        ).not.toBe(buildMandalaEmbedRenderKey(target, 'left-to-right', 4));
     });
 });

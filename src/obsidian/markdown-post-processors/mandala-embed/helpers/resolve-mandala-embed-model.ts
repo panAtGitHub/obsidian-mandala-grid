@@ -70,6 +70,13 @@ export const buildMandalaEmbedModelCacheKey = (
     return `${target.file.path}::${target.file.stat.mtime}::${orientation}::${center}`;
 };
 
+export const buildMandalaEmbedRenderKey = (
+    target: MandalaEmbedTarget,
+    orientation: MandalaEmbedOrientation,
+    refreshEpoch: number,
+) =>
+    `${buildMandalaEmbedModelCacheKey(target, orientation)}::${String(refreshEpoch)}`;
+
 export const buildMandalaEmbedModel = async (
     plugin: MandalaGrid,
     target: MandalaEmbedTarget,

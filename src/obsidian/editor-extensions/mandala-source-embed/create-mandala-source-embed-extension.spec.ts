@@ -37,6 +37,7 @@ const createPlugin = () =>
                 },
             }),
         },
+        getMandalaEmbedRefreshEpoch: () => 0,
     }) as never;
 
 const livePreviewExtensions = (sourceFile: TFile, enabled: boolean) => [
