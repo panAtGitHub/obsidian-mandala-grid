@@ -15,9 +15,14 @@ export type MandalaEmbedRefreshViewLike = {
 };
 
 export type MandalaEmbedRefreshPlan = {
-    refreshEditors: boolean;
     previewSourcePaths: Set<string>;
     previewTargetPaths: Set<string>;
+    staleSourcePaths: Set<string>;
+};
+
+type MarkdownPreviewScrollSnapshot = {
+    view: MarkdownView;
+    scroll: number;
 };
 
 export const collectMandalaEmbedTargetPaths = (
@@ -54,13 +59,13 @@ export const resolveMandalaEmbedRefreshPlan = (
     );
     const previewSourcePaths = new Set<string>();
     const previewTargetPaths = new Set<string>();
-    let refreshEditors = false;
+    const staleSourcePaths = new Set<string>();
 
     if (changedPathSet.size === 0) {
         return {
-            refreshEditors,
             previewSourcePaths,
             previewTargetPaths,
+            staleSourcePaths,
         };
     }
 
@@ -91,13 +96,15 @@ export const resolveMandalaEmbedRefreshPlan = (
             continue;
         }
 
-        refreshEditors = true;
+        if (matchedTargetPaths.length > 0) {
+            staleSourcePaths.add(sourceFile.path);
+        }
     }
 
     return {
-        refreshEditors,
         previewSourcePaths,
         previewTargetPaths,
+        staleSourcePaths,
     };
 };
 
@@ -120,6 +127,49 @@ export const rerenderOpenMarkdownPreviews = (plugin: MandalaGrid) => {
 export const refreshOpenManagedMandalaEmbedsByTargetPaths = (
     targetPaths: Iterable<string>,
 ) => refreshManagedMandalaEmbedControllersByTargetPaths(targetPaths);
+
+export const captureMarkdownPreviewScrolls = (
+    plugin: MandalaGrid,
+    sourcePaths?: ReadonlySet<string>,
+) => {
+    const snapshots: MarkdownPreviewScrollSnapshot[] = [];
+
+    plugin.app.workspace.iterateAllLeaves((leaf) => {
+        const view = leaf.view;
+        if (!(view instanceof MarkdownView)) return;
+        if (view.getMode() !== 'preview') return;
+        if (
+            sourcePaths &&
+            sourcePaths.size > 0 &&
+            !sourcePaths.has(view.file?.path ?? '')
+        ) {
+            return;
+        }
+
+        snapshots.push({
+            view,
+            scroll: view.previewMode.getScroll(),
+        });
+    });
+
+    return snapshots;
+};
+
+export const restoreMarkdownPreviewScrolls = (
+    snapshots: MarkdownPreviewScrollSnapshot[],
+) => {
+    const restore = () => {
+        for (const { view, scroll } of snapshots) {
+            if (!view.file) continue;
+            if (view.getMode() !== 'preview') continue;
+            view.previewMode.applyScroll(scroll);
+        }
+    };
+
+    window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(restore);
+    });
+};
 
 export const rerenderMarkdownPreviewsBySourcePaths = (
     plugin: MandalaGrid,
@@ -185,6 +235,18 @@ export const registerMandalaEmbedRefreshEvents = (plugin: MandalaGrid) => {
                     forceAll: true,
                 });
             }
+        }),
+    );
+
+    plugin.registerEvent(
+        plugin.app.workspace.on('active-leaf-change', () => {
+            plugin.flushPendingMandalaSourceEmbedRefreshes();
+        }),
+    );
+
+    plugin.registerEvent(
+        plugin.app.workspace.on('file-open', () => {
+            plugin.flushPendingMandalaSourceEmbedRefreshes();
         }),
     );
 };

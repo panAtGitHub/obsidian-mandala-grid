@@ -77,11 +77,11 @@ describe('registerMandalaEmbedRefreshEvents helpers', () => {
             '写作，一页纸工具.md',
         ]);
 
-        expect(plan.refreshEditors).toBe(true);
         expect(plan.previewSourcePaths.size).toBe(0);
         expect(Array.from(plan.previewTargetPaths)).toEqual([
             '写作，一页纸工具.md',
         ]);
+        expect(Array.from(plan.staleSourcePaths)).toEqual(['source-a.md']);
     });
 
     it('refreshes a preview when its own source note changes', () => {
@@ -98,9 +98,9 @@ describe('registerMandalaEmbedRefreshEvents helpers', () => {
             'source-a.md',
         ]);
 
-        expect(plan.refreshEditors).toBe(false);
         expect(Array.from(plan.previewSourcePaths)).toEqual(['source-a.md']);
         expect(plan.previewTargetPaths.size).toBe(0);
+        expect(plan.staleSourcePaths.size).toBe(0);
     });
 
     it('skips refresh when no open view depends on the changed file', () => {
@@ -117,8 +117,8 @@ describe('registerMandalaEmbedRefreshEvents helpers', () => {
             '写作，一页纸工具.md',
         ]);
 
-        expect(plan.refreshEditors).toBe(false);
         expect(plan.previewSourcePaths.size).toBe(0);
         expect(plan.previewTargetPaths.size).toBe(0);
+        expect(plan.staleSourcePaths.size).toBe(0);
     });
 });

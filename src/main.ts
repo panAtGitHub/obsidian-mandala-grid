@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { MarkdownView, Plugin, WorkspaceLeaf } from 'obsidian';
 import { type Extension } from '@codemirror/state';
 import { MANDALA_VIEW_TYPE, MandalaView } from './view/view';
 import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
@@ -32,10 +32,12 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
 import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
 import {
+    captureMarkdownPreviewScrolls,
     refreshOpenManagedMandalaEmbedsByTargetPaths,
     getOpenMandalaEmbedRefreshViews,
     registerMandalaEmbedRefreshEvents,
     rerenderMarkdownPreviewsBySourcePaths,
+    restoreMarkdownPreviewScrolls,
     rerenderOpenMarkdownPreviews,
     resolveMandalaEmbedRefreshPlan,
 } from 'src/obsidian/events/workspace/register-mandala-embed-refresh-events';
@@ -61,6 +63,7 @@ export default class MandalaGrid extends Plugin {
     private hasPendingSettingsSave = false;
     private pendingMandalaEmbedRefreshAll = false;
     private pendingMandalaEmbedChangedPaths = new Set<string>();
+    private pendingMandalaEmbedStaleSourcePaths = new Set<string>();
     private mandalaEmbedRefreshEpoch = 0;
     private readonly mandalaSourceEmbedExtensions: Extension[] = [];
     private lastMandalaGridOrientation: string | null = null;
@@ -141,6 +144,27 @@ export default class MandalaGrid extends Plugin {
         return this.mandalaEmbedRefreshEpoch;
     }
 
+    flushPendingMandalaSourceEmbedRefreshes() {
+        if (this.pendingMandalaEmbedStaleSourcePaths.size === 0) return false;
+
+        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!(activeView instanceof MarkdownView)) return false;
+        if (activeView.getMode() !== 'source') return false;
+
+        const activePath = activeView.file?.path ?? '';
+        if (!this.pendingMandalaEmbedStaleSourcePaths.has(activePath)) {
+            return false;
+        }
+
+        const scrollSnapshots = captureMarkdownPreviewScrolls(this);
+        this.pendingMandalaEmbedStaleSourcePaths.clear();
+        this.mandalaEmbedRefreshEpoch += 1;
+        this.replaceMandalaSourceEmbedExtensions();
+        this.app.workspace.updateOptions();
+        restoreMarkdownPreviewScrolls(scrollSnapshots);
+        return true;
+    }
+
     scheduleMandalaEmbedRefresh({
         delay_ms = 120,
         changedPaths = [],
@@ -171,10 +195,12 @@ export default class MandalaGrid extends Plugin {
             this.pendingMandalaEmbedChangedPaths.clear();
 
             if (forceAllRefresh) {
+                const scrollSnapshots = captureMarkdownPreviewScrolls(this);
                 this.mandalaEmbedRefreshEpoch += 1;
                 this.replaceMandalaSourceEmbedExtensions();
                 this.app.workspace.updateOptions();
                 rerenderOpenMarkdownPreviews(this);
+                restoreMarkdownPreviewScrolls(scrollSnapshots);
                 return;
             }
 
@@ -184,30 +210,36 @@ export default class MandalaGrid extends Plugin {
                 changedPathSet,
             );
             if (
-                !refreshPlan.refreshEditors &&
                 refreshPlan.previewSourcePaths.size === 0 &&
-                refreshPlan.previewTargetPaths.size === 0
+                refreshPlan.previewTargetPaths.size === 0 &&
+                refreshPlan.staleSourcePaths.size === 0
             ) {
                 return;
             }
 
-            if (refreshPlan.refreshEditors) {
-                this.mandalaEmbedRefreshEpoch += 1;
-                this.replaceMandalaSourceEmbedExtensions();
-                this.app.workspace.updateOptions();
-            }
-
             if (refreshPlan.previewSourcePaths.size > 0) {
+                const scrollSnapshots = captureMarkdownPreviewScrolls(
+                    this,
+                    refreshPlan.previewSourcePaths,
+                );
                 rerenderMarkdownPreviewsBySourcePaths(
                     this,
                     refreshPlan.previewSourcePaths,
                 );
+                restoreMarkdownPreviewScrolls(scrollSnapshots);
             }
 
             if (refreshPlan.previewTargetPaths.size > 0) {
                 void refreshOpenManagedMandalaEmbedsByTargetPaths(
                     refreshPlan.previewTargetPaths,
                 );
+            }
+
+            if (refreshPlan.staleSourcePaths.size > 0) {
+                for (const path of refreshPlan.staleSourcePaths) {
+                    this.pendingMandalaEmbedStaleSourcePaths.add(path);
+                }
+                this.flushPendingMandalaSourceEmbedRefreshes();
             }
         }, delay_ms);
     }
