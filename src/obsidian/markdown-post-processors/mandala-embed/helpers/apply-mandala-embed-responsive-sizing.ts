@@ -25,6 +25,188 @@ export const MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS =
 const clamp = (value: number, min: number, max: number) =>
     Math.min(max, Math.max(min, value));
 
+type MandalaEmbedResponsiveSizing = {
+    cellSize: number;
+    isUltraDensity: boolean;
+    isCompactDensity: boolean;
+    contentFontSize: number;
+    headerFontSize: number;
+    sectionFontSize: number;
+    contentPaddingY: number;
+    contentPaddingX: number;
+    contentPaddingBottom: number;
+    headerPaddingY: number;
+    headerPaddingX: number;
+    headerGap: number;
+    headerButtonSize: number;
+    headerIconSize: number;
+    lineHeight: number;
+    scrollbarSize: number;
+};
+
+export const resolveMandalaEmbedResponsiveSizing = (
+    width: number,
+): MandalaEmbedResponsiveSizing | null => {
+    if (width <= 0) return null;
+
+    const cellSize = Math.max(1, Math.floor(width / 3));
+    const scale = clamp(cellSize / 120, 0.45, 1.15);
+
+    const isUltraDensity = cellSize < 72;
+    const isCompactDensity = !isUltraDensity && cellSize < 96;
+
+    return {
+        cellSize,
+        isUltraDensity,
+        isCompactDensity,
+        contentFontSize: clamp(Math.round(16 * scale), 9, 16),
+        headerFontSize: clamp(Math.round(16 * scale * 1.15), 10, 18),
+        sectionFontSize: clamp(Math.round(10 * scale), 7, 10),
+        contentPaddingY: clamp(
+            Math.round(8 * scale) - (isCompactDensity ? 1 : 0),
+            2,
+            8,
+        ),
+        contentPaddingX: clamp(
+            Math.round(10 * scale) - (isCompactDensity ? 2 : 0),
+            2,
+            10,
+        ),
+        contentPaddingBottom: clamp(
+            Math.round(14 * scale) - (isCompactDensity ? 3 : 0),
+            4,
+            14,
+        ),
+        headerPaddingY: clamp(
+            Math.round(4 * scale) - (isCompactDensity ? 1 : 0),
+            2,
+            4,
+        ),
+        headerPaddingX: clamp(
+            Math.round(8 * scale) - (isCompactDensity ? 1 : 0),
+            4,
+            8,
+        ),
+        headerGap: clamp(Math.round(8 * scale), 4, 8),
+        headerButtonSize: clamp(
+            Math.round(20 * scale) - (isCompactDensity ? 2 : 0),
+            12,
+            20,
+        ),
+        headerIconSize: clamp(
+            Math.round(14 * scale) - (isCompactDensity ? 1 : 0),
+            10,
+            14,
+        ),
+        lineHeight: clamp(1.18 + scale * 0.2, 1.22, 1.4),
+        scrollbarSize: isUltraDensity ? 3 : isCompactDensity ? 4 : 5,
+    };
+};
+
+const applyMandalaEmbedResponsiveSizingState = ({
+    rootEl,
+    gridEl,
+    sizing,
+}: {
+    rootEl: HTMLElement;
+    gridEl: HTMLElement;
+    sizing: MandalaEmbedResponsiveSizing;
+}) => {
+    gridEl.classList.toggle(
+        MANDALA_EMBED_DENSITY_COMPACT_CLASS,
+        sizing.isCompactDensity || sizing.isUltraDensity,
+    );
+    gridEl.classList.toggle(
+        MANDALA_EMBED_DENSITY_ULTRA_CLASS,
+        sizing.isUltraDensity,
+    );
+    rootEl.classList.toggle(
+        MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS,
+        sizing.isCompactDensity || sizing.isUltraDensity,
+    );
+    rootEl.classList.toggle(
+        MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS,
+        sizing.isUltraDensity,
+    );
+
+    gridEl.style.setProperty(
+        MANDALA_EMBED_CELL_SIZE_VAR,
+        `${sizing.cellSize}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_FONT_SIZE_VAR,
+        `${sizing.contentFontSize}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_HEADER_FONT_SIZE_VAR,
+        `${sizing.headerFontSize}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_SECTION_FONT_SIZE_VAR,
+        `${sizing.sectionFontSize}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_CONTENT_PADDING_Y_VAR,
+        `${sizing.contentPaddingY}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_CONTENT_PADDING_X_VAR,
+        `${sizing.contentPaddingX}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_CONTENT_PADDING_BOTTOM_VAR,
+        `${sizing.contentPaddingBottom}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_HEADER_PADDING_Y_VAR,
+        `${sizing.headerPaddingY}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_HEADER_PADDING_X_VAR,
+        `${sizing.headerPaddingX}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_HEADER_GAP_VAR,
+        `${sizing.headerGap}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR,
+        `${sizing.headerButtonSize}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_HEADER_ICON_SIZE_VAR,
+        `${sizing.headerIconSize}px`,
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_LINE_HEIGHT_VAR,
+        sizing.lineHeight.toFixed(2),
+    );
+    gridEl.style.setProperty(
+        MANDALA_EMBED_SCROLLBAR_SIZE_VAR,
+        `${sizing.scrollbarSize}px`,
+    );
+};
+
+export const applyMandalaEmbedResponsiveSizingSnapshot = ({
+    rootEl,
+    gridEl,
+    width,
+}: {
+    rootEl: HTMLElement;
+    gridEl: HTMLElement;
+    width: number;
+}) => {
+    const sizing = resolveMandalaEmbedResponsiveSizing(width);
+    if (!sizing) return false;
+
+    applyMandalaEmbedResponsiveSizingState({
+        rootEl,
+        gridEl,
+        sizing,
+    });
+    return true;
+};
+
 export const applyMandalaEmbedResponsiveSizing = ({
     rootEl,
     bodyEl,
@@ -38,130 +220,11 @@ export const applyMandalaEmbedResponsiveSizing = ({
     let resizeRafId = 0;
 
     const update = () => {
-        const width = bodyEl.clientWidth;
-        if (width <= 0) return;
-
-        const cellSize = Math.max(1, Math.floor(width / 3));
-        const scale = clamp(cellSize / 120, 0.45, 1.15);
-
-        const isUltraDensity = cellSize < 72;
-        const isCompactDensity = !isUltraDensity && cellSize < 96;
-
-        const contentFontSize = clamp(Math.round(16 * scale), 9, 16);
-        const headerFontSize = clamp(Math.round(contentFontSize * 1.15), 10, 18);
-        const sectionFontSize = clamp(Math.round(10 * scale), 7, 10);
-
-        const contentPaddingY = clamp(
-            Math.round(8 * scale) - (isCompactDensity ? 1 : 0),
-            2,
-            8,
-        );
-        const contentPaddingX = clamp(
-            Math.round(10 * scale) - (isCompactDensity ? 2 : 0),
-            2,
-            10,
-        );
-        const contentPaddingBottom = clamp(
-            Math.round(14 * scale) - (isCompactDensity ? 3 : 0),
-            4,
-            14,
-        );
-
-        const headerPaddingY = clamp(
-            Math.round(4 * scale) - (isCompactDensity ? 1 : 0),
-            2,
-            4,
-        );
-        const headerPaddingX = clamp(
-            Math.round(8 * scale) - (isCompactDensity ? 1 : 0),
-            4,
-            8,
-        );
-        const headerGap = clamp(Math.round(8 * scale), 4, 8);
-        const headerButtonSize = clamp(
-            Math.round(20 * scale) - (isCompactDensity ? 2 : 0),
-            12,
-            20,
-        );
-        const headerIconSize = clamp(
-            Math.round(14 * scale) - (isCompactDensity ? 1 : 0),
-            10,
-            14,
-        );
-
-        const lineHeight = clamp(1.18 + scale * 0.2, 1.22, 1.4);
-        const scrollbarSize = isUltraDensity ? 3 : isCompactDensity ? 4 : 5;
-
-        gridEl.classList.toggle(
-            MANDALA_EMBED_DENSITY_COMPACT_CLASS,
-            isCompactDensity || isUltraDensity,
-        );
-        gridEl.classList.toggle(
-            MANDALA_EMBED_DENSITY_ULTRA_CLASS,
-            isUltraDensity,
-        );
-        rootEl.classList.toggle(
-            MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS,
-            isCompactDensity || isUltraDensity,
-        );
-        rootEl.classList.toggle(
-            MANDALA_EMBED_ROOT_DENSITY_ULTRA_CLASS,
-            isUltraDensity,
-        );
-
-        gridEl.style.setProperty(MANDALA_EMBED_CELL_SIZE_VAR, `${cellSize}px`);
-        gridEl.style.setProperty(
-            MANDALA_EMBED_FONT_SIZE_VAR,
-            `${contentFontSize}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_HEADER_FONT_SIZE_VAR,
-            `${headerFontSize}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_SECTION_FONT_SIZE_VAR,
-            `${sectionFontSize}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_CONTENT_PADDING_Y_VAR,
-            `${contentPaddingY}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_CONTENT_PADDING_X_VAR,
-            `${contentPaddingX}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_CONTENT_PADDING_BOTTOM_VAR,
-            `${contentPaddingBottom}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_HEADER_PADDING_Y_VAR,
-            `${headerPaddingY}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_HEADER_PADDING_X_VAR,
-            `${headerPaddingX}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_HEADER_GAP_VAR,
-            `${headerGap}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR,
-            `${headerButtonSize}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_HEADER_ICON_SIZE_VAR,
-            `${headerIconSize}px`,
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_LINE_HEIGHT_VAR,
-            lineHeight.toFixed(2),
-        );
-        gridEl.style.setProperty(
-            MANDALA_EMBED_SCROLLBAR_SIZE_VAR,
-            `${scrollbarSize}px`,
-        );
+        applyMandalaEmbedResponsiveSizingSnapshot({
+            rootEl,
+            gridEl,
+            width: bodyEl.clientWidth,
+        });
     };
 
     const scheduleUpdate = () => {

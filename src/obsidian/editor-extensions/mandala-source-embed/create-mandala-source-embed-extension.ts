@@ -36,6 +36,7 @@ import {
     buildMandalaEmbedGrid,
     createMandalaEmbedHostLayout,
     getMandalaEmbedTitle,
+    primeMandalaEmbedResponsiveSizing,
     renderMandalaEmbedHeader,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
@@ -221,6 +222,11 @@ class MandalaSourceEmbedWidget extends WidgetType {
 
             body.appendChild(gridEl);
             root.replaceChildren(host);
+            primeMandalaEmbedResponsiveSizing({
+                rootEl: root,
+                bodyEl: body,
+                gridEl,
+            });
             const detachResponsiveSizing = attachMandalaEmbedResponsiveSizing({
                 rootEl: root,
                 bodyEl: body,

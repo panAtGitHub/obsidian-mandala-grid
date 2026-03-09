@@ -2,6 +2,7 @@ import { MarkdownRenderChild, setIcon } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
     applyMandalaEmbedResponsiveSizing,
+    applyMandalaEmbedResponsiveSizingSnapshot,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/apply-mandala-embed-responsive-sizing';
 import {
     type MandalaEmbedGridModel,
@@ -164,6 +165,21 @@ export const attachMandalaEmbedResponsiveSizing = ({
         rootEl,
         bodyEl,
         gridEl,
+    });
+
+export const primeMandalaEmbedResponsiveSizing = ({
+    rootEl,
+    bodyEl,
+    gridEl,
+}: {
+    rootEl: HTMLElement;
+    bodyEl: HTMLElement;
+    gridEl: HTMLElement;
+}) =>
+    applyMandalaEmbedResponsiveSizingSnapshot({
+        rootEl,
+        gridEl,
+        width: bodyEl.clientWidth,
     });
 
 export const getMandalaEmbedTitle = (target: MandalaEmbedTarget) =>

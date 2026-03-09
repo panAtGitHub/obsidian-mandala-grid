@@ -14,6 +14,7 @@ import {
     MANDALA_EMBED_BODY_CLASS,
     MANDALA_EMBED_HEADER_CLASS,
     MANDALA_EMBED_HOST_CLASS,
+    primeMandalaEmbedResponsiveSizing,
     renderMandalaEmbedHeader,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
 import {
@@ -129,6 +130,8 @@ export class MandalaEmbedController {
     private generation = 0;
     private scheduledRaf: number | null = null;
     private detachResponsiveSizing: (() => void) | null = null;
+    private releaseBodyHeightLock: (() => void) | null = null;
+    private bodyHeightUnlockRaf = 0;
     private observedBody: HTMLElement | null = null;
     private renderScope: MarkdownRenderChild | null = null;
 
@@ -393,13 +396,20 @@ export class MandalaEmbedController {
 
         if (generation !== this.generation) return;
 
-        body.empty();
-        body.appendChild(gridEl);
+        this.lockBodyHeight(body);
+        primeMandalaEmbedResponsiveSizing({
+            rootEl: this.embed,
+            bodyEl: body,
+            gridEl,
+        });
+        body.replaceChildren(gridEl);
         this.attachResponsiveSizing(body, gridEl);
+        this.scheduleBodyHeightUnlock(body, generation);
     }
 
     private renderDebug(lines: string[]) {
         const { body } = this.getOrCreateHostLayout();
+        this.clearBodyHeightLock();
         this.clearRenderScope();
 
         this.embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
@@ -431,6 +441,7 @@ export class MandalaEmbedController {
         this.detachBodyListeners();
         this.detachResponsiveSizing?.();
         this.detachResponsiveSizing = null;
+        this.clearBodyHeightLock();
         this.clearRenderScope();
 
         const host = this.queryMandalaHost();
@@ -506,6 +517,42 @@ export class MandalaEmbedController {
             bodyEl: body,
             gridEl,
         });
+    }
+
+    private lockBodyHeight(body: HTMLElement) {
+        this.clearBodyHeightLock();
+
+        const previousHeight = Math.ceil(body.getBoundingClientRect().height);
+        if (previousHeight <= 0) return;
+
+        const previousMinHeight = body.style.minHeight;
+        body.style.minHeight = `${previousHeight}px`;
+        this.releaseBodyHeightLock = () => {
+            body.style.minHeight = previousMinHeight;
+        };
+    }
+
+    private scheduleBodyHeightUnlock(body: HTMLElement, generation: number) {
+        if (!this.releaseBodyHeightLock) return;
+
+        this.bodyHeightUnlockRaf = requestAnimationFrame(() => {
+            this.bodyHeightUnlockRaf = requestAnimationFrame(() => {
+                this.bodyHeightUnlockRaf = 0;
+                if (generation !== this.generation) return;
+                if (!body.isConnected) return;
+                this.clearBodyHeightLock();
+            });
+        });
+    }
+
+    private clearBodyHeightLock() {
+        if (this.bodyHeightUnlockRaf !== 0) {
+            cancelAnimationFrame(this.bodyHeightUnlockRaf);
+            this.bodyHeightUnlockRaf = 0;
+        }
+
+        this.releaseBodyHeightLock?.();
+        this.releaseBodyHeightLock = null;
     }
 
     private replaceRenderScope(payload: MandalaEmbedManagedPayload) {
