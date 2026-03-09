@@ -1,3 +1,4 @@
+import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
 import { MandalaGridDocument } from 'src/stores/document/document-state-type';
 
@@ -6,9 +7,12 @@ export type ClearEmptySubgridsPlan = {
     nodesToRemove: string[];
 };
 
+const isDocumentNode = (document: MandalaGridDocument, nodeId: string) =>
+    Boolean(document.content[nodeId]);
+
 const isEmptyContent = (document: MandalaGridDocument, nodeId: string) => {
     const value = document.content[nodeId]?.content ?? '';
-    return value.trim().length === 0;
+    return isEmptyMandalaContent(value);
 };
 
 const getDirectChildren = (document: MandalaGridDocument, parentId: string) => {
@@ -47,6 +51,7 @@ export const createClearEmptyMandalaSubgridsPlan = (
 
     const candidates: string[] = [];
     for (const parentId of parentsWithChildren) {
+        if (!isDocumentNode(document, parentId)) continue;
         const children = getDirectChildren(document, parentId);
         if (children.length === 0) continue;
         const allChildrenEmpty = children.every((childId) =>

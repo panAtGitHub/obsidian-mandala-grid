@@ -1,9 +1,7 @@
 import { Settings } from 'src/stores/settings/settings-type';
 
 export const filterStaleDocuments = (
-    settings: Pick<Settings, 'documents'> & {
-        styleRules: Pick<Settings['styleRules'], 'documents'>;
-    },
+    settings: Pick<Settings, 'documents'>,
     allFiles: Set<string>,
 ) => {
     if (allFiles.size === 0) return 0;
@@ -13,7 +11,6 @@ export const filterStaleDocuments = (
         if (!allFiles.has(path)) {
             deletedPaths.add(path);
             delete settings.documents[path];
-            delete settings.styleRules.documents[path];
         }
     }
     return deletedPaths.size;

@@ -1,8 +1,12 @@
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { PluginAction } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { CreateActionsContext } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/create-align-branch-actions';
 
-export const forceCenterActiveNodeV = (action: PluginAction) => {
+export const forceCenterActiveNodeV = (
+    context: CreateActionsContext,
+    action: PluginAction,
+) => {
     let centerActiveNodeV = false;
     centerActiveNodeV =
         action.type === 'view/life-cycle/mount' ||
@@ -10,12 +14,12 @@ export const forceCenterActiveNodeV = (action: PluginAction) => {
 
     if (!centerActiveNodeV && action.type.startsWith('document/')) {
         const type = getDocumentEventType(
-            action.type as DocumentStoreAction['type'],
+            action as DocumentStoreAction,
+            context.documentState,
         );
-        centerActiveNodeV =
-            !!type.dropOrMove ||
-            !!type.changeHistory ||
-            (!!type.createOrDelete && action.type !== 'document/add-node');
+        centerActiveNodeV = Boolean(
+            type.structural || type.dropOrMove || type.createOrDelete,
+        );
     }
     return centerActiveNodeV;
 };

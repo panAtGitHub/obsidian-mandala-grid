@@ -23,11 +23,10 @@ export const togglePinNode = (
 type Props = {
     activeNode: string;
     isPinned: boolean;
-    isInRecentCardsList: boolean;
 };
 export const createSidebarContextMenuItems = (
     view: MandalaView,
-    { isPinned, activeNode, isInRecentCardsList }: Props,
+    { isPinned, activeNode }: Props,
 ) => {
     const menuItems: MenuItemObject[] = [
         {
@@ -53,7 +52,6 @@ export const createSidebarContextMenuItems = (
                 : lang.cm_pin_in_left_sidebar,
             icon: isPinned ? 'pin-off' : 'pin',
             action: () => togglePinNode(view, activeNode, isPinned, true),
-            disabled: isInRecentCardsList,
         },
         { type: 'separator' },
     ];

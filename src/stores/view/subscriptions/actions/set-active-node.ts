@@ -1,7 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { getIdOfSection } from 'src/stores/view/subscriptions/helpers/get-id-of-section';
 import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
-import { Snapshot } from 'src/stores/document/document-state-type';
 
 export const setActiveNode = (
     view: MandalaView,
@@ -20,22 +18,10 @@ export const setActiveNode = (
     let shouldSetActiveNode = true;
 
     if (activeNodeExists) {
-        // keep the affected active section when undoing
-        if (action.type === 'document/history/select-previous-snapshot') {
-            const state = documentState.history.state;
-            const previousSnapshot: Snapshot =
-                documentState.history.items[state.activeIndex + 1];
-            const affectedSection = previousSnapshot.context.affectedSection;
-            if (section_id[affectedSection]) {
-                newActiveSection = affectedSection;
-            }
-        }
         // active view of file should always update except for dnd events
-        else if (
+        if (
             view.isViewOfFile &&
-            (action.type === 'document/drop-node' ||
-                action.type === 'document/move-node' ||
-                action.type === 'document/mandala/swap')
+            action.type === 'document/mandala/swap'
         ) {
             shouldSetActiveNode = false;
         }
@@ -46,10 +32,15 @@ export const setActiveNode = (
     }
 
     if (shouldSetActiveNode) {
+        const nextId =
+            section_id[newActiveSection] ||
+            (activeSectionOfView ? section_id[activeSectionOfView] : '') ||
+            documentState.document.columns[0]?.groups[0]?.nodes[0];
+        if (!nextId) return;
         view.viewStore.dispatch({
             type: 'view/set-active-node/document',
             payload: {
-                id: getIdOfSection(documentState.sections, newActiveSection),
+                id: nextId,
             },
         });
     }

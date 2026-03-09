@@ -7,7 +7,6 @@
     import TabHeader from './components/tab-header/tab-header.svelte';
     import { onMount, onDestroy } from 'svelte';
     import PinnedCards from 'src/view/components/container/left-sidebar/components/pinned-cards/pinned-cards-sidebar.svelte';
-    import RecentCards from 'src/view/components/container/left-sidebar/components/recent-cards/recent-cards.svelte';
     import { limitPreviewHeightStore } from 'src/stores/settings/derived/limit-preview-height-store';
     import { Platform } from 'obsidian';
 
@@ -96,8 +95,6 @@
     <div class="resizer" on:mousedown={onStartResize} />
     {#if $activeTab === 'pinned-cards'}
         <PinnedCards />
-    {:else if $activeTab === 'recent-cards'}
-        <RecentCards />
     {/if}
 
 </div>

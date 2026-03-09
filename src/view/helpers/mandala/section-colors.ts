@@ -1,8 +1,10 @@
-import { parseYaml, stringifyYaml } from 'obsidian';
-import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
-import { MandalaView } from 'src/view/view';
+import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
+import {
+    compareSectionIds,
+    swapSectionSubtreeIds,
+} from 'src/mandala-v2/section-utils';
 
-export const SECTION_COLORS_FRONTMATTER_KEY = 'mandala_section_colors';
+export { compareSectionIds };
 
 export const SECTION_COLOR_KEYS = [
     '1_white',
@@ -41,21 +43,6 @@ export const applyOpacityToHex = (color: string, opacity: number) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-export const compareSectionIds = (a: string, b: string) => {
-    const aParts = a.split('.').map((part) => Number(part));
-    const bParts = b.split('.').map((part) => Number(part));
-    const maxLen = Math.max(aParts.length, bParts.length);
-    for (let i = 0; i < maxLen; i += 1) {
-        const aVal = aParts[i];
-        const bVal = bParts[i];
-        if (aVal === undefined) return -1;
-        if (bVal === undefined) return 1;
-        if (aVal === bVal) continue;
-        return aVal - bVal;
-    }
-    return 0;
-};
-
 const createEmptySectionColorMap = (): SectionColorMap => ({
     '1_white': [],
     '2_rose': [],
@@ -70,84 +57,41 @@ const createEmptySectionColorMap = (): SectionColorMap => ({
 const normalizeSectionIds = (sections: string[]) =>
     Array.from(new Set(sections)).sort(compareSectionIds);
 
-const stripFrontmatter = (frontmatter: string) =>
-    frontmatter
-        .replace(/^---\n/, '')
-        .replace(/\n---\n?$/, '')
-        .trim();
-
-const buildFrontmatterWithSectionColors = (
-    frontmatter: string,
-    map: SectionColorMap,
-) => {
-    const serialized = serializeSectionColorMap(map);
-    let record: Record<string, unknown> = {};
-    if (frontmatter.trim()) {
-        const content = stripFrontmatter(frontmatter);
-        if (content) {
-            try {
-                const parsed: unknown = parseYaml(content);
-                if (parsed && typeof parsed === 'object') {
-                    record = parsed as Record<string, unknown>;
-                }
-            } catch {
-                record = {};
-            }
-        }
-    }
-    if (Object.keys(serialized).length === 0) {
-        delete record[SECTION_COLORS_FRONTMATTER_KEY];
-    } else {
-        record[SECTION_COLORS_FRONTMATTER_KEY] = serialized;
-    }
-    const yaml = stringifyYaml(record).trim();
-    return yaml ? `---\n${yaml}\n---\n` : '';
-};
-
-const normalizeSectionColorMap = (value: unknown): SectionColorMap => {
-    const map = createEmptySectionColorMap();
-    if (!value || typeof value !== 'object') return map;
-    const record = value as Record<string, unknown>;
-    for (const key of SECTION_COLOR_KEYS) {
-        const raw = record[key];
-        if (Array.isArray(raw)) {
-            const rawSections = raw as unknown[];
-            map[key] = normalizeSectionIds(
-                rawSections
+const normalizeSectionIdsFromUnknown = (value: unknown) => {
+    if (Array.isArray(value)) {
+        const rawSections = value as unknown[];
+        return normalizeSectionIds(
+            rawSections
                 .map((section) =>
                     typeof section === 'number' ? String(section) : section,
                 )
                 .filter(
                     (section): section is string => typeof section === 'string',
                 ),
-            );
-        } else if (typeof raw === 'string') {
-            map[key] = [raw];
-        } else if (typeof raw === 'number') {
-            map[key] = [String(raw)];
-        }
+        );
+    }
+    if (typeof value === 'string') {
+        return [value];
+    }
+    if (typeof value === 'number') {
+        return [String(value)];
+    }
+    return [];
+};
+export const parseSectionColorsFromPersistedState = (
+    value: unknown,
+): SectionColorMap => {
+    const map = createEmptySectionColorMap();
+    if (!value || typeof value !== 'object') return map;
+    const record = value as Record<string, unknown>;
+    for (const key of SECTION_COLOR_KEYS) {
+        map[key] = normalizeSectionIdsFromUnknown(record[key]);
     }
     return map;
 };
 
-export const parseSectionColorsFromFrontmatter = (
-    frontmatter: string,
-): SectionColorMap => {
-    if (!frontmatter.trim()) return createEmptySectionColorMap();
-    const content = stripFrontmatter(frontmatter);
-    if (!content) return createEmptySectionColorMap();
-    let parsed: unknown;
-    try {
-        parsed = parseYaml(content);
-    } catch {
-        return createEmptySectionColorMap();
-    }
-    if (!parsed || typeof parsed !== 'object') {
-        return createEmptySectionColorMap();
-    }
-    const record = parsed as Record<string, unknown>;
-    return normalizeSectionColorMap(record[SECTION_COLORS_FRONTMATTER_KEY]);
-};
+export const parsePinnedSectionsFromPersistedState = (value: unknown) =>
+    normalizeSectionIdsFromUnknown(value);
 
 export const createSectionColorIndex = (map: SectionColorMap) => {
     const index: Record<string, SectionColorKey> = {};
@@ -170,6 +114,10 @@ export const serializeSectionColorMap = (map: SectionColorMap) => {
     return result;
 };
 
+export const serializeSectionColorMapForSettings = (
+    map: SectionColorMap,
+): MandalaSectionColorAssignments => serializeSectionColorMap(map);
+
 export const setSectionColor = (
     map: SectionColorMap,
     section: string,
@@ -185,35 +133,39 @@ export const setSectionColor = (
     return next;
 };
 
-export const writeSectionColorsToFrontmatter = async (
-    view: MandalaView,
+export const swapSectionColors = (
     map: SectionColorMap,
+    sourceSection: string,
+    targetSection: string,
 ) => {
-    if (!view.file) return;
-    const currentMap = parseSectionColorsFromFrontmatter(
-        view.documentStore.getValue().file.frontmatter,
-    );
-    const currentSerialized = serializeSectionColorMap(currentMap);
-    const nextSerialized = serializeSectionColorMap(map);
-    const hasChanged =
-        JSON.stringify(currentSerialized) !== JSON.stringify(nextSerialized);
-    if (!hasChanged) return;
+    if (!sourceSection || !targetSection || sourceSection === targetSection) {
+        return map;
+    }
 
-    const nextFrontmatter = buildFrontmatterWithSectionColors(
-        view.documentStore.getValue().file.frontmatter,
-        map,
-    );
-    updateFrontmatter(view, nextFrontmatter);
-    await view.plugin.app.fileManager.processFrontMatter(
-        view.file,
-        (frontmatter) => {
-            const frontmatterRecord = frontmatter as Record<string, unknown>;
-            if (Object.keys(nextSerialized).length === 0) {
-                delete frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY];
-            } else {
-                frontmatterRecord[SECTION_COLORS_FRONTMATTER_KEY] =
-                    nextSerialized;
-            }
-        },
-    );
+    const index = createSectionColorIndex(map);
+    const sourceColor = index[sourceSection] ?? null;
+    const targetColor = index[targetSection] ?? null;
+    if (sourceColor === targetColor) return map;
+
+    let next = setSectionColor(map, sourceSection, targetColor);
+    next = setSectionColor(next, targetSection, sourceColor);
+    return next;
+};
+
+export const swapSectionSubtreeColors = (
+    map: SectionColorMap,
+    sourceSection: string,
+    targetSection: string,
+) => {
+    if (!sourceSection || !targetSection || sourceSection === targetSection) {
+        return map;
+    }
+
+    const next = createEmptySectionColorMap();
+    for (const key of SECTION_COLOR_KEYS) {
+        next[key] = normalizeSectionIds(
+            swapSectionSubtreeIds(map[key], sourceSection, targetSection),
+        );
+    }
+    return next;
 };

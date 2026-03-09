@@ -5,11 +5,7 @@ export const sortChildNodes = (
     activeNode: string,
     order: 'ascending' | 'descending',
 ) => {
-    view.documentStore.dispatch({
-        type: 'document/sort-direct-child-nodes',
-        payload: {
-            id: activeNode,
-            order,
-        },
-    });
+    void view;
+    void activeNode;
+    void order;
 };

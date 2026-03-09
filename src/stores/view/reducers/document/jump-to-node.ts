@@ -1,7 +1,7 @@
 import { Column } from 'src/stores/document/document-state-type';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { findNodeToJumpTo } from 'src/lib/tree-utils/find/find-node-to-jump-to';
-import { DocumentViewState, ViewState } from 'src/stores/view/view-state-type';
+import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { updateSelectionState } from 'src/stores/view/reducers/document/helpers/update-selection-state';
 
 export type JumpTarget =
@@ -21,7 +21,6 @@ export type JumpToNodeAction = {
 
 export const jumpToNode = (
     documentViewState: DocumentViewState,
-    state: Pick<ViewState, 'navigationHistory'>,
     action: JumpToNodeAction,
     columns: Column[],
 ) => {
@@ -38,6 +37,6 @@ export const jumpToNode = (
             true,
             Boolean(action.context?.shiftKey),
         );
-        updateActiveNode(documentViewState, nextNode, state);
+        updateActiveNode(documentViewState, nextNode, columns);
     }
 };

@@ -6,6 +6,7 @@ import {
     applySectionPatch,
     getSectionContentBySection,
 } from 'src/view/helpers/mandala/apply-section-patch';
+import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
 
 type SectionEditSession = {
     tempFilePath: string;
@@ -22,13 +23,37 @@ let hasRegisteredSessionWatchers = false;
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
 
+const isAlreadyExistsError = (error: unknown) =>
+    error instanceof Error &&
+    (error.message.includes('already exists') ||
+        error.message.includes('EEXIST'));
+
+const isFileNotFound = (error: unknown) =>
+    error instanceof Error &&
+    (error.message.includes('ENOENT') || error.message.includes('NotFoundError'));
+
 const ensureFolderRecursive = async (view: MandalaView, path: string) => {
     const parts = path.split('/').filter(Boolean);
     let current = '';
     for (const part of parts) {
         current = current ? `${current}/${part}` : part;
         if (view.app.vault.getAbstractFileByPath(current)) continue;
-        await view.app.vault.createFolder(current);
+        try {
+            await view.app.vault.createFolder(current);
+        } catch (error) {
+            if (!isAlreadyExistsError(error)) throw error;
+        }
+    }
+};
+
+const removeSessionFolderIfEmpty = async (view: MandalaView) => {
+    try {
+        const listed = await view.app.vault.adapter.list(SESSION_FOLDER);
+        if (listed.files.length > 0 || listed.folders.length > 0) return;
+        await view.app.vault.adapter.rmdir(SESSION_FOLDER, false);
+    } catch (error) {
+        if (isFileNotFound(error)) return;
+        logger.warn(`Failed to remove empty session folder: ${SESSION_FOLDER}`, error);
     }
 };
 
@@ -117,9 +142,8 @@ const switchBackToMandala = async (
 
 const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
     sessionByTempFilePath.delete(tempFilePath);
-    const tempFile = getFileByPath(view, tempFilePath);
-    if (!tempFile) return;
-    await view.app.fileManager.trashFile(tempFile);
+    await deleteSectionSessionTempFile(view, tempFilePath);
+    await removeSessionFolderIfEmpty(view);
 };
 
 const mergeTempFileToSource = async (

@@ -56,7 +56,6 @@ export const hotkeyGroups = {
         'extend_select_to_end_of_column',
         'select_all_nodes',
     ]),
-    [lang.hkg_history]: new Set(['undo_change', 'redo_change']),
     [lang.hkg_search]: new Set(['toggle_search_input']),
     [lang.hkg_clipboard]: new Set([
         'copy_node',
@@ -73,17 +72,13 @@ export const hotkeyGroups = {
         'align_branch',
     ]),
     [lang.hkg_zoom]: new Set(['zoom_in', 'zoom_out', 'zoom_reset']),
-    [lang.hkg_outline]: new Set([
-        'toggle_outline_mode',
-        'toggle_collapse',
-        'toggle_collapse_all',
-    ]),
     [lang.hkg_mandala]: new Set([
         'enter_subgrid',
         'exit_subgrid',
         'jump_core_next',
         'jump_core_prev',
         'toggle_mandala_mode',
+        'toggle_detail_sidebar',
         'swap_cell_up',
         'swap_cell_down',
         'swap_cell_left',

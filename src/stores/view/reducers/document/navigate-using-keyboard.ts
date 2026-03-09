@@ -2,7 +2,7 @@ import { Column } from 'src/stores/document/document-state-type';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { findNextActiveNodeOnKeyboardNavigation } from 'src/lib/tree-utils/find/find-next-active-node-on-keyboard-navigation';
-import { DocumentViewState, ViewState } from 'src/stores/view/view-state-type';
+import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { updateSelectionState } from 'src/stores/view/reducers/document/helpers/update-selection-state';
 
 export type ChangeActiveNodeAction = {
@@ -10,15 +10,13 @@ export type ChangeActiveNodeAction = {
     payload: {
         direction: AllDirections;
     };
-    context: {
+    context?: {
         shiftKey?: boolean;
-        outlineMode: boolean;
     };
 };
 
 export const navigateUsingKeyboard = (
     documentState: DocumentViewState,
-    state: Pick<ViewState, 'navigationHistory' | 'outline'>,
     action: ChangeActiveNodeAction,
     columns: Column[],
 ) => {
@@ -27,8 +25,8 @@ export const navigateUsingKeyboard = (
         documentState.activeNode,
         action.payload.direction,
         documentState.activeNodesOfColumn,
-        action.context.outlineMode ? state.outline.collapsedParents : null,
-        action.context.shiftKey,
+        null,
+        action.context?.shiftKey,
     );
     if (nextNode) {
         updateSelectionState(
@@ -37,8 +35,8 @@ export const navigateUsingKeyboard = (
             nextNode,
             action.payload.direction === 'up' ||
                 action.payload.direction === 'down',
-            Boolean(action.context.shiftKey),
+            Boolean(action.context?.shiftKey),
         );
-        updateActiveNode(documentState, nextNode, state);
+        updateActiveNode(documentState, nextNode, columns);
     }
 };

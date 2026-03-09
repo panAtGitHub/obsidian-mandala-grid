@@ -1,27 +1,21 @@
 import {
+    ContextMenuCopyLinkVariant,
     CustomHotkeys,
+    DetailSidebarPreviewMode,
     DocumentPreferences,
     LeftSidebarTab,
-    MandalaGridDocumentFormat,
+    MandalaCustomLayout,
     MandalaGridOrientation,
+    MandalaSectionColorAssignments,
     LinkPaneType,
-    RulesTab,
     ViewType,
 } from 'src/stores/settings/settings-type';
 import { ChangeZoomLevelAction } from 'src/stores/settings/reducers/change-zoom-level';
-import { StyleRulesAction } from 'src/stores/settings/reducers/update-style-rules/update-style-rules';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
 import { CommandName } from 'src/lang/hotkey-groups';
 import { Hotkey } from 'obsidian';
 
 export type SettingsActions =
-    | {
-          type: 'settings/documents/set-document-format';
-          payload: {
-              path: string;
-              format: MandalaGridDocumentFormat;
-          };
-      }
     | {
           type: 'settings/documents/set-view-type';
           payload: {
@@ -132,15 +126,9 @@ export type SettingsActions =
       }
     | ChangeZoomLevelAction
     | PersistActiveNodeAction
-    | {
-          type: 'settings/general/set-default-document-format';
-          payload: {
-              format: MandalaGridDocumentFormat;
-          };
-      }
-    | {
-          type: 'settings/view/toggle-minimap';
-      }
+    | PersistMandalaViewStateAction
+    | PersistMandalaPinnedSectionsAction
+    | PersistMandalaSectionColorsAction
     | {
           type: 'view/left-sidebar/toggle';
       }
@@ -149,23 +137,7 @@ export type SettingsActions =
           type: 'view/left-sidebar/set-active-tab';
           payload: { tab: LeftSidebarTab };
       }
-    | {
-          type: 'settings/pinned-nodes/persist';
-          payload: {
-              filePath: string;
-              sections: string[];
-              section: string | null;
-          };
-      }
-    | {
-          type: 'settings/pinned-nodes/persist-active-node';
-          payload: {
-              filePath: string;
-              section: string | null;
-          };
-      }
     | { type: 'view/modes/gap-between-cards/toggle' }
-    | { type: 'settings/view/modes/toggle-outline-mode' }
     | { type: 'settings/view/mandala/toggle-mode' }
     | { type: 'view/mandala-detail-sidebar/toggle' }
     | {
@@ -173,22 +145,13 @@ export type SettingsActions =
           payload: { width: number };
       }
     | {
-          type: 'settings/style-rules/set-active-tab';
-          payload: { tab: RulesTab };
-      }
-    | StyleRulesAction
-    | {
-          type: 'settings/view/set-node-indentation-width';
-          payload: {
-              width: number;
-          };
-      }
-    | {
-          type: 'settings/view/set-maintain-edit-mode';
-          payload: { maintain: boolean };
-      }
-    | {
           type: 'settings/view/toggle-hidden-card-info';
+      }
+    | {
+          type: 'settings/view/detail-sidebar/set-preview-mode';
+          payload: {
+              mode: DetailSidebarPreviewMode;
+          };
       }
     | {
           type: 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop';
@@ -203,6 +166,13 @@ export type SettingsActions =
           type: 'settings/view/toggle-9x9-parallel-nav-buttons-mobile';
       }
     | {
+          type: 'settings/view/context-menu-copy-link/set-visibility';
+          payload: {
+              variant: ContextMenuCopyLinkVariant;
+              visible: boolean;
+          };
+      }
+    | {
           type: 'settings/view/theme/set-inactive-node-opacity';
           payload: { opacity: number };
       }
@@ -211,11 +181,16 @@ export type SettingsActions =
           payload: { color: string | undefined };
       }
     | HotkeySettingsActions
-    | PersistCollapsedSectionsAction
     | {
           type: 'settings/view/set-always-show-card-buttons';
           payload: {
               show: boolean;
+          };
+      }
+    | {
+          type: 'settings/view/set-mandala-embed-debug';
+          payload: {
+              enabled: boolean;
           };
       }
     | {
@@ -257,6 +232,26 @@ export type SettingsActions =
           payload: { orientation: MandalaGridOrientation };
       }
     | {
+          type: 'settings/view/mandala/select-grid-layout';
+          payload: { layoutId: string };
+      }
+    | {
+          type: 'settings/view/mandala/add-custom-grid-layout';
+          payload: { layout: MandalaCustomLayout };
+      }
+    | {
+          type: 'settings/view/mandala/create-custom-grid-layout';
+          payload: { layout: MandalaCustomLayout };
+      }
+    | {
+          type: 'settings/view/mandala/update-custom-grid-layout';
+          payload: { id: string; name: string; pattern: string };
+      }
+    | {
+          type: 'settings/view/mandala/delete-custom-grid-layout';
+          payload: { id: string };
+      }
+    | {
           type: 'settings/view/mandala/toggle-a4-mode';
       }
     | {
@@ -272,21 +267,68 @@ export type SettingsActions =
           payload: { opacity: number };
       }
     | {
+          type: 'settings/view/mandala/set-grid-highlight-color';
+          payload: { color: string | undefined };
+      }
+    | {
+          type: 'settings/view/mandala/set-grid-highlight-width';
+          payload: { width: number };
+      }
+    | {
           type: 'settings/view/mandala/set-section-color-opacity';
           payload: { opacity: number };
+      }
+    | {
+          type: 'settings/view/mandala/set-last-export-preset';
+          payload: {
+              preset:
+                  | {
+                        exportMode: 'png-square' | 'png-screen' | 'pdf-a4';
+                        includeSidebar: boolean;
+                        a4Orientation: 'portrait' | 'landscape';
+                        backgroundMode: 'none' | 'custom' | 'gray';
+                        sectionColorOpacity: number;
+                        borderOpacity: number;
+                        gridHighlightColor?: string;
+                        gridHighlightWidth?: number;
+                        whiteThemeMode: boolean;
+                        squareLayout: boolean;
+                    }
+                  | null;
+          };
       };
-export type PersistCollapsedSectionsAction = {
-    type: 'settings/document/persist-collapsed-sections';
-    payload: {
-        path: string;
-        sections: string[];
-    };
-};
 export type PersistActiveNodeAction = {
     type: 'settings/document/persist-active-section';
     payload: {
         path: string;
         sectionNumber: string;
+    };
+};
+export type PersistMandalaViewStateAction = {
+    type: 'settings/documents/persist-mandala-view-state';
+    payload: {
+        path: string;
+        gridOrientation: MandalaGridOrientation;
+        selectedLayoutId: string | null;
+        selectedCustomLayout?: MandalaCustomLayout | null;
+        lastActiveSection: string | null;
+        subgridTheme: string | null;
+        showDetailSidebarDesktop: boolean | null;
+        showDetailSidebarMobile: boolean | null;
+    };
+};
+export type PersistMandalaPinnedSectionsAction = {
+    type: 'settings/documents/persist-mandala-pinned-sections';
+    payload: {
+        path: string;
+        sections: string[];
+    };
+};
+export type PersistMandalaSectionColorsAction = {
+    type: 'settings/documents/persist-mandala-section-colors';
+    payload: {
+        path: string;
+        map: MandalaSectionColorAssignments;
     };
 };
 export type ToggleEditorStateAction = {

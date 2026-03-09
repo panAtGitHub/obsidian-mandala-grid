@@ -13,20 +13,10 @@ export class VerticalToolbarActions {
         this.view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
     };
 
-    toggleStyleRules = () => {
-        this.view.viewStore.dispatch({
-            type: 'view/style-rules/toggle-modal',
-        });
-    };
     toggleSettings = () => {
         this.view.viewStore.dispatch({ type: 'view/settings/toggle-modal' });
     };
 
-    toggleMinimap = () => {
-        this.view.plugin.settings.dispatch({
-            type: 'settings/view/toggle-minimap',
-        });
-    };
     toggleScrollModeH = () => {
         this.view.plugin.settings.dispatch({
             type: 'settings/view/toggle-horizontal-scrolling-mode',
@@ -46,11 +36,6 @@ export class VerticalToolbarActions {
     toggleHiddenInfo = () => {
         this.view.plugin.settings.dispatch({
             type: 'settings/view/toggle-hidden-card-info',
-        });
-    };
-    toggleOutlineMode = () => {
-        this.view.plugin.settings.dispatch({
-            type: 'settings/view/modes/toggle-outline-mode',
         });
     };
 

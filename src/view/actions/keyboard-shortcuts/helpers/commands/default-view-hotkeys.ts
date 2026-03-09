@@ -1,6 +1,5 @@
 import { navigateCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/navigate-commands';
 import { editCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/edit-commands';
-import { historyCommands } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/history-commands';
 import { MandalaView } from 'src/view/view';
 import { Hotkey } from 'obsidian';
 import { CommandName, GroupName } from 'src/lang/hotkey-groups';
@@ -43,7 +42,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         // ...moveCommands(),
         // ...mergeCommands(),
         // ...clipboardCommands(),
-        ...historyCommands(),
         // ...selectionCommands(),
         // ...scrollCommands(),
         /* {
@@ -164,15 +162,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [{ key: '0', modifiers: ['Mod'], editorState: 'both' }],
     }, */
-    /*{
-        name: 'toggle_outline_mode',
-        callback: (view) => {
-            view!.plugin.settings.dispatch({
-                type: 'settings/view/modes/toggle-outline-mode',
-            });
-        },
-        hotkeys: [{ key: 'o', modifiers: ['Alt'], editorState: 'both' }],
-    },*/
     /* {
         name: 'toggle_mandala_mode',
         callback: (view, e) => {
@@ -246,6 +235,15 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [],
     },
+    {
+        name: 'toggle_detail_sidebar',
+        callback: (view, e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            view.toggleCurrentMandalaDetailSidebar();
+        },
+        hotkeys: [{ key: ']', modifiers: ['Mod'], editorState: 'editor-off' }],
+    },
     /* {
         name: 'swap_cell_up',
         callback: (view, e) => {
@@ -281,31 +279,6 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
             swapMandalaCell(view, 'right');
         },
         hotkeys: [],
-    }, */
-    /* {
-        name: 'toggle_collapse',
-        callback: (view, e) => {
-            e.preventDefault();
-            if (!get(singleColumnStore(view))) return;
-            view.viewStore.dispatch({
-                type: 'view/outline/toggle-collapse-node',
-                payload: {
-                    id: view.viewStore.getValue().document.activeNode,
-                },
-            });
-        },
-        hotkeys: [{ key: '=', modifiers: ['Alt'], editorState: 'both' }],
-    },
-    {
-        name: 'toggle_collapse_all',
-        callback: (view, e) => {
-            e.preventDefault();
-            if (!get(singleColumnStore(view))) return;
-            view.viewStore.dispatch({
-                type: 'view/outline/toggle-collapse-all',
-            });
-        },
-        hotkeys: [{ key: '=', modifiers: ['Alt', 'Mod'], editorState: 'both' }],
     }, */
     ];
 

@@ -110,4 +110,52 @@ describe('update-tree-state', () => {
         updateActiveBranch(input.state, input.document.columns, true);
         expect(input.state.activeBranch).toEqual(output.activeBranch);
     });
+
+    it('case 2: should safely reset branch when active node is stale', () => {
+        const state: State = {
+            activeBranch: {
+                childGroups: new Set(['stale']),
+                sortedParentNodes: ['stale-parent'],
+                group: 'stale-group',
+                column: 'stale-column',
+                node: 'stale-node',
+            },
+            activeNode: 'stale-node',
+            activeNodesOfColumn: {
+                'c-1': {
+                    root: 'n-1',
+                    staleGroup: 'stale-node',
+                },
+                'c-stale': {
+                    root: 'n-1',
+                },
+            },
+        };
+
+        const columns: MandalaGridDocument['columns'] = [
+            {
+                id: 'c-1',
+                groups: [
+                    {
+                        parentId: 'root',
+                        nodes: ['n-1', 'n-2'],
+                    },
+                ],
+            },
+        ];
+
+        expect(() => updateActiveBranch(state, columns, true)).not.toThrow();
+        expect(state.activeBranch).toEqual({
+            childGroups: new Set<string>(),
+            sortedParentNodes: [],
+            group: '',
+            column: '',
+            node: '',
+        });
+        expect(state.activeNodesOfColumn).toEqual({
+            'c-1': {
+                root: 'n-1',
+            },
+        });
+    });
 });

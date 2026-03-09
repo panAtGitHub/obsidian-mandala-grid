@@ -3,9 +3,7 @@ import {
     MenuItemObject,
     renderContextMenu,
 } from 'src/obsidian/context-menu/render-context-menu';
-import { getPersistedDocumentFormat } from 'src/obsidian/events/workspace/helpers/get-persisted-document-format';
 import { lang } from 'src/lang/lang';
-import { setDocumentFormat } from 'src/stores/settings/actions/set-document-format';
 import { exportDocument } from 'src/obsidian/commands/helpers/export-document/export-document';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { hasNHeadings } from 'src/lib/format-detection/has-n-headings';
@@ -19,11 +17,6 @@ export const showViewContextMenu = (
 ) => {
     const file = view.file;
     if (!file) return;
-
-    const format = getPersistedDocumentFormat(view);
-    const isOutline = format === 'outline';
-    const isHtmlElement = format === 'html-element';
-    const isHtmlComments = format === 'sections';
 
     const _hasHeading = hasNHeadings(view.data, 1);
     const coreJumpItems = createCoreJumpMenuItems(view);
@@ -42,41 +35,6 @@ export const showViewContextMenu = (
                 });
             },
             disabled: !_hasHeading,
-        },
-        { type: 'separator' },
-        {
-            title: lang.cm_document_format,
-            icon: 'file-cog',
-            submenu: [
-                {
-                    title: lang.settings_format_html_elements,
-                    icon: 'file-cog',
-                    action: () => {
-                        setDocumentFormat(
-                            view.plugin,
-                            file.path,
-                            'html-element',
-                        );
-                    },
-                    checked: isHtmlElement,
-                },
-                {
-                    title: lang.settings_format_html_comments,
-                    icon: 'file-cog',
-                    action: () => {
-                        setDocumentFormat(view.plugin, file.path, 'sections');
-                    },
-                    checked: isHtmlComments,
-                },
-                {
-                    title: lang.settings_format_outline,
-                    icon: 'file-cog',
-                    action: () => {
-                        setDocumentFormat(view.plugin, file.path, 'outline');
-                    },
-                    checked: isOutline,
-                },
-            ],
         },
         { type: 'separator' },
         {

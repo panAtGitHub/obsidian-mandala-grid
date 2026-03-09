@@ -16,9 +16,28 @@ export type DocumentMeta = {
     groupParentIds: Set<string>;
     /**
      * Mandala 模式：固定槽位（section=槽位ID），拖拽只能做 swap，不允许增删改结构。
-     * 通过 frontmatter 标记（例如 `mandala: true`）在加载时识别。
+     * V2 主路径下始终开启，不再依赖 frontmatter 标记。
      */
     isMandala: boolean;
+    mandalaV2: {
+        enabled: boolean;
+        revision: number;
+        rootGroupId: string | null;
+        orderedSections: string[];
+        lastMutation: {
+            actionType: string;
+            changedSections: string[];
+            structural: boolean;
+        } | null;
+        parentToChildrenSlots: Record<string, Partial<Record<number, string>>>;
+        subtreeNonEmptyCountBySection: Record<string, number>;
+        loadMetrics: {
+            bytes: number;
+            sectionsCount: number;
+            parseMs: number;
+            buildMs: number;
+        } | null;
+    };
 };
 export type DocumentState = {
     document: MandalaGridDocument;

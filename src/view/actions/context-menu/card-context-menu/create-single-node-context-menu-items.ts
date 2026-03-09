@@ -2,17 +2,20 @@ import { MandalaView } from 'src/view/view';
 import { MenuItemObject } from 'src/obsidian/context-menu/render-context-menu';
 import { lang } from 'src/lang/lang';
 import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-block';
+import { copyLinkToHeading } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-heading';
 import { togglePinNode } from 'src/view/actions/context-menu/card-context-menu/create-sidebar-context-menu-items';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 import {
     createSectionColorIndex,
-    parseSectionColorsFromFrontmatter,
+    parseSectionColorsFromPersistedState,
     SECTION_COLOR_KEYS,
     SECTION_COLOR_PALETTE,
+    serializeSectionColorMapForSettings,
     setSectionColor,
-    writeSectionColorsToFrontmatter,
 } from 'src/view/helpers/mandala/section-colors';
 import { startMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
+import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
+import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 type Props = {
     activeNode: string;
@@ -23,15 +26,32 @@ export const createSingleNodeContextMenuItems = (
     { isPinned, activeNode }: Props,
 ) => {
     const isMandala = view.documentStore.getValue().meta.isMandala;
-    const section = view.documentStore.getValue().sections.id_section[activeNode];
+    const section =
+        view.documentStore.getValue().sections.id_section[activeNode];
     let cachedSectionColorMap: ReturnType<
-        typeof parseSectionColorsFromFrontmatter
+        typeof parseSectionColorsFromPersistedState
     > | null = null;
     const getSectionColorMap = () => {
         if (cachedSectionColorMap) return cachedSectionColorMap;
-        const frontmatter = view.documentStore.getValue().file.frontmatter;
-        cachedSectionColorMap = parseSectionColorsFromFrontmatter(frontmatter);
+        cachedSectionColorMap = getCurrentFileSectionColorMap(view);
         return cachedSectionColorMap;
+    };
+    const persistSectionColorMap = (
+        next: ReturnType<typeof parseSectionColorsFromPersistedState>,
+    ) => {
+        if (!view.file) return;
+        const current =
+            serializeSectionColorMapForSettings(getSectionColorMap());
+        const normalizedNext = serializeSectionColorMapForSettings(next);
+        if (JSON.stringify(current) === JSON.stringify(normalizedNext)) return;
+        cachedSectionColorMap = next;
+        view.plugin.settings.dispatch({
+            type: 'settings/documents/persist-mandala-section-colors',
+            payload: {
+                path: view.file.path,
+                map: normalizedNext,
+            },
+        });
     };
 
     const menuItems: MenuItemObject[] = [];
@@ -50,15 +70,62 @@ export const createSingleNodeContextMenuItems = (
         menuItems.push(...coreJumpItems);
         menuItems.push({ type: 'separator' });
     }
-    menuItems.push(
-        {
+    const copyLinkVisibility = resolveContextMenuCopyLinkVisibility(
+        view.plugin.settings.getValue().view,
+    );
+    const copyLinkItems: MenuItemObject[] = [];
+    if (copyLinkVisibility['block-plain']) {
+        copyLinkItems.push({
             title: lang.cm_copy_link_to_block,
             icon: 'links-coming-in',
             action: () => {
-                void copyLinkToBlock(view, false);
+                void copyLinkToBlock(view, false, { embed: false });
             },
-        },
-        { type: 'separator' },
+        });
+    }
+    if (copyLinkVisibility['block-embed']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_link_to_block_embed,
+            icon: 'links-coming-in',
+            action: () => {
+                void copyLinkToBlock(view, false, { embed: true });
+            },
+        });
+    }
+    if (copyLinkVisibility['heading-plain']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_heading_link,
+            icon: 'heading-1',
+            action: () => {
+                void copyLinkToHeading(view, activeNode, { embed: false });
+            },
+        });
+    }
+    if (copyLinkVisibility['heading-embed']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_heading_link_embed,
+            icon: 'heading-1',
+            action: () => {
+                void copyLinkToHeading(view, activeNode, { embed: true });
+            },
+        });
+    }
+    if (copyLinkVisibility['heading-embed-dollar']) {
+        copyLinkItems.push({
+            title: lang.cm_copy_heading_link_embed_dollar,
+            icon: 'heading-1',
+            action: () => {
+                void copyLinkToHeading(view, activeNode, {
+                    embed: true,
+                    alias: '$',
+                });
+            },
+        });
+    }
+    if (copyLinkItems.length > 0) {
+        menuItems.push(...copyLinkItems, { type: 'separator' });
+    }
+    menuItems.push(
         {
             title: isPinned
                 ? lang.cm_unpin_from_left_sidebar
@@ -78,8 +145,7 @@ export const createSingleNodeContextMenuItems = (
                               const sectionColorMap = getSectionColorMap();
                               const sectionColorIndex =
                                   createSectionColorIndex(sectionColorMap);
-                              const activeColorKey =
-                                  sectionColorIndex[section];
+                              const activeColorKey = sectionColorIndex[section];
                               const palette = document.createElement('div');
                               palette.className = 'mandala-color-palette';
                               for (const key of SECTION_COLOR_KEYS) {
@@ -108,10 +174,7 @@ export const createSingleNodeContextMenuItems = (
                                           section,
                                           key,
                                       );
-                                      void writeSectionColorsToFrontmatter(
-                                          view,
-                                          next,
-                                      );
+                                      persistSectionColorMap(next);
                                       menu.hide();
                                   });
                                   palette.appendChild(button);
@@ -130,7 +193,7 @@ export const createSingleNodeContextMenuItems = (
                               section,
                               null,
                           );
-                          void writeSectionColorsToFrontmatter(view, next);
+                          persistSectionColorMap(next);
                       },
                   },
               ] as MenuItemObject[])

@@ -4,6 +4,7 @@ import {
     DAY_PLAN_FRONTMATTER_KEY,
     extractDateFromCenterHeading,
     isIsoDate,
+    normalizeSlotTitle,
     parseDayPlanFrontmatter,
     shiftHotWindowToCore,
     upsertCenterDateHeading,
@@ -16,6 +17,15 @@ const getFirstNonEmptyLine = (content: string) =>
         .split('\n')
         .find((line) => line.trim().length > 0)
         ?.trim() ?? '';
+
+const isHeadingLine = (line: string) => /^#{1,6}\s+/.test(line);
+
+export const shouldApplyDayPlanSlotTemplate = (content: string) => {
+    const firstLine = getFirstNonEmptyLine(content);
+    if (!firstLine) return true;
+    if (!isHeadingLine(firstLine)) return true;
+    return normalizeSlotTitle(firstLine).length === 0;
+};
 
 const hasDayPlanKey = (frontmatter: string) =>
     frontmatter.includes(`${DAY_PLAN_FRONTMATTER_KEY}:`);
@@ -159,6 +169,7 @@ export const applyDayPlanToCore = (
         const nodeId = refreshed.sections.section_id[section];
         if (!nodeId) continue;
         const currentContent = refreshed.document.content[nodeId]?.content ?? '';
+        if (!shouldApplyDayPlanSlotTemplate(currentContent)) continue;
         const nextContent = upsertSlotHeading(currentContent, slotTitle);
         if (nextContent === currentContent) continue;
         updates.push({ nodeId, content: nextContent });

@@ -48,7 +48,6 @@ export const viewSubscriptions = (view: MandalaView) => {
         unsubFromView();
         unsubFromSettings();
         unsubFromDocuments();
-        void view.rulesProcessor.onViewUnmount();
         for (const unsub of onMountSubscriptions) {
             unsub();
         }

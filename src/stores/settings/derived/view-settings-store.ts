@@ -2,6 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { derived } from 'src/lib/store/derived';
 import MandalaGrid from 'src/main';
 import { Platform } from 'obsidian';
+import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 export const ViewSettingsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view);
@@ -49,19 +50,28 @@ export const LeftSidebarWidthStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.leftSidebarWidth);
 
 export const LeftSidebarActiveTabStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.leftSidebarActiveTab);
+    derived(view.plugin.settings, () => 'pinned-cards');
 
 export const ApplyGapBetweenCardsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.applyGapBetweenCards);
-
-export const OutlineModeStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.outlineMode);
 
 export const MandalaModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaMode);
 
 export const MandalaGridOrientationStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaGridOrientation);
+
+export const MandalaGridSelectedLayoutIdStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => view.getCurrentMandalaLayoutId(state),
+    );
+
+export const MandalaGridCustomLayoutsStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridCustomLayouts,
+    );
 
 export const MandalaA4ModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaA4Mode);
@@ -72,14 +82,18 @@ export const MandalaA4OrientationStore = (view: MandalaView) =>
 export const MandalaBackgroundModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaBackgroundMode);
 
-export const MaintainEditMode = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.maintainEditMode);
-
 export const AlwaysShowCardButtons = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.alwaysShowCardButtons);
 
 export const ShowHiddenCardInfoStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.showHiddenCardInfo);
+
+export const DetailSidebarPreviewModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.detailSidebarPreviewModeMobile ?? 'rendered'
+            : state.view.detailSidebarPreviewModeDesktop ?? 'rendered',
+    );
 
 export const Show3x3SubgridNavButtonsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) =>
@@ -95,13 +109,15 @@ export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
             : state.view.show9x9ParallelNavButtonsDesktop ?? true,
     );
 
+export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        resolveContextMenuCopyLinkVisibility(state.view),
+    );
+
 export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
-        (state) =>
-            Platform.isMobile
-                ? state.view.showMandalaDetailSidebarMobile
-                : state.view.showMandalaDetailSidebarDesktop,
+        (state) => view.isMandalaDetailSidebarVisible(state),
     );
 
 export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>
@@ -129,6 +145,18 @@ export const MandalaSectionColorOpacityStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
         (state) => state.view.mandalaSectionColorOpacity,
+    );
+
+export const MandalaGridHighlightColorStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridHighlightColor,
+    );
+
+export const MandalaGridHighlightWidthStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridHighlightWidth,
     );
 
 export const HiddenVerticalToolbarButtons = (plugin: MandalaGrid) =>

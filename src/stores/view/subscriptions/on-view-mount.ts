@@ -13,11 +13,9 @@ import { attachWheelScrollListener } from 'src/stores/view/subscriptions/event-l
 import { applyCardsGap } from 'src/stores/view/subscriptions/effects/css-variables/apply-cards-gap';
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 import { attachCloseModalsListener } from 'src/stores/view/subscriptions/attach-close-modals-listener';
-import { applyCardIndentationWidth } from 'src/stores/view/subscriptions/effects/css-variables/apply-card-indentation-width';
 import { attachCheckboxListener } from 'src/stores/view/subscriptions/effects/checkbox-listener/attach-checkbox-listener';
 import { watchViewSize } from 'src/stores/view/subscriptions/effects/view-size/watch-view-size';
 import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/css-variables/apply-inactive-node-opacity';
-import { loadCollapsedSectionsFromSettings } from 'src/stores/view/subscriptions/actions/view/load-collapsed-sections-from-settings';
 import { applyHeadingsFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-headings-font-size';
 
 const applySettingsToView = (view: MandalaView) => {
@@ -29,7 +27,6 @@ const applySettingsToView = (view: MandalaView) => {
     applyCssColor(view, 'activeBranchBg');
     applyCssColor(view, 'activeBranchColor');
     applyCardWidth(view, state.view.cardWidth);
-    applyCardIndentationWidth(view, state.view.nodeIndentationWidth);
     applyCardsGap(view, state.view.cardsGap);
     if (!view.container) return;
     applyZoomLevel(view, state.view.zoomLevel);
@@ -44,7 +41,6 @@ export const onViewMount = (view: MandalaView) => {
     // actions
     if (!view.file) return subscriptions;
     setInitialActiveNode(view);
-    loadCollapsedSectionsFromSettings(view);
     if (view.isActive && isEmptyDocument(documentState.document.content)) {
         enableEditMode(viewStore, documentState);
     }
@@ -59,7 +55,6 @@ export const onViewMount = (view: MandalaView) => {
     attachWheelScrollListener(view);
     documentStore.dispatch({ type: 'document/meta/refresh-group-parent-ids' });
     attachCloseModalsListener(view);
-    void view.rulesProcessor.onRulesUpdate();
     view.zoomFactor = view.plugin.settings.getValue().view.zoomLevel;
 
     subscriptions.add(watchViewSize(view));

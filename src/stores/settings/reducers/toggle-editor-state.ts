@@ -4,23 +4,22 @@ import {
     HotkeyEditorState,
     PersistedViewHotkey,
 } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import invariant from 'tiny-invariant';
 import { CommandName } from 'src/lang/hotkey-groups';
 import { ToggleEditorStateAction } from 'src/stores/settings/settings-store-actions';
 
-const getDefaultHotkey = (
+const getDefaultEditorState = (
     command: CommandName,
     type: 'primary' | 'secondary',
-) => {
+) : HotkeyEditorState => {
     const defaultCommand = defaultViewHotkeys().find(
         (hk) => hk.name === command,
     );
-    const defaultHotkey =
+    const defaultHotkey = (
         type === 'primary'
             ? defaultCommand?.hotkeys[0]
-            : defaultCommand?.hotkeys[1];
-    invariant(defaultHotkey);
-    return defaultHotkey;
+            : defaultCommand?.hotkeys[1]
+    ) as { editorState?: HotkeyEditorState } | undefined;
+    return defaultHotkey?.editorState ?? 'both';
 };
 const editorStateValues: HotkeyEditorState[] = [
     'editor-on',
@@ -44,14 +43,14 @@ export const toggleEditorState = (
         persistedHotkey = fullPersistedHotkey[action.payload.type];
     }
     if (!persistedHotkey || !('editorState' in persistedHotkey)) {
-        const defaultHotkey = getDefaultHotkey(
+        const defaultEditorState = getDefaultEditorState(
             action.payload.command,
             action.payload.type,
         );
 
         persistedHotkey = {
             ...(persistedHotkey || {}),
-            editorState: defaultHotkey.editorState,
+            editorState: defaultEditorState,
         };
     }
 

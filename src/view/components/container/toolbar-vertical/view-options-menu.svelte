@@ -1,25 +1,36 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
-    import { Trash2, X } from 'lucide-svelte';
+    import { Printer, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform, TFile, btoa } from 'obsidian';
-    import { afterUpdate, createEventDispatcher, onDestroy, onMount } from 'svelte';
+    import {
+        afterUpdate,
+        createEventDispatcher,
+        onDestroy,
+        onMount,
+    } from 'svelte';
     import { toPng } from 'html-to-image';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
     import { derived } from 'src/lib/store/derived';
     import {
+        ContextMenuCopyLinkVisibilityStore,
+        DetailSidebarPreviewModeStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
         MandalaBorderOpacityStore,
+        MandalaGridCustomLayoutsStore,
+        MandalaGridHighlightColorStore,
+        MandalaGridHighlightWidthStore,
         MandalaFontSize3x3DesktopStore,
         MandalaFontSize3x3MobileStore,
         MandalaFontSize9x9DesktopStore,
         MandalaFontSize9x9MobileStore,
         MandalaFontSizeSidebarDesktopStore,
         MandalaFontSizeSidebarMobileStore,
-        MandalaGridOrientationStore,
+        MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
+        ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
@@ -32,6 +43,8 @@
         DEFAULT_CARDS_GAP,
         DEFAULT_INACTIVE_NODE_OPACITY,
         DEFAULT_H1_FONT_SIZE_EM,
+        DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
+        DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
     } from 'src/stores/settings/default-settings';
     import {
         appendMandalaTemplate,
@@ -50,8 +63,20 @@
     import ViewOptionsFontPanel from './components/view-options-font-panel.svelte';
     import ViewOptionsDisplayPanel from './components/view-options-display-panel.svelte';
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
-    import ViewOptionsExportPanel from './components/view-options-export-panel.svelte';
+    import ViewOptionsCustomLayoutModal from './components/view-options-custom-layout-modal.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
+    import Portal from 'src/view/components/container/shared/portal.svelte';
+    import type {
+        ContextMenuCopyLinkVariant,
+        DetailSidebarPreviewMode,
+        LastExportPreset,
+        MandalaCustomLayout,
+    } from 'src/stores/settings/settings-type';
+    import {
+        closeExportModeModal,
+        exportModeModalViewId,
+        openExportModeModalForView,
+    } from './export-mode-modal-store';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -61,23 +86,38 @@
     let showEditOptions = false;
     let showFontOptions = false;
     let showDisplayOptions = false;
-    let showPrintOptions = false;
     let showTemplateOptions = false;
     let mobileBoundsStyle = '';
     let listenersAttached = false;
     let previousShow = show;
+    let isExportModeModalOpen = false;
+    let exportModalPosition: { left: number; top: number } | null = null;
+    let exportDragOffset: { x: number; y: number } | null = null;
+    let exportDragCandidate: {
+        offsetX: number;
+        offsetY: number;
+    } | null = null;
+    let exportModalInlineStyle: string | undefined = undefined;
+    let isCustomLayoutModalOpen = false;
 
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
+    const gridHighlightColorStore = MandalaGridHighlightColorStore(view);
+    const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
     const squareLayout = SquareLayoutStore(view);
-    const gridOrientation = MandalaGridOrientationStore(view);
+    const selectedLayoutId = MandalaGridSelectedLayoutIdStore(view);
+    const customLayouts = MandalaGridCustomLayoutsStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const contextMenuCopyLinkVisibility =
+        ContextMenuCopyLinkVisibilityStore(view);
+    const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
+    const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const themeDefaults = getDefaultTheme();
     const cardsGap = derived(
         view.plugin.settings,
@@ -111,6 +151,12 @@
             state.view.theme.activeBranchColor ??
             themeDefaults.activeBranchColor,
     );
+    const gridHighlightColor = derived(
+        view.plugin.settings,
+        (state) =>
+            state.view.mandalaGridHighlightColor ??
+            DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
+    );
     const inactiveNodeOpacity = derived(
         view.plugin.settings,
         (state) => state.view.theme.inactiveNodeOpacity,
@@ -119,6 +165,19 @@
         view.plugin.settings,
         (state) => state.general.mandalaTemplatesFilePath,
     );
+    const lastExportPresetStore = derived(
+        view.plugin.settings,
+        (state) => state.view.lastExportPreset,
+    );
+
+    $: isExportModeModalOpen = $exportModeModalViewId === view.id;
+    $: if (
+        isExportModeModalOpen &&
+        exportMode === 'pdf-a4' &&
+        $showMandalaDetailSidebar
+    ) {
+        updateMandalaDetailSidebar(false);
+    }
 
     const toggleWhiteTheme = () => {
         view.plugin.settings.dispatch({
@@ -148,6 +207,49 @@
         });
     };
 
+    const setContextMenuCopyLinkVisibility = (
+        variant: ContextMenuCopyLinkVariant,
+        visible: boolean,
+    ) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/context-menu-copy-link/set-visibility',
+            payload: { variant, visible },
+        });
+    };
+
+    const toggleCopyBlockPlain = () =>
+        setContextMenuCopyLinkVisibility(
+            'block-plain',
+            !$contextMenuCopyLinkVisibility['block-plain'],
+        );
+    const toggleCopyBlockEmbed = () =>
+        setContextMenuCopyLinkVisibility(
+            'block-embed',
+            !$contextMenuCopyLinkVisibility['block-embed'],
+        );
+    const toggleCopyHeadingPlain = () =>
+        setContextMenuCopyLinkVisibility(
+            'heading-plain',
+            !$contextMenuCopyLinkVisibility['heading-plain'],
+        );
+    const toggleCopyHeadingEmbed = () =>
+        setContextMenuCopyLinkVisibility(
+            'heading-embed',
+            !$contextMenuCopyLinkVisibility['heading-embed'],
+        );
+    const toggleCopyHeadingEmbedDollar = () =>
+        setContextMenuCopyLinkVisibility(
+            'heading-embed-dollar',
+            !$contextMenuCopyLinkVisibility['heading-embed-dollar'],
+        );
+
+    const updateDetailSidebarPreviewMode = (mode: DetailSidebarPreviewMode) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/detail-sidebar/set-preview-mode',
+            payload: { mode },
+        });
+    };
+
     const toggleA4Mode = () => {
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/toggle-a4-mode',
@@ -162,6 +264,13 @@
 
     type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
     let exportMode: ExportMode = 'png-screen';
+    let includeSidebarInPngScreen = true;
+    let exportModeLabel = 'PNG（屏幕范围）';
+    let exportModeHint = '包含侧边栏';
+    let appearanceStyleLabel = '风格：沉浸';
+    let appearanceShapeLabel = '形状：自适应';
+    let appearanceBackgroundLabel = '背景：无背景';
+    let appearanceOrientationLabel = '方位：从左到右';
 
     const setExportMode = (mode: ExportMode) => {
         exportMode = mode;
@@ -172,14 +281,71 @@
         }
 
         updateA4Mode(false);
-        if (mode === 'png-square') {
-            updateSquareLayout(true);
+    };
+
+    const toggleIncludeSidebarInPngScreen = () => {
+        includeSidebarInPngScreen = !includeSidebarInPngScreen;
+        updateMandalaDetailSidebar(includeSidebarInPngScreen);
+    };
+
+    const updateMandalaDetailSidebar = (enabled: boolean) => {
+        if (enabled !== $showMandalaDetailSidebar) {
+            view.toggleCurrentMandalaDetailSidebar();
         }
     };
 
+    $: exportModeLabel =
+        exportMode === 'png-square'
+            ? 'PNG（格子范围）'
+            : exportMode === 'pdf-a4'
+              ? 'PDF（A4）'
+              : 'PNG（屏幕范围）';
+    $: exportModeHint =
+        exportMode === 'png-screen'
+            ? includeSidebarInPngScreen
+                ? '包含侧边栏'
+                : '不含侧边栏'
+            : exportMode === 'pdf-a4'
+              ? $a4Orientation === 'landscape'
+                  ? '横向'
+                  : '纵向'
+              : $squareLayout
+                ? '正方形留白'
+                : '自适应长方形';
+    $: exportActionLabel = exportMode === 'pdf-a4' ? '导出 PDF' : '导出 PNG';
+    $: appearanceStyleLabel = $whiteThemeMode ? '风格：全景' : '风格：沉浸';
+    $: appearanceShapeLabel = $squareLayout ? '形状：正方形' : '形状：自适应';
+    $: appearanceBackgroundLabel =
+        $backgroundMode === 'custom'
+            ? '背景：色块'
+            : $backgroundMode === 'gray'
+              ? '背景：灰色间隔'
+              : '背景：无背景';
+    $: appearanceOrientationLabel = (() => {
+        if ($selectedLayoutId === 'builtin:south-start') {
+            return '方位：从南开始';
+        }
+        if ($selectedLayoutId === 'builtin:left-to-right') {
+            return '方位：从左到右';
+        }
+        const selectedCustomLayout =
+            $customLayouts.find((layout) => layout.id === $selectedLayoutId) ??
+            null;
+        return selectedCustomLayout
+            ? `方位：自定义 / ${selectedCustomLayout.name}`
+            : '方位：从左到右';
+    })();
+    $: if (
+        isExportModeModalOpen &&
+        exportMode === 'png-screen' &&
+        includeSidebarInPngScreen !== $showMandalaDetailSidebar
+    ) {
+        includeSidebarInPngScreen = $showMandalaDetailSidebar;
+    }
 
     let showImmersiveOptions = false;
     let showPanoramaOptions = false;
+    let showExportStyleDetails = false;
 
     const toggleImmersiveOptions = () => {
         if ($whiteThemeMode) return;
@@ -215,6 +381,8 @@
 
     const clampGap = (value: number) => Math.min(20, Math.max(0, value));
     const clampOpacity = (value: number) => Math.min(100, Math.max(0, value));
+    const clampGridHighlightWidth = (value: number) =>
+        Math.min(8, Math.max(1, value));
     const clampFontSize = (value: number) => Math.min(36, Math.max(6, value));
     const clampH1FontSize = (value: number) => Math.min(4, Math.max(1, value));
     const roundToDecimal = (value: number, decimalPlaces: number) =>
@@ -282,6 +450,13 @@
         });
     };
 
+    const updateGridHighlightWidthValue = (value: number) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-highlight-width',
+            payload: { width: clampGridHighlightWidth(value) },
+        });
+    };
+
     const updateInactiveNodeOpacityValue = (value: number) => {
         view.plugin.settings.dispatch({
             type: 'settings/view/theme/set-inactive-node-opacity',
@@ -345,6 +520,10 @@
         updateSectionColorOpacityValue(value);
     };
 
+    const updateGridHighlightWidth = createNumericInputHandler(
+        updateGridHighlightWidthValue,
+    );
+
     const updateInactiveNodeOpacity = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
@@ -378,6 +557,10 @@
     const stepBorderOpacity = (current: number, delta: number) => {
         updateBorderOpacityValue(current + delta);
     };
+
+    const stepGridHighlightWidth = createStepHandler(
+        updateGridHighlightWidthValue,
+    );
 
     const stepInactiveOpacity = (current: number, delta: number) => {
         updateInactiveNodeOpacityValue(current + delta);
@@ -443,12 +626,32 @@
         });
     };
 
+    const updateGridHighlightColor = (event: Event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-highlight-color',
+            payload: { color: target.value },
+        });
+    };
+
+    const resetGridHighlightColor = () => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-grid-highlight-color',
+            payload: { color: undefined },
+        });
+    };
+
     const resetInactiveNodeOpacity = () => {
         updateInactiveNodeOpacityValue(DEFAULT_INACTIVE_NODE_OPACITY);
     };
 
     const resetCardsGap = () => {
         updateCardsGapValue(DEFAULT_CARDS_GAP);
+    };
+
+    const resetGridHighlightWidth = () => {
+        updateGridHighlightWidthValue(DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH);
     };
 
     const resetFontSize3x3 = () => {
@@ -484,68 +687,165 @@
 
     type PrintConfig = {
         exportMode: ExportMode;
+        includeSidebarInPngScreen: boolean;
         a4Orientation: 'portrait' | 'landscape';
         backgroundMode: 'none' | 'custom' | 'gray';
         sectionColorOpacity: number;
         borderOpacity: number;
+        gridHighlightColor?: string;
+        gridHighlightWidth: number;
         whiteThemeMode: boolean;
+        squareLayout: boolean;
+        showMandalaDetailSidebar: boolean;
     };
 
-    let lastPrintConfig: PrintConfig | null = null;
+    let exportSessionSnapshot: PrintConfig | null = null;
+    let isInExportSession = false;
 
-    const capturePrintConfig = () => {
-        lastPrintConfig = {
+    const capturePrintConfig = (): PrintConfig => {
+        return {
             exportMode,
+            includeSidebarInPngScreen,
             a4Orientation: $a4Orientation,
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
             borderOpacity: $borderOpacity,
+            gridHighlightColor: $gridHighlightColorStore,
+            gridHighlightWidth: $gridHighlightWidth,
             whiteThemeMode: $whiteThemeMode,
+            squareLayout: $squareLayout,
+            showMandalaDetailSidebar: $showMandalaDetailSidebar,
         };
     };
 
     const applyPrintConfig = (config: PrintConfig) => {
         setExportMode(config.exportMode);
+        includeSidebarInPngScreen = config.includeSidebarInPngScreen;
         updateWhiteThemeMode(config.whiteThemeMode);
         updateBackgroundMode(config.backgroundMode);
         updateSectionColorOpacityValue(config.sectionColorOpacity);
         updateBorderOpacityValue(config.borderOpacity);
+        if (config.gridHighlightColor) {
+            view.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-grid-highlight-color',
+                payload: { color: config.gridHighlightColor },
+            });
+        } else {
+            resetGridHighlightColor();
+        }
+        updateGridHighlightWidthValue(config.gridHighlightWidth);
+        updateSquareLayout(config.squareLayout);
+        updateMandalaDetailSidebar(config.showMandalaDetailSidebar);
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-a4-orientation',
             payload: { orientation: config.a4Orientation },
         });
     };
 
-    const _switchLastPrintConfig = () => {
-        if (!lastPrintConfig) {
-            new Notice('暂无可切换的打印配置。');
+    const enterExportSession = () => {
+        if (isInExportSession) return;
+        includeSidebarInPngScreen = $showMandalaDetailSidebar;
+        exportSessionSnapshot = capturePrintConfig();
+        isInExportSession = true;
+    };
+
+    const exitExportSession = () => {
+        if (!isInExportSession) return;
+        if (exportSessionSnapshot) {
+            applyPrintConfig(exportSessionSnapshot);
+        }
+        exportSessionSnapshot = null;
+        isInExportSession = false;
+    };
+
+    const applyLastExportPreset = () => {
+        const preset = $lastExportPresetStore;
+        if (!preset) {
+            new Notice('暂无上一次导出设置。');
             return;
         }
-        const current = {
+        applyPrintConfig({
+            exportMode: preset.exportMode,
+            includeSidebarInPngScreen: preset.includeSidebar,
+            a4Orientation: preset.a4Orientation,
+            backgroundMode: preset.backgroundMode,
+            sectionColorOpacity: preset.sectionColorOpacity,
+            borderOpacity: preset.borderOpacity,
+            gridHighlightColor: preset.gridHighlightColor,
+            gridHighlightWidth:
+                preset.gridHighlightWidth ??
+                DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
+            whiteThemeMode: preset.whiteThemeMode,
+            squareLayout: preset.squareLayout,
+            showMandalaDetailSidebar:
+                preset.exportMode === 'png-screen'
+                    ? preset.includeSidebar
+                    : $showMandalaDetailSidebar,
+        });
+    };
+
+    const createCurrentExportPreset = (): LastExportPreset => {
+        return {
             exportMode,
+            includeSidebar: includeSidebarInPngScreen,
             a4Orientation: $a4Orientation,
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
             borderOpacity: $borderOpacity,
+            gridHighlightColor: $gridHighlightColorStore,
+            gridHighlightWidth: $gridHighlightWidth,
             whiteThemeMode: $whiteThemeMode,
+            squareLayout: $squareLayout,
         };
-        applyPrintConfig(lastPrintConfig);
-        lastPrintConfig = current;
     };
 
-    const _restoreEditMode = () => {
-        capturePrintConfig();
-        setExportMode('png-screen');
-        updateWhiteThemeMode(false);
-    };
-
-    const updateGridOrientation = (
-        orientation: 'south-start' | 'left-to-right' | 'bottom-to-top',
-    ) => {
-        if (orientation === $gridOrientation) return;
+    const persistLastExportPreset = (preset?: LastExportPreset) => {
+        const nextPreset = preset ?? createCurrentExportPreset();
         view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-grid-orientation',
-            payload: { orientation },
+            type: 'settings/view/mandala/set-last-export-preset',
+            payload: { preset: nextPreset },
+        });
+    };
+
+    const selectGridLayout = (layoutId: string) => {
+        if (layoutId === $selectedLayoutId) return;
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/select-grid-layout',
+            payload: { layoutId },
+        });
+        view.persistCurrentMandalaLayout(layoutId);
+    };
+
+    const openCustomLayoutModal = () => {
+        isCustomLayoutModalOpen = true;
+    };
+
+    const closeCustomLayoutModal = () => {
+        isCustomLayoutModalOpen = false;
+    };
+
+    const createCustomGridLayout = (layout: MandalaCustomLayout) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/create-custom-grid-layout',
+            payload: { layout },
+        });
+    };
+
+    const updateCustomGridLayout = (
+        id: string,
+        name: string,
+        pattern: string,
+    ) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/update-custom-grid-layout',
+            payload: { id, name, pattern },
+        });
+    };
+
+    const deleteCustomGridLayout = (id: string) => {
+        view.plugin.settings.dispatch({
+            type: 'settings/view/mandala/delete-custom-grid-layout',
+            payload: { id },
         });
     };
 
@@ -608,7 +908,10 @@
         return vars;
     };
 
-    const applyCssVariables = (element: HTMLElement, vars: Record<string, string>) => {
+    const applyCssVariables = (
+        element: HTMLElement,
+        vars: Record<string, string>,
+    ) => {
         element.setCssProps(vars);
     };
 
@@ -667,6 +970,7 @@
             dpi?: number;
         },
     ) => {
+        const exportPreset = createCurrentExportPreset();
         const loadingNotice = new Notice('正在导出 PNG...', 0);
         if (!target) {
             loadingNotice.hide();
@@ -680,7 +984,7 @@
         } catch (_error) {
             loadingNotice.hide();
             new Notice('导出失败，请稍后再试。');
-            closeMenu();
+            closeExportMode();
             return;
         }
 
@@ -707,7 +1011,7 @@
                 if (!fs) {
                     loadingNotice.hide();
                     new Notice('导出失败，请稍后再试。');
-                    closeMenu();
+                    closeExportMode();
                     return;
                 }
                 const base64 = dataUrl.split(',')[1] ?? '';
@@ -722,13 +1026,14 @@
                         new Notice('导出失败，请稍后再试。');
                     } else {
                         new Notice('PNG 导出完成。');
+                        persistLastExportPreset(exportPreset);
                     }
                 });
-                closeMenu();
+                closeExportMode();
                 return;
             }
             loadingNotice.hide();
-            closeMenu();
+            closeExportMode();
             return;
         }
 
@@ -737,7 +1042,8 @@
         link.href = dataUrl;
         link.download = defaultName;
         link.click();
-        closeMenu();
+        persistLastExportPreset(exportPreset);
+        closeExportMode();
     };
 
     const exportCurrentView = async (mode: 'png-square' | 'png-screen') => {
@@ -818,6 +1124,11 @@
                     '.mandala-scroll',
                 ) as HTMLElement | null;
             }
+            if (!includeSidebarInPngScreen) {
+                return view.contentEl.querySelector(
+                    '.mandala-scroll',
+                ) as HTMLElement | null;
+            }
             return view.contentEl.querySelector(
                 '.mandala-content-wrapper',
             ) as HTMLElement | null;
@@ -829,7 +1140,7 @@
             return;
         }
 
-        if (mode === 'png-square') {
+        if (mode === 'png-square' && $squareLayout) {
             const exportTarget = createSquarePngExportTarget(target);
             try {
                 await withExportControlsHidden(async () => {
@@ -858,6 +1169,14 @@
         exportMode = 'png-screen';
     }
 
+    $: if (!show && isInExportSession && !isExportModeModalOpen) {
+        exitExportSession();
+    }
+
+    $: if (isExportModeModalOpen && !isInExportSession) {
+        enterExportSession();
+    }
+
     const exportCurrentFile = async () => {
         if (isMobile) {
             new Notice('移动端不支持导出，请在桌面端操作');
@@ -871,6 +1190,7 @@
     };
 
     const exportCurrentViewPdf = async () => {
+        const exportPreset = createCurrentExportPreset();
         if (!$a4Mode) {
             new Notice('请先切换到 A4 大小再导出 PDF。');
             return;
@@ -883,7 +1203,7 @@
         if (!target) {
             loadingNotice.hide();
             new Notice('未找到可导出的视图区域。');
-            closeMenu();
+            closeExportMode();
             return;
         }
         const electronRequire = (
@@ -899,7 +1219,7 @@
         if (!dialog || !webContents?.printToPDF) {
             loadingNotice.hide();
             new Notice('当前环境不支持 PDF 导出。');
-            closeMenu();
+            closeExportMode();
             return;
         }
 
@@ -920,7 +1240,9 @@
             const borderColor = computed.getPropertyValue(
                 '--mandala-border-color',
             );
-            const sourceRoot = source.closest('.mandala-root') as HTMLElement | null;
+            const sourceRoot = source.closest(
+                '.mandala-root',
+            ) as HTMLElement | null;
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
             layer.classList.add('mandala-a4-mode');
@@ -944,9 +1266,16 @@
             ]);
             applyCssVariables(layer, cssVars);
             applyInlineStyles(layer, {
-                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]:
-                    `${$borderOpacity}%`,
+                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${$borderOpacity}%`,
+                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]:
+                    `${$gridHighlightWidth}px`,
             });
+            if ($gridHighlightColorStore?.trim().length) {
+                applyInlineStyles(layer, {
+                    ['--mandala-grid-highlight-color' as keyof CSSStyleDeclaration]:
+                        $gridHighlightColorStore,
+                });
+            }
             if (borderColor.trim().length > 0) {
                 applyInlineStyles(layer, {
                     ['--mandala-border-color' as keyof CSSStyleDeclaration]:
@@ -1028,6 +1357,7 @@
                                 new Notice('导出失败，请稍后再试。');
                             } else {
                                 new Notice('PDF 导出完成。');
+                                persistLastExportPreset(exportPreset);
                             }
                             resolve();
                         });
@@ -1040,7 +1370,7 @@
         } finally {
             pageStyle.remove();
             loadingNotice.hide();
-            closeMenu();
+            closeExportMode();
         }
     };
 
@@ -1254,7 +1584,10 @@
         await view.plugin.app.fileManager.processFrontMatter(
             view.file,
             (frontmatter) => {
-                const frontmatterRecord = frontmatter as Record<string, unknown>;
+                const frontmatterRecord = frontmatter as Record<
+                    string,
+                    unknown
+                >;
                 const currentPlan = frontmatterRecord.mandala_plan;
                 if (!currentPlan || typeof currentPlan !== 'object') return;
                 frontmatterRecord.mandala_plan = {
@@ -1292,7 +1625,8 @@
                 if (!nodeId) continue;
                 const slotTitle = normalizedSlots[i - 1];
                 if (!slotTitle) continue;
-                const content = refreshed.document.content[nodeId]?.content ?? '';
+                const content =
+                    refreshed.document.content[nodeId]?.content ?? '';
                 view.documentStore.dispatch({
                     type: 'document/update-node-content',
                     payload: {
@@ -1363,11 +1697,11 @@
         );
         if (!selected) return;
 
-        const normalizedSlots = Array.from(
-            { length: 8 },
-            (_, index) => normalizeSlotTitle(selected.slots[index] ?? ''),
+        const normalizedSlots = Array.from({ length: 8 }, (_, index) =>
+            normalizeSlotTitle(selected.slots[index] ?? ''),
         );
-        const isDayPlan = await updateDayPlanSlotsInFrontmatter(normalizedSlots);
+        const isDayPlan =
+            await updateDayPlanSlotsInFrontmatter(normalizedSlots);
         if (isDayPlan) {
             applyDayPlanSlotsToAllCoreThemes(normalizedSlots);
             new Notice('已根据文档前置区调整的标题进行全局替换。');
@@ -1407,21 +1741,150 @@
         closeMenu();
     };
 
-    const closeMenu = () => {
+    const closeMenu = (preserveExportModeSession = false) => {
+        if (!preserveExportModeSession) {
+            exitExportSession();
+        }
         dispatch('close');
         showEditOptions = false;
         showFontOptions = false;
         showDisplayOptions = false;
-        showPrintOptions = false;
         showTemplateOptions = false;
         showImmersiveOptions = false;
         showPanoramaOptions = false;
+        isCustomLayoutModalOpen = false;
     };
 
     const openHotkeysModal = () => {
         view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
         closeMenu();
     };
+
+    const openExportModeModal = () => {
+        enterExportSession();
+        const initialWidth = Math.min(420, window.innerWidth - 24);
+        const initialTop = getExportModalSafeTop();
+        exportModalPosition = clampExportModalPosition(
+            window.innerWidth - initialWidth - 16,
+            initialTop,
+        );
+        exportDragOffset = null;
+        openExportModeModalForView(view.id);
+        closeMenu(true);
+    };
+
+    const closeExportMode = () => {
+        closeExportModeModal();
+        exitExportSession();
+    };
+
+    const onExportModeKeyDown = (event: KeyboardEvent) => {
+        if (!isExportModeModalOpen) return;
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        closeExportMode();
+    };
+
+    const readCssLengthVar = (
+        styles: CSSStyleDeclaration,
+        name: string,
+    ): number => {
+        const raw = styles.getPropertyValue(name).trim();
+        if (!raw) return 0;
+        const parsed = Number.parseFloat(raw);
+        return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const getExportModalSafeTop = () => {
+        const rootStyles = getComputedStyle(document.documentElement);
+        const bodyStyles = getComputedStyle(document.body);
+        const headerHeight = Math.max(
+            readCssLengthVar(rootStyles, '--header-height'),
+            readCssLengthVar(bodyStyles, '--header-height'),
+            40,
+        );
+        const titlebarHeight = Math.max(
+            readCssLengthVar(rootStyles, '--titlebar-height'),
+            readCssLengthVar(bodyStyles, '--titlebar-height'),
+        );
+        return Math.max(headerHeight, titlebarHeight, 40) + 8;
+    };
+
+    const clampExportModalPosition = (left: number, top: number) => {
+        const width = Math.min(420, window.innerWidth - 24);
+        const margin = 8;
+        const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+        const minTop = getExportModalSafeTop();
+        const maxTop = Math.max(minTop, window.innerHeight - 120);
+        return {
+            left: Math.min(Math.max(left, margin), maxLeft),
+            top: Math.min(Math.max(top, minTop), maxTop),
+        };
+    };
+
+    const getPointer = (event: MouseEvent | TouchEvent) => {
+        if (event instanceof MouseEvent) {
+            return { x: event.clientX, y: event.clientY };
+        }
+        if (event.touches.length > 0) {
+            return {
+                x: event.touches[0].clientX,
+                y: event.touches[0].clientY,
+            };
+        }
+        return null;
+    };
+
+    const startExportModalDrag = (event: MouseEvent | TouchEvent) => {
+        if (isMobile || !isExportModeModalOpen) return;
+        if (event instanceof MouseEvent && event.button !== 0) return;
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (target.closest('.view-options-menu__close')) return;
+        const modal = target.closest('.export-mode-modal');
+        if (!(modal instanceof HTMLElement)) return;
+
+        const pointer = getPointer(event);
+        if (!pointer) return;
+
+        const rect = modal.getBoundingClientRect();
+        exportDragOffset = null;
+        exportDragCandidate = {
+            offsetX: pointer.x - rect.left,
+            offsetY: pointer.y - rect.top,
+        };
+    };
+
+    const moveExportModalDrag = (event: MouseEvent | TouchEvent) => {
+        if (isMobile || !isExportModeModalOpen) return;
+        if (event instanceof MouseEvent && event.buttons !== 1) return;
+        const pointer = getPointer(event);
+        if (!pointer) return;
+
+        if (!exportDragOffset && exportDragCandidate) {
+            exportDragOffset = {
+                x: exportDragCandidate.offsetX,
+                y: exportDragCandidate.offsetY,
+            };
+        }
+
+        if (!exportDragOffset) return;
+        exportModalPosition = clampExportModalPosition(
+            pointer.x - exportDragOffset.x,
+            pointer.y - exportDragOffset.y,
+        );
+        event.preventDefault();
+    };
+
+    const stopExportModalDrag = () => {
+        exportDragOffset = null;
+        exportDragCandidate = null;
+    };
+
+    $: exportModalInlineStyle =
+        !isMobile && exportModalPosition
+            ? `left:${exportModalPosition.left}px;top:${exportModalPosition.top}px;right:auto;`
+            : undefined;
 
     const getVisibleViewport = () => {
         const vv = window.visualViewport;
@@ -1456,8 +1919,14 @@
 
         let left = Math.max(0, visibleViewport.left + padding);
         let top = Math.max(0, visibleViewport.top + padding);
-        let width = Math.max(260, visibleViewport.right - visibleViewport.left - padding * 2);
-        let height = Math.max(220, visibleViewport.bottom - visibleViewport.top - padding * 2);
+        let width = Math.max(
+            260,
+            visibleViewport.right - visibleViewport.left - padding * 2,
+        );
+        let height = Math.max(
+            220,
+            visibleViewport.bottom - visibleViewport.top - padding * 2,
+        );
 
         if (!keyboardLikelyOpen) {
             const rect = view.contentEl.getBoundingClientRect();
@@ -1482,9 +1951,16 @@
         });
     };
 
-    // 点击外部关闭菜单 - 使用全局点击事件
+    // 点击外部关闭菜单。自定义布局弹窗通过 Portal 渲染，
+    // 这里需要把弹窗本体和遮罩层都视为“菜单内部”，避免点击时误关菜单。
     const handleClickOutside = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
+        if (
+            target.closest('.custom-layout-modal') ||
+            target.closest('.custom-layout-modal__overlay')
+        ) {
+            return;
+        }
         if (
             !target.closest('.view-options-menu') &&
             !target.closest('.js-view-options-trigger')
@@ -1499,14 +1975,8 @@
         document.addEventListener('click', handleClickOutside);
         window.addEventListener('resize', handleViewportChange);
         window.addEventListener('orientationchange', handleViewportChange);
-        window.visualViewport?.addEventListener(
-            'resize',
-            handleViewportChange,
-        );
-        window.visualViewport?.addEventListener(
-            'scroll',
-            handleViewportChange,
-        );
+        window.visualViewport?.addEventListener('resize', handleViewportChange);
+        window.visualViewport?.addEventListener('scroll', handleViewportChange);
         document.addEventListener('focusin', handleViewportChange, true);
         handleViewportChange();
     };
@@ -1557,6 +2027,9 @@
 
     onDestroy(() => {
         detachListeners();
+        if ($exportModeModalViewId === view.id) {
+            closeExportModeModal();
+        }
     });
 </script>
 
@@ -1603,11 +2076,14 @@
                 activeBranchColor={$activeBranchColor}
                 inactiveNodeOpacity={$inactiveNodeOpacity}
                 borderOpacity={$borderOpacity}
+                gridHighlightColor={$gridHighlightColor}
+                gridHighlightWidth={$gridHighlightWidth}
                 backgroundMode={$backgroundMode}
                 sectionColorOpacity={$sectionColorOpacity}
                 squareLayout={$squareLayout}
                 cardsGap={$cardsGap}
-                gridOrientation={$gridOrientation}
+                selectedLayoutId={$selectedLayoutId}
+                customLayouts={$customLayouts}
                 toggle={() => (showEditOptions = !showEditOptions)}
                 {updateWhiteThemeMode}
                 {toggleImmersiveOptions}
@@ -1623,6 +2099,11 @@
                 {resetInactiveNodeOpacity}
                 {stepBorderOpacity}
                 {updateBorderOpacity}
+                {updateGridHighlightColor}
+                {resetGridHighlightColor}
+                {stepGridHighlightWidth}
+                {updateGridHighlightWidth}
+                {resetGridHighlightWidth}
                 {updateBackgroundMode}
                 {stepOpacity}
                 {updateSectionColorOpacity}
@@ -1630,7 +2111,8 @@
                 {stepCardsGap}
                 {updateCardsGap}
                 {resetCardsGap}
-                {updateGridOrientation}
+                {selectGridLayout}
+                {openCustomLayoutModal}
             />
 
             <ViewOptionsDisplayPanel
@@ -1638,10 +2120,32 @@
                 showHiddenCardInfo={$showHiddenCardInfo}
                 show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                showCopyBlockPlain={$contextMenuCopyLinkVisibility[
+                    'block-plain'
+                ]}
+                showCopyBlockEmbed={$contextMenuCopyLinkVisibility[
+                    'block-embed'
+                ]}
+                showCopyHeadingPlain={$contextMenuCopyLinkVisibility[
+                    'heading-plain'
+                ]}
+                showCopyHeadingEmbed={$contextMenuCopyLinkVisibility[
+                    'heading-embed'
+                ]}
+                showCopyHeadingEmbedDollar={$contextMenuCopyLinkVisibility[
+                    'heading-embed-dollar'
+                ]}
+                detailSidebarPreviewMode={$detailSidebarPreviewMode}
                 toggle={() => (showDisplayOptions = !showDisplayOptions)}
                 {toggleHiddenCardInfo}
                 {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
+                {toggleCopyBlockPlain}
+                {toggleCopyBlockEmbed}
+                {toggleCopyHeadingPlain}
+                {toggleCopyHeadingEmbed}
+                {toggleCopyHeadingEmbedDollar}
+                {updateDetailSidebarPreviewMode}
             />
 
             <ViewOptionsFontPanel
@@ -1672,7 +2176,9 @@
                 </div>
                 <div class="view-options-menu__content">
                     <div class="view-options-menu__label">快捷键设置</div>
-                    <div class="view-options-menu__desc">打开快捷键设置面板</div>
+                    <div class="view-options-menu__desc">
+                        打开快捷键设置面板
+                    </div>
                 </div>
             </button>
 
@@ -1686,15 +2192,20 @@
                 {applyTemplateToCurrentTheme}
             />
 
-            <ViewOptionsExportPanel
-                show={showPrintOptions}
-                {exportMode}
-                toggle={() => (showPrintOptions = !showPrintOptions)}
-                setPngSquareMode={() => setExportMode('png-square')}
-                setPngScreenMode={() => setExportMode('png-screen')}
-                setPdfMode={() => setExportMode('pdf-a4')}
-                {exportCurrentFile}
-            />
+            <button
+                class="view-options-menu__item"
+                on:click={openExportModeModal}
+            >
+                <div class="view-options-menu__icon">
+                    <Printer class="view-options-menu__icon-svg" size={18} />
+                </div>
+                <div class="view-options-menu__content">
+                    <div class="view-options-menu__label">导出模式</div>
+                    <div class="view-options-menu__desc">
+                        打开独立导出面板（临时会话）
+                    </div>
+                </div>
+            </button>
 
             <button
                 class="view-options-menu__item"
@@ -1713,3 +2224,393 @@
         </div>
     </div>
 {/if}
+
+<svelte:window
+    on:keydown={onExportModeKeyDown}
+    on:mousemove={moveExportModalDrag}
+    on:mouseup={stopExportModalDrag}
+    on:touchmove|nonpassive={moveExportModalDrag}
+    on:touchend={stopExportModalDrag}
+/>
+
+{#if isExportModeModalOpen}
+    <Portal>
+        <div class="export-mode-overlay" />
+        <div
+            class="mandala-modal export-mode-modal"
+            class:is-mobile={isMobile}
+            style={exportModalInlineStyle}
+            on:mousedown|stopPropagation
+            on:touchstart|stopPropagation
+        >
+            <div
+                class="view-options-menu__header export-mode-modal__header"
+                on:mousedown={startExportModalDrag}
+                on:touchstart={startExportModalDrag}
+            >
+                <span class="view-options-menu__title">
+                    导出模式（临时会话，按住标题可移动）
+                </span>
+                <button
+                    class="view-options-menu__close"
+                    on:click={closeExportMode}
+                >
+                    <X class="icon" size={16} />
+                </button>
+            </div>
+            <div class="view-options-menu__items">
+                <div class="view-options-menu__submenu export-mode-flow">
+                    <div class="view-options-menu__note">
+                        仅本次导出生效，关闭后恢复编辑状态。
+                    </div>
+                    <div class="view-options-menu__subsection-title">
+                        1. 导出目标
+                    </div>
+                    <div class="export-target-tabs">
+                        <button
+                            class="export-target-tab"
+                            class:is-active={exportMode === 'png-square'}
+                            on:click={() => setExportMode('png-square')}
+                        >
+                            PNG 格子范围
+                        </button>
+                        <button
+                            class="export-target-tab"
+                            class:is-active={exportMode === 'png-screen'}
+                            on:click={() => setExportMode('png-screen')}
+                        >
+                            PNG 屏幕范围
+                        </button>
+                        <button
+                            class="export-target-tab"
+                            class:is-active={exportMode === 'pdf-a4'}
+                            on:click={() => setExportMode('pdf-a4')}
+                        >
+                            PDF A4
+                        </button>
+                    </div>
+                    <div class="export-mode-status">
+                        <span class="export-mode-badge">{exportModeLabel}</span>
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
+                            {exportModeHint}
+                        </span>
+                    </div>
+                    <div class="export-appearance-status">
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
+                            {appearanceStyleLabel}
+                        </span>
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
+                            {appearanceShapeLabel}
+                        </span>
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
+                            {appearanceBackgroundLabel}
+                        </span>
+                        <span
+                            class="export-mode-badge export-mode-badge--muted"
+                        >
+                            {appearanceOrientationLabel}
+                        </span>
+                    </div>
+                    <div class="view-options-menu__subsection-title">
+                        2. 专属选项
+                    </div>
+                    {#if exportMode === 'png-screen'}
+                        <div class="view-options-menu__row">
+                            <label class="view-options-menu__inline-option">
+                                <input
+                                    type="checkbox"
+                                    checked={includeSidebarInPngScreen}
+                                    on:change={toggleIncludeSidebarInPngScreen}
+                                />
+                                <span>包含侧边栏</span>
+                            </label>
+                        </div>
+                    {:else if exportMode === 'pdf-a4'}
+                        <div class="view-options-menu__row">
+                            <span>A4 方向</span>
+                            <select
+                                value={$a4Orientation}
+                                on:change={_updateA4Orientation}
+                            >
+                                <option value="portrait">纵向</option>
+                                <option value="landscape">横向</option>
+                            </select>
+                        </div>
+                    {:else}
+                        <div class="view-options-menu__note">
+                            {$squareLayout
+                                ? '当前为正方形布局，按格子范围导出并自动留白。'
+                                : '当前为自适应布局，按格子范围导出长方形。'}
+                        </div>
+                    {/if}
+                    <div class="export-style-header">
+                        <div class="view-options-menu__subsection-title">
+                            3. 外观样式
+                        </div>
+                        <button
+                            class="export-style-toggle"
+                            on:click={() =>
+                                (showExportStyleDetails =
+                                    !showExportStyleDetails)}
+                        >
+                            {showExportStyleDetails ? '收起' : '展开'}
+                        </button>
+                    </div>
+                    {#if showExportStyleDetails}
+                        <div class="export-style-panel">
+                            <ViewOptionsEditPanel
+                                show={true}
+                                showTrigger={false}
+                                whiteThemeMode={$whiteThemeMode}
+                                {showImmersiveOptions}
+                                {showPanoramaOptions}
+                                containerBg={$containerBg}
+                                activeBranchBg={$activeBranchBg}
+                                activeBranchColor={$activeBranchColor}
+                                inactiveNodeOpacity={$inactiveNodeOpacity}
+                                borderOpacity={$borderOpacity}
+                                backgroundMode={$backgroundMode}
+                                sectionColorOpacity={$sectionColorOpacity}
+                                squareLayout={$squareLayout}
+                                cardsGap={$cardsGap}
+                                selectedLayoutId={$selectedLayoutId}
+                                customLayouts={$customLayouts}
+                                toggle={() => undefined}
+                                {updateWhiteThemeMode}
+                                {toggleImmersiveOptions}
+                                {togglePanoramaOptions}
+                                {updateContainerBg}
+                                {resetContainerBg}
+                                {updateActiveBranchBg}
+                                {resetActiveBranchBg}
+                                {updateActiveBranchColor}
+                                {resetActiveBranchColor}
+                                {stepInactiveOpacity}
+                                {updateInactiveNodeOpacity}
+                                {resetInactiveNodeOpacity}
+                                {stepBorderOpacity}
+                                {updateBorderOpacity}
+                                {updateBackgroundMode}
+                                {stepOpacity}
+                                {updateSectionColorOpacity}
+                                {updateSquareLayout}
+                                {stepCardsGap}
+                                {updateCardsGap}
+                                {resetCardsGap}
+                                {selectGridLayout}
+                                {openCustomLayoutModal}
+                            />
+                        </div>
+                    {/if}
+                    <div class="export-secondary-row">
+                        <button
+                            class="view-options-menu__subitem"
+                            on:click={applyLastExportPreset}
+                            disabled={!$lastExportPresetStore}
+                        >
+                            采用上一次导出设置
+                        </button>
+                        <button
+                            class="view-options-menu__subitem"
+                            on:click={closeExportMode}
+                        >
+                            取消设置并退出
+                        </button>
+                    </div>
+                    <button
+                        class="view-options-menu__subitem export-primary-button"
+                        on:click={exportCurrentFile}
+                    >
+                        {exportActionLabel}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </Portal>
+{/if}
+
+<ViewOptionsCustomLayoutModal
+    open={isCustomLayoutModalOpen}
+    {isMobile}
+    activeLayoutId={$selectedLayoutId}
+    customLayouts={$customLayouts}
+    onClose={closeCustomLayoutModal}
+    onSelectLayout={selectGridLayout}
+    onCreateCustomLayout={createCustomGridLayout}
+    onUpdateCustomLayout={updateCustomGridLayout}
+    onDeleteCustomLayout={deleteCustomGridLayout}
+/>
+
+<style>
+    .export-mode-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        background: rgba(0, 0, 0, 0.18);
+        pointer-events: none;
+    }
+
+    .export-mode-modal {
+        position: fixed;
+        z-index: 1201;
+        right: 16px;
+        top: 72px;
+        width: min(420px, calc(100vw - 24px));
+        max-height: calc(100vh - 96px);
+    }
+
+    :global(.is-mobile) .export-mode-modal {
+        inset: 8px;
+        width: auto;
+        max-height: none;
+    }
+
+    .export-mode-modal__header {
+        cursor: move;
+        user-select: none;
+        touch-action: none;
+    }
+
+    :global(.is-mobile) .export-mode-modal__header {
+        cursor: default;
+        touch-action: auto;
+    }
+
+    .export-mode-status {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .export-appearance-status {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .export-mode-flow {
+        gap: 10px;
+    }
+
+    .export-target-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .export-target-tab {
+        border: 1px solid var(--background-modifier-border);
+        background: var(--background-primary);
+        border-radius: 8px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .export-target-tab.is-active {
+        border-color: var(--interactive-accent);
+        color: var(--text-normal);
+        background: color-mix(
+            in srgb,
+            var(--interactive-accent) 12%,
+            var(--background-primary)
+        );
+    }
+
+    .export-style-panel {
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 8px;
+        padding: 6px 8px;
+        background: var(--background-primary);
+    }
+
+    .export-style-panel :global(.view-options-menu__row) {
+        justify-content: space-between;
+    }
+
+    .export-style-panel :global(.view-options-menu__row > span) {
+        flex: 1 1 auto;
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    .export-style-panel :global(.view-options-menu__row-controls) {
+        margin-left: auto;
+    }
+
+    .export-style-panel :global(.view-options-menu__range) {
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-left: auto;
+        justify-content: flex-end;
+    }
+
+    .export-style-panel :global(.view-options-menu__range input[type='range']) {
+        flex: 0 0 40px;
+        max-width: 40px;
+    }
+
+    .export-style-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .export-style-toggle {
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 6px;
+        background: var(--background-primary);
+        color: var(--text-muted);
+        padding: 2px 8px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .export-style-toggle:hover {
+        color: var(--text-normal);
+        background: var(--background-modifier-hover);
+    }
+
+    .export-secondary-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .export-primary-button {
+        border-color: var(--interactive-accent);
+        background: var(--interactive-accent);
+        color: var(--text-on-accent);
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .export-primary-button:hover {
+        filter: brightness(0.95);
+    }
+
+    .export-mode-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        color: var(--text-normal);
+        background: var(--background-modifier-hover);
+        border: 1px solid var(--background-modifier-border);
+    }
+
+    .export-mode-badge--muted {
+        color: var(--text-muted);
+    }
+</style>

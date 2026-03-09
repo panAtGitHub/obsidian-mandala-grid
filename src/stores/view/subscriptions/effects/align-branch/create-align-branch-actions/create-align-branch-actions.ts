@@ -2,7 +2,6 @@ import { forceCenterActiveNodeV } from 'src/stores/view/subscriptions/effects/al
 import { lazyVerticalScrollingMode } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/lazy-vertical-scrolling-mode';
 import { AlignBranchContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { PluginAction } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
-import { outlineScrollingActions } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/outline-scrolling-actions';
 import { forceCenterActiveNodeH } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/force-center-active-node-h';
 
 export type AlignBranchAction = {
@@ -24,8 +23,8 @@ export type CreateActionsContext = Pick<
     AlignBranchContext,
     | 'previousActiveBranch'
     | 'activeBranch'
-    | 'outlineMode'
     | 'alignBranchSettings'
+    | 'documentState'
 >;
 export const createAlignBranchActions = (
     context: CreateActionsContext,
@@ -44,15 +43,9 @@ export const createAlignBranchActions = (
     } else if (action.type === 'view/align-branch/center-node') {
         actions.push({ action: '20/active-node/vertical/center' });
         actions.push({ action: '20/active-node/horizontal/center' });
-        if (!context.outlineMode) {
-            actions.push({ action: '30/parents/vertical/center' });
-            actions.push({ action: '40/children/vertical/center' });
-        }
+        actions.push({ action: '30/parents/vertical/center' });
+        actions.push({ action: '40/children/vertical/center' });
         return actions;
-    }
-
-    if (context.outlineMode) {
-        return outlineScrollingActions(context, action);
     }
 
     const settings = context.alignBranchSettings;
@@ -62,7 +55,7 @@ export const createAlignBranchActions = (
         actions.push({ action: '20/active-node/horizontal/reveal' });
     }
 
-    if (settings.centerActiveNodeV || forceCenterActiveNodeV(action)) {
+    if (settings.centerActiveNodeV || forceCenterActiveNodeV(context, action)) {
         actions.push({ action: '20/active-node/vertical/center' });
         actions.push({ action: '30/parents/vertical/center' });
         actions.push({ action: '40/children/vertical/center' });
@@ -72,7 +65,6 @@ export const createAlignBranchActions = (
 
     if (
         action.type === 'view/life-cycle/mount' ||
-        action.type === 'document/split-node' ||
         action.type === 'document/file/load-from-disk'
     ) {
         actions.push({ action: '50/inactive-columns/vertical/move-up' });

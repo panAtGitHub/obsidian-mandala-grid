@@ -1,46 +1,16 @@
-import { id } from 'src/helpers/id';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
-import { stringifyDocument } from 'src/view/helpers/stringify-document';
+import { serializeSections } from 'src/mandala-v2';
 
-const createMandalaDocument = (): MandalaGridDocument => {
-    const rootParentId = id.rootNode();
-    const rootNodes = [id.node()];
-
-    const columns = [
-        {
-            id: id.column(),
-            groups: [
-                {
-                    parentId: rootParentId,
-                    nodes: [...rootNodes],
-                },
-            ],
-        },
-        {
-            id: id.column(),
-            groups: [],
-        },
+const createInitialMandalaSections = () => {
+    const sections: { sectionId: string; content: string }[] = [
+        { sectionId: '1', content: '' },
     ];
-
-    const content: MandalaGridDocument['content'] = {};
-    for (const nodeId of rootNodes) {
-        content[nodeId] = { content: '' };
+    for (let i = 1; i <= 8; i += 1) {
+        sections.push({ sectionId: `1.${i}`, content: '' });
     }
-
-    const children = Array.from({ length: 8 }, () => id.node());
-    columns[1].groups.push({
-        parentId: rootNodes[0],
-        nodes: children,
-    });
-    for (const nodeId of children) {
-        content[nodeId] = { content: '' };
-    }
-
-    return { columns, content };
+    return sections;
 };
 
 export const createMandalaMarkdownTemplate = () => {
     const frontmatter = `---\nmandala: true\n---\n`;
-    const document = createMandalaDocument();
-    return frontmatter + stringifyDocument(document, 'sections');
+    return frontmatter + serializeSections(createInitialMandalaSections());
 };

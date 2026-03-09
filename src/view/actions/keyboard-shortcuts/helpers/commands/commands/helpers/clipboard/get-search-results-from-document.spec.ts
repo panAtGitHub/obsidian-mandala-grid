@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import { getSearchResultsFromDocument } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/get-search-results-from-document';
-import { calculateColumnTreeIndexes } from 'src/stores/view/subscriptions/helpers/calculate-tree-index';
 import { clone } from 'src/helpers/clone';
 
 describe('get-search-results-from-clipboard', () => {
@@ -56,21 +55,90 @@ describe('get-search-results-from-clipboard', () => {
             },
         };
         const output = `- #todo 1
+\t- #todo 1.1
 \t- #done 1.2
-- #todo 1.1
-- #todo 2.1
-\t- #done 2.1.1
-- #todo 2.1.1.1
+\t- #todo 2.1
+\t\t- #done 2.1.1
+\t\t\t- #todo 2.1.1.1
 - #todo 3
 \t- #done 3.1
-- #todo 3.2`;
+\t- #todo 3.2`;
         const documentClone = clone(document);
+        const sections = {
+            id_section: {
+                [n1]: '1',
+                [n1_1]: '1.1',
+                [n1_2]: '1.2',
+                [n2]: '2',
+                [n2_1]: '2.1',
+                [n2_1_1]: '2.1.1',
+                [n2_1_1_1]: '2.1.1.1',
+                [n3]: '3',
+                [n3_1]: '3.1',
+                [n3_2]: '3.2',
+            },
+            section_id: {
+                '1': n1,
+                '1.1': n1_1,
+                '1.2': n1_2,
+                '2': n2,
+                '2.1': n2_1,
+                '2.1.1': n2_1_1,
+                '2.1.1.1': n2_1_1_1,
+                '3': n3,
+                '3.1': n3_1,
+                '3.2': n3_2,
+            },
+        };
         const actual = getSearchResultsFromDocument(
             results,
             document,
-            calculateColumnTreeIndexes(document.columns),
+            sections,
         );
         expect(actual).toEqual(output);
         expect(document).toEqual(documentClone);
+    });
+
+    test('preserves outline indentation for multiline node content', () => {
+        const root = 'root';
+        const n1 = 'n1';
+        const n1_1 = 'n1_1';
+        const n2 = 'n2';
+        const document = {
+            columns: [
+                {
+                    id: 'c0',
+                    groups: [{ nodes: [n1, n2], parentId: root }],
+                },
+                {
+                    id: 'c1',
+                    groups: [{ nodes: [n1_1], parentId: n1 }],
+                },
+            ],
+            content: {
+                [n1]: { content: 'Parent line 1\nParent line 2' },
+                [n1_1]: { content: 'Child line 1\nChild line 2' },
+                [n2]: { content: 'Sibling' },
+            },
+        };
+        const sections = {
+            id_section: {
+                [n1]: '1',
+                [n1_1]: '1.1',
+                [n2]: '2',
+            },
+            section_id: {
+                '1': n1,
+                '1.1': n1_1,
+                '2': n2,
+            },
+        };
+
+        const actual = getSearchResultsFromDocument([n1], document, sections);
+
+        expect(actual).toEqual(`- Parent line 1
+  Parent line 2
+\t- Child line 1
+\t  Child line 2`);
     });
 });

@@ -1,7 +1,6 @@
 import { get } from 'svelte/store';
 import { zoomLevelStore } from 'src/stores/view/derived/zoom-level-store';
 import { Menu, MenuItem } from 'obsidian';
-import { showMinimapStore } from 'src/stores/settings/derived/scrolling-store';
 import { MandalaView } from 'src/view/view';
 import { fitDocumentHeightIntoView } from 'src/view/components/container/toolbar-vertical/helpers/fit-document-height-into-view';
 import { fitBranchIntoView } from 'src/view/components/container/toolbar-vertical/helpers/fit-branch-into-view';
@@ -129,9 +128,7 @@ export const createZoomMenu = (props: Props) => {
     ).getBoundingClientRect();
     const viewRect = props.view.container!.getBoundingClientRect();
     menu.showAtPosition({
-        x: get(showMinimapStore(props.view))
-            ? buttonRect.left - props.state.menuWidth - 10
-            : buttonRect.left - 10,
+        x: buttonRect.left - 10,
         y: viewRect.bottom - 10 - props.state.menuHeight,
     });
     menu.onHide(() => {

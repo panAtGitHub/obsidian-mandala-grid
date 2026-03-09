@@ -1,8 +1,8 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import {
+    getMandalaLayoutById,
     posOfSection3x3,
-    getMandalaLayout,
 } from 'src/view/helpers/mandala/mandala-grid';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
@@ -25,10 +25,13 @@ export const tryMandala3x3Navigation = (
     if (!activeSectionRaw) return false;
 
     const subgridTheme = view.viewStore.getValue().ui.mandala.subgridTheme;
-    const gridOrientation =
-        view.plugin.settings.getValue().view.mandalaGridOrientation ??
-        'left-to-right';
-    const { slotPositions, themeGrid } = getMandalaLayout(gridOrientation);
+    const selectedLayoutId = view.getCurrentMandalaLayoutId();
+    const customLayouts =
+        view.plugin.settings.getValue().view.mandalaGridCustomLayouts ?? [];
+    const { slotPositions, themeGrid } = getMandalaLayoutById(
+        selectedLayoutId,
+        customLayouts,
+    );
     const theme = subgridTheme ?? '1';
 
     const pos = (() => {
@@ -38,7 +41,7 @@ export const tryMandala3x3Navigation = (
             if (suffix.includes('.')) return null;
             return slotPositions[suffix] ?? null;
         }
-        return posOfSection3x3(activeSectionRaw, gridOrientation);
+        return posOfSection3x3(activeSectionRaw, selectedLayoutId, customLayouts);
     })();
     if (!pos) return false;
 

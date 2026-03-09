@@ -7,7 +7,6 @@ export const cssVariables = {
         containerBg: '--background-container',
     } satisfies Partial<Record<keyof Theme, string>>,
     cardWidth: '--node-width',
-    cardIndentationWidth: '--node-indentation-width',
     nodeGap: '--node-gap-setting',
     minCardHeight: '--min-node-height',
     zoomLevel: '--zoom-level',

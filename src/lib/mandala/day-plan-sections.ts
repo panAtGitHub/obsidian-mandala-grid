@@ -1,8 +1,8 @@
-import { parseHtmlCommentMarker } from 'src/lib/data-conversion/helpers/html-comment-marker/parse-html-comment-marker';
+import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
 
 const findSectionIndex = (lines: string[], section: string) => {
     for (let i = 0; i < lines.length; i += 1) {
-        const parsed = parseHtmlCommentMarker(lines[i]);
+        const parsed = parseSectionMarker(lines[i]);
         if (parsed?.[2] === section) return i;
     }
     return -1;
@@ -10,7 +10,7 @@ const findSectionIndex = (lines: string[], section: string) => {
 
 const findNextSectionIndex = (lines: string[], start: number) => {
     for (let i = start; i < lines.length; i += 1) {
-        if (parseHtmlCommentMarker(lines[i])) return i;
+        if (parseSectionMarker(lines[i])) return i;
     }
     return -1;
 };
@@ -54,7 +54,7 @@ export const ensureSectionChildren = (
 
     const endIndex = (() => {
         for (let i = startIndex + 1; i < lines.length; i += 1) {
-            const parsed = parseHtmlCommentMarker(lines[i]);
+            const parsed = parseSectionMarker(lines[i]);
             if (!parsed) continue;
             const full = parsed[2];
             if (!full.startsWith(`${section}.`)) {
@@ -66,7 +66,7 @@ export const ensureSectionChildren = (
 
     const existing = new Map<number, number>();
     for (let i = startIndex + 1; i < endIndex; i += 1) {
-        const parsed = parseHtmlCommentMarker(lines[i]);
+        const parsed = parseSectionMarker(lines[i]);
         if (!parsed) continue;
         const full = parsed[2];
         if (!full.startsWith(`${section}.`)) continue;

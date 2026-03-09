@@ -11,10 +11,8 @@ export const defaultViewState = (): ViewState => ({
     },
     ui: {
         controls: {
-            showHistorySidebar: false,
             showHelpSidebar: false,
             showSettingsSidebar: false,
-            showStyleRulesModal: false,
         },
         mandala: {
             subgridTheme: '1',
@@ -51,24 +49,8 @@ export const defaultViewState = (): ViewState => ({
             deleteNode: new Set<string>(),
         },
     },
-    navigationHistory: {
-        items: [],
-        state: {
-            activeIndex: -1,
-            canGoBack: false,
-            canGoForward: false,
-        },
-        context: undefined,
-    },
     pinnedNodes: {
         activeNode: '',
-    },
-    recentNodes: {
-        activeNode: '',
-    },
-    styleRules: {
-        nodeStyles: new Map(),
-        allMatches: new Map(),
     },
     keyboard: {
         shift: false,
@@ -76,10 +58,6 @@ export const defaultViewState = (): ViewState => ({
     hotkeys: {
         searchTerm: '',
         conflictingHotkeys: new Map(),
-    },
-    outline: {
-        collapsedParents: new Set(),
-        hiddenNodes: new Set(),
     },
 });
 export type ActiveBranch = {

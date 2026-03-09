@@ -8,12 +8,17 @@ import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
+import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
+import { openExportModeModalForView } from 'src/view/components/container/toolbar-vertical/export-mode-modal-store';
+import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 
 const createCommands = (plugin: MandalaGrid) => {
     const commands: (Omit<Command, 'id' | 'callback'> & {
+        commandId: string;
         checkCallback: (checking: boolean) => boolean | void;
     })[] = [];
     commands.push({
+        commandId: 'toggle-mandala-view',
         name: lang.cmd_toggle_mandala_view,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
@@ -28,6 +33,7 @@ const createCommands = (plugin: MandalaGrid) => {
     });
 
     commands.push({
+        commandId: 'create-new-mandala-document',
         name: lang.cmd_create_new_document,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
@@ -49,16 +55,38 @@ const createCommands = (plugin: MandalaGrid) => {
     // - lang.cmd_export_nodes_wo_subitems
     // - lang.cm_export_document
     // - lang.cm_eject_document
-    // - lang.cmd_toggle_minimap
     // - lang.cmd_toggle_left_sidebar
     // - lang.cmd_space_between_cards
 
     commands.push({
+        commandId: 'set-day-plan-mandala-format',
         name: lang.cmd_set_day_plan_mandala_format,
         icon: customIcons.mandalaGrid.name,
         checkCallback: (checking) => {
             if (checking) return true;
             void setupDayPlanMandalaFormat(plugin);
+        },
+    });
+
+    commands.push({
+        commandId: 'write-current-core-day-plan-slots-to-yaml',
+        name: lang.cmd_write_current_core_day_plan_slots_to_yaml,
+        icon: customIcons.mandalaGrid.name,
+        checkCallback: (checking) => {
+            if (checking) return true;
+            void writeCurrentCoreDayPlanSlotsToYaml(plugin);
+        },
+    });
+
+    commands.push({
+        commandId: 'open-export-mode',
+        name: lang.cmd_open_export_mode,
+        icon: customIcons.mandalaGrid.name,
+        checkCallback: (checking) => {
+            const view = getActiveMandalaView(plugin);
+            if (!view) return false;
+            if (checking) return true;
+            openExportModeModalForView(view.id);
         },
     });
 
@@ -78,7 +106,7 @@ export const addCommands = (plugin: MandalaGrid) => {
                     return false;
                 }
             },
-            id: slugify(command.name),
+            id: slugify(command.commandId),
         });
     }
 };

@@ -17,9 +17,7 @@ export const attachCloseModalsListener = (view: MandalaView) => {
     const unsub = controls.subscribe((controls) => {
         if (
             /*controls.showHelpSidebar ||*/
-            controls.showHistorySidebar ||
-            controls.showSettingsSidebar /*||
-            controls.showStyleRulesModal*/
+            controls.showSettingsSidebar
         ) {
             setTimeout(() => {
                 view.contentEl.addEventListener('click', listener);

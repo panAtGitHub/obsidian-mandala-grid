@@ -5,21 +5,26 @@ import {
     Settings,
 } from 'src/stores/settings/settings-type';
 
-type PartialSettings = Pick<Settings, 'documents'> & {
-    styleRules: Pick<Settings['styleRules'], 'documents'>;
-};
+type PartialSettings = Pick<Settings, 'documents'>;
 const sample: DocumentPreferences = {
-    documentFormat: 'sections',
     viewType: 'mandala-grid',
     activeSection: null,
-    pinnedSections: null,
     outline: null,
+    mandalaView: {
+        gridOrientation: null,
+        selectedLayoutId: null,
+        lastActiveSection: null,
+        subgridTheme: null,
+        showDetailSidebarDesktop: null,
+        showDetailSidebarMobile: null,
+        pinnedSections: [],
+        sectionColors: {},
+    },
 };
 describe('filterStaleDocuments', () => {
     it('should return 0 if allFiles is empty', () => {
         const settings: PartialSettings = {
             documents: {},
-            styleRules: { documents: {} },
         };
         const allFiles: Set<string> = new Set();
         const result = filterStaleDocuments(settings, allFiles);
@@ -33,13 +38,6 @@ describe('filterStaleDocuments', () => {
                 path2: sample,
                 path3: sample,
             },
-            styleRules: {
-                documents: {
-                    path1: { rules: [] },
-                    path2: { rules: [] },
-                    path3: { rules: [] },
-                },
-            },
         };
         const allFiles: Set<string> = new Set(['path1', 'path3']);
         const result = filterStaleDocuments(settings, allFiles);
@@ -48,12 +46,6 @@ describe('filterStaleDocuments', () => {
             documents: {
                 path1: sample,
                 path3: sample,
-            },
-            styleRules: {
-                documents: {
-                    path1: { rules: [] },
-                    path3: { rules: [] },
-                },
             },
         });
     });
@@ -64,12 +56,6 @@ describe('filterStaleDocuments', () => {
                 path1: sample,
                 path2: sample,
             },
-            styleRules: {
-                documents: {
-                    path1: { rules: [] },
-                    path2: { rules: [] },
-                },
-            },
         };
         const allFiles: Set<string> = new Set(['path1', 'path2']);
         const result = filterStaleDocuments(settings, allFiles);
@@ -78,12 +64,6 @@ describe('filterStaleDocuments', () => {
             documents: {
                 path1: sample,
                 path2: sample,
-            },
-            styleRules: {
-                documents: {
-                    path1: { rules: [] },
-                    path2: { rules: [] },
-                },
             },
         });
     });
@@ -94,19 +74,12 @@ describe('filterStaleDocuments', () => {
                 path1: sample,
                 path2: sample,
             },
-            styleRules: {
-                documents: {
-                    path1: { rules: [] },
-                    path2: { rules: [] },
-                },
-            },
         };
         const allFiles: Set<string> = new Set(['path3']);
         const result = filterStaleDocuments(settings, allFiles);
         expect(result).toBe(2);
         expect(settings).toEqual({
             documents: {},
-            styleRules: { documents: {} },
         });
     });
 });

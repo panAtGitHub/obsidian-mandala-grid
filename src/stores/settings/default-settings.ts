@@ -1,10 +1,12 @@
 import { Settings } from './settings-type';
+import { DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 
 export const DEFAULT_CARD_WIDTH = 550;
 export const DEFAULT_CARDS_GAP = 6;
-export const DEFAULT_INDENTATION_WIDTH = 60;
 export const DEFAULT_INACTIVE_NODE_OPACITY = 25;
 export const DEFAULT_H1_FONT_SIZE_EM = 1.802;
+export const DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR = '#418cff';
+export const DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH = 2;
 export const DEFAULT_SETTINGS = (): Settings => ({
     documents: {},
     hotkeys: {
@@ -42,14 +44,11 @@ export const DEFAULT_SETTINGS = (): Settings => ({
             enable_edit_mode: {
                 primary: { key: 'Enter', modifiers: [] },
             },
-            undo_change: {
-                primary: { key: 'z', modifiers: ['Mod'] },
-            },
-            redo_change: {
-                primary: { key: 'y', modifiers: ['Mod'] },
-            },
             toggle_mandala_mode: {
                 primary: { key: 'l', modifiers: ['Mod'] },
+            },
+            toggle_detail_sidebar: {
+                primary: { key: ']', modifiers: ['Mod'] },
             },
         },
     },
@@ -73,48 +72,47 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         },
         limitPreviewHeight: true,
         zoomLevel: 1,
-        showMinimap: false,
         showLeftSidebar: false,
         showMandalaDetailSidebarDesktop: false,
         showMandalaDetailSidebarMobile: false,
+        detailSidebarPreviewModeDesktop: 'rendered',
+        detailSidebarPreviewModeMobile: 'rendered',
         mandalaDetailSidebarWidth: 350,
         leftSidebarWidth: 500,
         leftSidebarActiveTab: 'pinned-cards',
         applyGapBetweenCards: false,
-        outlineMode: false,
         mandalaMode: '3x3',
         mandalaGridOrientation: 'left-to-right',
+        mandalaGridSelectedLayoutId: 'builtin:left-to-right',
+        mandalaGridCustomLayouts: [],
         mandalaA4Mode: false,
         mandalaA4Orientation: 'landscape',
         mandalaBackgroundMode: 'custom',
         mandalaGridBorderOpacity: 100,
+        mandalaGridHighlightWidth: DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
         mandalaSectionColorOpacity: 100,
-        nodeIndentationWidth: DEFAULT_INDENTATION_WIDTH,
-        maintainEditMode: false,
+        lastExportPreset: null,
         alwaysShowCardButtons: false,
         showHiddenCardInfo: true,
         show3x3SubgridNavButtonsDesktop: true,
         show3x3SubgridNavButtonsMobile: true,
         show9x9ParallelNavButtonsDesktop: true,
         show9x9ParallelNavButtonsMobile: true,
+        contextMenuCopyLinkVisibilityDesktop: {
+            ...DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY,
+        },
+        contextMenuCopyLinkVisibilityMobile: {
+            ...DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY,
+        },
         mobileEditFontSizeOffset: 0,
         show9x9TitleOnly: false,
         squareLayout: false,
         whiteThemeMode: false,
+        mandalaEmbedDebug: false,
         hiddenVerticalToolbarButtons: [],
     },
     general: {
-        defaultDocumentFormat: 'sections',
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
-    },
-    styleRules: {
-        documents: {},
-        global: {
-            rules: [],
-        },
-        settings: {
-            activeTab: 'global-rules',
-        },
     },
 });

@@ -34,12 +34,12 @@
     
     // Mandala 搜索结果
     const mandalaSearchResults = derived(
-        [search, view.documentStore],
-        ([$search, $doc]) => {
+        [search],
+        ([$search]) => {
             if (!$search.results || $search.results.size === 0) {
                 return [];
             }
-            return convertToMandalaResults($search.results, $doc.sections.id_section);
+            return convertToMandalaResults($search.results);
         }
     );
 
@@ -82,7 +82,7 @@
                     <MandalaSearchResults results={$mandalaSearchResults} />
                 {/if}
             {:else}
-                <!-- Lineage 模式：显示导航按钮 -->
+                <!-- 非九宫格模式：显示导航按钮 -->
                 <SearchNavigationButtons
                     results={Array.from($search.results.keys())}
                 />

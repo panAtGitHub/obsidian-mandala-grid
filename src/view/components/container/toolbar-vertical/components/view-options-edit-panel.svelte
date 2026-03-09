@@ -1,8 +1,11 @@
 <script lang="ts">
     import { Grid3x3, RotateCcw } from 'lucide-svelte';
+    import type { MandalaCustomLayout } from 'src/stores/settings/settings-type';
     import ColorSwatchInput from '../color-swatch-input.svelte';
+    import ViewOptionsGridLayoutPanel from './view-options-grid-layout-panel.svelte';
 
     export let show = false;
+    export let showTrigger = true;
     export let whiteThemeMode = false;
     export let showImmersiveOptions = false;
     export let showPanoramaOptions = false;
@@ -13,12 +16,14 @@
     export let inactiveNodeOpacity = 0;
 
     export let borderOpacity = 0;
+    export let gridHighlightColor = '';
+    export let gridHighlightWidth = 2;
     export let backgroundMode: 'none' | 'custom' | 'gray' = 'none';
     export let sectionColorOpacity = 0;
     export let squareLayout = false;
     export let cardsGap = 0;
-    export let gridOrientation: 'south-start' | 'left-to-right' | 'bottom-to-top' =
-        'south-start';
+    export let selectedLayoutId = 'builtin:left-to-right';
+    export let customLayouts: MandalaCustomLayout[] = [];
 
     export let toggle: () => void;
     export let updateWhiteThemeMode: (enabled: boolean) => void;
@@ -38,6 +43,11 @@
 
     export let stepBorderOpacity: (current: number, delta: number) => void;
     export let updateBorderOpacity: (event: Event) => void;
+    export let updateGridHighlightColor: (event: Event) => void;
+    export let resetGridHighlightColor: () => void;
+    export let stepGridHighlightWidth: (current: number, delta: number) => void;
+    export let updateGridHighlightWidth: (event: Event) => void;
+    export let resetGridHighlightWidth: () => void;
 
     export let updateBackgroundMode: (mode: 'none' | 'custom' | 'gray') => void;
     export let stepOpacity: (current: number, delta: number) => void;
@@ -48,20 +58,21 @@
     export let updateCardsGap: (event: Event) => void;
     export let resetCardsGap: () => void;
 
-    export let updateGridOrientation: (
-        orientation: 'south-start' | 'left-to-right' | 'bottom-to-top',
-    ) => void;
+    export let selectGridLayout: (layoutId: string) => void;
+    export let openCustomLayoutModal: () => void;
 </script>
 
-<button class="view-options-menu__item" on:click={toggle}>
-    <div class="view-options-menu__icon">
-        <Grid3x3 class="view-options-menu__icon-svg" size={18} />
-    </div>
-    <div class="view-options-menu__content">
-        <div class="view-options-menu__label">编辑模式</div>
-        <div class="view-options-menu__desc">背景与布局</div>
-    </div>
-</button>
+{#if showTrigger}
+    <button class="view-options-menu__item" on:click={toggle}>
+        <div class="view-options-menu__icon">
+            <Grid3x3 class="view-options-menu__icon-svg" size={18} />
+        </div>
+        <div class="view-options-menu__content">
+            <div class="view-options-menu__label">编辑模式</div>
+            <div class="view-options-menu__desc">背景与布局</div>
+        </div>
+    </button>
+{/if}
 
 {#if show}
     <div class="view-options-menu__submenu">
@@ -222,6 +233,75 @@
                         <div class="view-options-menu__subsection-title">
                             线框选项
                         </div>
+                        <div class="view-options-menu__row">
+                            <span>高亮框颜色</span>
+                            <div class="view-options-menu__row-controls">
+                                <ColorSwatchInput
+                                    value={gridHighlightColor}
+                                    onInput={updateGridHighlightColor}
+                                    ariaLabel="选择表格风格高亮框颜色"
+                                />
+                                <button
+                                    class="view-options-menu__reset"
+                                    type="button"
+                                    on:click={resetGridHighlightColor}
+                                    aria-label="重置高亮框颜色"
+                                >
+                                    <RotateCcw size={14} />
+                                </button>
+                            </div>
+                        </div>
+                        <label class="view-options-menu__row">
+                            <span>高亮框粗细</span>
+                            <div class="view-options-menu__range">
+                                <button
+                                    class="view-options-menu__range-step"
+                                    type="button"
+                                    on:click={() =>
+                                        stepGridHighlightWidth(
+                                            gridHighlightWidth,
+                                            -1,
+                                        )}
+                                >
+                                    -
+                                </button>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="8"
+                                    step="1"
+                                    value={gridHighlightWidth}
+                                    on:input={updateGridHighlightWidth}
+                                />
+                                <button
+                                    class="view-options-menu__range-step"
+                                    type="button"
+                                    on:click={() =>
+                                        stepGridHighlightWidth(
+                                            gridHighlightWidth,
+                                            1,
+                                        )}
+                                >
+                                    +
+                                </button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="8"
+                                    step="1"
+                                    value={gridHighlightWidth}
+                                    on:input={updateGridHighlightWidth}
+                                />
+                                <button
+                                    class="view-options-menu__reset"
+                                    type="button"
+                                    on:click={resetGridHighlightWidth}
+                                    aria-label="重置高亮框粗细"
+                                >
+                                    <RotateCcw size={14} />
+                                </button>
+                            </div>
+                        </label>
                         <label class="view-options-menu__row">
                             <span>线框透明度</span>
                             <div class="view-options-menu__range">
@@ -397,37 +477,11 @@
             </label>
         </div>
 
-        <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">九宫格方位布局</div>
-            <div class="view-options-menu__row view-options-menu__row--inline">
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-grid-orientation"
-                        checked={gridOrientation === 'south-start'}
-                        on:change={() => updateGridOrientation('south-start')}
-                    />
-                    <span>从南开始</span>
-                </label>
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-grid-orientation"
-                        checked={gridOrientation === 'left-to-right'}
-                        on:change={() => updateGridOrientation('left-to-right')}
-                    />
-                    <span>从左到右（Z形）</span>
-                </label>
-                <label class="view-options-menu__inline-option">
-                    <input
-                        type="radio"
-                        name="mandala-grid-orientation"
-                        checked={gridOrientation === 'bottom-to-top'}
-                        on:change={() => updateGridOrientation('bottom-to-top')}
-                    />
-                    <span>从下到上（S形）</span>
-                </label>
-            </div>
-        </div>
+        <ViewOptionsGridLayoutPanel
+            {selectedLayoutId}
+            {customLayouts}
+            onSelectLayout={selectGridLayout}
+            onOpenCustomLayoutModal={openCustomLayoutModal}
+        />
     </div>
 {/if}

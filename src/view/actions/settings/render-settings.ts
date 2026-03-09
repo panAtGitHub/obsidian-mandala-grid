@@ -4,16 +4,14 @@ import { BackgroundColor } from 'src/view/actions/settings/components/background
 import { ActiveBranchBackground } from 'src/view/actions/settings/components/active-branch-background';
 import { CardWidth } from 'src/view/actions/settings/components/card-width';
 import { LimitCardHeight } from 'src/view/actions/settings/components/limit-card-height';
-import { DefaultDocumentFormat } from 'src/view/actions/settings/components/default-document-format';
 import { CardsGap } from 'src/view/actions/settings/components/cards-gap';
-import { CardIndentationWidth } from 'src/view/actions/settings/components/card-indentation-width';
-import { MaintainEditMode } from 'src/view/actions/settings/components/maintain-edit-mode';
 import { InactiveCardOpacity } from 'src/view/actions/settings/components/inactive-card-opacity';
 import { ActiveBranchColor } from 'src/view/actions/settings/components/active-branch-color';
 import { ControlsBarButtons } from 'src/view/actions/settings/components/controls-bar-buttons/controls-bar-buttons';
 import { HeadingsFontSize } from 'src/view/actions/settings/components/headings-font-size';
 import { MandalaFontSizes } from 'src/view/actions/settings/components/mandala-font-sizes';
 import { LinkPaneType } from 'src/view/actions/settings/components/link-pane-type';
+import { MandalaEmbedDebug } from 'src/view/actions/settings/components/mandala-embed-debug';
 import { MandalaView } from 'src/view/view';
 import { lang } from 'src/lang/lang';
 
@@ -42,13 +40,8 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     tabs.push({ element: layoutTab, name: 'Layout' });
 
     // general
-    DefaultDocumentFormat(generalTab, settingsStore);
     LinkPaneType(generalTab, settingsStore);
-    MaintainEditMode(
-        generalTab,
-        settingsStore,
-        isMandala ? '自动聚焦详情编辑' : undefined,
-    );
+    MandalaEmbedDebug(generalTab, settingsStore);
     /*AlwaysShowCardButtons(
         generalTab,
         settingsStore,
@@ -91,9 +84,6 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     }
     if (!isMandala) {
         CardsGap(layoutTab, settingsStore);
-    }
-    if (!isMandala) {
-        CardIndentationWidth(layoutTab, settingsStore);
     }
     if (!isMandala) {
         LimitCardHeight(layoutTab, settingsStore);

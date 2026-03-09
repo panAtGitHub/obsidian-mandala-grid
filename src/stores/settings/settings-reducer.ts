@@ -1,66 +1,180 @@
-import { Settings } from './settings-type';
+import {
+    DocumentPreferences,
+    MandalaCustomLayout,
+    MandalaSectionColorAssignments,
+    Settings,
+} from './settings-type';
 import { changeZoomLevel } from 'src/stores/settings/reducers/change-zoom-level';
-import { updateStyleRules } from 'src/stores/settings/reducers/update-style-rules/update-style-rules';
 import { CommandName } from 'src/lang/hotkey-groups';
 import { toggleEditorState } from 'src/stores/settings/reducers/toggle-editor-state';
 import { setHotkeyAsBlank } from 'src/stores/settings/reducers/set-hotkey-as-blank';
-import { persistCollapsedSections } from 'src/stores/settings/reducers/persist-collapsed-sections';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { Platform } from 'obsidian';
+import { normalizeContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
+import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import {
+    layoutIdToOrientation,
+    normalizeCustomMandalaPattern,
+    normalizeMandalaCustomLayouts,
+} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
 
 type SettingsActionHandler = (store: Settings, action: SettingsActions) => void;
+
+const normalizeSectionIds = (sections: string[]) =>
+    Array.from(new Set(sections)).sort(compareSectionIds);
+
+const normalizeSectionIdsFromUnknown = (value: unknown) => {
+    if (!Array.isArray(value)) return [];
+    const sections = value as unknown[];
+    return normalizeSectionIds(
+        sections
+            .map((section) =>
+                typeof section === 'number' ? String(section) : section,
+            )
+            .filter(
+                (section): section is string => typeof section === 'string',
+            ),
+    );
+};
+
+const normalizeSectionColorAssignments = (
+    value: unknown,
+): MandalaSectionColorAssignments => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const result: MandalaSectionColorAssignments = {};
+    for (const [key, sections] of Object.entries(value)) {
+        const normalized = normalizeSectionIdsFromUnknown(sections);
+        if (normalized.length > 0) {
+            result[key] = normalized;
+        }
+    }
+    return result;
+};
+
+const createDefaultDocumentPreferences = (): DocumentPreferences => ({
+    viewType: 'mandala-grid',
+    activeSection: null,
+    outline: null,
+    mandalaView: {
+        gridOrientation: null,
+        selectedLayoutId: null,
+        selectedCustomLayout: null,
+        lastActiveSection: null,
+        subgridTheme: null,
+        showDetailSidebarDesktop: null,
+        showDetailSidebarMobile: null,
+        pinnedSections: [],
+        sectionColors: {},
+    },
+});
+
+const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
+    if (!store.documents[path]) {
+        store.documents[path] = createDefaultDocumentPreferences();
+    }
+    return store.documents[path];
+};
+
+const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => {
+    if (!preferences.mandalaView || typeof preferences.mandalaView !== 'object') {
+        preferences.mandalaView = {
+            gridOrientation: null,
+            selectedLayoutId: null,
+            selectedCustomLayout: null,
+            lastActiveSection: null,
+            subgridTheme: null,
+            showDetailSidebarDesktop: null,
+            showDetailSidebarMobile: null,
+            pinnedSections: [],
+            sectionColors: {},
+        };
+    }
+    if (preferences.mandalaView.selectedCustomLayout === undefined) {
+        preferences.mandalaView.selectedCustomLayout = null;
+    }
+    return preferences.mandalaView;
+};
+
+const sameSections = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((value, index) => value === b[index]);
 
 const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/documents/delete-document-preferences': (store, action) => {
         if (action.type !== 'settings/documents/delete-document-preferences')
             return;
         delete store.documents[action.payload.path];
-        delete store.styleRules.documents[action.payload.path];
-    },
-    'settings/documents/set-document-format': (store, action) => {
-        if (action.type !== 'settings/documents/set-document-format') return;
-        if (!store.documents[action.payload.path]) {
-            store.documents[action.payload.path] = {
-                documentFormat: action.payload.format,
-                viewType: 'mandala-grid',
-                activeSection: null,
-                pinnedSections: {
-                    sections: [],
-                    activeSection: null,
-                },
-                outline: {
-                    collapsedSections: [],
-                },
-            };
-            return;
-        }
-        store.documents[action.payload.path].documentFormat =
-            action.payload.format;
     },
     'settings/documents/set-view-type': (store, action) => {
         if (action.type !== 'settings/documents/set-view-type') return;
-        if (store.documents[action.payload.path]) {
-            store.documents[action.payload.path].viewType = action.payload.type;
-        }
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.viewType = action.payload.type;
     },
     'settings/document/persist-active-section': (store, action) => {
         if (action.type !== 'settings/document/persist-active-section') return;
-        if (store.documents[action.payload.path]) {
-            store.documents[action.payload.path].activeSection =
-                action.payload.sectionNumber;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        preferences.activeSection = action.payload.sectionNumber;
+    },
+    'settings/documents/persist-mandala-view-state': (store, action) => {
+        if (action.type !== 'settings/documents/persist-mandala-view-state')
+            return;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        const mandalaView = getOrCreateMandalaViewPreferences(preferences);
+        mandalaView.gridOrientation = action.payload.gridOrientation;
+        mandalaView.selectedLayoutId = action.payload.selectedLayoutId;
+        mandalaView.selectedCustomLayout =
+            action.payload.selectedCustomLayout ?? null;
+        mandalaView.lastActiveSection = action.payload.lastActiveSection;
+        mandalaView.subgridTheme = action.payload.subgridTheme;
+        mandalaView.showDetailSidebarDesktop =
+            action.payload.showDetailSidebarDesktop;
+        mandalaView.showDetailSidebarMobile =
+            action.payload.showDetailSidebarMobile;
+    },
+    'settings/documents/persist-mandala-pinned-sections': (store, action) => {
+        if (
+            action.type !== 'settings/documents/persist-mandala-pinned-sections'
+        ) {
+            return;
         }
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        const normalized = normalizeSectionIds(action.payload.sections);
+        const mandalaView = getOrCreateMandalaViewPreferences(preferences);
+        const current = normalizeSectionIdsFromUnknown(mandalaView.pinnedSections);
+        if (sameSections(current, normalized)) return;
+        mandalaView.pinnedSections = normalized;
+    },
+    'settings/documents/persist-mandala-section-colors': (store, action) => {
+        if (action.type !== 'settings/documents/persist-mandala-section-colors')
+            return;
+        const preferences = getOrCreateDocumentPreferences(
+            store,
+            action.payload.path,
+        );
+        const normalized = normalizeSectionColorAssignments(action.payload.map);
+        const mandalaView = getOrCreateMandalaViewPreferences(preferences);
+        const current = normalizeSectionColorAssignments(mandalaView.sectionColors);
+        if (JSON.stringify(current) === JSON.stringify(normalized)) return;
+        mandalaView.sectionColors = normalized;
     },
     'settings/documents/update-document-path': (store, action) => {
         if (action.type !== 'settings/documents/update-document-path') return;
         const preferences = store.documents[action.payload.oldPath];
         delete store.documents[action.payload.oldPath];
         store.documents[action.payload.newPath] = preferences;
-
-        if (store.styleRules.documents[action.payload.oldPath]) {
-            const rules = store.styleRules.documents[action.payload.oldPath];
-            delete store.styleRules.documents[action.payload.oldPath];
-            store.styleRules.documents[action.payload.newPath] = rules;
-        }
     },
     'settings/hotkeys/update-custom-hotkeys': (store, action) => {
         if (action.type !== 'settings/hotkeys/update-custom-hotkeys') return;
@@ -131,41 +245,9 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/set-zoom-level') return;
         changeZoomLevel(store, action.payload);
     },
-    'settings/general/set-default-document-format': (store, action) => {
-        if (action.type !== 'settings/general/set-default-document-format')
-            return;
-        store.general.defaultDocumentFormat = action.payload.format;
-    },
-    'settings/view/toggle-minimap': (store, action) => {
-        if (action.type !== 'settings/view/toggle-minimap') return;
-        store.view.showMinimap = !store.view.showMinimap;
-    },
     'view/left-sidebar/toggle': (store, action) => {
         if (action.type !== 'view/left-sidebar/toggle') return;
         store.view.showLeftSidebar = !store.view.showLeftSidebar;
-    },
-    'settings/pinned-nodes/persist': (store, action) => {
-        if (action.type !== 'settings/pinned-nodes/persist') return;
-        const document = store.documents[action.payload.filePath];
-        if (!document.pinnedSections) {
-            document.pinnedSections = {
-                sections: [],
-                activeSection: null,
-            };
-        }
-        document.pinnedSections.sections = action.payload.sections;
-        document.pinnedSections.activeSection = action.payload.section;
-    },
-    'settings/pinned-nodes/persist-active-node': (store, action) => {
-        if (action.type !== 'settings/pinned-nodes/persist-active-node') return;
-        const document = store.documents[action.payload.filePath];
-        if (!document.pinnedSections) {
-            document.pinnedSections = {
-                sections: [],
-                activeSection: null,
-            };
-        }
-        document.pinnedSections.activeSection = action.payload.section;
     },
     'settings/view/toggle-horizontal-scrolling-mode': (store, action) => {
         if (action.type !== 'settings/view/toggle-horizontal-scrolling-mode')
@@ -197,23 +279,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     },
     'view/left-sidebar/set-active-tab': (store, action) => {
         if (action.type !== 'view/left-sidebar/set-active-tab') return;
-        store.view.leftSidebarActiveTab = action.payload.tab;
+        store.view.leftSidebarActiveTab = 'pinned-cards';
     },
     'view/modes/gap-between-cards/toggle': (store, action) => {
         if (action.type !== 'view/modes/gap-between-cards/toggle') return;
         store.view.applyGapBetweenCards = !store.view.applyGapBetweenCards;
-    },
-    'settings/view/modes/toggle-outline-mode': (store, action) => {
-        if (action.type !== 'settings/view/modes/toggle-outline-mode') return;
-        store.view.outlineMode = !store.view.outlineMode;
-        if (store.view.outlineMode) {
-            store.view.scrolling.centerActiveNodeH = false;
-            store.view.scrolling = {
-                ...store.view.scrolling,
-            };
-        }
-        store.view.mandalaMode =
-            store.view.mandalaMode === '9x9' ? '3x3' : '9x9';
     },
     'settings/view/mandala/toggle-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/toggle-mode') return;
@@ -235,14 +305,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.payload.width > 0) {
             store.view.mandalaDetailSidebarWidth = action.payload.width;
         }
-    },
-    'settings/view/set-node-indentation-width': (store, action) => {
-        if (action.type !== 'settings/view/set-node-indentation-width') return;
-        store.view.nodeIndentationWidth = action.payload.width;
-    },
-    'settings/view/set-maintain-edit-mode': (store, action) => {
-        if (action.type !== 'settings/view/set-maintain-edit-mode') return;
-        store.view.maintainEditMode = action.payload.maintain;
     },
     'settings/view/theme/set-inactive-node-opacity': (store, action) => {
         if (action.type !== 'settings/view/theme/set-inactive-node-opacity')
@@ -314,15 +376,14 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/hotkeys/set-blank') return;
         setHotkeyAsBlank(store, action);
     },
-    'settings/document/persist-collapsed-sections': (store, action) => {
-        if (action.type !== 'settings/document/persist-collapsed-sections')
-            return;
-        persistCollapsedSections(store, action);
-    },
     'settings/view/set-always-show-card-buttons': (store, action) => {
         if (action.type !== 'settings/view/set-always-show-card-buttons')
             return;
         store.view.alwaysShowCardButtons = action.payload.show;
+    },
+    'settings/view/set-mandala-embed-debug': (store, action) => {
+        if (action.type !== 'settings/view/set-mandala-embed-debug') return;
+        store.view.mandalaEmbedDebug = action.payload.enabled;
     },
     'settings/view/vertical-toolbar/set-hidden-button': (store, action) => {
         if (action.type !== 'settings/view/vertical-toolbar/set-hidden-button')
@@ -344,6 +405,15 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/view/toggle-hidden-card-info': (store, action) => {
         if (action.type !== 'settings/view/toggle-hidden-card-info') return;
         store.view.showHiddenCardInfo = !store.view.showHiddenCardInfo;
+    },
+    'settings/view/detail-sidebar/set-preview-mode': (store, action) => {
+        if (action.type !== 'settings/view/detail-sidebar/set-preview-mode')
+            return;
+        if (Platform.isMobile) {
+            store.view.detailSidebarPreviewModeMobile = action.payload.mode;
+            return;
+        }
+        store.view.detailSidebarPreviewModeDesktop = action.payload.mode;
     },
     'settings/view/toggle-3x3-subgrid-nav-buttons-desktop': (store, action) => {
         if (
@@ -392,9 +462,30 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store.view.show9x9ParallelNavButtonsMobile ?? true
         );
     },
-    'settings/style-rules/set-active-tab': (store, action) => {
-        if (action.type !== 'settings/style-rules/set-active-tab') return;
-        store.styleRules.settings.activeTab = action.payload.tab;
+    'settings/view/context-menu-copy-link/set-visibility': (store, action) => {
+        if (
+            action.type !==
+            'settings/view/context-menu-copy-link/set-visibility'
+        ) {
+            return;
+        }
+        if (Platform.isMobile) {
+            const current = normalizeContextMenuCopyLinkVisibility(
+                store.view.contextMenuCopyLinkVisibilityMobile,
+            );
+            store.view.contextMenuCopyLinkVisibilityMobile = {
+                ...current,
+                [action.payload.variant]: action.payload.visible,
+            };
+            return;
+        }
+        const current = normalizeContextMenuCopyLinkVisibility(
+            store.view.contextMenuCopyLinkVisibilityDesktop,
+        );
+        store.view.contextMenuCopyLinkVisibilityDesktop = {
+            ...current,
+            [action.payload.variant]: action.payload.visible,
+        };
     },
     'settings/general/set-link-pane-type': (store, action) => {
         if (action.type !== 'settings/general/set-link-pane-type') return;
@@ -426,6 +517,73 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/mandala/set-grid-orientation')
             return;
         store.view.mandalaGridOrientation = action.payload.orientation;
+        if (action.payload.orientation === 'left-to-right') {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:left-to-right';
+        } else if (action.payload.orientation === 'south-start') {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:south-start';
+        }
+    },
+    'settings/view/mandala/select-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/select-grid-layout') return;
+        store.view.mandalaGridSelectedLayoutId = action.payload.layoutId;
+        store.view.mandalaGridOrientation = layoutIdToOrientation(
+            action.payload.layoutId,
+        );
+    },
+    'settings/view/mandala/add-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/add-custom-grid-layout')
+            return;
+        const currentLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        );
+        const nextLayout: MandalaCustomLayout = {
+            id: action.payload.layout.id,
+            name:
+                action.payload.layout.name.trim() || '未命名布局',
+            pattern: normalizeCustomMandalaPattern(action.payload.layout.pattern),
+        };
+        store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
+    },
+    'settings/view/mandala/create-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/create-custom-grid-layout')
+            return;
+        const currentLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        );
+        const nextLayout: MandalaCustomLayout = {
+            id: action.payload.layout.id,
+            name: action.payload.layout.name.trim() || '未命名布局',
+            pattern: normalizeCustomMandalaPattern(action.payload.layout.pattern),
+        };
+        store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
+    },
+    'settings/view/mandala/update-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/update-custom-grid-layout')
+            return;
+        store.view.mandalaGridCustomLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        ).map((layout) =>
+            layout.id === action.payload.id
+                ? {
+                      ...layout,
+                      name: action.payload.name.trim() || '未命名布局',
+                      pattern: normalizeCustomMandalaPattern(
+                          action.payload.pattern,
+                      ),
+                  }
+                : layout,
+        );
+    },
+    'settings/view/mandala/delete-custom-grid-layout': (store, action) => {
+        if (action.type !== 'settings/view/mandala/delete-custom-grid-layout')
+            return;
+        store.view.mandalaGridCustomLayouts = normalizeMandalaCustomLayouts(
+            store.view.mandalaGridCustomLayouts,
+        ).filter((layout) => layout.id !== action.payload.id);
+        if (store.view.mandalaGridSelectedLayoutId === action.payload.id) {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:left-to-right';
+            store.view.mandalaGridOrientation = 'left-to-right';
+        }
     },
     'settings/view/mandala/toggle-a4-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/toggle-a4-mode') return;
@@ -443,22 +601,35 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/mandala/set-border-opacity') return;
         store.view.mandalaGridBorderOpacity = action.payload.opacity;
     },
+    'settings/view/mandala/set-grid-highlight-color': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-grid-highlight-color') {
+            return;
+        }
+        if (action.payload.color) {
+            store.view.mandalaGridHighlightColor = action.payload.color;
+        } else {
+            delete store.view.mandalaGridHighlightColor;
+        }
+    },
+    'settings/view/mandala/set-grid-highlight-width': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-grid-highlight-width') {
+            return;
+        }
+        store.view.mandalaGridHighlightWidth = action.payload.width;
+    },
     'settings/view/mandala/set-section-color-opacity': (store, action) => {
         if (action.type !== 'settings/view/mandala/set-section-color-opacity')
             return;
         store.view.mandalaSectionColorOpacity = action.payload.opacity;
     },
+    'settings/view/mandala/set-last-export-preset': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-last-export-preset')
+            return;
+        store.view.lastExportPreset = action.payload.preset;
+    },
 };
 
 const updateState = (store: Settings, action: SettingsActions) => {
-    if (action.type.startsWith('settings/style-rules')) {
-        updateStyleRules(
-            store,
-            action as Parameters<typeof updateStyleRules>[1],
-        );
-        return;
-    }
-
     const handler = settingsHandlers[action.type];
     if (handler) {
         handler(store, action);

@@ -1,5 +1,5 @@
 import type { MandalaView } from 'src/view/view';
-import { Platform } from 'obsidian';
+import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
 
 export const setActiveMandalaNode = (
     view: MandalaView,
@@ -18,20 +18,15 @@ export const enableSidebarEditorForNode = (
     view: MandalaView,
     nodeId: string,
 ) => {
-    view.viewStore.dispatch({
-        type: 'view/editor/enable-main-editor',
-        payload: { nodeId, isInSidebar: true },
+    openNodeEditor(view, nodeId, {
+        desktopIsInSidebar: true,
     });
 };
 
 export const ensureMandalaDetailSidebarVisible = (view: MandalaView) => {
-    const showDetailSidebar = Platform.isMobile
-        ? view.plugin.settings.getValue().view.showMandalaDetailSidebarMobile
-        : view.plugin.settings.getValue().view.showMandalaDetailSidebarDesktop;
+    const showDetailSidebar = view.isMandalaDetailSidebarVisible();
     if (showDetailSidebar) return;
-    view.plugin.settings.dispatch({
-        type: 'view/mandala-detail-sidebar/toggle',
-    });
+    view.toggleCurrentMandalaDetailSidebar();
 };
 
 export const openSidebarAndEditMandalaNode = (

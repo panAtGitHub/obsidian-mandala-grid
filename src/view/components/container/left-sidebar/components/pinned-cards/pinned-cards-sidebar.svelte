@@ -13,11 +13,13 @@
     import {
         setActiveSidebarNode
     } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import {
+        CurrentFileSectionColorMapStore,
+    } from 'src/stores/document/derived/section-colors-store';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
-        parseSectionColorsFromFrontmatter,
+        SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
     } from 'src/view/helpers/mandala/section-colors';
     import {
@@ -25,12 +27,24 @@
         MandalaSectionColorOpacityStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
+    import {
+        getReadableTextTone,
+        type ThemeTone,
+    } from 'src/view/helpers/mandala/contrast-text-tone';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
-    const sectionColors = SectionColorBySectionStore(view);
+    const sectionColorMapStore = CurrentFileSectionColorMapStore(view);
+    const sectionColors = derived(sectionColorMapStore, (colorMap) => {
+        const index = createSectionColorIndex(colorMap);
+        const result: Record<string, string> = {};
+        for (const [section, key] of Object.entries(index)) {
+            result[section] = SECTION_COLOR_PALETTE[key];
+        }
+        return result;
+    });
 
     const activePinnedCard = ActivePinnedCardStore(view);
 
@@ -54,18 +68,15 @@
     };
 
     const pinnedState = derived(
-        [pinnedNodesArray, view.documentStore],
-        ([$pinnedNodesArray, $doc]) => {
+        [pinnedNodesArray, view.documentStore, sectionColorMapStore],
+        ([pinnedNodeIds, documentState, colorMap]) => {
             const orderMap = new Map<string, number>();
-            $pinnedNodesArray.forEach((nodeId, index) => {
-                const section = $doc.sections.id_section[nodeId];
+            pinnedNodeIds.forEach((nodeId, index) => {
+                const section = documentState.sections.id_section[nodeId];
                 if (section) {
                     orderMap.set(section, index);
                 }
             });
-            const colorMap = parseSectionColorsFromFrontmatter(
-                $doc.file.frontmatter,
-            );
             const colorIndex = createSectionColorIndex(colorMap);
             const colorOrderMap = new Map<string, number>();
             for (const key of SECTION_COLOR_KEYS) {
@@ -74,13 +85,20 @@
                     colorOrderMap.set(section, idx);
                 });
             }
-            const items = $pinnedNodesArray
-                .map((nodeId) => {
-                    const section = $doc.sections.id_section[nodeId];
+            const previewCache = new Map<string, { title: string; body: string }>();
+            const getPreview = (nodeId: string) => {
+                const cached = previewCache.get(nodeId);
+                if (cached) return cached;
+                const content = documentState.document.content[nodeId]?.content || '';
+                const preview = parsePinnedContent(content);
+                previewCache.set(nodeId, preview);
+                return preview;
+            };
+            const mappedItems: Array<PinnedItem | null> = pinnedNodeIds.map(
+                (nodeId): PinnedItem | null => {
+                    const section = documentState.sections.id_section[nodeId];
                     if (!section) return null;
-                    const content =
-                        $doc.document.content[nodeId]?.content || '';
-                    const preview = parsePinnedContent(content);
+                    const preview = getPreview(nodeId);
                     return {
                         nodeId,
                         section,
@@ -88,17 +106,17 @@
                         body: preview.body,
                         colorKey: colorIndex[section] || null,
                     };
-                })
+                },
+            );
+            const items = mappedItems
                 .filter((item): item is PinnedItem => Boolean(item));
             const coloredItems: PinnedItem[] = [];
             for (const key of SECTION_COLOR_KEYS) {
                 const sections = colorMap[key] || [];
                 for (const section of sections) {
-                    const nodeId = $doc.sections.section_id[section];
+                    const nodeId = documentState.sections.section_id[section];
                     if (!nodeId) continue;
-                    const content =
-                        $doc.document.content[nodeId]?.content || '';
-                    const preview = parsePinnedContent(content);
+                    const preview = getPreview(nodeId);
                     coloredItems.push({
                         nodeId,
                         section,
@@ -181,6 +199,39 @@
         event.preventDefault();
         handleClick(item);
     };
+
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue('--background-primary')
+            .trim();
+
+    const getPinnedItemStyle = (section: string) => {
+        if ($backgroundMode !== 'custom') return undefined;
+        const sectionColor = $sectionColors[section];
+        if (!sectionColor) return undefined;
+
+        const background = applyOpacityToHex(
+            sectionColor,
+            $sectionColorOpacity / 100,
+        );
+        const textTone = getReadableTextTone(
+            background,
+            getThemeTone(),
+            getThemeUnderlayColor(),
+        );
+        const textVars =
+            textTone === 'dark'
+                ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b;'
+                : textTone === 'light'
+                  ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce;'
+                  : '';
+
+        return `--pinned-item-bg: ${background}; ${textVars}`;
+    };
 </script>
 
 <div class="pinned-cards-container" use:scrollActivePinnedNode>
@@ -224,12 +275,7 @@
                         $backgroundMode === 'custom' &&
                         Boolean($sectionColors[item.section])
                     }
-                    style={item.section && $backgroundMode === 'custom' && $sectionColors[item.section]
-                        ? `--pinned-item-bg: ${applyOpacityToHex(
-                              $sectionColors[item.section],
-                              $sectionColorOpacity / 100,
-                          )};`
-                        : undefined}
+                    style={getPinnedItemStyle(item.section)}
                     id={item.nodeId}
                     on:click={() => handleClick(item)}
                     on:keydown={(event) => handleKeydown(event, item)}
@@ -247,7 +293,7 @@
             {/each}
         </div>
     {:else}
-        <NoItems variant="pinned" />
+        <NoItems />
     {/if}
 </div>
 
@@ -302,12 +348,13 @@
         cursor: pointer;
         border: 1px solid var(--background-modifier-border);
         border-radius: var(--radius-m);
-        background: var(--pinned-item-bg, #fff);
+        background: var(--pinned-item-bg, var(--background-primary-alt));
+        color: var(--text-normal);
         transition: background-color 0.1s ease, border-color 0.1s ease;
     }
 
     .pinned-list-item:hover {
-        background: var(--pinned-item-bg, #f5f5f5);
+        background: var(--pinned-item-bg, var(--background-modifier-hover));
     }
 
     .pinned-list-item:active {
@@ -315,7 +362,7 @@
     }
 
     .pinned-list-item.selected {
-        background: var(--pinned-item-bg, #fff);
+        background: var(--pinned-item-bg, var(--background-primary-alt));
         outline: 2px solid var(--interactive-accent);
         outline-offset: -2px;
     }

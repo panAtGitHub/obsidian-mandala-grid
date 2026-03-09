@@ -7,8 +7,13 @@
         setActiveMandalaNode,
     } from 'src/view/helpers/mandala/node-editing';
     import { derived } from 'src/lib/store/derived';
-    import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
+    import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import {
+        executeMandalaSwap,
+        handleMandalaSwapNodeClick,
+        shouldBlockMandalaNodeDoubleClickForSwap,
+    } from 'src/view/helpers/mandala/mandala-swap';
     import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
@@ -21,6 +26,10 @@
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
+    import {
+        getReadableTextTone,
+        type ThemeTone,
+    } from 'src/view/helpers/mandala/contrast-text-tone';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);
@@ -46,14 +55,10 @@
         view.viewStore,
         (state) => state.ui.mandala.activeCell9x9,
     );
+    const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
-        return (
-            controls.showHelpSidebar ||
-            controls.showSettingsSidebar ||
-            controls.showHistorySidebar ||
-            controls.showStyleRulesModal
-        );
+        return controls.showHelpSidebar || controls.showSettingsSidebar;
     });
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
@@ -88,13 +93,15 @@
     // Reactive store for cells
     const buildCells = (
         state: ReturnType<typeof view.documentStore.getValue>,
-        orientation: string,
+        nextSelectedLayoutId: string,
+        nextCustomLayouts: ReturnType<
+            typeof view.plugin.settings.getValue
+        >['view']['mandalaGridCustomLayouts'],
         baseTheme: string,
     ) => {
-        const layout = getMandalaLayout(
-            orientation === 'south-start' || orientation === 'bottom-to-top'
-                ? orientation
-                : 'left-to-right',
+        const layout = getMandalaLayoutById(
+            nextSelectedLayoutId,
+            nextCustomLayouts,
         );
         const list = [];
         for (let row = 0; row < 9; row++) {
@@ -187,16 +194,24 @@
     const cells = {
         subscribe: (run: (value: ReturnType<typeof buildCells>) => void) => {
             let documentState = view.documentStore.getValue();
-            let orientation =
-                view.plugin.settings.getValue().view.mandalaGridOrientation ??
-                'left-to-right';
+            let nextSelectedLayoutId = view.getCurrentMandalaLayoutId();
+            let nextCustomLayouts =
+                view.plugin.settings.getValue().view.mandalaGridCustomLayouts ??
+                [];
 
             const update = () => {
                 const activeNodeId =
                     view.viewStore.getValue().document.activeNode;
                 const section = documentState.sections.id_section[activeNodeId];
                 const theme = getBaseTheme(section);
-                run(buildCells(documentState, orientation, theme));
+                run(
+                    buildCells(
+                        documentState,
+                        nextSelectedLayoutId,
+                        nextCustomLayouts,
+                        theme,
+                    ),
+                );
             };
 
             const unsubDoc = view.documentStore.subscribe((state) => {
@@ -205,8 +220,10 @@
             });
 
             const unsubSettings = view.plugin.settings.subscribe((settings) => {
-                orientation =
-                    settings.view.mandalaGridOrientation ?? 'left-to-right';
+                nextSelectedLayoutId = view.getCurrentMandalaLayoutId(
+                    settings,
+                );
+                nextCustomLayouts = settings.view.mandalaGridCustomLayouts ?? [];
                 update();
             });
 
@@ -225,8 +242,27 @@
     };
 
     let styledCells: Array<
-        (typeof $cells)[number] & { background: string | null }
+        (typeof $cells)[number] & {
+            background: string | null;
+            textTone: 'dark' | 'light' | null;
+            style: string | null;
+        }
     > = [];
+
+    const DARK_TEXT_TOKENS =
+        '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b; --text-accent: #0f131a;';
+
+    const LIGHT_TEXT_TOKENS =
+        '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce; --text-accent: #f3f6fd;';
+
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue('--background-primary')
+            .trim();
 
     $: {
         const opacity = $sectionColorOpacity / 100;
@@ -240,7 +276,25 @@
                 : $backgroundMode === 'gray' && cell.isGrayBlock
                   ? `color-mix(in srgb, var(--mandala-gray-block-base) ${$sectionColorOpacity}%, transparent)`
                   : null;
-            return { ...cell, background };
+            const textTone = background
+                ? getReadableTextTone(
+                      background,
+                      getThemeTone(),
+                      getThemeUnderlayColor(),
+                  )
+                : null;
+
+            const styleParts = [];
+            if (background) styleParts.push(`background-color: ${background};`);
+            if (textTone === 'dark') styleParts.push(DARK_TEXT_TOKENS);
+            if (textTone === 'light') styleParts.push(LIGHT_TEXT_TOKENS);
+
+            return {
+                ...cell,
+                background,
+                textTone,
+                style: styleParts.length > 0 ? styleParts.join(' ') : null,
+            };
         });
     }
 
@@ -277,6 +331,10 @@
     });
 
     const onCellClick = (cell: (typeof styledCells)[number]) => {
+        if ($swapState.active) {
+            return;
+        }
+
         if (!cell.nodeId) {
             setActiveCell9x9(view, { row: cell.row, col: cell.col });
             return;
@@ -289,7 +347,45 @@
         setActiveMandalaNode(view, cell.nodeId);
     };
 
+    const onCellMouseDown = (
+        cell: (typeof styledCells)[number],
+        event: MouseEvent,
+    ) => {
+        if (!cell.nodeId) return;
+        if (
+            handleMandalaSwapNodeClick(
+                $swapState,
+                cell.nodeId,
+                (source, target) => executeMandalaSwap(view, source, target),
+            )
+        ) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    };
+
+    const onCellTouchStart = (
+        cell: (typeof styledCells)[number],
+        event: TouchEvent,
+    ) => {
+        if (!cell.nodeId) return;
+        if (
+            handleMandalaSwapNodeClick(
+                $swapState,
+                cell.nodeId,
+                (source, target) => executeMandalaSwap(view, source, target),
+            )
+        ) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    };
+
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
+        if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) {
+            return;
+        }
+
         if (!cell.nodeId) {
             setActiveCell9x9(view, { row: cell.row, col: cell.col });
             return;
@@ -354,11 +450,21 @@
                 class:is-block-col-start={cell.col % 3 === 0}
                 class:is-last-row={cell.row === 8}
                 class:is-last-col={cell.col === 8}
-                style={cell.background
-                    ? `background-color: ${cell.background};`
-                    : undefined}
+                class:has-custom-background={Boolean(cell.background)}
+                class:simple-cell--swap-source={$swapState.active &&
+                    $swapState.sourceNodeId === cell.nodeId}
+                class:simple-cell--swap-target={$swapState.active &&
+                    !!cell.nodeId &&
+                    $swapState.targetNodeIds.has(cell.nodeId)}
+                class:simple-cell--swap-disabled={$swapState.active &&
+                    !!cell.nodeId &&
+                    !$swapState.targetNodeIds.has(cell.nodeId) &&
+                    $swapState.sourceNodeId !== cell.nodeId}
+                style={cell.style ?? undefined}
                 data-node-id={cell.nodeId || undefined}
                 id={cell.nodeId || undefined}
+                on:mousedown={(event) => onCellMouseDown(cell, event)}
+                on:touchstart={(event) => onCellTouchStart(cell, event)}
                 on:click={() => onCellClick(cell)}
                 on:dblclick={() => onCellDblClick(cell)}
             >
@@ -525,7 +631,7 @@
     }
 
     /* Theme center gets slightly larger/bolder title focus */
-    .is-theme-center .cell-title {
+    .is-theme-center:not(.has-custom-background) .cell-title {
         font-weight: 700;
         color: var(--text-accent);
     }
@@ -544,6 +650,19 @@
         pointer-events: none;
         box-sizing: border-box;
         border-radius: 0;
+    }
+
+    .simple-cell--swap-source,
+    .simple-cell--swap-target {
+        box-shadow: inset 0 0 0 2px var(--interactive-accent);
+    }
+
+    .simple-cell--swap-target {
+        cursor: pointer;
+    }
+
+    .simple-cell--swap-disabled {
+        opacity: 0.6;
     }
 
     .cell-debug {

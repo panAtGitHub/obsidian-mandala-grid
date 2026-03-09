@@ -45,26 +45,65 @@ describe('map active branches to text', () => {
                 [n3_3]: { content: '3.3' },
             },
         };
+        const sections = {
+            id_section: {
+                [n1]: '1',
+                [n1_1]: '1.1',
+                [n1_2]: '1.2',
+                [n1_3]: '1.3',
+                [n2]: '2',
+                [n2_1]: '2.1',
+                [n2_2]: '2.2',
+                [n2_3]: '2.3',
+                [n3]: '3',
+                [n3_1]: '3.1',
+                [n3_2]: '3.2',
+                [n3_3]: '3.3',
+            },
+            section_id: {
+                '1': n1,
+                '1.1': n1_1,
+                '1.2': n1_2,
+                '1.3': n1_3,
+                '2': n2,
+                '2.1': n2_1,
+                '2.2': n2_2,
+                '2.3': n2_3,
+                '3': n3,
+                '3.1': n3_1,
+                '3.2': n3_2,
+                '3.3': n3_3,
+            },
+        };
         const action = {
             selectedNodes: new Set([n1, n2]),
             activeNode: n2,
         };
-        const output = `- 1
-\t- 1.1
-\t- 1.2
-\t- 1.3
-- 2
-\t- 2.1
-\t- 2.2
-\t- 2.3`;
+        const output = `<!--section: 1-->
+1
+<!--section: 1.1-->
+1.1
+<!--section: 1.2-->
+1.2
+<!--section: 1.3-->
+1.3
+<!--section: 2-->
+2
+<!--section: 2.1-->
+2.1
+<!--section: 2.2-->
+2.2
+<!--section: 2.3-->
+2.3`;
 
         expect(
             mapBranchesToText(
                 input,
+                sections,
                 action.selectedNodes.size > 0
                     ? Array.from(action.selectedNodes)
                     : [action.activeNode],
-                'outline',
+                'sections',
             ),
         ).toEqual(output);
     });

@@ -11,10 +11,6 @@ export type ViewEventType = {
 type ActionType = ViewStoreAction['type'];
 
 const eventTypesDictionary: Partial<Record<ActionType, ViewEventType>> = {
-    'view/set-active-node/history/select-previous': {
-        activeNodeHistory: true,
-    },
-    'view/set-active-node/history/select-next': { activeNodeHistory: true },
     'view/set-active-node/sequential/select-next': {
         activeNodeHistory: true,
     },

@@ -4,28 +4,16 @@
         StatefulViewCommand
     } from '../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import {
-        DynamicLabelState,
         getDynamicLabel,
-        HotkeysThatBehaveDifferentlyInOutlineMode
     } from 'src/view/components/container/modals/hotkeys/components/helpers/get-dynamic-label';
-    import { Info } from 'lucide-svelte';
 
     export let commandHotkeys: StatefulViewCommand;
-    export let labelState: DynamicLabelState;
 </script>
 
 <div class="command">
     <span class="label"
-        >{getDynamicLabel(commandHotkeys.name, labelState.outlineMode)}
-
-        {#if HotkeysThatBehaveDifferentlyInOutlineMode.has(commandHotkeys.name)}
-            <span
-                class="info-icon"
-                aria-label="在大纲模式下行为不同"
-                ><Info class="svg-icon" /></span
-            >
-        {/if}
-    </span>
+        >{getDynamicLabel(commandHotkeys.name)}</span
+    >
     <div class="hotkeys">
         {#if commandHotkeys.hotkeys[0]}
             <Hotkey
@@ -63,15 +51,5 @@
         display: flex;
         align-items: center;
         gap: 5px;
-    }
-
-    .info-icon {
-        color: #4973A1FF;
-        margin-bottom: -4px;
-
-        & svg {
-            width: 12px;
-            height: 12px;
-        }
     }
 </style>

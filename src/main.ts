@@ -1,4 +1,5 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { type Extension } from '@codemirror/state';
 import { MANDALA_VIEW_TYPE, MandalaView } from './view/view';
 import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
 import { around } from 'monkey-around';
@@ -25,16 +26,29 @@ import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
-import { registerFilesMenuEvent } from 'src/obsidian/events/workspace/register-files-menu-event';
-import { removeHtmlElementMarkerInPreviewMode } from 'src/obsidian/markdown-post-processors/remove-html-element-marker-in-preview-mode';
 import {
-    minimapWorker,
-    rulesWorker,
+    createRenderMandalaEmbedPostProcessor,
+    MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
+import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
+import {
+    captureMarkdownPreviewScrolls,
+    refreshOpenManagedMandalaEmbedsByTargetPaths,
+    refreshOpenLivePreviewMandalaWidgetsByTargetPaths,
+    getOpenMandalaEmbedRefreshViews,
+    registerMandalaEmbedRefreshEvents,
+    rerenderMarkdownPreviewsBySourcePaths,
+    restoreMarkdownPreviewScrolls,
+    rerenderOpenMarkdownPreviews,
+    resolveMandalaEmbedRefreshPlan,
+} from 'src/obsidian/events/workspace/register-mandala-embed-refresh-events';
+import {
     statusBarWorker,
 } from 'src/workers/worker-instances';
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { lang } from 'src/lang/lang';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
 export type PluginStore = Store<PluginState, PluginStoreActions>;
@@ -45,8 +59,14 @@ export default class MandalaGrid extends Plugin {
     statusBar: StatusBar;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
     private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
+    private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null = null;
     private isSavingSettings = false;
     private hasPendingSettingsSave = false;
+    private pendingMandalaEmbedRefreshAll = false;
+    private pendingMandalaEmbedChangedPaths = new Set<string>();
+    private mandalaEmbedRefreshEpoch = 0;
+    private readonly mandalaSourceEmbedExtensions: Extension[] = [];
+    private lastMandalaGridOrientation: string | null = null;
     viewType: DocumentsPreferences = {};
 
     async onload() {
@@ -56,6 +76,8 @@ export default class MandalaGrid extends Plugin {
             pluginReducer,
             onPluginError,
         );
+        this.lastMandalaGridOrientation =
+            this.settings.getValue().view.mandalaGridOrientation;
         loadCustomIcons();
         this.registerView(
             MANDALA_VIEW_TYPE,
@@ -67,8 +89,12 @@ export default class MandalaGrid extends Plugin {
         this.statusBar = new StatusBar(this);
         this.loadRibbonIcon();
         this.registerMarkdownPostProcessor(
-            removeHtmlElementMarkerInPreviewMode,
+            createRenderMandalaEmbedPostProcessor(this),
+            MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER,
         );
+        this.replaceMandalaSourceEmbedExtensions();
+        this.registerEditorExtension(this.mandalaSourceEmbedExtensions);
+        this.app.workspace.updateOptions();
     }
 
     async saveSettings() {
@@ -101,9 +127,99 @@ export default class MandalaGrid extends Plugin {
         );
         this.settings.subscribe((_state, _action, initialRun) => {
             if (initialRun) return;
+            const nextOrientation =
+                this.settings.getValue().view.mandalaGridOrientation;
+            if (this.lastMandalaGridOrientation !== nextOrientation) {
+                this.lastMandalaGridOrientation = nextOrientation;
+                this.scheduleMandalaEmbedRefresh({
+                    forceAll: true,
+                });
+            }
             this.queueSettingsSave();
         });
         settingsSubscriptions(this);
+    }
+
+    getMandalaEmbedRefreshEpoch() {
+        return this.mandalaEmbedRefreshEpoch;
+    }
+
+    scheduleMandalaEmbedRefresh({
+        delay_ms = 120,
+        changedPaths = [],
+        forceAll = false,
+    }: {
+        delay_ms?: number;
+        changedPaths?: Iterable<string>;
+        forceAll?: boolean;
+    } = {}) {
+        if (forceAll) {
+            this.pendingMandalaEmbedRefreshAll = true;
+        } else {
+            for (const path of changedPaths) {
+                if (path.trim().length === 0) continue;
+                this.pendingMandalaEmbedChangedPaths.add(path);
+            }
+        }
+
+        if (this.refreshMandalaEmbedTimeout) {
+            clearTimeout(this.refreshMandalaEmbedTimeout);
+        }
+
+        this.refreshMandalaEmbedTimeout = setTimeout(() => {
+            this.refreshMandalaEmbedTimeout = null;
+            const forceAllRefresh = this.pendingMandalaEmbedRefreshAll;
+            const changedPathSet = new Set(this.pendingMandalaEmbedChangedPaths);
+            this.pendingMandalaEmbedRefreshAll = false;
+            this.pendingMandalaEmbedChangedPaths.clear();
+
+            if (forceAllRefresh) {
+                const scrollSnapshots = captureMarkdownPreviewScrolls(this);
+                this.mandalaEmbedRefreshEpoch += 1;
+                this.replaceMandalaSourceEmbedExtensions();
+                this.app.workspace.updateOptions();
+                rerenderOpenMarkdownPreviews(this);
+                restoreMarkdownPreviewScrolls(scrollSnapshots);
+                return;
+            }
+
+            const refreshPlan = resolveMandalaEmbedRefreshPlan(
+                this,
+                getOpenMandalaEmbedRefreshViews(this),
+                changedPathSet,
+            );
+            if (
+                refreshPlan.previewSourcePaths.size === 0 &&
+                refreshPlan.previewTargetPaths.size === 0 &&
+                refreshPlan.livePreviewTargetPaths.size === 0
+            ) {
+                return;
+            }
+
+            if (refreshPlan.previewSourcePaths.size > 0) {
+                const scrollSnapshots = captureMarkdownPreviewScrolls(
+                    this,
+                    refreshPlan.previewSourcePaths,
+                );
+                rerenderMarkdownPreviewsBySourcePaths(
+                    this,
+                    refreshPlan.previewSourcePaths,
+                );
+                restoreMarkdownPreviewScrolls(scrollSnapshots);
+            }
+
+            if (refreshPlan.previewTargetPaths.size > 0) {
+                void refreshOpenManagedMandalaEmbedsByTargetPaths(
+                    refreshPlan.previewTargetPaths,
+                );
+            }
+
+            if (refreshPlan.livePreviewTargetPaths.size > 0) {
+                void refreshOpenLivePreviewMandalaWidgetsByTargetPaths(
+                    refreshPlan.livePreviewTargetPaths,
+                );
+            }
+        }, delay_ms);
     }
 
     private queueSettingsSave(delay_ms: number = 250) {
@@ -119,9 +235,17 @@ export default class MandalaGrid extends Plugin {
 
     private registerEvents() {
         registerFileMenuEvent(this);
-        registerFilesMenuEvent(this);
         onVaultEvent(this);
         onWorkspaceEvent(this);
+        registerMandalaEmbedRefreshEvents(this);
+    }
+
+    private replaceMandalaSourceEmbedExtensions() {
+        this.mandalaSourceEmbedExtensions.splice(
+            0,
+            this.mandalaSourceEmbedExtensions.length,
+            createMandalaSourceEmbedExtension(this),
+        );
     }
 
     registerTimeout(timeout: ReturnType<typeof setTimeout>) {
@@ -148,7 +272,7 @@ export default class MandalaGrid extends Plugin {
     private loadRibbonIcon() {
         this.addRibbonIcon(
             customIcons.mandalaGrid.name,
-            'Open mandala grid',
+            lang.cmd_toggle_mandala_view,
             () => {
                 const file = getActiveFile(this);
                 if (file) {
@@ -162,9 +286,14 @@ export default class MandalaGrid extends Plugin {
 
     onunload() {
         super.onunload();
+        this.statusBar?.clear();
         if (this.saveSettingsTimeout) {
             clearTimeout(this.saveSettingsTimeout);
             this.saveSettingsTimeout = null;
+        }
+        if (this.refreshMandalaEmbedTimeout) {
+            clearTimeout(this.refreshMandalaEmbedTimeout);
+            this.refreshMandalaEmbedTimeout = null;
         }
         if (this.hasPendingSettingsSave) {
             void this.saveSettings();
@@ -172,8 +301,6 @@ export default class MandalaGrid extends Plugin {
         for (const timeout of this.timeoutReferences) {
             clearTimeout(timeout);
         }
-        minimapWorker.terminate();
-        rulesWorker.terminate();
         statusBarWorker.terminate();
     }
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
     import clx from 'classnames';
-    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
+    import { Pin } from 'lucide-svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Draggable from 'src/view/components/container/column/components/group/components/card/components/dnd/draggable.svelte';
@@ -16,12 +16,22 @@
         exitCurrentSubgrid,
         isGridCenter,
     } from 'src/view/helpers/mandala/mobile-navigation';
-    import { executeMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
+    import {
+        executeMandalaSwap,
+        handleMandalaSwapNodeClick,
+        shouldBlockMandalaNodeDoubleClickForSwap,
+    } from 'src/view/helpers/mandala/mandala-swap';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
+    import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
+    import { buildMandalaCardStyle } from 'src/view/components/mandala/mandala-card-style';
+    import {
+        buildMandalaCardMetaState,
+        type SectionIndicatorVariant,
+    } from 'src/view/components/mandala/mandala-card-meta';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -35,12 +45,61 @@
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
     export let draggable: boolean;
+    export let preserveActiveBackground = false;
+    export let sectionIndicatorVariant: SectionIndicatorVariant = 'plain';
     export let gridCell: { mode: '9x9'; row: number; col: number } | null =
         null;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue(
+                active
+                    ? '--background-active-node'
+                    : '--background-active-parent',
+            )
+            .trim();
+    let cardStyle: string | undefined;
+    let displaySection = section;
+    let shouldHideBackgroundStyle = false;
+    let showSectionBackground = false;
+    let showSectionPin = false;
+    let capsuleTextTone: 'dark' | 'light' | null = null;
+    let metaStyle: string | undefined;
+
+    $: displaySection = section || $idToSection[nodeId] || '';
+    $: ({ cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
+        active,
+        sectionColor,
+        preserveActiveBackground,
+        style,
+        themeTone: getThemeTone(),
+        themeUnderlayColor: getThemeUnderlayColor(),
+    }));
+    $: ({
+        showBackground: showSectionBackground,
+        showPin: showSectionPin,
+        textTone: capsuleTextTone,
+    } = buildMandalaCardMetaState({
+        variant: sectionIndicatorVariant,
+        sectionColor,
+        pinned,
+        themeTone: getThemeTone(),
+        themeUnderlayColor: getThemeUnderlayColor(),
+    }));
+    $: metaStyle =
+        showSectionBackground && sectionColor
+            ? `--mandala-card-meta-bg: ${sectionColor}`
+            : undefined;
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
@@ -52,24 +111,36 @@
         if (isMobile) {
             return;
         }
-
-        const maintainEditMode =
-            view.plugin.settings.getValue().view.maintainEditMode;
-        if (maintainEditMode && $showDetailSidebar) {
-            enableSidebarEditorForNode(view, nodeId);
-        }
     };
 
     const handleCardClick = (e: MouseEvent) => {
         if ($swapState.active) {
-            const sourceNodeId = $swapState.sourceNodeId;
-            if (sourceNodeId && $swapState.targetNodeIds.has(nodeId)) {
-                executeMandalaSwap(view, sourceNodeId, nodeId);
-            }
             return;
         }
 
         handleSelect(e);
+    };
+
+    const handleCardMouseDown = (e: MouseEvent) => {
+        if (
+            handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
+                executeMandalaSwap(view, source, target),
+            )
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    };
+
+    const handleCardTouchStart = (e: TouchEvent) => {
+        if (
+            handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
+                executeMandalaSwap(view, source, target),
+            )
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
     };
 </script>
 
@@ -77,6 +148,7 @@
     class={clx(
         'mandala-card',
         active ? 'active-node' : 'inactive-node',
+        sectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
@@ -90,15 +162,17 @@
         $swapState.sourceNodeId !== nodeId}
     class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
     id={nodeId}
-    style={sectionColor ? `background-color: ${sectionColor};` : undefined}
+    style={cardStyle}
     use:droppable
+    on:mousedown={handleCardMouseDown}
+    on:touchstart={handleCardTouchStart}
     on:click={handleCardClick}
     on:dblclick={(e) => {
-        if ($swapState.active) return;
+        if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) return;
 
         // 移动端：双击仅用于导航（进入/退出子九宫）
         if (isMobile) {
-            if (isGridCenter(view, nodeId, section)) {
+            if (isGridCenter(view, nodeId, displaySection)) {
                 exitCurrentSubgrid(view);
             } else {
                 enterSubgridForNode(view, nodeId);
@@ -116,7 +190,7 @@
         }
     }}
 >
-    {#if style && !(sectionColor && style.styleVariant === 'background-color')}
+    {#if style && !(shouldHideBackgroundStyle && style.styleVariant === 'background-color')}
         <CardStyle {style} />
     {/if}
 
@@ -129,21 +203,31 @@
         />
     {:else if draggable}
         <Draggable {nodeId} isInSidebar={false} dragActivation="whole-card">
-            <Content
-                {nodeId}
-                isInSidebar={false}
-                active={active ? ActiveStatus.node : null}
-            />
+            <Content {nodeId} isInSidebar={false} />
         </Draggable>
     {:else}
-        <Content
-            {nodeId}
-            isInSidebar={false}
-            active={active ? ActiveStatus.node : null}
-        />
+        <Content {nodeId} isInSidebar={false} />
     {/if}
 
-    <div class="mandala-section-label">{section}</div>
+    <div
+        class={clx(
+            'mandala-card-meta',
+            showSectionBackground
+                ? 'mandala-card-meta--with-bg'
+                : 'mandala-card-meta--without-bg',
+            showSectionBackground && capsuleTextTone
+                ? `mandala-card-meta--tone-${capsuleTextTone}`
+                : undefined,
+        )}
+        style={metaStyle}
+    >
+        {#if showSectionPin}
+            <span class="mandala-card-meta__pin" aria-hidden="true">
+                <Pin size={10} strokeWidth={2.2} />
+            </span>
+        {/if}
+        <span class="mandala-card-meta__section">{displaySection}</span>
+    </div>
 </div>
 
 <style>
@@ -167,14 +251,49 @@
         z-index: 10;
     }
 
-    .mandala-section-label {
+    .mandala-card-meta {
         position: absolute;
         top: 6px;
         right: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         font-size: 12px;
-        opacity: 0.7;
         user-select: none;
         pointer-events: none;
+        z-index: 1;
+    }
+
+    .mandala-card-meta--with-bg {
+        min-height: 18px;
+        padding: 1px 6px;
+        border-radius: 6px;
+        background: var(--mandala-card-meta-bg);
+        color: var(--text-muted);
+    }
+
+    .mandala-card-meta--without-bg {
+        opacity: 0.7;
+    }
+
+    .mandala-card-meta__pin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: currentColor;
+        opacity: 0.9;
+    }
+
+    .mandala-card-meta__section {
+        line-height: 1;
+    }
+
+    .mandala-card-meta--tone-dark {
+        color: #2f3a48;
+    }
+
+    .mandala-card-meta--tone-light {
+        color: #d0d8e6;
     }
 
     .mandala-card--swap-source {

@@ -8,12 +8,10 @@
     import Button from '../shared/button.svelte';
     import {
         ScrollSettingsStore,
-        showMinimapStore,
     } from '../../../../stores/settings/derived/scrolling-store';
     import {
         ApplyGapBetweenCardsStore,
         MandalaModeStore,
-        OutlineModeStore,
         ShowHiddenCardInfoStore,
         ShowMandalaDetailSidebarStore,
     } from '../../../../stores/settings/derived/view-settings-store';
@@ -41,10 +39,8 @@
     };
 
     const controls = uiControlsStore(view);
-    const showMinimap = showMinimapStore(view);
     const scrollSettingsStore = ScrollSettingsStore(view);
     const applyGapBetweenCards = ApplyGapBetweenCardsStore(view);
-    const outlineMode = OutlineModeStore(view);
     const mandalaMode = MandalaModeStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -53,32 +49,25 @@
     const buttons = VerticalToolbarButtonsList(view);
     const activeStates = derived(
         [
-            showMinimap,
             controls,
             scrollSettingsStore,
-            outlineMode,
             mandalaMode,
             applyGapBetweenCards,
             showHiddenCardInfo,
             showMandalaDetailSidebar,
         ],
         ([
-            showMinimap,
             controls,
             scrollSettingsStore,
-            outlineMode,
             mandalaMode,
             applyGapBetweenCards,
             showHiddenCardInfo,
             showMandalaDetailSidebar,
         ]) => {
             return {
-                minimap: showMinimap,
                 settings: controls.showSettingsSidebar,
-                'style-rules': controls.showStyleRulesModal,
                 'center-active-node-h': scrollSettingsStore.centerActiveNodeH,
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
-                'outline-mode': outlineMode,
                 'mandala-mode': mandalaMode === '9x9',
                 'mandala-detail-sidebar': showMandalaDetailSidebar,
                 'space-between-cards': applyGapBetweenCards,

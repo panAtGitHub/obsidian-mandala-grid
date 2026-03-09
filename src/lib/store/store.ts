@@ -25,6 +25,7 @@ export class Store<T, U, C = never> implements Writable<T> {
     private value: T;
     private subscribers: Set<Subscriber<T, U>> = new Set();
     private isProcessing: boolean = false;
+    private batchDepth: number = 0;
     private actionQueue: U[] = [];
     private context: C;
     constructor(
@@ -45,8 +46,24 @@ export class Store<T, U, C = never> implements Writable<T> {
 
     dispatch(action: U) {
         this.actionQueue.push(action);
-        if (!this.isProcessing) {
+        if (!this.isProcessing && this.batchDepth === 0) {
             this.processActionQueue();
+        }
+    }
+
+    batch(fn: () => void) {
+        this.batchDepth += 1;
+        try {
+            fn();
+        } finally {
+            this.batchDepth -= 1;
+            if (
+                this.batchDepth === 0 &&
+                !this.isProcessing &&
+                this.actionQueue.length > 0
+            ) {
+                this.processActionQueue();
+            }
         }
     }
 

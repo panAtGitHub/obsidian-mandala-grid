@@ -2,6 +2,7 @@
     import { getView } from 'src/view/components/container/context';
     import { derived } from 'src/lib/store/derived';
     import {
+        DetailSidebarPreviewModeStore,
         ShowMandalaDetailSidebarStore,
         MandalaModeStore,
         Show3x3SubgridNavButtonsStore,
@@ -10,14 +11,14 @@
     import { onDestroy, tick } from 'svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
-    import { NodeStylesStore } from 'src/stores/view/derived/style-rules';
+    import SourcePreview from 'src/view/components/container/column/components/group/components/card/components/content/source-preview.svelte';
     import { Platform, setIcon } from 'obsidian';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
     import {
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
-    import { startSectionNativeEditorSession } from 'src/view/helpers/mandala/section-native-editor-session';
+    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
     const MIN_SIZE = 200;
@@ -36,6 +37,7 @@
 
     const view = getView();
     const showSidebarStore = ShowMandalaDetailSidebarStore(view);
+    const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const editingState = derived(
         view.viewStore,
         (state) => state.document.editing,
@@ -55,7 +57,6 @@
         view.documentStore,
         (state) => state.sections.id_section,
     );
-    const styleRules = NodeStylesStore(view);
     let activeSection: string | null = null;
     $: activeSection = $activeNodeId
         ? $idToSection[$activeNodeId] ?? null
@@ -64,13 +65,14 @@
     $: canExitSubgrid = Boolean($subgridTheme && $subgridTheme !== '1');
     $: canEnterSubgrid =
         !!$activeNodeId &&
-        !($subgridTheme &&
-                $subgridTheme.includes('.') &&
-                activeSection === $subgridTheme);
+        !(
+            $subgridTheme &&
+            $subgridTheme.includes('.') &&
+            activeSection === $subgridTheme
+        );
     $: canJumpPrevCore = activeCoreNumber > 1;
 
     let editorContainer: HTMLElement;
-    let lastMobileTapAt = 0;
 
     $: isEditingInSidebar =
         !Platform.isMobile &&
@@ -179,19 +181,20 @@
             });
         }
     };
-    const handleDblClick = () => {
-        if (Platform.isMobile && $activeNodeId) {
-            void startSectionNativeEditorSession(view, $activeNodeId);
-        }
-    };
-
-    const handleMobileTap = () => {
-        if (!Platform.isMobile || !$activeNodeId) return;
-        const now = Date.now();
-        const isDoubleTap = now - lastMobileTapAt <= 320;
-        lastMobileTapAt = now;
-        if (!isDoubleTap) return;
-        void startSectionNativeEditorSession(view, $activeNodeId);
+    const handleMobilePreviewDoubleTapEdit = (
+        event: CustomEvent<{ nodeId: string }>,
+    ) => {
+        if (!Platform.isMobile) return;
+        if (
+            $detailSidebarPreviewMode !== 'rendered' &&
+            $detailSidebarPreviewMode !== 'source'
+        )
+            return;
+        const nodeId = event.detail?.nodeId;
+        if (!nodeId) return;
+        openNodeEditor(view, nodeId, {
+            desktopIsInSidebar: true,
+        });
     };
 
     const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
@@ -225,7 +228,6 @@
         event.stopPropagation();
         jumpCoreTheme(view, 'down');
     };
-
 </script>
 
 <div
@@ -241,11 +243,7 @@
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
     {#if $showSidebarStore}
-        <div
-            class="sidebar-content"
-            on:dblclick={handleDblClick}
-            on:click={handleMobileTap}
-        >
+        <div class="sidebar-content">
             {#if $activeNodeId}
                 <div class="editor-wrapper">
                     {#key $activeNodeId}
@@ -256,14 +254,20 @@
                             >
                                 <InlineEditor
                                     nodeId={$activeNodeId}
-                                    style={$styleRules.get($activeNodeId)}
                                 />
                             </div>
+                        {:else if $detailSidebarPreviewMode === 'source'}
+                            <SourcePreview
+                                nodeId={$activeNodeId}
+                                on:mobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
+                            />
                         {:else}
                             <Content
                                 nodeId={$activeNodeId}
                                 isInSidebar={false}
-                                active={null}
+                                mobileSidebarRenderedEditEnabled={Platform.isMobile &&
+                                    $detailSidebarPreviewMode === 'rendered'}
+                                on:mobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
                             />
                         {/if}
                     {/key}
@@ -479,6 +483,7 @@
 
     .editor-wrapper {
         flex: 1;
+        min-height: 0;
         background-color: var(--background-primary);
         border-radius: 0px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -486,6 +491,13 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+    }
+
+    .sidebar-editor-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
     }
 
     .no-selection {
@@ -502,8 +514,24 @@
 
     /* 适配 InlineEditor 在侧边栏的样式 */
     :global(.mandala-detail-sidebar .editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
         height: 100% !important;
+        overflow: hidden;
         background-color: transparent !important;
+    }
+
+    :global(.mandala-detail-sidebar .mandala-inline-editor) {
+        height: 100% !important;
+        min-height: 0 !important;
+    }
+
+    :global(.mandala-detail-sidebar .cm-editor) {
+        height: 100% !important;
+    }
+
+    :global(.mandala-detail-sidebar .cm-editor .cm-scroller) {
+        overflow: auto !important;
     }
 
     :global(.mandala-detail-sidebar .view-content) {

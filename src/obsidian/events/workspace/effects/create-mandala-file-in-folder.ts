@@ -11,7 +11,6 @@ export const createMandalaGridFileInFolder = async (
     folder: TFolder,
 ) => {
     try {
-        const format = 'sections';
         const newFile = await createNewFile(
             plugin,
             folder,
@@ -19,7 +18,7 @@ export const createMandalaGridFileInFolder = async (
             'Mandala',
         );
         if (newFile) {
-            await openFileInMandalaGrid(plugin, newFile, format, 'tab');
+            await openFileInMandalaGrid(plugin, newFile, 'tab');
         }
     } catch (e) {
         onPluginError(e, 'command', lang.ocm_new_document);

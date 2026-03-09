@@ -9,9 +9,6 @@
     import {
         copySearchResultsToClipboard
     } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/copy-search-results-to-clipboard';
-    import {
-        cutSearchResults
-    } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/cut-search-results';
     import { lang } from 'src/lang/lang';
 
     const view = getView();
@@ -27,11 +24,6 @@
             item.setIcon('copy');
             item.onClick(() => copyFlatSearchResultsToClipboard(view));
 
-        });
-        menu.addItem((item) => {
-            item.setTitle(lang.toolbar_cut_search_results);
-            item.setIcon('scissors');
-            item.onClick(() => cutSearchResults(view));
         });
         menu.showAtMouseEvent(e);
     };

@@ -6,7 +6,8 @@
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import {
         MandalaBackgroundModeStore,
-        MandalaGridOrientationStore,
+        MandalaGridCustomLayoutsStore,
+        MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
@@ -46,15 +47,11 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
-
-    const nodeStyles = derived(
-        view.viewStore,
-        (state) => state.styleRules.nodeStyles,
-    );
     const sectionColors = SectionColorBySectionStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
-    const gridOrientation = MandalaGridOrientationStore(view);
+    const selectedLayoutId = MandalaGridSelectedLayoutIdStore(view);
+    const customLayouts = MandalaGridCustomLayoutsStore(view);
 
     const getSectionColor = (section: string) => {
         if ($backgroundMode !== 'custom') return null;
@@ -70,8 +67,9 @@
             {@const section = sectionAtCell9x9(
                 row,
                 col,
-                $gridOrientation,
+                $selectedLayoutId,
                 baseTheme,
+                $customLayouts,
             )}
             {@const nodeId = section ? $sectionToNodeId[section] : null}
 
@@ -88,7 +86,6 @@
                     {editing}
                     selected={$selectedNodes.has(nodeId)}
                     pinned={$pinnedNodes.has(nodeId)}
-                    style={$nodeStyles.get(nodeId)}
                     sectionColor={sectionColor}
                     draggable={section !== baseTheme}
                     gridCell={{ mode: '9x9', row, col }}
@@ -121,6 +118,10 @@
         border-radius: 8px;
         background: var(--background-primary);
         box-sizing: border-box;
+    }
+
+    .mandala-9x9-grid :global(.mandala-card.inactive-node) {
+        opacity: 1 !important;
     }
 
     .mandala-placeholder {

@@ -1,11 +1,9 @@
-import { NavigationHistory } from 'src/stores/document/document-state-type';
 import {
     ActiveBranch,
     DNDState,
     EditingState,
 } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
-import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 
 export type ActiveNodesOfColumn = {
@@ -31,9 +29,6 @@ export type DocumentViewState = {
 export type PinnedNodes = {
     activeNode: string;
 };
-export type RecentNodes = {
-    activeNode: string;
-};
 export type ViewState = {
     search: {
         query: string;
@@ -45,10 +40,8 @@ export type ViewState = {
     };
     ui: {
         controls: {
-            showHistorySidebar: boolean;
             showHelpSidebar: boolean;
             showSettingsSidebar: boolean;
-            showStyleRulesModal: boolean;
         };
         mandala: {
             subgridTheme: string | null;
@@ -62,22 +55,12 @@ export type ViewState = {
         };
     };
     document: DocumentViewState;
-    navigationHistory: NavigationHistory;
     pinnedNodes: PinnedNodes;
-    recentNodes: RecentNodes;
-    styleRules: {
-        nodeStyles: Map<string, NodeStyle>;
-        allMatches: Map<string, string[]>;
-    };
     keyboard: {
         shift: boolean;
     };
     hotkeys: {
         searchTerm: string;
         conflictingHotkeys: ConflictingHotkeys;
-    };
-    outline: {
-        collapsedParents: Set<string>;
-        hiddenNodes: Set<string>;
     };
 };

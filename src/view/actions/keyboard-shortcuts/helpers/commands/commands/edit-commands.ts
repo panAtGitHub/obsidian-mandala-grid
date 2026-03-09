@@ -4,6 +4,7 @@ import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/
 import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
+import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
 
 export const editCommands = () => {
     const ensureNodeForSection = (view: MandalaView, section: string) => {
@@ -31,7 +32,9 @@ export const editCommands = () => {
             updated = view.documentStore.getValue();
         }
 
-        return view.documentStore.getValue().sections.section_id[section] || null;
+        return (
+            view.documentStore.getValue().sections.section_id[section] || null
+        );
     };
 
     return [
@@ -39,18 +42,14 @@ export const editCommands = () => {
             name: 'enable_edit_mode',
             callback: (view, event) => {
                 event.preventDefault();
-                let showDetailSidebar = Platform.isMobile
-                    ? view.plugin.settings.getValue().view
-                          .showMandalaDetailSidebarMobile
-                    : view.plugin.settings.getValue().view
-                          .showMandalaDetailSidebarDesktop;
+                let showDetailSidebar = view.isMandalaDetailSidebarVisible();
                 let nodeId = view.viewStore.getValue().document.activeNode;
                 if (view.mandalaMode === '9x9' && view.mandalaActiveCell9x9) {
-                    const orientation =
-                        view.plugin.settings.getValue().view
-                            .mandalaGridOrientation ?? 'left-to-right';
+                    const orientation = view.getCurrentMandalaLayoutId();
                     const activeSection =
-                        view.documentStore.getValue().sections.id_section[nodeId];
+                        view.documentStore.getValue().sections.id_section[
+                            nodeId
+                        ];
                     const baseTheme = activeSection
                         ? activeSection.split('.')[0]
                         : '1';
@@ -62,26 +61,21 @@ export const editCommands = () => {
                     );
                     if (section) {
                         const existing =
-                            view.documentStore.getValue().sections
-                                .section_id[section];
+                            view.documentStore.getValue().sections.section_id[
+                                section
+                            ];
                         nodeId =
                             existing ??
                             ensureNodeForSection(view, section) ??
                             nodeId;
                     }
-                    if (!showDetailSidebar) {
-                        view.plugin.settings.dispatch({
-                            type: 'view/mandala-detail-sidebar/toggle',
-                        });
+                    if (!Platform.isMobile && !showDetailSidebar) {
+                        view.toggleCurrentMandalaDetailSidebar();
                         showDetailSidebar = true;
                     }
                 }
-                view.viewStore.dispatch({
-                    type: 'view/editor/enable-main-editor',
-                    payload: {
-                        nodeId,
-                        isInSidebar: showDetailSidebar,
-                    },
+                openNodeEditor(view, nodeId, {
+                    desktopIsInSidebar: showDetailSidebar,
                 });
             },
             hotkeys: [

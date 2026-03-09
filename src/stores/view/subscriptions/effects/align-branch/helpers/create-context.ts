@@ -2,7 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { ActiveBranch } from 'src/stores/view/default-view-state';
 import { adjustScrollBehavior } from 'src/stores/view/subscriptions/effects/align-branch/helpers/adjust-scroll-behavior';
 import { PluginAction } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
-import { Column } from 'src/stores/document/document-state-type';
+import { Column, DocumentState } from 'src/stores/document/document-state-type';
 import { ActiveNodesOfColumn } from 'src/stores/view/view-state-type';
 
 export type PartialDOMRect = Pick<DOMRect, 'top' | 'height'>;
@@ -21,10 +21,10 @@ export type AlignBranchContext = {
     activeBranch: ActiveBranch;
     container: HTMLElement;
     containerRect: DOMRect;
-    outlineMode: boolean;
     alignBranchSettings: AlignBranchSettings;
     state: AlignBranchState;
     activeNodesOfColumn: ActiveNodesOfColumn;
+    documentState: DocumentState;
 };
 export const createContext = (
     view: MandalaView,
@@ -45,13 +45,13 @@ export const createContext = (
         container,
         activeNodesOfColumn: viewState.document.activeNodesOfColumn,
         containerRect: container.getBoundingClientRect(),
-        outlineMode: settings.view.outlineMode,
         alignBranchSettings: {
             centerActiveNodeH: settings.view.scrolling.centerActiveNodeH,
             centerActiveNodeV: settings.view.scrolling.centerActiveNodeV,
             zoomLevel: settings.view.zoomLevel,
             behavior: behavior,
         },
+        documentState,
         state: {
             rects: new Map(),
         },

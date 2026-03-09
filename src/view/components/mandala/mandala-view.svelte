@@ -6,10 +6,13 @@
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBorderOpacityStore,
+        MandalaGridHighlightColorStore,
+        MandalaGridHighlightWidthStore,
         MandalaDetailSidebarWidthStore,
         MandalaModeStore,
         MandalaBackgroundModeStore,
-        MandalaGridOrientationStore,
+        MandalaGridCustomLayoutsStore,
+        MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
         Show3x3SubgridNavButtonsStore,
         ShowMandalaDetailSidebarStore,
@@ -20,7 +23,7 @@
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
-        getMandalaLayout,
+        getMandalaLayoutById,
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
@@ -55,10 +58,13 @@
     $: isPortrait = $layout.isPortrait;
 
     const mode = MandalaModeStore(view);
-    const gridOrientation = MandalaGridOrientationStore(view);
+    const selectedLayoutId = MandalaGridSelectedLayoutIdStore(view);
+    const customLayouts = MandalaGridCustomLayoutsStore(view);
     const a4Mode = MandalaA4ModeStore(view);
     const a4Orientation = MandalaA4OrientationStore(view);
     const borderOpacity = MandalaBorderOpacityStore(view);
+    const gridHighlightColor = MandalaGridHighlightColorStore(view);
+    const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -92,9 +98,7 @@
             return applyOpacityToHex(sectionColors[section], opacity);
         }
         if (backgroundMode === 'gray' && isCrossIndex(index)) {
-            return `color-mix(in srgb, var(--mandala-gray-block-base) ${
-                sectionColorOpacity
-            }%, transparent)`;
+            return `color-mix(in srgb, var(--mandala-gray-block-base) ${sectionColorOpacity}%, transparent)`;
         }
         return null;
     };
@@ -103,7 +107,6 @@
         section ? section.split('.')[0] : '1';
 
     const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
-
 
     let desktopSquareSize = 0;
     let contentWrapperRef: HTMLElement | null = null;
@@ -191,7 +194,9 @@
         if (!cursorRect) return;
         const vv = window.visualViewport;
         const visibleTop = vv ? vv.offsetTop : 0;
-        const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+        const visibleBottom = vv
+            ? vv.offsetTop + vv.height
+            : window.innerHeight;
         const topLimit = visibleTop + 8;
         const bottomLimit = visibleBottom - 12;
         if (cursorRect.bottom > bottomLimit) {
@@ -229,8 +234,14 @@
         window.visualViewport?.addEventListener('scroll', onEditorActivity);
         scheduleEnsureMobileCursorVisible();
         return () => {
-            mobilePopupEditorBodyEl?.removeEventListener('input', onEditorActivity);
-            mobilePopupEditorBodyEl?.removeEventListener('keyup', onEditorActivity);
+            mobilePopupEditorBodyEl?.removeEventListener(
+                'input',
+                onEditorActivity,
+            );
+            mobilePopupEditorBodyEl?.removeEventListener(
+                'keyup',
+                onEditorActivity,
+            );
             mobilePopupEditorBodyEl?.removeEventListener(
                 'compositionend',
                 onEditorActivity,
@@ -239,13 +250,19 @@
                 'touchend',
                 onEditorActivity,
             );
-            mobilePopupEditorBodyEl?.removeEventListener('click', onEditorActivity);
+            mobilePopupEditorBodyEl?.removeEventListener(
+                'click',
+                onEditorActivity,
+            );
             document.removeEventListener('selectionchange', onEditorActivity);
             window.visualViewport?.removeEventListener(
                 'resize',
                 onEditorActivity,
             );
-            window.visualViewport?.removeEventListener('scroll', onEditorActivity);
+            window.visualViewport?.removeEventListener(
+                'scroll',
+                onEditorActivity,
+            );
         };
     };
 
@@ -293,18 +310,9 @@
     );
     const documentState = derived(view.documentStore, (state) => state);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
-    const nodeStyles = derived(
-        view.viewStore,
-        (state) => state.styleRules.nodeStyles,
-    );
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
-        return (
-            controls.showHelpSidebar ||
-            controls.showSettingsSidebar ||
-            controls.showHistorySidebar ||
-            controls.showStyleRulesModal
-        );
+        return controls.showHelpSidebar || controls.showSettingsSidebar;
     });
 
     let containerRef: HTMLElement | null = null;
@@ -371,9 +379,30 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
+    let cachedDayPlanFrontmatter: string | null = null;
+    let cachedDayPlan = parseDayPlanFrontmatter('');
+    const getCachedDayPlan = (frontmatter: string) => {
+        if (frontmatter !== cachedDayPlanFrontmatter) {
+            cachedDayPlanFrontmatter = frontmatter;
+            cachedDayPlan = parseDayPlanFrontmatter(frontmatter);
+        }
+        return cachedDayPlan;
+    };
 
     $: {
         if ($mode && !$subgridTheme) {
+            view.viewStore.dispatch({
+                type: 'view/mandala/subgrid/enter',
+                payload: { theme: '1' },
+            });
+        }
+
+        if (
+            $mode === '3x3' &&
+            $subgridTheme &&
+            $subgridTheme !== '1' &&
+            !$sectionToNodeId[$subgridTheme]
+        ) {
             view.viewStore.dispatch({
                 type: 'view/mandala/subgrid/enter',
                 payload: { theme: '1' },
@@ -395,15 +424,17 @@
                 const cell = view.mandalaActiveCell9x9;
                 const pos = posOfSection9x9(
                     section,
-                    $gridOrientation,
+                    $selectedLayoutId,
                     baseTheme,
+                    $customLayouts,
                 );
                 if (cell) {
                     const mapped = sectionAtCell9x9(
                         cell.row,
                         cell.col,
-                        $gridOrientation,
+                        $selectedLayoutId,
                         baseTheme,
+                        $customLayouts,
                     );
                     if (!mapped || mapped !== section) {
                         setActiveCell9x9(view, pos ?? null);
@@ -414,9 +445,12 @@
     }
 
     $: {
-        const dayPlan = parseDayPlanFrontmatter($documentState.file.frontmatter);
-        const allowSubgridExpansion =
-            !(dayPlan && dayPlan.daily_only_3x3 && $subgridTheme?.includes('.'));
+        const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
+        const allowSubgridExpansion = !(
+            dayPlan &&
+            dayPlan.daily_only_3x3 &&
+            $subgridTheme?.includes('.')
+        );
         if (
             allowSubgridExpansion &&
             $mode === '3x3' &&
@@ -440,8 +474,8 @@
             }
         }
     }
-    // 手机端全屏编辑状态判断
-    $: isMobilePopupEditing = Platform.isMobile && $editingState.activeNodeId && !$editingState.isInSidebar;
+    // 手机端编辑统一走原生 section 会话，不再走 InlineEditor 弹层路径。
+    let isMobilePopupEditing = false;
     $: isMobileFullScreenSearch = Platform.isMobile && $search.showInput;
 
     const handleSave = () => {
@@ -476,7 +510,6 @@
 
     const getDownButtonLabel = (theme: string) =>
         theme.includes('.') ? '进入下一层子九宫格' : '下一层核心九宫格';
-
 </script>
 
 <div
@@ -491,12 +524,13 @@
     class:mandala-white-theme={$whiteThemeMode}
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
-    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --vvh: {visualViewportHeight || window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px; --vkf: {keyboardOverlayFallback}px;"
+    style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --mandala-grid-highlight-color: {$gridHighlightColor ||
+        'var(--mandala-color-selection)'}; --mandala-grid-highlight-width: {$gridHighlightWidth}px; --vvh: {visualViewportHeight ||
+        window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px; --vkf: {keyboardOverlayFallback}px;"
 >
     {#if isMobilePopupEditing}
         <MobileNativeEditorSheet
             nodeId={$editingState.activeNodeId}
-            nodeStyle={$nodeStyles.get($editingState.activeNodeId)}
             fontSize={$mobilePopupFontSizeStore}
             bind:editorBodyEl={mobilePopupEditorBodyEl}
             on:save={handleSave}
@@ -528,7 +562,10 @@
             >
                 {#if $mode === '3x3'}
                     {@const theme = $subgridTheme ?? '1'}
-                    {@const layout = getMandalaLayout($gridOrientation)}
+                    {@const layout = getMandalaLayoutById(
+                        $selectedLayoutId,
+                        $customLayouts,
+                    )}
                     {@const sections = layout.childSlots.map((slot) =>
                         slot ? `${theme}.${slot}` : theme,
                     )}
@@ -538,10 +575,12 @@
                             section,
                             index,
                             nodeId,
-                            key: nodeId ?? `empty-${section}`,
+                            key: section,
                         };
                     })}
-                    <div class="mandala-grid mandala-grid--3 mandala-grid--core">
+                    <div
+                        class="mandala-grid mandala-grid--3 mandala-grid--core"
+                    >
                         {#each cells as cell (cell.key)}
                             {@const sectionBackground = getSectionBackground(
                                 cell.section,
@@ -552,13 +591,19 @@
                             )}
                             <div
                                 class="mandala-cell"
-                                animate:flip={{ duration: $swapState.animate ? 220 : 0 }}
+                                animate:flip={{
+                                    duration: $swapState.animate ? 220 : 0,
+                                }}
                             >
                                 {#if cell.nodeId}
                                     <MandalaCard
                                         nodeId={cell.nodeId}
                                         section={cell.section}
                                         active={cell.nodeId === $activeNodeId}
+                                        preserveActiveBackground={$whiteThemeMode}
+                                        sectionIndicatorVariant={!$whiteThemeMode
+                                            ? 'section-capsule'
+                                            : 'plain-with-pin'}
                                         editing={$editingState.activeNodeId ===
                                             cell.nodeId &&
                                             !$editingState.isInSidebar &&
@@ -567,16 +612,14 @@
                                             cell.nodeId,
                                         )}
                                         pinned={$pinnedNodes.has(cell.nodeId)}
-                                        style={$nodeStyles.get(cell.nodeId)}
                                         sectionColor={sectionBackground}
-                                        draggable={cell.section !== theme}
+                                        draggable={false}
                                     />
-                                    {#if !Platform.isMobile &&
-                                        $show3x3SubgridNavButtons &&
-                                        !$hasOpenOverlayModal}
+                                    {#if !Platform.isMobile && $show3x3SubgridNavButtons && !$hasOpenOverlayModal}
                                         <div
                                             class="mandala-subgrid-controls"
-                                            class:is-center-controls={cell.section === theme}
+                                            class:is-center-controls={cell.section ===
+                                                theme}
                                             on:click|stopPropagation
                                             on:mousedown|stopPropagation|preventDefault
                                             on:pointerdown|stopPropagation|preventDefault
@@ -586,12 +629,20 @@
                                                     <button
                                                         class="mandala-subgrid-btn mandala-subgrid-btn--up"
                                                         type="button"
-                                                        aria-label={getUpButtonLabel(theme)}
-                                                        title={getUpButtonLabel(theme)}
+                                                        aria-label={getUpButtonLabel(
+                                                            theme,
+                                                        )}
+                                                        title={getUpButtonLabel(
+                                                            theme,
+                                                        )}
                                                         on:click={(event) =>
-                                                            exitSubgridFromButton(event)}
+                                                            exitSubgridFromButton(
+                                                                event,
+                                                            )}
                                                     >
-                                                        <span class="mandala-subgrid-btn__icon">
+                                                        <span
+                                                            class="mandala-subgrid-btn__icon"
+                                                        >
                                                             {#if theme.includes('.')}
                                                                 <MandalaNavIcon
                                                                     direction="up"
@@ -612,12 +663,21 @@
                                                     <button
                                                         class="mandala-subgrid-btn mandala-subgrid-btn--down"
                                                         type="button"
-                                                        aria-label={getDownButtonLabel(theme)}
-                                                        title={getDownButtonLabel(theme)}
+                                                        aria-label={getDownButtonLabel(
+                                                            theme,
+                                                        )}
+                                                        title={getDownButtonLabel(
+                                                            theme,
+                                                        )}
                                                         on:click={(event) =>
-                                                            enterSubgridFromButton(event, cell.nodeId)}
+                                                            enterSubgridFromButton(
+                                                                event,
+                                                                cell.nodeId,
+                                                            )}
                                                     >
-                                                        <span class="mandala-subgrid-btn__icon">
+                                                        <span
+                                                            class="mandala-subgrid-btn__icon"
+                                                        >
                                                             {#if theme.includes('.')}
                                                                 <MandalaNavIcon
                                                                     direction="down"
@@ -640,9 +700,14 @@
                                                     type="button"
                                                     aria-label="进入子九宫"
                                                     on:click={(event) =>
-                                                        enterSubgridFromButton(event, cell.nodeId)}
+                                                        enterSubgridFromButton(
+                                                            event,
+                                                            cell.nodeId,
+                                                        )}
                                                 >
-                                                    <span class="mandala-subgrid-btn__icon">
+                                                    <span
+                                                        class="mandala-subgrid-btn__icon"
+                                                    >
                                                         <MandalaNavIcon
                                                             direction="down"
                                                             size={14}
@@ -685,7 +750,10 @@
         overflow: hidden;
         overscroll-behavior: contain;
         --mandala-core-gap: clamp(10px, 1vw, 18px);
-        --mandala-gap: var(--node-gap-setting, calc(var(--mandala-core-gap) / 4));
+        --mandala-gap: var(
+            --node-gap-setting,
+            calc(var(--mandala-core-gap) / 4)
+        );
         --mandala-block-gap: var(--mandala-gap);
         --mandala-card-width: 100%;
         --mandala-gray-block-base: color-mix(
@@ -745,9 +813,10 @@
         padding: 12px;
     }
 
-    
     /* 桌面端调整格子右侧间距为 6px，为 6+6=12px 做准备 */
-    :global(body:not(.is-mobile)) .mandala-root:not(.mandala-a4-mode) .mandala-scroll {
+    :global(body:not(.is-mobile))
+        .mandala-root:not(.mandala-a4-mode)
+        .mandala-scroll {
         padding: 12px 6px 12px 12px;
     }
 
@@ -760,7 +829,8 @@
     }
 
     /* 桌面端正方形布局 + 无侧边栏时居中 */
-    .is-desktop-square-layout:not(.has-detail-sidebar) .mandala-content-wrapper {
+    .is-desktop-square-layout:not(.has-detail-sidebar)
+        .mandala-content-wrapper {
         justify-content: center;
     }
 
@@ -884,29 +954,6 @@
         );
     }
 
-    /* A4 视觉校对：外框与内容区边界 */
-    .mandala-a4-mode .mandala-scroll::before,
-    .mandala-a4-mode .mandala-scroll::after {
-        display: none;
-    }
-
-    .mandala-a4-mode .mandala-scroll::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        outline: 1px solid rgba(255, 0, 0, 0.6);
-        pointer-events: none;
-        box-sizing: border-box;
-    }
-
-    .mandala-a4-mode .mandala-scroll::after {
-        content: '';
-        position: absolute;
-        inset: var(--mandala-a4-margin);
-        outline: 1px dashed rgba(0, 128, 255, 0.8);
-        pointer-events: none;
-        box-sizing: border-box;
-    }
     .mandala-grid {
         display: grid;
         grid-template-columns: repeat(3, var(--node-width));
@@ -988,17 +1035,26 @@
     }
 
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
-    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node) {
+    .mandala-a4-mode.mandala-root--3
+        :global(.mandala-card.node-border--selected),
+    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected) {
         position: relative;
     }
 
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
+    .mandala-a4-mode.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after,
     .mandala-white-theme.mandala-root--3
-        :global(.mandala-card.active-node)::after {
+        :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
         inset: 2px;
-        border: 2px solid var(--mandala-color-selection);
+        border: var(--mandala-grid-highlight-width, 2px) solid
+            var(--mandala-grid-highlight-color, var(--mandala-color-selection));
         pointer-events: none;
         box-sizing: border-box;
         border-radius: 0;
@@ -1067,11 +1123,8 @@
             var(--background-modifier-border) 45%
         );
         box-shadow:
-            0 0 0 1px color-mix(
-                in srgb,
-                var(--interactive-accent) 45%,
-                transparent
-            ),
+            0 0 0 1px
+                color-mix(in srgb, var(--interactive-accent) 45%, transparent),
             var(--shadow-s);
         transform: translateY(-1px);
     }
@@ -1097,15 +1150,13 @@
         stroke-width: 2.2 !important;
     }
 
-    .mandala-subgrid-controls.is-center-controls
-        .mandala-subgrid-btn--up {
+    .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--up {
         position: absolute;
         left: 0;
         bottom: 0;
     }
 
-    .mandala-subgrid-controls.is-center-controls
-        .mandala-subgrid-btn--down {
+    .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--down {
         position: absolute;
         right: 0;
         bottom: 0;
@@ -1195,30 +1246,57 @@
         scrollbar-width: thin;
         scrollbar-color: var(--mandala-idle-scrollbar-thumb) transparent;
         --scrollbar-thumb-bg: var(--mandala-idle-scrollbar-thumb) !important;
-        --scrollbar-active-thumb-bg: var(--mandala-idle-scrollbar-thumb-active)
-            !important;
+        --scrollbar-active-thumb-bg: var(
+            --mandala-idle-scrollbar-thumb-active
+        ) !important;
         --scrollbar-bg: transparent !important;
     }
 
     :global(.mandala-idle-scrollbar.is-scrollbar-visible::-webkit-scrollbar),
-    :global(.mandala-card.active-node .mandala-idle-scrollbar::-webkit-scrollbar),
-    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar::-webkit-scrollbar),
+    :global(
+            .mandala-card.active-node .mandala-idle-scrollbar::-webkit-scrollbar
+        ),
+    :global(
+            .mandala-card.node-border--selected
+                .mandala-idle-scrollbar::-webkit-scrollbar
+        ),
     :global(.mandala-card:hover .mandala-idle-scrollbar::-webkit-scrollbar) {
         width: 8px;
         height: 8px;
     }
 
-    :global(.mandala-idle-scrollbar.is-scrollbar-visible::-webkit-scrollbar-thumb),
-    :global(.mandala-card.active-node .mandala-idle-scrollbar::-webkit-scrollbar-thumb),
-    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar::-webkit-scrollbar-thumb),
-    :global(.mandala-card:hover .mandala-idle-scrollbar::-webkit-scrollbar-thumb) {
+    :global(
+            .mandala-idle-scrollbar.is-scrollbar-visible::-webkit-scrollbar-thumb
+        ),
+    :global(
+            .mandala-card.active-node
+                .mandala-idle-scrollbar::-webkit-scrollbar-thumb
+        ),
+    :global(
+            .mandala-card.node-border--selected
+                .mandala-idle-scrollbar::-webkit-scrollbar-thumb
+        ),
+    :global(
+            .mandala-card:hover .mandala-idle-scrollbar::-webkit-scrollbar-thumb
+        ) {
         background: var(--mandala-idle-scrollbar-thumb);
     }
 
-    :global(.mandala-idle-scrollbar.is-scrollbar-visible:hover::-webkit-scrollbar-thumb),
-    :global(.mandala-card.active-node .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb),
-    :global(.mandala-card.node-border--selected .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb),
-    :global(.mandala-card:hover .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb) {
+    :global(
+            .mandala-idle-scrollbar.is-scrollbar-visible:hover::-webkit-scrollbar-thumb
+        ),
+    :global(
+            .mandala-card.active-node
+                .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb
+        ),
+    :global(
+            .mandala-card.node-border--selected
+                .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb
+        ),
+    :global(
+            .mandala-card:hover
+                .mandala-idle-scrollbar:hover::-webkit-scrollbar-thumb
+        ) {
         background: var(--mandala-idle-scrollbar-thumb-active);
     }
 
@@ -1252,5 +1330,4 @@
         height: var(--vvh, 100dvh) !important;
         overflow: hidden !important;
     }
-
 </style>

@@ -1,8 +1,6 @@
-import { MarkdownRenderer } from 'obsidian';
 import { getPlugin, getView } from 'src/view/components/container/context';
 import { contentStore } from 'src/stores/document/derived/content-store';
-import { formatText } from 'src/view/actions/markdown-preview/helpers/format-text';
-import { markHiddenInfoElements } from 'src/view/actions/markdown-preview/helpers/mark-hidden-info-elements';
+import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
 
 export const markdownPreviewAction = (element: HTMLElement, nodeId: string) => {
     const plugin = getPlugin();
@@ -13,27 +11,25 @@ export const markdownPreviewAction = (element: HTMLElement, nodeId: string) => {
 
     const render = (content: string) => {
         if (view && element) {
-            element.empty();
-            if (content.length > 0) {
-                content = formatText(content);
-            }
-            const renderResult = MarkdownRenderer.render(
-                plugin.app,
+            const renderResult = renderMarkdownContent({
+                app: plugin.app,
                 content,
                 element,
-                view.file!.path,
-                view,
-            );
-            void Promise.resolve(renderResult).then(() =>
-                markHiddenInfoElements(element),
-            );
+                sourcePath: view.file!.path,
+                component: view,
+                applyFormatText: true,
+            });
+            void Promise.resolve(renderResult).catch(() => {
+                // Keep existing behavior: rendering failure should not break subscription updates.
+                element.empty();
+            });
         }
     };
 
     const subscribeToContent = (id: string) => {
         const $content = contentStore(view, id);
-        return $content.subscribe((content) => {
-            render(content);
+        return $content.subscribe((nextContent) => {
+            void render(nextContent);
         });
     };
 

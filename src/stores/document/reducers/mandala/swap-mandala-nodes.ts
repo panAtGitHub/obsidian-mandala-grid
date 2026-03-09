@@ -1,9 +1,22 @@
+import {
+    buildMandalaColumnsFromSections,
+    createStableNodeId,
+} from 'src/mandala-v2/build-state';
+import {
+    compareSectionIds,
+    getParentSection,
+    isSectionInSubtree,
+    swapSectionSubtreeIds,
+} from 'src/mandala-v2/section-utils';
 import { id } from 'src/helpers/id';
 import { SilentError } from 'src/lib/errors/errors';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
-import { findNodePosition } from 'src/lib/tree-utils/find/find-node-position';
 import { sortGroups } from 'src/lib/tree-utils/sort/sort-groups';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import {
+    DocumentState,
+    MandalaGridDocument,
+    Sections,
+} from 'src/stores/document/document-state-type';
 
 export type MandalaSwapAction = {
     type: 'document/mandala/swap';
@@ -13,27 +26,215 @@ export type MandalaSwapAction = {
     };
 };
 
-export const swapMandalaNodes = (
-    document: Pick<MandalaGridDocument, 'columns'>,
-    sourceNodeId: string,
-    targetNodeId: string,
+export type MandalaSwapMutation = {
+    changedSections: string[];
+    structural: boolean;
+};
+
+const getSectionSuffix = (sectionId: string, rootSection: string) =>
+    sectionId === rootSection ? '' : sectionId.slice(rootSection.length);
+
+const fromSuffix = (rootSection: string, suffix: string) =>
+    suffix.length > 0 ? `${rootSection}${suffix}` : rootSection;
+
+const compareSectionSuffixes = (
+    rootSection: string,
+    left: string,
+    right: string,
+) =>
+    compareSectionIds(
+        fromSuffix(rootSection, left),
+        fromSuffix(rootSection, right),
+    );
+
+const compareSectionSuffixesDeepestFirst = (
+    rootSection: string,
+    left: string,
+    right: string,
 ) => {
-    if (sourceNodeId === targetNodeId) return;
-    const a = findNodePosition(document.columns, sourceNodeId);
-    const b = findNodePosition(document.columns, targetNodeId);
-    if (!a || !b) throw new SilentError('could not find node position');
+    const leftDepth = fromSuffix(rootSection, left).split('.').length;
+    const rightDepth = fromSuffix(rootSection, right).split('.').length;
+    if (leftDepth !== rightDepth) return rightDepth - leftDepth;
+    return compareSectionSuffixes(rootSection, right, left);
+};
 
-    const groupA = document.columns[a.columnIndex].groups[a.groupIndex];
-    const groupB = document.columns[b.columnIndex].groups[b.groupIndex];
-
-    groupA.nodes[a.nodeIndex] = targetNodeId;
-    groupB.nodes[b.nodeIndex] = sourceNodeId;
-
-    // ensure reactive updates
-    groupA.nodes = [...groupA.nodes];
-    if (groupB !== groupA) {
-        groupB.nodes = [...groupB.nodes];
+const collectSubtreeSuffixes = (sections: Sections, rootSection: string) => {
+    const suffixes = new Set<string>();
+    for (const sectionId of Object.keys(sections.section_id)) {
+        if (!isSectionInSubtree(sectionId, rootSection)) continue;
+        suffixes.add(getSectionSuffix(sectionId, rootSection));
     }
+    return suffixes;
+};
+
+const ensureContentEntry = (
+    content: MandalaGridDocument['content'],
+    nodeId: string,
+) => {
+    if (!content[nodeId]) {
+        content[nodeId] = { content: '' };
+    }
+};
+
+const ensureSectionNode = (
+    state: DocumentState,
+    sectionId: string,
+    usedNodeIds: Set<string>,
+) => {
+    const existingNodeId = state.sections.section_id[sectionId];
+    if (existingNodeId) {
+        ensureContentEntry(state.document.content, existingNodeId);
+        return { nodeId: existingNodeId, created: false };
+    }
+
+    const parentSection = getParentSection(sectionId);
+    if (parentSection && !state.sections.section_id[parentSection]) {
+        throw new SilentError(
+            `could not materialize section "${sectionId}" without parent "${parentSection}"`,
+        );
+    }
+
+    const nodeId = createStableNodeId(sectionId, usedNodeIds);
+    state.sections.section_id[sectionId] = nodeId;
+    state.sections.id_section[nodeId] = sectionId;
+    state.document.content[nodeId] = { content: '' };
+    return { nodeId, created: true };
+};
+
+const hasSectionDescendants = (sections: Sections, sectionId: string) => {
+    const prefix = `${sectionId}.`;
+    return Object.keys(sections.section_id).some((candidate) =>
+        candidate.startsWith(prefix),
+    );
+};
+
+const removeSectionNode = (state: DocumentState, sectionId: string) => {
+    const nodeId = state.sections.section_id[sectionId];
+    if (!nodeId) return;
+    delete state.sections.section_id[sectionId];
+    delete state.sections.id_section[nodeId];
+    delete state.document.content[nodeId];
+    state.pinnedNodes.Ids = state.pinnedNodes.Ids.filter((id) => id !== nodeId);
+};
+
+export const swapMandalaSubtreePayload = (
+    state: DocumentState,
+    sourceSection: string,
+    targetSection: string,
+): MandalaSwapMutation => {
+    if (!sourceSection || !targetSection || sourceSection === targetSection) {
+        return { changedSections: [], structural: false };
+    }
+
+    const sourceSuffixes = collectSubtreeSuffixes(
+        state.sections,
+        sourceSection,
+    );
+    const targetSuffixes = collectSubtreeSuffixes(
+        state.sections,
+        targetSection,
+    );
+    const suffixes = Array.from(
+        new Set([...sourceSuffixes, ...targetSuffixes]),
+    ).sort((left, right) => compareSectionSuffixes(sourceSection, left, right));
+    const usedNodeIds = new Set(Object.values(state.sections.section_id));
+    const removableSuffixes = new Set<string>();
+    let structural = false;
+
+    const pinnedSectionsBefore = state.pinnedNodes.Ids.map(
+        (nodeId) => state.sections.id_section[nodeId],
+    ).filter((sectionId): sectionId is string => Boolean(sectionId));
+
+    for (const suffix of suffixes) {
+        const sourceSectionId = fromSuffix(sourceSection, suffix);
+        const targetSectionId = fromSuffix(targetSection, suffix);
+        const sourceExists = Boolean(
+            state.sections.section_id[sourceSectionId],
+        );
+        const targetExists = Boolean(
+            state.sections.section_id[targetSectionId],
+        );
+
+        if (!sourceExists || !targetExists) {
+            structural = true;
+        }
+        if (sourceExists !== targetExists) {
+            removableSuffixes.add(suffix);
+        }
+
+        ensureSectionNode(state, sourceSectionId, usedNodeIds);
+        ensureSectionNode(state, targetSectionId, usedNodeIds);
+    }
+
+    const changedSections = new Set<string>();
+    for (const suffix of suffixes) {
+        const sourceSectionId = fromSuffix(sourceSection, suffix);
+        const targetSectionId = fromSuffix(targetSection, suffix);
+        const sourceNodeId = state.sections.section_id[sourceSectionId];
+        const targetNodeId = state.sections.section_id[targetSectionId];
+        if (!sourceNodeId || !targetNodeId) continue;
+
+        ensureContentEntry(state.document.content, sourceNodeId);
+        ensureContentEntry(state.document.content, targetNodeId);
+
+        const sourceContent =
+            state.document.content[sourceNodeId]?.content ?? '';
+        const targetContent =
+            state.document.content[targetNodeId]?.content ?? '';
+        if (sourceContent === targetContent) continue;
+
+        state.document.content[sourceNodeId] = { content: targetContent };
+        state.document.content[targetNodeId] = { content: sourceContent };
+        changedSections.add(sourceSectionId);
+        changedSections.add(targetSectionId);
+    }
+
+    const nextPinnedSections = swapSectionSubtreeIds(
+        pinnedSectionsBefore,
+        sourceSection,
+        targetSection,
+    );
+    state.pinnedNodes.Ids = nextPinnedSections
+        .map((sectionId) => state.sections.section_id[sectionId])
+        .filter((nodeId): nodeId is string => Boolean(nodeId));
+
+    for (const suffix of Array.from(removableSuffixes).sort((left, right) =>
+        compareSectionSuffixesDeepestFirst(sourceSection, left, right),
+    )) {
+        const sourceSectionId = fromSuffix(sourceSection, suffix);
+        const targetSectionId = fromSuffix(targetSection, suffix);
+
+        for (const sectionId of [sourceSectionId, targetSectionId]) {
+            if (sectionId === sourceSection || sectionId === targetSection)
+                continue;
+            if (!state.sections.section_id[sectionId]) continue;
+            if (hasSectionDescendants(state.sections, sectionId)) continue;
+
+            const nodeId = state.sections.section_id[sectionId];
+            const content = nodeId
+                ? state.document.content[nodeId]?.content ?? ''
+                : '';
+            if (content.length > 0) continue;
+
+            removeSectionNode(state, sectionId);
+        }
+    }
+
+    if (structural) {
+        const orderedSections = Object.keys(state.sections.section_id).sort(
+            compareSectionIds,
+        );
+        state.document.columns = buildMandalaColumnsFromSections(
+            orderedSections,
+            state.sections.section_id,
+            state.meta.mandalaV2.rootGroupId ?? undefined,
+        );
+    }
+
+    return {
+        changedSections: Array.from(changedSections).sort(compareSectionIds),
+        structural,
+    };
 };
 
 export type MandalaEnsureChildrenAction = {

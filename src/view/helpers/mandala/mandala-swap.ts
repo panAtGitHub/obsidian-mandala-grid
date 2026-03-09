@@ -3,13 +3,13 @@ import { Sections } from 'src/stores/document/document-state-type';
 import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 
-const getSectionDepth = (section: string) => section.split('.').length;
-
-const getSectionParent = (section: string) => {
-    const parts = section.split('.');
-    parts.pop();
-    return parts.join('.');
+export type MandalaSwapInteractionState = {
+    active: boolean;
+    sourceNodeId: string | null;
+    targetNodeIds: Set<string>;
 };
+
+const getSectionDepth = (section: string) => section.split('.').length;
 
 export const getMandalaSwapTargets = (
     sections: Sections,
@@ -19,14 +19,12 @@ export const getMandalaSwapTargets = (
     if (!sourceSection || sourceSection === '1') return new Set<string>();
 
     const sourceDepth = getSectionDepth(sourceSection);
-    const sourceParent = getSectionParent(sourceSection);
     const targets = new Set<string>();
 
     for (const [nodeId, section] of Object.entries(sections.id_section)) {
         if (nodeId === sourceNodeId) continue;
         if (section === '1') continue;
         if (getSectionDepth(section) !== sourceDepth) continue;
-        if (getSectionParent(section) !== sourceParent) continue;
         targets.add(nodeId);
     }
 
@@ -89,3 +87,20 @@ export const executeMandalaSwap = (
         new Notice(lang.notice_swap_complete, 1200);
     }, 260);
 };
+
+export const handleMandalaSwapNodeClick = (
+    swapState: MandalaSwapInteractionState,
+    targetNodeId: string,
+    execute: (sourceNodeId: string, targetNodeId: string) => void,
+) => {
+    if (!swapState.active) return false;
+    const sourceNodeId = swapState.sourceNodeId;
+    if (sourceNodeId && swapState.targetNodeIds.has(targetNodeId)) {
+        execute(sourceNodeId, targetNodeId);
+    }
+    return true;
+};
+
+export const shouldBlockMandalaNodeDoubleClickForSwap = (
+    swapState: Pick<MandalaSwapInteractionState, 'active'>,
+) => swapState.active;

@@ -18,8 +18,13 @@ import {
 import {
     buildCenterDateHeading,
     DAY_PLAN_FRONTMATTER_KEY,
+    dayOfYearFromDate,
     parseDayPlanFromMarkdown,
 } from 'src/lib/mandala/day-plan';
+import {
+    DayPlanSlotsSyncMode,
+    openDayPlanSlotsSyncModeModal,
+} from 'src/obsidian/modals/day-plan-setup-modal';
 
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 
@@ -45,6 +50,124 @@ const getTodayIsoDate = () => {
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     return `${now.getFullYear()}-${month}-${day}`;
+};
+
+const splitSectionsToBatches = (sections: string[], batchSize: number) => {
+    const normalizedBatchSize = Math.max(1, batchSize);
+    const batches: string[][] = [];
+    for (let i = 0; i < sections.length; i += normalizedBatchSize) {
+        batches.push(sections.slice(i, i + normalizedBatchSize));
+    }
+    return batches;
+};
+
+const getCoreFromSlotSection = (section: string) => {
+    const coreText = section.split('.')[0];
+    const core = Number(coreText);
+    if (!Number.isInteger(core)) return null;
+    return core;
+};
+
+const getPlanDayFromToday = (planYear: number, now: Date = new Date()) => {
+    const normalized = new Date(
+        Date.UTC(planYear, now.getMonth(), now.getDate()),
+    );
+    const month = normalized.getUTCMonth() + 1;
+    const day = normalized.getUTCDate();
+    return dayOfYearFromDate(planYear, month, day);
+};
+
+const syncDayPlanTitlesWithBatches = (
+    markdown: string,
+    batches: string[][],
+) => {
+    let nextMarkdown = markdown;
+    let changed = false;
+    for (const sections of batches) {
+        const batch = syncDayPlanTitlesBySections(nextMarkdown, sections);
+        if (batch.changed) changed = true;
+        nextMarkdown = batch.markdown;
+    }
+    return {
+        changed,
+        markdown: nextMarkdown,
+    };
+};
+
+const syncDayPlanTitlesByUserChoice = async (
+    plugin: MandalaGrid,
+    markdown: string,
+) => {
+    const fullSyncResult = syncDayPlanTitlesInMarkdown(markdown);
+    if (!fullSyncResult.changed) {
+        return {
+            changed: false,
+            markdown,
+        };
+    }
+
+    const mode: DayPlanSlotsSyncMode | null =
+        await openDayPlanSlotsSyncModeModal(plugin);
+    if (!mode) {
+        return {
+            changed: false,
+            markdown,
+        };
+    }
+
+    if (mode === 'template-only') {
+        new Notice('已仅更新模板，不修改已存在格子标题。');
+        return {
+            changed: false,
+            markdown,
+        };
+    }
+
+    if (mode === 'all-existing') {
+        new Notice('已根据 YAML 模板替换所有已存在日期的格子标题。');
+        return {
+            changed: true,
+            markdown: fullSyncResult.markdown,
+        };
+    }
+
+    const plan = parseDayPlanFromMarkdown(markdown);
+    const batchPlan = createDayPlanTitleSyncBatches(markdown, 120);
+    if (!plan || !batchPlan) {
+        new Notice('未检测到可同步的日计划格子标题。');
+        return {
+            changed: false,
+            markdown,
+        };
+    }
+
+    const todayCore = getPlanDayFromToday(plan.year);
+    const targetSections = batchPlan.batches
+        .flat()
+        .filter((section) => {
+            const core = getCoreFromSlotSection(section);
+            return core !== null && core >= todayCore;
+        });
+
+    if (targetSections.length === 0) {
+        new Notice('今天及以后没有可同步的格子标题。');
+        return {
+            changed: false,
+            markdown,
+        };
+    }
+
+    const todayAndFutureBatches = splitSectionsToBatches(targetSections, 120);
+    const todayAndFutureResult = syncDayPlanTitlesWithBatches(
+        markdown,
+        todayAndFutureBatches,
+    );
+    if (todayAndFutureResult.changed) {
+        new Notice('已根据 YAML 模板替换今天及以后的格子标题。');
+    } else {
+        new Notice('今天及以后的格子标题已是最新，无需同步。');
+    }
+    return todayAndFutureResult;
 };
 
 const syncDayPlanCenterDateHeadingWithToday = async (
@@ -109,30 +232,14 @@ export const toggleFileViewType = async (
             }
         }
 
-        const syncResult = syncDayPlanTitlesInMarkdown(nextContent);
+        const syncResult = await syncDayPlanTitlesByUserChoice(
+            plugin,
+            nextContent,
+        );
         nextContent = syncResult.markdown;
         const contentChangedOnEnter = nextContent !== content;
         if (contentChangedOnEnter) {
             await plugin.app.vault.modify(file, nextContent);
-        }
-
-        if (syncResult.changed) {
-            const batchPlan = createDayPlanTitleSyncBatches(nextContent, 120);
-            if (!batchPlan || batchPlan.batches.length <= 1) {
-                new Notice('已根据文档前置区调整的标题进行全局替换。');
-            } else {
-                new Notice(
-                    `正在根据 YAML 后台替换标题：0/${batchPlan.total}`,
-                    1200,
-                );
-                void runDayPlanTitleSyncInBackground(
-                    plugin,
-                    file,
-                    nextContent,
-                    batchPlan.batches,
-                    batchPlan.total,
-                );
-            }
         }
         const centerDateUpdated = await syncDayPlanCenterDateHeadingWithToday(
             plugin,
@@ -149,34 +256,6 @@ export const toggleFileViewType = async (
         const latest = await plugin.app.vault.read(file);
         refreshMandalaViewData(plugin, file, latest);
     }
-};
-
-const runDayPlanTitleSyncInBackground = async (
-    plugin: MandalaGrid,
-    file: TFile,
-    sourceMarkdown: string,
-    batches: string[][],
-    total: number,
-) => {
-    let workingMarkdown = sourceMarkdown;
-    let changed = false;
-    let done = 0;
-    for (const sections of batches) {
-        const batchResult = syncDayPlanTitlesBySections(
-            workingMarkdown,
-            sections,
-        );
-        workingMarkdown = batchResult.markdown;
-        if (batchResult.changed) changed = true;
-        done += sections.length;
-        new Notice(`正在根据 YAML 后台替换标题：${done}/${total}`, 900);
-        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
-    }
-    if (changed && workingMarkdown !== sourceMarkdown) {
-        await plugin.app.vault.modify(file, workingMarkdown);
-        refreshMandalaViewData(plugin, file, workingMarkdown);
-    }
-    new Notice('已根据 YAML 区所调整的标题进行全局替换。');
 };
 
 const getConversionMode = (

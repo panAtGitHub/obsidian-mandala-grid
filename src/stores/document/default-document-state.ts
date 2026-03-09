@@ -29,5 +29,15 @@ export const defaultDocumentState = (): DocumentState => ({
     meta: {
         groupParentIds: new Set(),
         isMandala: false,
+        mandalaV2: {
+            enabled: false,
+            revision: 0,
+            rootGroupId: null,
+            orderedSections: [],
+            lastMutation: null,
+            parentToChildrenSlots: {},
+            subtreeNonEmptyCountBySection: {},
+            loadMetrics: null,
+        },
     },
 });

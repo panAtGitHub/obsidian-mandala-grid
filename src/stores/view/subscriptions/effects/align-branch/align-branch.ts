@@ -13,7 +13,6 @@ import {
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
 import { waitForActiveNodeToStopMoving } from 'src/lib/align-element/helpers/wait-for-active-node-to-stop-moving';
 import { createContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
-import { SilentError } from 'src/lib/errors/errors';
 import { actionPriority } from 'src/stores/view/subscriptions/effects/align-branch/constants/action-priority';
 import { logger } from 'src/helpers/logger';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
@@ -50,7 +49,10 @@ export class AlignBranch {
     align = (action: PluginAction) => {
         const priority = actionPriority.get(action.type);
         if (typeof priority !== 'number') {
-            throw new SilentError(action.type + ' not allowed');
+            logger.debug('[align-branch] skip unsupported action', {
+                action: action.type,
+            });
+            return;
         }
         if (this.previousEvent && !this.previousEvent.completed) {
             if (priority >= this.previousEvent.priority) {

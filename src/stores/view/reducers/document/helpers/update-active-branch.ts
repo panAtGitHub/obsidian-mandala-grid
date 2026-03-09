@@ -32,6 +32,14 @@ export type ActiveBranch = {
     node: string;
 };
 
+const createEmptyActiveBranch = (): ActiveBranch => ({
+    childGroups: new Set<string>(),
+    sortedParentNodes: [],
+    group: '',
+    column: '',
+    node: '',
+});
+
 export const updateActiveBranch = (
     state: Pick<
         DocumentViewState,
@@ -41,12 +49,22 @@ export const updateActiveBranch = (
     isDocumentAction: boolean,
 ) => {
     if (!state.activeNode) return;
+    const nodeColumnIndex = findNodeColumn(columns, state.activeNode);
+    const group = findGroupByNodeId(columns, state.activeNode);
+    if (!group || nodeColumnIndex < 0) {
+        state.activeBranch = createEmptyActiveBranch();
+        if (isDocumentAction) {
+            state.activeNodesOfColumn = removeStaleActiveNodes(
+                columns,
+                state.activeNodesOfColumn,
+            );
+        }
+        return;
+    }
+
     const sortedParents = traverseUp(columns, state.activeNode).reverse();
     const childGroups = traverseDown(columns, state.activeNode, true);
-    const group = findGroupByNodeId(columns, state.activeNode);
-    if (!group)
-        throw new Error('could not find group for node ' + state.activeNode);
-    const columnId = columns[findNodeColumn(columns, state.activeNode)].id;
+    const columnId = columns[nodeColumnIndex].id;
 
     const newActiveBranch = {
         childGroups: new Set<string>(childGroups),

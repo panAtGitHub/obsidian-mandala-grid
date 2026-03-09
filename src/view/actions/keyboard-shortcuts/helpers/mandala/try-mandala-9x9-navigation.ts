@@ -25,15 +25,20 @@ export const tryMandala9x9Navigation = (
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSection = docState.sections.id_section[activeNodeId];
 
-    const gridOrientation =
-        view.plugin.settings.getValue().view.mandalaGridOrientation ??
-        'left-to-right';
+    const selectedLayoutId = view.getCurrentMandalaLayoutId();
+    const customLayouts =
+        view.plugin.settings.getValue().view.mandalaGridCustomLayouts ?? [];
     const baseTheme = activeSection ? activeSection.split('.')[0] : '1';
     const cell = view.mandalaActiveCell9x9;
     const current =
         cell ??
         (activeSection
-            ? posOfSection9x9(activeSection, gridOrientation, baseTheme)
+            ? posOfSection9x9(
+                  activeSection,
+                  selectedLayoutId,
+                  baseTheme,
+                  customLayouts,
+              )
             : null);
     if (!current) return true;
 
@@ -49,8 +54,9 @@ export const tryMandala9x9Navigation = (
     const nextSection = sectionAtCell9x9(
         nextRow,
         nextCol,
-        gridOrientation,
+        selectedLayoutId,
         baseTheme,
+        customLayouts,
     );
     if (!nextSection) return true;
 
