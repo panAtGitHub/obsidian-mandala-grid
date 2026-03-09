@@ -27,6 +27,10 @@
         MandalaSectionColorOpacityStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
+    import {
+        getReadableTextTone,
+        type ThemeTone,
+    } from 'src/view/helpers/mandala/contrast-text-tone';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
@@ -195,6 +199,39 @@
         event.preventDefault();
         handleClick(item);
     };
+
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue('--background-primary')
+            .trim();
+
+    const getPinnedItemStyle = (section: string) => {
+        if ($backgroundMode !== 'custom') return undefined;
+        const sectionColor = $sectionColors[section];
+        if (!sectionColor) return undefined;
+
+        const background = applyOpacityToHex(
+            sectionColor,
+            $sectionColorOpacity / 100,
+        );
+        const textTone = getReadableTextTone(
+            background,
+            getThemeTone(),
+            getThemeUnderlayColor(),
+        );
+        const textVars =
+            textTone === 'dark'
+                ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b;'
+                : textTone === 'light'
+                  ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce;'
+                  : '';
+
+        return `--pinned-item-bg: ${background}; ${textVars}`;
+    };
 </script>
 
 <div class="pinned-cards-container" use:scrollActivePinnedNode>
@@ -238,12 +275,7 @@
                         $backgroundMode === 'custom' &&
                         Boolean($sectionColors[item.section])
                     }
-                    style={item.section && $backgroundMode === 'custom' && $sectionColors[item.section]
-                        ? `--pinned-item-bg: ${applyOpacityToHex(
-                              $sectionColors[item.section],
-                              $sectionColorOpacity / 100,
-                          )};`
-                        : undefined}
+                    style={getPinnedItemStyle(item.section)}
                     id={item.nodeId}
                     on:click={() => handleClick(item)}
                     on:keydown={(event) => handleKeydown(event, item)}
