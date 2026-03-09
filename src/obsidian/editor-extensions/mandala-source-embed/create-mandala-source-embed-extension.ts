@@ -39,9 +39,15 @@ import {
     primeMandalaEmbedResponsiveSizing,
     renderMandalaEmbedHeader,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
+import {
+    registerLivePreviewMandalaWidget,
+    unregisterLivePreviewMandalaWidget,
+    type LivePreviewMandalaWidgetController,
+} from 'src/obsidian/editor-extensions/mandala-source-embed/helpers/live-preview-mandala-widget-registry';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 
 const EMBED_REGEXP = /!\[\[[^\]\n]+?\]\]/gmu;
+const DEFAULT_ESTIMATED_HEIGHT = 420;
 
 const formatUnknownError = (error: unknown) =>
     error instanceof Error ? error.message : String(error);
@@ -67,29 +73,55 @@ type MandalaSourceEmbedFieldValue = {
     decorations: DecorationSet;
 };
 
-const componentByDom = new WeakMap<HTMLElement, Component>();
+const estimatedHeightBySourcePath = new Map<string, number>();
 
 const getMandalaSourceEmbedEditAnchor = (from: number, to: number) =>
     to - from > 1 ? Math.min(from + 1, to - 1) : from;
 
-class MandalaSourceEmbedWidget extends WidgetType {
+const getEstimatedHeightForSourceFile = (sourceFile: TFile) =>
+    estimatedHeightBySourcePath.get(sourceFile.path) ?? DEFAULT_ESTIMATED_HEIGHT;
+
+const rememberEstimatedHeightForSourceFile = (
+    sourceFile: TFile,
+    height: number,
+) => {
+    if (height <= 0) return;
+    estimatedHeightBySourcePath.set(sourceFile.path, height);
+};
+
+export class MandalaSourceEmbedWidget
+    extends WidgetType
+    implements LivePreviewMandalaWidgetController
+{
+    private component: Component | null = null;
+    private renderScope: Component | null = null;
+    private root: HTMLElement | null = null;
+    private destroyed = false;
+    private resolvedTargetPath: string | null = null;
+    private lastRenderedModelKey: string | null = null;
+    private refreshInFlightGeneration = 0;
+    private currentEstimatedHeight: number;
+
     constructor(
         private readonly plugin: MandalaGrid,
         private readonly sourceFile: TFile,
         private readonly linktext: string,
         private readonly original: string,
-        private readonly renderKey: string,
+        private readonly widgetKey: string,
         private readonly from: number,
         private readonly to: number,
         private readonly loadResolvedModel: LoadResolvedModel,
     ) {
         super();
+        this.currentEstimatedHeight = getEstimatedHeightForSourceFile(
+            this.sourceFile,
+        );
     }
 
     eq(other: WidgetType) {
         return (
             other instanceof MandalaSourceEmbedWidget &&
-            other.renderKey === this.renderKey &&
+            other.widgetKey === this.widgetKey &&
             other.sourceFile.path === this.sourceFile.path &&
             other.linktext === this.linktext &&
             other.original === this.original
@@ -97,21 +129,25 @@ class MandalaSourceEmbedWidget extends WidgetType {
     }
 
     get estimatedHeight() {
-        return 420;
+        return this.currentEstimatedHeight;
     }
 
     toDOM(view: EditorView): HTMLElement {
         const root = document.createElement('div');
         root.className = 'mandala-source-embed-widget';
+        this.root = root;
+        this.destroyed = false;
 
         const component = new Component();
-        let destroyed = false;
+        this.component = component;
         component.register(() => {
-            destroyed = true;
-            componentByDom.delete(root);
+            this.destroyed = true;
+            this.renderScope = null;
+            this.root = null;
+            this.component = null;
+            this.unregisterResolvedTarget();
         });
         component.load();
-        componentByDom.set(root, component);
 
         component.registerDomEvent(root, 'mousedown', (event) => {
             const target = event.target;
@@ -138,36 +174,81 @@ class MandalaSourceEmbedWidget extends WidgetType {
         });
 
         this.renderFallback(root);
-        void this.renderManaged(root, component, () => destroyed);
+        window.requestAnimationFrame(() => {
+            void this.refreshManaged();
+        });
 
         return root;
     }
 
     destroy(dom: HTMLElement): void {
-        componentByDom.get(dom)?.unload();
+        if (this.root !== dom) {
+            this.root = dom;
+        }
+        this.destroyed = true;
+        this.unregisterResolvedTarget();
+        this.component?.unload();
+        this.component = null;
+        this.renderScope = null;
+        this.root = null;
     }
 
     ignoreEvent(): boolean {
         return true;
     }
 
-    private async renderManaged(
-        root: HTMLElement,
-        component: Component,
-        isDestroyed: () => boolean,
-    ) {
+    isConnected() {
+        return !this.destroyed && this.root?.isConnected === true;
+    }
+
+    async refreshManaged() {
+        const root = this.root;
+        const component = this.component;
+        if (!root || !component || this.destroyed || !root.isConnected) return;
+
+        const generation = ++this.refreshInFlightGeneration;
+        const previousHeight = Math.round(root.getBoundingClientRect().height);
+        if (previousHeight > 0) {
+            root.style.minHeight = `${String(previousHeight)}px`;
+        }
+
         try {
             const resolved = await this.loadResolvedModel();
-            if (!resolved || isDestroyed() || !root.isConnected) return;
+            if (!this.canApplyRefresh(generation, root)) return;
+
+            if (!resolved) {
+                this.applyFallback(root);
+                return;
+            }
+
+            const orientation = getMandalaEmbedOrientation(this.plugin);
+            const nextRenderKey = buildMandalaEmbedRenderKey(
+                resolved.target,
+                orientation,
+                this.plugin.getMandalaEmbedRefreshEpoch(),
+            );
+            if (
+                this.lastRenderedModelKey === nextRenderKey &&
+                this.resolvedTargetPath === resolved.target.file.path &&
+                root.querySelector('.mandala-embed-host')
+            ) {
+                registerLivePreviewMandalaWidget(
+                    this,
+                    resolved.target.file.path,
+                );
+                this.releaseRootMinHeight(root);
+                return;
+            }
+
+            const nextRenderScope = component.addChild(new Component());
 
             const { host, header, body } = createMandalaEmbedHostLayout();
-            root.classList.add('mandala-embed-3x3');
 
             renderMandalaEmbedHeader({
                 headerEl: header,
                 title: getMandalaEmbedTitle(resolved.target),
                 attachOpenTargetClick: (button, listener) =>
-                    component.registerDomEvent(button, 'click', listener),
+                    nextRenderScope.registerDomEvent(button, 'click', listener),
                 onOpenTarget: (event) => {
                     event.preventDefault();
                     event.stopPropagation();
@@ -183,12 +264,15 @@ class MandalaSourceEmbedWidget extends WidgetType {
                 plugin: this.plugin,
                 model: resolved.model,
                 sourcePath: resolved.target.file.path,
-                registerMarkdownChild: (child) => component.addChild(child),
-                isCanceled: () => isDestroyed() || !root.isConnected,
+                registerMarkdownChild: (child) => nextRenderScope.addChild(child),
+                isCanceled: () => !this.canApplyRefresh(generation, root),
             });
-            if (!gridEl) return;
+            if (!gridEl || !this.canApplyRefresh(generation, root)) {
+                component.removeChild(nextRenderScope);
+                return;
+            }
 
-            component.registerDomEvent(body, 'click', (event) => {
+            nextRenderScope.registerDomEvent(body, 'click', (event) => {
                 const target = event.target;
                 if (!(target instanceof Element)) return;
 
@@ -222,6 +306,7 @@ class MandalaSourceEmbedWidget extends WidgetType {
 
             body.appendChild(gridEl);
             root.replaceChildren(host);
+            root.classList.add('mandala-embed-3x3');
             primeMandalaEmbedResponsiveSizing({
                 rootEl: root,
                 bodyEl: body,
@@ -232,7 +317,12 @@ class MandalaSourceEmbedWidget extends WidgetType {
                 bodyEl: body,
                 gridEl,
             });
-            component.register(() => detachResponsiveSizing());
+            nextRenderScope.register(() => detachResponsiveSizing());
+            this.replaceRenderScope(nextRenderScope);
+            this.lastRenderedModelKey = nextRenderKey;
+            this.updateResolvedTarget(resolved.target.file.path);
+            this.rememberCurrentEstimatedHeight(root);
+            this.releaseRootMinHeight(root);
         } catch (error: unknown) {
             logger.error('[mandala-source-embed]', {
                 phase: 'widget-render-failed',
@@ -240,8 +330,8 @@ class MandalaSourceEmbedWidget extends WidgetType {
                 sourcePath: this.sourceFile.path,
                 error: formatUnknownError(error),
             });
-            if (!isDestroyed() && root.isConnected) {
-                this.renderFallback(root);
+            if (this.canApplyRefresh(generation, root)) {
+                this.applyFallback(root);
             }
         }
     }
@@ -251,6 +341,66 @@ class MandalaSourceEmbedWidget extends WidgetType {
         code.className = 'mandala-source-embed-widget__fallback';
         code.textContent = this.original;
         root.replaceChildren(code);
+    }
+
+    private canApplyRefresh(generation: number, root: HTMLElement) {
+        return (
+            !this.destroyed &&
+            this.root === root &&
+            root.isConnected &&
+            generation === this.refreshInFlightGeneration
+        );
+    }
+
+    private replaceRenderScope(nextRenderScope: Component) {
+        const previousRenderScope = this.renderScope;
+        this.renderScope = nextRenderScope;
+        if (!previousRenderScope || !this.component) return;
+
+        this.component.removeChild(previousRenderScope);
+    }
+
+    private updateResolvedTarget(targetPath: string) {
+        this.resolvedTargetPath = targetPath;
+        registerLivePreviewMandalaWidget(this, targetPath);
+    }
+
+    private unregisterResolvedTarget() {
+        if (!this.resolvedTargetPath) return;
+
+        unregisterLivePreviewMandalaWidget(this);
+        this.resolvedTargetPath = null;
+    }
+
+    private applyFallback(root: HTMLElement) {
+        this.lastRenderedModelKey = null;
+        this.unregisterResolvedTarget();
+        if (this.renderScope && this.component) {
+            this.component.removeChild(this.renderScope);
+        }
+        this.renderScope = null;
+        root.classList.remove('mandala-embed-3x3');
+        this.renderFallback(root);
+        this.releaseRootMinHeight(root);
+    }
+
+    private rememberCurrentEstimatedHeight(root: HTMLElement) {
+        const height = Math.round(root.getBoundingClientRect().height);
+        if (height <= 0) return;
+
+        this.currentEstimatedHeight = height;
+        rememberEstimatedHeightForSourceFile(this.sourceFile, height);
+    }
+
+    private releaseRootMinHeight(root: HTMLElement) {
+        window.requestAnimationFrame(() => {
+            if (!this.canApplyRefresh(this.refreshInFlightGeneration, root)) {
+                return;
+            }
+
+            root.style.removeProperty('min-height');
+            this.rememberCurrentEstimatedHeight(root);
+        });
     }
 }
 

@@ -1,5 +1,6 @@
 import { MarkdownView, TFile } from 'obsidian';
 import MandalaGrid from 'src/main';
+import { refreshLivePreviewMandalaWidgetsByTargetPaths } from 'src/obsidian/editor-extensions/mandala-source-embed/helpers/live-preview-mandala-widget-registry';
 import { extractEmbedReferencesFromMarkdown } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/extract-embed-references-from-markdown';
 import { parseMandalaEmbedReference } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
 import { refreshManagedMandalaEmbedControllersByTargetPaths } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/managed-mandala-embed-registry';
@@ -17,7 +18,7 @@ export type MandalaEmbedRefreshViewLike = {
 export type MandalaEmbedRefreshPlan = {
     previewSourcePaths: Set<string>;
     previewTargetPaths: Set<string>;
-    staleSourcePaths: Set<string>;
+    livePreviewTargetPaths: Set<string>;
 };
 
 type MarkdownPreviewScrollSnapshot = {
@@ -59,13 +60,13 @@ export const resolveMandalaEmbedRefreshPlan = (
     );
     const previewSourcePaths = new Set<string>();
     const previewTargetPaths = new Set<string>();
-    const staleSourcePaths = new Set<string>();
+    const livePreviewTargetPaths = new Set<string>();
 
     if (changedPathSet.size === 0) {
         return {
             previewSourcePaths,
             previewTargetPaths,
-            staleSourcePaths,
+            livePreviewTargetPaths,
         };
     }
 
@@ -97,14 +98,16 @@ export const resolveMandalaEmbedRefreshPlan = (
         }
 
         if (matchedTargetPaths.length > 0) {
-            staleSourcePaths.add(sourceFile.path);
+            for (const targetPath of matchedTargetPaths) {
+                livePreviewTargetPaths.add(targetPath);
+            }
         }
     }
 
     return {
         previewSourcePaths,
         previewTargetPaths,
-        staleSourcePaths,
+        livePreviewTargetPaths,
     };
 };
 
@@ -127,6 +130,10 @@ export const rerenderOpenMarkdownPreviews = (plugin: MandalaGrid) => {
 export const refreshOpenManagedMandalaEmbedsByTargetPaths = (
     targetPaths: Iterable<string>,
 ) => refreshManagedMandalaEmbedControllersByTargetPaths(targetPaths);
+
+export const refreshOpenLivePreviewMandalaWidgetsByTargetPaths = (
+    targetPaths: Iterable<string>,
+) => refreshLivePreviewMandalaWidgetsByTargetPaths(targetPaths);
 
 export const captureMarkdownPreviewScrolls = (
     plugin: MandalaGrid,
@@ -238,17 +245,6 @@ export const registerMandalaEmbedRefreshEvents = (plugin: MandalaGrid) => {
         }),
     );
 
-    plugin.registerEvent(
-        plugin.app.workspace.on('active-leaf-change', () => {
-            plugin.flushPendingMandalaSourceEmbedRefreshes();
-        }),
-    );
-
-    plugin.registerEvent(
-        plugin.app.workspace.on('file-open', () => {
-            plugin.flushPendingMandalaSourceEmbedRefreshes();
-        }),
-    );
 };
 
 export const getOpenMandalaEmbedRefreshViews = (
