@@ -62,7 +62,11 @@
     const getThemeUnderlayColor = () =>
         window
             .getComputedStyle(document.body)
-            .getPropertyValue('--background-primary')
+            .getPropertyValue(
+                active
+                    ? '--background-active-node'
+                    : '--background-active-parent',
+            )
             .trim();
     let cardStyle: string | undefined;
     let displaySection = section;
