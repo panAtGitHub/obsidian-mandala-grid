@@ -1,6 +1,7 @@
 import { DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH } from 'src/stores/settings/default-settings';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import {
+    MandalaCustomLayout,
     MandalaGridOrientation,
     Settings,
 } from 'src/stores/settings/settings-type';
@@ -48,6 +49,7 @@ const normalizeSectionColors = (value: unknown) => {
 const createDefaultMandalaView = () => ({
     gridOrientation: null as MandalaGridOrientation | null,
     selectedLayoutId: null as string | null,
+    selectedCustomLayout: null as MandalaCustomLayout | null,
     lastActiveSection: null as string | null,
     subgridTheme: null as string | null,
     showDetailSidebarDesktop: null as boolean | null,
@@ -66,6 +68,29 @@ const normalizeDocumentSelectedLayoutId = (
     }
     const legacyLayoutId = legacyOrientationToLayoutId(legacyOrientation);
     return legacyLayoutId ?? null;
+};
+
+const normalizeSelectedCustomLayout = (
+    value: unknown,
+    selectedLayoutId: string | null,
+): MandalaCustomLayout | null => {
+    if (!selectedLayoutId?.startsWith('custom:')) return null;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const raw = value as Record<string, unknown>;
+    const id =
+        typeof raw.id === 'string' && raw.id.trim().length > 0
+            ? raw.id.trim()
+            : selectedLayoutId;
+    if (id !== selectedLayoutId) return null;
+    const name =
+        typeof raw.name === 'string' && raw.name.trim().length > 0
+            ? raw.name.trim()
+            : '未命名布局';
+    return {
+        id,
+        name,
+        pattern: normalizeMandalaCustomLayouts([raw])[0]?.pattern ?? '123405678',
+    };
 };
 
 export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
@@ -121,6 +146,10 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                         ? layoutIdToOrientation(selectedLayoutId)
                         : legacyOrientation,
                     selectedLayoutId,
+                    selectedCustomLayout: normalizeSelectedCustomLayout(
+                        mandalaViewRaw.selectedCustomLayout,
+                        selectedLayoutId,
+                    ),
                     lastActiveSection:
                         typeof mandalaViewRaw.lastActiveSection === 'string'
                             ? mandalaViewRaw.lastActiveSection

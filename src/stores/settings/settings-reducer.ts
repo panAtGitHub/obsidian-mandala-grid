@@ -60,6 +60,7 @@ const createDefaultDocumentPreferences = (): DocumentPreferences => ({
     mandalaView: {
         gridOrientation: null,
         selectedLayoutId: null,
+        selectedCustomLayout: null,
         lastActiveSection: null,
         subgridTheme: null,
         showDetailSidebarDesktop: null,
@@ -81,6 +82,7 @@ const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => 
         preferences.mandalaView = {
             gridOrientation: null,
             selectedLayoutId: null,
+            selectedCustomLayout: null,
             lastActiveSection: null,
             subgridTheme: null,
             showDetailSidebarDesktop: null,
@@ -88,6 +90,9 @@ const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => 
             pinnedSections: [],
             sectionColors: {},
         };
+    }
+    if (preferences.mandalaView.selectedCustomLayout === undefined) {
+        preferences.mandalaView.selectedCustomLayout = null;
     }
     return preferences.mandalaView;
 };
@@ -127,6 +132,8 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const mandalaView = getOrCreateMandalaViewPreferences(preferences);
         mandalaView.gridOrientation = action.payload.gridOrientation;
         mandalaView.selectedLayoutId = action.payload.selectedLayoutId;
+        mandalaView.selectedCustomLayout =
+            action.payload.selectedCustomLayout ?? null;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
         mandalaView.subgridTheme = action.payload.subgridTheme;
         mandalaView.showDetailSidebarDesktop =

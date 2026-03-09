@@ -37,6 +37,7 @@ export type MandalaSectionColorAssignments = Partial<Record<string, string[]>>;
 export type MandalaViewDocumentPreferences = {
     gridOrientation: MandalaGridOrientation | null;
     selectedLayoutId: string | null;
+    selectedCustomLayout?: MandalaCustomLayout | null;
     lastActiveSection: string | null;
     subgridTheme: string | null;
     showDetailSidebarDesktop: boolean | null;

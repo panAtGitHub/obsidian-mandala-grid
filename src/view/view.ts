@@ -60,6 +60,7 @@ import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
 import {
     layoutIdToOrientation,
+    findMandalaCustomLayout,
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
@@ -168,6 +169,29 @@ export class MandalaView extends TextFileView {
             path: this.getCurrentFilePath(),
             settings,
         });
+    }
+
+    private ensureCurrentFileCustomLayoutAvailable(
+        path: string,
+        settings = this.plugin.settings.getValue(),
+    ) {
+        const persistedMandalaView = settings.documents[path]?.mandalaView;
+        const layoutId = persistedMandalaView?.selectedLayoutId;
+        const selectedCustomLayout = persistedMandalaView?.selectedCustomLayout;
+        if (!layoutId?.startsWith('custom:') || !selectedCustomLayout) {
+            return settings;
+        }
+        const customLayouts = settings.view.mandalaGridCustomLayouts ?? [];
+        if (findMandalaCustomLayout(customLayouts, layoutId)) {
+            return settings;
+        }
+        this.plugin.settings.dispatch({
+            type: 'settings/view/mandala/add-custom-grid-layout',
+            payload: {
+                layout: selectedCustomLayout,
+            },
+        });
+        return this.plugin.settings.getValue();
     }
 
     isMandalaDetailSidebarVisible(settings = this.plugin.settings.getValue()) {
@@ -618,15 +642,19 @@ export class MandalaView extends TextFileView {
         this.dayPlanHotCores = activation.hotCoreSections;
         const settings = this.plugin.settings.getValue();
         const filePath = this.file?.path ?? '';
-        const documentPreferences = settings.documents[filePath];
+        const hydratedSettings = this.ensureCurrentFileCustomLayoutAvailable(
+            filePath,
+            settings,
+        );
+        const documentPreferences = hydratedSettings.documents[filePath];
         const persistedMandalaViewState = documentPreferences?.mandalaView;
-        const customLayouts = settings.view.mandalaGridCustomLayouts;
+        const customLayouts = hydratedSettings.view.mandalaGridCustomLayouts;
         const currentSelectedLayoutId = resolveDocumentMandalaLayoutId({
             path: filePath,
-            settings,
+            settings: hydratedSettings,
         });
         const globalSelectedLayoutId = resolveMandalaLayoutId(
-            settings.view.mandalaGridSelectedLayoutId,
+            hydratedSettings.view.mandalaGridSelectedLayoutId,
             customLayouts,
         );
         const nextSelectedLayoutId = currentSelectedLayoutId;
@@ -767,6 +795,12 @@ export class MandalaView extends TextFileView {
                 path,
                 settings,
             });
+        const selectedCustomLayout = selectedLayoutId?.startsWith('custom:')
+            ? findMandalaCustomLayout(
+                  settings.view.mandalaGridCustomLayouts ?? [],
+                  selectedLayoutId,
+              )
+            : null;
         const gridOrientation = layoutIdToOrientation(selectedLayoutId);
         const currentMandalaViewState = settings.documents[path]?.mandalaView;
         const showDetailSidebarDesktop =
@@ -781,6 +815,8 @@ export class MandalaView extends TextFileView {
         if (
             (currentMandalaViewState?.selectedLayoutId ?? null) ===
                 selectedLayoutId &&
+            JSON.stringify(currentMandalaViewState?.selectedCustomLayout ?? null) ===
+                JSON.stringify(selectedCustomLayout ?? null) &&
             currentMandalaViewState?.gridOrientation === gridOrientation &&
             (currentMandalaViewState?.lastActiveSection ?? null) ===
                 lastActiveSection &&
@@ -799,6 +835,7 @@ export class MandalaView extends TextFileView {
                 path,
                 gridOrientation,
                 selectedLayoutId,
+                selectedCustomLayout: selectedCustomLayout ?? null,
                 lastActiveSection,
                 subgridTheme,
                 showDetailSidebarDesktop,

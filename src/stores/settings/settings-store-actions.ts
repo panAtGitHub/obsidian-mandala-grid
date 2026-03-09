@@ -310,6 +310,7 @@ export type PersistMandalaViewStateAction = {
         path: string;
         gridOrientation: MandalaGridOrientation;
         selectedLayoutId: string | null;
+        selectedCustomLayout?: MandalaCustomLayout | null;
         lastActiveSection: string | null;
         subgridTheme: string | null;
         showDetailSidebarDesktop: boolean | null;

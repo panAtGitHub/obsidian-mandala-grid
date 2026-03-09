@@ -77,6 +77,7 @@ describe('settingsReducer custom grid layouts', () => {
 
         expect(settings.documents['a.md']?.mandalaView).toMatchObject({
             selectedLayoutId: 'builtin:south-start',
+            selectedCustomLayout: null,
             gridOrientation: 'south-start',
             lastActiveSection: '2',
             subgridTheme: '2',
@@ -85,11 +86,43 @@ describe('settingsReducer custom grid layouts', () => {
         });
         expect(settings.documents['b.md']?.mandalaView).toMatchObject({
             selectedLayoutId: 'builtin:left-to-right',
+            selectedCustomLayout: null,
             gridOrientation: 'left-to-right',
             lastActiveSection: '3',
             subgridTheme: '3',
             showDetailSidebarDesktop: false,
             showDetailSidebarMobile: null,
+        });
+    });
+
+    test('persists selected custom layout snapshot per document', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'custom',
+                selectedLayoutId: 'custom:a',
+                selectedCustomLayout: {
+                    id: 'custom:a',
+                    name: 'A',
+                    pattern: '123405678',
+                },
+                lastActiveSection: '2',
+                subgridTheme: '2',
+                showDetailSidebarDesktop: true,
+                showDetailSidebarMobile: null,
+            },
+        });
+
+        expect(settings.documents['a.md']?.mandalaView).toMatchObject({
+            selectedLayoutId: 'custom:a',
+            selectedCustomLayout: {
+                id: 'custom:a',
+                name: 'A',
+                pattern: '123405678',
+            },
         });
     });
 });
