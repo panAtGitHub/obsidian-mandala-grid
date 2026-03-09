@@ -120,9 +120,8 @@
         box-sizing: border-box;
     }
 
-    .mandala-9x9-grid
-        :global(.mandala-card.inactive-node.mandala-card--with-section-color) {
-        opacity: 1;
+    .mandala-9x9-grid :global(.mandala-card.inactive-node) {
+        opacity: 1 !important;
     }
 
     .mandala-placeholder {
