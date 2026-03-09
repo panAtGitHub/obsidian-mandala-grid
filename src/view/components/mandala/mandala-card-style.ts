@@ -21,6 +21,12 @@ type MandalaCardStyleState = {
     shouldHideBackgroundStyle: boolean;
 };
 
+const DARK_TEXT_TOKENS =
+    '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b; --h1-color: #0f131a; --h2-color: #0f131a; --h3-color: #0f131a; --h4-color: #0f131a; --h5-color: #0f131a; --h6-color: #0f131a; --link-color: #2f3a48; --link-color-hover: #0f131a';
+
+const LIGHT_TEXT_TOKENS =
+    '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce; --h1-color: #f3f6fd; --h2-color: #f3f6fd; --h3-color: #f3f6fd; --h4-color: #f3f6fd; --h5-color: #f3f6fd; --h6-color: #f3f6fd; --link-color: #d0d8e6; --link-color-hover: #f3f6fd';
+
 const getContrastBackgroundColor = ({
     active,
     sectionColor,
@@ -69,10 +75,10 @@ export const buildMandalaCardStyle = ({
               ? `background-color: ${sectionColor}`
               : '',
         !shouldForceActiveBackground && textTone === 'dark'
-            ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b'
+            ? DARK_TEXT_TOKENS
             : '',
         !shouldForceActiveBackground && textTone === 'light'
-            ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce'
+            ? LIGHT_TEXT_TOKENS
             : '',
     ]
         .filter((chunk) => chunk.length > 0)
