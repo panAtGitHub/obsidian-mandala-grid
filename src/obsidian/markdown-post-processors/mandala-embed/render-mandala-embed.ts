@@ -18,6 +18,7 @@ import { type MandalaEmbedGridModel } from 'src/obsidian/markdown-post-processor
 import {
     buildMandalaEmbedModel,
     buildMandalaEmbedModelCacheKey,
+    buildMandalaEmbedRenderKey,
     getMandalaEmbedOrientation,
     resolveMandalaEmbedTarget,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
@@ -334,6 +335,11 @@ export const createRenderMandalaEmbedPostProcessor =
                     }
 
                     const payload: MandalaEmbedManagedPayload = {
+                        renderKey: buildMandalaEmbedRenderKey(
+                            target,
+                            orientation,
+                            plugin.getMandalaEmbedRefreshEpoch(),
+                        ),
                         ctx,
                         src,
                         sourcePath: ctx.sourcePath,

@@ -8,6 +8,7 @@ export type MandalaEmbedTarget = {
 };
 
 export type MandalaEmbedManagedPayload = {
+    renderKey: string;
     ctx: MarkdownPostProcessorContext;
     src: string | null;
     sourcePath: string;

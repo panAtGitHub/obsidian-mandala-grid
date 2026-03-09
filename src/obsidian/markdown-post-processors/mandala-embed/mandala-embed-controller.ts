@@ -19,6 +19,7 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
 import {
     buildMandalaEmbedModel,
+    buildMandalaEmbedRenderKey,
     getMandalaEmbedOrientation,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
 
@@ -160,6 +161,15 @@ export class MandalaEmbedController {
     }
 
     updateManaged(payload: MandalaEmbedManagedPayload) {
+        if (
+            this.state.mode === 'managed' &&
+            this.state.payload.renderKey === payload.renderKey &&
+            this.state.payload.src === payload.src &&
+            this.state.payload.sourcePath === payload.sourcePath
+        ) {
+            return;
+        }
+
         this.state = { mode: 'managed', payload };
         this.scheduleRender();
     }
@@ -186,10 +196,11 @@ export class MandalaEmbedController {
         this.pendingPreviewScrollSnapshots = this.capturePreviewScrollSnapshots(
             payload.sourcePath,
         );
+        const orientation = getMandalaEmbedOrientation(this.plugin);
         const model = await buildMandalaEmbedModel(
             this.plugin,
             payload.target,
-            getMandalaEmbedOrientation(this.plugin),
+            orientation,
         );
         if (!this.embed.isConnected) return;
 
@@ -198,13 +209,26 @@ export class MandalaEmbedController {
             return;
         }
 
+        const nextRenderKey = buildMandalaEmbedRenderKey(
+            payload.target,
+            orientation,
+            this.plugin.getMandalaEmbedRefreshEpoch(),
+        );
+
         this.state = {
             mode: 'managed',
             payload: {
                 ...payload,
+                renderKey: nextRenderKey,
                 model,
             },
         };
+
+        if (nextRenderKey === payload.renderKey) {
+            this.pendingPreviewScrollSnapshots = null;
+            return;
+        }
+
         this.scheduleRender();
     }
 
