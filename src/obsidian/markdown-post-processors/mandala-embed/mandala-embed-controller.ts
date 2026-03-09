@@ -1,4 +1,4 @@
-import { MarkdownRenderChild, type TFile } from 'obsidian';
+import { MarkdownRenderChild, MarkdownView, type TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { logger } from 'src/helpers/logger';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
@@ -30,6 +30,11 @@ type ControllerState =
     | { mode: 'native' }
     | { mode: 'debug'; lines: string[] }
     | { mode: 'managed'; payload: MandalaEmbedManagedPayload };
+
+type MarkdownPreviewScrollSnapshot = {
+    view: MarkdownView;
+    scroll: ReturnType<MarkdownView['previewMode']['getScroll']>;
+};
 
 const findSectionRange = (markdown: string, section: string) => {
     const markers = Array.from(markdown.matchAll(SECTION_COMMENT_BLOCK_RE));
@@ -132,6 +137,9 @@ export class MandalaEmbedController {
     private detachResponsiveSizing: (() => void) | null = null;
     private releaseBodyHeightLock: (() => void) | null = null;
     private bodyHeightUnlockRaf = 0;
+    private previewScrollRestoreRaf = 0;
+    private pendingPreviewScrollSnapshots: MarkdownPreviewScrollSnapshot[] | null =
+        null;
     private observedBody: HTMLElement | null = null;
     private renderScope: MarkdownRenderChild | null = null;
 
@@ -175,6 +183,9 @@ export class MandalaEmbedController {
         if (this.state.mode !== 'managed') return;
 
         const payload = this.state.payload;
+        this.pendingPreviewScrollSnapshots = this.capturePreviewScrollSnapshots(
+            payload.sourcePath,
+        );
         const model = await buildMandalaEmbedModel(
             this.plugin,
             payload.target,
@@ -405,6 +416,7 @@ export class MandalaEmbedController {
         body.replaceChildren(gridEl);
         this.attachResponsiveSizing(body, gridEl);
         this.scheduleBodyHeightUnlock(body, generation);
+        this.schedulePendingPreviewScrollRestore(generation);
     }
 
     private renderDebug(lines: string[]) {
@@ -443,6 +455,7 @@ export class MandalaEmbedController {
         this.detachResponsiveSizing?.();
         this.detachResponsiveSizing = null;
         this.clearBodyHeightLock();
+        this.clearPendingPreviewScrollRestore();
         this.clearRenderScope();
 
         const host = this.queryMandalaHost();
@@ -554,6 +567,55 @@ export class MandalaEmbedController {
 
         this.releaseBodyHeightLock?.();
         this.releaseBodyHeightLock = null;
+    }
+
+    private capturePreviewScrollSnapshots(sourcePath: string) {
+        const snapshots: MarkdownPreviewScrollSnapshot[] = [];
+
+        this.plugin.app.workspace.iterateAllLeaves((leaf) => {
+            const view = leaf.view;
+            if (!(view instanceof MarkdownView)) return;
+            if (view.getMode() !== 'preview') return;
+            if (view.file?.path !== sourcePath) return;
+
+            snapshots.push({
+                view,
+                scroll: view.previewMode.getScroll(),
+            });
+        });
+
+        return snapshots;
+    }
+
+    private schedulePendingPreviewScrollRestore(generation: number) {
+        const snapshots = this.pendingPreviewScrollSnapshots;
+        this.pendingPreviewScrollSnapshots = null;
+        if (!snapshots || snapshots.length === 0) return;
+
+        this.clearPendingPreviewScrollRestore();
+        this.previewScrollRestoreRaf = requestAnimationFrame(() => {
+            this.previewScrollRestoreRaf = requestAnimationFrame(() => {
+                this.previewScrollRestoreRaf = requestAnimationFrame(() => {
+                    this.previewScrollRestoreRaf = 0;
+                    if (generation !== this.generation) return;
+
+                    for (const { view, scroll } of snapshots) {
+                        if (!view.file) continue;
+                        if (view.getMode() !== 'preview') continue;
+                        view.previewMode.applyScroll(scroll);
+                    }
+                });
+            });
+        });
+    }
+
+    private clearPendingPreviewScrollRestore() {
+        if (this.previewScrollRestoreRaf !== 0) {
+            cancelAnimationFrame(this.previewScrollRestoreRaf);
+            this.previewScrollRestoreRaf = 0;
+        }
+
+        this.pendingPreviewScrollSnapshots = null;
     }
 
     private replaceRenderScope(payload: MandalaEmbedManagedPayload) {
