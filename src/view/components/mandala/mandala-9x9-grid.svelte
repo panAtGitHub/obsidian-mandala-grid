@@ -120,6 +120,11 @@
         box-sizing: border-box;
     }
 
+    .mandala-9x9-grid
+        :global(.mandala-card.inactive-node.mandala-card--with-section-color) {
+        opacity: 1;
+    }
+
     .mandala-placeholder {
         position: relative;
         width: 100%;

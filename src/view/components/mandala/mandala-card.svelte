@@ -148,6 +148,7 @@
     class={clx(
         'mandala-card',
         active ? 'active-node' : 'inactive-node',
+        sectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
