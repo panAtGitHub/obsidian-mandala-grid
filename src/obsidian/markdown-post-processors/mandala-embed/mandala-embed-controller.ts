@@ -16,6 +16,10 @@ import {
     MANDALA_EMBED_HOST_CLASS,
     renderMandalaEmbedHeader,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/render-mandala-embed-dom';
+import {
+    buildMandalaEmbedModel,
+    getMandalaEmbedOrientation,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
 
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
 const SECTION_COMMENT_BLOCK_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
@@ -158,6 +162,43 @@ export class MandalaEmbedController {
         this.state = { mode: 'native' };
         this.cancelScheduledRender();
         void this.renderNow(this.nextGeneration());
+    }
+
+    isConnected() {
+        return this.embed.isConnected;
+    }
+
+    async refreshManagedModel() {
+        if (this.state.mode !== 'managed') return;
+
+        const payload = this.state.payload;
+        const model = await buildMandalaEmbedModel(
+            this.plugin,
+            payload.target,
+            getMandalaEmbedOrientation(this.plugin),
+        );
+        if (!this.embed.isConnected) return;
+
+        if (!model) {
+            this.clear();
+            return;
+        }
+
+        this.state = {
+            mode: 'managed',
+            payload: {
+                ...payload,
+                model,
+            },
+        };
+        this.scheduleRender();
+    }
+
+    destroy() {
+        this.cancelScheduledRender();
+        this.embedObserver.disconnect();
+        this.clearManagedArtifacts();
+        this.state = { mode: 'native' };
     }
 
     private handleEmbedMutation() {

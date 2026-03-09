@@ -32,6 +32,7 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/render-mandala-embed';
 import { createMandalaSourceEmbedExtension } from 'src/obsidian/editor-extensions/mandala-source-embed/create-mandala-source-embed-extension';
 import {
+    refreshOpenManagedMandalaEmbedsByTargetPaths,
     getOpenMandalaEmbedRefreshViews,
     registerMandalaEmbedRefreshEvents,
     rerenderMarkdownPreviewsBySourcePaths,
@@ -184,7 +185,8 @@ export default class MandalaGrid extends Plugin {
             );
             if (
                 !refreshPlan.refreshEditors &&
-                refreshPlan.previewSourcePaths.size === 0
+                refreshPlan.previewSourcePaths.size === 0 &&
+                refreshPlan.previewTargetPaths.size === 0
             ) {
                 return;
             }
@@ -199,6 +201,12 @@ export default class MandalaGrid extends Plugin {
                 rerenderMarkdownPreviewsBySourcePaths(
                     this,
                     refreshPlan.previewSourcePaths,
+                );
+            }
+
+            if (refreshPlan.previewTargetPaths.size > 0) {
+                void refreshOpenManagedMandalaEmbedsByTargetPaths(
+                    refreshPlan.previewTargetPaths,
                 );
             }
         }, delay_ms);

@@ -2,6 +2,7 @@ import { MarkdownView, TFile } from 'obsidian';
 import MandalaGrid from 'src/main';
 import { extractEmbedReferencesFromMarkdown } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/extract-embed-references-from-markdown';
 import { parseMandalaEmbedReference } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/parse-mandala-embed-reference';
+import { refreshManagedMandalaEmbedControllersByTargetPaths } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/managed-mandala-embed-registry';
 import { resolveMandalaEmbedTarget } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
 
 const isMarkdownFile = (file: unknown): file is TFile =>
@@ -16,6 +17,7 @@ export type MandalaEmbedRefreshViewLike = {
 export type MandalaEmbedRefreshPlan = {
     refreshEditors: boolean;
     previewSourcePaths: Set<string>;
+    previewTargetPaths: Set<string>;
 };
 
 export const collectMandalaEmbedTargetPaths = (
@@ -51,12 +53,14 @@ export const resolveMandalaEmbedRefreshPlan = (
         Array.from(changedPaths).filter((path) => path.trim().length > 0),
     );
     const previewSourcePaths = new Set<string>();
+    const previewTargetPaths = new Set<string>();
     let refreshEditors = false;
 
     if (changedPathSet.size === 0) {
         return {
             refreshEditors,
             previewSourcePaths,
+            previewTargetPaths,
         };
     }
 
@@ -69,15 +73,21 @@ export const resolveMandalaEmbedRefreshPlan = (
             sourceFile,
             view.markdown,
         );
-        const isImpacted =
-            changedPathSet.has(sourceFile.path) ||
-            Array.from(targetPaths).some((targetPath) =>
-                changedPathSet.has(targetPath),
-            );
+        const matchedTargetPaths = Array.from(targetPaths).filter((targetPath) =>
+            changedPathSet.has(targetPath),
+        );
+        const isSourceChanged = changedPathSet.has(sourceFile.path);
+        const isImpacted = isSourceChanged || matchedTargetPaths.length > 0;
         if (!isImpacted) continue;
 
         if (view.mode === 'preview') {
-            previewSourcePaths.add(sourceFile.path);
+            if (isSourceChanged) {
+                previewSourcePaths.add(sourceFile.path);
+            } else {
+                for (const targetPath of matchedTargetPaths) {
+                    previewTargetPaths.add(targetPath);
+                }
+            }
             continue;
         }
 
@@ -87,6 +97,7 @@ export const resolveMandalaEmbedRefreshPlan = (
     return {
         refreshEditors,
         previewSourcePaths,
+        previewTargetPaths,
     };
 };
 
@@ -105,6 +116,10 @@ const getOpenMarkdownViews = (plugin: MandalaGrid) => {
 export const rerenderOpenMarkdownPreviews = (plugin: MandalaGrid) => {
     rerenderMarkdownPreviewsBySourcePaths(plugin);
 };
+
+export const refreshOpenManagedMandalaEmbedsByTargetPaths = (
+    targetPaths: Iterable<string>,
+) => refreshManagedMandalaEmbedControllersByTargetPaths(targetPaths);
 
 export const rerenderMarkdownPreviewsBySourcePaths = (
     plugin: MandalaGrid,

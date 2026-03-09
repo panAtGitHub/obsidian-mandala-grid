@@ -1,4 +1,5 @@
 import {
+    MarkdownRenderChild,
     parseLinktext,
     TFile,
     type EmbedCache,
@@ -26,6 +27,10 @@ import {
     type MandalaEmbedManagedPayload,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller-types';
 import { MandalaEmbedController } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller';
+import {
+    registerManagedMandalaEmbedController,
+    unregisterManagedMandalaEmbedController,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/managed-mandala-embed-registry';
 import { findRenderedMarkdown } from 'src/view/actions/markdown-preview/helpers/rendered-markdown-registry';
 
 export const MANDALA_EMBED_POSTPROCESSOR_SORT_ORDER = 1000;
@@ -33,6 +38,7 @@ const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
 const MAX_MANAGED_ANCESTOR_DEPTH = 1;
 
 const controllerByEmbed = new WeakMap<HTMLElement, MandalaEmbedController>();
+const cleanupChildByEmbed = new WeakMap<HTMLElement, MarkdownRenderChild>();
 
 const getOrCreateController = (
     plugin: MandalaGrid,
@@ -44,6 +50,27 @@ const getOrCreateController = (
     const created = new MandalaEmbedController(plugin, embed);
     controllerByEmbed.set(embed, created);
     return created;
+};
+
+const ensureControllerCleanupChild = (
+    ctx: MarkdownPostProcessorContext,
+    embed: HTMLElement,
+    controller: MandalaEmbedController,
+) => {
+    if (cleanupChildByEmbed.has(embed)) return;
+
+    class MandalaEmbedControllerCleanupChild extends MarkdownRenderChild {
+        override onunload() {
+            unregisterManagedMandalaEmbedController(controller);
+            controller.destroy();
+            controllerByEmbed.delete(embed);
+            cleanupChildByEmbed.delete(embed);
+        }
+    }
+
+    const cleanupChild = new MandalaEmbedControllerCleanupChild(embed);
+    cleanupChildByEmbed.set(embed, cleanupChild);
+    ctx.addChild(cleanupChild);
 };
 
 const formatUnknownError = (error: unknown) =>
@@ -179,6 +206,7 @@ export const createRenderMandalaEmbedPostProcessor =
 
             for (const embed of embeds) {
                 const controller = getOrCreateController(plugin, embed);
+                ensureControllerCleanupChild(ctx, embed, controller);
                 const src = embed.getAttribute('src');
                 const renderedMarkdownReference =
                     renderedMarkdownReferenceByEmbed.get(embed);
@@ -188,6 +216,7 @@ export const createRenderMandalaEmbedPostProcessor =
 
                 try {
                     if (managedAncestorDepth > MAX_MANAGED_ANCESTOR_DEPTH) {
+                        unregisterManagedMandalaEmbedController(controller);
                         if (debugEnabled) {
                             controller.updateDebug([
                                 'mandala debug: max nested depth reached',
@@ -233,6 +262,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     }
 
                     if (!parsedReference) {
+                        unregisterManagedMandalaEmbedController(controller);
                         if (debugEnabled && isMarkedReference) {
                             controller.updateDebug([
                                 'mandala debug: marker parse failed',
@@ -248,6 +278,7 @@ export const createRenderMandalaEmbedPostProcessor =
                     }
 
                     if (!(sourceFile instanceof TFile) || sourceFile.extension !== 'md') {
+                        unregisterManagedMandalaEmbedController(controller);
                         if (debugEnabled) {
                             controller.updateDebug([
                                 'mandala debug: source file resolve failed',
@@ -266,6 +297,7 @@ export const createRenderMandalaEmbedPostProcessor =
                         parsedReference,
                     );
                     if (!target) {
+                        unregisterManagedMandalaEmbedController(controller);
                         if (debugEnabled) {
                             const parsedLink = parseLinktext(
                                 parsedReference.linktext,
@@ -287,6 +319,7 @@ export const createRenderMandalaEmbedPostProcessor =
 
                     const model = await getModel(target);
                     if (!model || !embed.isConnected) {
+                        unregisterManagedMandalaEmbedController(controller);
                         if (debugEnabled && embed.isConnected) {
                             controller.updateDebug([
                                 'mandala debug: model build failed',
@@ -308,8 +341,13 @@ export const createRenderMandalaEmbedPostProcessor =
                         parsedReference,
                         model,
                     };
+                    registerManagedMandalaEmbedController(
+                        controller,
+                        target.file.path,
+                    );
                     controller.updateManaged(payload);
                 } catch (error: unknown) {
+                    unregisterManagedMandalaEmbedController(controller);
                     logger.error('[mandala-embed]', {
                         phase: 'unexpected-error',
                         src: src ?? '<null>',
