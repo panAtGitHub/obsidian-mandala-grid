@@ -26,6 +26,10 @@
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
+    import {
+        getReadableTextTone,
+        type ThemeTone,
+    } from 'src/view/helpers/mandala/contrast-text-tone';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);
@@ -238,8 +242,27 @@
     };
 
     let styledCells: Array<
-        (typeof $cells)[number] & { background: string | null }
+        (typeof $cells)[number] & {
+            background: string | null;
+            textTone: 'dark' | 'light' | null;
+            style: string | null;
+        }
     > = [];
+
+    const DARK_TEXT_TOKENS =
+        '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b; --text-accent: #0f131a;';
+
+    const LIGHT_TEXT_TOKENS =
+        '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce; --text-accent: #f3f6fd;';
+
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue('--background-primary')
+            .trim();
 
     $: {
         const opacity = $sectionColorOpacity / 100;
@@ -253,7 +276,25 @@
                 : $backgroundMode === 'gray' && cell.isGrayBlock
                   ? `color-mix(in srgb, var(--mandala-gray-block-base) ${$sectionColorOpacity}%, transparent)`
                   : null;
-            return { ...cell, background };
+            const textTone = background
+                ? getReadableTextTone(
+                      background,
+                      getThemeTone(),
+                      getThemeUnderlayColor(),
+                  )
+                : null;
+
+            const styleParts = [];
+            if (background) styleParts.push(`background-color: ${background};`);
+            if (textTone === 'dark') styleParts.push(DARK_TEXT_TOKENS);
+            if (textTone === 'light') styleParts.push(LIGHT_TEXT_TOKENS);
+
+            return {
+                ...cell,
+                background,
+                textTone,
+                style: styleParts.length > 0 ? styleParts.join(' ') : null,
+            };
         });
     }
 
@@ -409,6 +450,7 @@
                 class:is-block-col-start={cell.col % 3 === 0}
                 class:is-last-row={cell.row === 8}
                 class:is-last-col={cell.col === 8}
+                class:has-custom-background={Boolean(cell.background)}
                 class:simple-cell--swap-source={$swapState.active &&
                     $swapState.sourceNodeId === cell.nodeId}
                 class:simple-cell--swap-target={$swapState.active &&
@@ -418,9 +460,7 @@
                     !!cell.nodeId &&
                     !$swapState.targetNodeIds.has(cell.nodeId) &&
                     $swapState.sourceNodeId !== cell.nodeId}
-                style={cell.background
-                    ? `background-color: ${cell.background};`
-                    : undefined}
+                style={cell.style ?? undefined}
                 data-node-id={cell.nodeId || undefined}
                 id={cell.nodeId || undefined}
                 on:mousedown={(event) => onCellMouseDown(cell, event)}
@@ -591,7 +631,7 @@
     }
 
     /* Theme center gets slightly larger/bolder title focus */
-    .is-theme-center .cell-title {
+    .is-theme-center:not(.has-custom-background) .cell-title {
         font-weight: 700;
         color: var(--text-accent);
     }
