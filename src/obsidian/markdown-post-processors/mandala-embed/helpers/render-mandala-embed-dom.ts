@@ -178,6 +178,7 @@ export const primeMandalaEmbedResponsiveSizing = ({
 }) =>
     applyMandalaEmbedResponsiveSizingSnapshot({
         rootEl,
+        bodyEl,
         gridEl,
         width: bodyEl.clientWidth,
     });

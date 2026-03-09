@@ -411,6 +411,7 @@ export class MandalaEmbedController {
         const { body } = this.getOrCreateHostLayout();
         this.clearBodyHeightLock();
         this.clearRenderScope();
+        body.style.removeProperty('height');
 
         this.embed.setAttribute(MANDALA_EMBED_MANAGED_ATTR, 'true');
         this.embed.classList.remove('mandala-embed-3x3');

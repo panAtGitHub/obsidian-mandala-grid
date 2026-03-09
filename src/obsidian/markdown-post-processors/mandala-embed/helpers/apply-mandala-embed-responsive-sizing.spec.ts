@@ -14,6 +14,7 @@ describe('applyMandalaEmbedResponsiveSizing', () => {
 
         expect(sizing).not.toBeNull();
         expect(sizing?.cellSize).toBe(100);
+        expect(sizing?.gridSize).toBe(300);
         expect(sizing?.isCompactDensity).toBe(false);
         expect(sizing?.isUltraDensity).toBe(false);
         expect(sizing?.contentFontSize).toBe(13);
@@ -21,10 +22,12 @@ describe('applyMandalaEmbedResponsiveSizing', () => {
 
     it('applies sizing snapshot before the grid is inserted', () => {
         const root = document.createElement('div');
+        const body = document.createElement('div');
         const grid = document.createElement('div');
 
         const applied = applyMandalaEmbedResponsiveSizingSnapshot({
             rootEl: root,
+            bodyEl: body,
             gridEl: grid,
             width: 210,
         });
@@ -41,14 +44,18 @@ describe('applyMandalaEmbedResponsiveSizing', () => {
         expect(
             root.classList.contains(MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS),
         ).toBe(true);
+        expect(body.style.height).toBe('210px');
+        expect(body.style.minHeight).toBe('');
     });
 
     it('does not apply sizing when width is not positive', () => {
         const root = document.createElement('div');
+        const body = document.createElement('div');
         const grid = document.createElement('div');
 
         const applied = applyMandalaEmbedResponsiveSizingSnapshot({
             rootEl: root,
+            bodyEl: body,
             gridEl: grid,
             width: 0,
         });
@@ -60,5 +67,6 @@ describe('applyMandalaEmbedResponsiveSizing', () => {
         expect(
             root.classList.contains(MANDALA_EMBED_ROOT_DENSITY_COMPACT_CLASS),
         ).toBe(false);
+        expect(body.style.height).toBe('');
     });
 });

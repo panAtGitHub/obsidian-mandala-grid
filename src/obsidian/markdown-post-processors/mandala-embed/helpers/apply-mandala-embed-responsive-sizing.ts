@@ -27,6 +27,7 @@ const clamp = (value: number, min: number, max: number) =>
 
 type MandalaEmbedResponsiveSizing = {
     cellSize: number;
+    gridSize: number;
     isUltraDensity: boolean;
     isCompactDensity: boolean;
     contentFontSize: number;
@@ -57,6 +58,7 @@ export const resolveMandalaEmbedResponsiveSizing = (
 
     return {
         cellSize,
+        gridSize: cellSize * 3,
         isUltraDensity,
         isCompactDensity,
         contentFontSize: clamp(Math.round(16 * scale), 9, 16),
@@ -105,10 +107,12 @@ export const resolveMandalaEmbedResponsiveSizing = (
 
 const applyMandalaEmbedResponsiveSizingState = ({
     rootEl,
+    bodyEl,
     gridEl,
     sizing,
 }: {
     rootEl: HTMLElement;
+    bodyEl: HTMLElement;
     gridEl: HTMLElement;
     sizing: MandalaEmbedResponsiveSizing;
 }) => {
@@ -185,14 +189,17 @@ const applyMandalaEmbedResponsiveSizingState = ({
         MANDALA_EMBED_SCROLLBAR_SIZE_VAR,
         `${sizing.scrollbarSize}px`,
     );
+    bodyEl.style.setProperty('height', `${sizing.gridSize}px`);
 };
 
 export const applyMandalaEmbedResponsiveSizingSnapshot = ({
     rootEl,
+    bodyEl,
     gridEl,
     width,
 }: {
     rootEl: HTMLElement;
+    bodyEl: HTMLElement;
     gridEl: HTMLElement;
     width: number;
 }) => {
@@ -201,6 +208,7 @@ export const applyMandalaEmbedResponsiveSizingSnapshot = ({
 
     applyMandalaEmbedResponsiveSizingState({
         rootEl,
+        bodyEl,
         gridEl,
         sizing,
     });
@@ -222,6 +230,7 @@ export const applyMandalaEmbedResponsiveSizing = ({
     const update = () => {
         applyMandalaEmbedResponsiveSizingSnapshot({
             rootEl,
+            bodyEl,
             gridEl,
             width: bodyEl.clientWidth,
         });
