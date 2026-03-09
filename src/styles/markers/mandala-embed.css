@@ -3,6 +3,7 @@
     width: 100%;
     max-width: 100%;
     white-space: normal;
+    overflow-anchor: none;
 }
 
 .mandala-source-embed-widget__fallback {
@@ -30,6 +31,7 @@
     display: block;
     width: 100%;
     padding: 0;
+    overflow-anchor: none;
 }
 
 .internal-embed .mandala-embed-host-header,
@@ -47,6 +49,7 @@
 .mandala-source-embed-widget .mandala-embed-host-body {
     display: block;
     width: 100%;
+    overflow-anchor: none;
 }
 
 .internal-embed .mandala-embed-header-title,
