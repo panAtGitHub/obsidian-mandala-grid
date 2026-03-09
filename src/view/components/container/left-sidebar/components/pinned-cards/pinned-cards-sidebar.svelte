@@ -316,12 +316,13 @@
         cursor: pointer;
         border: 1px solid var(--background-modifier-border);
         border-radius: var(--radius-m);
-        background: var(--pinned-item-bg, #fff);
+        background: var(--pinned-item-bg, var(--background-primary-alt));
+        color: var(--text-normal);
         transition: background-color 0.1s ease, border-color 0.1s ease;
     }
 
     .pinned-list-item:hover {
-        background: var(--pinned-item-bg, #f5f5f5);
+        background: var(--pinned-item-bg, var(--background-modifier-hover));
     }
 
     .pinned-list-item:active {
@@ -329,7 +330,7 @@
     }
 
     .pinned-list-item.selected {
-        background: var(--pinned-item-bg, #fff);
+        background: var(--pinned-item-bg, var(--background-primary-alt));
         outline: 2px solid var(--interactive-accent);
         outline-offset: -2px;
     }
