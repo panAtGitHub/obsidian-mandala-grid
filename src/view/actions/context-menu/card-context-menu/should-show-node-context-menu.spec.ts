@@ -13,7 +13,7 @@ describe('shouldShowNodeContextMenu', () => {
         const target = createTarget(['.pinned-list-item']);
 
         expect(
-            shouldShowNodeContextMenu({ target } as MouseEvent),
+            shouldShowNodeContextMenu({ target } as unknown as MouseEvent),
         ).toBe(true);
     });
 
@@ -22,10 +22,14 @@ describe('shouldShowNodeContextMenu', () => {
         const cellTarget = createTarget(['.simple-cell[data-node-id]']);
 
         expect(
-            shouldShowNodeContextMenu({ target: cardTarget } as MouseEvent),
+            shouldShowNodeContextMenu({
+                target: cardTarget,
+            } as unknown as MouseEvent),
         ).toBe(true);
         expect(
-            shouldShowNodeContextMenu({ target: cellTarget } as MouseEvent),
+            shouldShowNodeContextMenu({
+                target: cellTarget,
+            } as unknown as MouseEvent),
         ).toBe(true);
     });
 });
