@@ -25,9 +25,7 @@ export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
 export type MandalaMode = '3x3' | '9x9';
 export type BuiltinMandalaGridOrientation = 'left-to-right' | 'south-start';
-export type MandalaGridOrientation =
-    | BuiltinMandalaGridOrientation
-    | 'custom';
+export type MandalaGridOrientation = BuiltinMandalaGridOrientation | 'custom';
 export type MandalaCustomLayout = {
     id: string;
     name: string;
@@ -142,5 +140,6 @@ export type Settings = {
     general: {
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
+        dayPlanEnabled: boolean;
     };
 };

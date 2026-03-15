@@ -13,7 +13,10 @@ import {
 } from 'src/stores/settings/settings-type';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import { registerFileMenuEvent } from 'src/obsidian/events/workspace/register-file-menu-event';
-import { addCommands } from 'src/obsidian/commands/add-commands';
+import {
+    addCommands,
+    getManagedCommandIds,
+} from 'src/obsidian/commands/add-commands';
 import { settingsSubscriptions } from 'src/stores/settings/subscriptions/settings-subscriptions';
 import { PluginState } from 'src/stores/plugin/plugin-state-type';
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
@@ -42,13 +45,12 @@ import {
     rerenderOpenMarkdownPreviews,
     resolveMandalaEmbedRefreshPlan,
 } from 'src/obsidian/events/workspace/register-mandala-embed-refresh-events';
-import {
-    statusBarWorker,
-} from 'src/workers/worker-instances';
+import { statusBarWorker } from 'src/workers/worker-instances';
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { lang } from 'src/lang/lang';
+import { MandalaGridSettingTab } from 'src/obsidian/settings/mandala-grid-setting-tab';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
 export type PluginStore = Store<PluginState, PluginStoreActions>;
@@ -59,7 +61,8 @@ export default class MandalaGrid extends Plugin {
     statusBar: StatusBar;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
     private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
-    private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null = null;
+    private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null =
+        null;
     private isSavingSettings = false;
     private hasPendingSettingsSave = false;
     private pendingMandalaEmbedRefreshAll = false;
@@ -67,6 +70,8 @@ export default class MandalaGrid extends Plugin {
     private mandalaEmbedRefreshEpoch = 0;
     private readonly mandalaSourceEmbedExtensions: Extension[] = [];
     private lastMandalaGridOrientation: string | null = null;
+    private lastDayPlanEnabled: boolean | null = null;
+    private registeredCommandIds = new Set<string>();
     viewType: DocumentsPreferences = {};
 
     async onload() {
@@ -78,12 +83,15 @@ export default class MandalaGrid extends Plugin {
         );
         this.lastMandalaGridOrientation =
             this.settings.getValue().view.mandalaGridOrientation;
+        this.lastDayPlanEnabled =
+            this.settings.getValue().general.dayPlanEnabled;
         loadCustomIcons();
         this.registerView(
             MANDALA_VIEW_TYPE,
             (leaf) => new MandalaView(leaf, this),
         );
-        addCommands(this);
+        this.refreshCommands();
+        this.addSettingTab(new MandalaGridSettingTab(this.app, this));
         this.registerPatches();
         this.registerEvents();
         this.statusBar = new StatusBar(this);
@@ -135,9 +143,30 @@ export default class MandalaGrid extends Plugin {
                     forceAll: true,
                 });
             }
+            const nextDayPlanEnabled =
+                this.settings.getValue().general.dayPlanEnabled;
+            if (this.lastDayPlanEnabled !== nextDayPlanEnabled) {
+                this.lastDayPlanEnabled = nextDayPlanEnabled;
+                this.refreshCommands();
+            }
             this.queueSettingsSave();
         });
         settingsSubscriptions(this);
+    }
+
+    refreshCommands() {
+        for (const commandId of this.registeredCommandIds) {
+            this.removeCommand(commandId);
+        }
+        this.registeredCommandIds.clear();
+
+        for (const commandId of getManagedCommandIds(this)) {
+            this.removeCommand(commandId);
+        }
+
+        for (const command of addCommands(this)) {
+            this.registeredCommandIds.add(command.id);
+        }
     }
 
     getMandalaEmbedRefreshEpoch() {
@@ -169,7 +198,9 @@ export default class MandalaGrid extends Plugin {
         this.refreshMandalaEmbedTimeout = setTimeout(() => {
             this.refreshMandalaEmbedTimeout = null;
             const forceAllRefresh = this.pendingMandalaEmbedRefreshAll;
-            const changedPathSet = new Set(this.pendingMandalaEmbedChangedPaths);
+            const changedPathSet = new Set(
+                this.pendingMandalaEmbedChangedPaths,
+            );
             this.pendingMandalaEmbedRefreshAll = false;
             this.pendingMandalaEmbedChangedPaths.clear();
 
@@ -254,14 +285,14 @@ export default class MandalaGrid extends Plugin {
 
     private registerPatches() {
         const setViewState = createSetViewState(this);
-        const workspaceLeafPrototype = WorkspaceLeaf.prototype as unknown as Record<
-            string,
-            (...params: unknown[]) => unknown
-        >;
-        const setViewStateWrapper =
-            setViewState as unknown as (
-                next: (...params: unknown[]) => unknown,
-            ) => (...params: unknown[]) => unknown;
+        const workspaceLeafPrototype =
+            WorkspaceLeaf.prototype as unknown as Record<
+                string,
+                (...params: unknown[]) => unknown
+            >;
+        const setViewStateWrapper = setViewState as unknown as (
+            next: (...params: unknown[]) => unknown,
+        ) => (...params: unknown[]) => unknown;
         this.register(
             around(workspaceLeafPrototype, {
                 setViewState: setViewStateWrapper,

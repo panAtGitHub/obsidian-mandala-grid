@@ -1,5 +1,5 @@
-import { Command } from 'obsidian';
-import MandalaGrid from 'src/main';
+import type { Command } from 'obsidian';
+import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
 import { slugify } from 'src/helpers/slugify';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
@@ -12,11 +12,14 @@ import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-m
 import { openExportModeModalForView } from 'src/view/components/container/toolbar-vertical/export-mode-modal-store';
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 
-const createCommands = (plugin: MandalaGrid) => {
-    const commands: (Omit<Command, 'id' | 'callback'> & {
-        commandId: string;
-        checkCallback: (checking: boolean) => boolean | void;
-    })[] = [];
+type ManagedCommand = Omit<Command, 'id' | 'callback'> & {
+    commandId: string;
+    checkCallback: (checking: boolean) => boolean | void;
+    isEnabled?: (plugin: MandalaGrid) => boolean;
+};
+
+const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
+    const commands: ManagedCommand[] = [];
     commands.push({
         commandId: 'toggle-mandala-view',
         name: lang.cmd_toggle_mandala_view,
@@ -62,6 +65,8 @@ const createCommands = (plugin: MandalaGrid) => {
         commandId: 'set-day-plan-mandala-format',
         name: lang.cmd_set_day_plan_mandala_format,
         icon: customIcons.mandalaGrid.name,
+        isEnabled: (currentPlugin) =>
+            currentPlugin.settings.getValue().general.dayPlanEnabled,
         checkCallback: (checking) => {
             if (checking) return true;
             void setupDayPlanMandalaFormat(plugin);
@@ -72,6 +77,8 @@ const createCommands = (plugin: MandalaGrid) => {
         commandId: 'write-current-core-day-plan-slots-to-yaml',
         name: lang.cmd_write_current_core_day_plan_slots_to_yaml,
         icon: customIcons.mandalaGrid.name,
+        isEnabled: (currentPlugin) =>
+            currentPlugin.settings.getValue().general.dayPlanEnabled,
         checkCallback: (checking) => {
             if (checking) return true;
             void writeCurrentCoreDayPlanSlotsToYaml(plugin);
@@ -93,9 +100,14 @@ const createCommands = (plugin: MandalaGrid) => {
     return commands;
 };
 
+export const getManagedCommandIds = (plugin: MandalaGrid) =>
+    getAllCommands(plugin).map((command) => slugify(command.commandId));
+
 export const addCommands = (plugin: MandalaGrid) => {
-    const commands = createCommands(plugin);
-    for (const command of commands) {
+    const commands = getAllCommands(plugin).filter(
+        (command) => command.isEnabled?.(plugin) ?? true,
+    );
+    return commands.map((command) =>
         plugin.addCommand({
             ...command,
             checkCallback: (checking) => {
@@ -107,6 +119,6 @@ export const addCommands = (plugin: MandalaGrid) => {
                 }
             },
             id: slugify(command.commandId),
-        });
-    }
+        }),
+    );
 };

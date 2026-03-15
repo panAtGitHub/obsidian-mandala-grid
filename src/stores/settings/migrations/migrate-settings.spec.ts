@@ -96,6 +96,7 @@ describe('migrateSettings', () => {
         expect(settings.documents['foo.md'].mandalaView).toEqual({
             gridOrientation: null,
             selectedLayoutId: null,
+            selectedCustomLayout: null,
             lastActiveSection: null,
             subgridTheme: null,
             showDetailSidebarDesktop: null,

@@ -77,8 +77,13 @@ const getOrCreateDocumentPreferences = (store: Settings, path: string) => {
     return store.documents[path];
 };
 
-const getOrCreateMandalaViewPreferences = (preferences: DocumentPreferences) => {
-    if (!preferences.mandalaView || typeof preferences.mandalaView !== 'object') {
+const getOrCreateMandalaViewPreferences = (
+    preferences: DocumentPreferences,
+) => {
+    if (
+        !preferences.mandalaView ||
+        typeof preferences.mandalaView !== 'object'
+    ) {
         preferences.mandalaView = {
             gridOrientation: null,
             selectedLayoutId: null,
@@ -153,7 +158,9 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         );
         const normalized = normalizeSectionIds(action.payload.sections);
         const mandalaView = getOrCreateMandalaViewPreferences(preferences);
-        const current = normalizeSectionIdsFromUnknown(mandalaView.pinnedSections);
+        const current = normalizeSectionIdsFromUnknown(
+            mandalaView.pinnedSections,
+        );
         if (sameSections(current, normalized)) return;
         mandalaView.pinnedSections = normalized;
     },
@@ -166,7 +173,9 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         );
         const normalized = normalizeSectionColorAssignments(action.payload.map);
         const mandalaView = getOrCreateMandalaViewPreferences(preferences);
-        const current = normalizeSectionColorAssignments(mandalaView.sectionColors);
+        const current = normalizeSectionColorAssignments(
+            mandalaView.sectionColors,
+        );
         if (JSON.stringify(current) === JSON.stringify(normalized)) return;
         mandalaView.sectionColors = normalized;
     },
@@ -538,9 +547,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         );
         const nextLayout: MandalaCustomLayout = {
             id: action.payload.layout.id,
-            name:
-                action.payload.layout.name.trim() || '未命名布局',
-            pattern: normalizeCustomMandalaPattern(action.payload.layout.pattern),
+            name: action.payload.layout.name.trim() || '未命名布局',
+            pattern: normalizeCustomMandalaPattern(
+                action.payload.layout.pattern,
+            ),
         };
         store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
     },
@@ -553,7 +563,9 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         const nextLayout: MandalaCustomLayout = {
             id: action.payload.layout.id,
             name: action.payload.layout.name.trim() || '未命名布局',
-            pattern: normalizeCustomMandalaPattern(action.payload.layout.pattern),
+            pattern: normalizeCustomMandalaPattern(
+                action.payload.layout.pattern,
+            ),
         };
         store.view.mandalaGridCustomLayouts = [...currentLayouts, nextLayout];
     },
@@ -626,6 +638,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/mandala/set-last-export-preset')
             return;
         store.view.lastExportPreset = action.payload.preset;
+    },
+    'settings/general/set-day-plan-enabled': (store, action) => {
+        if (action.type !== 'settings/general/set-day-plan-enabled') return;
+        store.general.dayPlanEnabled = action.payload.enabled;
     },
 };
 

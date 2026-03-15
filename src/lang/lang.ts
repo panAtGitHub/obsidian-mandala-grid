@@ -301,6 +301,10 @@ export const lang = {
     settings_general_link_split: 'Open in new split',
     settings_general_link_tab: 'Open in new tab',
     settings_general_link_behavior: 'Default link behavior',
+    settings_plugin_title: 'Mandala Grid 设置',
+    settings_general_day_plan_enabled: '启用「日计划」功能',
+    settings_general_day_plan_enabled_desc:
+        '关闭后，会移除命令面板中所有与「日计划」相关的命令。',
 
     // hotkeys
     hk_enter_subgrid: '进入子九宫',

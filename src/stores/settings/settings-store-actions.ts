@@ -213,6 +213,12 @@ export type SettingsActions =
           };
       }
     | {
+          type: 'settings/general/set-day-plan-enabled';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
           type: 'settings/view/set-mobile-edit-font-size-offset';
           payload: {
               offset: number;
@@ -281,20 +287,18 @@ export type SettingsActions =
     | {
           type: 'settings/view/mandala/set-last-export-preset';
           payload: {
-              preset:
-                  | {
-                        exportMode: 'png-square' | 'png-screen' | 'pdf-a4';
-                        includeSidebar: boolean;
-                        a4Orientation: 'portrait' | 'landscape';
-                        backgroundMode: 'none' | 'custom' | 'gray';
-                        sectionColorOpacity: number;
-                        borderOpacity: number;
-                        gridHighlightColor?: string;
-                        gridHighlightWidth?: number;
-                        whiteThemeMode: boolean;
-                        squareLayout: boolean;
-                    }
-                  | null;
+              preset: {
+                  exportMode: 'png-square' | 'png-screen' | 'pdf-a4';
+                  includeSidebar: boolean;
+                  a4Orientation: 'portrait' | 'landscape';
+                  backgroundMode: 'none' | 'custom' | 'gray';
+                  sectionColorOpacity: number;
+                  borderOpacity: number;
+                  gridHighlightColor?: string;
+                  gridHighlightWidth?: number;
+                  whiteThemeMode: boolean;
+                  squareLayout: boolean;
+              } | null;
           };
       };
 export type PersistActiveNodeAction = {

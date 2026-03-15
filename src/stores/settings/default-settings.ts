@@ -114,5 +114,6 @@ export const DEFAULT_SETTINGS = (): Settings => ({
     general: {
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
+        dayPlanEnabled: true,
     },
 });
