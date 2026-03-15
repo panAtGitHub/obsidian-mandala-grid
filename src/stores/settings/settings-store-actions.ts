@@ -166,6 +166,12 @@ export type SettingsActions =
           type: 'settings/view/toggle-9x9-parallel-nav-buttons-mobile';
       }
     | {
+          type: 'settings/view/toggle-day-plan-today-button-desktop';
+      }
+    | {
+          type: 'settings/view/toggle-day-plan-today-button-mobile';
+      }
+    | {
           type: 'settings/view/context-menu-copy-link/set-visibility';
           payload: {
               variant: ContextMenuCopyLinkVariant;

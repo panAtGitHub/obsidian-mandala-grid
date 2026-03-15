@@ -1,8 +1,10 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
+    import { CalendarDays } from 'lucide-svelte';
     import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import {
+        DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBorderOpacityStore,
@@ -15,6 +17,7 @@
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
         Show3x3SubgridNavButtonsStore,
+        ShowDayPlanTodayButtonStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
@@ -48,6 +51,8 @@
     } from 'src/view/helpers/mandala/mobile-navigation';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
     import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
+    import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
+    import { lang } from 'src/lang/lang';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -66,6 +71,8 @@
     const gridHighlightColor = MandalaGridHighlightColorStore(view);
     const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
+    const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
+    const dayPlanEnabled = DayPlanEnabledStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const detailSidebarWidth = MandalaDetailSidebarWidthStore(view);
@@ -379,6 +386,7 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
+    let dayPlanTodayTargetSection: string | null = null;
     let cachedDayPlanFrontmatter: string | null = null;
     let cachedDayPlan = parseDayPlanFrontmatter('');
     const getCachedDayPlan = (frontmatter: string) => {
@@ -446,6 +454,10 @@
 
     $: {
         const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
+        const todayNavigation = resolveDayPlanTodayNavigation(
+            $documentState.file.frontmatter,
+        );
+        dayPlanTodayTargetSection = todayNavigation.targetSection;
         const allowSubgridExpansion = !(
             dayPlan &&
             dayPlan.daily_only_3x3 &&
@@ -510,6 +522,11 @@
 
     const getDownButtonLabel = (theme: string) =>
         theme.includes('.') ? '进入下一层子九宫格' : '下一层核心九宫格';
+
+    const focusDayPlanTodayFromButton = (event: MouseEvent) => {
+        event.stopPropagation();
+        view.focusDayPlanToday();
+    };
 </script>
 
 <div
@@ -691,6 +708,29 @@
                                                                     strokeWidth={2.2}
                                                                 />
                                                             {/if}
+                                                        </span>
+                                                    </button>
+                                                {/if}
+                                                {#if $dayPlanEnabled &&
+                                                    $showDayPlanTodayButton &&
+                                                    dayPlanTodayTargetSection}
+                                                    <button
+                                                        class="mandala-subgrid-btn mandala-subgrid-btn--today"
+                                                        type="button"
+                                                        aria-label={lang.day_plan_today_button_label}
+                                                        title={lang.day_plan_today_button_label}
+                                                        on:click={(event) =>
+                                                            focusDayPlanTodayFromButton(
+                                                                event,
+                                                            )}
+                                                    >
+                                                        <span
+                                                            class="mandala-subgrid-btn__icon"
+                                                        >
+                                                            <CalendarDays
+                                                                size={14}
+                                                                strokeWidth={2.2}
+                                                            />
                                                         </span>
                                                     </button>
                                                 {/if}
@@ -1159,6 +1199,12 @@
     .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--down {
         position: absolute;
         right: 0;
+        bottom: 0;
+    }
+
+    .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--today {
+        position: absolute;
+        left: calc(50% - 12px);
         bottom: 0;
     }
 

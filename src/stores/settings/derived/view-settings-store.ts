@@ -109,6 +109,16 @@ export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
             : state.view.show9x9ParallelNavButtonsDesktop ?? true,
     );
 
+export const ShowDayPlanTodayButtonStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.showDayPlanTodayButtonMobile ?? true
+            : state.view.showDayPlanTodayButtonDesktop ?? true,
+    );
+
+export const DayPlanEnabledStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.dayPlanEnabled);
+
 export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) =>
         resolveContextMenuCopyLinkVisibility(state.view),

@@ -98,6 +98,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         show3x3SubgridNavButtonsMobile: true,
         show9x9ParallelNavButtonsDesktop: true,
         show9x9ParallelNavButtonsMobile: true,
+        showDayPlanTodayButtonDesktop: true,
+        showDayPlanTodayButtonMobile: true,
         contextMenuCopyLinkVisibilityDesktop: {
             ...DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY,
         },

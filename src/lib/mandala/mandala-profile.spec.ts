@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     isMandalaFrontmatterEnabled,
+    resolveDayPlanTodayNavigation,
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
 
@@ -74,5 +75,59 @@ describe('mandala profile activation', () => {
         expect(result.kind).toBe('generic');
         expect(result.targetSection).toBeNull();
         expect(result.notice).toBeNull();
+    });
+
+    it('resolves day-plan today navigation when year matches', () => {
+        const frontmatter =
+            '---\n' +
+            'mandala: true\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '  slots:\n' +
+            '    "1": "a"\n' +
+            '    "2": "b"\n' +
+            '    "3": "c"\n' +
+            '    "4": "d"\n' +
+            '    "5": "e"\n' +
+            '    "6": "f"\n' +
+            '    "7": "g"\n' +
+            '    "8": "h"\n' +
+            '---\n';
+        const result = resolveDayPlanTodayNavigation(
+            frontmatter,
+            new Date('2026-02-10T08:00:00'),
+        );
+
+        expect(result.isDayPlan).toBe(true);
+        expect(result.targetSection).toBe('41');
+        expect(result.canNavigate).toBe(true);
+    });
+
+    it('disables day-plan today navigation when year mismatches', () => {
+        const frontmatter =
+            '---\n' +
+            'mandala: true\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '  slots:\n' +
+            '    "1": "a"\n' +
+            '    "2": "b"\n' +
+            '    "3": "c"\n' +
+            '    "4": "d"\n' +
+            '    "5": "e"\n' +
+            '    "6": "f"\n' +
+            '    "7": "g"\n' +
+            '    "8": "h"\n' +
+            '---\n';
+        const result = resolveDayPlanTodayNavigation(
+            frontmatter,
+            new Date('2027-02-10T08:00:00'),
+        );
+
+        expect(result.isDayPlan).toBe(true);
+        expect(result.targetSection).toBeNull();
+        expect(result.canNavigate).toBe(false);
     });
 });

@@ -15,6 +15,12 @@ export type MandalaProfileActivation = {
     dayPlan: DayPlanFrontmatter | null;
 };
 
+export type DayPlanTodayNavigation = {
+    isDayPlan: boolean;
+    targetSection: string | null;
+    canNavigate: boolean;
+};
+
 const stripFrontmatterMarkers = (frontmatter: string) =>
     frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, '');
 
@@ -79,5 +85,27 @@ export const resolveMandalaProfileActivation = (
         hotCoreSections: getHotCoreSections(dayPlan.year, date),
         notice: null,
         dayPlan,
+    };
+};
+
+export const resolveDayPlanTodayNavigation = (
+    frontmatter: string,
+    date: Date = new Date(),
+): DayPlanTodayNavigation => {
+    const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
+    const dayPlan = parsed.dayPlan;
+    if (!parsed.mandalaEnabled || !dayPlan || dayPlan.enabled !== true) {
+        return {
+            isDayPlan: false,
+            targetSection: null,
+            canNavigate: false,
+        };
+    }
+
+    const targetSection = sectionFromDateInPlanYear(dayPlan.year, date);
+    return {
+        isDayPlan: true,
+        targetSection,
+        canNavigate: targetSection !== null,
     };
 };

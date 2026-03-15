@@ -47,6 +47,8 @@ import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-a
 import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
 import {
+    DayPlanTodayNavigation,
+    resolveDayPlanTodayNavigation,
     MandalaProfileActivation,
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
@@ -957,6 +959,20 @@ export class MandalaView extends TextFileView {
             reason,
             error: message,
         });
+    }
+
+    getDayPlanTodayNavigation(date: Date = new Date()): DayPlanTodayNavigation {
+        return resolveDayPlanTodayNavigation(
+            this.documentStore.getValue().file.frontmatter,
+            date,
+        );
+    }
+
+    focusDayPlanToday(date: Date = new Date()) {
+        const navigation = this.getDayPlanTodayNavigation(date);
+        if (!navigation.targetSection) return false;
+        this.focusMandalaSection(navigation.targetSection);
+        return true;
     }
 
     private focusMandalaSection(targetSection: string) {

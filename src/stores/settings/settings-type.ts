@@ -128,6 +128,8 @@ export type Settings = {
         show3x3SubgridNavButtonsMobile: boolean;
         show9x9ParallelNavButtonsDesktop: boolean;
         show9x9ParallelNavButtonsMobile: boolean;
+        showDayPlanTodayButtonDesktop: boolean;
+        showDayPlanTodayButtonMobile: boolean;
         contextMenuCopyLinkVisibilityDesktop: ContextMenuCopyLinkVisibility;
         contextMenuCopyLinkVisibilityMobile: ContextMenuCopyLinkVisibility;
         mobileEditFontSizeOffset: number;

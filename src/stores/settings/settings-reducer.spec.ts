@@ -125,4 +125,18 @@ describe('settingsReducer custom grid layouts', () => {
             },
         });
     });
+
+    test('toggles day plan today buttons independently per platform', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/view/toggle-day-plan-today-button-desktop',
+        });
+        settingsReducer(settings, {
+            type: 'settings/view/toggle-day-plan-today-button-mobile',
+        });
+
+        expect(settings.view.showDayPlanTodayButtonDesktop).toBe(false);
+        expect(settings.view.showDayPlanTodayButtonMobile).toBe(false);
+    });
 });

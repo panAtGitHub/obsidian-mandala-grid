@@ -108,7 +108,8 @@ body.mandala-print-export .mandala-white-theme {
 
 /* 导出时隐藏导航按钮 */
 .mandala-export-hide-controls .parallel-nav-button,
-.mandala-export-hide-controls .mandala-subgrid-controls {
+.mandala-export-hide-controls .mandala-subgrid-controls,
+.mandala-export-hide-controls .mobile-day-plan-today-controls {
     display: none !important;
 }
 

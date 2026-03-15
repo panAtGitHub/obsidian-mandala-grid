@@ -2,10 +2,12 @@
     import { getView } from 'src/view/components/container/context';
     import { derived } from 'src/lib/store/derived';
     import {
+        DayPlanEnabledStore,
         DetailSidebarPreviewModeStore,
         ShowMandalaDetailSidebarStore,
         MandalaModeStore,
         Show3x3SubgridNavButtonsStore,
+        ShowDayPlanTodayButtonStore,
         Show9x9ParallelNavButtonsStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { onDestroy, tick } from 'svelte';
@@ -20,6 +22,8 @@
     } from 'src/view/helpers/mandala/mobile-navigation';
     import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
+    import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
+    import { lang } from 'src/lang/lang';
 
     const MIN_SIZE = 200;
 
@@ -45,6 +49,8 @@
     const mode = MandalaModeStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
+    const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
+    const dayPlanEnabled = DayPlanEnabledStore(view);
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
@@ -57,6 +63,11 @@
         view.documentStore,
         (state) => state.sections.id_section,
     );
+    const frontmatter = derived(
+        view.documentStore,
+        (state) => state.file.frontmatter,
+    );
+    let dayPlanTodayNavigation = resolveDayPlanTodayNavigation('');
     let activeSection: string | null = null;
     $: activeSection = $activeNodeId
         ? $idToSection[$activeNodeId] ?? null
@@ -71,6 +82,7 @@
             activeSection === $subgridTheme
         );
     $: canJumpPrevCore = activeCoreNumber > 1;
+    $: dayPlanTodayNavigation = resolveDayPlanTodayNavigation($frontmatter);
 
     let editorContainer: HTMLElement;
 
@@ -228,6 +240,11 @@
         event.stopPropagation();
         jumpCoreTheme(view, 'down');
     };
+
+    const focusDayPlanTodayFromFloatingButton = (event: MouseEvent) => {
+        event.stopPropagation();
+        view.focusDayPlanToday();
+    };
 </script>
 
 <div
@@ -325,6 +342,24 @@
                         <span
                             class="mobile-subgrid-floating-btn__icon"
                             use:applyObsidianIcon={'chevron-right'}
+                        />
+                    </button>
+                </div>
+            {/if}
+            {#if Platform.isMobile &&
+                $dayPlanEnabled &&
+                $showDayPlanTodayButton &&
+                dayPlanTodayNavigation.targetSection}
+                <div class="mobile-day-plan-today-controls">
+                    <button
+                        class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
+                        type="button"
+                        aria-label={lang.day_plan_today_button_label}
+                        on:click={focusDayPlanTodayFromFloatingButton}
+                    >
+                        <span
+                            class="mobile-subgrid-floating-btn__icon"
+                            use:applyObsidianIcon={'calendar-days'}
                         />
                     </button>
                 </div>
@@ -437,6 +472,14 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+        z-index: 12;
+        pointer-events: auto;
+    }
+
+    .mobile-day-plan-today-controls {
+        position: absolute;
+        right: 12px;
+        bottom: 18px;
         z-index: 12;
         pointer-events: auto;
     }

@@ -15,6 +15,7 @@
     import {
         ContextMenuCopyLinkVisibilityStore,
         DetailSidebarPreviewModeStore,
+        DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
@@ -32,6 +33,7 @@
         MandalaSectionColorOpacityStore,
         ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
+        ShowDayPlanTodayButtonStore,
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
         SquareLayoutStore,
@@ -113,7 +115,9 @@
     const customLayouts = MandalaGridCustomLayoutsStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
+    const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const dayPlanEnabled = DayPlanEnabledStore(view);
     const contextMenuCopyLinkVisibility =
         ContextMenuCopyLinkVisibilityStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
@@ -204,6 +208,14 @@
             type: isMobile
                 ? 'settings/view/toggle-3x3-subgrid-nav-buttons-mobile'
                 : 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop',
+        });
+    };
+
+    const toggleDayPlanTodayButton = () => {
+        view.plugin.settings.dispatch({
+            type: isMobile
+                ? 'settings/view/toggle-day-plan-today-button-mobile'
+                : 'settings/view/toggle-day-plan-today-button-desktop',
         });
     };
 
@@ -2120,6 +2132,8 @@
                 showHiddenCardInfo={$showHiddenCardInfo}
                 show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                dayPlanEnabled={$dayPlanEnabled}
+                showDayPlanTodayButton={$showDayPlanTodayButton}
                 showCopyBlockPlain={$contextMenuCopyLinkVisibility[
                     'block-plain'
                 ]}
@@ -2140,6 +2154,7 @@
                 {toggleHiddenCardInfo}
                 {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
+                {toggleDayPlanTodayButton}
                 {toggleCopyBlockPlain}
                 {toggleCopyBlockEmbed}
                 {toggleCopyHeadingPlain}

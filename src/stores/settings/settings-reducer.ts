@@ -471,6 +471,27 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store.view.show9x9ParallelNavButtonsMobile ?? true
         );
     },
+    'settings/view/toggle-day-plan-today-button-desktop': (store, action) => {
+        if (
+            action.type !==
+            'settings/view/toggle-day-plan-today-button-desktop'
+        ) {
+            return;
+        }
+        store.view.showDayPlanTodayButtonDesktop = !(
+            store.view.showDayPlanTodayButtonDesktop ?? true
+        );
+    },
+    'settings/view/toggle-day-plan-today-button-mobile': (store, action) => {
+        if (
+            action.type !== 'settings/view/toggle-day-plan-today-button-mobile'
+        ) {
+            return;
+        }
+        store.view.showDayPlanTodayButtonMobile = !(
+            store.view.showDayPlanTodayButtonMobile ?? true
+        );
+    },
     'settings/view/context-menu-copy-link/set-visibility': (store, action) => {
         if (
             action.type !==
