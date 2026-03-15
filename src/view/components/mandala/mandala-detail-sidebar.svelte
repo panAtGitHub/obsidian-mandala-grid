@@ -296,7 +296,9 @@
                 (($mode === '3x3' && $show3x3SubgridNavButtons) ||
                     ($dayPlanEnabled &&
                         $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection))}
+                        dayPlanTodayNavigation.targetSection &&
+                        activeSection?.split('.')[0] !==
+                            dayPlanTodayNavigation.targetSection))}
                 <div class="mobile-subgrid-floating-controls">
                     {#if $mode === '3x3' && $show3x3SubgridNavButtons}
                         <button
@@ -326,7 +328,9 @@
                     {/if}
                     {#if $dayPlanEnabled &&
                         $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection}
+                        dayPlanTodayNavigation.targetSection &&
+                        activeSection?.split('.')[0] !==
+                            dayPlanTodayNavigation.targetSection}
                         <button
                             class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
                             type="button"
@@ -344,7 +348,9 @@
                 (($mode === '9x9' && $show9x9ParallelNavButtons) ||
                     ($dayPlanEnabled &&
                         $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection))}
+                        dayPlanTodayNavigation.targetSection &&
+                        activeSection?.split('.')[0] !==
+                            dayPlanTodayNavigation.targetSection))}
                 <div class="mobile-subgrid-floating-controls">
                     {#if $mode === '9x9' && $show9x9ParallelNavButtons}
                         <button
@@ -373,7 +379,9 @@
                     {/if}
                     {#if $dayPlanEnabled &&
                         $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection}
+                        dayPlanTodayNavigation.targetSection &&
+                        activeSection?.split('.')[0] !==
+                            dayPlanTodayNavigation.targetSection}
                         <button
                             class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
                             type="button"

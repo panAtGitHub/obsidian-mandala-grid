@@ -310,6 +310,9 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
+    let activeSection: string | null = null;
+    $: activeSection = $activeNodeId ? $idToSection[$activeNodeId] ?? null : null;
+    $: activeCoreSection = activeSection?.split('.')[0] ?? null;
 
     const subgridTheme = derived(
         view.viewStore,
@@ -713,7 +716,9 @@
                                                 {/if}
                                                 {#if $dayPlanEnabled &&
                                                     $showDayPlanTodayButton &&
-                                                    dayPlanTodayTargetSection}
+                                                    dayPlanTodayTargetSection &&
+                                                    activeCoreSection !==
+                                                        dayPlanTodayTargetSection}
                                                     <button
                                                         class="mandala-subgrid-btn mandala-subgrid-btn--today"
                                                         type="button"
