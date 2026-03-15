@@ -292,76 +292,100 @@
             {:else}
                 <div class="no-selection">请选择一个格子进行编辑</div>
             {/if}
-            {#if Platform.isMobile && $mode === '3x3' && $show3x3SubgridNavButtons}
-                <div class="mobile-subgrid-floating-controls">
-                    <button
-                        class="mobile-subgrid-floating-btn"
-                        type="button"
-                        aria-label="退出上一层子九宫格"
-                        disabled={!canExitSubgrid}
-                        on:click={exitSubgridFromFloatingButton}
-                    >
-                        <span
-                            class="mobile-subgrid-floating-btn__icon"
-                            use:applyObsidianIcon={'chevron-up'}
-                        />
-                    </button>
-                    <button
-                        class="mobile-subgrid-floating-btn"
-                        type="button"
-                        aria-label="进入下一层子九宫格"
-                        disabled={!canEnterSubgrid}
-                        on:click={enterSubgridFromFloatingButton}
-                    >
-                        <span
-                            class="mobile-subgrid-floating-btn__icon"
-                            use:applyObsidianIcon={'chevron-down'}
-                        />
-                    </button>
-                </div>
-            {:else if Platform.isMobile && $mode === '9x9' && $show9x9ParallelNavButtons}
-                <div class="mobile-subgrid-floating-controls">
-                    <button
-                        class="mobile-subgrid-floating-btn"
-                        type="button"
-                        aria-label="进入上一层核心九宫格"
-                        disabled={!canJumpPrevCore}
-                        on:click={jumpPrevCoreFromFloatingButton}
-                    >
-                        <span
-                            class="mobile-subgrid-floating-btn__icon"
-                            use:applyObsidianIcon={'chevron-left'}
-                        />
-                    </button>
-                    <button
-                        class="mobile-subgrid-floating-btn"
-                        type="button"
-                        aria-label="进入下一层核心九宫格"
-                        on:click={jumpNextCoreFromFloatingButton}
-                    >
-                        <span
-                            class="mobile-subgrid-floating-btn__icon"
-                            use:applyObsidianIcon={'chevron-right'}
-                        />
-                    </button>
-                </div>
-            {/if}
             {#if Platform.isMobile &&
-                $dayPlanEnabled &&
-                $showDayPlanTodayButton &&
-                dayPlanTodayNavigation.targetSection}
-                <div class="mobile-day-plan-today-controls">
-                    <button
-                        class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
-                        type="button"
-                        aria-label={lang.day_plan_today_button_label}
-                        on:click={focusDayPlanTodayFromFloatingButton}
-                    >
-                        <span
-                            class="mobile-subgrid-floating-btn__icon"
-                            use:applyObsidianIcon={'calendar-days'}
-                        />
-                    </button>
+                (($mode === '3x3' && $show3x3SubgridNavButtons) ||
+                    ($dayPlanEnabled &&
+                        $showDayPlanTodayButton &&
+                        dayPlanTodayNavigation.targetSection))}
+                <div class="mobile-subgrid-floating-controls">
+                    {#if $mode === '3x3' && $show3x3SubgridNavButtons}
+                        <button
+                            class="mobile-subgrid-floating-btn"
+                            type="button"
+                            aria-label="退出上一层子九宫格"
+                            disabled={!canExitSubgrid}
+                            on:click={exitSubgridFromFloatingButton}
+                        >
+                            <span
+                                class="mobile-subgrid-floating-btn__icon"
+                                use:applyObsidianIcon={'chevron-up'}
+                            />
+                        </button>
+                        <button
+                            class="mobile-subgrid-floating-btn"
+                            type="button"
+                            aria-label="进入下一层子九宫格"
+                            disabled={!canEnterSubgrid}
+                            on:click={enterSubgridFromFloatingButton}
+                        >
+                            <span
+                                class="mobile-subgrid-floating-btn__icon"
+                                use:applyObsidianIcon={'chevron-down'}
+                            />
+                        </button>
+                    {/if}
+                    {#if $dayPlanEnabled &&
+                        $showDayPlanTodayButton &&
+                        dayPlanTodayNavigation.targetSection}
+                        <button
+                            class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
+                            type="button"
+                            aria-label={lang.day_plan_today_button_label}
+                            on:click={focusDayPlanTodayFromFloatingButton}
+                        >
+                            <span
+                                class="mobile-subgrid-floating-btn__icon"
+                                use:applyObsidianIcon={'calendar-days'}
+                            />
+                        </button>
+                    {/if}
+                </div>
+            {:else if Platform.isMobile &&
+                (($mode === '9x9' && $show9x9ParallelNavButtons) ||
+                    ($dayPlanEnabled &&
+                        $showDayPlanTodayButton &&
+                        dayPlanTodayNavigation.targetSection))}
+                <div class="mobile-subgrid-floating-controls">
+                    {#if $mode === '9x9' && $show9x9ParallelNavButtons}
+                        <button
+                            class="mobile-subgrid-floating-btn"
+                            type="button"
+                            aria-label="进入上一层核心九宫格"
+                            disabled={!canJumpPrevCore}
+                            on:click={jumpPrevCoreFromFloatingButton}
+                        >
+                            <span
+                                class="mobile-subgrid-floating-btn__icon"
+                                use:applyObsidianIcon={'chevron-left'}
+                            />
+                        </button>
+                        <button
+                            class="mobile-subgrid-floating-btn"
+                            type="button"
+                            aria-label="进入下一层核心九宫格"
+                            on:click={jumpNextCoreFromFloatingButton}
+                        >
+                            <span
+                                class="mobile-subgrid-floating-btn__icon"
+                                use:applyObsidianIcon={'chevron-right'}
+                            />
+                        </button>
+                    {/if}
+                    {#if $dayPlanEnabled &&
+                        $showDayPlanTodayButton &&
+                        dayPlanTodayNavigation.targetSection}
+                        <button
+                            class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
+                            type="button"
+                            aria-label={lang.day_plan_today_button_label}
+                            on:click={focusDayPlanTodayFromFloatingButton}
+                        >
+                            <span
+                                class="mobile-subgrid-floating-btn__icon"
+                                use:applyObsidianIcon={'calendar-days'}
+                            />
+                        </button>
+                    {/if}
                 </div>
             {/if}
         </div>
@@ -472,14 +496,6 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
-        z-index: 12;
-        pointer-events: auto;
-    }
-
-    .mobile-day-plan-today-controls {
-        position: absolute;
-        right: 12px;
-        bottom: 18px;
         z-index: 12;
         pointer-events: auto;
     }
