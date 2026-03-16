@@ -237,18 +237,34 @@
 
 <style>
     .week-plan-shell {
+        position: relative;
         display: flex;
         flex-direction: column;
-        gap: 10px;
         width: 100%;
         height: 100%;
+        padding-top: 4px;
     }
 
     .week-plan-toolbar {
-        display: flex;
+        position: absolute;
+        top: -42px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        padding: 4px 8px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 12px;
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 88%,
+            transparent
+        );
+        box-shadow: 0 8px 18px rgb(0 0 0 / 10%);
+        backdrop-filter: blur(8px);
     }
 
     .week-plan-toolbar__button {
@@ -259,10 +275,11 @@
         background: var(--background-primary);
         color: var(--text-normal);
         border-radius: 8px;
-        padding: 6px 10px;
+        padding: 5px 10px;
     }
 
     .week-plan-grid {
+        flex: 1 1 auto;
         display: grid;
         grid-template-columns: repeat(9, minmax(0, 1fr));
         grid-template-rows: repeat(7, minmax(0, 1fr));
@@ -353,11 +370,13 @@
     }
 
     :global(.is-mobile) .week-plan-toolbar {
-        justify-content: stretch;
+        top: -36px;
+        gap: 6px;
+        padding: 4px 6px;
     }
 
     :global(.is-mobile) .week-plan-toolbar__button {
-        flex: 1 1 0;
         justify-content: center;
+        padding: 5px 8px;
     }
 </style>
