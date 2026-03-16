@@ -52,15 +52,13 @@
     } from 'src/view/helpers/mandala/mobile-navigation';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
     import {
-        mapWeekPlanRows,
         parseDayPlanFrontmatter,
-        posOfSectionWeek7x9,
-        sectionAtCellWeek7x9,
     } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';
     import MandalaWeek7x9 from 'src/view/components/mandala/mandala-week-7x9.svelte';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+    import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -484,27 +482,27 @@
                 setActiveCellWeek7x9(view, null);
             }
         } else {
-            const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
-            const anchorDate =
-                $weekAnchorDate ?? new Date().toISOString().slice(0, 10);
+            const weekContext = resolveWeekPlanContext({
+                frontmatter: $documentState.file.frontmatter,
+                anchorDate: $weekAnchorDate,
+                weekStart: $weekStart,
+            });
+            const anchorDate = weekContext.anchorDate;
             if (!$weekAnchorDate) {
                 view.viewStore.dispatch({
                     type: 'view/mandala/week-anchor-date/set',
                     payload: { date: anchorDate },
                 });
             }
-            const rows = dayPlan
-                ? mapWeekPlanRows(dayPlan.year, anchorDate, $weekStart)
-                : [];
             const section = $idToSection[$activeNodeId];
-            const pos = section ? posOfSectionWeek7x9(section, rows) : null;
+            const pos = weekContext.posForSection(section);
             const cell = view.mandalaActiveCellWeek7x9;
             if (!section) {
                 if (cell) {
                     setActiveCellWeek7x9(view, null);
                 }
             } else if (cell) {
-                const mapped = sectionAtCellWeek7x9(cell.row, cell.col, rows);
+                const mapped = weekContext.sectionForCell(cell.row, cell.col);
                 if (!mapped || mapped !== section) {
                     setActiveCellWeek7x9(view, pos ?? null);
                 }
@@ -1351,13 +1349,6 @@
     /* 3×3：内容超出时在格子内部滚动（避免撑开格子） */
     .mandala-root--3 .mandala-grid :global(.lng-prev),
     .mandala-root--3 :global(.mandala-raw9-preview .lng-prev) {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: 100%;
-        overflow: auto;
-    }
-
-    .mandala-root--week :global(.week-plan-grid .lng-prev) {
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;

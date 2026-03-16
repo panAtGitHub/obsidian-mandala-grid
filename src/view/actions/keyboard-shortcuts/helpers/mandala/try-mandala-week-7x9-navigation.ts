@@ -1,31 +1,16 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
-import {
-    mapWeekPlanRows,
-    parseDayPlanFrontmatter,
-    sectionAtCellWeek7x9,
-} from 'src/lib/mandala/day-plan';
 import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+import {
+    resolveWeekPlanContext,
+    resolveWeekPlanCurrentCell,
+} from 'src/view/helpers/mandala/week-plan-context';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
     down: { dr: 1, dc: 0 },
     left: { dr: 0, dc: -1 },
     right: { dr: 0, dc: 1 },
-};
-
-const findSectionPosition = (
-    section: string | undefined,
-    rows: ReturnType<typeof mapWeekPlanRows>,
-) => {
-    if (!section) return null;
-    const core = section.split('.')[0];
-    const row = rows.findIndex((value) => value.coreSection === core);
-    if (row === -1) return null;
-    const parts = section.split('.');
-    const col = parts.length === 1 ? 0 : Number(parts[1]);
-    if (!Number.isInteger(col) || col < 0 || col > 8) return null;
-    return { row, col };
 };
 
 export const tryMandalaWeek7x9Navigation = (
@@ -36,19 +21,21 @@ export const tryMandalaWeek7x9Navigation = (
     if (view.mandalaMode !== 'week-7x9') return false;
 
     const documentState = view.documentStore.getValue();
-    const dayPlan = parseDayPlanFrontmatter(documentState.file.frontmatter);
-    if (!dayPlan) return false;
+    const weekContext = resolveWeekPlanContext({
+        frontmatter: documentState.file.frontmatter,
+        anchorDate: view.viewStore.getValue().ui.mandala.weekAnchorDate,
+        weekStart: view.plugin.settings.getValue().general.weekStart,
+    });
+    if (!weekContext.dayPlan) return false;
 
-    const anchorDate =
-        view.viewStore.getValue().ui.mandala.weekAnchorDate ??
-        new Date().toISOString().slice(0, 10);
-    const weekStart = view.plugin.settings.getValue().general.weekStart;
-    const rows = mapWeekPlanRows(dayPlan.year, anchorDate, weekStart);
+    const rows = weekContext.rows;
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSection = documentState.sections.id_section[activeNodeId];
-    const current =
-        view.mandalaActiveCellWeek7x9 ??
-        findSectionPosition(activeSection, rows) ?? { row: 0, col: 0 };
+    const current = resolveWeekPlanCurrentCell({
+        activeCell: view.mandalaActiveCellWeek7x9,
+        activeSection,
+        rows,
+    });
 
     if (!view.mandalaActiveCellWeek7x9) {
         setActiveCellWeek7x9(view, current);
@@ -59,7 +46,7 @@ export const tryMandalaWeek7x9Navigation = (
     const nextCol = current.col + dc;
     if (nextRow < 0 || nextCol < 0 || nextRow > 6 || nextCol > 8) return true;
 
-    const nextSection = sectionAtCellWeek7x9(nextRow, nextCol, rows);
+    const nextSection = weekContext.sectionForCell(nextRow, nextCol);
     setActiveCellWeek7x9(view, { row: nextRow, col: nextCol });
     if (!nextSection) return true;
 
