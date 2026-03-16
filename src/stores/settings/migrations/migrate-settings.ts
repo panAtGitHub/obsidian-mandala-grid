@@ -1,4 +1,8 @@
 import { DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH } from 'src/stores/settings/default-settings';
+import {
+    DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
+    DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE,
+} from 'src/stores/settings/default-settings';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import {
     MandalaCustomLayout,
@@ -75,7 +79,8 @@ const normalizeSelectedCustomLayout = (
     selectedLayoutId: string | null,
 ): MandalaCustomLayout | null => {
     if (!selectedLayoutId?.startsWith('custom:')) return null;
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    if (!value || typeof value !== 'object' || Array.isArray(value))
+        return null;
     const raw = value as Record<string, unknown>;
     const id =
         typeof raw.id === 'string' && raw.id.trim().length > 0
@@ -89,7 +94,8 @@ const normalizeSelectedCustomLayout = (
     return {
         id,
         name,
-        pattern: normalizeMandalaCustomLayouts([raw])[0]?.pattern ?? '123405678',
+        pattern:
+            normalizeMandalaCustomLayouts([raw])[0]?.pattern ?? '123405678',
     };
 };
 
@@ -211,6 +217,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         mandalaSectionColorOpacity?: number;
         mandalaFontSize7x9Desktop?: number;
         mandalaFontSize7x9Mobile?: number;
+        mandalaCellPreviewFontSizeDesktop?: number;
+        mandalaCellPreviewFontSizeMobile?: number;
         mandalaGrayBackground?: boolean;
         show3x3SubgridNavButtons?: boolean;
         show9x9ParallelNavButtons?: boolean;
@@ -218,6 +226,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         show3x3SubgridNavButtonsMobile?: boolean;
         show9x9ParallelNavButtonsDesktop?: boolean;
         show9x9ParallelNavButtonsMobile?: boolean;
+        showCellQuickPreviewDialogDesktop?: boolean;
+        showCellQuickPreviewDialogMobile?: boolean;
         leftSidebarActiveTab?: unknown;
     };
     if (typeof viewSettings.showMandalaDetailSidebar === 'boolean') {
@@ -279,7 +289,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                   normalizedViewCustomLayouts,
               );
     viewSettings.mandalaGridSelectedLayoutId = selectedLayoutId;
-    viewSettings.mandalaGridOrientation = layoutIdToOrientation(selectedLayoutId);
+    viewSettings.mandalaGridOrientation =
+        layoutIdToOrientation(selectedLayoutId);
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
     }
@@ -329,6 +340,20 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (typeof viewSettings.mandalaFontSize7x9Mobile !== 'number') {
         viewSettings.mandalaFontSize7x9Mobile = 10;
     }
+    if (typeof viewSettings.mandalaCellPreviewFontSizeDesktop !== 'number') {
+        viewSettings.mandalaCellPreviewFontSizeDesktop =
+            DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP;
+    }
+    if (typeof viewSettings.mandalaCellPreviewFontSizeMobile !== 'number') {
+        viewSettings.mandalaCellPreviewFontSizeMobile =
+            DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE;
+    }
+    if (typeof viewSettings.showCellQuickPreviewDialogDesktop !== 'boolean') {
+        viewSettings.showCellQuickPreviewDialogDesktop = true;
+    }
+    if (typeof viewSettings.showCellQuickPreviewDialogMobile !== 'boolean') {
+        viewSettings.showCellQuickPreviewDialogMobile = false;
+    }
 
     // Legacy compatibility: split old shared toggle flags into desktop/mobile.
     if (typeof viewSettings.show3x3SubgridNavButtons === 'boolean') {
@@ -374,9 +399,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         delete legacyViewSettings[key];
     }
 
-    const customHotkeys = (
-        settings as Settings
-    ).hotkeys.customHotkeys as Record<string, unknown>;
+    const customHotkeys = (settings as Settings).hotkeys
+        .customHotkeys as Record<string, unknown>;
     delete customHotkeys.undo_change;
     delete customHotkeys.redo_change;
 };

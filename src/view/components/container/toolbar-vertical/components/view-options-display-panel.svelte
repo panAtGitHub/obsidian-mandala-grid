@@ -9,6 +9,7 @@
     export let show9x9ParallelNavButtons = true;
     export let dayPlanEnabled = false;
     export let showDayPlanTodayButton = true;
+    export let showCellQuickPreviewDialog = true;
     export let showCopyBlockPlain = true;
     export let showCopyBlockEmbed = true;
     export let showCopyHeadingPlain = true;
@@ -21,6 +22,7 @@
     export let toggle3x3SubgridNavButtons: () => void;
     export let toggle9x9ParallelNavButtons: () => void;
     export let toggleDayPlanTodayButton: () => void;
+    export let toggleCellQuickPreviewDialog: () => void;
     export let toggleCopyBlockPlain: () => void;
     export let toggleCopyBlockEmbed: () => void;
     export let toggleCopyHeadingPlain: () => void;
@@ -121,6 +123,24 @@
                             >{show9x9ParallelNavButtons
                                 ? '显示中'
                                 : '已隐藏'}</span
+                        >
+                    </label>
+                </div>
+            </div>
+
+            <div class="view-options-menu__row">
+                <span>空格快速预览浮层</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCellQuickPreviewDialog}
+                            on:change={toggleCellQuickPreviewDialog}
+                        />
+                        <span
+                            >{showCellQuickPreviewDialog
+                                ? '已开启'
+                                : '已关闭'}</span
                         >
                     </label>
                 </div>

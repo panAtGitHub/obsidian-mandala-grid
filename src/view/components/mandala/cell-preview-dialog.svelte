@@ -2,6 +2,11 @@
     import { Platform } from 'obsidian';
     import { tick } from 'svelte';
     import { derived } from 'src/lib/store/derived';
+    import {
+        MandalaCellPreviewFontSizeDesktopStore,
+        MandalaCellPreviewFontSizeMobileStore,
+        ShowCellQuickPreviewDialogStore,
+    } from 'src/stores/settings/derived/view-settings-store';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
     import { getView } from 'src/view/components/container/context';
@@ -18,6 +23,10 @@
         view.viewStore,
         (state) => state.ui.previewDialog,
     );
+    const cellQuickPreviewEnabled = ShowCellQuickPreviewDialogStore(view);
+    const cellPreviewFontSize = Platform.isMobile
+        ? MandalaCellPreviewFontSizeMobileStore(view)
+        : MandalaCellPreviewFontSizeDesktopStore(view);
     const viewState = derived(view.viewStore, (state) => state);
     const editingState = derived(
         view.viewStore,
@@ -52,6 +61,7 @@
         : null;
     $: if (
         $previewDialog.open &&
+        $cellQuickPreviewEnabled &&
         !$editingState.activeNodeId &&
         resolvedReadonlyNodeId &&
         resolvedReadonlyNodeId !== $previewDialog.nodeId
@@ -60,7 +70,18 @@
     }
     $: previewNodeId = resolvedReadonlyNodeId ?? $previewDialog.nodeId;
     $: sectionLabel = previewNodeId ? $idToSection[previewNodeId] ?? '' : '';
-    $: isOpen = !Platform.isMobile && $previewDialog.open && !!previewNodeId;
+    $: if (
+        !$cellQuickPreviewEnabled &&
+        $previewDialog.open &&
+        !$editingState.activeNodeId
+    ) {
+        closeCellPreviewDialog(view);
+    }
+    $: isOpen =
+        !Platform.isMobile &&
+        $cellQuickPreviewEnabled &&
+        $previewDialog.open &&
+        !!previewNodeId;
     $: isEditingPreview =
         isOpen &&
         $editingState.activeNodeId === previewNodeId &&
@@ -148,17 +169,20 @@
                     data-cell-preview-dialog={isEditingPreview
                         ? 'editing'
                         : 'readonly'}
+                    style={`--cell-preview-font-size: ${$cellPreviewFontSize}px;`}
                     tabindex="0"
                     on:keydown={handleReadonlyKeydown}
                 >
                     {#if isEditingPreview}
                         <InlineEditor
                             nodeId={previewNodeId}
+                            absoluteFontSize={$cellPreviewFontSize}
                             disableAutoResize={true}
                         />
                     {:else}
                         <div
                             class="cell-preview-dialog__preview markdown-preview-view markdown-rendered"
+                            style={`font-size: ${$cellPreviewFontSize}px;`}
                             use:markdownPreviewAction={previewNodeId}
                         />
                     {/if}
@@ -243,6 +267,7 @@
         min-height: min(340px, 40vh);
         max-height: min(60vh, 700px);
         overflow: auto;
+        scrollbar-gutter: stable both-edges;
         border-radius: 14px;
         border: 1px solid var(--background-modifier-border);
         background: color-mix(
@@ -250,7 +275,7 @@
             var(--background-secondary) 92%,
             transparent
         );
-        padding: 20px 22px;
+        padding: 18px 0;
         outline: none;
     }
 
@@ -261,6 +286,11 @@
 
     .cell-preview-dialog__preview {
         min-height: 100%;
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0 22px;
+        font-size: var(--cell-preview-font-size);
+        line-height: 1.6;
     }
 
     .cell-preview-dialog__preview :global(:first-child) {
@@ -275,6 +305,9 @@
         min-height: min(340px, 40vh);
         height: min(60vh, 700px);
         overflow: auto;
+        box-sizing: border-box;
+        padding: 18px 22px;
+        scrollbar-gutter: stable both-edges;
     }
 
     .cell-preview-dialog__body.is-editing :global(.cm-editor),

@@ -11,9 +11,11 @@ describe('cell-preview-dialog', () => {
     const createView = ({
         open = false,
         activeNode = 'node-1',
+        quickPreviewEnabled = true,
     }: {
         open?: boolean;
         activeNode?: string;
+        quickPreviewEnabled?: boolean;
     }) => {
         const dispatch = vi.fn();
         return {
@@ -63,6 +65,9 @@ describe('cell-preview-dialog', () => {
                         },
                         view: {
                             mandalaGridCustomLayouts: [],
+                            showCellQuickPreviewDialogDesktop:
+                                quickPreviewEnabled,
+                            showCellQuickPreviewDialogMobile: false,
                         },
                     }),
                 },
@@ -95,6 +100,13 @@ describe('cell-preview-dialog', () => {
 
     it('does nothing when no node can be resolved', () => {
         const view = createView({ activeNode: '' });
+
+        expect(toggleCellPreviewDialog(view as never)).toBe(false);
+        expect(view.viewStore.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when the feature is disabled in settings', () => {
+        const view = createView({ quickPreviewEnabled: false });
 
         expect(toggleCellPreviewDialog(view as never)).toBe(false);
         expect(view.viewStore.dispatch).not.toHaveBeenCalled();

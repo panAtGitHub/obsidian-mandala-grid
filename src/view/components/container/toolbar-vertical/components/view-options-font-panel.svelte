@@ -8,8 +8,10 @@
     export let fontSize9x9 = 11;
     export let fontSize7x9 = 11;
     export let fontSizeSidebar = 16;
+    export let fontSizeCellPreview = 22;
     export let headingsFontSizeEm = 1.8;
     export let weekPlanEnabled = true;
+    export let showCellQuickPreviewDialog = true;
 
     export let toggle: () => void;
     export let stepFontSize3x3: (current: number, delta: number) => void;
@@ -28,6 +30,13 @@
     export let updateFontSizeSidebar: (event: Event) => void;
     export let resetFontSizeSidebar: () => void;
 
+    export let stepFontSizeCellPreview: (
+        current: number,
+        delta: number,
+    ) => void;
+    export let updateFontSizeCellPreview: (event: Event) => void;
+    export let resetFontSizeCellPreview: () => void;
+
     export let stepHeadingsFontSize: (current: number, delta: number) => void;
     export let updateHeadingsFontSize: (event: Event) => void;
     export let resetHeadingsFontSize: () => void;
@@ -42,7 +51,9 @@
             字体设置（{isMobile ? '手机端' : 'PC端'}）
         </div>
         <div class="view-options-menu__desc">
-            对 3x3 视图、9x9 视图、周计划视图、侧边栏字体进行调整
+            对 3x3 视图、9x9 视图、周计划视图、侧边栏
+            {showCellQuickPreviewDialog ? '、快速预览浮层' : ''}
+            字体进行调整
         </div>
     </div>
 </button>
@@ -212,7 +223,8 @@
                     <button
                         class="view-options-menu__range-step"
                         type="button"
-                        on:click={() => stepFontSizeSidebar(fontSizeSidebar, -1)}
+                        on:click={() =>
+                            stepFontSizeSidebar(fontSizeSidebar, -1)}
                     >
                         -
                     </button>
@@ -255,6 +267,63 @@
                     </button>
                 </div>
             </div>
+
+            {#if showCellQuickPreviewDialog}
+                <div class="view-options-menu__row">
+                    <span>快速预览浮层：</span>
+                    <div class="view-options-menu__range">
+                        <button
+                            class="view-options-menu__range-step"
+                            type="button"
+                            on:click={() =>
+                                stepFontSizeCellPreview(
+                                    fontSizeCellPreview,
+                                    -1,
+                                )}
+                        >
+                            -
+                        </button>
+                        <input
+                            type="range"
+                            min="6"
+                            max="36"
+                            step="1"
+                            value={fontSizeCellPreview}
+                            on:input={updateFontSizeCellPreview}
+                        />
+                        <button
+                            class="view-options-menu__range-step"
+                            type="button"
+                            on:click={() =>
+                                stepFontSizeCellPreview(fontSizeCellPreview, 1)}
+                        >
+                            +
+                        </button>
+                        {#if isMobile}
+                            <span class="view-options-menu__value-readout">
+                                {fontSizeCellPreview}
+                            </span>
+                        {:else}
+                            <input
+                                type="number"
+                                min="6"
+                                max="36"
+                                step="1"
+                                value={fontSizeCellPreview}
+                                on:change={updateFontSizeCellPreview}
+                            />
+                        {/if}
+                        <button
+                            class="view-options-menu__reset"
+                            type="button"
+                            on:click={resetFontSizeCellPreview}
+                            aria-label="重置为默认"
+                        >
+                            <RotateCcw size={14} />
+                        </button>
+                    </div>
+                </div>
+            {/if}
         </div>
 
         <div class="view-options-menu__subsection">
@@ -267,7 +336,8 @@
                     <button
                         class="view-options-menu__range-step"
                         type="button"
-                        on:click={() => stepHeadingsFontSize(headingsFontSizeEm, -0.1)}
+                        on:click={() =>
+                            stepHeadingsFontSize(headingsFontSizeEm, -0.1)}
                     >
                         -
                     </button>
@@ -282,7 +352,8 @@
                     <button
                         class="view-options-menu__range-step"
                         type="button"
-                        on:click={() => stepHeadingsFontSize(headingsFontSizeEm, 0.1)}
+                        on:click={() =>
+                            stepHeadingsFontSize(headingsFontSizeEm, 0.1)}
                     >
                         +
                     </button>

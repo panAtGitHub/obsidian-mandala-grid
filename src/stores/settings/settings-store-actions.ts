@@ -91,6 +91,14 @@ export type SettingsActions =
           payload: { fontSize: number };
       }
     | {
+          type: 'settings/view/font-size/set-cell-preview-desktop';
+          payload: { fontSize: number };
+      }
+    | {
+          type: 'settings/view/font-size/set-cell-preview-mobile';
+          payload: { fontSize: number };
+      }
+    | {
           type: 'settings/view/theme/set-container-bg-color';
           payload: {
               backgroundColor: string | undefined;
@@ -188,6 +196,12 @@ export type SettingsActions =
       }
     | {
           type: 'settings/view/toggle-day-plan-today-button-mobile';
+      }
+    | {
+          type: 'settings/view/toggle-cell-quick-preview-dialog-desktop';
+      }
+    | {
+          type: 'settings/view/toggle-cell-quick-preview-dialog-mobile';
       }
     | {
           type: 'settings/view/context-menu-copy-link/set-visibility';

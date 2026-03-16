@@ -231,6 +231,16 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             return;
         store.view.mandalaFontSizeSidebarMobile = action.payload.fontSize;
     },
+    'settings/view/font-size/set-cell-preview-desktop': (store, action) => {
+        if (action.type !== 'settings/view/font-size/set-cell-preview-desktop')
+            return;
+        store.view.mandalaCellPreviewFontSizeDesktop = action.payload.fontSize;
+    },
+    'settings/view/font-size/set-cell-preview-mobile': (store, action) => {
+        if (action.type !== 'settings/view/font-size/set-cell-preview-mobile')
+            return;
+        store.view.mandalaCellPreviewFontSizeMobile = action.payload.fontSize;
+    },
     'settings/view/theme/set-container-bg-color': (store, action) => {
         if (action.type !== 'settings/view/theme/set-container-bg-color')
             return;
@@ -498,8 +508,7 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     },
     'settings/view/toggle-day-plan-today-button-desktop': (store, action) => {
         if (
-            action.type !==
-            'settings/view/toggle-day-plan-today-button-desktop'
+            action.type !== 'settings/view/toggle-day-plan-today-button-desktop'
         ) {
             return;
         }
@@ -515,6 +524,34 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         }
         store.view.showDayPlanTodayButtonMobile = !(
             store.view.showDayPlanTodayButtonMobile ?? true
+        );
+    },
+    'settings/view/toggle-cell-quick-preview-dialog-desktop': (
+        store,
+        action,
+    ) => {
+        if (
+            action.type !==
+            'settings/view/toggle-cell-quick-preview-dialog-desktop'
+        ) {
+            return;
+        }
+        store.view.showCellQuickPreviewDialogDesktop = !(
+            store.view.showCellQuickPreviewDialogDesktop ?? true
+        );
+    },
+    'settings/view/toggle-cell-quick-preview-dialog-mobile': (
+        store,
+        action,
+    ) => {
+        if (
+            action.type !==
+            'settings/view/toggle-cell-quick-preview-dialog-mobile'
+        ) {
+            return;
+        }
+        store.view.showCellQuickPreviewDialogMobile = !(
+            store.view.showCellQuickPreviewDialogMobile ?? false
         );
     },
     'settings/view/context-menu-copy-link/set-visibility': (store, action) => {
@@ -706,7 +743,9 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         store.general.weekStart = action.payload.weekStart;
     },
     'settings/general/set-day-plan-date-heading-format': (store, action) => {
-        if (action.type !== 'settings/general/set-day-plan-date-heading-format') {
+        if (
+            action.type !== 'settings/general/set-day-plan-date-heading-format'
+        ) {
             return;
         }
         store.general.dayPlanDateHeadingFormat = action.payload.format;
@@ -721,14 +760,16 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         ) {
             return;
         }
-        store.general.dayPlanDateHeadingCustomTemplate = action.payload.template;
+        store.general.dayPlanDateHeadingCustomTemplate =
+            action.payload.template;
     },
     'settings/general/set-day-plan-date-heading-apply-mode': (
         store,
         action,
     ) => {
         if (
-            action.type !== 'settings/general/set-day-plan-date-heading-apply-mode'
+            action.type !==
+            'settings/general/set-day-plan-date-heading-apply-mode'
         ) {
             return;
         }

@@ -2,8 +2,17 @@ import { Platform } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
 import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
 
+const isCellQuickPreviewEnabled = (view: MandalaView) =>
+    Platform.isMobile
+        ? !!view.plugin.settings.getValue().view
+              .showCellQuickPreviewDialogMobile
+        : !!view.plugin.settings.getValue().view
+              .showCellQuickPreviewDialogDesktop;
+
 export const openCellPreviewDialog = (view: MandalaView, nodeId: string) => {
-    if (!nodeId || Platform.isMobile) return false;
+    if (!nodeId || Platform.isMobile || !isCellQuickPreviewEnabled(view)) {
+        return false;
+    }
     view.viewStore.dispatch({
         type: 'view/preview-dialog/open',
         payload: { nodeId },
@@ -19,7 +28,7 @@ export const closeCellPreviewDialog = (view: MandalaView) => {
 };
 
 export const toggleCellPreviewDialog = (view: MandalaView) => {
-    if (Platform.isMobile) return false;
+    if (Platform.isMobile || !isCellQuickPreviewEnabled(view)) return false;
 
     const viewState = view.viewStore.getValue();
     if (viewState.ui.previewDialog.open) {

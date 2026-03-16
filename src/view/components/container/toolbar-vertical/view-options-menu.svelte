@@ -29,10 +29,13 @@
         MandalaFontSize7x9MobileStore,
         MandalaFontSize9x9DesktopStore,
         MandalaFontSize9x9MobileStore,
+        MandalaCellPreviewFontSizeDesktopStore,
+        MandalaCellPreviewFontSizeMobileStore,
         MandalaFontSizeSidebarDesktopStore,
         MandalaFontSizeSidebarMobileStore,
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
+        ShowCellQuickPreviewDialogStore,
         ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
         ShowDayPlanTodayButtonStore,
@@ -48,6 +51,8 @@
         DEFAULT_CARDS_GAP,
         DEFAULT_INACTIVE_NODE_OPACITY,
         DEFAULT_H1_FONT_SIZE_EM,
+        DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
+        DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE,
         DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
         DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
     } from 'src/stores/settings/default-settings';
@@ -143,6 +148,10 @@
     const fontSizeSidebar = isMobile
         ? MandalaFontSizeSidebarMobileStore(view)
         : MandalaFontSizeSidebarDesktopStore(view);
+    const fontSizeCellPreview = isMobile
+        ? MandalaCellPreviewFontSizeMobileStore(view)
+        : MandalaCellPreviewFontSizeDesktopStore(view);
+    const showCellQuickPreviewDialog = ShowCellQuickPreviewDialogStore(view);
     const headingsFontSizeEm = derived(
         view.plugin.settings,
         (state) => state.view.h1FontSize_em,
@@ -223,6 +232,14 @@
             type: isMobile
                 ? 'settings/view/toggle-day-plan-today-button-mobile'
                 : 'settings/view/toggle-day-plan-today-button-desktop',
+        });
+    };
+
+    const toggleCellQuickPreviewDialog = () => {
+        view.plugin.settings.dispatch({
+            type: isMobile
+                ? 'settings/view/toggle-cell-quick-preview-dialog-mobile'
+                : 'settings/view/toggle-cell-quick-preview-dialog-desktop',
         });
     };
 
@@ -419,11 +436,15 @@
         desktopType:
             | 'settings/view/font-size/set-3x3-desktop'
             | 'settings/view/font-size/set-9x9-desktop'
-            | 'settings/view/font-size/set-sidebar-desktop',
+            | 'settings/view/font-size/set-7x9-desktop'
+            | 'settings/view/font-size/set-sidebar-desktop'
+            | 'settings/view/font-size/set-cell-preview-desktop',
         mobileType:
             | 'settings/view/font-size/set-3x3-mobile'
             | 'settings/view/font-size/set-9x9-mobile'
-            | 'settings/view/font-size/set-sidebar-mobile',
+            | 'settings/view/font-size/set-7x9-mobile'
+            | 'settings/view/font-size/set-sidebar-mobile'
+            | 'settings/view/font-size/set-cell-preview-mobile',
     ) => {
         return (value: number) => {
             view.plugin.settings.dispatch({
@@ -451,6 +472,11 @@
     const updateFontSizeSidebarValue = createPlatformFontSizeUpdater(
         'settings/view/font-size/set-sidebar-desktop',
         'settings/view/font-size/set-sidebar-mobile',
+    );
+
+    const updateFontSizeCellPreviewValue = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-cell-preview-desktop',
+        'settings/view/font-size/set-cell-preview-mobile',
     );
 
     const updateHeadingsFontSizeValue = (value: number) => {
@@ -570,6 +596,9 @@
     const updateFontSizeSidebar = createNumericInputHandler(
         updateFontSizeSidebarValue,
     );
+    const updateFontSizeCellPreview = createNumericInputHandler(
+        updateFontSizeCellPreviewValue,
+    );
     const updateHeadingsFontSize = createNumericInputHandler(
         updateHeadingsFontSizeValue,
         parseFiniteFloat,
@@ -599,6 +628,9 @@
     const stepFontSize9x9 = createStepHandler(updateFontSize9x9Value);
     const stepFontSize7x9 = createStepHandler(updateFontSize7x9Value);
     const stepFontSizeSidebar = createStepHandler(updateFontSizeSidebarValue);
+    const stepFontSizeCellPreview = createStepHandler(
+        updateFontSizeCellPreviewValue,
+    );
     const stepHeadingsFontSize = createStepHandler(
         updateHeadingsFontSizeValue,
         1,
@@ -694,6 +726,14 @@
 
     const resetFontSizeSidebar = () => {
         updateFontSizeSidebarValue(16);
+    };
+
+    const resetFontSizeCellPreview = () => {
+        updateFontSizeCellPreviewValue(
+            isMobile
+                ? DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE
+                : DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
+        );
     };
 
     const resetHeadingsFontSize = () => {
@@ -1297,8 +1337,7 @@
             applyCssVariables(layer, cssVars);
             applyInlineStyles(layer, {
                 ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${$borderOpacity}%`,
-                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]:
-                    `${$gridHighlightWidth}px`,
+                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]: `${$gridHighlightWidth}px`,
             });
             if ($gridHighlightColorStore?.trim().length) {
                 applyInlineStyles(layer, {
@@ -2152,6 +2191,7 @@
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
                 dayPlanEnabled={$dayPlanEnabled}
                 showDayPlanTodayButton={$showDayPlanTodayButton}
+                showCellQuickPreviewDialog={$showCellQuickPreviewDialog}
                 showCopyBlockPlain={$contextMenuCopyLinkVisibility[
                     'block-plain'
                 ]}
@@ -2173,6 +2213,7 @@
                 {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
                 {toggleDayPlanTodayButton}
+                {toggleCellQuickPreviewDialog}
                 {toggleCopyBlockPlain}
                 {toggleCopyBlockEmbed}
                 {toggleCopyHeadingPlain}
@@ -2188,7 +2229,9 @@
                 fontSize9x9={$fontSize9x9}
                 fontSize7x9={$fontSize7x9}
                 fontSizeSidebar={$fontSizeSidebar}
+                fontSizeCellPreview={$fontSizeCellPreview}
                 weekPlanEnabled={$weekPlanEnabled}
+                showCellQuickPreviewDialog={$showCellQuickPreviewDialog}
                 headingsFontSizeEm={$headingsFontSizeEm}
                 toggle={() => (showFontOptions = !showFontOptions)}
                 {stepFontSize3x3}
@@ -2203,6 +2246,9 @@
                 {stepFontSizeSidebar}
                 {updateFontSizeSidebar}
                 {resetFontSizeSidebar}
+                {stepFontSizeCellPreview}
+                {updateFontSizeCellPreview}
+                {resetFontSizeCellPreview}
                 {stepHeadingsFontSize}
                 {updateHeadingsFontSize}
                 {resetHeadingsFontSize}

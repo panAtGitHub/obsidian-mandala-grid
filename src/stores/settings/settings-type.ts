@@ -104,6 +104,8 @@ export type Settings = {
         mandalaFontSize7x9Mobile: number;
         mandalaFontSizeSidebarDesktop: number;
         mandalaFontSizeSidebarMobile: number;
+        mandalaCellPreviewFontSizeDesktop: number;
+        mandalaCellPreviewFontSizeMobile: number;
         theme: Theme;
         cardWidth: number;
         cardsGap: number;
@@ -140,6 +142,8 @@ export type Settings = {
         show9x9ParallelNavButtonsMobile: boolean;
         showDayPlanTodayButtonDesktop: boolean;
         showDayPlanTodayButtonMobile: boolean;
+        showCellQuickPreviewDialogDesktop: boolean;
+        showCellQuickPreviewDialogMobile: boolean;
         contextMenuCopyLinkVisibilityDesktop: ContextMenuCopyLinkVisibility;
         contextMenuCopyLinkVisibilityMobile: ContextMenuCopyLinkVisibility;
         mobileEditFontSizeOffset: number;
