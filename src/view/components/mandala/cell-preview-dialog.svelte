@@ -132,11 +132,15 @@
                 on:click|stopPropagation
             >
                 <div class="cell-preview-dialog__header">
-                    <div class="cell-preview-dialog__eyebrow">
-                        Quick Preview
+                    <div class="cell-preview-dialog__header-copy">
+                        <div class="cell-preview-dialog__eyebrow">
+                            Quick Preview
+                        </div>
                     </div>
-                    <div class="cell-preview-dialog__title">
-                        {sectionLabel || '未命名格子'}
+                    <div class="cell-preview-dialog__title-slot">
+                        <div class="cell-preview-dialog__title">
+                            {sectionLabel || '未命名格子'}
+                        </div>
                     </div>
                 </div>
                 <div
@@ -208,7 +212,20 @@
     .cell-preview-dialog__header {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
+    }
+
+    .cell-preview-dialog__header-copy {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .cell-preview-dialog__title-slot {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        min-height: 1.2em;
     }
 
     .cell-preview-dialog__eyebrow {
@@ -219,10 +236,11 @@
     }
 
     .cell-preview-dialog__title {
-        font-size: 21px;
+        font-size: 18px;
         font-weight: 700;
         color: var(--text-normal);
         line-height: 1.2;
+        text-align: right;
     }
 
     .cell-preview-dialog__body {
