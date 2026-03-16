@@ -326,10 +326,12 @@
     }
 
     .week-plan-cell--desktop-card :global(.lng-prev) {
-        padding: 4px 4px 6px 8px;
+        padding: 2px 2px 3px 4px;
         overflow-x: hidden;
         overflow-y: auto;
         scrollbar-gutter: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
 
     .week-plan-cell--desktop-card :global(.lng-prev > *) {
@@ -337,12 +339,16 @@
         overflow: visible !important;
     }
 
+    .week-plan-cell--desktop-card :global(.lng-prev::-webkit-scrollbar) {
+        display: none;
+    }
+
     .week-plan-cell--desktop-card :global(.mandala-card-meta) {
-        top: 4px;
-        right: 6px;
+        top: 2px;
+        right: 3px;
         gap: 2px;
-        font-size: 10px;
-        opacity: 0.6;
+        font-size: 9px;
+        opacity: 0.5;
     }
 
     .week-plan-cell--desktop-card :global(.mandala-card-meta__pin svg) {
@@ -351,18 +357,13 @@
     }
 
     .week-plan-cell--desktop-card :global(.mandala-idle-scrollbar) {
-        scrollbar-width: thin;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
 
     .week-plan-cell--desktop-card
         :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
-        width: 2px;
-        height: 2px;
-    }
-
-    .week-plan-cell--desktop-card :global(.lng-prev::-webkit-scrollbar) {
-        width: 2px;
-        height: 2px;
+        display: none;
     }
 
     .week-plan-cell--desktop-card :global(.editor-container) {
@@ -378,12 +379,14 @@
         overflow-x: hidden !important;
         overflow-y: auto !important;
         scrollbar-gutter: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 2px 2px 3px 4px !important;
     }
 
     .week-plan-cell--desktop-card
         :global(.cm-editor .cm-scroller::-webkit-scrollbar) {
-        width: 2px;
-        height: 2px;
+        display: none;
     }
 
     .week-plan-cell--mobile.is-center-column {
