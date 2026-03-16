@@ -58,6 +58,7 @@ describe('settingsReducer custom grid layouts', () => {
                 selectedLayoutId: 'builtin:south-start',
                 lastActiveSection: '2',
                 subgridTheme: '2',
+                nx9RowsPerPage: 4,
                 showDetailSidebarDesktop: true,
                 showDetailSidebarMobile: null,
             },
@@ -70,6 +71,7 @@ describe('settingsReducer custom grid layouts', () => {
                 selectedLayoutId: 'builtin:left-to-right',
                 lastActiveSection: '3',
                 subgridTheme: '3',
+                nx9RowsPerPage: 5,
                 showDetailSidebarDesktop: false,
                 showDetailSidebarMobile: null,
             },
@@ -81,6 +83,7 @@ describe('settingsReducer custom grid layouts', () => {
             gridOrientation: 'south-start',
             lastActiveSection: '2',
             subgridTheme: '2',
+            nx9RowsPerPage: 4,
             showDetailSidebarDesktop: true,
             showDetailSidebarMobile: null,
         });
@@ -90,6 +93,7 @@ describe('settingsReducer custom grid layouts', () => {
             gridOrientation: 'left-to-right',
             lastActiveSection: '3',
             subgridTheme: '3',
+            nx9RowsPerPage: 5,
             showDetailSidebarDesktop: false,
             showDetailSidebarMobile: null,
         });
@@ -111,6 +115,7 @@ describe('settingsReducer custom grid layouts', () => {
                 },
                 lastActiveSection: '2',
                 subgridTheme: '2',
+                nx9RowsPerPage: 6,
                 showDetailSidebarDesktop: true,
                 showDetailSidebarMobile: null,
             },
@@ -123,6 +128,7 @@ describe('settingsReducer custom grid layouts', () => {
                 name: 'A',
                 pattern: '123405678',
             },
+            nx9RowsPerPage: 6,
         });
     });
 
@@ -169,7 +175,7 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.general.dayPlanDateHeadingApplyMode).toBe('immediate');
     });
 
-    test('cycles mandala modes through 3x3, 9x9 and week-7x9', () => {
+    test('cycles mandala modes through 3x3, 9x9 and nx9', () => {
         const settings = DEFAULT_SETTINGS();
 
         settingsReducer(settings, {
@@ -180,7 +186,7 @@ describe('settingsReducer custom grid layouts', () => {
         settingsReducer(settings, {
             type: 'settings/view/mandala/toggle-mode',
         });
-        expect(settings.view.mandalaMode).toBe('week-7x9');
+        expect(settings.view.mandalaMode).toBe('nx9');
 
         settingsReducer(settings, {
             type: 'settings/view/mandala/toggle-mode',
@@ -188,7 +194,7 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.view.mandalaMode).toBe('3x3');
     });
 
-    test('skips week mode when week plan is disabled', () => {
+    test('cycles mandala modes independently of week plan setting', () => {
         const settings = DEFAULT_SETTINGS();
         settings.general.weekPlanEnabled = false;
 
@@ -196,6 +202,11 @@ describe('settingsReducer custom grid layouts', () => {
             type: 'settings/view/mandala/toggle-mode',
         });
         expect(settings.view.mandalaMode).toBe('9x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('nx9');
 
         settingsReducer(settings, {
             type: 'settings/view/mandala/toggle-mode',

@@ -5,6 +5,7 @@ import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
 import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+import { resolveNx9Context } from 'src/view/helpers/mandala/nx9-context';
 import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 import { toggleCellPreviewDialog } from 'src/view/helpers/mandala/cell-preview-dialog';
 
@@ -95,6 +96,33 @@ export const editCommands = () => {
                     if (!Platform.isMobile && !showDetailSidebar) {
                         view.toggleCurrentMandalaDetailSidebar();
                         showDetailSidebar = true;
+                    }
+                } else if (
+                    view.mandalaMode === 'nx9' &&
+                    view.mandalaActiveCellNx9
+                ) {
+                    const context = resolveNx9Context({
+                        sectionIdMap:
+                            view.documentStore.getValue().sections.section_id,
+                        rowsPerPage: view.getCurrentNx9RowsPerPage(),
+                        activeSection:
+                            view.documentStore.getValue().sections.id_section[
+                                nodeId
+                            ] ?? null,
+                    });
+                    const section = context.sectionForCell(
+                        view.mandalaActiveCellNx9.row,
+                        view.mandalaActiveCellNx9.col,
+                    );
+                    if (section) {
+                        const existing =
+                            view.documentStore.getValue().sections.section_id[
+                                section
+                            ];
+                        nodeId =
+                            existing ??
+                            ensureNodeForSection(view, section) ??
+                            nodeId;
                     }
                 } else if (
                     view.mandalaMode === 'week-7x9' &&

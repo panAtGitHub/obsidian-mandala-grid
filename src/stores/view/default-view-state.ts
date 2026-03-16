@@ -21,6 +21,7 @@ export const defaultViewState = (): ViewState => ({
         mandala: {
             subgridTheme: '1',
             activeCell9x9: null,
+            activeCellNx9: null,
             activeCellWeek7x9: null,
             weekAnchorDate: null,
             swap: {

@@ -48,8 +48,10 @@
               activeNodeSection:
                   $idToSection[$viewState.document.activeNode] ?? null,
               activeCell9x9: $viewState.ui.mandala.activeCell9x9,
+              activeCellNx9: $viewState.ui.mandala.activeCellNx9,
               activeCellWeek7x9: $viewState.ui.mandala.activeCellWeek7x9,
               sectionIdMap: view.documentStore.getValue().sections.section_id,
+              nx9RowsPerPage: view.getCurrentNx9RowsPerPage(),
               selectedLayoutId: view.getCurrentMandalaLayoutId(),
               customLayouts:
                   view.plugin.settings.getValue().view

@@ -15,6 +15,7 @@
         MandalaBackgroundModeStore,
         MandalaGridCustomLayoutsStore,
         MandalaGridSelectedLayoutIdStore,
+        Nx9RowsPerPageStore,
         MandalaSectionColorOpacityStore,
         Show3x3SubgridNavButtonsStore,
         ShowDayPlanTodayButtonStore,
@@ -51,12 +52,16 @@
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
-    import {
-        parseDayPlanFrontmatter,
-    } from 'src/lib/mandala/day-plan';
+    import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';
+    import MandalaNx9 from 'src/view/components/mandala/mandala-nx9.svelte';
     import MandalaWeek7x9 from 'src/view/components/mandala/mandala-week-7x9.svelte';
+    import {
+        normalizeNx9VisibleSection,
+        resolveNx9Context,
+    } from 'src/view/helpers/mandala/nx9-context';
+    import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 
@@ -79,6 +84,7 @@
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
     const dayPlanEnabled = DayPlanEnabledStore(view);
+    const nx9RowsPerPage = Nx9RowsPerPageStore(view);
     const weekStart = WeekStartStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -318,7 +324,9 @@
         (state) => state.document.activeNode,
     );
     let activeSection: string | null = null;
-    $: activeSection = $activeNodeId ? $idToSection[$activeNodeId] ?? null : null;
+    $: activeSection = $activeNodeId
+        ? $idToSection[$activeNodeId] ?? null
+        : null;
     $: activeCoreSection = activeSection?.split('.')[0] ?? null;
 
     const subgridTheme = derived(
@@ -427,7 +435,27 @@
         ) {
             view.plugin.settings.dispatch({
                 type: 'settings/view/mandala/set-mode',
-                payload: { mode: '3x3' },
+                payload: {
+                    mode: view.canUseNx9Mode($documentState.file.frontmatter)
+                        ? 'nx9'
+                        : '3x3',
+                },
+            });
+        }
+
+        if (
+            $mode === 'nx9' &&
+            !view.canUseNx9Mode($documentState.file.frontmatter)
+        ) {
+            view.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-mode',
+                payload: {
+                    mode: view.canUseWeekPlanMode(
+                        $documentState.file.frontmatter,
+                    )
+                        ? 'week-7x9'
+                        : '3x3',
+                },
             });
         }
 
@@ -473,6 +501,37 @@
                     if (!mapped || mapped !== section) {
                         setActiveCell9x9(view, pos ?? null);
                     }
+                }
+            }
+        }
+
+        if ($mode !== 'nx9') {
+            if (view.mandalaActiveCellNx9) {
+                setActiveCellNx9(view, null);
+            }
+        } else {
+            const section = $idToSection[$activeNodeId];
+            const nx9Context = resolveNx9Context({
+                sectionIdMap: $documentState.sections.section_id,
+                rowsPerPage: $nx9RowsPerPage,
+                activeSection: section,
+            });
+            const visibleSection = normalizeNx9VisibleSection(section);
+            const pos = nx9Context.posForSection(section);
+            const cell = view.mandalaActiveCellNx9;
+            if (!section) {
+                if (cell) {
+                    setActiveCellNx9(view, null);
+                }
+            } else if (!cell && pos) {
+                setActiveCellNx9(view, { row: pos.row, col: pos.col });
+            } else if (cell) {
+                const mapped = nx9Context.sectionForCell(cell.row, cell.col);
+                if (!mapped || mapped !== visibleSection) {
+                    setActiveCellNx9(
+                        view,
+                        pos ? { row: pos.row, col: pos.col } : null,
+                    );
                 }
             }
         }
@@ -591,6 +650,7 @@
     class="mandala-root"
     class:mandala-root--3={$mode === '3x3'}
     class:mandala-root--9={$mode === '9x9'}
+    class:mandala-root--nx9={$mode === 'nx9'}
     class:mandala-root--week={$mode === 'week-7x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
@@ -770,11 +830,7 @@
                                                         </span>
                                                     </button>
                                                 {/if}
-                                                {#if $dayPlanEnabled &&
-                                                    $showDayPlanTodayButton &&
-                                                    dayPlanTodayTargetSection &&
-                                                    activeCoreSection !==
-                                                        dayPlanTodayTargetSection}
+                                                {#if $dayPlanEnabled && $showDayPlanTodayButton && dayPlanTodayTargetSection && activeCoreSection !== dayPlanTodayTargetSection}
                                                     <button
                                                         class="mandala-subgrid-btn mandala-subgrid-btn--today"
                                                         type="button"
@@ -834,6 +890,8 @@
                     </div>
                 {:else if $mode === '9x9'}
                     <MandalaOverviewSimple />
+                {:else if $mode === 'nx9'}
+                    <MandalaNx9 />
                 {:else}
                     <MandalaWeek7x9 />
                 {/if}
@@ -1118,6 +1176,8 @@
 
     .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
         :global(.mandala-card),
+    .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
+        :global(.mandala-card),
     .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
         :global(.mandala-card) {
         border: 1px solid var(--text-normal) !important;
@@ -1127,6 +1187,8 @@
     }
 
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card),
+    .mandala-root--nx9:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card),
     .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card) {
@@ -1138,6 +1200,10 @@
         :global(.mandala-card.node-border--active),
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card.node-border--selected),
+    .mandala-root--nx9:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--active),
+    .mandala-root--nx9:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--selected),
     .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card.node-border--active),
     .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
@@ -1148,11 +1214,17 @@
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected),
+    .mandala-a4-mode.mandala-root--nx9 :global(.mandala-card.active-node),
+    .mandala-a4-mode.mandala-root--nx9
+        :global(.mandala-card.node-border--selected),
     .mandala-a4-mode.mandala-root--week :global(.mandala-card.active-node),
     .mandala-a4-mode.mandala-root--week
         :global(.mandala-card.node-border--selected),
     .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected),
+    .mandala-white-theme.mandala-root--nx9 :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--nx9
         :global(.mandala-card.node-border--selected),
     .mandala-white-theme.mandala-root--week :global(.mandala-card.active-node),
     .mandala-white-theme.mandala-root--week
@@ -1163,6 +1235,10 @@
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected)::after,
+    .mandala-a4-mode.mandala-root--nx9
+        :global(.mandala-card.active-node)::after,
+    .mandala-a4-mode.mandala-root--nx9
+        :global(.mandala-card.node-border--selected)::after,
     .mandala-a4-mode.mandala-root--week
         :global(.mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--week
@@ -1170,6 +1246,10 @@
     .mandala-white-theme.mandala-root--3
         :global(.mandala-card.active-node)::after,
     .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after,
+    .mandala-white-theme.mandala-root--nx9
+        :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--nx9
         :global(.mandala-card.node-border--selected)::after,
     .mandala-white-theme.mandala-root--week
         :global(.mandala-card.active-node)::after,
@@ -1197,6 +1277,12 @@
         --mandala-card-overflow: hidden;
     }
 
+    .mandala-root--nx9 {
+        --mandala-card-height: 100%;
+        --mandala-card-min-height: 0px;
+        --mandala-card-overflow: hidden;
+    }
+
     .mandala-root--3 .mandala-empty {
         width: 100%;
         height: 100%;
@@ -1204,6 +1290,12 @@
     }
 
     .mandala-root--week .mandala-empty {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .mandala-root--nx9 .mandala-empty {
         width: 100%;
         height: 100%;
         min-height: 0;
@@ -1455,6 +1547,12 @@
         overflow: auto;
     }
 
+    .mandala-root--nx9 :global(.editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
     .mandala-root--3 :global(.draggable),
     .mandala-root--3 :global(.draggable .content) {
         height: 100%;
@@ -1465,11 +1563,20 @@
         height: 100%;
     }
 
+    .mandala-root--nx9 :global(.draggable),
+    .mandala-root--nx9 :global(.draggable .content) {
+        height: 100%;
+    }
+
     .mandala-root--3 :global(.mandala-card .drag-handle) {
         display: none !important;
     }
 
     .mandala-root--week :global(.mandala-card .drag-handle) {
+        display: none !important;
+    }
+
+    .mandala-root--nx9 :global(.mandala-card .drag-handle) {
         display: none !important;
     }
 

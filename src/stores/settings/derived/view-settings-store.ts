@@ -3,6 +3,7 @@ import { derived } from 'src/lib/store/derived';
 import MandalaGrid from 'src/main';
 import { Platform } from 'obsidian';
 import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
+import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/stores/settings/settings-type';
 
 export const ViewSettingsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view);
@@ -81,6 +82,17 @@ export const ApplyGapBetweenCardsStore = (view: MandalaView) =>
 
 export const MandalaModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaMode);
+
+export const Nx9RowsPerPageStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => {
+        const path = view.getCurrentFilePath();
+        const value = path
+            ? state.documents[path]?.mandalaView?.nx9RowsPerPage
+            : null;
+        return Number.isInteger(value) && (value ?? 0) >= 1
+            ? value
+            : DEFAULT_NX9_ROWS_PER_PAGE;
+    });
 
 export const MandalaGridOrientationStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaGridOrientation);

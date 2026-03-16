@@ -6,17 +6,9 @@ import {
     type WeekPlanRow,
 } from 'src/lib/mandala/day-plan';
 import type { WeekStart } from 'src/stores/settings/settings-type';
+import type { RowMatrixBaseCell } from 'src/view/helpers/mandala/nx9-context';
 
 export type WeekPlanCellPosition = { row: number; col: number };
-
-export type WeekPlanBaseCell = {
-    row: number;
-    col: number;
-    section: string | null;
-    nodeId: string | null;
-    isPlaceholder: boolean;
-    isCenterColumn: boolean;
-};
 
 export type WeekPlanContext = {
     dayPlan: ReturnType<typeof parseDayPlanFrontmatter>;
@@ -81,8 +73,8 @@ export const buildWeekPlanBaseCells = ({
 }: {
     rows: WeekPlanRow[];
     sectionIdMap: Record<string, string | undefined>;
-}): WeekPlanBaseCell[] => {
-    const cells: WeekPlanBaseCell[] = [];
+}): RowMatrixBaseCell[] => {
+    const cells: RowMatrixBaseCell[] = [];
     for (let row = 0; row < 7; row += 1) {
         const rowModel = rows[row] ?? {
             date: '',
@@ -98,6 +90,7 @@ export const buildWeekPlanBaseCells = ({
                 nodeId: section ? sectionIdMap[section] ?? null : null,
                 isPlaceholder: !rowModel.inPlanYear,
                 isCenterColumn: col === 0,
+                emptyLabel: !rowModel.inPlanYear ? '超出本年' : null,
             });
         }
     }

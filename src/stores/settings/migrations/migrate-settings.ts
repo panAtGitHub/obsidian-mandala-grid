@@ -5,6 +5,7 @@ import {
 } from 'src/stores/settings/default-settings';
 import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
 import {
+    DEFAULT_NX9_ROWS_PER_PAGE,
     MandalaCustomLayout,
     MandalaGridOrientation,
     Settings,
@@ -56,6 +57,7 @@ const createDefaultMandalaView = () => ({
     selectedCustomLayout: null as MandalaCustomLayout | null,
     lastActiveSection: null as string | null,
     subgridTheme: null as string | null,
+    nx9RowsPerPage: DEFAULT_NX9_ROWS_PER_PAGE,
     showDetailSidebarDesktop: null as boolean | null,
     showDetailSidebarMobile: null as boolean | null,
     pinnedSections: [] as string[],
@@ -164,6 +166,12 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
                         typeof mandalaViewRaw.subgridTheme === 'string'
                             ? mandalaViewRaw.subgridTheme
                             : null,
+                    nx9RowsPerPage:
+                        typeof mandalaViewRaw.nx9RowsPerPage === 'number' &&
+                        Number.isInteger(mandalaViewRaw.nx9RowsPerPage) &&
+                        mandalaViewRaw.nx9RowsPerPage >= 1
+                            ? mandalaViewRaw.nx9RowsPerPage
+                            : DEFAULT_NX9_ROWS_PER_PAGE,
                     showDetailSidebarDesktop:
                         typeof mandalaViewRaw.showDetailSidebarDesktop ===
                         'boolean'

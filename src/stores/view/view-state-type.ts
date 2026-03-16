@@ -50,6 +50,7 @@ export type ViewState = {
         mandala: {
             subgridTheme: string | null;
             activeCell9x9: { row: number; col: number } | null;
+            activeCellNx9: { row: number; col: number } | null;
             activeCellWeek7x9: { row: number; col: number } | null;
             weekAnchorDate: string | null;
             swap: {

@@ -31,6 +31,10 @@ export type MandalaActions =
           payload: { cell: { row: number; col: number } | null };
       }
     | {
+          type: 'view/mandala/nx9-active-cell/set';
+          payload: { cell: { row: number; col: number } | null };
+      }
+    | {
           type: 'view/mandala/week-anchor-date/set';
           payload: { date: string | null };
       }

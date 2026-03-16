@@ -23,7 +23,9 @@ export type ScrollingSettings = {
 export type ViewType = 'mandala-grid' | 'markdown';
 export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
-export type MandalaMode = '3x3' | '9x9' | 'week-7x9';
+export const DEFAULT_NX9_ROWS_PER_PAGE = 3;
+
+export type MandalaMode = '3x3' | '9x9' | 'nx9' | 'week-7x9';
 export type BuiltinMandalaGridOrientation = 'left-to-right' | 'south-start';
 export type MandalaGridOrientation = BuiltinMandalaGridOrientation | 'custom';
 export type MandalaCustomLayout = {
@@ -38,6 +40,7 @@ export type MandalaViewDocumentPreferences = {
     selectedCustomLayout?: MandalaCustomLayout | null;
     lastActiveSection: string | null;
     subgridTheme: string | null;
+    nx9RowsPerPage: number;
     showDetailSidebarDesktop: boolean | null;
     showDetailSidebarMobile: boolean | null;
     pinnedSections: string[];

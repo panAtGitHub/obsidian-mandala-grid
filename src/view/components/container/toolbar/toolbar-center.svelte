@@ -1,30 +1,49 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
-    import Button from 'src/view/components/container/shared/button.svelte';
     import {
         CalendarDays,
         ChevronLeft,
         ChevronRight,
-        Grid3x3,
         Grid2x2,
+        Grid3x3,
         Type,
     } from 'lucide-svelte';
     import { derived } from 'src/lib/store/derived';
+    import { openNx9RowsPerPageModal } from 'src/obsidian/modals/nx9-rows-per-page-modal';
     import { addDaysIsoDate } from 'src/lib/mandala/day-plan';
     import {
         MandalaModeStore,
+        Nx9RowsPerPageStore,
         Show9x9TitleOnlyStore,
-        WeekPlanEnabledStore,
     } from 'src/stores/settings/derived/view-settings-store';
+    import { getView } from 'src/view/components/container/context';
+    import Button from 'src/view/components/container/shared/button.svelte';
+    import { resolveNx9Context } from 'src/view/helpers/mandala/nx9-context';
 
     const view = getView();
     const mode = MandalaModeStore(view);
+    const nx9RowsPerPage = Nx9RowsPerPageStore(view);
     const show9x9TitleOnly = Show9x9TitleOnlyStore(view);
-    const weekPlanEnabled = WeekPlanEnabledStore(view);
+    const documentState = derived(view.documentStore, (state) => state);
+    const activeNodeId = derived(
+        view.viewStore,
+        (state) => state.document.activeNode,
+    );
     const weekAnchorDate = derived(
         view.viewStore,
         (state) => state.ui.mandala.weekAnchorDate,
     );
+
+    $: canUseWeekPlanMode = view.canUseWeekPlanMode(
+        $documentState.file.frontmatter,
+    );
+    $: canUseNx9Mode = view.canUseNx9Mode($documentState.file.frontmatter);
+    $: activeSection =
+        $documentState.sections.id_section[$activeNodeId] ?? null;
+    $: nx9Context = resolveNx9Context({
+        sectionIdMap: $documentState.sections.section_id,
+        rowsPerPage: $nx9RowsPerPage,
+        activeSection,
+    });
 
     const toggleMandalaMode = () => {
         view.cycleMandalaMode();
@@ -60,6 +79,23 @@
     const goToThisWeek = () => {
         setWeekAnchorDate(new Date().toISOString().slice(0, 10));
     };
+
+    const goToPreviousNx9Page = () => {
+        view.focusNx9Page('prev');
+    };
+
+    const goToNextNx9Page = () => {
+        view.focusNx9Page('next');
+    };
+
+    const changeNx9RowsPerPage = async () => {
+        const value = await openNx9RowsPerPageModal(
+            view.plugin,
+            $nx9RowsPerPage,
+        );
+        if (value === null || value === $nx9RowsPerPage) return;
+        view.setCurrentNx9RowsPerPage(value);
+    };
 </script>
 
 <div class="toolbar-center">
@@ -81,17 +117,21 @@
             label={$mode === '3x3'
                 ? '切换到 9x9'
                 : $mode === '9x9'
-                  ? $weekPlanEnabled
+                  ? canUseWeekPlanMode
                       ? '切换到周计划'
-                      : '切换到 3x3'
-                  : '切换到 3x3'}
+                      : canUseNx9Mode
+                        ? '切换到 Nx9'
+                        : '切换到 3x3'
+                  : $mode === 'nx9'
+                    ? '切换到 3x3'
+                    : '切换到 3x3'}
             on:click={toggleMandalaMode}
             tooltipPosition="bottom"
         >
             {#if $mode === '3x3'}
                 <Grid3x3 class="svg-icon" size="18" />
             {:else if $mode === '9x9'}
-                {#if $weekPlanEnabled}
+                {#if canUseWeekPlanMode}
                     <CalendarDays class="svg-icon" size="18" />
                 {:else}
                     <Grid2x2 class="svg-icon" size="18" />
@@ -127,6 +167,36 @@
                     <ChevronRight class="svg-icon" size="18" />
                 </Button>
             </div>
+        {:else if $mode === 'nx9'}
+            <div class="week-nav-group">
+                <Button
+                    classes="topbar-button"
+                    label="上一页"
+                    disabled={nx9Context.currentPage <= 0}
+                    on:click={goToPreviousNx9Page}
+                    tooltipPosition="bottom"
+                >
+                    <ChevronLeft class="svg-icon" size="18" />
+                </Button>
+                <Button
+                    classes="topbar-button toolbar-center__text"
+                    label="设置 Nx9 每页行数"
+                    on:click={changeNx9RowsPerPage}
+                    tooltipPosition="bottom"
+                >
+                    n={$nx9RowsPerPage}
+                </Button>
+                <Button
+                    classes="topbar-button"
+                    label="下一页"
+                    disabled={nx9Context.currentPage >=
+                        nx9Context.totalPages - 1}
+                    on:click={goToNextNx9Page}
+                    tooltipPosition="bottom"
+                >
+                    <ChevronRight class="svg-icon" size="18" />
+                </Button>
+            </div>
         {/if}
     </div>
 </div>
@@ -150,6 +220,11 @@
         align-items: center;
         gap: 6px;
         margin-left: 4px;
+    }
+
+    .toolbar-center__text {
+        min-width: 56px;
+        font-size: 12px;
     }
 
     :global(.is-mobile) .lock-toggle-container {

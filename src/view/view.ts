@@ -61,12 +61,19 @@ import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch'
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
+import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/stores/settings/settings-type';
 import {
     layoutIdToOrientation,
     findMandalaCustomLayout,
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
+import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
+import {
+    resolveNx9Context,
+    resolveNx9CurrentCell,
+    resolveNx9PageNavigationTarget,
+} from 'src/view/helpers/mandala/nx9-context';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -88,8 +95,9 @@ export class MandalaView extends TextFileView {
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
-    mandalaMode: '3x3' | '9x9' | 'week-7x9' = '3x3';
+    mandalaMode: '3x3' | '9x9' | 'nx9' | 'week-7x9' = '3x3';
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
+    mandalaActiveCellNx9: { row: number; col: number } | null = null;
     mandalaActiveCellWeek7x9: { row: number; col: number } | null = null;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
@@ -115,6 +123,7 @@ export class MandalaView extends TextFileView {
         {
             subgridTheme: string;
             activeCell9x9: { row: number; col: number } | null;
+            activeCellNx9: { row: number; col: number } | null;
             activeCellWeek7x9: { row: number; col: number } | null;
             weekAnchorDate: string | null;
         }
@@ -244,9 +253,88 @@ export class MandalaView extends TextFileView {
         );
     }
 
-    setMandalaMode(mode: '3x3' | '9x9' | 'week-7x9') {
+    canUseNx9Mode(
+        frontmatter = this.documentStore.getValue().file.frontmatter,
+    ) {
+        return (
+            !Platform.isMobile &&
+            this.documentStore.getValue().meta.isMandala &&
+            !parseDayPlanFrontmatter(frontmatter)
+        );
+    }
+
+    getCurrentNx9RowsPerPage(settings = this.plugin.settings.getValue()) {
+        const path = this.getCurrentFilePath();
+        const value = path
+            ? settings.documents[path]?.mandalaView?.nx9RowsPerPage
+            : null;
+        return Number.isInteger(value) && (value ?? 0) >= 1
+            ? value
+            : DEFAULT_NX9_ROWS_PER_PAGE;
+    }
+
+    setCurrentNx9RowsPerPage(rowsPerPage: number) {
+        if (!Number.isInteger(rowsPerPage) || rowsPerPage < 1) return;
+        this.persistCurrentMandalaViewState({
+            nx9RowsPerPage: rowsPerPage,
+        });
+    }
+
+    focusNx9Page(direction: 'prev' | 'next') {
+        if (this.mandalaMode !== 'nx9') return;
+
+        const documentState = this.documentStore.getValue();
+        const activeNodeId = this.viewStore.getValue().document.activeNode;
+        const activeSection =
+            documentState.sections.id_section[activeNodeId] ?? null;
+        const context = resolveNx9Context({
+            sectionIdMap: documentState.sections.section_id,
+            rowsPerPage: this.getCurrentNx9RowsPerPage(),
+            activeSection,
+        });
+        const targetPage =
+            direction === 'prev'
+                ? context.currentPage - 1
+                : context.currentPage + 1;
+        if (targetPage < 0 || targetPage >= context.totalPages) return;
+
+        const currentCell = resolveNx9CurrentCell({
+            activeCell: this.mandalaActiveCellNx9,
+            activeSection,
+            context,
+        });
+        const target = resolveNx9PageNavigationTarget({
+            context,
+            page: targetPage,
+            preferredCol: currentCell.col,
+            sectionIdMap: documentState.sections.section_id,
+        });
+        if (!target) return;
+
+        setActiveCellNx9(this, { row: target.row, col: target.col });
+        const section = context.sectionForCell(
+            target.row,
+            target.col,
+            target.page,
+        );
+        if (!section) return;
+        const nextNodeId = documentState.sections.section_id[section];
+        if (!nextNodeId || nextNodeId === activeNodeId) return;
+        this.viewStore.dispatch({
+            type: 'view/set-active-node/mouse-silent',
+            payload: { id: nextNodeId },
+        });
+    }
+
+    setMandalaMode(mode: '3x3' | '9x9' | 'nx9' | 'week-7x9') {
         if (mode === 'week-7x9' && !this.canUseWeekPlanMode()) {
-            new Notice('周计划视图仅支持已开启周计划功能、且启用日计划的九宫格文件。');
+            new Notice(
+                '周计划视图仅支持已开启周计划功能、且启用日计划的九宫格文件。',
+            );
+            return false;
+        }
+        if (mode === 'nx9' && !this.canUseNx9Mode()) {
+            new Notice('Nx9 视图仅支持桌面端的普通九宫格文件。');
             return false;
         }
         this.plugin.settings.dispatch({
@@ -258,15 +346,15 @@ export class MandalaView extends TextFileView {
 
     cycleMandalaMode() {
         const current = this.plugin.settings.getValue().view.mandalaMode;
-        const weekPlanEnabled =
-            this.plugin.settings.getValue().general.weekPlanEnabled;
         const next =
             current === '3x3'
                 ? '9x9'
                 : current === '9x9'
-                  ? weekPlanEnabled
+                  ? this.canUseWeekPlanMode()
                       ? 'week-7x9'
-                      : '3x3'
+                      : this.canUseNx9Mode()
+                        ? 'nx9'
+                        : '3x3'
                   : '3x3';
         return this.setMandalaMode(next);
     }
@@ -328,9 +416,8 @@ export class MandalaView extends TextFileView {
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
         }
-        const flushed = await this.flushPendingPersistSnapshotsForTransition(
-            'close-view',
-        );
+        const flushed =
+            await this.flushPendingPersistSnapshotsForTransition('close-view');
         if (!flushed) {
             return;
         }
@@ -802,6 +889,7 @@ export class MandalaView extends TextFileView {
         this.mandalaUiStateByPath.set(path, {
             subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
             activeCell9x9: viewState.ui.mandala.activeCell9x9,
+            activeCellNx9: viewState.ui.mandala.activeCellNx9,
             activeCellWeek7x9: viewState.ui.mandala.activeCellWeek7x9,
             weekAnchorDate: viewState.ui.mandala.weekAnchorDate,
         });
@@ -816,6 +904,7 @@ export class MandalaView extends TextFileView {
     private persistCurrentMandalaViewState(
         overrides?: {
             selectedLayoutId?: string | null;
+            nx9RowsPerPage?: number;
             showDetailSidebarDesktop?: boolean | null;
             showDetailSidebarMobile?: boolean | null;
         },
@@ -847,6 +936,10 @@ export class MandalaView extends TextFileView {
             : null;
         const gridOrientation = layoutIdToOrientation(selectedLayoutId);
         const currentMandalaViewState = settings.documents[path]?.mandalaView;
+        const nx9RowsPerPage =
+            overrides?.nx9RowsPerPage ??
+            currentMandalaViewState?.nx9RowsPerPage ??
+            DEFAULT_NX9_ROWS_PER_PAGE;
         const showDetailSidebarDesktop =
             overrides?.showDetailSidebarDesktop ??
             currentMandalaViewState?.showDetailSidebarDesktop ??
@@ -859,12 +952,15 @@ export class MandalaView extends TextFileView {
         if (
             (currentMandalaViewState?.selectedLayoutId ?? null) ===
                 selectedLayoutId &&
-            JSON.stringify(currentMandalaViewState?.selectedCustomLayout ?? null) ===
-                JSON.stringify(selectedCustomLayout ?? null) &&
+            JSON.stringify(
+                currentMandalaViewState?.selectedCustomLayout ?? null,
+            ) === JSON.stringify(selectedCustomLayout ?? null) &&
             currentMandalaViewState?.gridOrientation === gridOrientation &&
             (currentMandalaViewState?.lastActiveSection ?? null) ===
                 lastActiveSection &&
             (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme &&
+            (currentMandalaViewState?.nx9RowsPerPage ??
+                DEFAULT_NX9_ROWS_PER_PAGE) === nx9RowsPerPage &&
             (currentMandalaViewState?.showDetailSidebarDesktop ?? null) ===
                 showDetailSidebarDesktop &&
             (currentMandalaViewState?.showDetailSidebarMobile ?? null) ===
@@ -882,6 +978,7 @@ export class MandalaView extends TextFileView {
                 selectedCustomLayout: selectedCustomLayout ?? null,
                 lastActiveSection,
                 subgridTheme,
+                nx9RowsPerPage,
                 showDetailSidebarDesktop,
                 showDetailSidebarMobile,
             },
@@ -892,6 +989,7 @@ export class MandalaView extends TextFileView {
         const nextState = this.mandalaUiStateByPath.get(path);
         const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
         const activeCell9x9 = nextState?.activeCell9x9 ?? null;
+        const activeCellNx9 = nextState?.activeCellNx9 ?? null;
         const activeCellWeek7x9 = nextState?.activeCellWeek7x9 ?? null;
         const weekAnchorDate = nextState?.weekAnchorDate ?? null;
 
@@ -902,6 +1000,10 @@ export class MandalaView extends TextFileView {
         this.viewStore.dispatch({
             type: 'view/mandala/active-cell/set',
             payload: { cell: activeCell9x9 },
+        });
+        this.viewStore.dispatch({
+            type: 'view/mandala/nx9-active-cell/set',
+            payload: { cell: activeCellNx9 },
         });
         this.viewStore.dispatch({
             type: 'view/mandala/week-active-cell/set',
@@ -915,6 +1017,7 @@ export class MandalaView extends TextFileView {
             type: 'view/mandala/swap/cancel',
         });
         this.mandalaActiveCell9x9 = activeCell9x9;
+        this.mandalaActiveCellNx9 = activeCellNx9;
         this.mandalaActiveCellWeek7x9 = activeCellWeek7x9;
     }
 
@@ -990,7 +1093,11 @@ export class MandalaView extends TextFileView {
     }
 
     private handlePersistTransitionError(
-        reason: 'switch-file' | 'replace-view-data' | 'clear-view' | 'close-view',
+        reason:
+            | 'switch-file'
+            | 'replace-view-data'
+            | 'clear-view'
+            | 'close-view',
         error: unknown,
     ) {
         const message = error instanceof Error ? error.message : String(error);

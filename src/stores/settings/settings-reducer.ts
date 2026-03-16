@@ -1,4 +1,5 @@
 import {
+    DEFAULT_NX9_ROWS_PER_PAGE,
     DocumentPreferences,
     MandalaCustomLayout,
     MandalaSectionColorAssignments,
@@ -63,6 +64,7 @@ const createDefaultDocumentPreferences = (): DocumentPreferences => ({
         selectedCustomLayout: null,
         lastActiveSection: null,
         subgridTheme: null,
+        nx9RowsPerPage: DEFAULT_NX9_ROWS_PER_PAGE,
         showDetailSidebarDesktop: null,
         showDetailSidebarMobile: null,
         pinnedSections: [],
@@ -90,6 +92,7 @@ const getOrCreateMandalaViewPreferences = (
             selectedCustomLayout: null,
             lastActiveSection: null,
             subgridTheme: null,
+            nx9RowsPerPage: DEFAULT_NX9_ROWS_PER_PAGE,
             showDetailSidebarDesktop: null,
             showDetailSidebarMobile: null,
             pinnedSections: [],
@@ -98,6 +101,12 @@ const getOrCreateMandalaViewPreferences = (
     }
     if (preferences.mandalaView.selectedCustomLayout === undefined) {
         preferences.mandalaView.selectedCustomLayout = null;
+    }
+    if (
+        !Number.isInteger(preferences.mandalaView.nx9RowsPerPage) ||
+        preferences.mandalaView.nx9RowsPerPage < 1
+    ) {
+        preferences.mandalaView.nx9RowsPerPage = DEFAULT_NX9_ROWS_PER_PAGE;
     }
     return preferences.mandalaView;
 };
@@ -141,6 +150,12 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             action.payload.selectedCustomLayout ?? null;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
         mandalaView.subgridTheme = action.payload.subgridTheme;
+        if (
+            Number.isInteger(action.payload.nx9RowsPerPage) &&
+            (action.payload.nx9RowsPerPage ?? 0) >= 1
+        ) {
+            mandalaView.nx9RowsPerPage = action.payload.nx9RowsPerPage;
+        }
         mandalaView.showDetailSidebarDesktop =
             action.payload.showDetailSidebarDesktop;
         mandalaView.showDetailSidebarMobile =
@@ -318,10 +333,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store.view.mandalaMode === '3x3'
                 ? '9x9'
                 : store.view.mandalaMode === '9x9'
-                  ? store.general.weekPlanEnabled
-                      ? 'week-7x9'
-                      : '3x3'
-                  : '3x3';
+                  ? 'nx9'
+                  : store.view.mandalaMode === 'nx9'
+                    ? '3x3'
+                    : '3x3';
     },
     'settings/view/mandala/set-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/set-mode') return;

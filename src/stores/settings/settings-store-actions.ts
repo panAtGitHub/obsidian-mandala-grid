@@ -391,6 +391,7 @@ export type PersistMandalaViewStateAction = {
         selectedCustomLayout?: MandalaCustomLayout | null;
         lastActiveSection: string | null;
         subgridTheme: string | null;
+        nx9RowsPerPage?: number;
         showDetailSidebarDesktop: boolean | null;
         showDetailSidebarMobile: boolean | null;
     };

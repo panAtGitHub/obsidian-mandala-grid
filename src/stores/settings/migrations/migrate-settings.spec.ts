@@ -99,6 +99,7 @@ describe('migrateSettings', () => {
             selectedCustomLayout: null,
             lastActiveSection: null,
             subgridTheme: null,
+            nx9RowsPerPage: 3,
             showDetailSidebarDesktop: null,
             showDetailSidebarMobile: null,
             pinnedSections: [],
@@ -113,7 +114,8 @@ describe('migrateSettings', () => {
             };
         };
         settings.view.mandalaGridOrientation = 'south-start';
-        delete (settings.view as Record<string, unknown>).mandalaGridSelectedLayoutId;
+        delete (settings.view as Record<string, unknown>)
+            .mandalaGridSelectedLayoutId;
         settings.documents['foo.md'] = {
             viewType: 'mandala-grid',
             activeSection: null,
@@ -123,6 +125,7 @@ describe('migrateSettings', () => {
                 selectedLayoutId: null,
                 lastActiveSection: null,
                 subgridTheme: null,
+                nx9RowsPerPage: 5,
                 showDetailSidebarDesktop: null,
                 showDetailSidebarMobile: null,
                 pinnedSections: [],
@@ -138,6 +141,7 @@ describe('migrateSettings', () => {
         expect(settings.documents['foo.md'].mandalaView.selectedLayoutId).toBe(
             'builtin:left-to-right',
         );
+        expect(settings.documents['foo.md'].mandalaView.nx9RowsPerPage).toBe(5);
     });
 
     test('falls back removed bottom-to-top orientation to left-to-right', () => {
@@ -153,6 +157,7 @@ describe('migrateSettings', () => {
                 selectedLayoutId: 'custom:missing',
                 lastActiveSection: null,
                 subgridTheme: null,
+                nx9RowsPerPage: 0,
                 showDetailSidebarDesktop: null,
                 showDetailSidebarMobile: null,
                 pinnedSections: [],
@@ -168,6 +173,32 @@ describe('migrateSettings', () => {
         expect(settings.documents['foo.md'].mandalaView.selectedLayoutId).toBe(
             'builtin:left-to-right',
         );
+        expect(settings.documents['foo.md'].mandalaView.nx9RowsPerPage).toBe(3);
+    });
+
+    test('normalizes invalid document nx9 rows per page', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.documents['foo.md'] = {
+            viewType: 'mandala-grid',
+            activeSection: null,
+            outline: null,
+            mandalaView: {
+                gridOrientation: null,
+                selectedLayoutId: null,
+                selectedCustomLayout: null,
+                lastActiveSection: null,
+                subgridTheme: null,
+                nx9RowsPerPage: -2,
+                showDetailSidebarDesktop: null,
+                showDetailSidebarMobile: null,
+                pinnedSections: [],
+                sectionColors: {},
+            },
+        };
+
+        migrateSettings(settings);
+
+        expect(settings.documents['foo.md'].mandalaView.nx9RowsPerPage).toBe(3);
     });
 
     test('normalizes custom layout list and invalid selected ids', () => {
@@ -226,10 +257,12 @@ describe('migrateSettings', () => {
 
     test('drops removed undo/redo custom hotkeys', () => {
         const settings = DEFAULT_SETTINGS();
-        (settings.hotkeys.customHotkeys as Record<string, unknown>).undo_change =
-            { primary: { key: 'z', modifiers: ['Mod'] } };
-        (settings.hotkeys.customHotkeys as Record<string, unknown>).redo_change =
-            { primary: { key: 'y', modifiers: ['Mod'] } };
+        (
+            settings.hotkeys.customHotkeys as Record<string, unknown>
+        ).undo_change = { primary: { key: 'z', modifiers: ['Mod'] } };
+        (
+            settings.hotkeys.customHotkeys as Record<string, unknown>
+        ).redo_change = { primary: { key: 'y', modifiers: ['Mod'] } };
 
         migrateSettings(settings);
 

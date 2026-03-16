@@ -5,7 +5,7 @@ import { Hotkey } from 'obsidian';
 import { CommandName, GroupName } from 'src/lang/hotkey-groups';
 import {
     enterSubgridForNode,
-    exitCurrentSubgrid
+    exitCurrentSubgrid,
 } from 'src/view/helpers/mandala/mobile-navigation';
 import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
@@ -104,7 +104,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
             },
         ],
     }, */
-    /* {
+        /* {
         name: 'delete_card',
         callback: (view, e) => {
             const document = view.viewStore.getValue().document;
@@ -117,19 +117,19 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
             { key: 'Backspace', modifiers: ['Mod'], editorState: 'editor-off' },
         ],
     }, */
-    {
-        name: 'toggle_search_input',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            view.viewStore.dispatch({ type: 'view/search/toggle-input' });
+        {
+            name: 'toggle_search_input',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                view.viewStore.dispatch({ type: 'view/search/toggle-input' });
+            },
+            hotkeys: [
+                { key: '/', modifiers: [], editorState: 'editor-off' },
+                { key: 'f', modifiers: ['Alt'], editorState: 'both' },
+            ],
         },
-        hotkeys: [
-            { key: '/', modifiers: [], editorState: 'editor-off' },
-            { key: 'f', modifiers: ['Alt'], editorState: 'both' },
-        ],
-    },
-    /* {
+        /* {
         name: 'zoom_in',
         callback: (view, e) => {
             e.preventDefault();
@@ -162,7 +162,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [{ key: '0', modifiers: ['Mod'], editorState: 'both' }],
     }, */
-    /* {
+        /* {
         name: 'toggle_mandala_mode',
         callback: (view, e) => {
             e.preventDefault();
@@ -173,78 +173,78 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
         },
         hotkeys: [],
     }, */
-    {
-        name: 'enter_subgrid',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        {
+            name: 'enter_subgrid',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
 
-            const state = view.viewStore.getValue();
-            const activeNodeId = state.document.activeNode;
-            enterSubgridForNode(view, activeNodeId);
-        },
-        hotkeys: [],
-    },
-    {
-        name: 'exit_subgrid',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            exitCurrentSubgrid(view);
-        },
-        hotkeys: [],
-    },
-    {
-        name: 'jump_core_next',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            jumpCoreTheme(view, 'down');
-        },
-        hotkeys: [
-            {
-                key: 'ArrowDown',
-                modifiers: ['Mod', 'Shift'],
-                editorState: 'editor-off',
+                const state = view.viewStore.getValue();
+                const activeNodeId = state.document.activeNode;
+                enterSubgridForNode(view, activeNodeId);
             },
-        ],
-    },
-    {
-        name: 'jump_core_prev',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            jumpCoreTheme(view, 'up');
+            hotkeys: [],
         },
-        hotkeys: [
-            {
-                key: 'ArrowUp',
-                modifiers: ['Mod', 'Shift'],
-                editorState: 'editor-off',
+        {
+            name: 'exit_subgrid',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                exitCurrentSubgrid(view);
             },
-        ],
-    },
-    {
-        name: 'toggle_mandala_mode',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            view.plugin.settings.dispatch({
-                type: 'settings/view/mandala/toggle-mode',
-            });
+            hotkeys: [],
         },
-        hotkeys: [],
-    },
-    {
-        name: 'toggle_detail_sidebar',
-        callback: (view, e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            view.toggleCurrentMandalaDetailSidebar();
+        {
+            name: 'jump_core_next',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                jumpCoreTheme(view, 'down');
+            },
+            hotkeys: [
+                {
+                    key: 'ArrowDown',
+                    modifiers: ['Mod', 'Shift'],
+                    editorState: 'editor-off',
+                },
+            ],
         },
-        hotkeys: [{ key: ']', modifiers: ['Mod'], editorState: 'editor-off' }],
-    },
-    /* {
+        {
+            name: 'jump_core_prev',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                jumpCoreTheme(view, 'up');
+            },
+            hotkeys: [
+                {
+                    key: 'ArrowUp',
+                    modifiers: ['Mod', 'Shift'],
+                    editorState: 'editor-off',
+                },
+            ],
+        },
+        {
+            name: 'toggle_mandala_mode',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                view.cycleMandalaMode();
+            },
+            hotkeys: [],
+        },
+        {
+            name: 'toggle_detail_sidebar',
+            callback: (view, e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                view.toggleCurrentMandalaDetailSidebar();
+            },
+            hotkeys: [
+                { key: ']', modifiers: ['Mod'], editorState: 'editor-off' },
+            ],
+        },
+        /* {
         name: 'swap_cell_up',
         callback: (view, e) => {
             e.preventDefault();

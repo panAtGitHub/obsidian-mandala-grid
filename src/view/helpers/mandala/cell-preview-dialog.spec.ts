@@ -21,6 +21,7 @@ describe('cell-preview-dialog', () => {
         return {
             mandalaMode: '3x3',
             mandalaActiveCell9x9: null,
+            mandalaActiveCellNx9: null,
             mandalaActiveCellWeek7x9: null,
             viewStore: {
                 getValue: () => ({
@@ -34,6 +35,7 @@ describe('cell-preview-dialog', () => {
                         },
                         mandala: {
                             activeCell9x9: null,
+                            activeCellNx9: null,
                             activeCellWeek7x9: null,
                             weekAnchorDate: null,
                         },
@@ -57,6 +59,7 @@ describe('cell-preview-dialog', () => {
                 }),
             },
             getCurrentMandalaLayoutId: () => 'builtin:left-to-right',
+            getCurrentNx9RowsPerPage: () => 3,
             plugin: {
                 settings: {
                     getValue: () => ({
