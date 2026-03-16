@@ -4,7 +4,6 @@
     import { derived } from 'src/lib/store/derived';
     import {
         addDaysIsoDate,
-        getChineseFullWeekdayLabel,
         mapWeekPlanRows,
         parseDayPlanFrontmatter,
         sectionAtCellWeek7x9,
@@ -73,9 +72,6 @@
     type CellModel = {
         row: number;
         col: number;
-        date: string;
-        section: string | null;
-        coreSection: string | null;
         nodeId: string | null;
         title: string;
         body: string;
@@ -116,9 +112,6 @@
                 nextCells.push({
                     row,
                     col,
-                    date: rowModel.date,
-                    section,
-                    coreSection: rowModel.coreSection,
                     nodeId,
                     title: summary.title,
                     body: summary.body,
@@ -223,19 +216,6 @@
                 on:click={() => onCellClick(cell)}
                 on:dblclick={() => onCellDblClick(cell)}
             >
-                <div class="week-plan-cell__meta">
-                    <span class="week-plan-cell__date">
-                        {cell.date ? cell.date.slice(5) : '--'}
-                    </span>
-                    <span class="week-plan-cell__weekday">
-                        {cell.date ? getChineseFullWeekdayLabel(cell.date) : ''}
-                    </span>
-                </div>
-
-                {#if cell.section}
-                    <span class="week-plan-cell__section">{cell.section}</span>
-                {/if}
-
                 {#if cell.nodeId}
                     <div class="week-plan-cell__content">
                         {#if cell.title}
@@ -297,7 +277,6 @@
         position: relative;
         display: flex;
         flex-direction: column;
-        gap: 4px;
         min-height: 0;
         padding: 6px;
         background: var(--background-primary);
@@ -340,28 +319,11 @@
         cursor: default;
     }
 
-    .week-plan-cell__meta {
-        display: flex;
-        gap: 6px;
-        font-size: 10px;
-        color: var(--text-faint);
-        line-height: 1.1;
-    }
-
-    .week-plan-cell__section {
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        font-size: 10px;
-        color: var(--text-faint);
-    }
-
     .week-plan-cell__content {
         display: flex;
         flex-direction: column;
         gap: 3px;
         min-height: 0;
-        margin-top: 14px;
     }
 
     .week-plan-cell__title {
