@@ -216,7 +216,7 @@
     .cell-preview-dialog__header-row {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: space-between;
         gap: 10px;
         min-height: 1em;
     }
@@ -224,10 +224,11 @@
     .cell-preview-dialog__eyebrow {
         font-size: 12px;
         line-height: 1;
-        font-weight: 600;
+        font-weight: 400;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: color-mix(in srgb, var(--text-muted) 72%, transparent);
+        text-align: left;
     }
 
     .cell-preview-dialog__title {
