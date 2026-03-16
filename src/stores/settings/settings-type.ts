@@ -23,11 +23,9 @@ export type ScrollingSettings = {
 export type ViewType = 'mandala-grid' | 'markdown';
 export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
-export type MandalaMode = '3x3' | '9x9';
+export type MandalaMode = '3x3' | '9x9' | 'week-7x9';
 export type BuiltinMandalaGridOrientation = 'left-to-right' | 'south-start';
-export type MandalaGridOrientation =
-    | BuiltinMandalaGridOrientation
-    | 'custom';
+export type MandalaGridOrientation = BuiltinMandalaGridOrientation | 'custom';
 export type MandalaCustomLayout = {
     id: string;
     name: string;
@@ -37,6 +35,7 @@ export type MandalaSectionColorAssignments = Partial<Record<string, string[]>>;
 export type MandalaViewDocumentPreferences = {
     gridOrientation: MandalaGridOrientation | null;
     selectedLayoutId: string | null;
+    selectedCustomLayout?: MandalaCustomLayout | null;
     lastActiveSection: string | null;
     subgridTheme: string | null;
     showDetailSidebarDesktop: boolean | null;
@@ -70,6 +69,14 @@ export type DocumentPreferences = {
 export type LeftSidebarTab = 'pinned-cards';
 
 export type LinkPaneType = 'split' | 'tab';
+export type WeekStart = 'monday' | 'sunday';
+export type DayPlanDateHeadingFormat =
+    | 'date-only'
+    | 'zh-short'
+    | 'zh-full'
+    | 'en-short'
+    | 'custom';
+export type DayPlanDateHeadingApplyMode = 'immediate' | 'manual';
 export type ContextMenuCopyLinkVariant =
     | 'block-plain'
     | 'block-embed'
@@ -93,8 +100,12 @@ export type Settings = {
         mandalaFontSize3x3Mobile: number;
         mandalaFontSize9x9Desktop: number;
         mandalaFontSize9x9Mobile: number;
+        mandalaFontSize7x9Desktop: number;
+        mandalaFontSize7x9Mobile: number;
         mandalaFontSizeSidebarDesktop: number;
         mandalaFontSizeSidebarMobile: number;
+        mandalaCellPreviewFontSizeDesktop: number;
+        mandalaCellPreviewFontSizeMobile: number;
         theme: Theme;
         cardWidth: number;
         cardsGap: number;
@@ -129,6 +140,10 @@ export type Settings = {
         show3x3SubgridNavButtonsMobile: boolean;
         show9x9ParallelNavButtonsDesktop: boolean;
         show9x9ParallelNavButtonsMobile: boolean;
+        showDayPlanTodayButtonDesktop: boolean;
+        showDayPlanTodayButtonMobile: boolean;
+        showCellQuickPreviewDialogDesktop: boolean;
+        showCellQuickPreviewDialogMobile: boolean;
         contextMenuCopyLinkVisibilityDesktop: ContextMenuCopyLinkVisibility;
         contextMenuCopyLinkVisibilityMobile: ContextMenuCopyLinkVisibility;
         mobileEditFontSizeOffset: number;
@@ -141,5 +156,12 @@ export type Settings = {
     general: {
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
+        dayPlanEnabled: boolean;
+        weekPlanEnabled: boolean;
+        weekPlanCompactMode: boolean;
+        weekStart: WeekStart;
+        dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
+        dayPlanDateHeadingCustomTemplate: string;
+        dayPlanDateHeadingApplyMode: DayPlanDateHeadingApplyMode;
     };
 };

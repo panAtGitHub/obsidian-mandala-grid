@@ -22,6 +22,7 @@
         shouldBlockMandalaNodeDoubleClickForSwap,
     } from 'src/view/helpers/mandala/mandala-swap';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
@@ -47,8 +48,9 @@
     export let draggable: boolean;
     export let preserveActiveBackground = false;
     export let sectionIndicatorVariant: SectionIndicatorVariant = 'plain';
-    export let gridCell: { mode: '9x9'; row: number; col: number } | null =
-        null;
+    export let gridCell:
+        | { mode: '9x9' | 'week-7x9'; row: number; col: number }
+        | null = null;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -62,7 +64,11 @@
     const getThemeUnderlayColor = () =>
         window
             .getComputedStyle(document.body)
-            .getPropertyValue('--background-primary')
+            .getPropertyValue(
+                active
+                    ? '--background-active-node'
+                    : '--background-active-parent',
+            )
             .trim();
     let cardStyle: string | undefined;
     let displaySection = section;
@@ -99,7 +105,17 @@
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
-            setActiveCell9x9(view, null);
+            if (gridCell.mode === 'week-7x9') {
+                setActiveCellWeek7x9(view, {
+                    row: gridCell.row,
+                    col: gridCell.col,
+                });
+            } else {
+                setActiveCell9x9(view, {
+                    row: gridCell.row,
+                    col: gridCell.col,
+                });
+            }
         }
         setActiveMainSplitNode(view, nodeId, e);
 
@@ -144,6 +160,7 @@
     class={clx(
         'mandala-card',
         active ? 'active-node' : 'inactive-node',
+        sectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
@@ -233,7 +250,10 @@
         display: flex;
         flex-direction: column;
         position: relative;
-        --font-text-size: var(--mandala-font-3x3, 16px);
+        --font-text-size: var(
+            --mandala-card-font-size,
+            var(--mandala-font-3x3, 16px)
+        );
         font-size: var(--font-text-size, 16px);
         line-height: 1.4;
         overflow: var(--mandala-card-overflow, visible);

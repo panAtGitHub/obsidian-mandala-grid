@@ -3,6 +3,7 @@ export const shouldShowNodeContextMenu = (e: MouseEvent | TouchEvent) => {
     return (
         !target.hasClass('drag-handle') &&
         (Boolean(target.closest('.mandala-card')) ||
-            Boolean(target.closest('.simple-cell[data-node-id]')))
+            Boolean(target.closest('.simple-cell[data-node-id]')) ||
+            Boolean(target.closest('.pinned-list-item')))
     );
 };

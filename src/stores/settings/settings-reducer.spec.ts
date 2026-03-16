@@ -77,6 +77,7 @@ describe('settingsReducer custom grid layouts', () => {
 
         expect(settings.documents['a.md']?.mandalaView).toMatchObject({
             selectedLayoutId: 'builtin:south-start',
+            selectedCustomLayout: null,
             gridOrientation: 'south-start',
             lastActiveSection: '2',
             subgridTheme: '2',
@@ -85,11 +86,155 @@ describe('settingsReducer custom grid layouts', () => {
         });
         expect(settings.documents['b.md']?.mandalaView).toMatchObject({
             selectedLayoutId: 'builtin:left-to-right',
+            selectedCustomLayout: null,
             gridOrientation: 'left-to-right',
             lastActiveSection: '3',
             subgridTheme: '3',
             showDetailSidebarDesktop: false,
             showDetailSidebarMobile: null,
         });
+    });
+
+    test('persists selected custom layout snapshot per document', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'custom',
+                selectedLayoutId: 'custom:a',
+                selectedCustomLayout: {
+                    id: 'custom:a',
+                    name: 'A',
+                    pattern: '123405678',
+                },
+                lastActiveSection: '2',
+                subgridTheme: '2',
+                showDetailSidebarDesktop: true,
+                showDetailSidebarMobile: null,
+            },
+        });
+
+        expect(settings.documents['a.md']?.mandalaView).toMatchObject({
+            selectedLayoutId: 'custom:a',
+            selectedCustomLayout: {
+                id: 'custom:a',
+                name: 'A',
+                pattern: '123405678',
+            },
+        });
+    });
+
+    test('toggles day plan today buttons independently per platform', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/view/toggle-day-plan-today-button-desktop',
+        });
+        settingsReducer(settings, {
+            type: 'settings/view/toggle-day-plan-today-button-mobile',
+        });
+
+        expect(settings.view.showDayPlanTodayButtonDesktop).toBe(false);
+        expect(settings.view.showDayPlanTodayButtonMobile).toBe(false);
+    });
+
+    test('updates day plan heading settings independently', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-day-plan-date-heading-format',
+            payload: {
+                format: 'custom',
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/general/set-day-plan-date-heading-custom-template',
+            payload: {
+                template: '## {date} {zh}',
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/general/set-day-plan-date-heading-apply-mode',
+            payload: {
+                mode: 'immediate',
+            },
+        });
+
+        expect(settings.general.dayPlanDateHeadingFormat).toBe('custom');
+        expect(settings.general.dayPlanDateHeadingCustomTemplate).toBe(
+            '## {date} {zh}',
+        );
+        expect(settings.general.dayPlanDateHeadingApplyMode).toBe('immediate');
+    });
+
+    test('cycles mandala modes through 3x3, 9x9 and week-7x9', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('9x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('week-7x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('3x3');
+    });
+
+    test('skips week mode when week plan is disabled', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.general.weekPlanEnabled = false;
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('9x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('3x3');
+    });
+
+    test('updates week start setting', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-week-start',
+            payload: { weekStart: 'sunday' },
+        });
+
+        expect(settings.general.weekStart).toBe('sunday');
+    });
+
+    test('updates week compact mode setting', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-week-plan-compact-mode',
+            payload: { enabled: false },
+        });
+
+        expect(settings.general.weekPlanCompactMode).toBe(false);
+    });
+
+    test('disabling week plan exits week mode', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.mandalaMode = 'week-7x9';
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-week-plan-enabled',
+            payload: { enabled: false },
+        });
+
+        expect(settings.general.weekPlanEnabled).toBe(false);
+        expect(settings.view.mandalaMode).toBe('3x3');
     });
 });

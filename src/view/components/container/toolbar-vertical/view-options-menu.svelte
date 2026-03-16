@@ -15,6 +15,7 @@
     import {
         ContextMenuCopyLinkVisibilityStore,
         DetailSidebarPreviewModeStore,
+        DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBackgroundModeStore,
@@ -24,17 +25,24 @@
         MandalaGridHighlightWidthStore,
         MandalaFontSize3x3DesktopStore,
         MandalaFontSize3x3MobileStore,
+        MandalaFontSize7x9DesktopStore,
+        MandalaFontSize7x9MobileStore,
         MandalaFontSize9x9DesktopStore,
         MandalaFontSize9x9MobileStore,
+        MandalaCellPreviewFontSizeDesktopStore,
+        MandalaCellPreviewFontSizeMobileStore,
         MandalaFontSizeSidebarDesktopStore,
         MandalaFontSizeSidebarMobileStore,
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
+        ShowCellQuickPreviewDialogStore,
         ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
+        ShowDayPlanTodayButtonStore,
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
         SquareLayoutStore,
+        WeekPlanEnabledStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { getDefaultTheme } from 'src/stores/view/subscriptions/effects/css-variables/helpers/get-default-theme';
@@ -43,6 +51,8 @@
         DEFAULT_CARDS_GAP,
         DEFAULT_INACTIVE_NODE_OPACITY,
         DEFAULT_H1_FONT_SIZE_EM,
+        DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
+        DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE,
         DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
         DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
     } from 'src/stores/settings/default-settings';
@@ -113,7 +123,10 @@
     const customLayouts = MandalaGridCustomLayoutsStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
+    const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const dayPlanEnabled = DayPlanEnabledStore(view);
+    const weekPlanEnabled = WeekPlanEnabledStore(view);
     const contextMenuCopyLinkVisibility =
         ContextMenuCopyLinkVisibilityStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
@@ -129,9 +142,16 @@
     const fontSize9x9 = isMobile
         ? MandalaFontSize9x9MobileStore(view)
         : MandalaFontSize9x9DesktopStore(view);
+    const fontSize7x9 = isMobile
+        ? MandalaFontSize7x9MobileStore(view)
+        : MandalaFontSize7x9DesktopStore(view);
     const fontSizeSidebar = isMobile
         ? MandalaFontSizeSidebarMobileStore(view)
         : MandalaFontSizeSidebarDesktopStore(view);
+    const fontSizeCellPreview = isMobile
+        ? MandalaCellPreviewFontSizeMobileStore(view)
+        : MandalaCellPreviewFontSizeDesktopStore(view);
+    const showCellQuickPreviewDialog = ShowCellQuickPreviewDialogStore(view);
     const headingsFontSizeEm = derived(
         view.plugin.settings,
         (state) => state.view.h1FontSize_em,
@@ -204,6 +224,22 @@
             type: isMobile
                 ? 'settings/view/toggle-3x3-subgrid-nav-buttons-mobile'
                 : 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop',
+        });
+    };
+
+    const toggleDayPlanTodayButton = () => {
+        view.plugin.settings.dispatch({
+            type: isMobile
+                ? 'settings/view/toggle-day-plan-today-button-mobile'
+                : 'settings/view/toggle-day-plan-today-button-desktop',
+        });
+    };
+
+    const toggleCellQuickPreviewDialog = () => {
+        view.plugin.settings.dispatch({
+            type: isMobile
+                ? 'settings/view/toggle-cell-quick-preview-dialog-mobile'
+                : 'settings/view/toggle-cell-quick-preview-dialog-desktop',
         });
     };
 
@@ -400,11 +436,15 @@
         desktopType:
             | 'settings/view/font-size/set-3x3-desktop'
             | 'settings/view/font-size/set-9x9-desktop'
-            | 'settings/view/font-size/set-sidebar-desktop',
+            | 'settings/view/font-size/set-7x9-desktop'
+            | 'settings/view/font-size/set-sidebar-desktop'
+            | 'settings/view/font-size/set-cell-preview-desktop',
         mobileType:
             | 'settings/view/font-size/set-3x3-mobile'
             | 'settings/view/font-size/set-9x9-mobile'
-            | 'settings/view/font-size/set-sidebar-mobile',
+            | 'settings/view/font-size/set-7x9-mobile'
+            | 'settings/view/font-size/set-sidebar-mobile'
+            | 'settings/view/font-size/set-cell-preview-mobile',
     ) => {
         return (value: number) => {
             view.plugin.settings.dispatch({
@@ -424,9 +464,19 @@
         'settings/view/font-size/set-9x9-mobile',
     );
 
+    const updateFontSize7x9Value = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-7x9-desktop',
+        'settings/view/font-size/set-7x9-mobile',
+    );
+
     const updateFontSizeSidebarValue = createPlatformFontSizeUpdater(
         'settings/view/font-size/set-sidebar-desktop',
         'settings/view/font-size/set-sidebar-mobile',
+    );
+
+    const updateFontSizeCellPreviewValue = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-cell-preview-desktop',
+        'settings/view/font-size/set-cell-preview-mobile',
     );
 
     const updateHeadingsFontSizeValue = (value: number) => {
@@ -542,8 +592,12 @@
 
     const updateFontSize3x3 = createNumericInputHandler(updateFontSize3x3Value);
     const updateFontSize9x9 = createNumericInputHandler(updateFontSize9x9Value);
+    const updateFontSize7x9 = createNumericInputHandler(updateFontSize7x9Value);
     const updateFontSizeSidebar = createNumericInputHandler(
         updateFontSizeSidebarValue,
+    );
+    const updateFontSizeCellPreview = createNumericInputHandler(
+        updateFontSizeCellPreviewValue,
     );
     const updateHeadingsFontSize = createNumericInputHandler(
         updateHeadingsFontSizeValue,
@@ -572,7 +626,11 @@
 
     const stepFontSize3x3 = createStepHandler(updateFontSize3x3Value);
     const stepFontSize9x9 = createStepHandler(updateFontSize9x9Value);
+    const stepFontSize7x9 = createStepHandler(updateFontSize7x9Value);
     const stepFontSizeSidebar = createStepHandler(updateFontSizeSidebarValue);
+    const stepFontSizeCellPreview = createStepHandler(
+        updateFontSizeCellPreviewValue,
+    );
     const stepHeadingsFontSize = createStepHandler(
         updateHeadingsFontSizeValue,
         1,
@@ -662,8 +720,20 @@
         updateFontSize9x9Value(11);
     };
 
+    const resetFontSize7x9 = () => {
+        updateFontSize7x9Value(isMobile ? 10 : 11);
+    };
+
     const resetFontSizeSidebar = () => {
         updateFontSizeSidebarValue(16);
+    };
+
+    const resetFontSizeCellPreview = () => {
+        updateFontSizeCellPreviewValue(
+            isMobile
+                ? DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE
+                : DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
+        );
     };
 
     const resetHeadingsFontSize = () => {
@@ -1267,8 +1337,7 @@
             applyCssVariables(layer, cssVars);
             applyInlineStyles(layer, {
                 ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${$borderOpacity}%`,
-                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]:
-                    `${$gridHighlightWidth}px`,
+                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]: `${$gridHighlightWidth}px`,
             });
             if ($gridHighlightColorStore?.trim().length) {
                 applyInlineStyles(layer, {
@@ -2120,6 +2189,9 @@
                 showHiddenCardInfo={$showHiddenCardInfo}
                 show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
                 show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                dayPlanEnabled={$dayPlanEnabled}
+                showDayPlanTodayButton={$showDayPlanTodayButton}
+                showCellQuickPreviewDialog={$showCellQuickPreviewDialog}
                 showCopyBlockPlain={$contextMenuCopyLinkVisibility[
                     'block-plain'
                 ]}
@@ -2140,6 +2212,8 @@
                 {toggleHiddenCardInfo}
                 {toggle3x3SubgridNavButtons}
                 {toggle9x9ParallelNavButtons}
+                {toggleDayPlanTodayButton}
+                {toggleCellQuickPreviewDialog}
                 {toggleCopyBlockPlain}
                 {toggleCopyBlockEmbed}
                 {toggleCopyHeadingPlain}
@@ -2153,7 +2227,11 @@
                 show={showFontOptions}
                 fontSize3x3={$fontSize3x3}
                 fontSize9x9={$fontSize9x9}
+                fontSize7x9={$fontSize7x9}
                 fontSizeSidebar={$fontSizeSidebar}
+                fontSizeCellPreview={$fontSizeCellPreview}
+                weekPlanEnabled={$weekPlanEnabled}
+                showCellQuickPreviewDialog={$showCellQuickPreviewDialog}
                 headingsFontSizeEm={$headingsFontSizeEm}
                 toggle={() => (showFontOptions = !showFontOptions)}
                 {stepFontSize3x3}
@@ -2162,9 +2240,15 @@
                 {stepFontSize9x9}
                 {updateFontSize9x9}
                 {resetFontSize9x9}
+                {stepFontSize7x9}
+                {updateFontSize7x9}
+                {resetFontSize7x9}
                 {stepFontSizeSidebar}
                 {updateFontSizeSidebar}
                 {resetFontSizeSidebar}
+                {stepFontSizeCellPreview}
+                {updateFontSizeCellPreview}
+                {resetFontSizeCellPreview}
                 {stepHeadingsFontSize}
                 {updateHeadingsFontSize}
                 {resetHeadingsFontSize}

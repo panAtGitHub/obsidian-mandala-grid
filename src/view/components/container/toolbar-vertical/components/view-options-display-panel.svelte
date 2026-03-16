@@ -7,6 +7,9 @@
     export let showHiddenCardInfo = false;
     export let show3x3SubgridNavButtons = true;
     export let show9x9ParallelNavButtons = true;
+    export let dayPlanEnabled = false;
+    export let showDayPlanTodayButton = true;
+    export let showCellQuickPreviewDialog = true;
     export let showCopyBlockPlain = true;
     export let showCopyBlockEmbed = true;
     export let showCopyHeadingPlain = true;
@@ -18,6 +21,8 @@
     export let toggleHiddenCardInfo: () => void;
     export let toggle3x3SubgridNavButtons: () => void;
     export let toggle9x9ParallelNavButtons: () => void;
+    export let toggleDayPlanTodayButton: () => void;
+    export let toggleCellQuickPreviewDialog: () => void;
     export let toggleCopyBlockPlain: () => void;
     export let toggleCopyBlockEmbed: () => void;
     export let toggleCopyHeadingPlain: () => void;
@@ -122,6 +127,44 @@
                     </label>
                 </div>
             </div>
+
+            <div class="view-options-menu__row">
+                <span>空格快速预览浮层</span>
+                <div class="view-options-menu__row-controls">
+                    <label class="view-options-menu__inline-option">
+                        <input
+                            type="checkbox"
+                            checked={showCellQuickPreviewDialog}
+                            on:change={toggleCellQuickPreviewDialog}
+                        />
+                        <span
+                            >{showCellQuickPreviewDialog
+                                ? '已开启'
+                                : '已关闭'}</span
+                        >
+                    </label>
+                </div>
+            </div>
+
+            {#if dayPlanEnabled}
+                <div class="view-options-menu__row">
+                    <span>{lang.settings_display_day_plan_today_button}</span>
+                    <div class="view-options-menu__row-controls">
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="checkbox"
+                                checked={showDayPlanTodayButton}
+                                on:change={toggleDayPlanTodayButton}
+                            />
+                            <span
+                                >{showDayPlanTodayButton
+                                    ? '显示中'
+                                    : '已隐藏'}</span
+                            >
+                        </label>
+                    </div>
+                </div>
+            {/if}
 
             <div class="view-options-menu__subsection-title">
                 {lang.settings_display_context_menu_advanced}

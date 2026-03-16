@@ -6,6 +6,7 @@
     import { viewHotkeysAction } from 'src/view/actions/keyboard-shortcuts/view-hotkeys-action';
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
     import MandalaViewComponent from 'src/view/components/mandala/mandala-view.svelte';
+    import CellPreviewDialog from 'src/view/components/mandala/cell-preview-dialog.svelte';
     import HotkeysModal from 'src/view/components/container/modals/hotkeys/hotkeys.svelte';
     import SettingsModal from 'src/view/components/container/modals/settings/settings.svelte';
     import { MandalaView } from 'src/view/view';
@@ -14,6 +15,8 @@
         LeftSidebarWidthStore,
         MandalaFontSize3x3DesktopStore,
         MandalaFontSize3x3MobileStore,
+        MandalaFontSize7x9DesktopStore,
+        MandalaFontSize7x9MobileStore,
         MandalaFontSize9x9DesktopStore,
         MandalaFontSize9x9MobileStore,
         MandalaFontSizeSidebarDesktopStore,
@@ -38,6 +41,8 @@
     const mandalaFont3x3Mobile = MandalaFontSize3x3MobileStore(view);
     const mandalaFont9x9Desktop = MandalaFontSize9x9DesktopStore(view);
     const mandalaFont9x9Mobile = MandalaFontSize9x9MobileStore(view);
+    const mandalaFont7x9Desktop = MandalaFontSize7x9DesktopStore(view);
+    const mandalaFont7x9Mobile = MandalaFontSize7x9MobileStore(view);
     const mandalaFontSidebarDesktop = MandalaFontSizeSidebarDesktopStore(view);
     const mandalaFontSidebarMobile = MandalaFontSizeSidebarMobileStore(view);
 
@@ -47,6 +52,9 @@
     $: mandalaFont9x9 = Platform.isMobile
         ? $mandalaFont9x9Mobile
         : $mandalaFont9x9Desktop;
+    $: mandalaFont7x9 = Platform.isMobile
+        ? $mandalaFont7x9Mobile
+        : $mandalaFont7x9Desktop;
     $: mandalaFontSidebar = Platform.isMobile
         ? $mandalaFontSidebarMobile
         : $mandalaFontSidebarDesktop;
@@ -55,7 +63,7 @@
 <div
     class="mandala-view"
     class:mandala-white-theme={!Platform.isMobile && $whiteThemeMode}
-    style={`--font-text-size: ${$localFontStore}px; --mandala-font-3x3: ${mandalaFont3x3}px; --mandala-font-9x9: ${mandalaFont9x9}px; --mandala-font-sidebar: ${mandalaFontSidebar}px;`}
+    style={`--font-text-size: ${$localFontStore}px; --mandala-font-3x3: ${mandalaFont3x3}px; --mandala-font-9x9: ${mandalaFont9x9}px; --mandala-font-7x9: ${mandalaFont7x9}px; --mandala-font-sidebar: ${mandalaFontSidebar}px;`}
     use:viewHotkeysAction={{ view }}
     use:showContextMenu={view}
     tabindex="0"
@@ -74,6 +82,7 @@
             />
         {/if}
         <MandalaViewComponent />
+        <CellPreviewDialog />
         {#if $controls.showHelpSidebar}
             <HotkeysModal />
         {/if}
@@ -112,5 +121,4 @@
         user-select: none;
         -webkit-user-select: none;
     }
-
 </style>

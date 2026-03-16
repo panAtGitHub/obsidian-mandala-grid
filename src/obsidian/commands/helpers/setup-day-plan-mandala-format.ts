@@ -20,6 +20,7 @@ import {
     daysInYear,
     DAY_PLAN_DEFAULT_SLOT_TITLES,
     DAY_PLAN_FRONTMATTER_KEY,
+    getDayPlanDateHeadingSettings,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
     slotsRecordToArray,
@@ -150,17 +151,32 @@ const getPlanDayFromToday = (planYear: number) => {
     return dayOfYearFromDate(planYear, month, day);
 };
 
+const getDateHeadingSettings = (plugin: MandalaGrid) =>
+    getDayPlanDateHeadingSettings({
+        format: plugin.settings.getValue().general.dayPlanDateHeadingFormat,
+        customTemplate:
+            plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
+        applyMode:
+            plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+    });
+
 const createYearPlanBodyAsync = async (
     planYear: number,
     todaySection: number,
     slots: string[],
+    dateHeadingSettings: ReturnType<typeof getDateHeadingSettings>,
     onProgress: (done: number, total: number) => void,
 ) => {
     const totalDays = daysInYear(planYear);
     const lines: string[] = [];
     for (let day = 1; day <= totalDays; day += 1) {
         lines.push(`<!--section: ${day}-->`);
-        lines.push(buildCenterDateHeading(dateFromDayOfYear(planYear, day)));
+        lines.push(
+            buildCenterDateHeading(
+                dateFromDayOfYear(planYear, day),
+                dateHeadingSettings,
+            ),
+        );
         if (day === todaySection) {
             for (let i = 1; i <= 8; i += 1) {
                 lines.push(`<!--section: ${todaySection}.${i}-->`);
@@ -369,6 +385,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
 
     const slots = await chooseSlots(plugin, initialSlots);
     if (!slots) return;
+    const dateHeadingSettings = getDateHeadingSettings(plugin);
 
     let nextBody = body;
     let firstRun = !(existingPlan?.enabled === true);
@@ -379,6 +396,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
             selectedYear,
             Number(todaySection),
             slots,
+            dateHeadingSettings,
             (done, total) => {
                 new Notice(`正在生成：${done}/${total}`, 800);
             },
@@ -416,7 +434,10 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     const nextFrontmatter = buildDayPlanFrontmatter(frontmatter, {
         year: selectedYear,
         dailyOnly3x3,
-        centerDateH2: buildCenterDateHeading(getTodayIsoDate()),
+        centerDateH2: buildCenterDateHeading(
+            getTodayIsoDate(),
+            dateHeadingSettings,
+        ),
         slots,
     });
     const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);

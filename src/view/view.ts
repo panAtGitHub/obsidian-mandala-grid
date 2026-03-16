@@ -47,9 +47,12 @@ import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-a
 import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
 import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
 import {
+    DayPlanTodayNavigation,
+    resolveDayPlanTodayNavigation,
     MandalaProfileActivation,
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
+import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
 import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
@@ -60,6 +63,7 @@ import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
 import {
     layoutIdToOrientation,
+    findMandalaCustomLayout,
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
@@ -84,8 +88,9 @@ export class MandalaView extends TextFileView {
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
-    mandalaMode: '3x3' | '9x9' = '3x3';
+    mandalaMode: '3x3' | '9x9' | 'week-7x9' = '3x3';
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
+    mandalaActiveCellWeek7x9: { row: number; col: number } | null = null;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
     private hasPendingExplicitJump = false;
@@ -110,6 +115,8 @@ export class MandalaView extends TextFileView {
         {
             subgridTheme: string;
             activeCell9x9: { row: number; col: number } | null;
+            activeCellWeek7x9: { row: number; col: number } | null;
+            weekAnchorDate: string | null;
         }
     >();
     constructor(
@@ -170,6 +177,29 @@ export class MandalaView extends TextFileView {
         });
     }
 
+    private ensureCurrentFileCustomLayoutAvailable(
+        path: string,
+        settings = this.plugin.settings.getValue(),
+    ) {
+        const persistedMandalaView = settings.documents[path]?.mandalaView;
+        const layoutId = persistedMandalaView?.selectedLayoutId;
+        const selectedCustomLayout = persistedMandalaView?.selectedCustomLayout;
+        if (!layoutId?.startsWith('custom:') || !selectedCustomLayout) {
+            return settings;
+        }
+        const customLayouts = settings.view.mandalaGridCustomLayouts ?? [];
+        if (findMandalaCustomLayout(customLayouts, layoutId)) {
+            return settings;
+        }
+        this.plugin.settings.dispatch({
+            type: 'settings/view/mandala/add-custom-grid-layout',
+            payload: {
+                layout: selectedCustomLayout,
+            },
+        });
+        return this.plugin.settings.getValue();
+    }
+
     isMandalaDetailSidebarVisible(settings = this.plugin.settings.getValue()) {
         const path = this.getCurrentFilePath();
         const persisted = path ? settings.documents[path]?.mandalaView : null;
@@ -203,6 +233,42 @@ export class MandalaView extends TextFileView {
                 : settings.documents[this.getCurrentFilePath() ?? '']
                       ?.mandalaView?.showDetailSidebarMobile ?? null,
         });
+    }
+
+    canUseWeekPlanMode(
+        frontmatter = this.documentStore.getValue().file.frontmatter,
+    ) {
+        return (
+            this.plugin.settings.getValue().general.weekPlanEnabled &&
+            Boolean(parseDayPlanFrontmatter(frontmatter))
+        );
+    }
+
+    setMandalaMode(mode: '3x3' | '9x9' | 'week-7x9') {
+        if (mode === 'week-7x9' && !this.canUseWeekPlanMode()) {
+            new Notice('周计划视图仅支持已开启周计划功能、且启用日计划的九宫格文件。');
+            return false;
+        }
+        this.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-mode',
+            payload: { mode },
+        });
+        return true;
+    }
+
+    cycleMandalaMode() {
+        const current = this.plugin.settings.getValue().view.mandalaMode;
+        const weekPlanEnabled =
+            this.plugin.settings.getValue().general.weekPlanEnabled;
+        const next =
+            current === '3x3'
+                ? '9x9'
+                : current === '9x9'
+                  ? weekPlanEnabled
+                      ? 'week-7x9'
+                      : '3x3'
+                  : '3x3';
+        return this.setMandalaMode(next);
     }
 
     getViewData(): string {
@@ -618,15 +684,19 @@ export class MandalaView extends TextFileView {
         this.dayPlanHotCores = activation.hotCoreSections;
         const settings = this.plugin.settings.getValue();
         const filePath = this.file?.path ?? '';
-        const documentPreferences = settings.documents[filePath];
+        const hydratedSettings = this.ensureCurrentFileCustomLayoutAvailable(
+            filePath,
+            settings,
+        );
+        const documentPreferences = hydratedSettings.documents[filePath];
         const persistedMandalaViewState = documentPreferences?.mandalaView;
-        const customLayouts = settings.view.mandalaGridCustomLayouts;
+        const customLayouts = hydratedSettings.view.mandalaGridCustomLayouts;
         const currentSelectedLayoutId = resolveDocumentMandalaLayoutId({
             path: filePath,
-            settings,
+            settings: hydratedSettings,
         });
         const globalSelectedLayoutId = resolveMandalaLayoutId(
-            settings.view.mandalaGridSelectedLayoutId,
+            hydratedSettings.view.mandalaGridSelectedLayoutId,
             customLayouts,
         );
         const nextSelectedLayoutId = currentSelectedLayoutId;
@@ -732,6 +802,8 @@ export class MandalaView extends TextFileView {
         this.mandalaUiStateByPath.set(path, {
             subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
             activeCell9x9: viewState.ui.mandala.activeCell9x9,
+            activeCellWeek7x9: viewState.ui.mandala.activeCellWeek7x9,
+            weekAnchorDate: viewState.ui.mandala.weekAnchorDate,
         });
 
         this.persistCurrentMandalaViewState(undefined, path);
@@ -767,6 +839,12 @@ export class MandalaView extends TextFileView {
                 path,
                 settings,
             });
+        const selectedCustomLayout = selectedLayoutId?.startsWith('custom:')
+            ? findMandalaCustomLayout(
+                  settings.view.mandalaGridCustomLayouts ?? [],
+                  selectedLayoutId,
+              )
+            : null;
         const gridOrientation = layoutIdToOrientation(selectedLayoutId);
         const currentMandalaViewState = settings.documents[path]?.mandalaView;
         const showDetailSidebarDesktop =
@@ -781,6 +859,8 @@ export class MandalaView extends TextFileView {
         if (
             (currentMandalaViewState?.selectedLayoutId ?? null) ===
                 selectedLayoutId &&
+            JSON.stringify(currentMandalaViewState?.selectedCustomLayout ?? null) ===
+                JSON.stringify(selectedCustomLayout ?? null) &&
             currentMandalaViewState?.gridOrientation === gridOrientation &&
             (currentMandalaViewState?.lastActiveSection ?? null) ===
                 lastActiveSection &&
@@ -799,6 +879,7 @@ export class MandalaView extends TextFileView {
                 path,
                 gridOrientation,
                 selectedLayoutId,
+                selectedCustomLayout: selectedCustomLayout ?? null,
                 lastActiveSection,
                 subgridTheme,
                 showDetailSidebarDesktop,
@@ -811,6 +892,8 @@ export class MandalaView extends TextFileView {
         const nextState = this.mandalaUiStateByPath.get(path);
         const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
         const activeCell9x9 = nextState?.activeCell9x9 ?? null;
+        const activeCellWeek7x9 = nextState?.activeCellWeek7x9 ?? null;
+        const weekAnchorDate = nextState?.weekAnchorDate ?? null;
 
         this.viewStore.dispatch({
             type: 'view/mandala/subgrid/enter',
@@ -821,9 +904,18 @@ export class MandalaView extends TextFileView {
             payload: { cell: activeCell9x9 },
         });
         this.viewStore.dispatch({
+            type: 'view/mandala/week-active-cell/set',
+            payload: { cell: activeCellWeek7x9 },
+        });
+        this.viewStore.dispatch({
+            type: 'view/mandala/week-anchor-date/set',
+            payload: { date: weekAnchorDate },
+        });
+        this.viewStore.dispatch({
             type: 'view/mandala/swap/cancel',
         });
         this.mandalaActiveCell9x9 = activeCell9x9;
+        this.mandalaActiveCellWeek7x9 = activeCellWeek7x9;
     }
 
     private collectSectionIdsFromBody(body: string) {
@@ -920,6 +1012,20 @@ export class MandalaView extends TextFileView {
             reason,
             error: message,
         });
+    }
+
+    getDayPlanTodayNavigation(date: Date = new Date()): DayPlanTodayNavigation {
+        return resolveDayPlanTodayNavigation(
+            this.documentStore.getValue().file.frontmatter,
+            date,
+        );
+    }
+
+    focusDayPlanToday(date: Date = new Date()) {
+        const navigation = this.getDayPlanTodayNavigation(date);
+        if (!navigation.targetSection) return false;
+        this.focusMandalaSection(navigation.targetSection);
+        return true;
     }
 
     private focusMandalaSection(targetSection: string) {
@@ -1042,7 +1148,11 @@ export class MandalaView extends TextFileView {
         ) {
             return this.cachedActivation.activation;
         }
-        const activation = resolveMandalaProfileActivation(frontmatter);
+        const activation = resolveMandalaProfileActivation(
+            frontmatter,
+            new Date(),
+            this.plugin.settings.getValue().general.weekStart,
+        );
         this.cachedActivation = { frontmatter, activation };
         return activation;
     }

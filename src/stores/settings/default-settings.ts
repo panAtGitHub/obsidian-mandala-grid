@@ -7,6 +7,8 @@ export const DEFAULT_INACTIVE_NODE_OPACITY = 25;
 export const DEFAULT_H1_FONT_SIZE_EM = 1.802;
 export const DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR = '#418cff';
 export const DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH = 2;
+export const DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP = 22;
+export const DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE = 16;
 export const DEFAULT_SETTINGS = (): Settings => ({
     documents: {},
     hotkeys: {
@@ -44,6 +46,9 @@ export const DEFAULT_SETTINGS = (): Settings => ({
             enable_edit_mode: {
                 primary: { key: 'Enter', modifiers: [] },
             },
+            toggle_cell_preview_dialog: {
+                primary: { key: 'Space', modifiers: [] },
+            },
             toggle_mandala_mode: {
                 primary: { key: 'l', modifiers: ['Mod'] },
             },
@@ -59,8 +64,14 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaFontSize3x3Mobile: 12,
         mandalaFontSize9x9Desktop: 11,
         mandalaFontSize9x9Mobile: 10,
+        mandalaFontSize7x9Desktop: 11,
+        mandalaFontSize7x9Mobile: 10,
         mandalaFontSizeSidebarDesktop: 16,
         mandalaFontSizeSidebarMobile: 12,
+        mandalaCellPreviewFontSizeDesktop:
+            DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
+        mandalaCellPreviewFontSizeMobile:
+            DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE,
         theme: {
             inactiveNodeOpacity: DEFAULT_INACTIVE_NODE_OPACITY,
         },
@@ -98,6 +109,10 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         show3x3SubgridNavButtonsMobile: true,
         show9x9ParallelNavButtonsDesktop: true,
         show9x9ParallelNavButtonsMobile: true,
+        showDayPlanTodayButtonDesktop: true,
+        showDayPlanTodayButtonMobile: true,
+        showCellQuickPreviewDialogDesktop: true,
+        showCellQuickPreviewDialogMobile: false,
         contextMenuCopyLinkVisibilityDesktop: {
             ...DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY,
         },
@@ -114,5 +129,12 @@ export const DEFAULT_SETTINGS = (): Settings => ({
     general: {
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
+        dayPlanEnabled: true,
+        weekPlanEnabled: true,
+        weekPlanCompactMode: true,
+        weekStart: 'monday',
+        dayPlanDateHeadingFormat: 'zh-short',
+        dayPlanDateHeadingCustomTemplate: '## {date} {cn}',
+        dayPlanDateHeadingApplyMode: 'manual',
     },
 });

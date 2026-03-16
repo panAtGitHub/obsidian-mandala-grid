@@ -11,6 +11,9 @@ export const MandalaFontSizes = (
     element: HTMLElement,
     settingsStore: SettingsStore,
 ) => {
+    const settings = settingsStore.getValue();
+    const showWeekPlanSettings = settings.general.weekPlanEnabled;
+
     if (Platform.isMobile) {
         RangeSetting(element, settingsStore, {
             label: lang.settings_appearance_mandala_font_size_3x3_mobile,
@@ -41,6 +44,23 @@ export const MandalaFontSizes = (
             max: MAX_FONT_SIZE,
             step: STEP,
         });
+
+        if (showWeekPlanSettings) {
+            RangeSetting(element, settingsStore, {
+                label: lang.settings_appearance_mandala_font_size_7x9_mobile,
+                defaultValue: 10,
+                valueSelector: (state) => state.view.mandalaFontSize7x9Mobile,
+                onChange: (value) => {
+                    settingsStore.dispatch({
+                        type: 'settings/view/font-size/set-7x9-mobile',
+                        payload: { fontSize: value },
+                    });
+                },
+                min: MIN_FONT_SIZE,
+                max: MAX_FONT_SIZE,
+                step: STEP,
+            });
+        }
 
         RangeSetting(element, settingsStore, {
             label: lang.settings_appearance_mandala_font_size_sidebar_mobile,
@@ -89,6 +109,23 @@ export const MandalaFontSizes = (
         max: MAX_FONT_SIZE,
         step: STEP,
     });
+
+    if (showWeekPlanSettings) {
+        RangeSetting(element, settingsStore, {
+            label: lang.settings_appearance_mandala_font_size_7x9_desktop,
+            defaultValue: 11,
+            valueSelector: (state) => state.view.mandalaFontSize7x9Desktop,
+            onChange: (value) => {
+                settingsStore.dispatch({
+                    type: 'settings/view/font-size/set-7x9-desktop',
+                    payload: { fontSize: value },
+                });
+            },
+            min: MIN_FONT_SIZE,
+            max: MAX_FONT_SIZE,
+            step: STEP,
+        });
+    }
 
     RangeSetting(element, settingsStore, {
         label: lang.settings_appearance_mandala_font_size_sidebar_desktop,

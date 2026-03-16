@@ -21,7 +21,11 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     const currentTheme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
     const dayPlan = parseDayPlanFrontmatter(docState.file.frontmatter);
     if (dayPlan) {
-        view.dayPlanHotCores = shiftHotWindowToCore(dayPlan.year, section);
+        view.dayPlanHotCores = shiftHotWindowToCore(
+            dayPlan.year,
+            section,
+            view.plugin.settings.getValue().general.weekStart,
+        );
     }
     if (dayPlan && dayPlan.daily_only_3x3 && section.includes('.')) {
         new Notice('已启用“每日仅九宫格”，不再展开子九宫。');

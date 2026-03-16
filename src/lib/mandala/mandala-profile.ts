@@ -4,6 +4,7 @@ import {
     parseDayPlanFrontmatterWithMandala,
     sectionFromDateInPlanYear,
 } from 'src/lib/mandala/day-plan';
+import type { WeekStart } from 'src/stores/settings/settings-type';
 
 export type MandalaProfileKind = 'none' | 'generic' | 'day-plan';
 
@@ -13,6 +14,12 @@ export type MandalaProfileActivation = {
     hotCoreSections: Set<string>;
     notice: string | null;
     dayPlan: DayPlanFrontmatter | null;
+};
+
+export type DayPlanTodayNavigation = {
+    isDayPlan: boolean;
+    targetSection: string | null;
+    canNavigate: boolean;
 };
 
 const stripFrontmatterMarkers = (frontmatter: string) =>
@@ -39,6 +46,7 @@ export const isMandalaFrontmatterEnabled = (frontmatter: string) => {
 export const resolveMandalaProfileActivation = (
     frontmatter: string,
     date: Date = new Date(),
+    weekStart: WeekStart = 'monday',
 ): MandalaProfileActivation => {
     const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
     if (!parsed.mandalaEnabled) {
@@ -76,8 +84,30 @@ export const resolveMandalaProfileActivation = (
     return {
         kind: 'day-plan',
         targetSection: todaySection,
-        hotCoreSections: getHotCoreSections(dayPlan.year, date),
+        hotCoreSections: getHotCoreSections(dayPlan.year, date, weekStart),
         notice: null,
         dayPlan,
+    };
+};
+
+export const resolveDayPlanTodayNavigation = (
+    frontmatter: string,
+    date: Date = new Date(),
+): DayPlanTodayNavigation => {
+    const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
+    const dayPlan = parsed.dayPlan;
+    if (!parsed.mandalaEnabled || !dayPlan || dayPlan.enabled !== true) {
+        return {
+            isDayPlan: false,
+            targetSection: null,
+            canNavigate: false,
+        };
+    }
+
+    const targetSection = sectionFromDateInPlanYear(dayPlan.year, date);
+    return {
+        isDayPlan: true,
+        targetSection,
+        canNavigate: targetSection !== null,
     };
 };

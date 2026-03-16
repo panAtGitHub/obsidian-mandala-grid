@@ -1,8 +1,10 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
+    import { CalendarDays } from 'lucide-svelte';
     import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
     import {
+        DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
         MandalaBorderOpacityStore,
@@ -15,9 +17,11 @@
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
         Show3x3SubgridNavButtonsStore,
+        ShowDayPlanTodayButtonStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
+        WeekStartStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
@@ -47,7 +51,14 @@
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
-    import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
+    import {
+        parseDayPlanFrontmatter,
+    } from 'src/lib/mandala/day-plan';
+    import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
+    import { lang } from 'src/lang/lang';
+    import MandalaWeek7x9 from 'src/view/components/mandala/mandala-week-7x9.svelte';
+    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+    import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -66,6 +77,9 @@
     const gridHighlightColor = MandalaGridHighlightColorStore(view);
     const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
+    const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
+    const dayPlanEnabled = DayPlanEnabledStore(view);
+    const weekStart = WeekStartStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const detailSidebarWidth = MandalaDetailSidebarWidthStore(view);
@@ -303,12 +317,19 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
+    let activeSection: string | null = null;
+    $: activeSection = $activeNodeId ? $idToSection[$activeNodeId] ?? null : null;
+    $: activeCoreSection = activeSection?.split('.')[0] ?? null;
 
     const subgridTheme = derived(
         view.viewStore,
         (state) => state.ui.mandala.subgridTheme,
     );
     const documentState = derived(view.documentStore, (state) => state);
+    const weekAnchorDate = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.weekAnchorDate,
+    );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
@@ -379,6 +400,7 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
+    let dayPlanTodayTargetSection: string | null = null;
     let cachedDayPlanFrontmatter: string | null = null;
     let cachedDayPlan = parseDayPlanFrontmatter('');
     const getCachedDayPlan = (frontmatter: string) => {
@@ -394,6 +416,18 @@
             view.viewStore.dispatch({
                 type: 'view/mandala/subgrid/enter',
                 payload: { theme: '1' },
+            });
+        }
+
+        if (
+            $mode === 'week-7x9' &&
+            (!$dayPlanEnabled ||
+                !view.plugin.settings.getValue().general.weekPlanEnabled ||
+                !getCachedDayPlan($documentState.file.frontmatter))
+        ) {
+            view.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-mode',
+                payload: { mode: '3x3' },
             });
         }
 
@@ -442,10 +476,46 @@
                 }
             }
         }
+
+        if ($mode !== 'week-7x9') {
+            if (view.mandalaActiveCellWeek7x9) {
+                setActiveCellWeek7x9(view, null);
+            }
+        } else {
+            const weekContext = resolveWeekPlanContext({
+                frontmatter: $documentState.file.frontmatter,
+                anchorDate: $weekAnchorDate,
+                weekStart: $weekStart,
+            });
+            const anchorDate = weekContext.anchorDate;
+            if (!$weekAnchorDate) {
+                view.viewStore.dispatch({
+                    type: 'view/mandala/week-anchor-date/set',
+                    payload: { date: anchorDate },
+                });
+            }
+            const section = $idToSection[$activeNodeId];
+            const pos = weekContext.posForSection(section);
+            const cell = view.mandalaActiveCellWeek7x9;
+            if (!section) {
+                if (cell) {
+                    setActiveCellWeek7x9(view, null);
+                }
+            } else if (cell) {
+                const mapped = weekContext.sectionForCell(cell.row, cell.col);
+                if (!mapped || mapped !== section) {
+                    setActiveCellWeek7x9(view, pos ?? null);
+                }
+            }
+        }
     }
 
     $: {
         const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
+        const todayNavigation = resolveDayPlanTodayNavigation(
+            $documentState.file.frontmatter,
+        );
+        dayPlanTodayTargetSection = todayNavigation.targetSection;
         const allowSubgridExpansion = !(
             dayPlan &&
             dayPlan.daily_only_3x3 &&
@@ -510,12 +580,18 @@
 
     const getDownButtonLabel = (theme: string) =>
         theme.includes('.') ? '进入下一层子九宫格' : '下一层核心九宫格';
+
+    const focusDayPlanTodayFromButton = (event: MouseEvent) => {
+        event.stopPropagation();
+        view.focusDayPlanToday();
+    };
 </script>
 
 <div
     class="mandala-root"
     class:mandala-root--3={$mode === '3x3'}
     class:mandala-root--9={$mode === '9x9'}
+    class:mandala-root--week={$mode === 'week-7x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
@@ -694,6 +770,31 @@
                                                         </span>
                                                     </button>
                                                 {/if}
+                                                {#if $dayPlanEnabled &&
+                                                    $showDayPlanTodayButton &&
+                                                    dayPlanTodayTargetSection &&
+                                                    activeCoreSection !==
+                                                        dayPlanTodayTargetSection}
+                                                    <button
+                                                        class="mandala-subgrid-btn mandala-subgrid-btn--today"
+                                                        type="button"
+                                                        aria-label={lang.day_plan_today_button_label}
+                                                        title={lang.day_plan_today_button_label}
+                                                        on:click={(event) =>
+                                                            focusDayPlanTodayFromButton(
+                                                                event,
+                                                            )}
+                                                    >
+                                                        <span
+                                                            class="mandala-subgrid-btn__icon"
+                                                        >
+                                                            <CalendarDays
+                                                                size={14}
+                                                                strokeWidth={2.2}
+                                                            />
+                                                        </span>
+                                                    </button>
+                                                {/if}
                                             {:else}
                                                 <button
                                                     class="mandala-subgrid-btn mandala-subgrid-btn--single"
@@ -731,8 +832,10 @@
                             </div>
                         {/each}
                     </div>
-                {:else}
+                {:else if $mode === '9x9'}
                     <MandalaOverviewSimple />
+                {:else}
+                    <MandalaWeek7x9 />
                 {/if}
             </div>
 
@@ -1014,6 +1117,8 @@
     }
 
     .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
+        :global(.mandala-card),
+    .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
         :global(.mandala-card) {
         border: 1px solid var(--text-normal) !important;
         border-left-width: 1px !important;
@@ -1022,6 +1127,8 @@
     }
 
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card),
+    .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card) {
         border-left-width: 0 !important;
         border-left-style: solid !important;
@@ -1030,6 +1137,10 @@
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card.node-border--active),
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--selected),
+    .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--active),
+    .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card.node-border--selected) {
         border-left-color: transparent !important;
     }
@@ -1037,8 +1148,14 @@
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected),
+    .mandala-a4-mode.mandala-root--week :global(.mandala-card.active-node),
+    .mandala-a4-mode.mandala-root--week
+        :global(.mandala-card.node-border--selected),
     .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected),
+    .mandala-white-theme.mandala-root--week :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--week
         :global(.mandala-card.node-border--selected) {
         position: relative;
     }
@@ -1046,9 +1163,17 @@
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected)::after,
+    .mandala-a4-mode.mandala-root--week
+        :global(.mandala-card.active-node)::after,
+    .mandala-a4-mode.mandala-root--week
+        :global(.mandala-card.node-border--selected)::after,
     .mandala-white-theme.mandala-root--3
         :global(.mandala-card.active-node)::after,
     .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after,
+    .mandala-white-theme.mandala-root--week
+        :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--week
         :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
@@ -1066,7 +1191,19 @@
         --mandala-card-overflow: hidden;
     }
 
+    .mandala-root--week {
+        --mandala-card-height: 100%;
+        --mandala-card-min-height: 0px;
+        --mandala-card-overflow: hidden;
+    }
+
     .mandala-root--3 .mandala-empty {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .mandala-root--week .mandala-empty {
         width: 100%;
         height: 100%;
         min-height: 0;
@@ -1159,6 +1296,12 @@
     .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--down {
         position: absolute;
         right: 0;
+        bottom: 0;
+    }
+
+    .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--today {
+        position: absolute;
+        left: calc(50% - 12px);
         bottom: 0;
     }
 
@@ -1306,12 +1449,27 @@
         overflow: auto;
     }
 
+    .mandala-root--week :global(.editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
     .mandala-root--3 :global(.draggable),
     .mandala-root--3 :global(.draggable .content) {
         height: 100%;
     }
 
+    .mandala-root--week :global(.draggable),
+    .mandala-root--week :global(.draggable .content) {
+        height: 100%;
+    }
+
     .mandala-root--3 :global(.mandala-card .drag-handle) {
+        display: none !important;
+    }
+
+    .mandala-root--week :global(.mandala-card .drag-handle) {
         display: none !important;
     }
 

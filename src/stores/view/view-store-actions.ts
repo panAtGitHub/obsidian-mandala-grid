@@ -16,31 +16,40 @@ import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-
 
 export type MandalaActions =
     | {
-        type: 'view/mandala/subgrid/enter';
-        payload: { theme: string };
-    }
+          type: 'view/mandala/subgrid/enter';
+          payload: { theme: string };
+      }
     | {
-        type: 'view/mandala/subgrid/exit';
-    }
+          type: 'view/mandala/subgrid/exit';
+      }
     | {
-        type: 'view/mandala/active-cell/set';
-        payload: { cell: { row: number; col: number } | null };
-    }
+          type: 'view/mandala/active-cell/set';
+          payload: { cell: { row: number; col: number } | null };
+      }
     | {
-        type: 'view/mandala/swap/start';
-        payload: { sourceNodeId: string; targetNodeIds: string[] };
-    }
+          type: 'view/mandala/week-active-cell/set';
+          payload: { cell: { row: number; col: number } | null };
+      }
     | {
-        type: 'view/mandala/swap/animate';
-    }
+          type: 'view/mandala/week-anchor-date/set';
+          payload: { date: string | null };
+      }
     | {
-        type: 'view/mandala/swap/cancel';
-    };
+          type: 'view/mandala/swap/start';
+          payload: { sourceNodeId: string; targetNodeIds: string[] };
+      }
+    | {
+          type: 'view/mandala/swap/animate';
+      }
+    | {
+          type: 'view/mandala/swap/cancel';
+      };
 
 export type ViewStoreAction =
     | SearchAction
     | ViewUIAction
     | ViewDocumentAction
+    | PreviewDialogAction
     | NodeSelectionAction
     | SidebarActions
     | KeyboardEventAction
@@ -59,6 +68,15 @@ export type ViewUIAction =
     | ToggleHelpSidebarAction
     | ToggleSettingsSidebarAction
     | { type: 'view/close-modals'; payload?: { closeAllModals: boolean } };
+
+export type PreviewDialogAction =
+    | {
+          type: 'view/preview-dialog/open';
+          payload: { nodeId: string };
+      }
+    | {
+          type: 'view/preview-dialog/close';
+      };
 
 export type ToggleEditModeAction = {
     type: 'view/editor/enable-main-editor';
@@ -82,24 +100,24 @@ export type ViewDocumentAction =
     | SetDragCanceled
     | UpdateActiveBranchAction
     | {
-        type: 'view/editor/disable/reset-confirmation';
-    }
+          type: 'view/editor/disable/reset-confirmation';
+      }
     | {
-        type: 'view/delete-node/reset-confirmation';
-    }
+          type: 'view/delete-node/reset-confirmation';
+      }
     | {
-        type: 'view/delete-node/confirm';
-        payload: {
-            id: string;
-            includeSelection?: boolean;
-        };
-    }
+          type: 'view/delete-node/confirm';
+          payload: {
+              id: string;
+              includeSelection?: boolean;
+          };
+      }
     | {
-        type: 'view/editor/disable/confirm';
-        payload: {
-            id: string;
-        };
-    }
+          type: 'view/editor/disable/confirm';
+          payload: {
+              id: string;
+          };
+      }
     | { type: 'view/selection/clear-selection' };
 type ToggleHelpSidebarAction = {
     type: 'view/hotkeys/toggle-modal';
@@ -146,11 +164,11 @@ export type DisableEditInSidebar = {
 
 export type KeyboardEventAction =
     | {
-        type: 'view/keyboard/shift/down';
-    }
+          type: 'view/keyboard/shift/down';
+      }
     | {
-        type: 'view/keyboard/shift/up';
-    };
+          type: 'view/keyboard/shift/up';
+      };
 
 export type ViewHotkeysAction =
     | SetSearchTermAction

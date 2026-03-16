@@ -14,6 +14,7 @@ export const lang = {
     cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
     cmd_write_current_core_day_plan_slots_to_yaml:
         '将当前核心九宫的 8 个标题写回「日计划」模板',
+    cmd_refresh_day_plan_date_headings: '按当前设置刷新日计划日期标题',
     cmd_open_export_mode: '打开导出模式',
     ocm_new_document: '新建九宫格文档',
 
@@ -35,6 +36,7 @@ export const lang = {
     hk_enable_edit_mode: '编辑卡片',
     hk_enable_edit_mode_and_place_cursor_at_start: '编辑卡片并将光标置于开头',
     hk_enable_edit_mode_and_place_cursor_at_end: '编辑卡片并将光标置于末尾',
+    hk_toggle_cell_preview_dialog: '切换格子预览弹层',
     hkg_edit_nodes: '编辑',
     modal_hk_editor_state_on: '仅在编辑器激活时启用',
     modal_hk_editor_state_off: '仅在编辑器未激活时启用',
@@ -225,6 +227,10 @@ export const lang = {
     settings_appearance_mandala_font_size_9x9_desktop: '9×9 格子字体大小（PC）',
     settings_appearance_mandala_font_size_9x9_mobile:
         '9×9 格子字体大小（手机）',
+    settings_appearance_mandala_font_size_7x9_desktop:
+        '7×9 周计划字体大小（PC）',
+    settings_appearance_mandala_font_size_7x9_mobile:
+        '7×9 周计划字体大小（手机）',
     settings_appearance_mandala_font_size_sidebar_desktop:
         '详情侧边栏字体大小（PC）',
     settings_appearance_mandala_font_size_sidebar_mobile:
@@ -301,6 +307,40 @@ export const lang = {
     settings_general_link_split: 'Open in new split',
     settings_general_link_tab: 'Open in new tab',
     settings_general_link_behavior: 'Default link behavior',
+    settings_plugin_title: 'Mandala Grid 设置',
+    settings_general_day_plan_enabled: '启用「日计划」功能',
+    settings_general_day_plan_enabled_desc:
+        '关闭后，会移除命令面板中所有与「日计划」相关的命令。',
+    settings_general_week_plan_enabled: '启用「周计划」功能',
+    settings_general_week_plan_enabled_desc:
+        '关闭后，会隐藏 7×9 周计划视图及其相关设置。',
+    settings_general_week_plan_compact_mode: '7×9 周计划紧凑显示',
+    settings_general_week_plan_compact_mode_desc:
+        '开启后，会进一步压缩 7×9 周计划格子的边距与文本间距，以优先显示更多内容。',
+    settings_general_day_plan_date_heading_format: '日计划日期标题格式',
+    settings_general_day_plan_date_heading_format_desc:
+        '控制如“## 2026-03-16 一”这类日期标题的显示格式。',
+    settings_general_day_plan_date_heading_format_date_only: '仅日期',
+    settings_general_day_plan_date_heading_format_zh_full: '日期 + 周一至周日',
+    settings_general_day_plan_date_heading_format_zh_short: '日期 + 一至日',
+    settings_general_day_plan_date_heading_format_en_short: '日期 + mon至sun',
+    settings_general_day_plan_date_heading_format_custom: '日期 + 自定义',
+    settings_general_day_plan_date_heading_custom_template:
+        '日计划日期标题自定义模板',
+    settings_general_day_plan_date_heading_custom_template_desc:
+        '支持 {date} {cn} {zh} {en} {en_full} {en_cap}。例如：## {date} {zh}',
+    settings_general_day_plan_date_heading_apply_mode: '日计划日期标题生效时机',
+    settings_general_day_plan_date_heading_apply_mode_desc:
+        '立即生效会在自动同步入口更新当前文档；手动生效需运行刷新命令。',
+    settings_general_day_plan_date_heading_apply_mode_immediate: '立即生效',
+    settings_general_day_plan_date_heading_apply_mode_manual:
+        '手动运行命令生效',
+    settings_display_day_plan_today_button: '日计划“回到今天”按钮',
+    day_plan_today_button_label: '回到今天',
+    notice_day_plan_date_headings_refreshed: '已按当前设置刷新日计划日期标题。',
+    notice_day_plan_date_headings_already_latest:
+        '当前日计划日期标题已是最新，无需刷新。',
+    notice_day_plan_not_active_file: '当前文件不是日计划模式。',
 
     // hotkeys
     hk_enter_subgrid: '进入子九宫',

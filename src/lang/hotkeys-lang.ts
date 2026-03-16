@@ -7,6 +7,7 @@ export const hotkeysLang = {
         lang.hk_enable_edit_mode_and_place_cursor_at_start,
     enable_edit_mode_and_place_cursor_at_end:
         lang.hk_enable_edit_mode_and_place_cursor_at_end,
+    toggle_cell_preview_dialog: lang.hk_toggle_cell_preview_dialog,
     disable_edit_mode: lang.hk_disable_edit_mode,
     add_child: lang.card_btn_add_child_node,
     add_below: lang.card_btn_add_node_below,

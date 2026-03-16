@@ -1,17 +1,31 @@
 import {
     addDaysIsoDate,
     allSlotsFilled,
+    buildCenterDateHeading,
+    DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
+    DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS,
     dateFromDayOfYear,
     dayOfYearFromDate,
     daysInYear,
     extractDateFromCenterHeading,
+    getChineseFullWeekdayLabel,
+    getChineseWeekdayLabel,
+    getDayPlanDateHeadingSettings,
+    getEnglishCapitalizedWeekdayLabel,
+    getEnglishFullWeekdayLabel,
+    getEnglishShortWeekdayLabel,
     getHotCoreSections,
+    getStartOfWeekIsoDate,
+    getWeekIsoDates,
     hasValidCenterDateHeading,
     isLeapYear,
     isIsoDate,
+    mapWeekPlanRows,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
+    posOfSectionWeek7x9,
     sectionFromDateInPlanYear,
+    sectionAtCellWeek7x9,
     shiftHotWindowToCore,
     toSlotsRecord,
     upsertCenterDateHeading,
@@ -52,24 +66,102 @@ describe('day-plan helpers', () => {
 
     it('extracts date from H2 heading only', () => {
         expect(extractDateFromCenterHeading('## 2026-02-10')).toBe('2026-02-10');
+        expect(extractDateFromCenterHeading('## 2026-02-10 二')).toBe(
+            '2026-02-10',
+        );
         expect(extractDateFromCenterHeading('2026-02-10')).toBeNull();
         expect(extractDateFromCenterHeading('### 2026-02-10')).toBeNull();
     });
 
     it('checks section center heading validity', () => {
         expect(hasValidCenterDateHeading('## 2026-02-10\ntext')).toBe(true);
+        expect(hasValidCenterDateHeading('## 2026-02-10 二\ntext')).toBe(true);
         expect(hasValidCenterDateHeading('### 2026-02-10\ntext')).toBe(false);
         expect(hasValidCenterDateHeading('')).toBe(false);
     });
 
     it('upserts center heading and keeps body', () => {
         expect(upsertCenterDateHeading('plain body', '2026-02-10')).toBe(
-            '## 2026-02-10\nplain body',
+            '## 2026-02-10 二\nplain body',
         );
 
         expect(
             upsertCenterDateHeading('## 2025-01-01\nbody', '2026-02-10'),
-        ).toBe('## 2026-02-10\nbody');
+        ).toBe('## 2026-02-10 二\nbody');
+    });
+
+    it('builds center heading with chinese weekday', () => {
+        expect(getChineseWeekdayLabel('2026-03-16')).toBe('一');
+        expect(getChineseFullWeekdayLabel('2026-03-16')).toBe('周一');
+        expect(getEnglishShortWeekdayLabel('2026-03-16')).toBe('mon');
+        expect(getEnglishCapitalizedWeekdayLabel('2026-03-16')).toBe('Mon');
+        expect(getEnglishFullWeekdayLabel('2026-03-16')).toBe('Monday');
+        expect(buildCenterDateHeading('2026-03-16')).toBe('## 2026-03-16 一');
+    });
+
+    it('supports all preset heading formats', () => {
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'date-only',
+            }),
+        ).toBe('## 2026-03-16');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'zh-full',
+            }),
+        ).toBe('## 2026-03-16 周一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'zh-short',
+            }),
+        ).toBe('## 2026-03-16 一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'en-short',
+            }),
+        ).toBe('## 2026-03-16 mon');
+    });
+
+    it('renders custom templates and falls back safely', () => {
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '## {date} {zh} {en_cap} {en_full}',
+            }),
+        ).toBe('## 2026-03-16 周一 Mon Monday');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '{date} {cn}',
+            }),
+        ).toBe('## 2026-03-16 一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '',
+            }),
+        ).toBe('## 2026-03-16 一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '## {zh}',
+            }),
+        ).toBe('## 2026-03-16 周一');
+    });
+
+    it('normalizes missing heading settings with defaults', () => {
+        expect(getDayPlanDateHeadingSettings(null)).toEqual(
+            DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS,
+        );
+        expect(
+            getDayPlanDateHeadingSettings({
+                format: 'custom',
+            }),
+        ).toEqual({
+            format: 'custom',
+            customTemplate: DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
+            applyMode: 'manual',
+        });
     });
 
     it('upserts slot heading and keeps body', () => {
@@ -201,5 +293,39 @@ describe('day-plan helpers', () => {
         const sections = shiftHotWindowToCore(2026, '120');
         expect(sections.has('120')).toBe(true);
         expect(sections.has('119')).toBe(true);
+    });
+
+    it('calculates week start and week dates for monday/sunday', () => {
+        expect(getStartOfWeekIsoDate('2026-03-18', 'monday')).toBe(
+            '2026-03-16',
+        );
+        expect(getStartOfWeekIsoDate('2026-03-18', 'sunday')).toBe(
+            '2026-03-15',
+        );
+        expect(getWeekIsoDates('2026-03-18', 'monday')).toEqual([
+            '2026-03-16',
+            '2026-03-17',
+            '2026-03-18',
+            '2026-03-19',
+            '2026-03-20',
+            '2026-03-21',
+            '2026-03-22',
+        ]);
+    });
+
+    it('maps week rows and cells for in-year and cross-year dates', () => {
+        const rows = mapWeekPlanRows(2026, '2026-03-18', 'monday');
+        expect(rows[0]).toMatchObject({
+            date: '2026-03-16',
+            coreSection: '75',
+            inPlanYear: true,
+        });
+        expect(sectionAtCellWeek7x9(0, 0, rows)).toBe('75');
+        expect(sectionAtCellWeek7x9(0, 3, rows)).toBe('75.3');
+        expect(posOfSectionWeek7x9('75.3', rows)).toEqual({ row: 0, col: 3 });
+
+        const crossYearRows = mapWeekPlanRows(2026, '2026-12-31', 'monday');
+        expect(crossYearRows[5]?.inPlanYear).toBe(false);
+        expect(sectionAtCellWeek7x9(5, 0, crossYearRows)).toBeNull();
     });
 });

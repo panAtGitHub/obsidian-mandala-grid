@@ -31,6 +31,18 @@ export const MandalaFontSize9x9MobileStore = (view: MandalaView) =>
         (state) => state.view.mandalaFontSize9x9Mobile,
     );
 
+export const MandalaFontSize7x9DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize7x9Desktop,
+    );
+
+export const MandalaFontSize7x9MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize7x9Mobile,
+    );
+
 export const MandalaFontSizeSidebarDesktopStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
@@ -41,6 +53,18 @@ export const MandalaFontSizeSidebarMobileStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
         (state) => state.view.mandalaFontSizeSidebarMobile,
+    );
+
+export const MandalaCellPreviewFontSizeDesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaCellPreviewFontSizeDesktop,
+    );
+
+export const MandalaCellPreviewFontSizeMobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaCellPreviewFontSizeMobile,
     );
 
 export const ShowLeftSidebarStore = (view: MandalaView) =>
@@ -62,9 +86,8 @@ export const MandalaGridOrientationStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaGridOrientation);
 
 export const MandalaGridSelectedLayoutIdStore = (view: MandalaView) =>
-    derived(
-        view.plugin.settings,
-        (state) => view.getCurrentMandalaLayoutId(state),
+    derived(view.plugin.settings, (state) =>
+        view.getCurrentMandalaLayoutId(state),
     );
 
 export const MandalaGridCustomLayoutsStore = (view: MandalaView) =>
@@ -109,15 +132,40 @@ export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
             : state.view.show9x9ParallelNavButtonsDesktop ?? true,
     );
 
+export const ShowDayPlanTodayButtonStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.showDayPlanTodayButtonMobile ?? true
+            : state.view.showDayPlanTodayButtonDesktop ?? true,
+    );
+
+export const ShowCellQuickPreviewDialogStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.showCellQuickPreviewDialogMobile ?? false
+            : state.view.showCellQuickPreviewDialogDesktop ?? true,
+    );
+
+export const DayPlanEnabledStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.dayPlanEnabled);
+
+export const WeekPlanEnabledStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekPlanEnabled);
+
+export const WeekPlanCompactModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekPlanCompactMode);
+
+export const WeekStartStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekStart);
+
 export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) =>
         resolveContextMenuCopyLinkVisibility(state.view),
     );
 
 export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
-    derived(
-        view.plugin.settings,
-        (state) => view.isMandalaDetailSidebarVisible(state),
+    derived(view.plugin.settings, (state) =>
+        view.isMandalaDetailSidebarVisible(state),
     );
 
 export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>

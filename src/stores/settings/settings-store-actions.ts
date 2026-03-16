@@ -1,14 +1,18 @@
 import {
     ContextMenuCopyLinkVariant,
     CustomHotkeys,
+    DayPlanDateHeadingApplyMode,
+    DayPlanDateHeadingFormat,
     DetailSidebarPreviewMode,
     DocumentPreferences,
     LeftSidebarTab,
     MandalaCustomLayout,
     MandalaGridOrientation,
+    MandalaMode,
     MandalaSectionColorAssignments,
     LinkPaneType,
     ViewType,
+    WeekStart,
 } from 'src/stores/settings/settings-type';
 import { ChangeZoomLevelAction } from 'src/stores/settings/reducers/change-zoom-level';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
@@ -71,11 +75,27 @@ export type SettingsActions =
           payload: { fontSize: number };
       }
     | {
+          type: 'settings/view/font-size/set-7x9-desktop';
+          payload: { fontSize: number };
+      }
+    | {
+          type: 'settings/view/font-size/set-7x9-mobile';
+          payload: { fontSize: number };
+      }
+    | {
           type: 'settings/view/font-size/set-sidebar-desktop';
           payload: { fontSize: number };
       }
     | {
           type: 'settings/view/font-size/set-sidebar-mobile';
+          payload: { fontSize: number };
+      }
+    | {
+          type: 'settings/view/font-size/set-cell-preview-desktop';
+          payload: { fontSize: number };
+      }
+    | {
+          type: 'settings/view/font-size/set-cell-preview-mobile';
           payload: { fontSize: number };
       }
     | {
@@ -139,6 +159,12 @@ export type SettingsActions =
       }
     | { type: 'view/modes/gap-between-cards/toggle' }
     | { type: 'settings/view/mandala/toggle-mode' }
+    | {
+          type: 'settings/view/mandala/set-mode';
+          payload: {
+              mode: MandalaMode;
+          };
+      }
     | { type: 'view/mandala-detail-sidebar/toggle' }
     | {
           type: 'view/mandala-detail-sidebar/set-width';
@@ -164,6 +190,18 @@ export type SettingsActions =
       }
     | {
           type: 'settings/view/toggle-9x9-parallel-nav-buttons-mobile';
+      }
+    | {
+          type: 'settings/view/toggle-day-plan-today-button-desktop';
+      }
+    | {
+          type: 'settings/view/toggle-day-plan-today-button-mobile';
+      }
+    | {
+          type: 'settings/view/toggle-cell-quick-preview-dialog-desktop';
+      }
+    | {
+          type: 'settings/view/toggle-cell-quick-preview-dialog-mobile';
       }
     | {
           type: 'settings/view/context-menu-copy-link/set-visibility';
@@ -210,6 +248,48 @@ export type SettingsActions =
           type: 'settings/general/set-mandala-templates-file-path';
           payload: {
               path: string | null;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-enabled';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
+          type: 'settings/general/set-week-plan-enabled';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
+          type: 'settings/general/set-week-plan-compact-mode';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
+          type: 'settings/general/set-week-start';
+          payload: {
+              weekStart: WeekStart;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-date-heading-format';
+          payload: {
+              format: DayPlanDateHeadingFormat;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-date-heading-custom-template';
+          payload: {
+              template: string;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-date-heading-apply-mode';
+          payload: {
+              mode: DayPlanDateHeadingApplyMode;
           };
       }
     | {
@@ -281,20 +361,18 @@ export type SettingsActions =
     | {
           type: 'settings/view/mandala/set-last-export-preset';
           payload: {
-              preset:
-                  | {
-                        exportMode: 'png-square' | 'png-screen' | 'pdf-a4';
-                        includeSidebar: boolean;
-                        a4Orientation: 'portrait' | 'landscape';
-                        backgroundMode: 'none' | 'custom' | 'gray';
-                        sectionColorOpacity: number;
-                        borderOpacity: number;
-                        gridHighlightColor?: string;
-                        gridHighlightWidth?: number;
-                        whiteThemeMode: boolean;
-                        squareLayout: boolean;
-                    }
-                  | null;
+              preset: {
+                  exportMode: 'png-square' | 'png-screen' | 'pdf-a4';
+                  includeSidebar: boolean;
+                  a4Orientation: 'portrait' | 'landscape';
+                  backgroundMode: 'none' | 'custom' | 'gray';
+                  sectionColorOpacity: number;
+                  borderOpacity: number;
+                  gridHighlightColor?: string;
+                  gridHighlightWidth?: number;
+                  whiteThemeMode: boolean;
+                  squareLayout: boolean;
+              } | null;
           };
       };
 export type PersistActiveNodeAction = {
@@ -310,6 +388,7 @@ export type PersistMandalaViewStateAction = {
         path: string;
         gridOrientation: MandalaGridOrientation;
         selectedLayoutId: string | null;
+        selectedCustomLayout?: MandalaCustomLayout | null;
         lastActiveSection: string | null;
         subgridTheme: string | null;
         showDetailSidebarDesktop: boolean | null;

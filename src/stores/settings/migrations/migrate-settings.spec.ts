@@ -96,6 +96,7 @@ describe('migrateSettings', () => {
         expect(settings.documents['foo.md'].mandalaView).toEqual({
             gridOrientation: null,
             selectedLayoutId: null,
+            selectedCustomLayout: null,
             lastActiveSection: null,
             subgridTheme: null,
             showDetailSidebarDesktop: null,
@@ -246,5 +247,48 @@ describe('migrateSettings', () => {
 
         expect(settings.view.mandalaGridHighlightWidth).toBe(2);
         expect('mandalaGridHighlightColor' in settings.view).toBe(false);
+    });
+
+    test('adds defaults for day plan heading settings when missing', () => {
+        const settings = DEFAULT_SETTINGS();
+        const general = settings.general as Record<string, unknown>;
+        delete general.dayPlanDateHeadingFormat;
+        delete general.dayPlanDateHeadingCustomTemplate;
+        delete general.dayPlanDateHeadingApplyMode;
+
+        migrateSettings(settings);
+
+        expect(settings.general.dayPlanDateHeadingFormat).toBe('zh-short');
+        expect(settings.general.dayPlanDateHeadingCustomTemplate).toBe(
+            '## {date} {cn}',
+        );
+        expect(settings.general.dayPlanDateHeadingApplyMode).toBe('manual');
+    });
+
+    test('adds default weekStart when missing', () => {
+        const settings = DEFAULT_SETTINGS();
+        const general = settings.general as Record<string, unknown>;
+        delete general.weekStart;
+
+        migrateSettings(settings);
+
+        expect(settings.general.weekStart).toBe('monday');
+    });
+
+    test('adds default week plan settings and 7x9 font sizes when missing', () => {
+        const settings = DEFAULT_SETTINGS();
+        const general = settings.general as Record<string, unknown>;
+        const view = settings.view as Record<string, unknown>;
+        delete general.weekPlanEnabled;
+        delete general.weekPlanCompactMode;
+        delete view.mandalaFontSize7x9Desktop;
+        delete view.mandalaFontSize7x9Mobile;
+
+        migrateSettings(settings);
+
+        expect(settings.general.weekPlanEnabled).toBe(true);
+        expect(settings.general.weekPlanCompactMode).toBe(true);
+        expect(settings.view.mandalaFontSize7x9Desktop).toBe(11);
+        expect(settings.view.mandalaFontSize7x9Mobile).toBe(10);
     });
 });

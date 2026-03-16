@@ -14,9 +14,15 @@ export const defaultViewState = (): ViewState => ({
             showHelpSidebar: false,
             showSettingsSidebar: false,
         },
+        previewDialog: {
+            open: false,
+            nodeId: null,
+        },
         mandala: {
             subgridTheme: '1',
             activeCell9x9: null,
+            activeCellWeek7x9: null,
+            weekAnchorDate: null,
             swap: {
                 active: false,
                 sourceNodeId: null,

@@ -15,10 +15,12 @@ import {
     syncDayPlanTitlesBySections,
     syncDayPlanTitlesInMarkdown,
 } from 'src/lib/mandala/sync-day-plan-titles';
+import { refreshDayPlanDateHeadingsInMarkdown } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import {
     buildCenterDateHeading,
     DAY_PLAN_FRONTMATTER_KEY,
     dayOfYearFromDate,
+    getDayPlanDateHeadingSettings,
     parseDayPlanFromMarkdown,
 } from 'src/lib/mandala/day-plan';
 import {
@@ -51,6 +53,15 @@ const getTodayIsoDate = () => {
     const day = String(now.getDate()).padStart(2, '0');
     return `${now.getFullYear()}-${month}-${day}`;
 };
+
+const getDateHeadingSettings = (plugin: MandalaGrid) =>
+    getDayPlanDateHeadingSettings({
+        format: plugin.settings.getValue().general.dayPlanDateHeadingFormat,
+        customTemplate:
+            plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
+        applyMode:
+            plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+    });
 
 const splitSectionsToBatches = (sections: string[], batchSize: number) => {
     const normalizedBatchSize = Math.max(1, batchSize);
@@ -177,7 +188,12 @@ const syncDayPlanCenterDateHeadingWithToday = async (
 ) => {
     const plan = parseDayPlanFromMarkdown(content);
     if (!plan || plan.enabled !== true) return false;
-    const todayHeading = buildCenterDateHeading(getTodayIsoDate());
+    const dateHeadingSettings = getDateHeadingSettings(plugin);
+    if (dateHeadingSettings.applyMode === 'manual') return false;
+    const todayHeading = buildCenterDateHeading(
+        getTodayIsoDate(),
+        dateHeadingSettings,
+    );
     if (plan.center_date_h2 === todayHeading) return false;
     await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
         const record = frontmatter as Record<string, unknown>;
@@ -237,6 +253,13 @@ export const toggleFileViewType = async (
             nextContent,
         );
         nextContent = syncResult.markdown;
+        const dateHeadingSettings = getDateHeadingSettings(plugin);
+        if (dateHeadingSettings.applyMode === 'immediate') {
+            nextContent = refreshDayPlanDateHeadingsInMarkdown(
+                nextContent,
+                dateHeadingSettings,
+            ).markdown;
+        }
         const contentChangedOnEnter = nextContent !== content;
         if (contentChangedOnEnter) {
             await plugin.app.vault.modify(file, nextContent);
