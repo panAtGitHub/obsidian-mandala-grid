@@ -261,6 +261,13 @@
         height: 100%;
     }
 
+    .week-plan-grid.mandala-grid {
+        display: grid;
+        gap: var(--mandala-gap);
+        align-items: start;
+        background: var(--background-secondary);
+    }
+
     .mandala-grid--week {
         width: 100%;
         height: 100%;
@@ -284,6 +291,11 @@
         flex-direction: column;
         min-height: 0;
         cursor: pointer;
+    }
+
+    .week-plan-cell.mandala-cell {
+        width: 100%;
+        height: 100%;
     }
 
     .week-plan-cell--mobile {
