@@ -1,9 +1,7 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
-    import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-svelte';
     import { derived } from 'src/lib/store/derived';
     import {
-        addDaysIsoDate,
         mapWeekPlanRows,
         parseDayPlanFrontmatter,
         sectionAtCellWeek7x9,
@@ -123,28 +121,6 @@
         cells = nextCells;
     }
 
-    const setWeekAnchorDate = (date: string) => {
-        view.viewStore.dispatch({
-            type: 'view/mandala/week-anchor-date/set',
-            payload: { date },
-        });
-        setActiveCellWeek7x9(view, null);
-    };
-
-    const goToPreviousWeek = () => {
-        if (!$anchorDate) return;
-        setWeekAnchorDate(addDaysIsoDate($anchorDate, -7));
-    };
-
-    const goToNextWeek = () => {
-        if (!$anchorDate) return;
-        setWeekAnchorDate(addDaysIsoDate($anchorDate, 7));
-    };
-
-    const goToThisWeek = () => {
-        setWeekAnchorDate(new Date().toISOString().slice(0, 10));
-    };
-
     const onCellClick = (cell: CellModel) => {
         setActiveCellWeek7x9(view, { row: cell.row, col: cell.col });
         if (!cell.nodeId) return;
@@ -173,34 +149,6 @@
 </script>
 
 <div class="week-plan-shell">
-    <div class="week-plan-toolbar">
-        <button
-            class="week-plan-toolbar__button"
-            type="button"
-            aria-label="上一周"
-            on:click={goToPreviousWeek}
-        >
-            <ChevronLeft size={16} />
-        </button>
-        <button
-            class="week-plan-toolbar__button week-plan-toolbar__button--today"
-            type="button"
-            aria-label="本周"
-            on:click={goToThisWeek}
-        >
-            <CalendarDays size={16} />
-            <span>本周</span>
-        </button>
-        <button
-            class="week-plan-toolbar__button"
-            type="button"
-            aria-label="下一周"
-            on:click={goToNextWeek}
-        >
-            <ChevronRight size={16} />
-        </button>
-    </div>
-
     <div class="week-plan-grid">
         {#each cells as cell (`${cell.row}-${cell.col}`)}
             <div
@@ -237,45 +185,10 @@
 
 <style>
     .week-plan-shell {
-        position: relative;
         display: flex;
         flex-direction: column;
         width: 100%;
         height: 100%;
-        padding-top: 4px;
-    }
-
-    .week-plan-toolbar {
-        position: absolute;
-        top: -42px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 3;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 4px 8px;
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 12px;
-        background: color-mix(
-            in srgb,
-            var(--background-primary) 88%,
-            transparent
-        );
-        box-shadow: 0 8px 18px rgb(0 0 0 / 10%);
-        backdrop-filter: blur(8px);
-    }
-
-    .week-plan-toolbar__button {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border: 1px solid var(--background-modifier-border);
-        background: var(--background-primary);
-        color: var(--text-normal);
-        border-radius: 8px;
-        padding: 5px 10px;
     }
 
     .week-plan-grid {
@@ -367,16 +280,5 @@
         margin-top: auto;
         color: var(--text-faint);
         font-size: 10px;
-    }
-
-    :global(.is-mobile) .week-plan-toolbar {
-        top: -36px;
-        gap: 6px;
-        padding: 4px 6px;
-    }
-
-    :global(.is-mobile) .week-plan-toolbar__button {
-        justify-content: center;
-        padding: 5px 8px;
     }
 </style>
