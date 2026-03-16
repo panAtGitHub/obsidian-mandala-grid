@@ -154,11 +154,6 @@
         setActiveMandalaNode(view, cell.nodeId);
     };
 
-    const onCellDblClick = (cell: CellModel) => {
-        if (!cell.nodeId || Platform.isMobile) return;
-        openSidebarAndEditMandalaNode(view, cell.nodeId);
-    };
-
     const renderText = (element: HTMLElement, content: string) => {
         const render = () => {
             element.empty();
@@ -202,7 +197,10 @@
                         col: cell.col,
                     })}
                 on:click={() => onCellClick(cell)}
-                on:dblclick={() => onCellDblClick(cell)}
+                on:dblclick={() =>
+                    Platform.isMobile && cell.nodeId
+                        ? openSidebarAndEditMandalaNode(view, cell.nodeId)
+                        : undefined}
             >
                 {#if !Platform.isMobile && cell.nodeId}
                     <MandalaCard
@@ -260,7 +258,6 @@
         height: 100%;
         gap: 0;
         background: var(--background-secondary);
-        font-size: var(--mandala-font-9x9, 11px);
     }
 
     .week-plan-cell {
@@ -272,39 +269,23 @@
         background: var(--background-primary);
         border-left: 1px dashed var(--mandala-border-color);
         border-top: 1px dashed var(--mandala-border-color);
-        overflow: hidden;
         cursor: pointer;
     }
 
     .week-plan-cell--desktop-card {
         padding: 0;
-        background: var(--background-secondary);
+        background: transparent;
 
         --min-node-height: 0;
         --mandala-card-min-height: 0;
         --mandala-card-width: 100%;
         --mandala-card-height: 100%;
-        --mandala-card-overflow: hidden;
-        --font-text-size: var(--mandala-font-9x9, 11px);
     }
 
     .week-plan-cell--desktop-card :global(.mandala-card) {
         width: 100%;
         height: 100%;
         min-height: 0;
-        overflow: hidden;
-        font-size: var(--mandala-font-9x9, 11px);
-    }
-
-    .week-plan-cell--desktop-card :global(.lng-prev) {
-        min-height: 0;
-        padding: 6px 6px 8px 8px;
-    }
-
-    .week-plan-cell--desktop-card :global(.mandala-card-meta) {
-        top: 4px;
-        right: 6px;
-        font-size: 10px;
     }
 
     .week-plan-cell.is-center-column {
@@ -329,6 +310,11 @@
             var(--mandala-grid-highlight-color, var(--mandala-color-selection));
         outline-offset: -2px;
         z-index: 1;
+    }
+
+    .week-plan-cell--desktop-card.is-active-cell,
+    .week-plan-cell--desktop-card.is-active-node {
+        outline: none;
     }
 
     .week-plan-cell.is-placeholder {

@@ -591,6 +591,7 @@
     class="mandala-root"
     class:mandala-root--3={$mode === '3x3'}
     class:mandala-root--9={$mode === '9x9'}
+    class:mandala-root--week={$mode === 'week-7x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
@@ -1116,6 +1117,8 @@
     }
 
     .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
+        :global(.mandala-card),
+    .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
         :global(.mandala-card) {
         border: 1px solid var(--text-normal) !important;
         border-left-width: 1px !important;
@@ -1124,6 +1127,8 @@
     }
 
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card),
+    .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card) {
         border-left-width: 0 !important;
         border-left-style: solid !important;
@@ -1132,6 +1137,10 @@
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card.node-border--active),
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--selected),
+    .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
+        :global(.mandala-card.node-border--active),
+    .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
         :global(.mandala-card.node-border--selected) {
         border-left-color: transparent !important;
     }
@@ -1139,8 +1148,14 @@
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected),
+    .mandala-a4-mode.mandala-root--week :global(.mandala-card.active-node),
+    .mandala-a4-mode.mandala-root--week
+        :global(.mandala-card.node-border--selected),
     .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected),
+    .mandala-white-theme.mandala-root--week :global(.mandala-card.active-node),
+    .mandala-white-theme.mandala-root--week
         :global(.mandala-card.node-border--selected) {
         position: relative;
     }
@@ -1148,9 +1163,17 @@
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected)::after,
+    .mandala-a4-mode.mandala-root--week
+        :global(.mandala-card.active-node)::after,
+    .mandala-a4-mode.mandala-root--week
+        :global(.mandala-card.node-border--selected)::after,
     .mandala-white-theme.mandala-root--3
         :global(.mandala-card.active-node)::after,
     .mandala-white-theme.mandala-root--3
+        :global(.mandala-card.node-border--selected)::after,
+    .mandala-white-theme.mandala-root--week
+        :global(.mandala-card.active-node)::after,
+    .mandala-white-theme.mandala-root--week
         :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
@@ -1168,7 +1191,19 @@
         --mandala-card-overflow: hidden;
     }
 
+    .mandala-root--week {
+        --mandala-card-height: 100%;
+        --mandala-card-min-height: 0px;
+        --mandala-card-overflow: hidden;
+    }
+
     .mandala-root--3 .mandala-empty {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .mandala-root--week .mandala-empty {
         width: 100%;
         height: 100%;
         min-height: 0;
@@ -1320,6 +1355,13 @@
         overflow: auto;
     }
 
+    .mandala-root--week :global(.week-plan-grid .lng-prev) {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: auto;
+    }
+
     :global(.mandala-idle-scrollbar) {
         --mandala-idle-scrollbar-thumb: var(--color-base-30);
         --mandala-idle-scrollbar-thumb-active: var(--color-base-40);
@@ -1414,12 +1456,27 @@
         overflow: auto;
     }
 
+    .mandala-root--week :global(.editor-container) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
     .mandala-root--3 :global(.draggable),
     .mandala-root--3 :global(.draggable .content) {
         height: 100%;
     }
 
+    .mandala-root--week :global(.draggable),
+    .mandala-root--week :global(.draggable .content) {
+        height: 100%;
+    }
+
     .mandala-root--3 :global(.mandala-card .drag-handle) {
+        display: none !important;
+    }
+
+    .mandala-root--week :global(.mandala-card .drag-handle) {
         display: none !important;
     }
 
