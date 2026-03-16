@@ -372,6 +372,27 @@
         vertical-align: text-top;
     }
 
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev li.task-list-item) {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.18em;
+    }
+
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev li.task-list-item > input[type='checkbox']) {
+        flex: 0 0 auto;
+    }
+
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev li.task-list-item > p) {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h1),
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h2),
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h3),
