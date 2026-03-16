@@ -301,7 +301,7 @@
 
     .row-matrix-cell--desktop-card.is-active-cell,
     .row-matrix-cell--desktop-card.is-active-node {
-        border-radius: 8px;
+        outline: none;
     }
 
     .row-matrix-cell.is-placeholder,
