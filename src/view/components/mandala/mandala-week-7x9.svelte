@@ -365,6 +365,27 @@
         height: 2px;
     }
 
+    .week-plan-cell--desktop-card :global(.editor-container) {
+        overflow: hidden !important;
+    }
+
+    .week-plan-cell--desktop-card :global(.cm-editor),
+    .week-plan-cell--desktop-card :global(.cm-editor .cm-scroller) {
+        height: 100%;
+    }
+
+    .week-plan-cell--desktop-card :global(.cm-editor .cm-scroller) {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        scrollbar-gutter: auto;
+    }
+
+    .week-plan-cell--desktop-card
+        :global(.cm-editor .cm-scroller::-webkit-scrollbar) {
+        width: 2px;
+        height: 2px;
+    }
+
     .week-plan-cell--mobile.is-center-column {
         border-left: 3px solid var(--mandala-border-color);
     }
