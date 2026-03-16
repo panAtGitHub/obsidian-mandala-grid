@@ -30,7 +30,9 @@ describe('mandala-grid-custom-layout', () => {
             ),
         ).toEqual(['1 2 3', '4 0 5', '6 7 8']);
         expect(
-            patternToPreviewRows(BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start']),
+            patternToPreviewRows(
+                BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start'],
+            ),
         ).toEqual(['6 3 7', '2 0 4', '5 1 8']);
     });
 
@@ -64,6 +66,7 @@ describe('mandala-grid-custom-layout', () => {
                 selectedLayoutId: BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'],
                 lastActiveSection: null,
                 subgridTheme: null,
+                nx9RowsPerPage: 3,
                 showDetailSidebarDesktop: null,
                 showDetailSidebarMobile: null,
                 pinnedSections: [],

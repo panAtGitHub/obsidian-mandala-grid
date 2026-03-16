@@ -150,11 +150,9 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             action.payload.selectedCustomLayout ?? null;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
         mandalaView.subgridTheme = action.payload.subgridTheme;
-        if (
-            Number.isInteger(action.payload.nx9RowsPerPage) &&
-            (action.payload.nx9RowsPerPage ?? 0) >= 1
-        ) {
-            mandalaView.nx9RowsPerPage = action.payload.nx9RowsPerPage;
+        const nx9RowsPerPage = action.payload.nx9RowsPerPage;
+        if (Number.isInteger(nx9RowsPerPage) && (nx9RowsPerPage ?? 0) >= 1) {
+            mandalaView.nx9RowsPerPage = nx9RowsPerPage;
         }
         mandalaView.showDetailSidebarDesktop =
             action.payload.showDetailSidebarDesktop;

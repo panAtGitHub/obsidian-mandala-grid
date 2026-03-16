@@ -268,7 +268,9 @@ export class MandalaView extends TextFileView {
         const value = path
             ? settings.documents[path]?.mandalaView?.nx9RowsPerPage
             : null;
-        return Number.isInteger(value) && (value ?? 0) >= 1
+        return typeof value === 'number' &&
+            Number.isInteger(value) &&
+            value >= 1
             ? value
             : DEFAULT_NX9_ROWS_PER_PAGE;
     }

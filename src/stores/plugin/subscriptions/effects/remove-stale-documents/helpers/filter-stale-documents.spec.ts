@@ -15,6 +15,7 @@ const sample: DocumentPreferences = {
         selectedLayoutId: null,
         lastActiveSection: null,
         subgridTheme: null,
+        nx9RowsPerPage: 3,
         showDetailSidebarDesktop: null,
         showDetailSidebarMobile: null,
         pinnedSections: [],

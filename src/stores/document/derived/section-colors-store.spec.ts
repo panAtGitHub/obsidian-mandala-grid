@@ -14,21 +14,24 @@ import { parseSectionColorsFromPersistedState } from 'src/view/helpers/mandala/s
 type DocumentAction = { type: string };
 
 const createDocumentPreferences = (
-    sectionColors: NonNullable<DocumentPreferences['mandalaView']['sectionColors']>,
+    sectionColors: NonNullable<
+        DocumentPreferences['mandalaView']['sectionColors']
+    >,
 ): DocumentPreferences => ({
     viewType: 'mandala-grid',
     activeSection: null,
     outline: null,
-        mandalaView: {
-            gridOrientation: null,
-            selectedLayoutId: null,
-            lastActiveSection: null,
-            subgridTheme: null,
-            showDetailSidebarDesktop: null,
-            showDetailSidebarMobile: null,
-            pinnedSections: [],
-            sectionColors,
-        },
+    mandalaView: {
+        gridOrientation: null,
+        selectedLayoutId: null,
+        lastActiveSection: null,
+        subgridTheme: null,
+        nx9RowsPerPage: 3,
+        showDetailSidebarDesktop: null,
+        showDetailSidebarMobile: null,
+        pinnedSections: [],
+        sectionColors,
+    },
 });
 
 const createTestContext = (initialPath = 'a.md') => {

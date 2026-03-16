@@ -29,7 +29,7 @@ export type Nx9Context = {
 const CORE_SECTION_PATTERN = /^\d+$/;
 
 export const normalizeNx9RowsPerPage = (value: number | null | undefined) =>
-    Number.isInteger(value) && (value ?? 0) >= 1
+    typeof value === 'number' && Number.isInteger(value) && value >= 1
         ? value
         : DEFAULT_NX9_ROWS_PER_PAGE;
 
