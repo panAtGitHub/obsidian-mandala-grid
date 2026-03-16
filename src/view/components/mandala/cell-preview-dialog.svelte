@@ -288,7 +288,7 @@
         min-height: 100%;
         box-sizing: border-box;
         width: 100%;
-        padding: 0 22px;
+        padding: 0 10px 0 22px;
         font-size: var(--cell-preview-font-size);
         line-height: 1.6;
     }
@@ -306,7 +306,7 @@
         height: min(60vh, 700px);
         overflow: auto;
         box-sizing: border-box;
-        padding: 18px 22px;
+        padding: 18px 10px 18px 22px;
         scrollbar-gutter: stable both-edges;
     }
 
