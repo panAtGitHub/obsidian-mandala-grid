@@ -358,6 +358,20 @@
         line-height: 1.12;
     }
 
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev .task-list-item-checkbox),
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev input[type='checkbox']) {
+        width: 0.82em;
+        height: 0.82em;
+        min-width: 0.82em;
+        min-height: 0.82em;
+        margin-inline-end: 0.18em !important;
+        vertical-align: text-top;
+    }
+
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h1),
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h2),
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h3),
