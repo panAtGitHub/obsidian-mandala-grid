@@ -373,24 +373,18 @@
     .week-plan-grid--compact
         .week-plan-cell--desktop-card
         :global(.lng-prev li.task-list-item) {
-        display: grid;
-        grid-template-columns: 0.82em minmax(0, 1fr);
-        column-gap: 0.12em;
-        align-items: flex-start;
+        position: relative;
+        padding-inline-start: 0.92em;
+        min-width: 0;
     }
 
     .week-plan-grid--compact
         .week-plan-cell--desktop-card
         :global(.lng-prev li.task-list-item > input[type='checkbox']) {
-        grid-column: 1;
-        margin-inline-end: 0 !important;
-    }
-
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev li.task-list-item > :not(input[type='checkbox'])) {
-        grid-column: 2;
-        min-width: 0;
+        position: absolute;
+        inset-inline-start: 0;
+        top: 0.08em;
+        margin: 0 !important;
     }
 
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h1),
