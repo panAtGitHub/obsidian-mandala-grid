@@ -222,7 +222,7 @@
         margin-left: 4px;
     }
 
-    .toolbar-center__text {
+    :global(.toolbar-center__text) {
         min-width: 56px;
         font-size: 12px;
     }
