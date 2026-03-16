@@ -664,6 +664,35 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/general/set-day-plan-enabled') return;
         store.general.dayPlanEnabled = action.payload.enabled;
     },
+    'settings/general/set-day-plan-date-heading-format': (store, action) => {
+        if (action.type !== 'settings/general/set-day-plan-date-heading-format') {
+            return;
+        }
+        store.general.dayPlanDateHeadingFormat = action.payload.format;
+    },
+    'settings/general/set-day-plan-date-heading-custom-template': (
+        store,
+        action,
+    ) => {
+        if (
+            action.type !==
+            'settings/general/set-day-plan-date-heading-custom-template'
+        ) {
+            return;
+        }
+        store.general.dayPlanDateHeadingCustomTemplate = action.payload.template;
+    },
+    'settings/general/set-day-plan-date-heading-apply-mode': (
+        store,
+        action,
+    ) => {
+        if (
+            action.type !== 'settings/general/set-day-plan-date-heading-apply-mode'
+        ) {
+            return;
+        }
+        store.general.dayPlanDateHeadingApplyMode = action.payload.mode;
+    },
 };
 
 const updateState = (store: Settings, action: SettingsActions) => {

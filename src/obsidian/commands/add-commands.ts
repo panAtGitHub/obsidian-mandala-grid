@@ -11,6 +11,7 @@ import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-d
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
 import { openExportModeModalForView } from 'src/view/components/container/toolbar-vertical/export-mode-modal-store';
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
+import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 
 type ManagedCommand = Omit<Command, 'id' | 'callback'> & {
     commandId: string;
@@ -82,6 +83,18 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
         checkCallback: (checking) => {
             if (checking) return true;
             void writeCurrentCoreDayPlanSlotsToYaml(plugin);
+        },
+    });
+
+    commands.push({
+        commandId: 'refresh-day-plan-date-headings',
+        name: lang.cmd_refresh_day_plan_date_headings,
+        icon: customIcons.mandalaGrid.name,
+        isEnabled: (currentPlugin) =>
+            currentPlugin.settings.getValue().general.dayPlanEnabled,
+        checkCallback: (checking) => {
+            if (checking) return true;
+            void refreshCurrentDayPlanDateHeadings(plugin);
         },
     });
 

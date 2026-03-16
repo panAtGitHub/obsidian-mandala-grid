@@ -2,11 +2,18 @@ import {
     addDaysIsoDate,
     allSlotsFilled,
     buildCenterDateHeading,
+    DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
+    DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS,
     dateFromDayOfYear,
     dayOfYearFromDate,
     daysInYear,
     extractDateFromCenterHeading,
+    getChineseFullWeekdayLabel,
     getChineseWeekdayLabel,
+    getDayPlanDateHeadingSettings,
+    getEnglishCapitalizedWeekdayLabel,
+    getEnglishFullWeekdayLabel,
+    getEnglishShortWeekdayLabel,
     getHotCoreSections,
     hasValidCenterDateHeading,
     isLeapYear,
@@ -80,7 +87,76 @@ describe('day-plan helpers', () => {
 
     it('builds center heading with chinese weekday', () => {
         expect(getChineseWeekdayLabel('2026-03-16')).toBe('一');
+        expect(getChineseFullWeekdayLabel('2026-03-16')).toBe('周一');
+        expect(getEnglishShortWeekdayLabel('2026-03-16')).toBe('mon');
+        expect(getEnglishCapitalizedWeekdayLabel('2026-03-16')).toBe('Mon');
+        expect(getEnglishFullWeekdayLabel('2026-03-16')).toBe('Monday');
         expect(buildCenterDateHeading('2026-03-16')).toBe('## 2026-03-16 一');
+    });
+
+    it('supports all preset heading formats', () => {
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'date-only',
+            }),
+        ).toBe('## 2026-03-16');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'zh-full',
+            }),
+        ).toBe('## 2026-03-16 周一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'zh-short',
+            }),
+        ).toBe('## 2026-03-16 一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'en-short',
+            }),
+        ).toBe('## 2026-03-16 mon');
+    });
+
+    it('renders custom templates and falls back safely', () => {
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '## {date} {zh} {en_cap} {en_full}',
+            }),
+        ).toBe('## 2026-03-16 周一 Mon Monday');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '{date} {cn}',
+            }),
+        ).toBe('## 2026-03-16 一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '',
+            }),
+        ).toBe('## 2026-03-16 一');
+        expect(
+            buildCenterDateHeading('2026-03-16', {
+                format: 'custom',
+                customTemplate: '## {zh}',
+            }),
+        ).toBe('## 2026-03-16 周一');
+    });
+
+    it('normalizes missing heading settings with defaults', () => {
+        expect(getDayPlanDateHeadingSettings(null)).toEqual(
+            DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS,
+        );
+        expect(
+            getDayPlanDateHeadingSettings({
+                format: 'custom',
+            }),
+        ).toEqual({
+            format: 'custom',
+            customTemplate: DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
+            applyMode: 'manual',
+        });
     });
 
     it('upserts slot heading and keeps body', () => {

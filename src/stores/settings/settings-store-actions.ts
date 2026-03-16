@@ -1,6 +1,8 @@
 import {
     ContextMenuCopyLinkVariant,
     CustomHotkeys,
+    DayPlanDateHeadingApplyMode,
+    DayPlanDateHeadingFormat,
     DetailSidebarPreviewMode,
     DocumentPreferences,
     LeftSidebarTab,
@@ -222,6 +224,24 @@ export type SettingsActions =
           type: 'settings/general/set-day-plan-enabled';
           payload: {
               enabled: boolean;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-date-heading-format';
+          payload: {
+              format: DayPlanDateHeadingFormat;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-date-heading-custom-template';
+          payload: {
+              template: string;
+          };
+      }
+    | {
+          type: 'settings/general/set-day-plan-date-heading-apply-mode';
+          payload: {
+              mode: DayPlanDateHeadingApplyMode;
           };
       }
     | {

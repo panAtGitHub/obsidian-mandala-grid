@@ -3,6 +3,7 @@ import {
     addDaysIsoDate,
     DAY_PLAN_FRONTMATTER_KEY,
     extractDateFromCenterHeading,
+    getDayPlanDateHeadingSettings,
     isIsoDate,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
@@ -19,6 +20,15 @@ const getFirstNonEmptyLine = (content: string) =>
         ?.trim() ?? '';
 
 const isHeadingLine = (line: string) => /^#{1,6}\s+/.test(line);
+
+const getDateHeadingSettings = (view: MandalaView) =>
+    getDayPlanDateHeadingSettings({
+        format: view.plugin.settings.getValue().general.dayPlanDateHeadingFormat,
+        customTemplate:
+            view.plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
+        applyMode:
+            view.plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+    });
 
 export const shouldApplyDayPlanSlotTemplate = (content: string) => {
     const firstLine = getFirstNonEmptyLine(content);
@@ -152,7 +162,11 @@ export const applyDayPlanToCore = (
 
     const nextCoreContent = docState.document.content[nextCoreNodeId]?.content ?? '';
     const updates: Array<{ nodeId: string; content: string }> = [];
-    const nextCenterContent = upsertCenterDateHeading(nextCoreContent, nextDate);
+    const nextCenterContent = upsertCenterDateHeading(
+        nextCoreContent,
+        nextDate,
+        getDateHeadingSettings(view),
+    );
     if (nextCenterContent !== nextCoreContent) {
         updates.push({
             nodeId: nextCoreNodeId,

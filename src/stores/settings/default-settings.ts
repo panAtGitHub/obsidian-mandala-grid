@@ -117,5 +117,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
         dayPlanEnabled: true,
+        dayPlanDateHeadingFormat: 'zh-short',
+        dayPlanDateHeadingCustomTemplate: '## {date} {cn}',
+        dayPlanDateHeadingApplyMode: 'manual',
     },
 });

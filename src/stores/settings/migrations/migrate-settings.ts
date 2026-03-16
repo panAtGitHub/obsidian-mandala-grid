@@ -283,8 +283,29 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
     const generalSettings = (settings as Settings).general as {
         defaultDocumentFormat?: unknown;
+        dayPlanDateHeadingFormat?: unknown;
+        dayPlanDateHeadingCustomTemplate?: unknown;
+        dayPlanDateHeadingApplyMode?: unknown;
     };
     delete generalSettings.defaultDocumentFormat;
+    if (
+        generalSettings.dayPlanDateHeadingFormat !== 'date-only' &&
+        generalSettings.dayPlanDateHeadingFormat !== 'zh-short' &&
+        generalSettings.dayPlanDateHeadingFormat !== 'zh-full' &&
+        generalSettings.dayPlanDateHeadingFormat !== 'en-short' &&
+        generalSettings.dayPlanDateHeadingFormat !== 'custom'
+    ) {
+        generalSettings.dayPlanDateHeadingFormat = 'zh-short';
+    }
+    if (typeof generalSettings.dayPlanDateHeadingCustomTemplate !== 'string') {
+        generalSettings.dayPlanDateHeadingCustomTemplate = '## {date} {cn}';
+    }
+    if (
+        generalSettings.dayPlanDateHeadingApplyMode !== 'immediate' &&
+        generalSettings.dayPlanDateHeadingApplyMode !== 'manual'
+    ) {
+        generalSettings.dayPlanDateHeadingApplyMode = 'manual';
+    }
 
     // Legacy compatibility: split old shared toggle flags into desktop/mobile.
     if (typeof viewSettings.show3x3SubgridNavButtons === 'boolean') {

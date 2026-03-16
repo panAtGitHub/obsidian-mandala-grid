@@ -248,4 +248,20 @@ describe('migrateSettings', () => {
         expect(settings.view.mandalaGridHighlightWidth).toBe(2);
         expect('mandalaGridHighlightColor' in settings.view).toBe(false);
     });
+
+    test('adds defaults for day plan heading settings when missing', () => {
+        const settings = DEFAULT_SETTINGS();
+        const general = settings.general as Record<string, unknown>;
+        delete general.dayPlanDateHeadingFormat;
+        delete general.dayPlanDateHeadingCustomTemplate;
+        delete general.dayPlanDateHeadingApplyMode;
+
+        migrateSettings(settings);
+
+        expect(settings.general.dayPlanDateHeadingFormat).toBe('zh-short');
+        expect(settings.general.dayPlanDateHeadingCustomTemplate).toBe(
+            '## {date} {cn}',
+        );
+        expect(settings.general.dayPlanDateHeadingApplyMode).toBe('manual');
+    });
 });

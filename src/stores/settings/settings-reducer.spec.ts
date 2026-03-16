@@ -139,4 +139,33 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.view.showDayPlanTodayButtonDesktop).toBe(false);
         expect(settings.view.showDayPlanTodayButtonMobile).toBe(false);
     });
+
+    test('updates day plan heading settings independently', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-day-plan-date-heading-format',
+            payload: {
+                format: 'custom',
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/general/set-day-plan-date-heading-custom-template',
+            payload: {
+                template: '## {date} {zh}',
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/general/set-day-plan-date-heading-apply-mode',
+            payload: {
+                mode: 'immediate',
+            },
+        });
+
+        expect(settings.general.dayPlanDateHeadingFormat).toBe('custom');
+        expect(settings.general.dayPlanDateHeadingCustomTemplate).toBe(
+            '## {date} {zh}',
+        );
+        expect(settings.general.dayPlanDateHeadingApplyMode).toBe('immediate');
+    });
 });

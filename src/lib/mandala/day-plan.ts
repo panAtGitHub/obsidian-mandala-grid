@@ -1,4 +1,10 @@
+import type {
+    DayPlanDateHeadingApplyMode,
+    DayPlanDateHeadingFormat,
+} from 'src/stores/settings/settings-type';
+
 export const DAY_PLAN_FRONTMATTER_KEY = 'mandala_plan';
+export const DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE = '## {date} {cn}';
 
 export const DAY_PLAN_DEFAULT_SLOT_TITLES = [
     '接收太阳的能量，开心一天',
@@ -13,7 +19,20 @@ export const DAY_PLAN_DEFAULT_SLOT_TITLES = [
 
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const DAY_PLAN_H2_DATE_PATTERN =
-    /^##\s+(\d{4}-\d{2}-\d{2})(?:\s+[一二三四五六日])?\s*$/;
+    /^##\s+(\d{4}-\d{2}-\d{2})(?:\s+.*)?$/;
+
+export type DayPlanDateHeadingSettings = {
+    format: DayPlanDateHeadingFormat;
+    customTemplate: string;
+    applyMode: DayPlanDateHeadingApplyMode;
+};
+
+export const DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS: DayPlanDateHeadingSettings =
+    {
+        format: 'zh-short',
+        customTemplate: DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
+        applyMode: 'manual',
+    };
 
 export type DayPlanFrontmatter = {
     enabled: boolean;
@@ -114,6 +133,50 @@ const mondayStartDayOfWeek = (date: Date) => {
 };
 
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'] as const;
+const WEEKDAY_LABELS_ZH = WEEKDAY_LABELS.map((day) => `周${day}`) as const;
+const WEEKDAY_LABELS_EN_SHORT = [
+    'mon',
+    'tue',
+    'wed',
+    'thu',
+    'fri',
+    'sat',
+    'sun',
+] as const;
+const WEEKDAY_LABELS_EN_FULL = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+] as const;
+const WEEKDAY_LABELS_EN_CAP = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+] as const;
+
+const resolveWeekdayIndex = (date: string) => {
+    const [year, month, day] = date.split('-').map(Number);
+    return mondayStartDayOfWeek(new Date(Date.UTC(year, month - 1, day)));
+};
+
+export const getDayPlanDateHeadingSettings = (
+    value: Partial<DayPlanDateHeadingSettings> | null | undefined,
+): DayPlanDateHeadingSettings => ({
+    format: value?.format ?? DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.format,
+    customTemplate:
+        value?.customTemplate ??
+        DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.customTemplate,
+    applyMode:
+        value?.applyMode ?? DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.applyMode,
+});
 
 export const getHotCoreSections = (
     planYear: number,
@@ -146,18 +209,90 @@ export const shiftHotWindowToCore = (planYear: number, section: string) => {
 };
 
 export const getChineseWeekdayLabel = (date: string) => {
-    const [year, month, day] = date.split('-').map(Number);
-    const weekday = mondayStartDayOfWeek(new Date(Date.UTC(year, month - 1, day)));
+    const weekday = resolveWeekdayIndex(date);
     return WEEKDAY_LABELS[weekday];
 };
 
-export const buildCenterDateHeading = (date: string) =>
-    `## ${date} ${getChineseWeekdayLabel(date)}`;
+export const getChineseFullWeekdayLabel = (date: string): string => {
+    const weekday = resolveWeekdayIndex(date);
+    return WEEKDAY_LABELS_ZH[weekday];
+};
+
+export const getEnglishShortWeekdayLabel = (date: string): string => {
+    const weekday = resolveWeekdayIndex(date);
+    return WEEKDAY_LABELS_EN_SHORT[weekday];
+};
+
+export const getEnglishFullWeekdayLabel = (date: string): string => {
+    const weekday = resolveWeekdayIndex(date);
+    return WEEKDAY_LABELS_EN_FULL[weekday];
+};
+
+export const getEnglishCapitalizedWeekdayLabel = (date: string): string => {
+    const weekday = resolveWeekdayIndex(date);
+    return WEEKDAY_LABELS_EN_CAP[weekday];
+};
+
+const replaceToken = (value: string, token: string, replacement: string) =>
+    value.split(token).join(replacement);
+
+const buildCenterDateHeadingFromTemplate = (
+    date: string,
+    template: string,
+): string => {
+    const normalizedTemplate = template.trim() || DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE;
+    let rendered = normalizedTemplate;
+    rendered = replaceToken(rendered, '{date}', date);
+    rendered = replaceToken(rendered, '{cn}', getChineseWeekdayLabel(date));
+    rendered = replaceToken(rendered, '{zh}', getChineseFullWeekdayLabel(date));
+    rendered = replaceToken(rendered, '{en}', getEnglishShortWeekdayLabel(date));
+    rendered = replaceToken(
+        rendered,
+        '{en_full}',
+        getEnglishFullWeekdayLabel(date),
+    );
+    rendered = replaceToken(
+        rendered,
+        '{en_cap}',
+        getEnglishCapitalizedWeekdayLabel(date),
+    );
+    rendered = rendered.trim();
+
+    const safeRendered = rendered.length > 0 ? rendered : `## ${date} ${getChineseWeekdayLabel(date)}`;
+    const withHeadingPrefix = safeRendered.startsWith('## ')
+        ? safeRendered
+        : `## ${safeRendered}`;
+    return withHeadingPrefix.includes(date)
+        ? withHeadingPrefix
+        : withHeadingPrefix.replace(/^##\s*/, `## ${date} `);
+};
+
+export const buildCenterDateHeading = (
+    date: string,
+    settings?: Partial<DayPlanDateHeadingSettings> | null,
+): string => {
+    const normalized = getDayPlanDateHeadingSettings(settings);
+    switch (normalized.format) {
+        case 'date-only':
+            return `## ${date}`;
+        case 'zh-full':
+            return `## ${date} ${getChineseFullWeekdayLabel(date)}`;
+        case 'zh-short':
+            return `## ${date} ${getChineseWeekdayLabel(date)}`;
+        case 'en-short':
+            return `## ${date} ${getEnglishShortWeekdayLabel(date)}`;
+        case 'custom':
+            return buildCenterDateHeadingFromTemplate(
+                date,
+                normalized.customTemplate,
+            );
+    }
+};
 
 export const extractDateFromCenterHeading = (heading: string) => {
     const match = DAY_PLAN_H2_DATE_PATTERN.exec(heading.trim());
     if (!match) return null;
-    const date = match[1];
+    const date = match[1] ?? '';
     if (!isIsoDate(date)) return null;
     return date;
 };
@@ -175,8 +310,12 @@ export const hasValidCenterDateHeading = (content: string) => {
     return extractDateFromCenterHeading(lines[index]) !== null;
 };
 
-export const upsertCenterDateHeading = (content: string, date: string) => {
-    const nextHeading = buildCenterDateHeading(date);
+export const upsertCenterDateHeading = (
+    content: string,
+    date: string,
+    settings?: Partial<DayPlanDateHeadingSettings> | null,
+): string => {
+    const nextHeading = buildCenterDateHeading(date, settings);
     const lines = splitLines(content);
     if (lines.length === 1 && lines[0] === '') {
         return nextHeading;

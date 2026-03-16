@@ -69,6 +69,13 @@ export type DocumentPreferences = {
 export type LeftSidebarTab = 'pinned-cards';
 
 export type LinkPaneType = 'split' | 'tab';
+export type DayPlanDateHeadingFormat =
+    | 'date-only'
+    | 'zh-short'
+    | 'zh-full'
+    | 'en-short'
+    | 'custom';
+export type DayPlanDateHeadingApplyMode = 'immediate' | 'manual';
 export type ContextMenuCopyLinkVariant =
     | 'block-plain'
     | 'block-embed'
@@ -143,5 +150,8 @@ export type Settings = {
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
         dayPlanEnabled: boolean;
+        dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
+        dayPlanDateHeadingCustomTemplate: string;
+        dayPlanDateHeadingApplyMode: DayPlanDateHeadingApplyMode;
     };
 };
