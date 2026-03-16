@@ -374,7 +374,7 @@
         .week-plan-cell--desktop-card
         :global(.lng-prev li.task-list-item) {
         position: relative;
-        padding-inline-start: 0.92em;
+        padding-inline-start: 0.72em;
         min-width: 0;
     }
 
