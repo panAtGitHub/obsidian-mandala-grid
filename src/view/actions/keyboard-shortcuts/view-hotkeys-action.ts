@@ -20,7 +20,12 @@ export const viewHotkeysAction = (
     const isReadonlyPreviewDialogTarget = (target: HTMLElement | null) =>
         Boolean(target?.closest('[data-cell-preview-dialog="readonly"]'));
     const isAllowedPreviewDialogCommand = (name: string) =>
-        name === 'toggle_cell_preview_dialog' || name === 'enable_edit_mode';
+        name === 'toggle_cell_preview_dialog' ||
+        name === 'enable_edit_mode' ||
+        name === 'go_up' ||
+        name === 'go_down' ||
+        name === 'go_left' ||
+        name === 'go_right';
     const tryRunHotkeyCommand = (event: KeyboardEvent) => {
         const command = viewHotkeys.current[eventToString(event)];
         if (command) {
