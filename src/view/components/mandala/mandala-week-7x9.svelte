@@ -178,11 +178,17 @@
 </script>
 
 <div class="week-plan-shell">
-    <div class="week-plan-grid">
+    <div
+        class="week-plan-grid"
+        class:mandala-grid={!Platform.isMobile}
+        class:mandala-grid--week={!Platform.isMobile}
+    >
         {#each cells as cell (`${cell.row}-${cell.col}`)}
             <div
                 class="week-plan-cell"
+                class:mandala-cell={!Platform.isMobile}
                 class:week-plan-cell--desktop-card={!Platform.isMobile}
+                class:week-plan-cell--mobile={Platform.isMobile}
                 class:is-placeholder={cell.isPlaceholder}
                 class:is-center-column={cell.isCenterColumn}
                 class:is-active-cell={$activeCell &&
@@ -251,11 +257,23 @@
 
     .week-plan-grid {
         flex: 1 1 auto;
+        width: 100%;
+        height: 100%;
+    }
+
+    .mandala-grid--week {
+        width: 100%;
+        height: 100%;
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+        grid-template-rows: repeat(7, minmax(0, 1fr));
+        align-items: stretch;
+        justify-items: stretch;
+    }
+
+    .week-plan-grid:not(.mandala-grid) {
         display: grid;
         grid-template-columns: repeat(9, minmax(0, 1fr));
         grid-template-rows: repeat(7, minmax(0, 1fr));
-        width: 100%;
-        height: 100%;
         gap: 0;
         background: var(--background-secondary);
     }
@@ -265,11 +283,14 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
+        cursor: pointer;
+    }
+
+    .week-plan-cell--mobile {
         padding: 6px;
         background: var(--background-primary);
         border-left: 1px dashed var(--mandala-border-color);
         border-top: 1px dashed var(--mandala-border-color);
-        cursor: pointer;
     }
 
     .week-plan-cell--desktop-card {
@@ -288,19 +309,19 @@
         min-height: 0;
     }
 
-    .week-plan-cell.is-center-column {
+    .week-plan-cell--mobile.is-center-column {
         border-left: 3px solid var(--mandala-border-color);
     }
 
-    .week-plan-cell:nth-child(-n + 9) {
+    .week-plan-cell--mobile:nth-child(-n + 9) {
         border-top: 3px solid var(--mandala-border-color);
     }
 
-    .week-plan-cell:nth-child(9n) {
+    .week-plan-cell--mobile:nth-child(9n) {
         border-right: 3px solid var(--mandala-border-color);
     }
 
-    .week-plan-cell:nth-last-child(-n + 9) {
+    .week-plan-cell--mobile:nth-last-child(-n + 9) {
         border-bottom: 3px solid var(--mandala-border-color);
     }
 
@@ -323,6 +344,9 @@
             var(--background-modifier-border) 25%,
             var(--background-primary)
         );
+    }
+
+    .week-plan-cell--mobile.is-placeholder {
         cursor: default;
     }
 
@@ -357,5 +381,41 @@
         margin-top: auto;
         color: var(--text-faint);
         font-size: 10px;
+    }
+
+    :global(.mandala-white-theme) .mandala-grid--week {
+        gap: 0;
+        box-sizing: border-box;
+    }
+
+    :global(.mandala-white-theme) .mandala-grid--week > .mandala-cell {
+        border-left: 1px dashed var(--mandala-border-color);
+        border-top: 1px dashed var(--mandala-border-color);
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    :global(.mandala-white-theme)
+        .mandala-grid--week
+        > .mandala-cell:nth-child(-n + 9) {
+        border-top: 3px solid var(--mandala-border-color);
+    }
+
+    :global(.mandala-white-theme)
+        .mandala-grid--week
+        > .mandala-cell:nth-child(9n + 1) {
+        border-left: 3px solid var(--mandala-border-color);
+    }
+
+    :global(.mandala-white-theme)
+        .mandala-grid--week
+        > .mandala-cell:nth-last-child(-n + 9) {
+        border-bottom: 3px solid var(--mandala-border-color);
+    }
+
+    :global(.mandala-white-theme)
+        .mandala-grid--week
+        > .mandala-cell:nth-child(9n) {
+        border-right: 3px solid var(--mandala-border-color);
     }
 </style>
