@@ -104,10 +104,6 @@ export const editCommands = () => {
                             ensureNodeForSection(view, section) ??
                             nodeId;
                     }
-                    if (!Platform.isMobile && !showDetailSidebar) {
-                        view.toggleCurrentMandalaDetailSidebar();
-                        showDetailSidebar = true;
-                    }
                 }
                 openNodeEditor(view, nodeId, {
                     desktopIsInSidebar: showDetailSidebar,
