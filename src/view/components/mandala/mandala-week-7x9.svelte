@@ -364,11 +364,9 @@
     .week-plan-grid--compact
         .week-plan-cell--desktop-card
         :global(.lng-prev input[type='checkbox']) {
-        width: 0.82em;
-        height: 0.82em;
-        min-width: 0.82em;
-        min-height: 0.82em;
-        margin-inline-end: 0.18em !important;
+        transform: scale(0.82);
+        transform-origin: left top;
+        margin-inline-end: -0.04em !important;
         vertical-align: text-top;
     }
 
