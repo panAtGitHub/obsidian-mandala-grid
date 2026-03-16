@@ -320,9 +320,6 @@
             --mandala-font-7x9,
             var(--mandala-font-3x3)
         );
-        --week-task-checkbox-scale: 0.82;
-        --week-task-checkbox-gap: 0.08em;
-        --week-task-list-indent: 0.86em;
     }
 
     .week-plan-cell--desktop-card :global(.mandala-card) {
@@ -359,49 +356,6 @@
         margin-block-start: 0 !important;
         margin-block-end: 0 !important;
         line-height: 1.12;
-    }
-
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev :where(ul, ol)) {
-        margin-block-start: 0 !important;
-        margin-block-end: 0 !important;
-    }
-
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev :where(ul.contains-task-list, ol.contains-task-list)) {
-        padding-inline-start: var(--week-task-list-indent) !important;
-    }
-
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev .task-list-item-checkbox),
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev input[type='checkbox']) {
-        transform: scale(var(--week-task-checkbox-scale));
-        transform-origin: left center;
-        margin-inline-end: var(--week-task-checkbox-gap) !important;
-        vertical-align: text-top !important;
-    }
-
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev li.task-list-item) {
-        min-width: 0;
-        margin-inline-start: 0 !important;
-        padding-inline-start: 0 !important;
-        text-indent: 0 !important;
-        line-height: 1.12;
-    }
-
-    .week-plan-grid--compact
-        .week-plan-cell--desktop-card
-        :global(.lng-prev li.task-list-item.is-checked) {
-        text-decoration-thickness: 1px;
-        text-underline-offset: 0.08em;
-        min-width: 0;
     }
 
     .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h1),
