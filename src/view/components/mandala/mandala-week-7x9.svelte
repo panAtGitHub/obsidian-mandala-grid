@@ -356,8 +356,13 @@
 
     .week-plan-cell--desktop-card
         :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
-        width: 4px;
-        height: 4px;
+        width: 2px;
+        height: 2px;
+    }
+
+    .week-plan-cell--desktop-card :global(.lng-prev::-webkit-scrollbar) {
+        width: 2px;
+        height: 2px;
     }
 
     .week-plan-cell--mobile.is-center-column {
