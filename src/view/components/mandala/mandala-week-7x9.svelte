@@ -327,6 +327,9 @@
 
     .week-plan-cell--desktop-card :global(.lng-prev) {
         padding: 4px 4px 6px 8px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-gutter: auto;
     }
 
     .week-plan-cell--desktop-card :global(.mandala-card-meta) {
