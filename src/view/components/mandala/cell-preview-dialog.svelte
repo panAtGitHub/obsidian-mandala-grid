@@ -132,12 +132,10 @@
                 on:click|stopPropagation
             >
                 <div class="cell-preview-dialog__header">
-                    <div class="cell-preview-dialog__header-copy">
+                    <div class="cell-preview-dialog__header-row">
                         <div class="cell-preview-dialog__eyebrow">
                             Quick Preview
                         </div>
-                    </div>
-                    <div class="cell-preview-dialog__title-slot">
                         <div class="cell-preview-dialog__title">
                             {sectionLabel || '未命名格子'}
                         </div>
@@ -212,34 +210,31 @@
     .cell-preview-dialog__header {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
     }
 
-    .cell-preview-dialog__header-copy {
+    .cell-preview-dialog__header-row {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
-    }
-
-    .cell-preview-dialog__title-slot {
-        display: flex;
-        align-items: flex-start;
         justify-content: flex-end;
-        min-height: 1.2em;
+        gap: 10px;
+        min-height: 1em;
     }
 
     .cell-preview-dialog__eyebrow {
-        font-size: 10px;
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 600;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: color-mix(in srgb, var(--text-muted) 72%, transparent);
     }
 
     .cell-preview-dialog__title {
-        font-size: 18px;
+        font-size: 12px;
+        line-height: 1;
         font-weight: 700;
         color: var(--text-normal);
-        line-height: 1.2;
         text-align: right;
     }
 
