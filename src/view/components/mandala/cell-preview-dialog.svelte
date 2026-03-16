@@ -99,6 +99,8 @@
     const close = () => {
         closeCellPreviewDialog(view);
     };
+    const getPortalTarget = () =>
+        view.contentEl.querySelector('.mandala-main') as HTMLElement | null;
 
     const handleReadonlyKeydown = (event: KeyboardEvent) => {
         if (isEditingPreview) return;
@@ -122,7 +124,7 @@
 </script>
 
 {#if isOpen && previewNodeId}
-    <Portal>
+    <Portal target={getPortalTarget()}>
         <div class="cell-preview-dialog__layer">
             <div
                 class="cell-preview-dialog"
@@ -173,23 +175,23 @@
 
 <style>
     .cell-preview-dialog__layer {
-        position: fixed;
+        position: absolute;
         inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 28px;
+        padding: 20px 28px;
         z-index: 1590;
         background: transparent;
     }
 
     .cell-preview-dialog {
         width: clamp(420px, 34vw, 660px);
-        max-height: min(64vh, 760px);
+        max-height: min(68vh, 780px);
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 16px 16px 14px;
+        gap: 8px;
+        padding: 14px 14px 10px;
         border-radius: 18px;
         border: 1px solid var(--background-modifier-border);
         background: linear-gradient(
@@ -206,26 +208,26 @@
     .cell-preview-dialog__header {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 2px;
     }
 
     .cell-preview-dialog__eyebrow {
-        font-size: 11px;
+        font-size: 10px;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--text-muted);
+        color: color-mix(in srgb, var(--text-muted) 72%, transparent);
     }
 
     .cell-preview-dialog__title {
-        font-size: 24px;
+        font-size: 21px;
         font-weight: 700;
         color: var(--text-normal);
         line-height: 1.2;
     }
 
     .cell-preview-dialog__body {
-        min-height: min(260px, 30vh);
-        max-height: min(52vh, 620px);
+        min-height: min(340px, 40vh);
+        max-height: min(60vh, 700px);
         overflow: auto;
         border-radius: 14px;
         border: 1px solid var(--background-modifier-border);
@@ -234,7 +236,7 @@
             var(--background-secondary) 92%,
             transparent
         );
-        padding: 18px 20px;
+        padding: 20px 22px;
         outline: none;
     }
 
@@ -256,15 +258,15 @@
     }
 
     .cell-preview-dialog__body.is-editing :global(.editor-container) {
-        min-height: min(260px, 30vh);
-        height: min(52vh, 620px);
+        min-height: min(340px, 40vh);
+        height: min(60vh, 700px);
         overflow: auto;
     }
 
     .cell-preview-dialog__body.is-editing :global(.cm-editor),
     .cell-preview-dialog__body.is-editing :global(.cm-editor .cm-scroller) {
-        min-height: min(260px, 30vh);
-        height: min(52vh, 620px);
+        min-height: min(340px, 40vh);
+        height: min(60vh, 700px);
     }
 
     .cell-preview-dialog__body.is-editing :global(.cm-editor .cm-scroller) {
@@ -272,7 +274,8 @@
     }
 
     .cell-preview-dialog__footer {
-        font-size: 12px;
-        color: var(--text-muted);
+        font-size: 10px;
+        color: color-mix(in srgb, var(--text-faint) 68%, transparent);
+        line-height: 1.35;
     }
 </style>
