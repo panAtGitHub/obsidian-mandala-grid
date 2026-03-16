@@ -75,6 +75,14 @@ export type SettingsActions =
           payload: { fontSize: number };
       }
     | {
+          type: 'settings/view/font-size/set-7x9-desktop';
+          payload: { fontSize: number };
+      }
+    | {
+          type: 'settings/view/font-size/set-7x9-mobile';
+          payload: { fontSize: number };
+      }
+    | {
           type: 'settings/view/font-size/set-sidebar-desktop';
           payload: { fontSize: number };
       }
@@ -230,6 +238,12 @@ export type SettingsActions =
       }
     | {
           type: 'settings/general/set-day-plan-enabled';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
+          type: 'settings/general/set-week-plan-enabled';
           payload: {
               enabled: boolean;
           };

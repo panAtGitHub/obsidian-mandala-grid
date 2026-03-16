@@ -14,11 +14,13 @@
     import {
         MandalaModeStore,
         Show9x9TitleOnlyStore,
+        WeekPlanEnabledStore,
     } from 'src/stores/settings/derived/view-settings-store';
 
     const view = getView();
     const mode = MandalaModeStore(view);
     const show9x9TitleOnly = Show9x9TitleOnlyStore(view);
+    const weekPlanEnabled = WeekPlanEnabledStore(view);
     const weekAnchorDate = derived(
         view.viewStore,
         (state) => state.ui.mandala.weekAnchorDate,
@@ -79,7 +81,9 @@
             label={$mode === '3x3'
                 ? '切换到 9x9'
                 : $mode === '9x9'
-                  ? '切换到周计划'
+                  ? $weekPlanEnabled
+                      ? '切换到周计划'
+                      : '切换到 3x3'
                   : '切换到 3x3'}
             on:click={toggleMandalaMode}
             tooltipPosition="bottom"
@@ -87,7 +91,11 @@
             {#if $mode === '3x3'}
                 <Grid3x3 class="svg-icon" size="18" />
             {:else if $mode === '9x9'}
-                <CalendarDays class="svg-icon" size="18" />
+                {#if $weekPlanEnabled}
+                    <CalendarDays class="svg-icon" size="18" />
+                {:else}
+                    <Grid2x2 class="svg-icon" size="18" />
+                {/if}
             {:else}
                 <Grid2x2 class="svg-icon" size="18" />
             {/if}

@@ -423,7 +423,9 @@
 
         if (
             $mode === 'week-7x9' &&
-            !getCachedDayPlan($documentState.file.frontmatter)
+            (!$dayPlanEnabled ||
+                !view.plugin.settings.getValue().general.weekPlanEnabled ||
+                !getCachedDayPlan($documentState.file.frontmatter))
         ) {
             view.plugin.settings.dispatch({
                 type: 'settings/view/mandala/set-mode',

@@ -282,6 +282,7 @@
         grid-template-rows: repeat(7, minmax(0, 1fr));
         gap: 0;
         background: var(--background-secondary);
+        font-size: var(--mandala-font-7x9, var(--mandala-font-9x9));
     }
 
     .week-plan-cell {
@@ -312,6 +313,7 @@
         --mandala-card-min-height: 0;
         --mandala-card-width: 100%;
         --mandala-card-height: 100%;
+        --font-text-size: var(--mandala-font-7x9, var(--mandala-font-3x3));
     }
 
     .week-plan-cell--desktop-card :global(.mandala-card) {

@@ -100,6 +100,8 @@ export type Settings = {
         mandalaFontSize3x3Mobile: number;
         mandalaFontSize9x9Desktop: number;
         mandalaFontSize9x9Mobile: number;
+        mandalaFontSize7x9Desktop: number;
+        mandalaFontSize7x9Mobile: number;
         mandalaFontSizeSidebarDesktop: number;
         mandalaFontSizeSidebarMobile: number;
         theme: Theme;
@@ -151,6 +153,7 @@ export type Settings = {
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
         dayPlanEnabled: boolean;
+        weekPlanEnabled: boolean;
         weekStart: WeekStart;
         dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
         dayPlanDateHeadingCustomTemplate: string;

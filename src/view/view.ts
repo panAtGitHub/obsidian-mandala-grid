@@ -238,12 +238,15 @@ export class MandalaView extends TextFileView {
     canUseWeekPlanMode(
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ) {
-        return Boolean(parseDayPlanFrontmatter(frontmatter));
+        return (
+            this.plugin.settings.getValue().general.weekPlanEnabled &&
+            Boolean(parseDayPlanFrontmatter(frontmatter))
+        );
     }
 
     setMandalaMode(mode: '3x3' | '9x9' | 'week-7x9') {
         if (mode === 'week-7x9' && !this.canUseWeekPlanMode()) {
-            new Notice('周计划视图仅支持已启用日计划的九宫格文件。');
+            new Notice('周计划视图仅支持已开启周计划功能、且启用日计划的九宫格文件。');
             return false;
         }
         this.plugin.settings.dispatch({
@@ -255,11 +258,15 @@ export class MandalaView extends TextFileView {
 
     cycleMandalaMode() {
         const current = this.plugin.settings.getValue().view.mandalaMode;
+        const weekPlanEnabled =
+            this.plugin.settings.getValue().general.weekPlanEnabled;
         const next =
             current === '3x3'
                 ? '9x9'
                 : current === '9x9'
-                  ? 'week-7x9'
+                  ? weekPlanEnabled
+                      ? 'week-7x9'
+                      : '3x3'
                   : '3x3';
         return this.setMandalaMode(next);
     }

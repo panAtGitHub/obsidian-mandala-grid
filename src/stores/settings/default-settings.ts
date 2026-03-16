@@ -59,6 +59,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaFontSize3x3Mobile: 12,
         mandalaFontSize9x9Desktop: 11,
         mandalaFontSize9x9Mobile: 10,
+        mandalaFontSize7x9Desktop: 11,
+        mandalaFontSize7x9Mobile: 10,
         mandalaFontSizeSidebarDesktop: 16,
         mandalaFontSizeSidebarMobile: 12,
         theme: {
@@ -117,6 +119,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
         dayPlanEnabled: true,
+        weekPlanEnabled: true,
         weekStart: 'monday',
         dayPlanDateHeadingFormat: 'zh-short',
         dayPlanDateHeadingCustomTemplate: '## {date} {cn}',

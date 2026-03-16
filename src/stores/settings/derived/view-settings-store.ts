@@ -31,6 +31,18 @@ export const MandalaFontSize9x9MobileStore = (view: MandalaView) =>
         (state) => state.view.mandalaFontSize9x9Mobile,
     );
 
+export const MandalaFontSize7x9DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize7x9Desktop,
+    );
+
+export const MandalaFontSize7x9MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize7x9Mobile,
+    );
+
 export const MandalaFontSizeSidebarDesktopStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,
@@ -118,6 +130,9 @@ export const ShowDayPlanTodayButtonStore = (view: MandalaView) =>
 
 export const DayPlanEnabledStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.general.dayPlanEnabled);
+
+export const WeekPlanEnabledStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekPlanEnabled);
 
 export const WeekStartStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.general.weekStart);

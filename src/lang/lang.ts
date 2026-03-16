@@ -226,6 +226,10 @@ export const lang = {
     settings_appearance_mandala_font_size_9x9_desktop: '9×9 格子字体大小（PC）',
     settings_appearance_mandala_font_size_9x9_mobile:
         '9×9 格子字体大小（手机）',
+    settings_appearance_mandala_font_size_7x9_desktop:
+        '7×9 周计划字体大小（PC）',
+    settings_appearance_mandala_font_size_7x9_mobile:
+        '7×9 周计划字体大小（手机）',
     settings_appearance_mandala_font_size_sidebar_desktop:
         '详情侧边栏字体大小（PC）',
     settings_appearance_mandala_font_size_sidebar_mobile:
@@ -306,6 +310,9 @@ export const lang = {
     settings_general_day_plan_enabled: '启用「日计划」功能',
     settings_general_day_plan_enabled_desc:
         '关闭后，会移除命令面板中所有与「日计划」相关的命令。',
+    settings_general_week_plan_enabled: '启用「周计划」功能',
+    settings_general_week_plan_enabled_desc:
+        '关闭后，会隐藏 7×9 周计划视图及其相关设置。',
     settings_general_day_plan_date_heading_format: '日计划日期标题格式',
     settings_general_day_plan_date_heading_format_desc:
         '控制如“## 2026-03-16 一”这类日期标题的显示格式。',

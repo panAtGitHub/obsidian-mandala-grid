@@ -213,6 +213,14 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/font-size/set-9x9-mobile') return;
         store.view.mandalaFontSize9x9Mobile = action.payload.fontSize;
     },
+    'settings/view/font-size/set-7x9-desktop': (store, action) => {
+        if (action.type !== 'settings/view/font-size/set-7x9-desktop') return;
+        store.view.mandalaFontSize7x9Desktop = action.payload.fontSize;
+    },
+    'settings/view/font-size/set-7x9-mobile': (store, action) => {
+        if (action.type !== 'settings/view/font-size/set-7x9-mobile') return;
+        store.view.mandalaFontSize7x9Mobile = action.payload.fontSize;
+    },
     'settings/view/font-size/set-sidebar-desktop': (store, action) => {
         if (action.type !== 'settings/view/font-size/set-sidebar-desktop')
             return;
@@ -300,11 +308,20 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store.view.mandalaMode === '3x3'
                 ? '9x9'
                 : store.view.mandalaMode === '9x9'
-                  ? 'week-7x9'
+                  ? store.general.weekPlanEnabled
+                      ? 'week-7x9'
+                      : '3x3'
                   : '3x3';
     },
     'settings/view/mandala/set-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/set-mode') return;
+        if (
+            action.payload.mode === 'week-7x9' &&
+            !store.general.weekPlanEnabled
+        ) {
+            store.view.mandalaMode = '3x3';
+            return;
+        }
         store.view.mandalaMode = action.payload.mode;
     },
     'view/mandala-detail-sidebar/toggle': (store, action) => {
@@ -671,6 +688,13 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/general/set-day-plan-enabled': (store, action) => {
         if (action.type !== 'settings/general/set-day-plan-enabled') return;
         store.general.dayPlanEnabled = action.payload.enabled;
+    },
+    'settings/general/set-week-plan-enabled': (store, action) => {
+        if (action.type !== 'settings/general/set-week-plan-enabled') return;
+        store.general.weekPlanEnabled = action.payload.enabled;
+        if (!action.payload.enabled && store.view.mandalaMode === 'week-7x9') {
+            store.view.mandalaMode = '3x3';
+        }
     },
     'settings/general/set-week-start': (store, action) => {
         if (action.type !== 'settings/general/set-week-start') return;

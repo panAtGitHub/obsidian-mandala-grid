@@ -209,6 +209,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         mandalaGridCustomLayouts?: unknown;
         mandalaShowSectionColors?: boolean;
         mandalaSectionColorOpacity?: number;
+        mandalaFontSize7x9Desktop?: number;
+        mandalaFontSize7x9Mobile?: number;
         mandalaGrayBackground?: boolean;
         show3x3SubgridNavButtons?: boolean;
         show9x9ParallelNavButtons?: boolean;
@@ -283,12 +285,16 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
     const generalSettings = (settings as Settings).general as {
         defaultDocumentFormat?: unknown;
+        weekPlanEnabled?: unknown;
         weekStart?: unknown;
         dayPlanDateHeadingFormat?: unknown;
         dayPlanDateHeadingCustomTemplate?: unknown;
         dayPlanDateHeadingApplyMode?: unknown;
     };
     delete generalSettings.defaultDocumentFormat;
+    if (typeof generalSettings.weekPlanEnabled !== 'boolean') {
+        generalSettings.weekPlanEnabled = true;
+    }
     if (
         generalSettings.weekStart !== 'monday' &&
         generalSettings.weekStart !== 'sunday'
@@ -312,6 +318,12 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         generalSettings.dayPlanDateHeadingApplyMode !== 'manual'
     ) {
         generalSettings.dayPlanDateHeadingApplyMode = 'manual';
+    }
+    if (typeof viewSettings.mandalaFontSize7x9Desktop !== 'number') {
+        viewSettings.mandalaFontSize7x9Desktop = 11;
+    }
+    if (typeof viewSettings.mandalaFontSize7x9Mobile !== 'number') {
+        viewSettings.mandalaFontSize7x9Mobile = 10;
     }
 
     // Legacy compatibility: split old shared toggle flags into desktop/mobile.

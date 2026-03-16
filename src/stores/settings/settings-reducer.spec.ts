@@ -188,6 +188,21 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.view.mandalaMode).toBe('3x3');
     });
 
+    test('skips week mode when week plan is disabled', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.general.weekPlanEnabled = false;
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('9x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('3x3');
+    });
+
     test('updates week start setting', () => {
         const settings = DEFAULT_SETTINGS();
 
@@ -197,5 +212,18 @@ describe('settingsReducer custom grid layouts', () => {
         });
 
         expect(settings.general.weekStart).toBe('sunday');
+    });
+
+    test('disabling week plan exits week mode', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.mandalaMode = 'week-7x9';
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-week-plan-enabled',
+            payload: { enabled: false },
+        });
+
+        expect(settings.general.weekPlanEnabled).toBe(false);
+        expect(settings.view.mandalaMode).toBe('3x3');
     });
 });

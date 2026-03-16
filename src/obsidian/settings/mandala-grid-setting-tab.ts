@@ -42,24 +42,41 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         const settings = this.plugin.settings.getValue();
 
         new Setting(containerEl)
-            .setName('周计划起始日')
-            .setDesc('周视图中一周从周一或周日开始。')
-            .addDropdown((dropdown) => {
-                dropdown
-                    .addOptions({
-                        monday: '周一开始',
-                        sunday: '周日开始',
-                    } satisfies Record<WeekStart, string>)
-                    .setValue(settings.general.weekStart)
-                    .onChange((value) => {
+            .setName(lang.settings_general_week_plan_enabled)
+            .setDesc(lang.settings_general_week_plan_enabled_desc)
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(settings.general.weekPlanEnabled)
+                    .onChange((enabled) => {
                         this.plugin.settings.dispatch({
-                            type: 'settings/general/set-week-start',
-                            payload: {
-                                weekStart: value as WeekStart,
-                            },
+                            type: 'settings/general/set-week-plan-enabled',
+                            payload: { enabled },
                         });
+                        this.display();
                     });
             });
+
+        if (settings.general.weekPlanEnabled) {
+            new Setting(containerEl)
+                .setName('周计划起始日')
+                .setDesc('周视图中一周从周一或周日开始。')
+                .addDropdown((dropdown) => {
+                    dropdown
+                        .addOptions({
+                            monday: '周一开始',
+                            sunday: '周日开始',
+                        } satisfies Record<WeekStart, string>)
+                        .setValue(settings.general.weekStart)
+                        .onChange((value) => {
+                            this.plugin.settings.dispatch({
+                                type: 'settings/general/set-week-start',
+                                payload: {
+                                    weekStart: value as WeekStart,
+                                },
+                            });
+                        });
+                });
+        }
 
         new Setting(containerEl)
             .setName(lang.settings_general_day_plan_date_heading_format)

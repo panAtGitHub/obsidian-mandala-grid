@@ -25,6 +25,8 @@
         MandalaGridHighlightWidthStore,
         MandalaFontSize3x3DesktopStore,
         MandalaFontSize3x3MobileStore,
+        MandalaFontSize7x9DesktopStore,
+        MandalaFontSize7x9MobileStore,
         MandalaFontSize9x9DesktopStore,
         MandalaFontSize9x9MobileStore,
         MandalaFontSizeSidebarDesktopStore,
@@ -37,6 +39,7 @@
         Show9x9ParallelNavButtonsStore,
         ShowHiddenCardInfoStore,
         SquareLayoutStore,
+        WeekPlanEnabledStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { getDefaultTheme } from 'src/stores/view/subscriptions/effects/css-variables/helpers/get-default-theme';
@@ -118,6 +121,7 @@
     const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const dayPlanEnabled = DayPlanEnabledStore(view);
+    const weekPlanEnabled = WeekPlanEnabledStore(view);
     const contextMenuCopyLinkVisibility =
         ContextMenuCopyLinkVisibilityStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
@@ -133,6 +137,9 @@
     const fontSize9x9 = isMobile
         ? MandalaFontSize9x9MobileStore(view)
         : MandalaFontSize9x9DesktopStore(view);
+    const fontSize7x9 = isMobile
+        ? MandalaFontSize7x9MobileStore(view)
+        : MandalaFontSize7x9DesktopStore(view);
     const fontSizeSidebar = isMobile
         ? MandalaFontSizeSidebarMobileStore(view)
         : MandalaFontSizeSidebarDesktopStore(view);
@@ -436,6 +443,11 @@
         'settings/view/font-size/set-9x9-mobile',
     );
 
+    const updateFontSize7x9Value = createPlatformFontSizeUpdater(
+        'settings/view/font-size/set-7x9-desktop',
+        'settings/view/font-size/set-7x9-mobile',
+    );
+
     const updateFontSizeSidebarValue = createPlatformFontSizeUpdater(
         'settings/view/font-size/set-sidebar-desktop',
         'settings/view/font-size/set-sidebar-mobile',
@@ -554,6 +566,7 @@
 
     const updateFontSize3x3 = createNumericInputHandler(updateFontSize3x3Value);
     const updateFontSize9x9 = createNumericInputHandler(updateFontSize9x9Value);
+    const updateFontSize7x9 = createNumericInputHandler(updateFontSize7x9Value);
     const updateFontSizeSidebar = createNumericInputHandler(
         updateFontSizeSidebarValue,
     );
@@ -584,6 +597,7 @@
 
     const stepFontSize3x3 = createStepHandler(updateFontSize3x3Value);
     const stepFontSize9x9 = createStepHandler(updateFontSize9x9Value);
+    const stepFontSize7x9 = createStepHandler(updateFontSize7x9Value);
     const stepFontSizeSidebar = createStepHandler(updateFontSizeSidebarValue);
     const stepHeadingsFontSize = createStepHandler(
         updateHeadingsFontSizeValue,
@@ -672,6 +686,10 @@
 
     const resetFontSize9x9 = () => {
         updateFontSize9x9Value(11);
+    };
+
+    const resetFontSize7x9 = () => {
+        updateFontSize7x9Value(isMobile ? 10 : 11);
     };
 
     const resetFontSizeSidebar = () => {
@@ -2168,7 +2186,9 @@
                 show={showFontOptions}
                 fontSize3x3={$fontSize3x3}
                 fontSize9x9={$fontSize9x9}
+                fontSize7x9={$fontSize7x9}
                 fontSizeSidebar={$fontSizeSidebar}
+                weekPlanEnabled={$weekPlanEnabled}
                 headingsFontSizeEm={$headingsFontSizeEm}
                 toggle={() => (showFontOptions = !showFontOptions)}
                 {stepFontSize3x3}
@@ -2177,6 +2197,9 @@
                 {stepFontSize9x9}
                 {updateFontSize9x9}
                 {resetFontSize9x9}
+                {stepFontSize7x9}
+                {updateFontSize7x9}
+                {resetFontSize7x9}
                 {stepFontSizeSidebar}
                 {updateFontSizeSidebar}
                 {resetFontSizeSidebar}
