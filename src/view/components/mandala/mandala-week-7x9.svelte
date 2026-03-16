@@ -313,7 +313,10 @@
         --mandala-card-min-height: 0;
         --mandala-card-width: 100%;
         --mandala-card-height: 100%;
-        --font-text-size: var(--mandala-font-7x9, var(--mandala-font-3x3));
+        --mandala-card-font-size: var(
+            --mandala-font-7x9,
+            var(--mandala-font-3x3)
+        );
     }
 
     .week-plan-cell--desktop-card :global(.mandala-card) {
