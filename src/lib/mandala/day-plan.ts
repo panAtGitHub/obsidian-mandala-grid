@@ -133,7 +133,15 @@ const mondayStartDayOfWeek = (date: Date) => {
 };
 
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'] as const;
-const WEEKDAY_LABELS_ZH = WEEKDAY_LABELS.map((day) => `周${day}`) as const;
+const WEEKDAY_LABELS_ZH = [
+    '周一',
+    '周二',
+    '周三',
+    '周四',
+    '周五',
+    '周六',
+    '周日',
+] as const;
 const WEEKDAY_LABELS_EN_SHORT = [
     'mon',
     'tue',
