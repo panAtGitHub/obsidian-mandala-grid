@@ -52,6 +52,12 @@ export const onViewStateUpdate = (
         action.type === 'view/editor/disable-main-editor' ||
         action.type === 'view/editor/disable-sidebar-editor'
     ) {
+        if (viewState.ui.previewDialog.open) {
+            return;
+        }
+        focusContainer(view);
+    }
+    if (action.type === 'view/preview-dialog/close') {
         focusContainer(view);
     }
     if (action.type === 'view/search/toggle-input') {

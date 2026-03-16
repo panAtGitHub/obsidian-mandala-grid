@@ -7,12 +7,16 @@ export const handleEscapeKey = (view: MandalaView) => {
     const value = viewStore.getValue();
     const search = value.search;
     const controls = value.ui.controls;
+    const previewDialog = value.ui.previewDialog;
     const selection = value.document.selectedNodes;
     const swap = value.ui.mandala.swap;
-    if (
-        controls.showHelpSidebar ||
-        controls.showSettingsSidebar
-    ) {
+    if (previewDialog.open && !value.document.editing.activeNodeId) {
+        viewStore.dispatch({
+            type: 'view/preview-dialog/close',
+        });
+        return true;
+    }
+    if (controls.showHelpSidebar || controls.showSettingsSidebar) {
         viewStore.dispatch({
             type: 'view/close-modals',
             payload: {

@@ -18,6 +18,7 @@ export const hotkeyGroups = {
         'enable_edit_mode',
         'enable_edit_mode_and_place_cursor_at_start',
         'enable_edit_mode_and_place_cursor_at_end',
+        'toggle_cell_preview_dialog',
         'disable_edit_mode',
         'save_changes_and_exit_card',
     ]),

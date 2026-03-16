@@ -6,6 +6,7 @@
     import { viewHotkeysAction } from 'src/view/actions/keyboard-shortcuts/view-hotkeys-action';
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
     import MandalaViewComponent from 'src/view/components/mandala/mandala-view.svelte';
+    import CellPreviewDialog from 'src/view/components/mandala/cell-preview-dialog.svelte';
     import HotkeysModal from 'src/view/components/container/modals/hotkeys/hotkeys.svelte';
     import SettingsModal from 'src/view/components/container/modals/settings/settings.svelte';
     import { MandalaView } from 'src/view/view';
@@ -81,6 +82,7 @@
             />
         {/if}
         <MandalaViewComponent />
+        <CellPreviewDialog />
         {#if $controls.showHelpSidebar}
             <HotkeysModal />
         {/if}
@@ -119,5 +121,4 @@
         user-select: none;
         -webkit-user-select: none;
     }
-
 </style>

@@ -43,6 +43,10 @@ export type ViewState = {
             showHelpSidebar: boolean;
             showSettingsSidebar: boolean;
         };
+        previewDialog: {
+            open: boolean;
+            nodeId: string | null;
+        };
         mandala: {
             subgridTheme: string | null;
             activeCell9x9: { row: number; col: number } | null;

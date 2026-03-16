@@ -6,6 +6,7 @@ import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
 import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
 import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
+import { toggleCellPreviewDialog } from 'src/view/helpers/mandala/cell-preview-dialog';
 
 export const editCommands = () => {
     const ensureNodeForSection = (view: MandalaView, section: string) => {
@@ -40,9 +41,30 @@ export const editCommands = () => {
 
     return [
         {
+            name: 'toggle_cell_preview_dialog',
+            callback: (view, event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleCellPreviewDialog(view);
+            },
+            hotkeys: [
+                { key: 'Space', modifiers: [], editorState: 'editor-off' },
+            ],
+        },
+        {
             name: 'enable_edit_mode',
             callback: (view, event) => {
                 event.preventDefault();
+                const previewNodeId =
+                    view.viewStore.getValue().ui.previewDialog.nodeId;
+                const previewOpen =
+                    view.viewStore.getValue().ui.previewDialog.open;
+                if (previewOpen && previewNodeId) {
+                    openNodeEditor(view, previewNodeId, {
+                        desktopIsInSidebar: false,
+                    });
+                    return;
+                }
                 let showDetailSidebar = view.isMandalaDetailSidebarVisible();
                 let nodeId = view.viewStore.getValue().document.activeNode;
                 if (view.mandalaMode === '9x9' && view.mandalaActiveCell9x9) {

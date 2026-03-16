@@ -44,6 +44,9 @@ export const DEFAULT_SETTINGS = (): Settings => ({
             enable_edit_mode: {
                 primary: { key: 'Enter', modifiers: [] },
             },
+            toggle_cell_preview_dialog: {
+                primary: { key: 'Space', modifiers: [] },
+            },
             toggle_mandala_mode: {
                 primary: { key: 'l', modifiers: ['Mod'] },
             },

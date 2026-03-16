@@ -98,6 +98,20 @@ const handlers: Record<string, ViewActionHandler> = {
             showSettingsSidebar: false,
         };
     },
+    'view/preview-dialog/open': (state, action) => {
+        if (action.type !== 'view/preview-dialog/open') return;
+        state.ui.previewDialog = {
+            open: true,
+            nodeId: action.payload.nodeId,
+        };
+    },
+    'view/preview-dialog/close': (state, action) => {
+        if (action.type !== 'view/preview-dialog/close') return;
+        state.ui.previewDialog = {
+            open: false,
+            nodeId: null,
+        };
+    },
     'view/editor/enable-main-editor': (state, action, context) => {
         if (action.type !== 'view/editor/enable-main-editor') return;
         if (Platform.isMobile) return;
@@ -108,7 +122,11 @@ const handlers: Record<string, ViewActionHandler> = {
                 context.columns,
             );
         }
-        enableEditMode(state.document, action.payload.nodeId, action.payload.isInSidebar);
+        enableEditMode(
+            state.document,
+            action.payload.nodeId,
+            action.payload.isInSidebar,
+        );
     },
     'view/editor/enable-sidebar-editor': (state, action) => {
         if (action.type !== 'view/editor/enable-sidebar-editor') return;
@@ -139,8 +157,8 @@ const handlers: Record<string, ViewActionHandler> = {
             deleteNode:
                 action.payload.includeSelection &&
                 state.document.selectedNodes.size > 1
-                ? new Set(state.document.selectedNodes)
-                : new Set([action.payload.id]),
+                    ? new Set(state.document.selectedNodes)
+                    : new Set([action.payload.id]),
         };
     },
     'view/editor/disable/confirm': (state, action) => {
@@ -187,12 +205,17 @@ const handlers: Record<string, ViewActionHandler> = {
         selectAllNodes(state.document, context.columns);
     },
     'view/set-active-node/sequential/select-next': (state, action, context) => {
-        if (action.type !== 'view/set-active-node/sequential/select-next') return;
+        if (action.type !== 'view/set-active-node/sequential/select-next')
+            return;
         navigateActiveNode(state.document, action, context.columns);
     },
     'view/pinned-nodes/set-active-node': (state, action) => {
         if (action.type !== 'view/pinned-nodes/set-active-node') return;
-        setActivePinnedNode(state.document, state.pinnedNodes, action.payload.id);
+        setActivePinnedNode(
+            state.document,
+            state.pinnedNodes,
+            action.payload.id,
+        );
     },
     'search/view/toggle-show-all-nodes': (state, action) => {
         if (action.type !== 'search/view/toggle-show-all-nodes') return;

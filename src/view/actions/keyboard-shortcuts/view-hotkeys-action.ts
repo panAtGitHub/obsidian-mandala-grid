@@ -17,6 +17,10 @@ export const viewHotkeysAction = (
     const state = {
         shift: false,
     };
+    const isReadonlyPreviewDialogTarget = (target: HTMLElement | null) =>
+        Boolean(target?.closest('[data-cell-preview-dialog="readonly"]'));
+    const isAllowedPreviewDialogCommand = (name: string) =>
+        name === 'toggle_cell_preview_dialog' || name === 'enable_edit_mode';
     const tryRunHotkeyCommand = (event: KeyboardEvent) => {
         const command = viewHotkeys.current[eventToString(event)];
         if (command) {
@@ -24,8 +28,8 @@ export const viewHotkeysAction = (
                 command.editorState === 'editor-on'
                     ? isEditing(view)
                     : command.editorState === 'editor-off'
-                        ? !isEditing(view)
-                        : true;
+                      ? !isEditing(view)
+                      : true;
 
             if (allow) {
                 try {
@@ -59,8 +63,19 @@ export const viewHotkeysAction = (
             if (contain) return;
         }
 
-        // 仅在没有匹配到命令时拦截输入控件
         const targetEl = event.target as HTMLElement;
+        const readonlyPreviewDialog = isReadonlyPreviewDialogTarget(targetEl);
+        if (readonlyPreviewDialog) {
+            const command = viewHotkeys.current[eventToString(event)];
+            if (command && isAllowedPreviewDialogCommand(command.name)) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
+        // 仅在没有匹配到命令时拦截输入控件
         if (
             targetEl.localName === 'input' ||
             targetEl.localName === 'textarea' ||

@@ -36,6 +36,7 @@ export const lang = {
     hk_enable_edit_mode: '编辑卡片',
     hk_enable_edit_mode_and_place_cursor_at_start: '编辑卡片并将光标置于开头',
     hk_enable_edit_mode_and_place_cursor_at_end: '编辑卡片并将光标置于末尾',
+    hk_toggle_cell_preview_dialog: '切换格子预览弹层',
     hkg_edit_nodes: '编辑',
     modal_hk_editor_state_on: '仅在编辑器激活时启用',
     modal_hk_editor_state_off: '仅在编辑器未激活时启用',
@@ -320,11 +321,9 @@ export const lang = {
     settings_general_day_plan_date_heading_format_desc:
         '控制如“## 2026-03-16 一”这类日期标题的显示格式。',
     settings_general_day_plan_date_heading_format_date_only: '仅日期',
-    settings_general_day_plan_date_heading_format_zh_full:
-        '日期 + 周一至周日',
+    settings_general_day_plan_date_heading_format_zh_full: '日期 + 周一至周日',
     settings_general_day_plan_date_heading_format_zh_short: '日期 + 一至日',
-    settings_general_day_plan_date_heading_format_en_short:
-        '日期 + mon至sun',
+    settings_general_day_plan_date_heading_format_en_short: '日期 + mon至sun',
     settings_general_day_plan_date_heading_format_custom: '日期 + 自定义',
     settings_general_day_plan_date_heading_custom_template:
         '日计划日期标题自定义模板',
