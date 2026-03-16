@@ -265,9 +265,8 @@
 
     .cell-preview-dialog__body {
         min-height: min(340px, 40vh);
-        max-height: min(60vh, 700px);
-        overflow: auto;
-        scrollbar-gutter: stable both-edges;
+        height: min(60vh, 700px);
+        overflow: hidden;
         border-radius: 14px;
         border: 1px solid var(--background-modifier-border);
         background: color-mix(
@@ -277,20 +276,24 @@
         );
         padding: 18px 0;
         outline: none;
+        display: flex;
     }
 
     .cell-preview-dialog__body.is-editing {
         padding: 0;
-        overflow: hidden;
     }
 
     .cell-preview-dialog__preview {
         min-height: 100%;
         box-sizing: border-box;
         width: 100%;
+        height: 100%;
+        overflow: auto;
+        scrollbar-gutter: stable both-edges;
         padding: 0 10px 0 22px;
         font-size: var(--cell-preview-font-size);
         line-height: 1.6;
+        background: transparent;
     }
 
     .cell-preview-dialog__preview :global(:first-child) {
@@ -302,22 +305,32 @@
     }
 
     .cell-preview-dialog__body.is-editing :global(.editor-container) {
-        min-height: min(340px, 40vh);
-        height: min(60vh, 700px);
+        min-height: 100%;
+        height: 100%;
         overflow: auto;
         box-sizing: border-box;
         padding: 18px 10px 18px 22px;
         scrollbar-gutter: stable both-edges;
+        background: transparent;
     }
 
     .cell-preview-dialog__body.is-editing :global(.cm-editor),
     .cell-preview-dialog__body.is-editing :global(.cm-editor .cm-scroller) {
-        min-height: min(340px, 40vh);
-        height: min(60vh, 700px);
+        min-height: 100%;
+        height: 100%;
+        background: transparent !important;
     }
 
     .cell-preview-dialog__body.is-editing :global(.cm-editor .cm-scroller) {
         overflow: auto !important;
+    }
+
+    .cell-preview-dialog__body.is-editing :global(.cm-content),
+    .cell-preview-dialog__body.is-editing :global(.cm-gutters),
+    .cell-preview-dialog__body.is-editing :global(.view-content),
+    .cell-preview-dialog__body.is-editing :global(.cm-activeLine),
+    .cell-preview-dialog__body.is-editing :global(.cm-activeLineGutter) {
+        background: transparent !important;
     }
 
     .cell-preview-dialog__footer {
