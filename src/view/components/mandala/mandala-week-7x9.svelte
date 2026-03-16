@@ -332,6 +332,11 @@
         scrollbar-gutter: auto;
     }
 
+    .week-plan-cell--desktop-card :global(.lng-prev > *) {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
     .week-plan-cell--desktop-card :global(.mandala-card-meta) {
         top: 4px;
         right: 6px;
