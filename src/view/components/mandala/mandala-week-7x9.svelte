@@ -7,15 +7,29 @@
         sectionAtCellWeek7x9,
     } from 'src/lib/mandala/day-plan';
     import { getView } from 'src/view/components/container/context';
-    import { WeekStartStore } from 'src/stores/settings/derived/view-settings-store';
+    import {
+        MandalaBackgroundModeStore,
+        MandalaSectionColorOpacityStore,
+        ShowMandalaDetailSidebarStore,
+        WeekStartStore,
+        WhiteThemeModeStore,
+    } from 'src/stores/settings/derived/view-settings-store';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,
         setActiveMandalaNode,
     } from 'src/view/helpers/mandala/node-editing';
+    import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
+    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
 
     const view = getView();
     const weekStart = WeekStartStore(view);
+    const sectionColors = SectionColorBySectionStore(view);
+    const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
+    const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
+    const whiteThemeMode = WhiteThemeModeStore(view);
 
     const documentState = derived(view.documentStore, (state) => state);
     const activeNodeId = derived(
@@ -25,6 +39,18 @@
     const activeCell = derived(
         view.viewStore,
         (state) => state.ui.mandala.activeCellWeek7x9,
+    );
+    const editingState = derived(
+        view.viewStore,
+        (state) => state.document.editing,
+    );
+    const selectedNodes = derived(
+        view.viewStore,
+        (state) => state.document.selectedNodes,
+    );
+    const pinnedNodes = derived(
+        view.documentStore,
+        (state) => new Set(state.pinnedNodes.Ids),
     );
     const anchorDate = derived(
         view.viewStore,
@@ -123,6 +149,7 @@
 
     const onCellClick = (cell: CellModel) => {
         setActiveCellWeek7x9(view, { row: cell.row, col: cell.col });
+        if (!Platform.isMobile && cell.nodeId) return;
         if (!cell.nodeId) return;
         setActiveMandalaNode(view, cell.nodeId);
     };
@@ -146,6 +173,13 @@
             },
         };
     };
+
+    const getSectionColor = (section: string | null) => {
+        if (!section || $backgroundMode !== 'custom') return null;
+        const color = $sectionColors[section];
+        if (!color) return null;
+        return applyOpacityToHex(color, $sectionColorOpacity / 100);
+    };
 </script>
 
 <div class="week-plan-shell">
@@ -153,6 +187,7 @@
         {#each cells as cell (`${cell.row}-${cell.col}`)}
             <div
                 class="week-plan-cell"
+                class:week-plan-cell--desktop-card={!Platform.isMobile}
                 class:is-placeholder={cell.isPlaceholder}
                 class:is-center-column={cell.isCenterColumn}
                 class:is-active-cell={$activeCell &&
@@ -161,10 +196,35 @@
                 class:is-active-node={!$activeCell &&
                     !!cell.nodeId &&
                     cell.nodeId === $activeNodeId}
+                on:click|capture={() =>
+                    setActiveCellWeek7x9(view, {
+                        row: cell.row,
+                        col: cell.col,
+                    })}
                 on:click={() => onCellClick(cell)}
                 on:dblclick={() => onCellDblClick(cell)}
             >
-                {#if cell.nodeId}
+                {#if !Platform.isMobile && cell.nodeId}
+                    <MandalaCard
+                        nodeId={cell.nodeId}
+                        section={sectionAtCellWeek7x9(cell.row, cell.col, rows) ?? ''}
+                        active={cell.nodeId === $activeNodeId}
+                        preserveActiveBackground={$whiteThemeMode}
+                        sectionIndicatorVariant={!$whiteThemeMode
+                            ? 'section-capsule'
+                            : 'plain-with-pin'}
+                        editing={$editingState.activeNodeId === cell.nodeId &&
+                            !$editingState.isInSidebar &&
+                            !$showDetailSidebar}
+                        selected={$selectedNodes.has(cell.nodeId)}
+                        pinned={$pinnedNodes.has(cell.nodeId)}
+                        sectionColor={getSectionColor(
+                            sectionAtCellWeek7x9(cell.row, cell.col, rows),
+                        )}
+                        draggable={false}
+                        gridCell={{ mode: 'week-7x9', row: cell.row, col: cell.col }}
+                    />
+                {:else if cell.nodeId}
                     <div class="week-plan-cell__content">
                         {#if cell.title}
                             <div class="week-plan-cell__title" use:renderText={cell.title}>
@@ -214,6 +274,37 @@
         border-top: 1px dashed var(--mandala-border-color);
         overflow: hidden;
         cursor: pointer;
+    }
+
+    .week-plan-cell--desktop-card {
+        padding: 0;
+        background: var(--background-secondary);
+
+        --min-node-height: 0;
+        --mandala-card-min-height: 0;
+        --mandala-card-width: 100%;
+        --mandala-card-height: 100%;
+        --mandala-card-overflow: hidden;
+        --font-text-size: var(--mandala-font-9x9, 11px);
+    }
+
+    .week-plan-cell--desktop-card :global(.mandala-card) {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        font-size: var(--mandala-font-9x9, 11px);
+    }
+
+    .week-plan-cell--desktop-card :global(.lng-prev) {
+        min-height: 0;
+        padding: 6px 6px 8px 8px;
+    }
+
+    .week-plan-cell--desktop-card :global(.mandala-card-meta) {
+        top: 4px;
+        right: 6px;
+        font-size: 10px;
     }
 
     .week-plan-cell.is-center-column {
