@@ -1,6 +1,7 @@
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { cancelChanges } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/cancel-changes';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+import { parseDayPlanFrontmatter, mapWeekPlanRows, sectionAtCellWeek7x9 } from 'src/lib/mandala/day-plan';
 import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
@@ -58,6 +59,40 @@ export const editCommands = () => {
                         view.mandalaActiveCell9x9.col,
                         orientation,
                         baseTheme,
+                    );
+                    if (section) {
+                        const existing =
+                            view.documentStore.getValue().sections.section_id[
+                                section
+                            ];
+                        nodeId =
+                            existing ??
+                            ensureNodeForSection(view, section) ??
+                            nodeId;
+                    }
+                    if (!Platform.isMobile && !showDetailSidebar) {
+                        view.toggleCurrentMandalaDetailSidebar();
+                        showDetailSidebar = true;
+                    }
+                } else if (
+                    view.mandalaMode === 'week-7x9' &&
+                    view.mandalaActiveCellWeek7x9
+                ) {
+                    const plan = parseDayPlanFrontmatter(
+                        view.documentStore.getValue().file.frontmatter,
+                    );
+                    const anchorDate =
+                        view.viewStore.getValue().ui.mandala.weekAnchorDate ??
+                        new Date().toISOString().slice(0, 10);
+                    const weekStart =
+                        view.plugin.settings.getValue().general.weekStart;
+                    const rows = plan
+                        ? mapWeekPlanRows(plan.year, anchorDate, weekStart)
+                        : [];
+                    const section = sectionAtCellWeek7x9(
+                        view.mandalaActiveCellWeek7x9.row,
+                        view.mandalaActiveCellWeek7x9.col,
+                        rows,
                     );
                     if (section) {
                         const existing =

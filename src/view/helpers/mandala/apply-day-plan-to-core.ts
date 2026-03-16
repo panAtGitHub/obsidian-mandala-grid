@@ -140,7 +140,11 @@ export const applyDayPlanToCore = (
         return false;
     }
     if (!view.dayPlanHotCores.has(nextCore)) {
-        view.dayPlanHotCores = shiftHotWindowToCore(config.year, nextCore);
+        view.dayPlanHotCores = shiftHotWindowToCore(
+            config.year,
+            nextCore,
+            view.plugin.settings.getValue().general.weekStart,
+        );
     }
 
     const docState = view.documentStore.getValue();

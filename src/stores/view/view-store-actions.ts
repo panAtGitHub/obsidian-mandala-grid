@@ -27,6 +27,14 @@ export type MandalaActions =
         payload: { cell: { row: number; col: number } | null };
     }
     | {
+        type: 'view/mandala/week-active-cell/set';
+        payload: { cell: { row: number; col: number } | null };
+    }
+    | {
+        type: 'view/mandala/week-anchor-date/set';
+        payload: { date: string | null };
+    }
+    | {
         type: 'view/mandala/swap/start';
         payload: { sourceNodeId: string; targetNodeIds: string[] };
     }

@@ -67,6 +67,12 @@ export const VerticalToolbarButtonsList = (view: MandalaView) => {
                         buttons: group.buttons.filter((b) => {
                             if (isMandala) {
                                 if (Platform.isMobile && b.id === 'mandala-mode') return false;
+                                if (
+                                    view.mandalaMode === 'week-7x9' &&
+                                    (b.id as string).startsWith('jump-core-')
+                                ) {
+                                    return false;
+                                }
                                 if (!Platform.isMobile && (b.id as string).startsWith('jump-core-')) return false;
 
                                 if (

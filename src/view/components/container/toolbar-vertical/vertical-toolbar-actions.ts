@@ -4,9 +4,7 @@ export class VerticalToolbarActions {
     constructor(private view: MandalaView) {}
 
     toggleMandalaMode = () => {
-        this.view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/toggle-mode',
-        });
+        this.view.cycleMandalaMode();
     };
 
     toggleHelp = () => {

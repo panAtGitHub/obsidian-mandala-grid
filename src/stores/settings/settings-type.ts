@@ -23,7 +23,7 @@ export type ScrollingSettings = {
 export type ViewType = 'mandala-grid' | 'markdown';
 export type DetailSidebarPreviewMode = 'rendered' | 'source';
 
-export type MandalaMode = '3x3' | '9x9';
+export type MandalaMode = '3x3' | '9x9' | 'week-7x9';
 export type BuiltinMandalaGridOrientation = 'left-to-right' | 'south-start';
 export type MandalaGridOrientation = BuiltinMandalaGridOrientation | 'custom';
 export type MandalaCustomLayout = {
@@ -69,6 +69,7 @@ export type DocumentPreferences = {
 export type LeftSidebarTab = 'pinned-cards';
 
 export type LinkPaneType = 'split' | 'tab';
+export type WeekStart = 'monday' | 'sunday';
 export type DayPlanDateHeadingFormat =
     | 'date-only'
     | 'zh-short'
@@ -150,6 +151,7 @@ export type Settings = {
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
         dayPlanEnabled: boolean;
+        weekStart: WeekStart;
         dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
         dayPlanDateHeadingCustomTemplate: string;
         dayPlanDateHeadingApplyMode: DayPlanDateHeadingApplyMode;

@@ -4,6 +4,7 @@ import {
     parseDayPlanFrontmatterWithMandala,
     sectionFromDateInPlanYear,
 } from 'src/lib/mandala/day-plan';
+import type { WeekStart } from 'src/stores/settings/settings-type';
 
 export type MandalaProfileKind = 'none' | 'generic' | 'day-plan';
 
@@ -45,6 +46,7 @@ export const isMandalaFrontmatterEnabled = (frontmatter: string) => {
 export const resolveMandalaProfileActivation = (
     frontmatter: string,
     date: Date = new Date(),
+    weekStart: WeekStart = 'monday',
 ): MandalaProfileActivation => {
     const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
     if (!parsed.mandalaEnabled) {
@@ -82,7 +84,7 @@ export const resolveMandalaProfileActivation = (
     return {
         kind: 'day-plan',
         targetSection: todaySection,
-        hotCoreSections: getHotCoreSections(dayPlan.year, date),
+        hotCoreSections: getHotCoreSections(dayPlan.year, date, weekStart),
         notice: null,
         dayPlan,
     };

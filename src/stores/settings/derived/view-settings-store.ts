@@ -119,6 +119,9 @@ export const ShowDayPlanTodayButtonStore = (view: MandalaView) =>
 export const DayPlanEnabledStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.general.dayPlanEnabled);
 
+export const WeekStartStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekStart);
+
 export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) =>
         resolveContextMenuCopyLinkVisibility(state.view),

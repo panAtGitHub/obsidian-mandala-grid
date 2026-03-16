@@ -52,6 +52,7 @@ import {
     MandalaProfileActivation,
     resolveMandalaProfileActivation,
 } from 'src/lib/mandala/mandala-profile';
+import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
 import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
@@ -87,8 +88,9 @@ export class MandalaView extends TextFileView {
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
-    mandalaMode: '3x3' | '9x9' = '3x3';
+    mandalaMode: '3x3' | '9x9' | 'week-7x9' = '3x3';
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
+    mandalaActiveCellWeek7x9: { row: number; col: number } | null = null;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
     private hasPendingExplicitJump = false;
@@ -113,6 +115,8 @@ export class MandalaView extends TextFileView {
         {
             subgridTheme: string;
             activeCell9x9: { row: number; col: number } | null;
+            activeCellWeek7x9: { row: number; col: number } | null;
+            weekAnchorDate: string | null;
         }
     >();
     constructor(
@@ -229,6 +233,35 @@ export class MandalaView extends TextFileView {
                 : settings.documents[this.getCurrentFilePath() ?? '']
                       ?.mandalaView?.showDetailSidebarMobile ?? null,
         });
+    }
+
+    canUseWeekPlanMode(
+        frontmatter = this.documentStore.getValue().file.frontmatter,
+    ) {
+        return Boolean(parseDayPlanFrontmatter(frontmatter));
+    }
+
+    setMandalaMode(mode: '3x3' | '9x9' | 'week-7x9') {
+        if (mode === 'week-7x9' && !this.canUseWeekPlanMode()) {
+            new Notice('周计划视图仅支持已启用日计划的九宫格文件。');
+            return false;
+        }
+        this.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-mode',
+            payload: { mode },
+        });
+        return true;
+    }
+
+    cycleMandalaMode() {
+        const current = this.plugin.settings.getValue().view.mandalaMode;
+        const next =
+            current === '3x3'
+                ? '9x9'
+                : current === '9x9'
+                  ? 'week-7x9'
+                  : '3x3';
+        return this.setMandalaMode(next);
     }
 
     getViewData(): string {
@@ -762,6 +795,8 @@ export class MandalaView extends TextFileView {
         this.mandalaUiStateByPath.set(path, {
             subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
             activeCell9x9: viewState.ui.mandala.activeCell9x9,
+            activeCellWeek7x9: viewState.ui.mandala.activeCellWeek7x9,
+            weekAnchorDate: viewState.ui.mandala.weekAnchorDate,
         });
 
         this.persistCurrentMandalaViewState(undefined, path);
@@ -850,6 +885,8 @@ export class MandalaView extends TextFileView {
         const nextState = this.mandalaUiStateByPath.get(path);
         const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
         const activeCell9x9 = nextState?.activeCell9x9 ?? null;
+        const activeCellWeek7x9 = nextState?.activeCellWeek7x9 ?? null;
+        const weekAnchorDate = nextState?.weekAnchorDate ?? null;
 
         this.viewStore.dispatch({
             type: 'view/mandala/subgrid/enter',
@@ -860,9 +897,18 @@ export class MandalaView extends TextFileView {
             payload: { cell: activeCell9x9 },
         });
         this.viewStore.dispatch({
+            type: 'view/mandala/week-active-cell/set',
+            payload: { cell: activeCellWeek7x9 },
+        });
+        this.viewStore.dispatch({
+            type: 'view/mandala/week-anchor-date/set',
+            payload: { date: weekAnchorDate },
+        });
+        this.viewStore.dispatch({
             type: 'view/mandala/swap/cancel',
         });
         this.mandalaActiveCell9x9 = activeCell9x9;
+        this.mandalaActiveCellWeek7x9 = activeCellWeek7x9;
     }
 
     private collectSectionIdsFromBody(body: string) {
@@ -1095,7 +1141,11 @@ export class MandalaView extends TextFileView {
         ) {
             return this.cachedActivation.activation;
         }
-        const activation = resolveMandalaProfileActivation(frontmatter);
+        const activation = resolveMandalaProfileActivation(
+            frontmatter,
+            new Date(),
+            this.plugin.settings.getValue().general.weekStart,
+        );
         this.cachedActivation = { frontmatter, activation };
         return activation;
     }

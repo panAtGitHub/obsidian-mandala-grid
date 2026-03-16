@@ -235,6 +235,16 @@ const handlers: Record<string, ViewActionHandler> = {
         state.ui.mandala.activeCell9x9 = action.payload.cell;
         state.ui.mandala = { ...state.ui.mandala };
     },
+    'view/mandala/week-active-cell/set': (state, action) => {
+        if (action.type !== 'view/mandala/week-active-cell/set') return;
+        state.ui.mandala.activeCellWeek7x9 = action.payload.cell;
+        state.ui.mandala = { ...state.ui.mandala };
+    },
+    'view/mandala/week-anchor-date/set': (state, action) => {
+        if (action.type !== 'view/mandala/week-anchor-date/set') return;
+        state.ui.mandala.weekAnchorDate = action.payload.date;
+        state.ui.mandala = { ...state.ui.mandala };
+    },
     'view/mandala/swap/start': (state, action) => {
         if (action.type !== 'view/mandala/swap/start') return;
         state.ui.mandala.swap = {

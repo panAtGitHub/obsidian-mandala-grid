@@ -3,6 +3,7 @@ import { AllDirections } from 'src/stores/document/document-store-actions';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
 import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
+import { tryMandalaWeek7x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-week-7x9-navigation';
 
 const spatialNavigation = (view: MandalaView, direction: AllDirections) => {
     if (view.mandalaMode === '3x3') {
@@ -10,6 +11,9 @@ const spatialNavigation = (view: MandalaView, direction: AllDirections) => {
     }
     if (view.mandalaMode === '9x9') {
         if (tryMandala9x9Navigation(view, direction)) return;
+    }
+    if (view.mandalaMode === 'week-7x9') {
+        if (tryMandalaWeek7x9Navigation(view, direction)) return;
     }
     view.viewStore.dispatch({
         type: 'view/set-active-node/keyboard',

@@ -168,4 +168,34 @@ describe('settingsReducer custom grid layouts', () => {
         );
         expect(settings.general.dayPlanDateHeadingApplyMode).toBe('immediate');
     });
+
+    test('cycles mandala modes through 3x3, 9x9 and week-7x9', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('9x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('week-7x9');
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('3x3');
+    });
+
+    test('updates week start setting', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-week-start',
+            payload: { weekStart: 'sunday' },
+        });
+
+        expect(settings.general.weekStart).toBe('sunday');
+    });
 });

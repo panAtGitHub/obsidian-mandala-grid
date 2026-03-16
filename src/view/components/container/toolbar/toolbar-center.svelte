@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getView } from 'src/view/components/container/context';
     import Button from 'src/view/components/container/shared/button.svelte';
-    import { Grid3x3, Grid2x2, Type } from 'lucide-svelte';
+    import { CalendarDays, Grid3x3, Grid2x2, Type } from 'lucide-svelte';
     import {
         MandalaModeStore,
         Show9x9TitleOnlyStore,
@@ -12,9 +12,7 @@
     const show9x9TitleOnly = Show9x9TitleOnlyStore(view);
 
     const toggleMandalaMode = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/toggle-mode',
-        });
+        view.cycleMandalaMode();
     };
 
     const toggle9x9TitleOnly = () => {
@@ -38,14 +36,20 @@
             </Button>
         {/if}
         <Button
-            active={$mode === '9x9'}
+            active={$mode !== '3x3'}
             classes="topbar-button"
-            label={$mode === '3x3' ? '切换到 9x9' : '切换到 3x3'}
+            label={$mode === '3x3'
+                ? '切换到 9x9'
+                : $mode === '9x9'
+                  ? '切换到周计划'
+                  : '切换到 3x3'}
             on:click={toggleMandalaMode}
             tooltipPosition="bottom"
         >
             {#if $mode === '3x3'}
                 <Grid3x3 class="svg-icon" size="18" />
+            {:else if $mode === '9x9'}
+                <CalendarDays class="svg-icon" size="18" />
             {:else}
                 <Grid2x2 class="svg-icon" size="18" />
             {/if}

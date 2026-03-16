@@ -1,6 +1,7 @@
 import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
+    WeekStart,
 } from 'src/stores/settings/settings-type';
 
 export const DAY_PLAN_FRONTMATTER_KEY = 'mandala_plan';
@@ -132,6 +133,11 @@ const mondayStartDayOfWeek = (date: Date) => {
     return (sundayStart + 6) % 7;
 };
 
+const weekStartOffset = (date: Date, weekStart: WeekStart) => {
+    const sundayStart = date.getUTCDay();
+    return weekStart === 'sunday' ? sundayStart : (sundayStart + 6) % 7;
+};
+
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 const WEEKDAY_LABELS_ZH = [
     '周一',
@@ -189,6 +195,7 @@ export const getDayPlanDateHeadingSettings = (
 export const getHotCoreSections = (
     planYear: number,
     date: Date = new Date(),
+    weekStart: WeekStart = 'monday',
 ) => {
     const total = daysInYear(planYear);
     const day =
@@ -196,10 +203,10 @@ export const getHotCoreSections = (
             ? dayOfYearFromDate(planYear, date.getMonth() + 1, date.getDate())
             : 1;
     const dateInPlan = new Date(Date.UTC(planYear, 0, day));
-    const weekStart = day - mondayStartDayOfWeek(dateInPlan);
+    const weekStartDay = day - weekStartOffset(dateInPlan, weekStart);
     const sections = new Set<string>();
     for (let offset = 0; offset < 7; offset += 1) {
-        const candidate = weekStart + offset;
+        const candidate = weekStartDay + offset;
         if (candidate < 1 || candidate > total) continue;
         sections.add(String(candidate));
     }
@@ -207,13 +214,17 @@ export const getHotCoreSections = (
     return sections;
 };
 
-export const shiftHotWindowToCore = (planYear: number, section: string) => {
+export const shiftHotWindowToCore = (
+    planYear: number,
+    section: string,
+    weekStart: WeekStart = 'monday',
+) => {
     const core = Number(normalizeCoreSection(section));
     if (!Number.isInteger(core) || core < 1 || core > daysInYear(planYear)) {
         return new Set<string>(['1']);
     }
     const dateInPlan = new Date(Date.UTC(planYear, 0, core));
-    return getHotCoreSections(planYear, dateInPlan);
+    return getHotCoreSections(planYear, dateInPlan, weekStart);
 };
 
 export const getChineseWeekdayLabel = (date: string) => {
@@ -239,6 +250,78 @@ export const getEnglishFullWeekdayLabel = (date: string): string => {
 export const getEnglishCapitalizedWeekdayLabel = (date: string): string => {
     const weekday = resolveWeekdayIndex(date);
     return WEEKDAY_LABELS_EN_CAP[weekday];
+};
+
+export const getStartOfWeekIsoDate = (
+    date: string,
+    weekStart: WeekStart = 'monday',
+) => {
+    const [year, month, day] = date.split('-').map(Number);
+    const value = new Date(Date.UTC(year, month - 1, day));
+    return addDaysIsoDate(date, -weekStartOffset(value, weekStart));
+};
+
+export const getWeekIsoDates = (
+    anchorDate: string,
+    weekStart: WeekStart = 'monday',
+) => {
+    const startDate = getStartOfWeekIsoDate(anchorDate, weekStart);
+    return Array.from({ length: 7 }, (_, index) =>
+        addDaysIsoDate(startDate, index),
+    );
+};
+
+export type WeekPlanRow = {
+    date: string;
+    coreSection: string | null;
+    inPlanYear: boolean;
+};
+
+export const mapWeekPlanRows = (
+    planYear: number,
+    anchorDate: string,
+    weekStart: WeekStart = 'monday',
+): WeekPlanRow[] =>
+    getWeekIsoDates(anchorDate, weekStart).map((date) => {
+        const year = Number(date.slice(0, 4));
+        if (year !== planYear) {
+            return {
+                date,
+                coreSection: null,
+                inPlanYear: false,
+            };
+        }
+        const [_, month, day] = date.split('-').map(Number);
+        return {
+            date,
+            coreSection: String(dayOfYearFromDate(planYear, month, day)),
+            inPlanYear: true,
+        };
+    });
+
+export const sectionAtCellWeek7x9 = (
+    row: number,
+    col: number,
+    rows: WeekPlanRow[],
+) => {
+    const weekRow = rows[row];
+    if (!weekRow?.coreSection) return null;
+    if (col === 0) return weekRow.coreSection;
+    if (col < 1 || col > 8) return null;
+    return `${weekRow.coreSection}.${col}`;
+};
+
+export const posOfSectionWeek7x9 = (
+    section: string,
+    rows: WeekPlanRow[],
+) => {
+    const core = normalizeCoreSection(section);
+    const row = rows.findIndex((value) => value.coreSection === core);
+    if (row === -1) return null;
+    if (section === core) return { row, col: 0 };
+    const suffix = Number(section.slice(core.length + 1));
+    if (!Number.isInteger(suffix) || suffix < 1 || suffix > 8) return null;
+    return { row, col: suffix };
 };
 
 const replaceToken = (value: string, token: string, replacement: string) =>

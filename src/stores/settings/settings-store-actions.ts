@@ -8,9 +8,11 @@ import {
     LeftSidebarTab,
     MandalaCustomLayout,
     MandalaGridOrientation,
+    MandalaMode,
     MandalaSectionColorAssignments,
     LinkPaneType,
     ViewType,
+    WeekStart,
 } from 'src/stores/settings/settings-type';
 import { ChangeZoomLevelAction } from 'src/stores/settings/reducers/change-zoom-level';
 import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
@@ -141,6 +143,12 @@ export type SettingsActions =
       }
     | { type: 'view/modes/gap-between-cards/toggle' }
     | { type: 'settings/view/mandala/toggle-mode' }
+    | {
+          type: 'settings/view/mandala/set-mode';
+          payload: {
+              mode: MandalaMode;
+          };
+      }
     | { type: 'view/mandala-detail-sidebar/toggle' }
     | {
           type: 'view/mandala-detail-sidebar/set-width';
@@ -224,6 +232,12 @@ export type SettingsActions =
           type: 'settings/general/set-day-plan-enabled';
           payload: {
               enabled: boolean;
+          };
+      }
+    | {
+          type: 'settings/general/set-week-start';
+          payload: {
+              weekStart: WeekStart;
           };
       }
     | {

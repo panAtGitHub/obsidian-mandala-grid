@@ -15,12 +15,17 @@ import {
     getEnglishFullWeekdayLabel,
     getEnglishShortWeekdayLabel,
     getHotCoreSections,
+    getStartOfWeekIsoDate,
+    getWeekIsoDates,
     hasValidCenterDateHeading,
     isLeapYear,
     isIsoDate,
+    mapWeekPlanRows,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
+    posOfSectionWeek7x9,
     sectionFromDateInPlanYear,
+    sectionAtCellWeek7x9,
     shiftHotWindowToCore,
     toSlotsRecord,
     upsertCenterDateHeading,
@@ -288,5 +293,39 @@ describe('day-plan helpers', () => {
         const sections = shiftHotWindowToCore(2026, '120');
         expect(sections.has('120')).toBe(true);
         expect(sections.has('119')).toBe(true);
+    });
+
+    it('calculates week start and week dates for monday/sunday', () => {
+        expect(getStartOfWeekIsoDate('2026-03-18', 'monday')).toBe(
+            '2026-03-16',
+        );
+        expect(getStartOfWeekIsoDate('2026-03-18', 'sunday')).toBe(
+            '2026-03-15',
+        );
+        expect(getWeekIsoDates('2026-03-18', 'monday')).toEqual([
+            '2026-03-16',
+            '2026-03-17',
+            '2026-03-18',
+            '2026-03-19',
+            '2026-03-20',
+            '2026-03-21',
+            '2026-03-22',
+        ]);
+    });
+
+    it('maps week rows and cells for in-year and cross-year dates', () => {
+        const rows = mapWeekPlanRows(2026, '2026-03-18', 'monday');
+        expect(rows[0]).toMatchObject({
+            date: '2026-03-16',
+            coreSection: '75',
+            inPlanYear: true,
+        });
+        expect(sectionAtCellWeek7x9(0, 0, rows)).toBe('75');
+        expect(sectionAtCellWeek7x9(0, 3, rows)).toBe('75.3');
+        expect(posOfSectionWeek7x9('75.3', rows)).toEqual({ row: 0, col: 3 });
+
+        const crossYearRows = mapWeekPlanRows(2026, '2026-12-31', 'monday');
+        expect(crossYearRows[5]?.inPlanYear).toBe(false);
+        expect(sectionAtCellWeek7x9(5, 0, crossYearRows)).toBeNull();
     });
 });

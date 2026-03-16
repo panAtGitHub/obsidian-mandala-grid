@@ -21,6 +21,7 @@
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
         WhiteThemeModeStore,
+        WeekStartStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
@@ -50,9 +51,16 @@
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
     import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
-    import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
+    import {
+        mapWeekPlanRows,
+        parseDayPlanFrontmatter,
+        posOfSectionWeek7x9,
+        sectionAtCellWeek7x9,
+    } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';
+    import MandalaWeek7x9 from 'src/view/components/mandala/mandala-week-7x9.svelte';
+    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -73,6 +81,7 @@
     const show3x3SubgridNavButtons = Show3x3SubgridNavButtonsStore(view);
     const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
     const dayPlanEnabled = DayPlanEnabledStore(view);
+    const weekStart = WeekStartStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const detailSidebarWidth = MandalaDetailSidebarWidthStore(view);
@@ -319,6 +328,10 @@
         (state) => state.ui.mandala.subgridTheme,
     );
     const documentState = derived(view.documentStore, (state) => state);
+    const weekAnchorDate = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.weekAnchorDate,
+    );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
@@ -409,6 +422,16 @@
         }
 
         if (
+            $mode === 'week-7x9' &&
+            !getCachedDayPlan($documentState.file.frontmatter)
+        ) {
+            view.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-mode',
+                payload: { mode: '3x3' },
+            });
+        }
+
+        if (
             $mode === '3x3' &&
             $subgridTheme &&
             $subgridTheme !== '1' &&
@@ -450,6 +473,38 @@
                     if (!mapped || mapped !== section) {
                         setActiveCell9x9(view, pos ?? null);
                     }
+                }
+            }
+        }
+
+        if ($mode !== 'week-7x9') {
+            if (view.mandalaActiveCellWeek7x9) {
+                setActiveCellWeek7x9(view, null);
+            }
+        } else {
+            const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
+            const anchorDate =
+                $weekAnchorDate ?? new Date().toISOString().slice(0, 10);
+            if (!$weekAnchorDate) {
+                view.viewStore.dispatch({
+                    type: 'view/mandala/week-anchor-date/set',
+                    payload: { date: anchorDate },
+                });
+            }
+            const rows = dayPlan
+                ? mapWeekPlanRows(dayPlan.year, anchorDate, $weekStart)
+                : [];
+            const section = $idToSection[$activeNodeId];
+            const pos = section ? posOfSectionWeek7x9(section, rows) : null;
+            const cell = view.mandalaActiveCellWeek7x9;
+            if (!section) {
+                if (cell) {
+                    setActiveCellWeek7x9(view, null);
+                }
+            } else if (cell) {
+                const mapped = sectionAtCellWeek7x9(cell.row, cell.col, rows);
+                if (!mapped || mapped !== section) {
+                    setActiveCellWeek7x9(view, pos ?? null);
                 }
             }
         }
@@ -776,8 +831,10 @@
                             </div>
                         {/each}
                     </div>
-                {:else}
+                {:else if $mode === '9x9'}
                     <MandalaOverviewSimple />
+                {:else}
+                    <MandalaWeek7x9 />
                 {/if}
             </div>
 

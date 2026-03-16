@@ -1,0 +1,88 @@
+import { MandalaView } from 'src/view/view';
+import { AllDirections } from 'src/stores/document/document-store-actions';
+import {
+    mapWeekPlanRows,
+    parseDayPlanFrontmatter,
+    sectionAtCellWeek7x9,
+} from 'src/lib/mandala/day-plan';
+import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+
+const deltas: Record<AllDirections, { dr: number; dc: number }> = {
+    up: { dr: -1, dc: 0 },
+    down: { dr: 1, dc: 0 },
+    left: { dr: 0, dc: -1 },
+    right: { dr: 0, dc: 1 },
+};
+
+const findSectionPosition = (
+    section: string | undefined,
+    rows: ReturnType<typeof mapWeekPlanRows>,
+) => {
+    if (!section) return null;
+    const core = section.split('.')[0];
+    const row = rows.findIndex((value) => value.coreSection === core);
+    if (row === -1) return null;
+    const parts = section.split('.');
+    const col = parts.length === 1 ? 0 : Number(parts[1]);
+    if (!Number.isInteger(col) || col < 0 || col > 8) return null;
+    return { row, col };
+};
+
+export const tryMandalaWeek7x9Navigation = (
+    view: MandalaView,
+    direction: AllDirections,
+    options?: { extendSelection?: boolean },
+) => {
+    if (view.mandalaMode !== 'week-7x9') return false;
+
+    const documentState = view.documentStore.getValue();
+    const dayPlan = parseDayPlanFrontmatter(documentState.file.frontmatter);
+    if (!dayPlan) return false;
+
+    const anchorDate =
+        view.viewStore.getValue().ui.mandala.weekAnchorDate ??
+        new Date().toISOString().slice(0, 10);
+    const weekStart = view.plugin.settings.getValue().general.weekStart;
+    const rows = mapWeekPlanRows(dayPlan.year, anchorDate, weekStart);
+    const activeNodeId = view.viewStore.getValue().document.activeNode;
+    const activeSection = documentState.sections.id_section[activeNodeId];
+    const current =
+        view.mandalaActiveCellWeek7x9 ??
+        findSectionPosition(activeSection, rows) ?? { row: 0, col: 0 };
+
+    if (!view.mandalaActiveCellWeek7x9) {
+        setActiveCellWeek7x9(view, current);
+    }
+
+    const { dr, dc } = deltas[direction];
+    const nextRow = current.row + dr;
+    const nextCol = current.col + dc;
+    if (nextRow < 0 || nextCol < 0 || nextRow > 6 || nextCol > 8) return true;
+
+    const nextSection = sectionAtCellWeek7x9(nextRow, nextCol, rows);
+    setActiveCellWeek7x9(view, { row: nextRow, col: nextCol });
+    if (!nextSection) return true;
+
+    const nextNodeId = documentState.sections.section_id[nextSection];
+    if (!nextNodeId) return true;
+    if (nextNodeId === activeNodeId) return true;
+
+    view.viewStore.dispatch({
+        type: 'view/set-active-node/mouse-silent',
+        payload: { id: nextNodeId },
+    });
+
+    if (options?.extendSelection) {
+        const selected = new Set(
+            view.viewStore.getValue().document.selectedNodes,
+        );
+        selected.add(activeNodeId);
+        selected.add(nextNodeId);
+        view.viewStore.dispatch({
+            type: 'view/selection/set-selection',
+            payload: { ids: Array.from(selected) },
+        });
+    }
+
+    return true;
+};

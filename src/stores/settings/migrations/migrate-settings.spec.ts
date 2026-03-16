@@ -264,4 +264,14 @@ describe('migrateSettings', () => {
         );
         expect(settings.general.dayPlanDateHeadingApplyMode).toBe('manual');
     });
+
+    test('adds default weekStart when missing', () => {
+        const settings = DEFAULT_SETTINGS();
+        const general = settings.general as Record<string, unknown>;
+        delete general.weekStart;
+
+        migrateSettings(settings);
+
+        expect(settings.general.weekStart).toBe('monday');
+    });
 });

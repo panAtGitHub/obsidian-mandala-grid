@@ -283,11 +283,18 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     }
     const generalSettings = (settings as Settings).general as {
         defaultDocumentFormat?: unknown;
+        weekStart?: unknown;
         dayPlanDateHeadingFormat?: unknown;
         dayPlanDateHeadingCustomTemplate?: unknown;
         dayPlanDateHeadingApplyMode?: unknown;
     };
     delete generalSettings.defaultDocumentFormat;
+    if (
+        generalSettings.weekStart !== 'monday' &&
+        generalSettings.weekStart !== 'sunday'
+    ) {
+        generalSettings.weekStart = 'monday';
+    }
     if (
         generalSettings.dayPlanDateHeadingFormat !== 'date-only' &&
         generalSettings.dayPlanDateHeadingFormat !== 'zh-short' &&

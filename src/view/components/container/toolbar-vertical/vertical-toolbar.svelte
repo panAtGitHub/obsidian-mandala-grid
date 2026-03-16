@@ -68,7 +68,7 @@
                 settings: controls.showSettingsSidebar,
                 'center-active-node-h': scrollSettingsStore.centerActiveNodeH,
                 'center-active-node-v': scrollSettingsStore.centerActiveNodeV,
-                'mandala-mode': mandalaMode === '9x9',
+                'mandala-mode': mandalaMode !== '3x3',
                 'mandala-detail-sidebar': showMandalaDetailSidebar,
                 'space-between-cards': applyGapBetweenCards,
                 'hidden-card-info': showHiddenCardInfo,

@@ -297,7 +297,15 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/view/mandala/toggle-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/toggle-mode') return;
         store.view.mandalaMode =
-            store.view.mandalaMode === '9x9' ? '3x3' : '9x9';
+            store.view.mandalaMode === '3x3'
+                ? '9x9'
+                : store.view.mandalaMode === '9x9'
+                  ? 'week-7x9'
+                  : '3x3';
+    },
+    'settings/view/mandala/set-mode': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-mode') return;
+        store.view.mandalaMode = action.payload.mode;
     },
     'view/mandala-detail-sidebar/toggle': (store, action) => {
         if (action.type !== 'view/mandala-detail-sidebar/toggle') return;
@@ -663,6 +671,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/general/set-day-plan-enabled': (store, action) => {
         if (action.type !== 'settings/general/set-day-plan-enabled') return;
         store.general.dayPlanEnabled = action.payload.enabled;
+    },
+    'settings/general/set-week-start': (store, action) => {
+        if (action.type !== 'settings/general/set-week-start') return;
+        store.general.weekStart = action.payload.weekStart;
     },
     'settings/general/set-day-plan-date-heading-format': (store, action) => {
         if (action.type !== 'settings/general/set-day-plan-date-heading-format') {
