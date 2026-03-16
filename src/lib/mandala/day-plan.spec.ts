@@ -1,10 +1,12 @@
 import {
     addDaysIsoDate,
     allSlotsFilled,
+    buildCenterDateHeading,
     dateFromDayOfYear,
     dayOfYearFromDate,
     daysInYear,
     extractDateFromCenterHeading,
+    getChineseWeekdayLabel,
     getHotCoreSections,
     hasValidCenterDateHeading,
     isLeapYear,
@@ -52,24 +54,33 @@ describe('day-plan helpers', () => {
 
     it('extracts date from H2 heading only', () => {
         expect(extractDateFromCenterHeading('## 2026-02-10')).toBe('2026-02-10');
+        expect(extractDateFromCenterHeading('## 2026-02-10 二')).toBe(
+            '2026-02-10',
+        );
         expect(extractDateFromCenterHeading('2026-02-10')).toBeNull();
         expect(extractDateFromCenterHeading('### 2026-02-10')).toBeNull();
     });
 
     it('checks section center heading validity', () => {
         expect(hasValidCenterDateHeading('## 2026-02-10\ntext')).toBe(true);
+        expect(hasValidCenterDateHeading('## 2026-02-10 二\ntext')).toBe(true);
         expect(hasValidCenterDateHeading('### 2026-02-10\ntext')).toBe(false);
         expect(hasValidCenterDateHeading('')).toBe(false);
     });
 
     it('upserts center heading and keeps body', () => {
         expect(upsertCenterDateHeading('plain body', '2026-02-10')).toBe(
-            '## 2026-02-10\nplain body',
+            '## 2026-02-10 二\nplain body',
         );
 
         expect(
             upsertCenterDateHeading('## 2025-01-01\nbody', '2026-02-10'),
-        ).toBe('## 2026-02-10\nbody');
+        ).toBe('## 2026-02-10 二\nbody');
+    });
+
+    it('builds center heading with chinese weekday', () => {
+        expect(getChineseWeekdayLabel('2026-03-16')).toBe('一');
+        expect(buildCenterDateHeading('2026-03-16')).toBe('## 2026-03-16 一');
     });
 
     it('upserts slot heading and keeps body', () => {

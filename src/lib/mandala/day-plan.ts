@@ -12,7 +12,8 @@ export const DAY_PLAN_DEFAULT_SLOT_TITLES = [
 ] as const;
 
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-export const DAY_PLAN_H2_DATE_PATTERN = /^##\s+(\d{4}-\d{2}-\d{2})\s*$/;
+export const DAY_PLAN_H2_DATE_PATTERN =
+    /^##\s+(\d{4}-\d{2}-\d{2})(?:\s+[一二三四五六日])?\s*$/;
 
 export type DayPlanFrontmatter = {
     enabled: boolean;
@@ -112,6 +113,8 @@ const mondayStartDayOfWeek = (date: Date) => {
     return (sundayStart + 6) % 7;
 };
 
+const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'] as const;
+
 export const getHotCoreSections = (
     planYear: number,
     date: Date = new Date(),
@@ -142,7 +145,14 @@ export const shiftHotWindowToCore = (planYear: number, section: string) => {
     return getHotCoreSections(planYear, dateInPlan);
 };
 
-export const buildCenterDateHeading = (date: string) => `## ${date}`;
+export const getChineseWeekdayLabel = (date: string) => {
+    const [year, month, day] = date.split('-').map(Number);
+    const weekday = mondayStartDayOfWeek(new Date(Date.UTC(year, month - 1, day)));
+    return WEEKDAY_LABELS[weekday];
+};
+
+export const buildCenterDateHeading = (date: string) =>
+    `## ${date} ${getChineseWeekdayLabel(date)}`;
 
 export const extractDateFromCenterHeading = (heading: string) => {
     const match = DAY_PLAN_H2_DATE_PATTERN.exec(heading.trim());
