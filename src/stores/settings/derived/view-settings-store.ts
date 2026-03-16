@@ -134,6 +134,12 @@ export const DayPlanEnabledStore = (view: MandalaView) =>
 export const WeekPlanEnabledStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.general.weekPlanEnabled);
 
+export const WeekPlanCompactModeStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.general.weekPlanCompactMode,
+    );
+
 export const WeekStartStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.general.weekStart);
 

@@ -286,6 +286,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     const generalSettings = (settings as Settings).general as {
         defaultDocumentFormat?: unknown;
         weekPlanEnabled?: unknown;
+        weekPlanCompactMode?: unknown;
         weekStart?: unknown;
         dayPlanDateHeadingFormat?: unknown;
         dayPlanDateHeadingCustomTemplate?: unknown;
@@ -294,6 +295,9 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     delete generalSettings.defaultDocumentFormat;
     if (typeof generalSettings.weekPlanEnabled !== 'boolean') {
         generalSettings.weekPlanEnabled = true;
+    }
+    if (typeof generalSettings.weekPlanCompactMode !== 'boolean') {
+        generalSettings.weekPlanCompactMode = true;
     }
     if (
         generalSettings.weekStart !== 'monday' &&

@@ -249,6 +249,12 @@ export type SettingsActions =
           };
       }
     | {
+          type: 'settings/general/set-week-plan-compact-mode';
+          payload: {
+              enabled: boolean;
+          };
+      }
+    | {
           type: 'settings/general/set-week-start';
           payload: {
               weekStart: WeekStart;

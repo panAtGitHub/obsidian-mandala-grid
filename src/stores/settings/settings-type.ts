@@ -154,6 +154,7 @@ export type Settings = {
         mandalaTemplatesFilePath: string | null;
         dayPlanEnabled: boolean;
         weekPlanEnabled: boolean;
+        weekPlanCompactMode: boolean;
         weekStart: WeekStart;
         dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
         dayPlanDateHeadingCustomTemplate: string;

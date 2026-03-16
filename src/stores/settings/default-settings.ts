@@ -120,6 +120,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaTemplatesFilePath: null,
         dayPlanEnabled: true,
         weekPlanEnabled: true,
+        weekPlanCompactMode: true,
         weekStart: 'monday',
         dayPlanDateHeadingFormat: 'zh-short',
         dayPlanDateHeadingCustomTemplate: '## {date} {cn}',

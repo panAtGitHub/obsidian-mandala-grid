@@ -11,6 +11,7 @@
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
         ShowMandalaDetailSidebarStore,
+        WeekPlanCompactModeStore,
         WeekStartStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
@@ -29,6 +30,7 @@
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
+    const weekPlanCompactMode = WeekPlanCompactModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
 
     const documentState = derived(view.documentStore, (state) => state);
@@ -182,6 +184,7 @@
         class="week-plan-grid"
         class:mandala-grid={!Platform.isMobile}
         class:mandala-grid--week={!Platform.isMobile}
+        class:week-plan-grid--compact={$weekPlanCompactMode}
     >
         {#each cells as cell (`${cell.row}-${cell.col}`)}
             <div
@@ -325,7 +328,7 @@
         min-height: 0;
     }
 
-    .week-plan-cell--desktop-card :global(.lng-prev) {
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev) {
         padding: 2px 2px 3px 4px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -336,33 +339,39 @@
         --p-spacing: 0px;
     }
 
-    .week-plan-cell--desktop-card :global(.lng-prev > *) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev > *) {
         max-height: none !important;
         overflow: visible !important;
     }
 
-    .week-plan-cell--desktop-card :global(.lng-prev::-webkit-scrollbar) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.lng-prev::-webkit-scrollbar) {
         display: none;
     }
 
-    .week-plan-cell--desktop-card :global(.lng-prev p) {
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev p) {
         margin-block-start: 0 !important;
         margin-block-end: 0 !important;
         line-height: 1.12;
     }
 
-    .week-plan-cell--desktop-card :global(.lng-prev h1),
-    .week-plan-cell--desktop-card :global(.lng-prev h2),
-    .week-plan-cell--desktop-card :global(.lng-prev h3),
-    .week-plan-cell--desktop-card :global(.lng-prev h4),
-    .week-plan-cell--desktop-card :global(.lng-prev h5),
-    .week-plan-cell--desktop-card :global(.lng-prev h6) {
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h1),
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h2),
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h3),
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h4),
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h5),
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.lng-prev h6) {
         margin-top: 0 !important;
         margin-bottom: 1px !important;
         line-height: 1.08;
     }
 
-    .week-plan-cell--desktop-card :global(.mandala-card-meta) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.mandala-card-meta) {
         top: 2px;
         right: 3px;
         gap: 2px;
@@ -370,31 +379,42 @@
         opacity: 0.5;
     }
 
-    .week-plan-cell--desktop-card :global(.mandala-card-meta__pin svg) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.mandala-card-meta__pin svg) {
         width: 9px;
         height: 9px;
     }
 
-    .week-plan-cell--desktop-card :global(.mandala-idle-scrollbar) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.mandala-idle-scrollbar) {
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
 
-    .week-plan-cell--desktop-card
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
         :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
         display: none;
     }
 
-    .week-plan-cell--desktop-card :global(.editor-container) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.editor-container) {
         overflow: hidden !important;
     }
 
-    .week-plan-cell--desktop-card :global(.cm-editor),
-    .week-plan-cell--desktop-card :global(.cm-editor .cm-scroller) {
+    .week-plan-grid--compact .week-plan-cell--desktop-card :global(.cm-editor),
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.cm-editor .cm-scroller) {
         height: 100%;
     }
 
-    .week-plan-cell--desktop-card :global(.cm-editor .cm-scroller) {
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
+        :global(.cm-editor .cm-scroller) {
         overflow-x: hidden !important;
         overflow-y: auto !important;
         scrollbar-gutter: auto;
@@ -403,7 +423,8 @@
         padding: 2px 2px 3px 4px !important;
     }
 
-    .week-plan-cell--desktop-card
+    .week-plan-grid--compact
+        .week-plan-cell--desktop-card
         :global(.cm-editor .cm-scroller::-webkit-scrollbar) {
         display: none;
     }

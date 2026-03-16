@@ -696,6 +696,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store.view.mandalaMode = '3x3';
         }
     },
+    'settings/general/set-week-plan-compact-mode': (store, action) => {
+        if (action.type !== 'settings/general/set-week-plan-compact-mode')
+            return;
+        store.general.weekPlanCompactMode = action.payload.enabled;
+    },
     'settings/general/set-week-start': (store, action) => {
         if (action.type !== 'settings/general/set-week-start') return;
         store.general.weekStart = action.payload.weekStart;

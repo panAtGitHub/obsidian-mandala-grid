@@ -214,6 +214,17 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.general.weekStart).toBe('sunday');
     });
 
+    test('updates week compact mode setting', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/general/set-week-plan-compact-mode',
+            payload: { enabled: false },
+        });
+
+        expect(settings.general.weekPlanCompactMode).toBe(false);
+    });
+
     test('disabling week plan exits week mode', () => {
         const settings = DEFAULT_SETTINGS();
         settings.view.mandalaMode = 'week-7x9';

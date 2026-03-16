@@ -313,6 +313,9 @@ export const lang = {
     settings_general_week_plan_enabled: '启用「周计划」功能',
     settings_general_week_plan_enabled_desc:
         '关闭后，会隐藏 7×9 周计划视图及其相关设置。',
+    settings_general_week_plan_compact_mode: '7×9 周计划紧凑显示',
+    settings_general_week_plan_compact_mode_desc:
+        '开启后，会进一步压缩 7×9 周计划格子的边距与文本间距，以优先显示更多内容。',
     settings_general_day_plan_date_heading_format: '日计划日期标题格式',
     settings_general_day_plan_date_heading_format_desc:
         '控制如“## 2026-03-16 一”这类日期标题的显示格式。',

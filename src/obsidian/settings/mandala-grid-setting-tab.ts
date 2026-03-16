@@ -58,6 +58,20 @@ export class MandalaGridSettingTab extends PluginSettingTab {
 
         if (settings.general.weekPlanEnabled) {
             new Setting(containerEl)
+                .setName(lang.settings_general_week_plan_compact_mode)
+                .setDesc(lang.settings_general_week_plan_compact_mode_desc)
+                .addToggle((toggle) => {
+                    toggle
+                        .setValue(settings.general.weekPlanCompactMode)
+                        .onChange((enabled) => {
+                            this.plugin.settings.dispatch({
+                                type: 'settings/general/set-week-plan-compact-mode',
+                                payload: { enabled },
+                            });
+                        });
+                });
+
+            new Setting(containerEl)
                 .setName('周计划起始日')
                 .setDesc('周视图中一周从周一或周日开始。')
                 .addDropdown((dropdown) => {
