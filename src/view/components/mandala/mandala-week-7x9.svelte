@@ -265,7 +265,6 @@
         display: grid;
         gap: var(--mandala-gap);
         align-items: start;
-        background: var(--background-secondary);
     }
 
     .mandala-grid--week {
@@ -356,6 +355,10 @@
             var(--background-modifier-border) 25%,
             var(--background-primary)
         );
+    }
+
+    .week-plan-cell--desktop-card.is-placeholder {
+        background: transparent;
     }
 
     .week-plan-cell--mobile.is-placeholder {
