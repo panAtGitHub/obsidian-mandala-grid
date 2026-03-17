@@ -15,6 +15,7 @@
         closeCellPreviewDialog,
         openCellPreviewDialog,
     } from 'src/view/helpers/mandala/cell-preview-dialog';
+    import { isPreviewDialogEditingNode } from 'src/view/helpers/mandala/is-preview-dialog-editing-node';
     import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
     import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
 
@@ -84,10 +85,13 @@
         $cellQuickPreviewEnabled &&
         $previewDialog.open &&
         !!previewNodeId;
-    $: isEditingPreview =
-        isOpen &&
-        $editingState.activeNodeId === previewNodeId &&
-        !$editingState.isInSidebar;
+    $: isEditingPreview = isPreviewDialogEditingNode({
+        previewDialogOpen: isOpen,
+        previewDialogNodeId: $previewDialog.nodeId,
+        editingActiveNodeId: $editingState.activeNodeId,
+        editingIsInSidebar: $editingState.isInSidebar,
+        nodeId: previewNodeId,
+    });
 
     const focusDialog = async () => {
         await tick();

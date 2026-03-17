@@ -25,6 +25,7 @@
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
+    import { isPreviewDialogEditingNode } from 'src/view/helpers/mandala/is-preview-dialog-editing-node';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
@@ -58,6 +59,10 @@
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
+    const previewDialog = derived(
+        view.viewStore,
+        (state) => state.ui.previewDialog,
+    );
     const idToSection = derived(
         view.documentStore,
         (state) => state.sections.id_section,
@@ -105,6 +110,15 @@
         showSectionBackground && sectionColor
             ? `--mandala-card-meta-bg: ${sectionColor}`
             : undefined;
+    // Quick preview editing reuses the main editor state, but the editor
+    // should render only inside the dialog instead of the background card.
+    $: previewOwnsInlineEditor = isPreviewDialogEditingNode({
+        previewDialogOpen: $previewDialog.open,
+        previewDialogNodeId: $previewDialog.nodeId,
+        editingActiveNodeId: editing ? nodeId : null,
+        editingIsInSidebar: false,
+        nodeId,
+    });
 
     const handleSelect = (e: MouseEvent) => {
         if (gridCell) {
@@ -214,7 +228,7 @@
         <CardStyle {style} />
     {/if}
 
-    {#if active && editing && !$showDetailSidebar}
+    {#if active && editing && !$showDetailSidebar && !previewOwnsInlineEditor}
         <InlineEditor
             {nodeId}
             {style}
