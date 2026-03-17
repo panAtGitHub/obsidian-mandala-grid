@@ -74,6 +74,7 @@ import {
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
 } from 'src/view/helpers/mandala/nx9-context';
+import { resolveCompatibleMandalaMode } from 'src/view/helpers/mandala/resolve-compatible-mandala-mode';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -359,6 +360,27 @@ export class MandalaView extends TextFileView {
                         : '3x3'
                   : '3x3';
         return this.setMandalaMode(next);
+    }
+
+    ensureCompatibleMandalaMode(
+        frontmatter = this.documentStore.getValue().file.frontmatter,
+    ) {
+        const currentMode = this.plugin.settings.getValue().view.mandalaMode;
+        const nextMode = resolveCompatibleMandalaMode({
+            currentMode,
+            canUseWeekPlanMode: this.canUseWeekPlanMode(frontmatter),
+            canUseNx9Mode: this.canUseNx9Mode(frontmatter),
+        });
+
+        if (!nextMode || nextMode === currentMode) {
+            return false;
+        }
+
+        this.plugin.settings.dispatch({
+            type: 'settings/view/mandala/set-mode',
+            payload: { mode: nextMode },
+        });
+        return true;
     }
 
     getViewData(): string {
@@ -867,6 +889,9 @@ export class MandalaView extends TextFileView {
                 lastActiveSection: nextActiveSection ?? null,
             });
             this.restoreMandalaUiState(filePath, fallbackSubgridTheme);
+        }
+        if (this.isActive && this.isViewOfFile) {
+            this.ensureCompatibleMandalaMode(frontmatter);
         }
         logger.debug('[perf][view] loadDocumentToStore', {
             file: this.file?.path,

@@ -433,30 +433,16 @@
                 !view.plugin.settings.getValue().general.weekPlanEnabled ||
                 !getCachedDayPlan($documentState.file.frontmatter))
         ) {
-            view.plugin.settings.dispatch({
-                type: 'settings/view/mandala/set-mode',
-                payload: {
-                    mode: view.canUseNx9Mode($documentState.file.frontmatter)
-                        ? 'nx9'
-                        : '3x3',
-                },
-            });
+            // Active-view lifecycle owns incompatible mode recovery so that
+            // multiple open leaves cannot fight over the shared global mode.
         }
 
         if (
             $mode === 'nx9' &&
             !view.canUseNx9Mode($documentState.file.frontmatter)
         ) {
-            view.plugin.settings.dispatch({
-                type: 'settings/view/mandala/set-mode',
-                payload: {
-                    mode: view.canUseWeekPlanMode(
-                        $documentState.file.frontmatter,
-                    )
-                        ? 'week-7x9'
-                        : '3x3',
-                },
-            });
+            // Active-view lifecycle owns incompatible mode recovery so that
+            // multiple open leaves cannot fight over the shared global mode.
         }
 
         if (

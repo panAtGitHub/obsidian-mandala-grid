@@ -12,6 +12,9 @@ export const onPluginStateUpdate = (
         if (view.viewStore.getValue().document.editing.activeNodeId) {
             saveNodeContent(view);
         }
+        if (view.isActive && view.isViewOfFile) {
+            view.ensureCompatibleMandalaMode();
+        }
     }
     if (
         action.type === 'plugin/documents/update-active-view-of-document' ||
