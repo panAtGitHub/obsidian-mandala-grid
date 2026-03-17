@@ -154,6 +154,7 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
+        min-width: 0;
         cursor: default;
     }
 
@@ -180,12 +181,18 @@
         width: 100%;
         height: 100%;
         min-height: 0;
+        min-width: 0;
     }
 
     .row-matrix-cell--desktop-card :global(.lng-prev),
-    .row-matrix-cell--desktop-card :global(.editor-container) {
+    .row-matrix-cell--desktop-card :global(.editor-container),
+    .row-matrix-cell--desktop-card :global(.mandala-inline-editor),
+    .row-matrix-cell--desktop-card :global(.markdown-source-view),
+    .row-matrix-cell--desktop-card :global(.view-content) {
         flex: 1 1 auto;
+        width: 100%;
         min-height: 0;
+        min-width: 0;
         height: 100%;
     }
 
@@ -193,13 +200,23 @@
         overflow: auto;
     }
 
+    .row-matrix-cell--desktop-card :global(.editor-container),
+    .row-matrix-cell--desktop-card :global(.mandala-inline-editor),
+    .row-matrix-cell--desktop-card :global(.markdown-source-view),
+    .row-matrix-cell--desktop-card :global(.view-content) {
+        display: flex;
+        flex-direction: column;
+    }
+
     .row-matrix-cell--desktop-card :global(.editor-container) {
-        overflow: auto;
+        overflow: hidden;
     }
 
     .row-matrix-cell--desktop-card :global(.cm-editor),
     .row-matrix-cell--desktop-card :global(.cm-editor .cm-scroller) {
+        width: 100%;
         height: 100%;
+        min-width: 0;
     }
 
     .row-matrix-cell--desktop-card :global(.cm-editor .cm-scroller) {

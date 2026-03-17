@@ -83,6 +83,7 @@ export class InlineEditor {
         this.setContent(content);
 
         target.append(this.containerEl);
+        this.inlineView.editor.refresh();
         this.focus();
         this.target = target;
         if (!content) {
@@ -95,6 +96,11 @@ export class InlineEditor {
         this.restoreCursor();
         this.lockFile();
         this.fixVimWhenZooming();
+        requestAnimationFrame(() => {
+            if (this.target === target && this.nodeId === nodeId) {
+                this.inlineView.editor.refresh();
+            }
+        });
         setTimeout(() => resolve(), Math.max(16, content.length / 60));
     }
 
