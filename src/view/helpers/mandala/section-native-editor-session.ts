@@ -6,6 +6,7 @@ import {
     applySectionPatch,
     getSectionContentBySection,
 } from 'src/view/helpers/mandala/apply-section-patch';
+import { cleanupSectionSessionFolder } from 'src/view/helpers/mandala/cleanup-section-session-folder';
 import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
 
 type SectionEditSession = {
@@ -19,6 +20,7 @@ let isStartingSectionSession = false;
 let isSavingSectionSession = false;
 let isSweepingStaleSessions = false;
 let hasRegisteredSessionWatchers = false;
+let sectionSessionMaintenancePromise: Promise<void> | null = null;
 
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
@@ -30,7 +32,8 @@ const isAlreadyExistsError = (error: unknown) =>
 
 const isFileNotFound = (error: unknown) =>
     error instanceof Error &&
-    (error.message.includes('ENOENT') || error.message.includes('NotFoundError'));
+    (error.message.includes('ENOENT') ||
+        error.message.includes('NotFoundError'));
 
 const ensureFolderRecursive = async (view: MandalaView, path: string) => {
     const parts = path.split('/').filter(Boolean);
@@ -53,7 +56,10 @@ const removeSessionFolderIfEmpty = async (view: MandalaView) => {
         await view.app.vault.adapter.rmdir(SESSION_FOLDER, false);
     } catch (error) {
         if (isFileNotFound(error)) return;
-        logger.warn(`Failed to remove empty session folder: ${SESSION_FOLDER}`, error);
+        logger.warn(
+            `Failed to remove empty session folder: ${SESSION_FOLDER}`,
+            error,
+        );
     }
 };
 
@@ -155,7 +161,11 @@ const mergeTempFileToSource = async (
     if (!tempFile || !sourceFile) return;
     const replacement = await view.app.vault.read(tempFile);
     const sourceMarkdown = await view.app.vault.read(sourceFile);
-    const patched = applySectionPatch(sourceMarkdown, session.section, replacement);
+    const patched = applySectionPatch(
+        sourceMarkdown,
+        session.section,
+        replacement,
+    );
     if (!patched) return;
     await view.app.vault.modify(sourceFile, patched.markdown);
 };
@@ -177,19 +187,41 @@ const sweepStaleSessions = async (view: MandalaView) => {
     }
 };
 
+const runSectionSessionMaintenance = (view: MandalaView) => {
+    if (sectionSessionMaintenancePromise) {
+        return sectionSessionMaintenancePromise;
+    }
+    sectionSessionMaintenancePromise = (async () => {
+        await sweepStaleSessions(view);
+        await cleanupSectionSessionFolder(
+            view,
+            SESSION_FOLDER,
+            new Set(sessionByTempFilePath.keys()),
+        );
+    })().finally(() => {
+        sectionSessionMaintenancePromise = null;
+    });
+    return sectionSessionMaintenancePromise;
+};
+
 const ensureSessionWatchers = (view: MandalaView) => {
     if (hasRegisteredSessionWatchers) return;
     hasRegisteredSessionWatchers = true;
     view.plugin.registerEvent(
         view.app.workspace.on('file-open', () => {
-            void sweepStaleSessions(view);
+            void runSectionSessionMaintenance(view);
         }),
     );
     view.plugin.registerEvent(
         view.app.workspace.on('layout-change', () => {
-            void sweepStaleSessions(view);
+            void runSectionSessionMaintenance(view);
         }),
     );
+};
+
+export const ensureSectionSessionMaintenance = (view: MandalaView) => {
+    ensureSessionWatchers(view);
+    return runSectionSessionMaintenance(view);
 };
 
 const withSessionFromView = (
@@ -240,7 +272,10 @@ const saveSectionAndReturn = async (view: MandalaView) => {
     }
 };
 
-const addSectionEditorActions = (view: MandalaView, markdownView: MarkdownView) => {
+const addSectionEditorActions = (
+    view: MandalaView,
+    markdownView: MarkdownView,
+) => {
     const actions = markdownView.containerEl.querySelector('.view-actions');
     if (!actions) return;
     if (actions.querySelector(`[data-mandala-action="${ACTION_SAVE_ID}"]`)) {
@@ -270,7 +305,7 @@ export const startSectionNativeEditorSession = async (
     try {
         const sourceFile = view.file;
         if (!sourceFile) return;
-        ensureSessionWatchers(view);
+        await ensureSectionSessionMaintenance(view);
 
         const section = getSectionByNodeId(view, nodeId);
         if (!section) {
@@ -279,7 +314,10 @@ export const startSectionNativeEditorSession = async (
         }
 
         const sourceMarkdown = await view.app.vault.read(sourceFile);
-        const sectionContent = getSectionContentBySection(sourceMarkdown, section);
+        const sectionContent = getSectionContentBySection(
+            sourceMarkdown,
+            section,
+        );
         if (sectionContent === null) {
             new Notice('未找到对应 section 内容，无法进入编辑。');
             return;
@@ -311,8 +349,7 @@ export const startSectionNativeEditorSession = async (
             await wait(24);
         }
     } catch (error) {
-        const message =
-            error instanceof Error ? error.message : String(error);
+        const message = error instanceof Error ? error.message : String(error);
         new Notice(`打开 section 原生编辑失败：${message}`);
         logger.error(error);
     } finally {

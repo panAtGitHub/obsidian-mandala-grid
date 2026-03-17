@@ -10,6 +10,9 @@ describe('deleteSectionSessionTempFile', () => {
         const view = {
             app: {
                 vault: {
+                    adapter: {
+                        remove: vi.fn().mockResolvedValue(undefined),
+                    },
                     getAbstractFileByPath: vi.fn().mockReturnValue(tempFile),
                     delete: deleteFile,
                 },
@@ -27,10 +30,15 @@ describe('deleteSectionSessionTempFile', () => {
         const view = {
             app: {
                 vault: {
+                    adapter: {
+                        remove: vi.fn().mockResolvedValue(undefined),
+                    },
                     getAbstractFileByPath: vi.fn().mockReturnValue(tempFile),
                     delete: vi
                         .fn()
-                        .mockRejectedValue(new Error('ENOENT: no such file or directory')),
+                        .mockRejectedValue(
+                            new Error('ENOENT: no such file or directory'),
+                        ),
                 },
             },
         };
@@ -38,5 +46,25 @@ describe('deleteSectionSessionTempFile', () => {
         await expect(
             deleteSectionSessionTempFile(view as never, tempFile.path),
         ).resolves.toBeUndefined();
+    });
+
+    it('falls back to adapter removal when the vault cache no longer has the temp file', async () => {
+        const tempFilePath = 'Mandala Grid Section Edit Sessions/123-1-1.md';
+        const remove = vi.fn().mockResolvedValue(undefined);
+        const view = {
+            app: {
+                vault: {
+                    adapter: {
+                        remove,
+                    },
+                    getAbstractFileByPath: vi.fn().mockReturnValue(null),
+                    delete: vi.fn().mockResolvedValue(undefined),
+                },
+            },
+        };
+
+        await deleteSectionSessionTempFile(view as never, tempFilePath);
+
+        expect(remove).toHaveBeenCalledWith(tempFilePath);
     });
 });

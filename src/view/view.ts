@@ -470,6 +470,13 @@ export class MandalaView extends TextFileView {
 
     async onOpen() {
         await super.onOpen();
+        if (Platform.isMobile) {
+            void import(
+                'src/view/helpers/mandala/section-native-editor-session'
+            ).then(({ ensureSectionSessionMaintenance }) => {
+                void ensureSectionSessionMaintenance(this);
+            });
+        }
     }
 
     async onClose() {
