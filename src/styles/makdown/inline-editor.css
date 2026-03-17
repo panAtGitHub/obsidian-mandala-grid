@@ -2,6 +2,17 @@
     width: 100%;
     height: auto;
     min-height: 100px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+
+    & .markdown-source-view,
+    & .view-content,
+    & .cm-editor,
+    & .cm-editor .cm-scroller {
+        width: 100%;
+        min-width: 0;
+    }
 
     & .view-header,
     & .inline-title,
