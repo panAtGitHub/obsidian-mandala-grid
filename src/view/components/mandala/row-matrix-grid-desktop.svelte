@@ -361,6 +361,12 @@
         border-right: 3px solid var(--mandala-border-color);
     }
 
+    :global(.mandala-white-theme)
+        .mandala-grid--row-matrix
+        > .mandala-cell:nth-last-child(-n + 9) {
+        border-bottom: 3px solid var(--mandala-border-color);
+    }
+
     :global(.mandala-white-theme) .row-matrix-cell :global(.mandala-card) {
         border: 0 !important;
         border-left-width: 0 !important;
