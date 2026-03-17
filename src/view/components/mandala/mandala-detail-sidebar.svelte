@@ -533,9 +533,9 @@
         justify-content: center;
     }
 
-    /* 桌面端调整侧边栏左侧间距为 6px，实现总计 6+6=12px 间距 */
+    /* 桌面端详情侧栏左侧不再额外留白，中间空白由主视图提供 */
     :global(body:not(.is-mobile)) .sidebar-content {
-        padding: 12px 12px 12px 6px;
+        padding: 12px 12px 12px 0;
     }
 
     /* 桌面端竖屏时，调整顶部间距为 6px */

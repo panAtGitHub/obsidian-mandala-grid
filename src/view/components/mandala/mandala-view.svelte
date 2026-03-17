@@ -974,11 +974,11 @@
         padding: 12px;
     }
 
-    /* 桌面端调整格子右侧间距为 6px，为 6+6=12px 做准备 */
+    /* 桌面端主滚动区保持左右对称外边距 */
     :global(body:not(.is-mobile))
         .mandala-root:not(.mandala-a4-mode)
         .mandala-scroll {
-        padding: 12px 6px 12px 12px;
+        padding: 12px;
     }
 
     .mandala-content-wrapper {
