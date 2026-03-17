@@ -13,8 +13,13 @@ import { ToggleShowAllNodesAction } from 'src/stores/view/reducers/search/toggle
 import { LeftSidebarTab } from 'src/stores/settings/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
+import { MandalaMode } from 'src/stores/settings/settings-type';
 
 export type MandalaActions =
+    | {
+          type: 'view/mandala/mode/set';
+          payload: { mode: MandalaMode };
+      }
     | {
           type: 'view/mandala/subgrid/enter';
           payload: { theme: string };

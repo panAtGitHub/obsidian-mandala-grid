@@ -5,6 +5,7 @@ import {
 } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
+import { MandalaMode } from 'src/stores/settings/settings-type';
 
 export type ActiveNodesOfColumn = {
     [columnId: string]: {
@@ -48,6 +49,7 @@ export type ViewState = {
             nodeId: string | null;
         };
         mandala: {
+            mode: MandalaMode;
             subgridTheme: string | null;
             activeCell9x9: { row: number; col: number } | null;
             activeCellNx9: { row: number; col: number } | null;

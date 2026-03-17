@@ -81,7 +81,7 @@ export const ApplyGapBetweenCardsStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.applyGapBetweenCards);
 
 export const MandalaModeStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.mandalaMode);
+    derived(view.viewStore, (state) => state.ui.mandala.mode);
 
 export const Nx9RowsPerPageStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => {

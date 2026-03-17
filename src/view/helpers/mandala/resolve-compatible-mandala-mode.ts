@@ -1,6 +1,4 @@
-import { Settings } from 'src/stores/settings/settings-type';
-
-type MandalaMode = Settings['view']['mandalaMode'];
+import { MandalaMode } from 'src/stores/settings/settings-type';
 
 export const resolveCompatibleMandalaMode = ({
     currentMode,

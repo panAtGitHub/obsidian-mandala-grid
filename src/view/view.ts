@@ -8,6 +8,7 @@ import {
     Scope,
     TFile,
     TextFileView,
+    ViewStateResult,
     WorkspaceLeaf,
     resolveSubpath,
     stripHeading,
@@ -61,7 +62,10 @@ import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch'
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
-import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/stores/settings/settings-type';
+import {
+    DEFAULT_NX9_ROWS_PER_PAGE,
+    MandalaMode,
+} from 'src/stores/settings/settings-type';
 import {
     layoutIdToOrientation,
     findMandalaCustomLayout,
@@ -96,7 +100,6 @@ export class MandalaView extends TextFileView {
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
-    mandalaMode: '3x3' | '9x9' | 'nx9' | 'week-7x9' = '3x3';
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
     mandalaActiveCellNx9: { row: number; col: number } | null = null;
     mandalaActiveCellWeek7x9: { row: number; col: number } | null = null;
@@ -145,7 +148,7 @@ export class MandalaView extends TextFileView {
             ViewStoreAction,
             MandalaGridDocument
         >(
-            defaultViewState(),
+            defaultViewState(this.plugin.settings.getValue().view.mandalaMode),
             viewReducer,
             this.onViewStoreError as OnError<ViewStoreAction>,
             this.documentStore.getValue().document,
@@ -174,6 +177,10 @@ export class MandalaView extends TextFileView {
         return path
             ? this.id === this.plugin.store.getValue().documents[path]?.viewId
             : false;
+    }
+
+    get mandalaMode(): MandalaMode {
+        return this.viewStore.getValue().ui.mandala.mode;
     }
 
     getCurrentFilePath() {
@@ -329,7 +336,7 @@ export class MandalaView extends TextFileView {
         });
     }
 
-    setMandalaMode(mode: '3x3' | '9x9' | 'nx9' | 'week-7x9') {
+    setMandalaMode(mode: MandalaMode) {
         if (mode === 'week-7x9' && !this.canUseWeekPlanMode()) {
             new Notice(
                 '周计划视图仅支持已开启周计划功能、且启用日计划的九宫格文件。',
@@ -340,6 +347,10 @@ export class MandalaView extends TextFileView {
             new Notice('Nx9 视图仅支持桌面端的普通九宫格文件。');
             return false;
         }
+        this.viewStore.dispatch({
+            type: 'view/mandala/mode/set',
+            payload: { mode },
+        });
         this.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-mode',
             payload: { mode },
@@ -348,7 +359,7 @@ export class MandalaView extends TextFileView {
     }
 
     cycleMandalaMode() {
-        const current = this.plugin.settings.getValue().view.mandalaMode;
+        const current = this.mandalaMode;
         const next =
             current === '3x3'
                 ? '9x9'
@@ -365,7 +376,7 @@ export class MandalaView extends TextFileView {
     ensureCompatibleMandalaMode(
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ) {
-        const currentMode = this.plugin.settings.getValue().view.mandalaMode;
+        const currentMode = this.mandalaMode;
         const nextMode = resolveCompatibleMandalaMode({
             currentMode,
             canUseWeekPlanMode: this.canUseWeekPlanMode(frontmatter),
@@ -376,11 +387,29 @@ export class MandalaView extends TextFileView {
             return false;
         }
 
-        this.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-mode',
+        this.viewStore.dispatch({
+            type: 'view/mandala/mode/set',
             payload: { mode: nextMode },
         });
         return true;
+    }
+
+    getState(): Record<string, unknown> {
+        return {
+            ...super.getState(),
+            mandalaMode: this.mandalaMode,
+        };
+    }
+
+    async setState(state: unknown, result: ViewStateResult): Promise<void> {
+        const nextMode = this.readMandalaModeFromState(state);
+        if (nextMode && nextMode !== this.mandalaMode) {
+            this.viewStore.dispatch({
+                type: 'view/mandala/mode/set',
+                payload: { mode: nextMode },
+            });
+        }
+        await super.setState(state, result);
     }
 
     getViewData(): string {
@@ -1419,6 +1448,19 @@ export class MandalaView extends TextFileView {
         return stripHeading(text || '')
             .trim()
             .toLowerCase();
+    }
+
+    private readMandalaModeFromState(state: unknown): MandalaMode | null {
+        if (!state || typeof state !== 'object') {
+            return null;
+        }
+        const maybeMode = (state as { mandalaMode?: unknown }).mandalaMode;
+        return maybeMode === '3x3' ||
+            maybeMode === '9x9' ||
+            maybeMode === 'nx9' ||
+            maybeMode === 'week-7x9'
+            ? maybeMode
+            : null;
     }
 
     private scrollHeadingIntoView(

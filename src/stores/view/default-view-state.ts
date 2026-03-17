@@ -1,6 +1,9 @@
 import { ViewState } from 'src/stores/view/view-state-type';
+import { MandalaMode } from 'src/stores/settings/settings-type';
 
-export const defaultViewState = (): ViewState => ({
+export const defaultViewState = (
+    mandalaMode: MandalaMode = '3x3',
+): ViewState => ({
     search: {
         query: '',
         results: new Map(),
@@ -19,6 +22,7 @@ export const defaultViewState = (): ViewState => ({
             nodeId: null,
         },
         mandala: {
+            mode: mandalaMode,
             subgridTheme: '1',
             activeCell9x9: null,
             activeCellNx9: null,

@@ -305,8 +305,6 @@
         );
     };
 
-    $: view.mandalaMode = $mode;
-
     const sectionToNodeId = derived(
         view.documentStore,
         (state) => state.sections.section_id,
@@ -433,16 +431,14 @@
                 !view.plugin.settings.getValue().general.weekPlanEnabled ||
                 !getCachedDayPlan($documentState.file.frontmatter))
         ) {
-            // Active-view lifecycle owns incompatible mode recovery so that
-            // multiple open leaves cannot fight over the shared global mode.
+            view.ensureCompatibleMandalaMode($documentState.file.frontmatter);
         }
 
         if (
             $mode === 'nx9' &&
             !view.canUseNx9Mode($documentState.file.frontmatter)
         ) {
-            // Active-view lifecycle owns incompatible mode recovery so that
-            // multiple open leaves cannot fight over the shared global mode.
+            view.ensureCompatibleMandalaMode($documentState.file.frontmatter);
         }
 
         if (
