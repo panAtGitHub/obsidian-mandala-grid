@@ -1432,6 +1432,7 @@
     :global(.mandala-idle-scrollbar) {
         --mandala-idle-scrollbar-thumb: var(--color-base-30);
         --mandala-idle-scrollbar-thumb-active: var(--color-base-40);
+        --mandala-idle-scrollbar-size: 2px;
         overflow: auto;
         overflow: overlay;
         scrollbar-gutter: stable;
@@ -1443,8 +1444,8 @@
     }
 
     :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
-        width: 8px;
-        height: 8px;
+        width: var(--mandala-idle-scrollbar-size);
+        height: var(--mandala-idle-scrollbar-size);
     }
 
     :global(.mandala-idle-scrollbar::-webkit-scrollbar-track) {
@@ -1478,8 +1479,8 @@
                 .mandala-idle-scrollbar::-webkit-scrollbar
         ),
     :global(.mandala-card:hover .mandala-idle-scrollbar::-webkit-scrollbar) {
-        width: 8px;
-        height: 8px;
+        width: var(--mandala-idle-scrollbar-size);
+        height: var(--mandala-idle-scrollbar-size);
     }
 
     :global(
