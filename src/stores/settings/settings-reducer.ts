@@ -158,10 +158,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         ) {
             mandalaView.nx9RowsPerPage = nx9RowsPerPage;
         }
-        mandalaView.showDetailSidebarDesktop =
-            action.payload.showDetailSidebarDesktop;
-        mandalaView.showDetailSidebarMobile =
-            action.payload.showDetailSidebarMobile;
     },
     'settings/documents/persist-mandala-pinned-sections': (store, action) => {
         if (

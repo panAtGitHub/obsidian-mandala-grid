@@ -18,4 +18,19 @@ describe('viewReducer', () => {
 
         expect(state.ui.mandala.mode).toBe('nx9');
     });
+
+    test('stores detail sidebar visibility in view-local state', () => {
+        const state = defaultViewState('3x3', false);
+
+        viewReducer(
+            state,
+            {
+                type: 'view/mandala/detail-sidebar/set',
+                payload: { open: true },
+            },
+            {} as MandalaGridDocument,
+        );
+
+        expect(state.ui.mandala.showDetailSidebar).toBe(true);
+    });
 });

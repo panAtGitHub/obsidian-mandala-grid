@@ -253,6 +253,11 @@ const handlers: Record<string, ViewActionHandler> = {
         state.ui.mandala.mode = action.payload.mode;
         state.ui.mandala = { ...state.ui.mandala };
     },
+    'view/mandala/detail-sidebar/set': (state, action) => {
+        if (action.type !== 'view/mandala/detail-sidebar/set') return;
+        state.ui.mandala.showDetailSidebar = action.payload.open;
+        state.ui.mandala = { ...state.ui.mandala };
+    },
     'view/mandala/subgrid/exit': (state, action) => {
         if (action.type !== 'view/mandala/subgrid/exit') return;
         state.ui.mandala.subgridTheme = '1';

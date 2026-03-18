@@ -59,8 +59,6 @@ describe('settingsReducer custom grid layouts', () => {
                 lastActiveSection: '2',
                 subgridTheme: '2',
                 nx9RowsPerPage: 4,
-                showDetailSidebarDesktop: true,
-                showDetailSidebarMobile: null,
             },
         });
         settingsReducer(settings, {
@@ -72,8 +70,6 @@ describe('settingsReducer custom grid layouts', () => {
                 lastActiveSection: '3',
                 subgridTheme: '3',
                 nx9RowsPerPage: 5,
-                showDetailSidebarDesktop: false,
-                showDetailSidebarMobile: null,
             },
         });
 
@@ -84,8 +80,6 @@ describe('settingsReducer custom grid layouts', () => {
             lastActiveSection: '2',
             subgridTheme: '2',
             nx9RowsPerPage: 4,
-            showDetailSidebarDesktop: true,
-            showDetailSidebarMobile: null,
         });
         expect(settings.documents['b.md']?.mandalaView).toMatchObject({
             selectedLayoutId: 'builtin:left-to-right',
@@ -94,8 +88,6 @@ describe('settingsReducer custom grid layouts', () => {
             lastActiveSection: '3',
             subgridTheme: '3',
             nx9RowsPerPage: 5,
-            showDetailSidebarDesktop: false,
-            showDetailSidebarMobile: null,
         });
     });
 
@@ -116,8 +108,6 @@ describe('settingsReducer custom grid layouts', () => {
                 lastActiveSection: '2',
                 subgridTheme: '2',
                 nx9RowsPerPage: 6,
-                showDetailSidebarDesktop: true,
-                showDetailSidebarMobile: null,
             },
         });
 

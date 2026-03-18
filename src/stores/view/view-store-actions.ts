@@ -21,6 +21,10 @@ export type MandalaActions =
           payload: { mode: MandalaMode };
       }
     | {
+          type: 'view/mandala/detail-sidebar/set';
+          payload: { open: boolean };
+      }
+    | {
           type: 'view/mandala/subgrid/enter';
           payload: { theme: string };
       }

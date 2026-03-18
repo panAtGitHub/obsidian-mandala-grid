@@ -148,7 +148,10 @@ export class MandalaView extends TextFileView {
             ViewStoreAction,
             MandalaGridDocument
         >(
-            defaultViewState(this.plugin.settings.getValue().view.mandalaMode),
+            defaultViewState(
+                this.plugin.settings.getValue().view.mandalaMode,
+                this.resolveInitialMandalaDetailSidebarVisible(),
+            ),
             viewReducer,
             this.onViewStoreError as OnError<ViewStoreAction>,
             this.documentStore.getValue().document,
@@ -217,7 +220,9 @@ export class MandalaView extends TextFileView {
         return this.plugin.settings.getValue();
     }
 
-    isMandalaDetailSidebarVisible(settings = this.plugin.settings.getValue()) {
+    private resolveInitialMandalaDetailSidebarVisible(
+        settings = this.plugin.settings.getValue(),
+    ) {
         const path = this.getCurrentFilePath();
         const persisted = path ? settings.documents[path]?.mandalaView : null;
         return Platform.isMobile
@@ -227,28 +232,14 @@ export class MandalaView extends TextFileView {
                   settings.view.showMandalaDetailSidebarDesktop;
     }
 
+    isMandalaDetailSidebarVisible() {
+        return this.viewStore.getValue().ui.mandala.showDetailSidebar;
+    }
+
     toggleCurrentMandalaDetailSidebar() {
-        const nextEnabled = !this.isMandalaDetailSidebarVisible();
-        const settings = this.plugin.settings.getValue();
-        const globalEnabled = Platform.isMobile
-            ? settings.view.showMandalaDetailSidebarMobile
-            : settings.view.showMandalaDetailSidebarDesktop;
-
-        if (nextEnabled !== globalEnabled) {
-            this.plugin.settings.dispatch({
-                type: 'view/mandala-detail-sidebar/toggle',
-            });
-        }
-
-        this.persistCurrentMandalaViewState({
-            showDetailSidebarDesktop: Platform.isMobile
-                ? settings.documents[this.getCurrentFilePath() ?? '']
-                      ?.mandalaView?.showDetailSidebarDesktop ?? null
-                : nextEnabled,
-            showDetailSidebarMobile: Platform.isMobile
-                ? nextEnabled
-                : settings.documents[this.getCurrentFilePath() ?? '']
-                      ?.mandalaView?.showDetailSidebarMobile ?? null,
+        this.viewStore.dispatch({
+            type: 'view/mandala/detail-sidebar/set',
+            payload: { open: !this.isMandalaDetailSidebarVisible() },
         });
     }
 
@@ -398,6 +389,7 @@ export class MandalaView extends TextFileView {
         return {
             ...super.getState(),
             mandalaMode: this.mandalaMode,
+            showDetailSidebar: this.isMandalaDetailSidebarVisible(),
         };
     }
 
@@ -407,6 +399,17 @@ export class MandalaView extends TextFileView {
             this.viewStore.dispatch({
                 type: 'view/mandala/mode/set',
                 payload: { mode: nextMode },
+            });
+        }
+        const nextShowDetailSidebar =
+            this.readMandalaDetailSidebarVisibilityFromState(state);
+        if (
+            nextShowDetailSidebar !== null &&
+            nextShowDetailSidebar !== this.isMandalaDetailSidebarVisible()
+        ) {
+            this.viewStore.dispatch({
+                type: 'view/mandala/detail-sidebar/set',
+                payload: { open: nextShowDetailSidebar },
             });
         }
         await super.setState(state, result);
@@ -968,8 +971,6 @@ export class MandalaView extends TextFileView {
         overrides?: {
             selectedLayoutId?: string | null;
             nx9RowsPerPage?: number;
-            showDetailSidebarDesktop?: boolean | null;
-            showDetailSidebarMobile?: boolean | null;
         },
         explicitPath?: string,
     ) {
@@ -1003,14 +1004,6 @@ export class MandalaView extends TextFileView {
             overrides?.nx9RowsPerPage ??
             currentMandalaViewState?.nx9RowsPerPage ??
             DEFAULT_NX9_ROWS_PER_PAGE;
-        const showDetailSidebarDesktop =
-            overrides?.showDetailSidebarDesktop ??
-            currentMandalaViewState?.showDetailSidebarDesktop ??
-            settings.view.showMandalaDetailSidebarDesktop;
-        const showDetailSidebarMobile =
-            overrides?.showDetailSidebarMobile ??
-            currentMandalaViewState?.showDetailSidebarMobile ??
-            settings.view.showMandalaDetailSidebarMobile;
 
         if (
             (currentMandalaViewState?.selectedLayoutId ?? null) ===
@@ -1023,11 +1016,7 @@ export class MandalaView extends TextFileView {
                 lastActiveSection &&
             (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme &&
             (currentMandalaViewState?.nx9RowsPerPage ??
-                DEFAULT_NX9_ROWS_PER_PAGE) === nx9RowsPerPage &&
-            (currentMandalaViewState?.showDetailSidebarDesktop ?? null) ===
-                showDetailSidebarDesktop &&
-            (currentMandalaViewState?.showDetailSidebarMobile ?? null) ===
-                showDetailSidebarMobile
+                DEFAULT_NX9_ROWS_PER_PAGE) === nx9RowsPerPage
         ) {
             return;
         }
@@ -1042,8 +1031,6 @@ export class MandalaView extends TextFileView {
                 lastActiveSection,
                 subgridTheme,
                 nx9RowsPerPage,
-                showDetailSidebarDesktop,
-                showDetailSidebarMobile,
             },
         });
     }
@@ -1461,6 +1448,17 @@ export class MandalaView extends TextFileView {
             maybeMode === 'week-7x9'
             ? maybeMode
             : null;
+    }
+
+    private readMandalaDetailSidebarVisibilityFromState(
+        state: unknown,
+    ): boolean | null {
+        if (!state || typeof state !== 'object') {
+            return null;
+        }
+        const maybeVisibility = (state as { showDetailSidebar?: unknown })
+            .showDetailSidebar;
+        return typeof maybeVisibility === 'boolean' ? maybeVisibility : null;
     }
 
     private scrollHeadingIntoView(

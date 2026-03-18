@@ -50,6 +50,7 @@ export type ViewState = {
         };
         mandala: {
             mode: MandalaMode;
+            showDetailSidebar: boolean;
             subgridTheme: string | null;
             activeCell9x9: { row: number; col: number } | null;
             activeCellNx9: { row: number; col: number } | null;
