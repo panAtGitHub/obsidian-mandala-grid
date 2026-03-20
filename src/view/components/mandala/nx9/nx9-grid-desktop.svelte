@@ -44,6 +44,9 @@
     $: activeCell = $mandalaUiState.activeCellNx9;
     $: pageRows = context.pageRows;
     $: rowCount = context.rowsPerPage;
+    $: futureScale =
+        rowCount <= 5 ? 1 : Math.max(0.58, Math.min(1, 5 / rowCount));
+    $: showFutureHint = rowCount <= 5;
 
     const getSectionColor = (section: string | null) => {
         if (!section || $backgroundMode !== 'custom') return null;
@@ -82,7 +85,7 @@
 
 <div
     class="nx9-grid mandala-grid mandala-grid--nx9"
-    style={`--nx9-rows-per-page: ${rowCount}; --nx9-font-size: var(--mandala-font-7x9, var(--mandala-font-3x3));`}
+    style={`--nx9-rows-per-page: ${rowCount}; --nx9-font-size: var(--mandala-font-7x9, var(--mandala-font-3x3)); --nx9-future-scale: ${futureScale};`}
 >
     {#each pageRows as rowModel, row (`${context.currentPage}-${row}`)}
         {#if rowModel.kind === 'real-core-row'}
@@ -155,9 +158,11 @@
                             tone="accent"
                         />
                     </div>
-                    <div class="nx9-cell__future-hint">
-                        仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。
-                    </div>
+                    {#if showFutureHint}
+                        <div class="nx9-cell__future-hint">
+                            仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。
+                        </div>
+                    {/if}
                 </div>
             </div>
         {:else}
@@ -305,8 +310,10 @@
         justify-content: center;
         width: 100%;
         height: 100%;
-        padding: 18px 24px 14px;
-        gap: 14px;
+        padding: calc(18px * var(--nx9-future-scale))
+            calc(24px * var(--nx9-future-scale))
+            calc(14px * var(--nx9-future-scale));
+        gap: calc(14px * var(--nx9-future-scale));
         box-sizing: border-box;
     }
 
@@ -314,9 +321,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: min(58%, 980px);
-        height: min(62%, 160px);
-        min-height: 84px;
+        width: min(calc(58% * var(--nx9-future-scale)), 980px);
+        min-width: 220px;
+        height: min(calc(62% * var(--nx9-future-scale)), 160px);
+        min-height: calc(84px * var(--nx9-future-scale));
         border-radius: 999px;
         background: color-mix(
             in srgb,
@@ -336,7 +344,7 @@
     .nx9-cell__future-hint {
         max-width: min(72%, 980px);
         text-align: center;
-        font-size: 13px;
+        font-size: calc(13px * var(--nx9-future-scale));
         line-height: 1.45;
         color: var(--text-muted);
         user-select: none;

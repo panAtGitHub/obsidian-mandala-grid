@@ -29,9 +29,10 @@
 
 <style>
     .nx9-next-core-button {
-        width: 68px;
-        height: 68px;
-        border: 3px solid var(--interactive-accent, var(--text-accent));
+        width: calc(68px * var(--nx9-future-scale, 1));
+        height: calc(68px * var(--nx9-future-scale, 1));
+        border: calc(3px * var(--nx9-future-scale, 1)) solid
+            var(--interactive-accent, var(--text-accent));
         border-radius: 999px;
         background: color-mix(
             in srgb,
@@ -39,7 +40,7 @@
             var(--interactive-accent, var(--text-accent)) 10%
         );
         color: var(--interactive-accent, var(--text-accent));
-        font-size: 34px;
+        font-size: calc(34px * var(--nx9-future-scale, 1));
         font-weight: 600;
         line-height: 1;
         cursor: pointer;
