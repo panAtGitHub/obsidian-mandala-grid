@@ -1,6 +1,6 @@
 {
     "name": "mandala-grid",
-    "version": "1.2.8.6",
+    "version": "1.2.8.7",
     "description": "Mandala grid (3×3 / 9×9) editor for Obsidian.",
     "scripts": {
         "dev": "node esbuild.config.mjs",
