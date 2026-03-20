@@ -155,3 +155,47 @@ describe('document/mandala/swap', () => {
         });
     });
 });
+
+describe('document/mandala/clear-empty-subgrids', () => {
+    it('removes trailing empty core nodes from the document and section index', () => {
+        const state = defaultDocumentState();
+        state.meta.mandalaV2.enabled = true;
+        state.sections.section_id = {
+            '1': 'n1',
+            '2': 'n2',
+            '3': 'n3',
+        };
+        state.sections.id_section = {
+            n1: '1',
+            n2: '2',
+            n3: '3',
+        };
+        state.document.columns = [
+            {
+                id: 'c0',
+                groups: [{ parentId: 'root', nodes: ['n1', 'n2', 'n3'] }],
+            },
+        ];
+        state.document.content = {
+            n1: { content: 'keep' },
+            n2: { content: '' },
+            n3: { content: '' },
+        };
+
+        documentReducer(state, {
+            type: 'document/mandala/clear-empty-subgrids',
+            payload: {
+                parentIds: [],
+                rootNodeIds: ['n2', 'n3'],
+                activeNodeId: 'n1',
+            },
+        });
+
+        expect(state.sections.section_id).toEqual({
+            '1': 'n1',
+        });
+        expect(state.document.columns[0]?.groups[0]?.nodes).toEqual(['n1']);
+        expect(state.document.content.n2).toBeUndefined();
+        expect(state.document.content.n3).toBeUndefined();
+    });
+});

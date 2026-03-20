@@ -28,6 +28,7 @@
     $: cells = buildNx9BaseCells({
         pageRows: nx9Context.pageRows,
         sectionIdMap: $documentState.sections.section_id,
+        documentContent: $documentState.document.content,
     });
 </script>
 

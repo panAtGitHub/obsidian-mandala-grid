@@ -84,6 +84,7 @@
                 !!cell.emptyLabel}
             class:is-clickable={!!cell.nodeId}
             class:is-center-column={cell.isCenterColumn}
+            class:is-soft-locked={cell.isSoftLocked && !cell.hasContent}
             class:is-active-cell={activeCell &&
                 activeCell.row === cell.row &&
                 activeCell.col === cell.col}
@@ -330,6 +331,32 @@
             var(--background-primary) 80%,
             var(--background-modifier-border) 20%
         );
+    }
+
+    .row-matrix-cell.is-soft-locked {
+        border-color: color-mix(
+            in srgb,
+            var(--background-modifier-border) 55%,
+            transparent
+        );
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 92%,
+            var(--background-modifier-border) 8%
+        );
+    }
+
+    .row-matrix-cell.is-soft-locked .row-matrix-cell__empty {
+        color: var(--text-faint);
+        opacity: 0.6;
+    }
+
+    .row-matrix-cell.is-soft-locked :global(.mandala-card) {
+        opacity: 0.58;
+    }
+
+    .row-matrix-cell.is-soft-locked :global(.mandala-card-meta) {
+        opacity: 0.5;
     }
 
     .row-matrix-cell__empty {

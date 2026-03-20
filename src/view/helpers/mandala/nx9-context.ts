@@ -1,5 +1,7 @@
 import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/stores/settings/settings-type';
+import type { Content } from 'src/stores/document/document-state-type';
 
 export type Nx9CellPosition = { row: number; col: number };
 export type Nx9CellWithPage = Nx9CellPosition & { page: number };
@@ -9,8 +11,10 @@ export type RowMatrixBaseCell = {
     col: number;
     section: string | null;
     nodeId: string | null;
+    hasContent: boolean;
     isPlaceholder: boolean;
     isCenterColumn: boolean;
+    isSoftLocked: boolean;
     emptyLabel: string | null;
 };
 
@@ -183,22 +187,50 @@ export const resolveNx9CurrentCell = ({
 export const buildNx9BaseCells = ({
     pageRows,
     sectionIdMap,
+    documentContent,
 }: {
     pageRows: Array<string | null>;
     sectionIdMap: Record<string, string | undefined>;
+    documentContent: Content;
 }): RowMatrixBaseCell[] => {
     const cells: RowMatrixBaseCell[] = [];
+    const coreHasContent = (section: string | null) => {
+        if (!section) return false;
+        const nodeId = sectionIdMap[section];
+        if (!nodeId) return false;
+        return !isEmptyMandalaContent(documentContent[nodeId]?.content ?? '');
+    };
+
     for (let row = 0; row < pageRows.length; row += 1) {
         const coreSection = pageRows[row];
+        const previousCoreSection =
+            coreSection && coreSection !== '1'
+                ? String(Number(coreSection) - 1)
+                : null;
+        const rowUnlocked =
+            !coreSection ||
+            coreSection === '1' ||
+            coreHasContent(previousCoreSection);
+        const childUnlocked = rowUnlocked && coreHasContent(coreSection);
         for (let col = 0; col < 9; col += 1) {
             const section = sectionAtCellNx9(row, col, pageRows);
+            const nodeId = section ? sectionIdMap[section] ?? null : null;
+            const hasContent =
+                !!nodeId &&
+                !isEmptyMandalaContent(documentContent[nodeId]?.content ?? '');
+            const isSoftLocked =
+                !!coreSection &&
+                ((col === 0 && !rowUnlocked) ||
+                    (col > 0 && !childUnlocked));
             cells.push({
                 row,
                 col,
                 section,
-                nodeId: section ? sectionIdMap[section] ?? null : null,
+                nodeId,
+                hasContent,
                 isPlaceholder: !coreSection,
                 isCenterColumn: col === 0,
+                isSoftLocked,
                 emptyLabel: coreSection ? section : '',
             });
         }

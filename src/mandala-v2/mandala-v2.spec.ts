@@ -317,4 +317,110 @@ describe('mandala-v2 save prepare', () => {
         expect(result.blockedReasons.length).toBe(1);
         expect(result.stats.blockedParentCount).toBe(1);
     });
+
+    it('prunes trailing empty core sections after subgrid cleanup', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '1.1': 'n11',
+                '1.2': 'n12',
+                '1.3': 'n13',
+                '1.4': 'n14',
+                '1.5': 'n15',
+                '1.6': 'n16',
+                '1.7': 'n17',
+                '1.8': 'n18',
+                '2': 'n2',
+            },
+            id_section: {
+                n1: '1',
+                n11: '1.1',
+                n12: '1.2',
+                n13: '1.3',
+                n14: '1.4',
+                n15: '1.5',
+                n16: '1.6',
+                n17: '1.7',
+                n18: '1.8',
+                n2: '2',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: 'Root' },
+                n11: { content: '' },
+                n12: { content: '' },
+                n13: { content: '' },
+                n14: { content: '' },
+                n15: { content: '' },
+                n16: { content: '' },
+                n17: { content: '' },
+                n18: { content: '' },
+                n2: { content: '' },
+            },
+        };
+
+        const result = prepareSaveSections(document, sections);
+
+        expect(result.blockedReasons).toEqual([]);
+        expect(result.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+        ]);
+        expect(result.stats.prunedParentCount).toBe(1);
+        expect(result.stats.prunedRootCount).toBe(1);
+    });
+
+    it('does not prune non-trailing empty core sections', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '2': 'n2',
+                '3': 'n3',
+            },
+            id_section: {
+                n1: '1',
+                n2: '2',
+                n3: '3',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: 'Root' },
+                n2: { content: '' },
+                n3: { content: 'Keep trailing continuity' },
+            },
+        };
+
+        const result = prepareSaveSections(document, sections);
+
+        expect(result.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+            '2',
+            '3',
+        ]);
+        expect(result.stats.prunedRootCount).toBe(0);
+    });
+
+    it('never removes the last remaining root section 1', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+            },
+            id_section: {
+                n1: '1',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: '' },
+            },
+        };
+
+        const result = prepareSaveSections(document, sections);
+
+        expect(result.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+        ]);
+        expect(result.stats.prunedRootCount).toBe(0);
+    });
 });

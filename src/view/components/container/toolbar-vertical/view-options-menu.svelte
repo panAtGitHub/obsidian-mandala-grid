@@ -1543,20 +1543,30 @@
         });
         view.alignBranch.align({ type: 'view/align-branch/center-node' });
 
-        const plan = createClearEmptyMandalaSubgridsPlan(state.document);
-        if (plan.parentIds.length === 0) {
+        const plan = createClearEmptyMandalaSubgridsPlan(
+            state.document,
+            state.sections,
+        );
+        if (plan.parentIds.length === 0 && plan.rootNodeIds.length === 0) {
             new Notice('没有可清空的空白九宫格。');
             closeMenu();
             return;
         }
+        const nextActiveNodeId = plan.rootNodeIds.includes(centerNodeId)
+            ? state.sections.section_id['1'] ?? centerNodeId
+            : centerNodeId;
 
         view.documentStore.dispatch({
             type: 'document/mandala/clear-empty-subgrids',
-            payload: { parentIds: plan.parentIds, activeNodeId: centerNodeId },
+            payload: {
+                parentIds: plan.parentIds,
+                rootNodeIds: plan.rootNodeIds,
+                activeNodeId: nextActiveNodeId,
+            },
         });
 
         new Notice(
-            `已清空 ${plan.parentIds.length} 个空白九宫格，删除 ${plan.nodesToRemove.length} 个子格。`,
+            `已清理 ${plan.parentIds.length} 个空白九宫格、${plan.rootSections.length} 个尾部空核心，共删除 ${plan.nodesToRemove.length} 个格子。`,
         );
         closeMenu();
     };

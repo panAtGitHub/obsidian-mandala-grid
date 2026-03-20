@@ -83,13 +83,16 @@ export const buildWeekPlanBaseCells = ({
         };
         for (let col = 0; col < 9; col += 1) {
             const section = sectionAtCellWeek7x9(row, col, rows);
+            const nodeId = section ? sectionIdMap[section] ?? null : null;
             cells.push({
                 row,
                 col,
                 section,
-                nodeId: section ? sectionIdMap[section] ?? null : null,
+                nodeId,
+                hasContent: !!nodeId,
                 isPlaceholder: !rowModel.inPlanYear,
                 isCenterColumn: col === 0,
+                isSoftLocked: false,
                 emptyLabel: !rowModel.inPlanYear ? '超出本年' : null,
             });
         }

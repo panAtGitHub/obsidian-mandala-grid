@@ -17,6 +17,7 @@ import { loadPinnedNodes } from 'src/stores/document/reducers/pinned-nodes/load-
 import { refreshGroupParentIds } from 'src/stores/document/reducers/meta/refresh-group-parent-ids';
 import { NO_UPDATE } from 'src/lib/store/store';
 import { deleteChildNodes } from 'src/lib/tree-utils/delete/delete-child-nodes';
+import { deleteNodeById } from 'src/lib/tree-utils/delete/delete-node-by-id';
 import {
     ensureMandalaChildren,
     ensureMandalaCoreTheme,
@@ -28,6 +29,7 @@ import {
     registerMandalaChildSections,
     registerMandalaSection,
     removeMandalaDescendantSectionsByParents,
+    removeMandalaSubtreeSectionsByRoots,
 } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
 
 type EarlyReturnHandler = (
@@ -201,12 +203,24 @@ const updateDocumentState = (
         }
     } else if (action.type === 'document/mandala/clear-empty-subgrids') {
         const parentIds = action.payload.parentIds.filter(Boolean);
-        if (parentIds.length === 0) return NO_UPDATE;
+        const rootNodeIds = action.payload.rootNodeIds.filter(Boolean);
+        if (parentIds.length === 0 && rootNodeIds.length === 0) return NO_UPDATE;
         removeMandalaDescendantSectionsByParents(state, parentIds, {
             commit: false,
         });
         for (const parentId of parentIds) {
             deleteChildNodes(state.document, parentId);
+        }
+        removeMandalaSubtreeSectionsByRoots(state, rootNodeIds, {
+            commit: false,
+        });
+        for (const rootNodeId of rootNodeIds) {
+            deleteChildNodes(state.document, rootNodeId);
+            deleteNodeById(
+                state.document.columns,
+                state.document.content,
+                rootNodeId,
+            );
         }
         needsMandalaV2MetaRebuild = true;
         newActiveNodeId = action.payload.activeNodeId;

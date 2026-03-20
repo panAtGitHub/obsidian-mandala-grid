@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    buildNx9BaseCells,
     buildNx9PageRows,
     collectNx9CoreSections,
     getNx9TotalPages,
@@ -157,5 +158,51 @@ describe('nx9-context', () => {
             row: 0,
             col: 0,
         });
+    });
+
+    it('marks trailing core rows as soft locked until the previous core has content', () => {
+        const cells = buildNx9BaseCells({
+            pageRows: ['1', '2', '3'],
+            sectionIdMap: {
+                '1': 'n1',
+                '2': 'n2',
+                '3': 'n3',
+            },
+            documentContent: {
+                n1: { content: 'filled' },
+                n2: { content: '' },
+                n3: { content: '' },
+            },
+        });
+
+        expect(
+            cells.find((cell) => cell.section === '2')?.isSoftLocked,
+        ).toBe(false);
+        expect(
+            cells.find((cell) => cell.section === '3')?.isSoftLocked,
+        ).toBe(true);
+    });
+
+    it('marks child cells as soft locked until the core cell has content', () => {
+        const cells = buildNx9BaseCells({
+            pageRows: ['1', '2'],
+            sectionIdMap: {
+                '1': 'n1',
+                '2': 'n2',
+                '2.1': 'n21',
+            },
+            documentContent: {
+                n1: { content: 'filled' },
+                n2: { content: '' },
+                n21: { content: '' },
+            },
+        });
+
+        expect(
+            cells.find((cell) => cell.section === '2.1')?.isSoftLocked,
+        ).toBe(true);
+        expect(
+            cells.find((cell) => cell.section === '1.1')?.isSoftLocked,
+        ).toBe(false);
     });
 });

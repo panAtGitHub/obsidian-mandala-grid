@@ -207,6 +207,51 @@ export const removeMandalaDescendantSectionsByParents = (
     }
 };
 
+export const removeMandalaSubtreeSectionsByRoots = (
+    state: DocumentState,
+    rootNodeIds: string[],
+    options: MutateOptions = {},
+) => {
+    if (rootNodeIds.length === 0) return;
+
+    const sectionsToDelete = new Set<string>();
+    const nodeIdsToDelete = new Set<string>();
+    for (const rootNodeId of rootNodeIds) {
+        nodeIdsToDelete.add(rootNodeId);
+        const rootSection = state.sections.id_section[rootNodeId];
+        if (rootSection) {
+            sectionsToDelete.add(rootSection);
+        }
+        const descendants = getAllChildren(
+            state.document.columns,
+            rootNodeId,
+        );
+        for (const nodeId of descendants) {
+            nodeIdsToDelete.add(nodeId);
+            const sectionId = state.sections.id_section[nodeId];
+            if (sectionId) {
+                sectionsToDelete.add(sectionId);
+            }
+        }
+    }
+
+    for (const sectionId of sectionsToDelete) {
+        const nodeId = state.sections.section_id[sectionId];
+        if (nodeId) {
+            delete state.sections.id_section[nodeId];
+        }
+        delete state.sections.section_id[sectionId];
+    }
+
+    state.pinnedNodes.Ids = state.pinnedNodes.Ids.filter(
+        (nodeId) => !nodeIdsToDelete.has(nodeId),
+    );
+
+    if (options.commit ?? true) {
+        rebuildMandalaV2MetaFromSections(state);
+    }
+};
+
 export const applyMandalaContentDelta = (
     state: DocumentState,
     nodeId: string,

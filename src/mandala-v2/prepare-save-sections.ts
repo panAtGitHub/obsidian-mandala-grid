@@ -1,3 +1,4 @@
+import { collectTrailingEmptyCoreSections } from 'src/lib/mandala/clear-empty-subgrids';
 import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { MandalaSectionId } from 'src/mandala-v2/types';
 import {
@@ -21,6 +22,7 @@ type PrepareSaveSectionsResult = {
     stats: {
         droppedSectionCount: number;
         prunedParentCount: number;
+        prunedRootCount: number;
         blockedParentCount: number;
     };
 };
@@ -150,6 +152,7 @@ export const prepareSaveSections = (
             stats: {
                 droppedSectionCount: 0,
                 prunedParentCount: 0,
+                prunedRootCount: 0,
                 blockedParentCount: blockedReasons.length,
             },
         };
@@ -190,13 +193,24 @@ export const prepareSaveSections = (
                 content: nodeId ? document.content[nodeId]?.content ?? '' : '',
             };
         });
+    const trailingEmptyRoots = collectTrailingEmptyCoreSections(
+        serializableSections,
+    );
+    const trailingRootSet = new Set(trailingEmptyRoots);
+    const finalSections = serializableSections.filter(({ sectionId }) => {
+        const root = sectionId.split('.')[0];
+        return root ? !trailingRootSet.has(root) : true;
+    });
+    const finalDroppedSectionCount =
+        droppedSections.size + (serializableSections.length - finalSections.length);
 
     return {
-        sections: serializableSections,
+        sections: finalSections,
         blockedReasons: [],
         stats: {
-            droppedSectionCount: droppedSections.size,
+            droppedSectionCount: finalDroppedSectionCount,
             prunedParentCount: selectedParents.length,
+            prunedRootCount: trailingEmptyRoots.length,
             blockedParentCount: 0,
         },
     };
