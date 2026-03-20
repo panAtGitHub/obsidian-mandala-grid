@@ -1,3 +1,5 @@
+import { Notice } from 'obsidian';
+import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,
@@ -22,6 +24,24 @@ export const createNextNx9Core = (
     view: MandalaView,
     nextCoreSection: string,
 ) => {
+    const previousCoreNumber = Number(nextCoreSection) - 1;
+    if (previousCoreNumber >= 1) {
+        const previousCoreSection = String(previousCoreNumber);
+        const documentState = view.documentStore.getValue();
+        const previousCoreNodeId =
+            documentState.sections.section_id[previousCoreSection];
+        const previousCoreContent = previousCoreNodeId
+            ? documentState.document.content[previousCoreNodeId]?.content ?? ''
+            : '';
+
+        if (isEmptyMandalaContent(previousCoreContent)) {
+            new Notice(
+                `请先填写核心 ${previousCoreSection} 的中心格内容，再创建新的核心九宫格。`,
+            );
+            return false;
+        }
+    }
+
     view.documentStore.dispatch({
         type: 'document/mandala/ensure-core-theme',
         payload: { theme: nextCoreSection },

@@ -1,7 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createNextNx9Core } from 'src/view/helpers/mandala/nx9/create-next-core';
 
+const noticeMock = vi.fn();
+
+vi.mock('obsidian', () => ({
+    Notice: function Notice(message: string) {
+        noticeMock(message);
+    },
+}));
+
 describe('nx9/create-next-core', () => {
+    beforeEach(() => {
+        noticeMock.mockReset();
+    });
+
     it('creates the next core subtree and focuses the new core cell', () => {
         const documentState = {
             sections: {
@@ -84,5 +96,44 @@ describe('nx9/create-next-core', () => {
             col: 0,
             page: 1,
         });
+    });
+
+    it('blocks creation when the previous core center is still empty', () => {
+        const documentState = {
+            sections: {
+                section_id: {
+                    '1': 'node-1',
+                    '2': 'node-2',
+                } as Record<string, string | undefined>,
+                id_section: {
+                    'node-1': '1',
+                    'node-2': '2',
+                } as Record<string, string | undefined>,
+            },
+            document: {
+                content: {
+                    'node-1': { content: 'filled' },
+                    'node-2': { content: '' },
+                } as Record<string, { content: string }>,
+            },
+        };
+        const view = {
+            mandalaActiveCellNx9: null,
+            documentStore: {
+                getValue: () => documentState,
+                dispatch: vi.fn(),
+            },
+            viewStore: {
+                dispatch: vi.fn(),
+            },
+            getCurrentNx9RowsPerPage: () => 2,
+        };
+
+        expect(createNextNx9Core(view as never, '3')).toBe(false);
+        expect(view.documentStore.dispatch).not.toHaveBeenCalled();
+        expect(view.viewStore.dispatch).not.toHaveBeenCalled();
+        expect(noticeMock).toHaveBeenCalledWith(
+            '请先填写核心 2 的中心格内容，再创建新的核心九宫格。',
+        );
     });
 });

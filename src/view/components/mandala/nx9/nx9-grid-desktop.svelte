@@ -153,6 +153,9 @@
                         tone="accent"
                     />
                 </div>
+                <div class="nx9-cell__future-hint">
+                    仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。
+                </div>
             </div>
         {:else}
             <div
@@ -276,6 +279,7 @@
             var(--background-primary) 93%,
             var(--background-modifier-border) 7%
         );
+        gap: 16px;
         align-items: center;
         justify-content: center;
     }
@@ -309,6 +313,15 @@
             var(--background-primary) 84%,
             var(--background-modifier-border) 16%
         );
+    }
+
+    .nx9-cell__future-hint {
+        max-width: min(72%, 980px);
+        text-align: center;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--text-muted);
+        user-select: none;
     }
 
     .nx9-cell.is-active-cell,
