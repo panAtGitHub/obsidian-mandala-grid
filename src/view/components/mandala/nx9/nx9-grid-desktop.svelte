@@ -138,34 +138,41 @@
             {/each}
         {:else if rowModel.kind === 'ghost-next-core-row'}
             <div
-                class="nx9-cell mandala-cell nx9-cell--ghost-create"
+                class="nx9-cell mandala-cell nx9-cell--future-row nx9-cell--future-row-active"
                 class:is-top-edge={row === 0}
                 class:is-bottom-edge={row === rowCount - 1}
                 class:is-left-edge={true}
+                class:is-right-edge={true}
                 class:is-active-cell={isActiveCell(row, 0)}
-                style={`grid-row: ${row + 1}; grid-column: 1;`}
+                style={`grid-row: ${row + 1}; grid-column: 1 / 10;`}
                 on:click={() => selectGhostCreateCell(row)}
             >
-                <Nx9NextCoreCell nextCoreSection={rowModel.nextCoreSection} />
+                <div class="nx9-cell__future-surface">
+                    <Nx9NextCoreCell
+                        nextCoreSection={rowModel.nextCoreSection}
+                        tone="accent"
+                    />
+                </div>
             </div>
+        {:else}
             <div
-                class="nx9-cell mandala-cell nx9-cell--ghost-band"
+                class="nx9-cell mandala-cell nx9-cell--future-row nx9-cell--future-row-muted"
                 class:is-top-edge={row === 0}
                 class:is-bottom-edge={row === rowCount - 1}
+                class:is-left-edge={true}
                 class:is-right-edge={true}
-                style={`grid-row: ${row + 1}; grid-column: 2 / 10;`}
-            />
-        {:else}
-            {#each Array.from({ length: 9 }, (_, index) => index) as col (col)}
+                style={`grid-row: ${row + 1}; grid-column: 1 / 10;`}
+            >
                 <div
-                    class="nx9-cell mandala-cell nx9-cell--padding"
-                    class:is-top-edge={row === 0}
-                    class:is-bottom-edge={row === rowCount - 1}
-                    class:is-left-edge={col === 0}
-                    class:is-right-edge={col === 8}
-                    style={`grid-row: ${row + 1}; grid-column: ${col + 1};`}
-                />
-            {/each}
+                    class="nx9-cell__future-surface nx9-cell__future-surface--muted"
+                >
+                    <Nx9NextCoreCell
+                        nextCoreSection=""
+                        tone="muted"
+                        disabled={true}
+                    />
+                </div>
+            </div>
         {/if}
     {/each}
 </div>
@@ -193,7 +200,7 @@
     }
 
     .nx9-cell.is-clickable,
-    .nx9-cell--ghost-create {
+    .nx9-cell--future-row-active {
         cursor: pointer;
     }
 
@@ -253,9 +260,7 @@
     }
 
     .nx9-cell.is-empty-section,
-    .nx9-cell--padding,
-    .nx9-cell--ghost-band,
-    .nx9-cell--ghost-create {
+    .nx9-cell--future-row {
         border: 1px dashed var(--background-modifier-border);
         border-radius: 8px;
         background: color-mix(
@@ -265,39 +270,44 @@
         );
     }
 
-    .nx9-cell--ghost-create,
-    .nx9-cell--ghost-band {
+    .nx9-cell--future-row {
         background: color-mix(
             in srgb,
-            var(--background-primary) 92%,
-            var(--background-modifier-border) 8%
+            var(--background-primary) 93%,
+            var(--background-modifier-border) 7%
         );
-    }
-
-    .nx9-cell--ghost-create {
         align-items: center;
         justify-content: center;
     }
 
-    .nx9-cell--ghost-band {
-        border-style: solid;
-        border-color: color-mix(
+    .nx9-cell--future-row-muted {
+        background: color-mix(
             in srgb,
-            var(--background-modifier-border) 65%,
-            transparent
+            var(--background-primary) 95%,
+            var(--background-modifier-border) 5%
         );
-        overflow: hidden;
     }
 
-    .nx9-cell--ghost-band::after {
-        content: '';
-        position: absolute;
-        inset: 16%;
+    .nx9-cell__future-surface {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: min(58%, 980px);
+        height: 62%;
+        min-height: 84px;
         border-radius: 999px;
         background: color-mix(
             in srgb,
-            var(--background-modifier-border) 34%,
-            transparent
+            var(--background-primary) 78%,
+            var(--background-modifier-border) 22%
+        );
+    }
+
+    .nx9-cell__future-surface--muted {
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 84%,
+            var(--background-modifier-border) 16%
         );
     }
 

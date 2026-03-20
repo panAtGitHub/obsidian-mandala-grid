@@ -3,10 +3,13 @@
     import { createNextNx9Core } from 'src/view/helpers/mandala/nx9/create-next-core';
 
     export let nextCoreSection: string;
+    export let tone: 'accent' | 'muted' = 'accent';
+    export let disabled = false;
 
     const view = getView();
 
     const handleClick = (event: MouseEvent) => {
+        if (disabled) return;
         event.preventDefault();
         event.stopPropagation();
         createNextNx9Core(view, nextCoreSection);
@@ -16,7 +19,9 @@
 <button
     type="button"
     class="nx9-next-core-button"
+    class:nx9-next-core-button--muted={tone === 'muted'}
     aria-label={`创建核心 ${nextCoreSection}`}
+    {disabled}
     on:click={handleClick}
 >
     +
@@ -24,8 +29,8 @@
 
 <style>
     .nx9-next-core-button {
-        width: 56px;
-        height: 56px;
+        width: 68px;
+        height: 68px;
         border: 3px solid var(--interactive-accent, var(--text-accent));
         border-radius: 999px;
         background: color-mix(
@@ -43,6 +48,22 @@
             background 120ms ease;
     }
 
+    .nx9-next-core-button--muted {
+        border-color: color-mix(
+            in srgb,
+            var(--background-modifier-border) 78%,
+            var(--text-faint) 22%
+        );
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 94%,
+            var(--background-modifier-border) 6%
+        );
+        color: var(--text-faint);
+        cursor: default;
+        opacity: 0.9;
+    }
+
     .nx9-next-core-button:hover,
     .nx9-next-core-button:focus-visible {
         background: color-mix(
@@ -51,6 +72,18 @@
             var(--interactive-accent, var(--text-accent)) 22%
         );
         transform: scale(1.03);
+        outline: none;
+    }
+
+    .nx9-next-core-button--muted:hover,
+    .nx9-next-core-button--muted:focus-visible,
+    .nx9-next-core-button:disabled {
+        background: color-mix(
+            in srgb,
+            var(--background-primary) 94%,
+            var(--background-modifier-border) 6%
+        );
+        transform: none;
         outline: none;
     }
 </style>
