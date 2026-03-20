@@ -6,6 +6,7 @@ import {
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import { MandalaMode } from 'src/stores/settings/settings-type';
+import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
 
 export type ActiveNodesOfColumn = {
     [columnId: string]: {
@@ -53,7 +54,7 @@ export type ViewState = {
             showDetailSidebar: boolean;
             subgridTheme: string | null;
             activeCell9x9: { row: number; col: number } | null;
-            activeCellNx9: { row: number; col: number } | null;
+            activeCellNx9: Nx9ActiveCell | null;
             activeCellWeek7x9: { row: number; col: number } | null;
             weekAnchorDate: string | null;
             swap: {

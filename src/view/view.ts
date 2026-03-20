@@ -72,12 +72,12 @@ import {
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
-import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
+import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
 import {
     resolveNx9Context,
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
-} from 'src/view/helpers/mandala/nx9-context';
+} from 'src/view/helpers/mandala/nx9/context';
 import { resolveCompatibleMandalaMode } from 'src/view/helpers/mandala/resolve-compatible-mandala-mode';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
@@ -101,7 +101,8 @@ export class MandalaView extends TextFileView {
     id: string;
     zoomFactor: number;
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
-    mandalaActiveCellNx9: { row: number; col: number } | null = null;
+    mandalaActiveCellNx9: { row: number; col: number; page?: number } | null =
+        null;
     mandalaActiveCellWeek7x9: { row: number; col: number } | null = null;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
@@ -127,7 +128,11 @@ export class MandalaView extends TextFileView {
         {
             subgridTheme: string;
             activeCell9x9: { row: number; col: number } | null;
-            activeCellNx9: { row: number; col: number } | null;
+            activeCellNx9: {
+                row: number;
+                col: number;
+                page?: number;
+            } | null;
             activeCellWeek7x9: { row: number; col: number } | null;
             weekAnchorDate: string | null;
         }
@@ -290,8 +295,10 @@ export class MandalaView extends TextFileView {
             documentState.sections.id_section[activeNodeId] ?? null;
         const context = resolveNx9Context({
             sectionIdMap: documentState.sections.section_id,
+            documentContent: documentState.document.content,
             rowsPerPage: this.getCurrentNx9RowsPerPage(),
             activeSection,
+            activeCell: this.mandalaActiveCellNx9,
         });
         const targetPage =
             direction === 'prev'
@@ -312,7 +319,11 @@ export class MandalaView extends TextFileView {
         });
         if (!target) return;
 
-        setActiveCellNx9(this, { row: target.row, col: target.col });
+        setActiveCellNx9(this, {
+            row: target.row,
+            col: target.col,
+            page: target.page,
+        });
         const section = context.sectionForCell(
             target.row,
             target.col,

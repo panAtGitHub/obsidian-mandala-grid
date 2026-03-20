@@ -48,6 +48,13 @@ describe('cell-preview-dialog', () => {
                     file: {
                         frontmatter: '',
                     },
+                    document: {
+                        content: {
+                            [activeNode]: {
+                                content: '',
+                            },
+                        },
+                    },
                     sections: {
                         id_section: {
                             [activeNode]: '1',

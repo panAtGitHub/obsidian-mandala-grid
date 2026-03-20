@@ -1,6 +1,7 @@
-import { resolveNx9Context } from 'src/view/helpers/mandala/nx9-context';
+import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
+import type { Content } from 'src/stores/document/document-state-type';
 
 type CustomLayout = {
     id: string;
@@ -13,9 +14,10 @@ export type ResolveCellPreviewNodeIdArgs = {
     activeNodeId: string;
     activeNodeSection: string | null;
     activeCell9x9: { row: number; col: number } | null;
-    activeCellNx9: { row: number; col: number } | null;
+    activeCellNx9: { row: number; col: number; page?: number } | null;
     activeCellWeek7x9: { row: number; col: number } | null;
-    sectionIdMap: Record<string, string>;
+    sectionIdMap: Record<string, string | undefined>;
+    documentContent: Content;
     nx9RowsPerPage: number;
     selectedLayoutId: string;
     customLayouts: CustomLayout[];
@@ -35,6 +37,7 @@ export const resolveCellPreviewNodeId = (
         activeCellNx9,
         activeCellWeek7x9,
         sectionIdMap,
+        documentContent,
         nx9RowsPerPage,
         selectedLayoutId,
         customLayouts,
@@ -63,12 +66,15 @@ export const resolveCellPreviewNodeId = (
     if (mode === 'nx9' && activeCellNx9) {
         const context = resolveNx9Context({
             sectionIdMap,
+            documentContent,
             rowsPerPage: nx9RowsPerPage,
             activeSection: activeNodeSection,
+            activeCell: activeCellNx9,
         });
         const section = context.sectionForCell(
             activeCellNx9.row,
             activeCellNx9.col,
+            activeCellNx9.page,
         );
         const nodeId = section ? sectionIdMap[section] : null;
         return nodeId || activeNodeId || null;

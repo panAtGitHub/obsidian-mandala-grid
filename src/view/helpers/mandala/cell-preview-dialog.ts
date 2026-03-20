@@ -48,6 +48,7 @@ export const toggleCellPreviewDialog = (view: MandalaView) => {
         activeCellNx9: viewState.ui.mandala.activeCellNx9,
         activeCellWeek7x9: viewState.ui.mandala.activeCellWeek7x9,
         sectionIdMap: documentState.sections.section_id,
+        documentContent: documentState.document.content,
         nx9RowsPerPage: view.getCurrentNx9RowsPerPage(settings),
         selectedLayoutId: view.getCurrentMandalaLayoutId(settings),
         customLayouts: settings.view.mandalaGridCustomLayouts ?? [],

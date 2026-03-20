@@ -1,6 +1,7 @@
 import { MandalaView } from 'src/view/view';
+import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
 
-export type ActiveCellNx9 = { row: number; col: number } | null;
+export type ActiveCellNx9 = Nx9ActiveCell | null;
 
 export const setActiveCellNx9 = (view: MandalaView, cell: ActiveCellNx9) => {
     view.mandalaActiveCellNx9 = cell;

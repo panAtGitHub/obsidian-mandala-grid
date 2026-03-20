@@ -11,11 +11,9 @@
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
-    import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
-    import type { RowMatrixBaseCell } from 'src/view/helpers/mandala/nx9-context';
+    import type { WeekPlanBaseCell } from 'src/view/helpers/mandala/week-plan-context';
 
-    export let cells: RowMatrixBaseCell[] = [];
-    export let cellMode: 'week-7x9' | 'nx9' = 'week-7x9';
+    export let cells: WeekPlanBaseCell[] = [];
     export let compactMode = false;
     export let fontVariable = '--mandala-font-7x9';
 
@@ -44,22 +42,11 @@
         (state) => new Set(state.pinnedNodes.Ids),
     );
 
-    $: activeCell =
-        cellMode === 'week-7x9'
-            ? $mandalaUiState.activeCellWeek7x9
-            : $mandalaUiState.activeCellNx9;
+    $: activeCell = $mandalaUiState.activeCellWeek7x9;
 
-    const setActiveCell = (row: number, col: number) => {
-        if (cellMode === 'week-7x9') {
-            setActiveCellWeek7x9(view, { row, col });
-            return;
-        }
-        setActiveCellNx9(view, { row, col });
-    };
-
-    const handleCellClick = (cell: RowMatrixBaseCell) => {
+    const handleCellClick = (cell: WeekPlanBaseCell) => {
         if (!cell.nodeId) return;
-        setActiveCell(cell.row, cell.col);
+        setActiveCellWeek7x9(view, { row: cell.row, col: cell.col });
     };
 
     const getSectionColor = (section: string | null) => {
@@ -84,7 +71,6 @@
                 !!cell.emptyLabel}
             class:is-clickable={!!cell.nodeId}
             class:is-center-column={cell.isCenterColumn}
-            class:is-soft-locked={cell.isSoftLocked && !cell.hasContent}
             class:is-active-cell={activeCell &&
                 activeCell.row === cell.row &&
                 activeCell.col === cell.col}
@@ -109,7 +95,11 @@
                     pinned={$pinnedNodes.has(cell.nodeId)}
                     sectionColor={getSectionColor(cell.section)}
                     draggable={false}
-                    gridCell={{ mode: cellMode, row: cell.row, col: cell.col }}
+                    gridCell={{
+                        mode: 'week-7x9',
+                        row: cell.row,
+                        col: cell.col,
+                    }}
                 />
             {:else if cell.isPlaceholder || cell.emptyLabel}
                 <div class="row-matrix-cell__empty">
@@ -331,32 +321,6 @@
             var(--background-primary) 80%,
             var(--background-modifier-border) 20%
         );
-    }
-
-    .row-matrix-cell.is-soft-locked {
-        border-color: color-mix(
-            in srgb,
-            var(--background-modifier-border) 55%,
-            transparent
-        );
-        background: color-mix(
-            in srgb,
-            var(--background-primary) 92%,
-            var(--background-modifier-border) 8%
-        );
-    }
-
-    .row-matrix-cell.is-soft-locked .row-matrix-cell__empty {
-        color: var(--text-faint);
-        opacity: 0.6;
-    }
-
-    .row-matrix-cell.is-soft-locked :global(.mandala-card) {
-        opacity: 0.58;
-    }
-
-    .row-matrix-cell.is-soft-locked :global(.mandala-card-meta) {
-        opacity: 0.5;
     }
 
     .row-matrix-cell__empty {

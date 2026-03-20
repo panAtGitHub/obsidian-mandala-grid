@@ -60,8 +60,8 @@
     import {
         normalizeNx9VisibleSection,
         resolveNx9Context,
-    } from 'src/view/helpers/mandala/nx9-context';
-    import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
+    } from 'src/view/helpers/mandala/nx9/context';
+    import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 
@@ -495,8 +495,10 @@
             const section = $idToSection[$activeNodeId];
             const nx9Context = resolveNx9Context({
                 sectionIdMap: $documentState.sections.section_id,
+                documentContent: $documentState.document.content,
                 rowsPerPage: $nx9RowsPerPage,
                 activeSection: section,
+                activeCell: view.mandalaActiveCellNx9,
             });
             const visibleSection = normalizeNx9VisibleSection(section);
             const pos = nx9Context.posForSection(section);
@@ -506,13 +508,43 @@
                     setActiveCellNx9(view, null);
                 }
             } else if (!cell && pos) {
-                setActiveCellNx9(view, { row: pos.row, col: pos.col });
+                setActiveCellNx9(view, {
+                    row: pos.row,
+                    col: pos.col,
+                    page: pos.page,
+                });
             } else if (cell) {
-                const mapped = nx9Context.sectionForCell(cell.row, cell.col);
-                if (!mapped || mapped !== visibleSection) {
+                const mapped = nx9Context.sectionForCell(
+                    cell.row,
+                    cell.col,
+                    cell.page,
+                );
+                const isGhostCreateCell = nx9Context.isGhostCreateCell(
+                    cell.row,
+                    cell.col,
+                    cell.page,
+                );
+                if (!mapped && !isGhostCreateCell) {
                     setActiveCellNx9(
                         view,
-                        pos ? { row: pos.row, col: pos.col } : null,
+                        pos
+                            ? {
+                                  row: pos.row,
+                                  col: pos.col,
+                                  page: pos.page,
+                              }
+                            : null,
+                    );
+                } else if (mapped && mapped !== visibleSection) {
+                    setActiveCellNx9(
+                        view,
+                        pos
+                            ? {
+                                  row: pos.row,
+                                  col: pos.col,
+                                  page: pos.page,
+                              }
+                            : null,
                     );
                 }
             }

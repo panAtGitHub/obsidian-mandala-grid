@@ -1,10 +1,10 @@
-import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
+import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,
     resolveNx9CurrentCell,
-} from 'src/view/helpers/mandala/nx9-context';
-import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
+} from 'src/view/helpers/mandala/nx9/context';
+import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
@@ -26,8 +26,10 @@ export const tryMandalaNx9Navigation = (
     const activeSection = docState.sections.id_section[activeNodeId] ?? null;
     const context = resolveNx9Context({
         sectionIdMap: docState.sections.section_id,
+        documentContent: docState.document.content,
         rowsPerPage: view.getCurrentNx9RowsPerPage(),
         activeSection,
+        activeCell: view.mandalaActiveCellNx9,
     });
     const current = resolveNx9CurrentCell({
         activeCell: view.mandalaActiveCellNx9,
@@ -40,7 +42,7 @@ export const tryMandalaNx9Navigation = (
     }
 
     const { dr, dc } = deltas[direction];
-    let nextPage = context.currentPage;
+    let nextPage = current.page;
     let nextRow = current.row + dr;
     const nextCol = current.col + dc;
 
@@ -56,8 +58,12 @@ export const tryMandalaNx9Navigation = (
         nextRow = 0;
     }
 
+    if (!context.isSelectableCell(nextRow, nextCol, nextPage)) {
+        return true;
+    }
+
     const nextSection = context.sectionForCell(nextRow, nextCol, nextPage);
-    setActiveCellNx9(view, { row: nextRow, col: nextCol });
+    setActiveCellNx9(view, { row: nextRow, col: nextCol, page: nextPage });
     if (!nextSection) return true;
 
     const nextNodeId = docState.sections.section_id[nextSection];

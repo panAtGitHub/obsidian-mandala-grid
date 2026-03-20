@@ -2,7 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
-import { tryMandalaNx9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-nx9-navigation';
+import { tryMandalaNx9Navigation } from 'src/view/helpers/mandala/nx9/navigation';
 import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
 import { tryMandalaWeek7x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-week-7x9-navigation';
 

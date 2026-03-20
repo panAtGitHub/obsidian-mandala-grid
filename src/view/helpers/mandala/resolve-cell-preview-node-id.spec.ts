@@ -30,6 +30,7 @@ describe('resolve-cell-preview-node-id', () => {
                 activeCellNx9: null,
                 activeCellWeek7x9: null,
                 sectionIdMap: {},
+                documentContent: {},
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
                 customLayouts: [],
@@ -52,6 +53,7 @@ describe('resolve-cell-preview-node-id', () => {
                 sectionIdMap: {
                     '2.1.1': 'cell-node',
                 },
+                documentContent: {},
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
                 customLayouts: [],
@@ -70,6 +72,7 @@ describe('resolve-cell-preview-node-id', () => {
                 activeCellNx9: null,
                 activeCellWeek7x9: null,
                 sectionIdMap: {},
+                documentContent: {},
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
                 customLayouts: [],
@@ -93,6 +96,10 @@ describe('resolve-cell-preview-node-id', () => {
                     '4': 'core-node',
                     '4.3': 'nx9-cell-node',
                 },
+                documentContent: {
+                    'core-node': { content: 'filled' },
+                    'nx9-cell-node': { content: 'filled' },
+                },
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
                 customLayouts: [],
@@ -112,6 +119,9 @@ describe('resolve-cell-preview-node-id', () => {
                 activeCellWeek7x9: null,
                 sectionIdMap: {
                     '4': 'core-node',
+                },
+                documentContent: {
+                    'core-node': { content: 'filled' },
                 },
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
@@ -135,6 +145,7 @@ describe('resolve-cell-preview-node-id', () => {
                 sectionIdMap: {
                     '75.4': 'week-cell-node',
                 },
+                documentContent: {},
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
                 customLayouts: [],
@@ -153,6 +164,7 @@ describe('resolve-cell-preview-node-id', () => {
                 activeCellNx9: null,
                 activeCellWeek7x9: { row: 6, col: 0 },
                 sectionIdMap: {},
+                documentContent: {},
                 nx9RowsPerPage: 3,
                 selectedLayoutId: 'builtin:left-to-right',
                 customLayouts: [],

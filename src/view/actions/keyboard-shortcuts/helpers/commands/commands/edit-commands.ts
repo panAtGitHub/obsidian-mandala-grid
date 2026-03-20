@@ -5,7 +5,7 @@ import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
 import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
-import { resolveNx9Context } from 'src/view/helpers/mandala/nx9-context';
+import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 import { toggleCellPreviewDialog } from 'src/view/helpers/mandala/cell-preview-dialog';
 
@@ -104,15 +104,19 @@ export const editCommands = () => {
                     const context = resolveNx9Context({
                         sectionIdMap:
                             view.documentStore.getValue().sections.section_id,
+                        documentContent:
+                            view.documentStore.getValue().document.content,
                         rowsPerPage: view.getCurrentNx9RowsPerPage(),
                         activeSection:
                             view.documentStore.getValue().sections.id_section[
                                 nodeId
                             ] ?? null,
+                        activeCell: view.mandalaActiveCellNx9,
                     });
                     const section = context.sectionForCell(
                         view.mandalaActiveCellNx9.row,
                         view.mandalaActiveCellNx9.col,
+                        view.mandalaActiveCellNx9.page,
                     );
                     if (section) {
                         const existing =

@@ -22,7 +22,7 @@
         shouldBlockMandalaNodeDoubleClickForSwap,
     } from 'src/view/helpers/mandala/mandala-swap';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
-    import { setActiveCellNx9 } from 'src/view/helpers/mandala/set-active-cell-nx9';
+    import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
     import { isPreviewDialogEditingNode } from 'src/view/helpers/mandala/is-preview-dialog-editing-node';
@@ -54,6 +54,7 @@
         mode: '9x9' | 'nx9' | 'week-7x9';
         row: number;
         col: number;
+        page?: number;
     } | null = null;
 
     const view = getView();
@@ -131,6 +132,7 @@
                 setActiveCellNx9(view, {
                     row: gridCell.row,
                     col: gridCell.col,
+                    page: gridCell.page,
                 });
             } else {
                 setActiveCell9x9(view, {

@@ -17,7 +17,7 @@
     } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/view/components/container/context';
     import Button from 'src/view/components/container/shared/button.svelte';
-    import { resolveNx9Context } from 'src/view/helpers/mandala/nx9-context';
+    import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 
     const view = getView();
     const mode = MandalaModeStore(view);
@@ -32,6 +32,7 @@
         view.viewStore,
         (state) => state.ui.mandala.weekAnchorDate,
     );
+    const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
 
     $: canUseWeekPlanMode = view.canUseWeekPlanMode(
         $documentState.file.frontmatter,
@@ -41,8 +42,10 @@
         $documentState.sections.id_section[$activeNodeId] ?? null;
     $: nx9Context = resolveNx9Context({
         sectionIdMap: $documentState.sections.section_id,
+        documentContent: $documentState.document.content,
         rowsPerPage: $nx9RowsPerPage,
         activeSection,
+        activeCell: $mandalaUiState.activeCellNx9,
     });
 
     const toggleMandalaMode = () => {

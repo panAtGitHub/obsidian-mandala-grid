@@ -14,6 +14,7 @@ import { LeftSidebarTab } from 'src/stores/settings/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { MandalaMode } from 'src/stores/settings/settings-type';
+import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
 
 export type MandalaActions =
     | {
@@ -41,7 +42,7 @@ export type MandalaActions =
       }
     | {
           type: 'view/mandala/nx9-active-cell/set';
-          payload: { cell: { row: number; col: number } | null };
+          payload: { cell: Nx9ActiveCell | null };
       }
     | {
           type: 'view/mandala/week-anchor-date/set';

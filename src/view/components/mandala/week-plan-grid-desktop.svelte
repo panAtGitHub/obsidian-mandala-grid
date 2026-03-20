@@ -22,7 +22,6 @@
 
 <RowMatrixGridDesktop
     {cells}
-    cellMode="week-7x9"
     compactMode={$weekPlanCompactMode}
     fontVariable="--mandala-font-7x9"
 />
