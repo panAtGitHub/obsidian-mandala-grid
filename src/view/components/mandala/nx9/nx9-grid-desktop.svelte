@@ -139,6 +139,7 @@
         {:else if rowModel.kind === 'ghost-next-core-row'}
             <div
                 class="nx9-cell mandala-cell nx9-cell--future-row nx9-cell--future-row-active"
+                class:nx9-cell--future-row-with-hint={true}
                 class:is-top-edge={row === 0}
                 class:is-bottom-edge={row === rowCount - 1}
                 class:is-left-edge={true}
@@ -147,14 +148,16 @@
                 style={`grid-row: ${row + 1}; grid-column: 1 / 10;`}
                 on:click={() => selectGhostCreateCell(row)}
             >
-                <div class="nx9-cell__future-surface">
-                    <Nx9NextCoreCell
-                        nextCoreSection={rowModel.nextCoreSection}
-                        tone="accent"
-                    />
-                </div>
-                <div class="nx9-cell__future-hint">
-                    仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。
+                <div class="nx9-cell__future-stack">
+                    <div class="nx9-cell__future-surface">
+                        <Nx9NextCoreCell
+                            nextCoreSection={rowModel.nextCoreSection}
+                            tone="accent"
+                        />
+                    </div>
+                    <div class="nx9-cell__future-hint">
+                        仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。
+                    </div>
                 </div>
             </div>
         {:else}
@@ -279,9 +282,12 @@
             var(--background-primary) 93%,
             var(--background-modifier-border) 7%
         );
-        gap: 16px;
         align-items: center;
         justify-content: center;
+    }
+
+    .nx9-cell--future-row-with-hint {
+        justify-content: stretch;
     }
 
     .nx9-cell--future-row-muted {
@@ -292,12 +298,24 @@
         );
     }
 
+    .nx9-cell__future-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 18px 24px 14px;
+        gap: 14px;
+        box-sizing: border-box;
+    }
+
     .nx9-cell__future-surface {
         display: flex;
         align-items: center;
         justify-content: center;
         width: min(58%, 980px);
-        height: 62%;
+        height: min(62%, 160px);
         min-height: 84px;
         border-radius: 999px;
         background: color-mix(
@@ -322,6 +340,7 @@
         line-height: 1.45;
         color: var(--text-muted);
         user-select: none;
+        flex: 0 0 auto;
     }
 
     .nx9-cell.is-active-cell,
