@@ -13,6 +13,7 @@
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
+    import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
 
     export let cells: WeekPlanBaseCell[] = [];
     export let compactMode = false;
@@ -80,30 +81,33 @@
             on:click|capture={() => handleCellClick(cell)}
         >
             {#if cell.nodeId}
-                <MandalaCard
-                    nodeId={cell.nodeId}
-                    section={cell.section ?? ''}
-                    active={cell.nodeId === $activeNodeId}
-                    preserveActiveBackground={activeCell
-                        ? $whiteThemeMode
-                        : true}
-                    sectionIndicatorVariant={!$whiteThemeMode
-                        ? 'section-capsule'
-                        : 'plain-with-pin'}
-                    editing={$editingState.activeNodeId === cell.nodeId &&
+                {@const cardViewModel = buildMandalaCardViewModel({
+                    nodeId: cell.nodeId,
+                    section: cell.section ?? '',
+                    active: cell.nodeId === $activeNodeId,
+                    editing:
+                        $editingState.activeNodeId === cell.nodeId &&
                         !$editingState.isInSidebar &&
-                        !$showDetailSidebar}
-                    selected={$selectedNodes.has(cell.nodeId)}
-                    pinned={cell.section
+                        !$showDetailSidebar,
+                    selected: $selectedNodes.has(cell.nodeId),
+                    pinned: cell.section
                         ? $pinnedSections.has(cell.section)
-                        : false}
-                    sectionColor={getSectionColor(cell.section)}
-                    gridCell={{
+                        : false,
+                    style: undefined,
+                    sectionColor: getSectionColor(cell.section),
+                    preserveActiveBackground: activeCell
+                        ? $whiteThemeMode
+                        : true,
+                    sectionIndicatorVariant: !$whiteThemeMode
+                        ? 'section-capsule'
+                        : 'plain-with-pin',
+                    gridCell: {
                         mode: 'week-7x9',
                         row: cell.row,
                         col: cell.col,
-                    }}
-                />
+                    },
+                })}
+                <MandalaCard {...cardViewModel} />
             {:else if cell.isPlaceholder || cell.emptyLabel}
                 <div class="row-matrix-cell__empty">
                     {cell.emptyLabel ?? ''}

@@ -12,6 +12,7 @@
         MandalaSectionColorOpacityStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
+    import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
 
     const view = getView();
 
@@ -74,21 +75,22 @@
             {@const nodeId = section ? $sectionToNodeId[section] : null}
 
             {#if section && nodeId}
-                {@const active = nodeId === $activeNodeId}
-                {@const editing =
-                    $editingState.activeNodeId === nodeId &&
-                    !$editingState.isInSidebar}
-                {@const sectionColor = getSectionColor(section)}
-                <MandalaCard
-                    {nodeId}
-                    {section}
-                    {active}
-                    {editing}
-                    selected={$selectedNodes.has(nodeId)}
-                    pinned={$pinnedSections.has(section)}
-                    {sectionColor}
-                    gridCell={{ mode: '9x9', row, col }}
-                />
+                {@const cardViewModel = buildMandalaCardViewModel({
+                    nodeId,
+                    section,
+                    active: nodeId === $activeNodeId,
+                    editing:
+                        $editingState.activeNodeId === nodeId &&
+                        !$editingState.isInSidebar,
+                    selected: $selectedNodes.has(nodeId),
+                    pinned: $pinnedSections.has(section),
+                    style: undefined,
+                    sectionColor: getSectionColor(section),
+                    preserveActiveBackground: false,
+                    sectionIndicatorVariant: 'plain',
+                    gridCell: { mode: '9x9', row, col },
+                })}
+                <MandalaCard {...cardViewModel} />
             {:else if section}
                 <div class="mandala-placeholder">
                     <div class="mandala-section-label">{section}</div>

@@ -14,6 +14,7 @@
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+    import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
 
     export let context: Nx9Context;
 
@@ -112,27 +113,30 @@
                     on:click|capture={() => selectRealCell(row, col, nodeId)}
                 >
                     {#if nodeId}
-                        <MandalaCard
-                            {nodeId}
-                            {section}
-                            active={nodeId === $activeNodeId}
-                            preserveActiveBackground={$whiteThemeMode}
-                            sectionIndicatorVariant={!$whiteThemeMode
-                                ? 'section-capsule'
-                                : 'plain-with-pin'}
-                            editing={$editingState.activeNodeId === nodeId &&
+                        {@const cardViewModel = buildMandalaCardViewModel({
+                            nodeId,
+                            section,
+                            active: nodeId === $activeNodeId,
+                            editing:
+                                $editingState.activeNodeId === nodeId &&
                                 !$editingState.isInSidebar &&
-                                !$showDetailSidebar}
-                            selected={$selectedNodes.has(nodeId)}
-                            pinned={$pinnedSections.has(section)}
-                            sectionColor={getSectionColor(section)}
-                            gridCell={{
+                                !$showDetailSidebar,
+                            selected: $selectedNodes.has(nodeId),
+                            pinned: $pinnedSections.has(section),
+                            style: undefined,
+                            sectionColor: getSectionColor(section),
+                            preserveActiveBackground: $whiteThemeMode,
+                            sectionIndicatorVariant: !$whiteThemeMode
+                                ? 'section-capsule'
+                                : 'plain-with-pin',
+                            gridCell: {
                                 mode: 'nx9',
                                 row,
                                 col,
                                 page: context.currentPage,
-                            }}
-                        />
+                            },
+                        })}
+                        <MandalaCard {...cardViewModel} />
                     {:else}
                         <div class="nx9-cell__empty">{section}</div>
                     {/if}

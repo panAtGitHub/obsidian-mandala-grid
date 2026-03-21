@@ -26,6 +26,7 @@
     } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/views/shared/shell/context';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
+    import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
         getMandalaLayoutById,
@@ -747,26 +748,35 @@
                                 }}
                             >
                                 {#if cell.nodeId}
-                                    <MandalaCard
-                                        nodeId={cell.nodeId}
-                                        section={cell.section}
-                                        active={cell.nodeId === $activeNodeId}
-                                        preserveActiveBackground={$whiteThemeMode}
-                                        sectionIndicatorVariant={!$whiteThemeMode
-                                            ? 'section-capsule'
-                                            : 'plain-with-pin'}
-                                        editing={$editingState.activeNodeId ===
-                                            cell.nodeId &&
-                                            !$editingState.isInSidebar &&
-                                            !$showDetailSidebar}
-                                        selected={$selectedNodes.has(
-                                            cell.nodeId,
-                                        )}
-                                        pinned={$pinnedSections.has(
-                                            cell.section,
-                                        )}
-                                        sectionColor={sectionBackground}
-                                    />
+                                    {@const cardViewModel =
+                                        buildMandalaCardViewModel({
+                                            nodeId: cell.nodeId,
+                                            section: cell.section,
+                                            active:
+                                                cell.nodeId === $activeNodeId,
+                                            editing:
+                                                $editingState.activeNodeId ===
+                                                    cell.nodeId &&
+                                                !$editingState.isInSidebar &&
+                                                !$showDetailSidebar,
+                                            selected: $selectedNodes.has(
+                                                cell.nodeId,
+                                            ),
+                                            pinned: $pinnedSections.has(
+                                                cell.section,
+                                            ),
+                                            style: undefined,
+                                            sectionColor:
+                                                sectionBackground,
+                                            preserveActiveBackground:
+                                                $whiteThemeMode,
+                                            sectionIndicatorVariant:
+                                                !$whiteThemeMode
+                                                    ? 'section-capsule'
+                                                    : 'plain-with-pin',
+                                            gridCell: null,
+                                        })}
+                                    <MandalaCard {...cardViewModel} />
                                     {#if !Platform.isMobile && $show3x3SubgridNavButtons && !$hasOpenOverlayModal}
                                         <div
                                             class="mandala-subgrid-controls"
