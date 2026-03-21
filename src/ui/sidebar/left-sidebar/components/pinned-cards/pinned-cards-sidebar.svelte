@@ -2,7 +2,7 @@
     import { derived } from 'svelte/store';
     import { PinnedNodesStore } from 'src/stores/cell/document-derived-stores';
     import { getView } from 'src/views/shared/shell/context';
-    import { ActivePinnedCardStore } from 'src/stores/view/derived/pinned-cards-sidebar';
+    import { ActivePinnedCardStore } from 'src/stores/ui/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
     import { scrollActivePinnedNode } from 'src/ui/sidebar/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
     import { navigateToSearchResult } from 'src/helpers/views/mandala/search-utils';

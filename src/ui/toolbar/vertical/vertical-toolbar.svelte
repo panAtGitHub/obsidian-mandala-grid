@@ -4,7 +4,7 @@
     import { MoreVertical, Wrench } from 'lucide-svelte';
     import { getView } from 'src/views/shared/shell/context';
     import { derived, writable } from 'svelte/store';
-    import { uiControlsStore } from 'src/stores/view/derived/ui-controls-store';
+    import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
     import Button from 'src/ui/shared/button.svelte';
     import {
         ScrollSettingsStore,

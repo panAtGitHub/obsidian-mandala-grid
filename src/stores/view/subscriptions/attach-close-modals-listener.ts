@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { uiControlsStore } from 'src/stores/view/derived/ui-controls-store';
+import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
 
 export const attachCloseModalsListener = (view: MandalaView) => {
     const listener = (e: MouseEvent) => {

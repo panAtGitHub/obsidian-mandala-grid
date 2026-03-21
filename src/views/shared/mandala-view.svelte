@@ -43,7 +43,7 @@
     import { searchStore } from 'src/stores/view/derived/search-store';
     import MobileFullScreenSearch from 'src/ui/modals/mobile-fullscreen-search.svelte';
     import MobileNativeEditorSheet from 'src/ui/modals/mobile-native-editor-sheet.svelte';
-    import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
+    import { mobilePopupFontSizeStore } from 'src/stores/ui/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';

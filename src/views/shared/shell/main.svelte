@@ -1,7 +1,7 @@
 <script lang="ts">
     import { setContext } from 'svelte';
     import MandalaGrid from 'src/main';
-    import { uiControlsStore } from 'src/stores/view/derived/ui-controls-store';
+    import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
     import { showContextMenu } from 'src/view/actions/context-menu/show-context-menu';
     import { viewHotkeysAction } from 'src/view/actions/keyboard-shortcuts/view-hotkeys-action';
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
