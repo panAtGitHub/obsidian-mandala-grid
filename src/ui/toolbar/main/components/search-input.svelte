@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from '../../context';
+    import { getView } from 'src/view/components/container/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
     import { Text } from 'lucide-svelte';
     import { lang } from 'src/lang/lang';

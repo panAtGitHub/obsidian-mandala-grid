@@ -1,24 +1,24 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
-    import { lang } from '../../../../lang/lang';
+    import { lang } from 'src/lang/lang';
     import { MoreVertical, Wrench } from 'lucide-svelte';
-    import { getView } from '../context';
+    import { getView } from 'src/view/components/container/context';
     import { derived, writable } from 'svelte/store';
-    import { uiControlsStore } from '../../../../stores/view/derived/ui-controls-store';
-    import Button from '../shared/button.svelte';
+    import { uiControlsStore } from 'src/stores/view/derived/ui-controls-store';
+    import Button from 'src/ui/shared/button.svelte';
     import {
         ScrollSettingsStore,
-    } from '../../../../stores/settings/derived/scrolling-store';
+    } from 'src/stores/settings/derived/scrolling-store';
     import {
         ApplyGapBetweenCardsStore,
         MandalaModeStore,
         ShowHiddenCardInfoStore,
         ShowMandalaDetailSidebarStore,
-    } from '../../../../stores/settings/derived/view-settings-store';
+    } from 'src/stores/settings/derived/view-settings-store';
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
     import ViewOptionsMenu from './view-options-menu.svelte';
-    import IconRenderer from '../shared/icon-renderer.svelte';
+    import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
 
     const view = getView();
 

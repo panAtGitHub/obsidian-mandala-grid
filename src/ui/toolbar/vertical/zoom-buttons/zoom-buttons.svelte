@@ -6,10 +6,10 @@
     import { maxZoomLevel, minZoomLevel } from '../../../../../stores/settings/reducers/change-zoom-level';
     import { ZoomButtonsList } from './zoom-buttons-list';
     import { KeyboardStore } from '../../../../../stores/view/derived/keyboard-store';
-    import { getView } from '../../context';
+    import { getView } from 'src/view/components/container/context';
     import { RotateCcw, RotateCw } from 'lucide-svelte';
-    import Button from '../../shared/button.svelte';
-    import IconRenderer from '../../shared/icon-renderer.svelte';
+    import Button from 'src/ui/shared/button.svelte';
+    import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
 
     const view = getView();
     const keyboardStore = KeyboardStore(view);

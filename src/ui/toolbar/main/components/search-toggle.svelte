@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Search } from 'lucide-svelte';
-    import { getView } from '../../context';
+    import { getView } from 'src/view/components/container/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
-    import Button from '../../shared/button.svelte';
+    import Button from 'src/ui/shared/button.svelte';
     import { lang } from 'src/lang/lang';
 
     const view = getView();

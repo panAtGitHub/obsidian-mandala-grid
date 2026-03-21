@@ -1,8 +1,8 @@
 <script lang="ts">
     import { derived } from 'svelte/store';
     import { PinnedNodesStore } from 'src/stores/cell/document-derived-stores';
-    import { getView } from '../../../context';
-    import { ActivePinnedCardStore } from '../../../../../../stores/view/derived/pinned-cards-sidebar';
+    import { getView } from 'src/view/components/container/context';
+    import { ActivePinnedCardStore } from 'src/stores/view/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
     import { scrollActivePinnedNode } from 'src/ui/sidebar/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
     import { navigateToSearchResult } from 'src/view/helpers/mandala/search-utils';

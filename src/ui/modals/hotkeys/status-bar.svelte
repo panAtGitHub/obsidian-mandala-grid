@@ -1,11 +1,11 @@
 <script lang="ts">
     import { Settings } from 'lucide-svelte';
     import { Menu } from 'obsidian';
-    import { lang } from '../../../../../lang/lang';
-    import { getView } from '../../context';
+    import { lang } from 'src/lang/lang';
+    import { getView } from 'src/view/components/container/context';
     import {
         AltPrimaryModifier
-    } from '../../../../actions/keyboard-shortcuts/helpers/commands/presets/alt-primary-modifier';
+    } from 'src/view/actions/keyboard-shortcuts/helpers/commands/presets/alt-primary-modifier';
 
     export let conflicts: number;
     const view = getView();

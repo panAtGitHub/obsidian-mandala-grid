@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Button from '../../shared/button.svelte';
+    import Button from 'src/ui/shared/button.svelte';
     import { PanelLeftDashed } from 'lucide-svelte';
     import { getView } from 'src/view/components/container/context';
     import { ShowLeftSidebarStore } from 'src/stores/settings/derived/view-settings-store';

@@ -3,15 +3,15 @@
     import { RotateCcw, X } from 'lucide-svelte';
 
     import { CommandName } from '../../../../../../../lang/hotkey-groups';
-    import { Modifiers } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/update-view-hotkeys-dictionary';
+    import { Modifiers } from 'src/view/actions/keyboard-shortcuts/helpers/commands/update-view-hotkeys-dictionary';
     import {
         isMacLike,
         modKey,
-    } from '../../../../../../actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
-    import { normalizeHotkeyKey } from '../../../../../../actions/keyboard-shortcuts/helpers/keyboard-events/normalize-hotkey-key';
-    import { focusContainer } from '../../../../../../../stores/view/subscriptions/effects/focus-container';
-    import { getView } from '../../../../context';
-    import { lang } from '../../../../../../../lang/lang';
+    } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
+    import { normalizeHotkeyKey } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/normalize-hotkey-key';
+    import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
+    import { getView } from 'src/view/components/container/context';
+    import { lang } from 'src/lang/lang';
     import EditEditorState from './editor-state/edit-editor-state.svelte';
     import { StatefulViewHotkey } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 

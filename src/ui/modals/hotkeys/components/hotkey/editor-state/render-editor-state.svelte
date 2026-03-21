@@ -3,7 +3,7 @@
         HotkeyEditorState,
         ViewHotkey
     } from '../../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-    import { lang } from '../../../../../../../../lang/lang';
+    import { lang } from 'src/lang/lang';
 
     export let hotkey: ViewHotkey;
     export let onClick: (() => void) | undefined = undefined;

@@ -5,9 +5,9 @@
 
     import { CommandName } from '../../../../../../../lang/hotkey-groups';
     import { writable } from 'svelte/store';
-    import { getView } from '../../../../context';
+    import { getView } from 'src/view/components/container/context';
     import { onMount } from 'svelte';
-    import { focusContainer } from '../../../../../../../stores/view/subscriptions/effects/focus-container';
+    import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
         StatefulViewHotkey
     } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';

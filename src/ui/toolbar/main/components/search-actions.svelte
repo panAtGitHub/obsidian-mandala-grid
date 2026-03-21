@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Copy } from 'lucide-svelte';
-    import Button from '../../shared/button.svelte';
+    import Button from 'src/ui/shared/button.svelte';
     import { Menu } from 'obsidian';
     import { getView } from 'src/view/components/container/context';
     import {

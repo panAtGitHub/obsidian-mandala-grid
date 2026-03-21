@@ -9,7 +9,7 @@
     import { writable, derived } from 'svelte/store';
     import { Menu } from 'lucide-svelte';
     import { Platform } from 'obsidian';
-    import Button from '../shared/button.svelte';
+    import Button from 'src/ui/shared/button.svelte';
     import { lang } from 'src/lang/lang';
     
     // Mandala 搜索相关导入

@@ -2,8 +2,8 @@
     import Group from './group.svelte';
     import Front from './front.svelte';
     import NumberOfConflicts from './status-bar.svelte';
-    import { FilteredHotkeysStore } from '../../../../../stores/settings/derived/view-hotkeys-store';
-    import { getView } from '../../context';
+    import { FilteredHotkeysStore } from 'src/stores/settings/derived/view-hotkeys-store';
+    import { getView } from 'src/view/components/container/context';
 
     import { X, Check } from 'lucide-svelte';
     import { Platform } from 'obsidian';

@@ -2,7 +2,7 @@
     import { Pen, Trash } from 'lucide-svelte';
     import {
         modKeyDictionary
-    } from '../../../../../../actions/keyboard-shortcuts/helpers/keyboard-events/mod-key-dictionary';
+    } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key-dictionary';
     import { ViewHotkey } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import EditorState from './editor-state/render-editor-state.svelte';
 
