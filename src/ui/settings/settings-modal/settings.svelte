@@ -1,7 +1,7 @@
 <script lang="ts">
     import { renderSettings, SettingsTab } from '../../../../actions/settings/render-settings';
     import VerticalTabHeader from './vertical-tab-header.svelte';
-    import { ActiveSettingsTabStore } from 'src/view/components/container/modals/settings/active-settings-tab-store';
+    import { ActiveSettingsTabStore } from 'src/ui/settings/settings-modal/active-settings-tab-store';
     import { X, Check } from 'lucide-svelte';
     import { getView } from '../../context';
     import { Platform } from 'obsidian';

@@ -11,7 +11,7 @@ import {
     ScanSearch,
 } from 'lucide-svelte';
 import { CustomIcon } from 'src/helpers/load-custom-icons';
-import { VerticalToolbarActions } from 'src/view/components/container/toolbar-vertical/vertical-toolbar-actions';
+import { VerticalToolbarActions } from 'src/ui/toolbar/vertical/vertical-toolbar-actions';
 
 export type ToolbarButtonsGroup = {
     id: string;

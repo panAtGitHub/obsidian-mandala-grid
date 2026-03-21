@@ -2,8 +2,8 @@ import { get } from 'svelte/store';
 import { zoomLevelStore } from 'src/stores/view/derived/zoom-level-store';
 import { Menu, MenuItem } from 'obsidian';
 import { MandalaView } from 'src/view/view';
-import { fitDocumentHeightIntoView } from 'src/view/components/container/toolbar-vertical/helpers/fit-document-height-into-view';
-import { fitBranchIntoView } from 'src/view/components/container/toolbar-vertical/helpers/fit-branch-into-view';
+import { fitDocumentHeightIntoView } from 'src/ui/toolbar/vertical/helpers/fit-document-height-into-view';
+import { fitBranchIntoView } from 'src/ui/toolbar/vertical/helpers/fit-branch-into-view';
 
 type State = {
     menuHeight: number;

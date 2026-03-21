@@ -14,7 +14,7 @@ import {
 import { groupArrayByProperty } from 'src/helpers/array-helpers/group-array-by-property';
 import { lang } from 'src/lang/lang';
 import MandalaGrid from 'src/main';
-import { getDynamicLabel } from 'src/view/components/container/modals/hotkeys/components/helpers/get-dynamic-label';
+import { getDynamicLabel } from 'src/ui/modals/hotkeys/components/helpers/get-dynamic-label';
 
 export const CustomHotkeysStore = (plugin: MandalaGrid) =>
     derived(plugin.settings, (state) => state.hotkeys.customHotkeys);

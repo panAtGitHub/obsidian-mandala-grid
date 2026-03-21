@@ -35,9 +35,9 @@
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
     import MandalaOverviewSimple from 'src/views/view-9x9/mandala-overview-simple.svelte';
     import { flip } from 'svelte/animate';
-    import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
-    import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
-    import ToolbarCenter from 'src/view/components/container/toolbar/toolbar-center.svelte';
+    import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
+    import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
+    import ToolbarCenter from 'src/ui/toolbar/main/toolbar-center.svelte';
     import MandalaDetailSidebar from 'src/ui/sidebar/mandala-detail-sidebar.svelte';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
     import { searchStore } from 'src/stores/view/derived/search-store';

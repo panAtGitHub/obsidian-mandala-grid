@@ -5,7 +5,7 @@
     } from '../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import {
         getDynamicLabel,
-    } from 'src/view/components/container/modals/hotkeys/components/helpers/get-dynamic-label';
+    } from 'src/ui/modals/hotkeys/components/helpers/get-dynamic-label';
 
     export let commandHotkeys: StatefulViewCommand;
 </script>

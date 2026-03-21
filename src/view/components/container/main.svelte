@@ -7,8 +7,8 @@
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
     import MandalaViewComponent from 'src/views/shared/mandala-view.svelte';
     import CellPreviewDialog from 'src/ui/modals/cell-preview-dialog.svelte';
-    import HotkeysModal from 'src/view/components/container/modals/hotkeys/hotkeys.svelte';
-    import SettingsModal from 'src/view/components/container/modals/settings/settings.svelte';
+    import HotkeysModal from 'src/ui/modals/hotkeys/hotkeys.svelte';
+    import SettingsModal from 'src/ui/settings/settings-modal/settings.svelte';
     import { MandalaView } from 'src/view/view';
     import { localFontStore } from 'src/stores/local-font-store';
     import {
@@ -24,7 +24,7 @@
         ShowLeftSidebarStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import LeftSidebar from 'src/view/components/container/left-sidebar/left-sidebar.svelte';
+    import LeftSidebar from 'src/ui/sidebar/left-sidebar/left-sidebar.svelte';
     import { Platform } from 'obsidian';
 
     export let plugin: MandalaGrid;

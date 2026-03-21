@@ -9,7 +9,7 @@ import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
-import { openExportModeModalForView } from 'src/view/components/container/toolbar-vertical/export-mode-modal-store';
+import { openExportModeModalForView } from 'src/ui/toolbar/vertical/export-mode-modal-store';
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 

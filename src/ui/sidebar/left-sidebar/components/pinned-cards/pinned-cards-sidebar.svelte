@@ -4,7 +4,7 @@
     import { getView } from '../../../context';
     import { ActivePinnedCardStore } from '../../../../../../stores/view/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
-    import { scrollActivePinnedNode } from 'src/view/components/container/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
+    import { scrollActivePinnedNode } from 'src/ui/sidebar/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
     import { navigateToSearchResult } from 'src/view/helpers/mandala/search-utils';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { CurrentFileSectionColorMapStore } from 'src/stores/document/derived/section-colors-store';

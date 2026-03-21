@@ -4,9 +4,9 @@
 
     import { getView } from 'src/view/components/container/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
-    import SearchInput from 'src/view/components/container/toolbar/components/search-input.svelte';
-    import SearchNavigationButtons from 'src/view/components/container/toolbar/components/search/search-navigation-buttons.svelte';
-    import SearchActions from 'src/view/components/container/toolbar/components/search-actions.svelte';
+    import SearchInput from 'src/ui/toolbar/main/components/search-input.svelte';
+    import SearchNavigationButtons from 'src/ui/toolbar/main/components/search/search-navigation-buttons.svelte';
+    import SearchActions from 'src/ui/toolbar/main/components/search-actions.svelte';
 
     import type { MandalaSearchResult } from 'src/view/helpers/mandala/search-utils';
     import {
