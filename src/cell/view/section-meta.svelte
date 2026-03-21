@@ -16,6 +16,9 @@
     class={clx(
         className,
         'mandala-card-meta',
+        showColorDot && !showBackground
+            ? 'mandala-card-meta--capsule-wrap'
+            : undefined,
         showBackground
             ? 'mandala-card-meta--with-bg'
             : 'mandala-card-meta--without-bg',
@@ -25,12 +28,6 @@
     )}
     style={style}
 >
-    {#if showColorDot}
-        <span
-            class="mandala-card-meta__color-capsule"
-            aria-hidden="true"
-        ></span>
-    {/if}
     {#if showPin}
         <span class="mandala-card-meta__pin" aria-hidden="true">
             <Pin size={10} strokeWidth={2.2} />
@@ -61,17 +58,25 @@
         color: var(--text-muted);
     }
 
-    .mandala-card-meta--without-bg {
-        opacity: 0.7;
+    .mandala-card-meta--capsule-wrap {
+        min-height: 18px;
+        padding: 1px 8px;
+        border-radius: 999px;
+        background: color-mix(
+            in srgb,
+            var(--mandala-card-meta-accent, currentColor) 22%,
+            transparent
+        );
+        color: color-mix(
+            in srgb,
+            var(--mandala-card-meta-accent, currentColor) 75%,
+            var(--text-normal) 25%
+        );
+        opacity: 1;
     }
 
-    .mandala-card-meta__color-capsule {
-        width: 10px;
-        height: 14px;
-        border-radius: 999px;
-        background: var(--mandala-card-meta-accent, currentColor);
-        flex: 0 0 auto;
-        opacity: 0.9;
+    .mandala-card-meta--without-bg {
+        opacity: 0.7;
     }
 
     .mandala-card-meta__pin {
