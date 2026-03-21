@@ -1,6 +1,6 @@
 import { Modal } from 'obsidian';
 import MandalaGrid from 'src/main';
-import Content from 'src/view/modals/vertical-toolbar-buttons/components/vertical-toolbar-icons-selection-modal.svelte';
+import Content from 'src/ui/toolbar/vertical/config/components/vertical-toolbar-icons-selection-modal.svelte';
 import { lang } from 'src/lang/lang';
 
 export type ModalProps = {

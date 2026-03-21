@@ -2,7 +2,7 @@
     import { zoomLevelStore } from '../../../../../stores/view/derived/zoom-level-store';
     import { derived, get, writable } from 'svelte/store';
     import { createZoomMenu } from '../helpers/create-zoom-menu';
-    import { ToolbarButton } from '../../../../modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
+    import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
     import { maxZoomLevel, minZoomLevel } from '../../../../../stores/settings/reducers/change-zoom-level';
     import { ZoomButtonsList } from './zoom-buttons-list';
     import { KeyboardStore } from '../../../../../stores/view/derived/keyboard-store';

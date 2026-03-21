@@ -1,7 +1,7 @@
 import { Setting } from 'obsidian';
 import { MandalaView } from 'src/view/view';
 import { lang } from 'src/lang/lang';
-import { VerticalToolbarButtonsModal } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons-modal';
+import { VerticalToolbarButtonsModal } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons-modal';
 
 export const ControlsBarButtons = (
     container: HTMLElement,

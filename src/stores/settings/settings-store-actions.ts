@@ -15,7 +15,7 @@ import {
     WeekStart,
 } from 'src/stores/settings/settings-type';
 import { ChangeZoomLevelAction } from 'src/stores/settings/reducers/change-zoom-level';
-import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
+import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
 import { CommandName } from 'src/lang/hotkey-groups';
 import { Hotkey } from 'obsidian';
 

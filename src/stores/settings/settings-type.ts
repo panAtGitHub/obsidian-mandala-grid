@@ -1,6 +1,6 @@
 import { CommandName } from 'src/lang/hotkey-groups';
 import { PersistedViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
+import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
 
 export type CustomHotkeys = {
     [command in CommandName]?: {

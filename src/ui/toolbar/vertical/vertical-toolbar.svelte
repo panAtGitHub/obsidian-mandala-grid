@@ -16,7 +16,7 @@
         ShowMandalaDetailSidebarStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
-    import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
+    import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
     import ViewOptionsMenu from './view-options-menu.svelte';
     import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
 

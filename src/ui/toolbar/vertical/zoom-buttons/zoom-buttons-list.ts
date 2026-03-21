@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { HiddenVerticalToolbarButtons } from 'src/stores/settings/derived/view-settings-store';
 import { derived } from 'svelte/store';
-import { ToolbarButton } from 'src/view/modals/vertical-toolbar-buttons/vertical-toolbar-buttons';
+import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
 import { lang } from 'src/lang/lang';
 import {
     Minus as ZoomOut,
