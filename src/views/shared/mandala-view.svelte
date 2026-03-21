@@ -25,7 +25,7 @@
         WeekStartStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/views/shared/shell/context';
-    import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
+    import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
     import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {

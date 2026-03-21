@@ -1,5 +1,5 @@
 <script lang="ts">
-    import SimpleSummaryCell from 'src/cell/display/components/simple-summary-cell.svelte';
+    import SimpleSummaryCell from 'src/cell/view/components/simple-summary-cell.svelte';
     import type { SimpleSummaryCellModel } from 'src/cell/model/simple-summary-cell-model';
     import { getView } from 'src/views/shared/shell/context';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';

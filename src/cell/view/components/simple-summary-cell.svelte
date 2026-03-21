@@ -4,12 +4,12 @@
         clickSimpleSummaryCell,
         doubleClickSimpleSummaryCell,
         pointerStartSimpleSummaryCell,
-    } from 'src/cell/interaction/controller/simple-summary-cell-controller';
+    } from 'src/cell/viewmodel/controller/simple-summary-cell-controller';
     import {
         isSwapDisabledNode,
         isSwapSourceNode,
         isSwapTargetNode,
-    } from 'src/cell/interaction/controller/swap-controller';
+    } from 'src/cell/viewmodel/controller/swap-controller';
     import type {
         SimpleSummaryActiveCell,
         SimpleSummaryCellModel,

@@ -2,7 +2,7 @@
     import { derived } from 'src/lib/store/derived';
     import { getView } from 'src/views/shared/shell/context';
     import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
-    import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
+    import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import {

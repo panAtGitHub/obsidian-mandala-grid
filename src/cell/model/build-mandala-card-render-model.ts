@@ -1,8 +1,8 @@
 import {
     buildMandalaCardMetaState,
     type SectionIndicatorVariant,
-} from 'src/cell/display/meta/mandala-card-meta';
-import { buildMandalaCardStyle } from 'src/cell/display/style/mandala-card-style';
+} from 'src/cell/model/mandala-card-meta';
+import { buildMandalaCardStyle } from 'src/cell/model/mandala-card-style';
 import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
 import type { CellStyle } from 'src/cell/model/card-types';
 import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';

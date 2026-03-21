@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { NodeStyle } from 'src/stores/settings/types/style-rules-types';
-    import Content from 'src/cell/display/content/content.svelte';
-    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
+    import Content from 'src/cell/view/content/content.svelte';
+    import InlineEditor from 'src/cell/view/content/inline-editor.svelte';
 
     export let nodeId: string;
     export let style: NodeStyle | undefined;

@@ -1,6 +1,6 @@
-import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
-import { setActiveMainSplitNode } from 'src/cell/interaction/actions/set-active-main-split-node';
-import { activateMandalaGridCell } from 'src/cell/interaction/policies/cell-activation-policy';
+import { enableEditModeInMainSplit } from 'src/cell/viewmodel/actions/enable-edit-mode-in-main-split';
+import { setActiveMainSplitNode } from 'src/cell/viewmodel/actions/set-active-main-split-node';
+import { activateMandalaGridCell } from 'src/cell/viewmodel/policies/cell-activation-policy';
 import type { CellGridPosition } from 'src/cell/model/card-types';
 import {
     enterSubgridForNode,

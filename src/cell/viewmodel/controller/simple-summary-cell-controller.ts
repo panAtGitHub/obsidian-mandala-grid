@@ -1,4 +1,4 @@
-import { handleSwapPointerStart } from 'src/cell/interaction/controller/swap-controller';
+import { handleSwapPointerStart } from 'src/cell/viewmodel/controller/swap-controller';
 import type { SimpleSummaryCellModel } from 'src/cell/model/simple-summary-cell-model';
 import {
     openSidebarAndEditMandalaNode,

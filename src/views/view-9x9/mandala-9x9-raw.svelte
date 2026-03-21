@@ -2,9 +2,9 @@
     import { derived } from 'src/lib/store/derived';
     import { getView } from 'src/views/shared/shell/context';
     import { onDestroy } from 'svelte';
-    import Content from 'src/cell/display/content/content.svelte';
-    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
-    import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
+    import Content from 'src/cell/view/content/content.svelte';
+    import InlineEditor from 'src/cell/view/content/inline-editor.svelte';
+    import { enableEditModeInMainSplit } from 'src/cell/viewmodel/actions/enable-edit-mode-in-main-split';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import { Platform } from 'obsidian';
     import {

@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { selectCard } from 'src/cell/display/content/event-handlers/handle-links/helpers/select-card';
+import { selectCard } from 'src/cell/viewmodel/content-event-handlers/handle-links/helpers/select-card';
 
 export const handleLocalHeadingLink = (view: MandalaView, link: string) => {
     const match = /#+(.*)$/.exec(link);

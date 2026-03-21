@@ -1,12 +1,12 @@
 <script lang="ts">
     import clx from 'classnames';
-    import CardMainContent from 'src/cell/display/components/card-main-content.svelte';
-    import CardMeta from 'src/cell/display/components/card-meta.svelte';
+    import CardMainContent from 'src/cell/view/components/card-main-content.svelte';
+    import CardMeta from 'src/cell/view/components/card-meta.svelte';
     import {
         type SectionIndicatorVariant,
-    } from 'src/cell/display/meta/mandala-card-meta';
+    } from 'src/cell/model/mandala-card-meta';
     import type { CellGridPosition } from 'src/cell/model/card-types';
-    import CardStyle from 'src/cell/display/style/card-style.svelte';
+    import CardStyle from 'src/cell/view/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/cell/model/build-mandala-card-render-model';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/views/shared/shell/context';
@@ -19,14 +19,14 @@
     import {
         clickMandalaCard,
         doubleClickMandalaCard,
-    } from 'src/cell/interaction/controller/mandala-card-controller';
+    } from 'src/cell/viewmodel/controller/mandala-card-controller';
     import {
         handleSwapPointerStart,
         isSwapDisabledNode,
         isSwapSourceNode,
         isSwapTargetNode,
         shouldBlockSwapDoubleClick,
-    } from 'src/cell/interaction/controller/swap-controller';
+    } from 'src/cell/viewmodel/controller/swap-controller';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;

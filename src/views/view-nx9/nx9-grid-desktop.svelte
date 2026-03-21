@@ -9,7 +9,7 @@
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { getView } from 'src/views/shared/shell/context';
-    import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
+    import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/views/view-nx9/nx9-next-core-cell.svelte';
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';

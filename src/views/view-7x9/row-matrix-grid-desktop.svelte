@@ -7,7 +7,7 @@
         ShowMandalaDetailSidebarStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
+    import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';

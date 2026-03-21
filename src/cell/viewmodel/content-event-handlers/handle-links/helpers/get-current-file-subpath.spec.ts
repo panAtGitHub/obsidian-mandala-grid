@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getCurrentFileSubpath } from 'src/cell/display/content/event-handlers/handle-links/helpers/get-current-file-subpath';
+import { getCurrentFileSubpath } from 'src/cell/viewmodel/content-event-handlers/handle-links/helpers/get-current-file-subpath';
 
 describe('getCurrentFileSubpath', () => {
     const currentFilePath = 'daily/⭕2026年，日计划.md';
