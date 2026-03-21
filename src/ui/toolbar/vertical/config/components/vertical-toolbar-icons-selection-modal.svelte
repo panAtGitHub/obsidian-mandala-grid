@@ -2,8 +2,8 @@
     import { ToolbarButton, verticalToolbarButtons } from '../vertical-toolbar-buttons';
     import Button from 'src/ui/shared/button.svelte';
     import { derived } from 'svelte/store';
-    import { HiddenVerticalToolbarButtons } from '../../../../stores/settings/derived/view-settings-store';
-    import MandalaGrid from '../../../../main';
+    import { HiddenVerticalToolbarButtons } from 'src/stores/settings/derived/view-settings-store';
+    import MandalaGrid from 'src/main';
     import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
 
     export let close: () => void;
