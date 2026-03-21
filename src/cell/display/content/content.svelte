@@ -1,19 +1,20 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
-    import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
-    import { handleLinks } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/handle-links';
-    import { getCursorPosition } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/get-cursor-position';
+    import { Platform } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
     import { contentStore } from 'src/stores/document/derived/document-derived-stores';
-    import { isGrabbing } from './event-handlers/helpers/is-grabbing';
-    import { ShowHiddenCardInfoStore } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
-    import { setActiveSidebarNode } from '../../../../../../../../../../stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { setActiveMainSplitNode } from './store-actions/set-active-main-split-node';
-    import { enableEditModeInSidebar } from './store-actions/enable-edit-mode-in-sidebar';
-    import { enableEditModeInMainSplit } from './store-actions/enable-edit-mode-in-main-split';
+    import { ShowHiddenCardInfoStore } from 'src/stores/settings/derived/view-settings-store';
+    import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
+    import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
+    import { getView } from 'src/view/components/container/context';
+    import { getCursorPosition } from 'src/cell/display/content/event-handlers/get-cursor-position';
+    import { handleLinks } from 'src/cell/display/content/event-handlers/handle-links/handle-links';
+    import { isGrabbing } from './event-handlers/helpers/is-grabbing';
+    import { enableEditModeInMainSplit } from './store-actions/enable-edit-mode-in-main-split';
+    import { enableEditModeInSidebar } from './store-actions/enable-edit-mode-in-sidebar';
+    import { setActiveMainSplitNode } from './store-actions/set-active-main-split-node';
 
     export let nodeId: string;
     export let isInSidebar: boolean;
@@ -52,7 +53,6 @@
         enableEditMode();
     };
 
-    import { Platform } from 'obsidian';
     const isInteractiveTarget = (target: HTMLElement | null) =>
         Boolean(
             target?.closest('a, button, input, textarea, select, [role="button"]'),

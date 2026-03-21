@@ -11,9 +11,9 @@
         Show9x9ParallelNavButtonsStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { onDestroy, tick } from 'svelte';
-    import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
-    import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
-    import SourcePreview from 'src/view/components/container/column/components/group/components/card/components/content/source-preview.svelte';
+    import Content from 'src/cell/display/content/content.svelte';
+    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
+    import SourcePreview from 'src/cell/display/content/source-preview.svelte';
     import { Platform, setIcon } from 'obsidian';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
     import {

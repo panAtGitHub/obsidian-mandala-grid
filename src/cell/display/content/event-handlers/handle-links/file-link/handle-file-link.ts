@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
-import { openFileInExistingRightTabGroup } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/open-file-in-existing-right-tab-group';
-import { getLinkPaneType } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/block-link/handle-global-block-link';
+import { getLinkPaneType } from 'src/cell/display/content/event-handlers/handle-links/block-link/handle-global-block-link';
+import { openFileInExistingRightTabGroup } from 'src/cell/display/content/event-handlers/handle-links/helpers/open-file-in-existing-right-tab-group';
 
 export const handleFileLink = (
     view: MandalaView,

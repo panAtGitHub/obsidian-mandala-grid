@@ -1,7 +1,7 @@
 import { MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { setViewType } from 'src/stores/settings/actions/set-view-type';
 import { MandalaView, MANDALA_VIEW_TYPE } from 'src/view/view';
-import { getExistingRightTabGroup } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/get-existing-right-tab-group';
+import { getExistingRightTabGroup } from 'src/cell/display/content/event-handlers/handle-links/helpers/get-existing-right-tab-group';
 
 const getLeafFromExistingTabGroup = (view: MandalaView) => {
     const rightTabGroup = getExistingRightTabGroup(view);

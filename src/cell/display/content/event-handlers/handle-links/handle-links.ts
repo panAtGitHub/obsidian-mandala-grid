@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
-import { handleFileLink } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/file-link/handle-file-link';
-import { handleHeading } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/heading-link/handle-heading';
-import { handleBlockLink } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/block-link/handle-block-link';
+import { handleBlockLink } from 'src/cell/display/content/event-handlers/handle-links/block-link/handle-block-link';
+import { handleFileLink } from 'src/cell/display/content/event-handlers/handle-links/file-link/handle-file-link';
+import { handleHeading } from 'src/cell/display/content/event-handlers/handle-links/heading-link/handle-heading';
 import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 

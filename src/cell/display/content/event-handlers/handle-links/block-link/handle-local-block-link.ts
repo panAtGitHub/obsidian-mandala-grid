@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { selectCard } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/helpers/select-card';
+import { selectCard } from 'src/cell/display/content/event-handlers/handle-links/helpers/select-card';
 
 export const handleLocalBlockLink = (view: MandalaView, id: string) => {
     const element = view.container!.querySelector(

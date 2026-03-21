@@ -8,7 +8,7 @@
         ShowCellQuickPreviewDialogStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
-    import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
+    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import { getView } from 'src/view/components/container/context';
     import Portal from 'src/view/components/container/shared/portal.svelte';
     import {

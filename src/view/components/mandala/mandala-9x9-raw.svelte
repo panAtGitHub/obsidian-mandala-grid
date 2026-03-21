@@ -2,8 +2,8 @@
     import { derived } from 'src/lib/store/derived';
     import { getView } from 'src/view/components/container/context';
     import { onDestroy } from 'svelte';
-    import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
-    import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
+    import Content from 'src/cell/display/content/content.svelte';
+    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import { Platform } from 'obsidian';
     import {
@@ -12,7 +12,7 @@
         sectionAtRaw9x9Cell,
         type MandalaCell,
     } from 'src/view/helpers/mandala/mandala-9x9-raw';
-    import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
+    import { enableEditModeInMainSplit } from 'src/cell/display/content/store-actions/enable-edit-mode-in-main-split';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
 
     const view = getView();

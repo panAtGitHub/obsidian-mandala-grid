@@ -1,23 +1,20 @@
 <script lang="ts">
+    import { Focus } from 'lucide-svelte';
+    import { lang } from 'src/lang/lang';
+    import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import { getView } from '../../../../../../../../../context';
     import FloatingButton from '../../shared/floating-button.svelte';
-    import { Focus } from 'lucide-svelte';
-    import {
-        focusContainer
-    } from '../../../../../../../../../../../../stores/view/subscriptions/effects/focus-container';
-    import { lang } from '../../../../../../../../../../../../lang/lang';
 
     export let nodeId: string;
     const view = getView();
-     
+
     const focusCard = () => {
         view.viewStore.dispatch({
-           type: 'view/set-active-node/mouse',
+            type: 'view/set-active-node/mouse',
             payload: { id: nodeId },
         });
         focusContainer(view);
     };
-
 </script>
 
 <FloatingButton

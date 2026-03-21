@@ -1,13 +1,13 @@
 <script lang="ts">
     import clx from 'classnames';
     import { Pin } from 'lucide-svelte';
-    import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
-    import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
+    import Content from 'src/cell/display/content/content.svelte';
+    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import CardStyle from 'src/view/components/container/column/components/group/components/card/components/card-style.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/view/components/container/context';
-    import { setActiveMainSplitNode } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/set-active-main-split-node';
-    import { enableEditModeInMainSplit } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/enable-edit-mode-in-main-split';
+    import { enableEditModeInMainSplit } from 'src/cell/display/content/store-actions/enable-edit-mode-in-main-split';
+    import { setActiveMainSplitNode } from 'src/cell/display/content/store-actions/set-active-main-split-node';
     import { Platform } from 'obsidian';
     import {
         enterSubgridForNode,

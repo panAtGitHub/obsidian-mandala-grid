@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
-import { handleLocalBlockLink } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/block-link/handle-local-block-link';
-import { handleGlobalBlockLink } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/handle-links/block-link/handle-global-block-link';
+import { handleGlobalBlockLink } from 'src/cell/display/content/event-handlers/handle-links/block-link/handle-global-block-link';
+import { handleLocalBlockLink } from 'src/cell/display/content/event-handlers/handle-links/block-link/handle-local-block-link';
 
 export const handleBlockLink = (
     view: MandalaView,

@@ -1,8 +1,8 @@
 <script lang="ts">
     import { NodeId } from 'src/stores/document/document-state-type';
     import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
-    import InlineEditor from './components/content/inline-editor.svelte';
-    import Content from './components/content/content.svelte';
+    import Content from 'src/cell/display/content/content.svelte';
+    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import CardButtons
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
