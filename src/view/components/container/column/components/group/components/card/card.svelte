@@ -7,9 +7,9 @@
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import clx from 'classnames';
+    import CardStyle from 'src/cell/display/style/card-style.svelte';
     import TreeIndex
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/tree-index-button.svelte';
-    import CardStyle from './components/card-style.svelte';
 
     export let node: NodeId;
     export let editing: boolean;

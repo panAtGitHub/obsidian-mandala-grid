@@ -3,7 +3,12 @@
     import { Pin } from 'lucide-svelte';
     import Content from 'src/cell/display/content/content.svelte';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
-    import CardStyle from 'src/view/components/container/column/components/group/components/card/components/card-style.svelte';
+    import {
+        buildMandalaCardMetaState,
+        type SectionIndicatorVariant,
+    } from 'src/cell/display/meta/mandala-card-meta';
+    import CardStyle from 'src/cell/display/style/card-style.svelte';
+    import { buildMandalaCardStyle } from 'src/cell/display/style/mandala-card-style';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/view/components/container/context';
     import { enableEditModeInMainSplit } from 'src/cell/display/content/store-actions/enable-edit-mode-in-main-split';
@@ -28,11 +33,6 @@
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
-    import { buildMandalaCardStyle } from 'src/view/components/mandala/mandala-card-style';
-    import {
-        buildMandalaCardMetaState,
-        type SectionIndicatorVariant,
-    } from 'src/view/components/mandala/mandala-card-meta';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;

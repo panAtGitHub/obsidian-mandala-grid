@@ -5,7 +5,7 @@ import {
     type ThemeTone,
 } from 'src/view/helpers/mandala/contrast-text-tone';
 
-type BuildMandalaCardStyleOptions = {
+export type BuildMandalaCardStyleOptions = {
     active: boolean;
     sectionColor: string | null;
     style: NodeStyle | undefined;
@@ -14,7 +14,7 @@ type BuildMandalaCardStyleOptions = {
     preserveActiveBackground?: boolean;
 };
 
-type MandalaCardStyleState = {
+export type MandalaCardStyleState = {
     backgroundColor: string | null;
     textTone: TextTone | null;
     cardStyle: string | undefined;
