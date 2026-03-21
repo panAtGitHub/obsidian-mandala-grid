@@ -5,7 +5,7 @@
     import {
         documentContentStore,
         IdSectionStore,
-    } from 'src/stores/document/derived/document-derived-stores';
+    } from 'src/stores/cell/document-derived-stores';
 
     const view = getView();
     const activeBranch = activeBranchStore(view);

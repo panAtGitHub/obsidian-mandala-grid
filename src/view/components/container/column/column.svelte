@@ -1,7 +1,7 @@
 <script lang="ts">
     import Group from './components/group/group.svelte';
     import { getView } from 'src/view/components/container/context';
-    import { groupsStore } from 'src/stores/document/derived/document-derived-stores';
+    import { groupsStore } from 'src/stores/cell/document-derived-stores';
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';
     import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';

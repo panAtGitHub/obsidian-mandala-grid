@@ -1,13 +1,13 @@
 <script lang="ts">
     import { derived } from 'svelte/store';
-    import { PinnedNodesStore } from 'src/stores/document/derived/document-derived-stores';
+    import { PinnedNodesStore } from 'src/stores/cell/document-derived-stores';
     import { getView } from '../../../context';
     import { ActivePinnedCardStore } from '../../../../../../stores/view/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
     import { scrollActivePinnedNode } from 'src/ui/sidebar/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
     import { navigateToSearchResult } from 'src/view/helpers/mandala/search-utils';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { CurrentFileSectionColorMapStore } from 'src/stores/document/derived/section-colors-store';
+    import { CurrentFileSectionColorMapStore } from 'src/stores/cell/section-colors-store';
     import {
         createSectionColorIndex,
         applyOpacityToHex,

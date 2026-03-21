@@ -44,8 +44,8 @@
     import MobileFullScreenSearch from 'src/ui/modals/mobile-fullscreen-search.svelte';
     import MobileNativeEditorSheet from 'src/ui/modals/mobile-native-editor-sheet.svelte';
     import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
+    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
     import {

@@ -1,5 +1,5 @@
 import { getPlugin, getView } from 'src/view/components/container/context';
-import { contentStore } from 'src/stores/document/derived/document-derived-stores';
+import { contentStore } from 'src/stores/cell/document-derived-stores';
 import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
 
 export const markdownPreviewAction = (element: HTMLElement, nodeId: string) => {

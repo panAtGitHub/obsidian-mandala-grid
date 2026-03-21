@@ -8,8 +8,8 @@
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
+    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/view/helpers/mandala/week-plan-context';

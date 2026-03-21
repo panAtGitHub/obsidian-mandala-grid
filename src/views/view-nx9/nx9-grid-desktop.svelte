@@ -6,8 +6,8 @@
         ShowMandalaDetailSidebarStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
+    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/views/view-nx9/nx9-next-core-cell.svelte';

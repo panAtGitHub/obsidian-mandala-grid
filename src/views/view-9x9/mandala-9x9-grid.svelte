@@ -3,8 +3,8 @@
     import { getView } from 'src/view/components/container/context';
     import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
+    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import {
         MandalaBackgroundModeStore,
         MandalaGridCustomLayoutsStore,

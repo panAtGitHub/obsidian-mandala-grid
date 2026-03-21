@@ -7,7 +7,7 @@ import {
     Settings,
 } from 'src/stores/settings/settings-type';
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
-import { CurrentFileSectionColorMapStore } from 'src/stores/document/derived/section-colors-store';
+import { CurrentFileSectionColorMapStore } from 'src/stores/cell/section-colors-store';
 import { MandalaView } from 'src/view/view';
 import { parseSectionColorsFromPersistedState } from 'src/view/helpers/mandala/section-colors';
 

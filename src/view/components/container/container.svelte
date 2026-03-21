@@ -6,7 +6,7 @@
         GroupParentIdsStore,
         IdSectionStore,
         PinnedNodesStore,
-    } from 'src/stores/document/derived/document-derived-stores';
+    } from 'src/stores/cell/document-derived-stores';
     import ColumnsBuffer from './buffers/columns-buffer.svelte';
     import { activeBranchStore } from 'src/stores/view/derived/active-branch-store';
     import { activeNodeStore } from 'src/stores/view/derived/active-node-store';

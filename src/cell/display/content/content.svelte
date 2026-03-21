@@ -2,7 +2,7 @@
     import { Platform } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
-    import { contentStore } from 'src/stores/document/derived/document-derived-stores';
+    import { contentStore } from 'src/stores/cell/document-derived-stores';
     import { ShowHiddenCardInfoStore } from 'src/stores/settings/derived/view-settings-store';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';

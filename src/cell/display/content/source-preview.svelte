@@ -2,7 +2,7 @@
     import { MarkdownView, Platform } from 'obsidian';
     import { getView } from 'src/view/components/container/context';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
-    import { contentStore } from 'src/stores/document/derived/document-derived-stores';
+    import { contentStore } from 'src/stores/cell/document-derived-stores';
     import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 

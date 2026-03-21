@@ -23,7 +23,7 @@
     } from 'src/stores/settings/derived/view-settings-store';
 
     import { Platform } from 'obsidian';
-    import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
     import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
     import {
