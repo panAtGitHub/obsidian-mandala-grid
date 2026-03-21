@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Node from './components/card/card.svelte';
+    import Node from 'src/cell/display/components/card.svelte';
     import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
     import { getView } from 'src/view/components/container/context';
     import clx from 'classnames';
