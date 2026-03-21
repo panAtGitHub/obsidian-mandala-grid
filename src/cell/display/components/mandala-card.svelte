@@ -11,11 +11,6 @@
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/views/shared/shell/context';
     import { Platform } from 'obsidian';
-    import {
-        executeMandalaSwap,
-        handleMandalaSwapNodeClick,
-        shouldBlockMandalaNodeDoubleClickForSwap,
-    } from 'src/view/helpers/mandala/mandala-swap';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
@@ -25,6 +20,13 @@
         clickMandalaCard,
         doubleClickMandalaCard,
     } from 'src/cell/interaction/controller/mandala-card-controller';
+    import {
+        handleSwapPointerStart,
+        isSwapDisabledNode,
+        isSwapSourceNode,
+        isSwapTargetNode,
+        shouldBlockSwapDoubleClick,
+    } from 'src/cell/interaction/controller/swap-controller';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -85,25 +87,21 @@
     });
 
     const handleCardMouseDown = (e: MouseEvent) => {
-        if (
-            handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
-                executeMandalaSwap(view, source, target),
-            )
-        ) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        handleSwapPointerStart({
+            view,
+            swapState: $swapState,
+            nodeId,
+            event: e,
+        });
     };
 
     const handleCardTouchStart = (e: TouchEvent) => {
-        if (
-            handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
-                executeMandalaSwap(view, source, target),
-            )
-        ) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        handleSwapPointerStart({
+            view,
+            swapState: $swapState,
+            nodeId,
+            event: e,
+        });
     };
 </script>
 
@@ -116,13 +114,9 @@
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
     )}
-    class:mandala-card--swap-source={$swapState.active &&
-        $swapState.sourceNodeId === nodeId}
-    class:mandala-card--swap-target={$swapState.active &&
-        $swapState.targetNodeIds.has(nodeId)}
-    class:mandala-card--swap-disabled={$swapState.active &&
-        !$swapState.targetNodeIds.has(nodeId) &&
-        $swapState.sourceNodeId !== nodeId}
+    class:mandala-card--swap-source={isSwapSourceNode($swapState, nodeId)}
+    class:mandala-card--swap-target={isSwapTargetNode($swapState, nodeId)}
+    class:mandala-card--swap-disabled={isSwapDisabledNode($swapState, nodeId)}
     class:is-floating-mobile={renderModel.isFloatingMobile}
     id={nodeId}
     style={renderModel.cardStyle}
@@ -138,7 +132,7 @@
             event: e,
         })}
     on:dblclick={(e) => {
-        if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) return;
+        if (shouldBlockSwapDoubleClick($swapState)) return;
         doubleClickMandalaCard({
             view,
             nodeId,

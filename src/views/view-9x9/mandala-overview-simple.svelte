@@ -10,11 +10,6 @@
     import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
     import {
-        executeMandalaSwap,
-        handleMandalaSwapNodeClick,
-        shouldBlockMandalaNodeDoubleClickForSwap,
-    } from 'src/view/helpers/mandala/mandala-swap';
-    import {
         MandalaBorderOpacityStore,
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
@@ -30,6 +25,13 @@
         getReadableTextTone,
         type ThemeTone,
     } from 'src/view/helpers/mandala/contrast-text-tone';
+    import {
+        handleSwapPointerStart,
+        isSwapDisabledNode,
+        isSwapSourceNode,
+        isSwapTargetNode,
+        shouldBlockSwapDoubleClick,
+    } from 'src/cell/interaction/controller/swap-controller';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);
@@ -351,38 +353,28 @@
         cell: (typeof styledCells)[number],
         event: MouseEvent,
     ) => {
-        if (!cell.nodeId) return;
-        if (
-            handleMandalaSwapNodeClick(
-                $swapState,
-                cell.nodeId,
-                (source, target) => executeMandalaSwap(view, source, target),
-            )
-        ) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
+        handleSwapPointerStart({
+            view,
+            swapState: $swapState,
+            nodeId: cell.nodeId || null,
+            event,
+        });
     };
 
     const onCellTouchStart = (
         cell: (typeof styledCells)[number],
         event: TouchEvent,
     ) => {
-        if (!cell.nodeId) return;
-        if (
-            handleMandalaSwapNodeClick(
-                $swapState,
-                cell.nodeId,
-                (source, target) => executeMandalaSwap(view, source, target),
-            )
-        ) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
+        handleSwapPointerStart({
+            view,
+            swapState: $swapState,
+            nodeId: cell.nodeId || null,
+            event,
+        });
     };
 
     const onCellDblClick = (cell: (typeof styledCells)[number]) => {
-        if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) {
+        if (shouldBlockSwapDoubleClick($swapState)) {
             return;
         }
 
@@ -451,15 +443,12 @@
                 class:is-last-row={cell.row === 8}
                 class:is-last-col={cell.col === 8}
                 class:has-custom-background={Boolean(cell.background)}
-                class:simple-cell--swap-source={$swapState.active &&
-                    $swapState.sourceNodeId === cell.nodeId}
-                class:simple-cell--swap-target={$swapState.active &&
-                    !!cell.nodeId &&
-                    $swapState.targetNodeIds.has(cell.nodeId)}
-                class:simple-cell--swap-disabled={$swapState.active &&
-                    !!cell.nodeId &&
-                    !$swapState.targetNodeIds.has(cell.nodeId) &&
-                    $swapState.sourceNodeId !== cell.nodeId}
+                class:simple-cell--swap-source={!!cell.nodeId &&
+                    isSwapSourceNode($swapState, cell.nodeId)}
+                class:simple-cell--swap-target={!!cell.nodeId &&
+                    isSwapTargetNode($swapState, cell.nodeId)}
+                class:simple-cell--swap-disabled={!!cell.nodeId &&
+                    isSwapDisabledNode($swapState, cell.nodeId)}
                 style={cell.style ?? undefined}
                 data-node-id={cell.nodeId || undefined}
                 id={cell.nodeId || undefined}
