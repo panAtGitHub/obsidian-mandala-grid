@@ -19,6 +19,7 @@ export type MandalaCardRenderModel = SharedCardRenderModel & {
     showSectionPin: boolean;
     capsuleTextTone: CellTextTone | null;
     metaStyle: string | undefined;
+    isFloatingMobile: boolean;
 };
 
 export type ClassicCardRenderModel = SharedCardRenderModel & {

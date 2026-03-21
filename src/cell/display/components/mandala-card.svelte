@@ -4,12 +4,11 @@
     import Content from 'src/cell/display/content/content.svelte';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import {
-        buildMandalaCardMetaState,
         type SectionIndicatorVariant,
     } from 'src/cell/display/meta/mandala-card-meta';
     import type { CellGridPosition } from 'src/cell/model/card-types';
     import CardStyle from 'src/cell/display/style/card-style.svelte';
-    import { buildMandalaCardStyle } from 'src/cell/display/style/mandala-card-style';
+    import { buildMandalaCardRenderModel } from 'src/cell/model/build-mandala-card-render-model';
     import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
     import { setActiveMainSplitNode } from 'src/cell/interaction/actions/set-active-main-split-node';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
@@ -29,11 +28,11 @@
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import { enableSidebarEditorForNode } from 'src/helpers/views/mandala/node-editing';
-    import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
+    import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -72,46 +71,25 @@
                     : '--background-active-parent',
             )
             .trim();
-    let cardStyle: string | undefined;
-    let displaySection = section;
-    let shouldHideBackgroundStyle = false;
-    let showSectionBackground = false;
-    let showSectionPin = false;
-    let capsuleTextTone: 'dark' | 'light' | null = null;
-    let metaStyle: string | undefined;
+    let renderModel: MandalaCardRenderModel;
 
-    $: displaySection = section || $idToSection[nodeId] || '';
-    $: ({ cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
+    $: renderModel = buildMandalaCardRenderModel({
+        nodeId,
+        section,
+        fallbackSection: $idToSection[nodeId],
         active,
+        editing,
+        pinned,
+        style,
         sectionColor,
         preserveActiveBackground,
-        style,
-        themeTone: getThemeTone(),
-        themeUnderlayColor: getThemeUnderlayColor(),
-    }));
-    $: ({
-        showBackground: showSectionBackground,
-        showPin: showSectionPin,
-        textTone: capsuleTextTone,
-    } = buildMandalaCardMetaState({
-        variant: sectionIndicatorVariant,
-        sectionColor,
-        pinned,
-        themeTone: getThemeTone(),
-        themeUnderlayColor: getThemeUnderlayColor(),
-    }));
-    $: metaStyle =
-        showSectionBackground && sectionColor
-            ? `--mandala-card-meta-bg: ${sectionColor}`
-            : undefined;
-    // Quick preview editing reuses the main editor state, but the editor
-    // should render only inside the dialog instead of the background card.
-    $: previewOwnsInlineEditor = isPreviewDialogEditingNode({
+        sectionIndicatorVariant,
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,
-        editingActiveNodeId: editing ? nodeId : null,
-        editingIsInSidebar: false,
-        nodeId,
+        showDetailSidebar: $showDetailSidebar,
+        isMobile,
+        themeTone: getThemeTone(),
+        themeUnderlayColor: getThemeUnderlayColor(),
     });
 
     const handleSelect = (e: MouseEvent) => {
@@ -189,9 +167,9 @@
     class:mandala-card--swap-disabled={$swapState.active &&
         !$swapState.targetNodeIds.has(nodeId) &&
         $swapState.sourceNodeId !== nodeId}
-    class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
+    class:is-floating-mobile={renderModel.isFloatingMobile}
     id={nodeId}
-    style={cardStyle}
+    style={renderModel.cardStyle}
     on:mousedown={handleCardMouseDown}
     on:touchstart={handleCardTouchStart}
     on:click={handleCardClick}
@@ -200,7 +178,7 @@
 
         // 移动端：双击仅用于导航（进入/退出子九宫）
         if (isMobile) {
-            if (isGridCenter(view, nodeId, displaySection)) {
+            if (isGridCenter(view, nodeId, renderModel.displaySection)) {
                 exitCurrentSubgrid(view);
             } else {
                 enterSubgridForNode(view, nodeId);
@@ -218,39 +196,43 @@
         }
     }}
 >
-    {#if style && !(shouldHideBackgroundStyle && style.styleVariant === 'background-color')}
+    {#if style &&
+    !(renderModel.shouldHideBackgroundStyle &&
+        style.styleVariant === 'background-color')}
         <CardStyle {style} />
     {/if}
 
-    {#if active && editing && !$showDetailSidebar && !previewOwnsInlineEditor}
+    {#if renderModel.showInlineEditor}
         <InlineEditor
             {nodeId}
             {style}
             fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
             absoluteFontSize={isMobile ? $localFontStore : undefined}
         />
-    {:else}
+    {:else if renderModel.showContent}
         <Content {nodeId} isInSidebar={false} />
     {/if}
 
     <div
         class={clx(
             'mandala-card-meta',
-            showSectionBackground
+            renderModel.showSectionBackground
                 ? 'mandala-card-meta--with-bg'
                 : 'mandala-card-meta--without-bg',
-            showSectionBackground && capsuleTextTone
-                ? `mandala-card-meta--tone-${capsuleTextTone}`
+            renderModel.showSectionBackground && renderModel.capsuleTextTone
+                ? `mandala-card-meta--tone-${renderModel.capsuleTextTone}`
                 : undefined,
         )}
-        style={metaStyle}
+        style={renderModel.metaStyle}
     >
-        {#if showSectionPin}
+        {#if renderModel.showSectionPin}
             <span class="mandala-card-meta__pin" aria-hidden="true">
                 <Pin size={10} strokeWidth={2.2} />
             </span>
         {/if}
-        <span class="mandala-card-meta__section">{displaySection}</span>
+        <span class="mandala-card-meta__section">
+            {renderModel.displaySection}
+        </span>
     </div>
 </div>
 
