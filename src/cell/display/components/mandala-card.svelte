@@ -8,28 +8,23 @@
     import type { CellGridPosition } from 'src/cell/model/card-types';
     import CardStyle from 'src/cell/display/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/cell/model/build-mandala-card-render-model';
-    import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
-    import { setActiveMainSplitNode } from 'src/cell/interaction/actions/set-active-main-split-node';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/views/shared/shell/context';
     import { Platform } from 'obsidian';
-    import {
-        enterSubgridForNode,
-        exitCurrentSubgrid,
-        isGridCenter,
-    } from 'src/helpers/views/mandala/mobile-navigation';
     import {
         executeMandalaSwap,
         handleMandalaSwapNodeClick,
         shouldBlockMandalaNodeDoubleClickForSwap,
     } from 'src/view/helpers/mandala/mandala-swap';
-    import { enableSidebarEditorForNode } from 'src/helpers/views/mandala/node-editing';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
-    import { activateMandalaGridCell } from 'src/cell/interaction/policies/cell-activation-policy';
+    import {
+        clickMandalaCard,
+        doubleClickMandalaCard,
+    } from 'src/cell/interaction/controller/mandala-card-controller';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -89,24 +84,6 @@
         themeUnderlayColor: getThemeUnderlayColor(),
     });
 
-    const handleSelect = (e: MouseEvent) => {
-        activateMandalaGridCell(view, gridCell);
-        setActiveMainSplitNode(view, nodeId, e);
-
-        // 移动端：绝对禁止触发编辑逻辑（编辑由右侧栏双击触发）
-        if (isMobile) {
-            return;
-        }
-    };
-
-    const handleCardClick = (e: MouseEvent) => {
-        if ($swapState.active) {
-            return;
-        }
-
-        handleSelect(e);
-    };
-
     const handleCardMouseDown = (e: MouseEvent) => {
         if (
             handleMandalaSwapNodeClick($swapState, nodeId, (source, target) =>
@@ -151,28 +128,26 @@
     style={renderModel.cardStyle}
     on:mousedown={handleCardMouseDown}
     on:touchstart={handleCardTouchStart}
-    on:click={handleCardClick}
+    on:click={(e) =>
+        clickMandalaCard({
+            view,
+            nodeId,
+            gridCell,
+            isMobile,
+            swapActive: $swapState.active,
+            event: e,
+        })}
     on:dblclick={(e) => {
         if (shouldBlockMandalaNodeDoubleClickForSwap($swapState)) return;
-
-        // 移动端：双击仅用于导航（进入/退出子九宫）
-        if (isMobile) {
-            if (isGridCenter(view, nodeId, renderModel.displaySection)) {
-                exitCurrentSubgrid(view);
-            } else {
-                enterSubgridForNode(view, nodeId);
-            }
-            return;
-        }
-
-        handleSelect(e);
-
-        // PC 端逻辑：根据侧栏状态决定编辑位置
-        if ($showDetailSidebar) {
-            enableSidebarEditorForNode(view, nodeId);
-        } else {
-            enableEditModeInMainSplit(view, nodeId);
-        }
+        doubleClickMandalaCard({
+            view,
+            nodeId,
+            displaySection: renderModel.displaySection,
+            gridCell,
+            isMobile,
+            showDetailSidebar: $showDetailSidebar,
+            event: e,
+        });
     }}
 >
     {#if style &&
