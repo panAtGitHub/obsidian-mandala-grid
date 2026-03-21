@@ -38,11 +38,11 @@
     import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
     import ToolbarCenter from 'src/view/components/container/toolbar/toolbar-center.svelte';
-    import MandalaDetailSidebar from './mandala-detail-sidebar.svelte';
+    import MandalaDetailSidebar from 'src/ui/sidebar/mandala-detail-sidebar.svelte';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
     import { searchStore } from 'src/stores/view/derived/search-store';
-    import MobileFullScreenSearch from 'src/view/components/mandala/mobile-fullscreen-search.svelte';
-    import MobileNativeEditorSheet from 'src/view/components/mandala/mobile-native-editor-sheet.svelte';
+    import MobileFullScreenSearch from 'src/ui/modals/mobile-fullscreen-search.svelte';
+    import MobileNativeEditorSheet from 'src/ui/modals/mobile-native-editor-sheet.svelte';
     import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/document/derived/document-derived-stores';
