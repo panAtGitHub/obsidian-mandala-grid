@@ -84,7 +84,7 @@
                     nodeId={cell.nodeId}
                     section={cell.section ?? ''}
                     active={cell.nodeId === $activeNodeId}
-                    preserveActiveBackground={$whiteThemeMode}
+                    preserveActiveBackground={true}
                     sectionIndicatorVariant={!$whiteThemeMode
                         ? 'section-capsule'
                         : 'plain-with-pin'}
