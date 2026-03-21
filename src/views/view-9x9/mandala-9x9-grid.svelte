@@ -88,6 +88,7 @@
                     pinned: $pinnedSections.has(section),
                     style: undefined,
                     sectionColor: getSectionColor(section),
+                    metaAccentColor: $sectionColors[section] ?? null,
                     displayPolicy: buildCellDisplayPolicy({
                         preset: 'grid-9x9',
                     }),

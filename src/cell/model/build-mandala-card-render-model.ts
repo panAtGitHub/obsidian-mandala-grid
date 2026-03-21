@@ -17,6 +17,7 @@ type BuildMandalaCardRenderModelOptions = {
     pinned: boolean;
     style: CellStyle;
     sectionColor: string | null;
+    metaAccentColor: string | null;
     displayPolicy: CellDisplayPolicy;
     previewDialogOpen: boolean;
     previewDialogNodeId: string | null;
@@ -35,6 +36,7 @@ export const buildMandalaCardRenderModel = ({
     pinned,
     style,
     sectionColor,
+    metaAccentColor,
     displayPolicy,
     previewDialogOpen,
     previewDialogNodeId,
@@ -87,9 +89,10 @@ export const buildMandalaCardRenderModel = ({
         showSectionPin,
         showSectionColorDot,
         capsuleTextTone,
+        metaAccentColor: metaAccentColor ?? sectionColor,
         metaStyle: sectionColor
             ? [
-                  `--mandala-card-meta-accent: ${sectionColor}`,
+                  `--mandala-card-meta-accent: ${metaAccentColor ?? sectionColor}`,
                   showSectionBackground
                       ? `--mandala-card-meta-bg: ${sectionColor}`
                       : null,

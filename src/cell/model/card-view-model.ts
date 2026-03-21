@@ -17,6 +17,7 @@ export type MandalaCardViewModel = SharedCardViewModel & {
     active: boolean;
     editing: boolean;
     sectionColor: string | null;
+    metaAccentColor: string | null;
     displayPolicy: CellDisplayPolicy;
     interactionPolicy: CellInteractionPolicy;
     gridCell: CellGridPosition | null;

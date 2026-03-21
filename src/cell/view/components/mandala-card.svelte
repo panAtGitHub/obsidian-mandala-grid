@@ -38,6 +38,7 @@
     export let pinned: boolean;
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
+    export let metaAccentColor: string | null = null;
     export let displayPolicy: CellDisplayPolicy;
     export let interactionPolicy: CellInteractionPolicy;
     export let gridCell: CellGridPosition | null = null;
@@ -75,6 +76,7 @@
         pinned,
         style,
         sectionColor,
+        metaAccentColor,
         displayPolicy,
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,

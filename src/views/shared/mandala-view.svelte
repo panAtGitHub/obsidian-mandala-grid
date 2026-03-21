@@ -768,8 +768,10 @@
                                                 cell.section,
                                             ),
                                             style: undefined,
-                                            sectionColor:
-                                                sectionBackground,
+                                            sectionColor: sectionBackground,
+                                            metaAccentColor:
+                                                $sectionColors[cell.section] ??
+                                                null,
                                             displayPolicy:
                                                 buildCellDisplayPolicy({
                                                     preset: 'grid-3x3',

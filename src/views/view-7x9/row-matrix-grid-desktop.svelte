@@ -97,6 +97,9 @@
                         : false,
                     style: undefined,
                     sectionColor: getSectionColor(cell.section),
+                    metaAccentColor: cell.section
+                        ? $sectionColors[cell.section] ?? null
+                        : null,
                     displayPolicy: buildCellDisplayPolicy({
                         preset: 'grid-7x9',
                         whiteThemeMode: $whiteThemeMode,
