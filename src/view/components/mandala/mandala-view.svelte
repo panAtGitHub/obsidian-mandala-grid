@@ -33,7 +33,7 @@
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
-    import MandalaOverviewSimple from 'src/view/components/mandala/mandala-overview-simple.svelte';
+    import MandalaOverviewSimple from 'src/views/view-9x9/mandala-overview-simple.svelte';
     import { flip } from 'svelte/animate';
     import VerticalToolbar from 'src/view/components/container/toolbar-vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/view/components/container/toolbar/toolbar.svelte';
