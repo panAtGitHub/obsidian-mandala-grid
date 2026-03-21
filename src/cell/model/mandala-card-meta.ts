@@ -18,6 +18,7 @@ type BuildMandalaCardMetaStateOptions = {
 type MandalaCardMetaState = {
     showBackground: boolean;
     showPin: boolean;
+    showColorDot: boolean;
     textTone: TextTone | null;
 };
 
@@ -35,6 +36,7 @@ export const buildMandalaCardMetaState = ({
     return {
         showBackground,
         showPin: (interactiveMeta || plainWithPin) && pinned,
+        showColorDot: plainWithPin && Boolean(sectionColor),
         textTone: showBackground
             ? getReadableTextTone(sectionColor, themeTone, themeUnderlayColor)
             : null,

@@ -17,6 +17,7 @@ export type MandalaCardRenderModel = SharedCardRenderModel & {
     sectionIndicatorVariant: CellSectionIndicatorVariant;
     showSectionBackground: boolean;
     showSectionPin: boolean;
+    showSectionColorDot: boolean;
     capsuleTextTone: CellTextTone | null;
     metaStyle: string | undefined;
     isFloatingMobile: boolean;

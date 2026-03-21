@@ -164,6 +164,7 @@
         displaySection={renderModel.displaySection}
         showSectionBackground={renderModel.showSectionBackground}
         showSectionPin={renderModel.showSectionPin}
+        showSectionColorDot={renderModel.showSectionColorDot}
         capsuleTextTone={renderModel.capsuleTextTone}
         metaStyle={renderModel.metaStyle}
     />
@@ -195,7 +196,7 @@
 
     .mandala-card-meta {
         position: absolute;
-        top: 6px;
+        top: 8px;
         right: 8px;
         display: inline-flex;
         align-items: center;
@@ -218,7 +219,16 @@
         opacity: 0.7;
     }
 
-    .mandala-card-meta__pin {
+    .mandala-card-meta__color-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--mandala-card-meta-accent, currentColor);
+        box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
+        flex: 0 0 auto;
+    }
+
+    .mandala-card-meta__lock {
         display: inline-flex;
         align-items: center;
         justify-content: center;

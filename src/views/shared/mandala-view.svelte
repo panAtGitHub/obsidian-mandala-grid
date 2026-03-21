@@ -771,9 +771,7 @@
                                             preserveActiveBackground:
                                                 $whiteThemeMode,
                                             sectionIndicatorVariant:
-                                                !$whiteThemeMode
-                                                    ? 'section-capsule'
-                                                    : 'plain-with-pin',
+                                                'plain-with-pin',
                                             gridCell: null,
                                         })}
                                     <MandalaCard {...cardViewModel} />

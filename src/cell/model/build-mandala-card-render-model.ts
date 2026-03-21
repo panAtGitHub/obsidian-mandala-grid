@@ -57,6 +57,7 @@ export const buildMandalaCardRenderModel = ({
     const {
         showBackground: showSectionBackground,
         showPin: showSectionPin,
+        showColorDot: showSectionColorDot,
         textTone: capsuleTextTone,
     } = buildMandalaCardMetaState({
         variant: sectionIndicatorVariant,
@@ -85,11 +86,18 @@ export const buildMandalaCardRenderModel = ({
         sectionIndicatorVariant,
         showSectionBackground,
         showSectionPin,
+        showSectionColorDot,
         capsuleTextTone,
-        metaStyle:
-            showSectionBackground && sectionColor
-                ? `--mandala-card-meta-bg: ${sectionColor}`
-                : undefined,
+        metaStyle: sectionColor
+            ? [
+                  `--mandala-card-meta-accent: ${sectionColor}`,
+                  showSectionBackground
+                      ? `--mandala-card-meta-bg: ${sectionColor}`
+                      : null,
+              ]
+                  .filter(Boolean)
+                  .join('; ')
+            : undefined,
         isFloatingMobile: isMobile && editing && !showDetailSidebar,
     };
 };

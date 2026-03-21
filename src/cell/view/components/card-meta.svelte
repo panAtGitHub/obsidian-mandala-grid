@@ -1,11 +1,12 @@
 <script lang="ts">
     import clx from 'classnames';
-    import { Pin } from 'lucide-svelte';
+    import { Lock } from 'lucide-svelte';
     import type { CellTextTone } from 'src/cell/model/card-types';
 
     export let displaySection: string;
     export let showSectionBackground = false;
     export let showSectionPin = false;
+    export let showSectionColorDot = false;
     export let capsuleTextTone: CellTextTone | null = null;
     export let metaStyle: string | undefined;
 </script>
@@ -22,9 +23,12 @@
     )}
     style={metaStyle}
 >
+    {#if showSectionColorDot}
+        <span class="mandala-card-meta__color-dot" aria-hidden="true"></span>
+    {/if}
     {#if showSectionPin}
-        <span class="mandala-card-meta__pin" aria-hidden="true">
-            <Pin size={10} strokeWidth={2.2} />
+        <span class="mandala-card-meta__lock" aria-hidden="true">
+            <Lock size={10} strokeWidth={2.2} />
         </span>
     {/if}
     <span class="mandala-card-meta__section">{displaySection}</span>

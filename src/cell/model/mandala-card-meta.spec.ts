@@ -12,6 +12,7 @@ describe('buildMandalaCardMetaState', () => {
 
         expect(state.showBackground).toBe(false);
         expect(state.showPin).toBe(false);
+        expect(state.showColorDot).toBe(false);
         expect(state.textTone).toBeNull();
     });
 
@@ -25,6 +26,7 @@ describe('buildMandalaCardMetaState', () => {
 
         expect(state.showBackground).toBe(false);
         expect(state.showPin).toBe(true);
+        expect(state.showColorDot).toBe(false);
         expect(state.textTone).toBeNull();
     });
 
@@ -38,6 +40,7 @@ describe('buildMandalaCardMetaState', () => {
 
         expect(state.showBackground).toBe(true);
         expect(state.showPin).toBe(false);
+        expect(state.showColorDot).toBe(false);
         expect(state.textTone).toBe('dark');
     });
 
@@ -51,6 +54,7 @@ describe('buildMandalaCardMetaState', () => {
 
         expect(state.showBackground).toBe(true);
         expect(state.showPin).toBe(true);
+        expect(state.showColorDot).toBe(false);
         expect(state.textTone).toBe('light');
     });
 
@@ -64,6 +68,7 @@ describe('buildMandalaCardMetaState', () => {
 
         expect(state.showBackground).toBe(false);
         expect(state.showPin).toBe(false);
+        expect(state.showColorDot).toBe(false);
         expect(state.textTone).toBeNull();
     });
 
@@ -77,6 +82,21 @@ describe('buildMandalaCardMetaState', () => {
 
         expect(state.showBackground).toBe(false);
         expect(state.showPin).toBe(true);
+        expect(state.showColorDot).toBe(false);
+        expect(state.textTone).toBeNull();
+    });
+
+    it('shows a color dot for plain-with-pin mode when section color exists', () => {
+        const state = buildMandalaCardMetaState({
+            variant: 'plain-with-pin',
+            sectionColor: 'rgba(103, 127, 239, 0.65)',
+            pinned: false,
+            themeTone: 'light',
+        });
+
+        expect(state.showBackground).toBe(false);
+        expect(state.showPin).toBe(false);
+        expect(state.showColorDot).toBe(true);
         expect(state.textTone).toBeNull();
     });
 });

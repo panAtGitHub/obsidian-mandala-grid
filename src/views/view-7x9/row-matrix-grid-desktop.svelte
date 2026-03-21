@@ -290,10 +290,10 @@
 
     .row-matrix-grid--compact
         .row-matrix-cell--desktop-card
-        :global(.mandala-card-meta__pin svg) {
-        width: 9px;
-        height: 9px;
-    }
+        :global(.mandala-card-meta__lock svg) {
+            width: 9px;
+            height: 9px;
+        }
 
     .row-matrix-grid--compact
         .row-matrix-cell--desktop-card
