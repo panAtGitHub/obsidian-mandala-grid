@@ -1,8 +1,7 @@
 <script lang="ts">
     import clx from 'classnames';
-    import { Pin } from 'lucide-svelte';
-    import Content from 'src/cell/display/content/content.svelte';
-    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
+    import CardMainContent from 'src/cell/display/components/card-main-content.svelte';
+    import CardMeta from 'src/cell/display/components/card-meta.svelte';
     import {
         type SectionIndicatorVariant,
     } from 'src/cell/display/meta/mandala-card-meta';
@@ -202,38 +201,23 @@
         <CardStyle {style} />
     {/if}
 
-    {#if renderModel.showInlineEditor}
-        <InlineEditor
-            {nodeId}
-            {style}
-            fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
-            absoluteFontSize={isMobile ? $localFontStore : undefined}
-        />
-    {:else if renderModel.showContent}
-        <Content {nodeId} isInSidebar={false} />
-    {/if}
+    <CardMainContent
+        {nodeId}
+        {style}
+        isInSidebar={false}
+        showInlineEditor={renderModel.showInlineEditor}
+        showContent={renderModel.showContent}
+        fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
+        absoluteFontSize={isMobile ? $localFontStore : undefined}
+    />
 
-    <div
-        class={clx(
-            'mandala-card-meta',
-            renderModel.showSectionBackground
-                ? 'mandala-card-meta--with-bg'
-                : 'mandala-card-meta--without-bg',
-            renderModel.showSectionBackground && renderModel.capsuleTextTone
-                ? `mandala-card-meta--tone-${renderModel.capsuleTextTone}`
-                : undefined,
-        )}
-        style={renderModel.metaStyle}
-    >
-        {#if renderModel.showSectionPin}
-            <span class="mandala-card-meta__pin" aria-hidden="true">
-                <Pin size={10} strokeWidth={2.2} />
-            </span>
-        {/if}
-        <span class="mandala-card-meta__section">
-            {renderModel.displaySection}
-        </span>
-    </div>
+    <CardMeta
+        displaySection={renderModel.displaySection}
+        showSectionBackground={renderModel.showSectionBackground}
+        showSectionPin={renderModel.showSectionPin}
+        capsuleTextTone={renderModel.capsuleTextTone}
+        metaStyle={renderModel.metaStyle}
+    />
 </div>
 
 <style>
