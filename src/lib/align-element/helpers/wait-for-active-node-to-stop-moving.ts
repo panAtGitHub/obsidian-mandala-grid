@@ -1,6 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { getElementById } from 'src/lib/align-element/helpers/get-element-by-id';
 import { delay } from 'src/helpers/delay';
+import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
 
 const LOOP_DELAY_MS = 10;
 const MAX_ATTEMPTS = 100;
@@ -12,7 +13,7 @@ export const waitForActiveNodeToStopMoving = async (
 ) => {
     const activeBranch = view.viewStore.getValue().document.activeBranch;
 
-    let columnEl: HTMLElement | undefined;
+    let scrollPane: HTMLElement | null = null;
 
     let retries = 0;
     let hits = 0;
@@ -22,11 +23,17 @@ export const waitForActiveNodeToStopMoving = async (
 
     const container = view.container!;
     while (retries < MAX_ATTEMPTS && !signal.aborted) {
-        if (!columnEl) {
-            columnEl = getElementById(container, activeBranch.column)!;
+        if (!scrollPane) {
+            const activeElement = getElementById(container, activeBranch.node);
+            scrollPane = activeElement
+                ? findNearestVerticalScrollPane(activeElement, container)
+                : null;
+            if (!scrollPane) {
+                return;
+            }
         } else {
             const isStill =
-                lastScrollTop === columnEl.scrollTop &&
+                lastScrollTop === scrollPane.scrollTop &&
                 lastScrollLeft === container.scrollLeft;
             if (isStill) {
                 hits++;
@@ -34,7 +41,7 @@ export const waitForActiveNodeToStopMoving = async (
             } else {
                 hits = 0;
             }
-            lastScrollTop = columnEl.scrollTop;
+            lastScrollTop = scrollPane.scrollTop;
             lastScrollLeft = container.scrollLeft;
         }
         retries++;

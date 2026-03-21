@@ -1,6 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/stores/document/document-store-actions';
 import { getElementById } from 'src/lib/align-element/helpers/get-element-by-id';
+import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
 
 export const scrollNode = (view: MandalaView, direction: AllDirections) => {
     const container = view.container;
@@ -12,11 +13,11 @@ export const scrollNode = (view: MandalaView, direction: AllDirections) => {
     if (!element) return;
     const STEP = Math.floor(view.plugin.settings.getValue().view.cardWidth / 4);
     if (direction === 'down' || direction === 'up') {
-        const column = element.matchParent('.column') as HTMLElement;
-        if (!column) return;
+        const scrollPane = findNearestVerticalScrollPane(element, container);
+        if (!scrollPane) return;
         const scrollTop = direction === 'up' ? STEP : -STEP;
         requestAnimationFrame(() => {
-            column.scrollBy({
+            scrollPane.scrollBy({
                 top: scrollTop,
                 behavior: 'smooth',
             });

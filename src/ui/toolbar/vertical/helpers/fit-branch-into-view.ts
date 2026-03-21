@@ -14,32 +14,32 @@ export const fitBranchIntoView = (view: MandalaView) => {
 
     let result = 1;
 
-    const parents = Array.from(
-        view.container.querySelectorAll<HTMLElement>('.active-parent'),
+    const focusedElements = Array.from(
+        view.container.querySelectorAll<HTMLElement>(
+            [
+                '.mandala-card.active-node',
+                '.mandala-card.node-border--selected',
+                '.simple-cell.is-active',
+                '.simple-cell.is-active-cell',
+                '.row-matrix-cell.is-active-cell',
+                '.row-matrix-cell.is-active-node',
+                '.nx9-cell.is-active-cell',
+                '.nx9-cell.is-active-node',
+                '.week-plan-cell.is-active-cell',
+                '.week-plan-cell.is-active-node',
+                '.mandala-raw9-cell--active',
+            ].join(', '),
+        ),
     );
+    if (focusedElements.length) {
+        const combinedRect = getCombinedBoundingClientRect(focusedElements);
 
-    const activeNode = view.container.querySelector(
-        '.active-node',
-    ) as HTMLElement;
-    const children = Array.from(
-        view.container.querySelectorAll<HTMLElement>('.active-child'),
-    );
-    const siblings = Array.from(
-        view.container.querySelectorAll<HTMLElement>('.active-sibling'),
-    );
+        const boundingClientRect = view.container.getBoundingClientRect();
+        const heightScale = boundingClientRect.height / (combinedRect.height + 100);
+        const widthScale = boundingClientRect.width / (combinedRect.width + 100);
 
-    const combinedRect = getCombinedBoundingClientRect([
-        ...parents,
-        activeNode,
-        ...siblings,
-        ...children,
-    ]);
-
-    const boundingClientRect = view.container.getBoundingClientRect();
-    const heightScale = boundingClientRect.height / (combinedRect.height + 100);
-    const widthScale = boundingClientRect.width / (combinedRect.width + 100);
-
-    result = Math.min(heightScale, widthScale);
+        result = Math.min(heightScale, widthScale);
+    }
 
     // restore zoom level
     view.plugin.settings.dispatch({

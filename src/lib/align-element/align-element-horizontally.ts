@@ -12,8 +12,6 @@ export const alignElementHorizontally = (
 ) => {
     const element = getElementById(context.container, id);
     if (!element) return;
-    const column = element.matchParent('.column') as HTMLElement;
-    if (!column) return;
     const elementRect = element.getBoundingClientRect();
 
     const scrollLeft = calculateScrollLeft(
@@ -37,5 +35,5 @@ export const alignElementHorizontally = (
         });
     }
 
-    return column.id;
+    return element.id;
 };

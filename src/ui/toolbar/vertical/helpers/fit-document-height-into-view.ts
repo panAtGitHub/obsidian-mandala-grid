@@ -11,23 +11,17 @@ export const fitDocumentHeightIntoView = (view: MandalaView) => {
         type: 'settings/view/set-zoom-level',
         payload: { value: 1 },
     });
-    const columns = Array.from(
-        view.container.querySelectorAll<HTMLElement>('.column'),
+    const documentElements = Array.from(
+        view.container.querySelectorAll<HTMLElement>(
+            '.mandala-cell, .simple-cell, .week-plan-cell, .mandala-raw9-cell',
+        ),
     );
     let result = 1;
-    if (columns.length) {
-        const groupHeights = columns
-            .map((c) => {
-                return getCombinedBoundingClientRect(
-                    Array.from(c.querySelectorAll<HTMLElement>('.group')),
-                ).height;
-            })
-            .sort((a, b) => a - b);
-        const height = groupHeights[groupHeights.length - 1];
-        const width = getCombinedBoundingClientRect(columns).width;
+    if (documentElements.length) {
+        const combinedRect = getCombinedBoundingClientRect(documentElements);
         const boundingClientRect = view.container.getBoundingClientRect();
-        const heightScale = boundingClientRect.height / (height + 100);
-        const widthScale = boundingClientRect.width / (width + 100);
+        const heightScale = boundingClientRect.height / (combinedRect.height + 100);
+        const widthScale = boundingClientRect.width / (combinedRect.width + 100);
 
         result = Math.min(heightScale, widthScale);
     }

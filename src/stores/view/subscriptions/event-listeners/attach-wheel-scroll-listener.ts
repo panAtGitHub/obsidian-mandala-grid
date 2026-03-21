@@ -1,4 +1,5 @@
 import { MandalaView } from 'src/view/view';
+import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
 
 export const attachWheelScrollListener = (view: MandalaView) => {
     view.plugin.registerDomEvent(view.contentEl, 'wheel', (evt) => {
@@ -9,12 +10,12 @@ export const attachWheelScrollListener = (view: MandalaView) => {
             target.hasClass('lng-prev') || target.closest('.lng-prev');
         if (!targetIsACard) return;
 
-        const column = target.closest('.column');
-        if (!column) return;
+        const scrollPane = findNearestVerticalScrollPane(target, view.contentEl);
+        if (!scrollPane) return;
         evt.preventDefault();
         evt.stopPropagation();
         requestAnimationFrame(() => {
-            column.scrollBy({
+            scrollPane.scrollBy({
                 top: evt.deltaY * 2.5,
                 behavior: 'smooth',
             });

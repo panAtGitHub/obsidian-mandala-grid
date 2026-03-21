@@ -6,6 +6,7 @@ import {
 } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { calculateScrollTopRelative } from 'src/lib/align-element/helpers/calculate-scroll-top-relative';
 import { getElementById } from 'src/lib/align-element/helpers/get-element-by-id';
+import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
 
 export const alignVertically = (
     context: AlignBranchContext,
@@ -58,13 +59,13 @@ export const alignElementVertically = (
 ): string | undefined => {
     const element = getElementById(context.container, id);
     if (!element) return;
-    const column = element.matchParent('.column') as HTMLElement;
-    if (!column) return;
+    const scrollPane = findNearestVerticalScrollPane(element, context.container);
+    if (!scrollPane) return;
 
     const elementRect = element.getBoundingClientRect();
     const rect = alignVertically(
         context,
-        column,
+        scrollPane,
         elementRect,
         relativeId,
         center,
