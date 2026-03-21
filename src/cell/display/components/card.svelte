@@ -1,15 +1,16 @@
 <script lang="ts">
     import { NodeId } from 'src/stores/document/document-state-type';
     import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
-    import Content from 'src/cell/display/content/content.svelte';
-    import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
+    import CardMainContent from 'src/cell/display/components/card-main-content.svelte';
     import CardButtons
         from 'src/cell/interaction/buttons/card-buttons/card-buttons.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
-    import clx from 'classnames';
     import CardStyle from 'src/cell/display/style/card-style.svelte';
     import TreeIndex
         from 'src/cell/interaction/buttons/tree-index-button.svelte';
+    import { buildClassicCardClassName } from 'src/cell/model/build-classic-card-class-name';
+    import { buildClassicCardRenderModel } from 'src/cell/model/build-classic-card-render-model';
+    import type { ClassicCardRenderModel } from 'src/cell/model/card-render-model';
 
     export let node: NodeId;
     export let editing: boolean;
@@ -23,59 +24,58 @@
     export let isSearchMatch = false;
     export let style: NodeStyle | undefined;
     export let alwaysShowCardButtons: boolean;
-    const activeStatusClasses = {
-        [ActiveStatus.node]: 'active-node',
-        [ActiveStatus.child]: 'active-child',
-        [ActiveStatus.parent]: 'active-parent',
-        [ActiveStatus.sibling]: 'active-sibling',
-    };
+    let renderModel: ClassicCardRenderModel;
+    let cardClassName = '';
 
+    $: renderModel = buildClassicCardRenderModel({
+        active,
+        editing,
+        style,
+    });
+
+    $: cardClassName = buildClassicCardClassName({
+        active,
+        confirmDelete,
+        confirmDisableEdit,
+        editing,
+        selected,
+        isSearchMatch,
+    });
 </script>
 
 <div
-    class={clx(
-        'mandala-card',
-        active
-            ? activeStatusClasses[active]
-            : ' inactive-node',
-        confirmDelete
-            ? 'node-border--delete'
-            : confirmDisableEdit
-              ? 'node-border--discard'
-              : editing
-                ? 'node-border--editing'
-                : selected
-                  ? 'node-border--selected'
-                  : isSearchMatch
-                    ? 'node-border--search-match'
-                    : active === ActiveStatus.node
-                      ? 'node-border--active'
-                      : undefined,
-    )}
+    class={cardClassName}
     id={node}
 >
-    {#if style}
+    {#if renderModel.style}
         <CardStyle {style} />
     {/if}
-    {#if active === ActiveStatus.node && editing}
-        <InlineEditor nodeId={node} {style} />
-    {:else}
-        <Content nodeId={node} {isInSidebar} />
-    {/if}
 
-    <CardButtons
+    <CardMainContent
+        nodeId={node}
+        {style}
+        {isInSidebar}
+        showInlineEditor={renderModel.showInlineEditor}
+        showContent={renderModel.showContent}
+    />
+
+    {#if renderModel.showCardButtons}
+        <CardButtons
         {editing}
         nodeId={node}
         {isInSidebar}
         {active}
         {alwaysShowCardButtons}
-    />
-    <TreeIndex
-        activeStatus={active}
-        nodeId={node}
-        {section}
-        {pinned}
-    />
+        />
+    {/if}
+    {#if renderModel.showTreeIndex}
+        <TreeIndex
+            activeStatus={active}
+            nodeId={node}
+            {section}
+            {pinned}
+        />
+    {/if}
 </div>
 
 <style>
