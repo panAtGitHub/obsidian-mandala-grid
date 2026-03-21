@@ -4,6 +4,7 @@
     import { onDestroy } from 'svelte';
     import Content from 'src/cell/display/content/content.svelte';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
+    import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import { Platform } from 'obsidian';
     import {
@@ -12,7 +13,6 @@
         sectionAtRaw9x9Cell,
         type MandalaCell,
     } from 'src/view/helpers/mandala/mandala-9x9-raw';
-    import { enableEditModeInMainSplit } from 'src/cell/display/content/store-actions/enable-edit-mode-in-main-split';
     import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
 
     const view = getView();

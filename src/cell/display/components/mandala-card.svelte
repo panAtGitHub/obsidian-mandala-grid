@@ -9,10 +9,10 @@
     } from 'src/cell/display/meta/mandala-card-meta';
     import CardStyle from 'src/cell/display/style/card-style.svelte';
     import { buildMandalaCardStyle } from 'src/cell/display/style/mandala-card-style';
+    import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
+    import { setActiveMainSplitNode } from 'src/cell/interaction/actions/set-active-main-split-node';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/view/components/container/context';
-    import { enableEditModeInMainSplit } from 'src/cell/display/content/store-actions/enable-edit-mode-in-main-split';
-    import { setActiveMainSplitNode } from 'src/cell/display/content/store-actions/set-active-main-split-node';
     import { Platform } from 'obsidian';
     import {
         enterSubgridForNode,
