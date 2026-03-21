@@ -23,15 +23,13 @@
         handleMandalaSwapNodeClick,
         shouldBlockMandalaNodeDoubleClickForSwap,
     } from 'src/view/helpers/mandala/mandala-swap';
-    import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
-    import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
-    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import { enableSidebarEditorForNode } from 'src/helpers/views/mandala/node-editing';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
+    import { activateMandalaGridCell } from 'src/cell/interaction/policies/cell-activation-policy';
 
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
@@ -92,25 +90,7 @@
     });
 
     const handleSelect = (e: MouseEvent) => {
-        if (gridCell) {
-            if (gridCell.mode === 'week-7x9') {
-                setActiveCellWeek7x9(view, {
-                    row: gridCell.row,
-                    col: gridCell.col,
-                });
-            } else if (gridCell.mode === 'nx9') {
-                setActiveCellNx9(view, {
-                    row: gridCell.row,
-                    col: gridCell.col,
-                    page: gridCell.page,
-                });
-            } else {
-                setActiveCell9x9(view, {
-                    row: gridCell.row,
-                    col: gridCell.col,
-                });
-            }
-        }
+        activateMandalaGridCell(view, gridCell);
         setActiveMainSplitNode(view, nodeId, e);
 
         // 移动端：绝对禁止触发编辑逻辑（编辑由右侧栏双击触发）
