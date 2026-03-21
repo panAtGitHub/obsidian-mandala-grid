@@ -1,6 +1,6 @@
 import { SettingsStore } from 'src/main';
 import { lang } from 'src/lang/lang';
-import { RangeSetting } from 'src/view/actions/settings/components/shared/range-setting';
+import { RangeSetting } from 'src/ui/settings/fields/shared/range-setting';
 import { DEFAULT_H1_FONT_SIZE_EM } from 'src/stores/settings/default-settings';
 
 export const HeadingsFontSize = (

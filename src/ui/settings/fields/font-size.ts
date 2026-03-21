@@ -1,6 +1,6 @@
 import type { SettingsStore } from 'src/main';
 import { lang } from 'src/lang/lang';
-import { RangeSetting } from 'src/view/actions/settings/components/shared/range-setting';
+import { RangeSetting } from 'src/ui/settings/fields/shared/range-setting';
 import { localFontStore } from 'src/stores/local-font-store';
 import { get } from 'svelte/store';
 

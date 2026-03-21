@@ -2,7 +2,7 @@
     import {
         renderSettings,
         SettingsTab,
-    } from 'src/view/actions/settings/render-settings';
+    } from 'src/ui/settings/renderers/render-settings';
     import VerticalTabHeader from './vertical-tab-header.svelte';
     import { ActiveSettingsTabStore } from 'src/ui/settings/settings-modal/active-settings-tab-store';
     import { X, Check } from 'lucide-svelte';

@@ -1,7 +1,7 @@
 import { SettingsStore } from 'src/main';
 import { DEFAULT_INACTIVE_NODE_OPACITY } from 'src/stores/settings/default-settings';
 import { lang } from 'src/lang/lang';
-import { RangeSetting } from 'src/view/actions/settings/components/shared/range-setting';
+import { RangeSetting } from 'src/ui/settings/fields/shared/range-setting';
 
 export const InactiveCardOpacity = (
     element: HTMLElement,

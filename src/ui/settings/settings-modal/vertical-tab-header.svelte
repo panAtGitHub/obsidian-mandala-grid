@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { SettingsTab } from 'src/view/actions/settings/render-settings';
+    import { SettingsTab } from 'src/ui/settings/renderers/render-settings';
     import { Platform } from 'obsidian';
 
     export let setActiveTab : (tab: SettingsTab)=>void

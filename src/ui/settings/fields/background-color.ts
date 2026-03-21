@@ -1,7 +1,7 @@
 import { SettingsStore } from 'src/main';
 import { getDefaultTheme } from 'src/stores/view/subscriptions/effects/css-variables/helpers/get-default-theme';
 import { lang } from 'src/lang/lang';
-import { ColorSetting } from 'src/view/actions/settings/components/shared/color-setting';
+import { ColorSetting } from 'src/ui/settings/fields/shared/color-setting';
 
 export const BackgroundColor = (
     container: HTMLElement,

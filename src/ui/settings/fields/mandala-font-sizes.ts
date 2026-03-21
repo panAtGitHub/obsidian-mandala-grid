@@ -1,7 +1,7 @@
 import type { SettingsStore } from 'src/main';
 import { Platform } from 'obsidian';
 import { lang } from 'src/lang/lang';
-import { RangeSetting } from 'src/view/actions/settings/components/shared/range-setting';
+import { RangeSetting } from 'src/ui/settings/fields/shared/range-setting';
 
 const MIN_FONT_SIZE = 6;
 const MAX_FONT_SIZE = 36;
