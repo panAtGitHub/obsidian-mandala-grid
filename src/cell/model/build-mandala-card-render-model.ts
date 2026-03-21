@@ -6,7 +6,7 @@ import { buildMandalaCardStyle } from 'src/cell/display/style/mandala-card-style
 import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
 import type { CellStyle } from 'src/cell/model/card-types';
 import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
-import type { ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
+import type { ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
 
 type BuildMandalaCardRenderModelOptions = {
     nodeId: string;

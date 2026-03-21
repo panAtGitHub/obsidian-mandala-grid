@@ -14,7 +14,7 @@
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
-    import { type ThemeTone } from 'src/view/helpers/mandala/contrast-text-tone';
+    import { type ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
     import {
         clickMandalaCard,

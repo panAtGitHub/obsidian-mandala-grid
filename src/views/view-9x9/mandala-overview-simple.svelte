@@ -21,7 +21,7 @@
     import {
         getReadableTextTone,
         type ThemeTone,
-    } from 'src/view/helpers/mandala/contrast-text-tone';
+    } from 'src/helpers/views/mandala/contrast-text-tone';
     import {
         type SimpleSummaryActiveCell,
     } from 'src/cell/model/simple-summary-cell-model';
