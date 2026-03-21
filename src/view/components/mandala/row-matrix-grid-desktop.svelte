@@ -84,7 +84,9 @@
                     nodeId={cell.nodeId}
                     section={cell.section ?? ''}
                     active={cell.nodeId === $activeNodeId}
-                    preserveActiveBackground={true}
+                    preserveActiveBackground={activeCell
+                        ? $whiteThemeMode
+                        : true}
                     sectionIndicatorVariant={!$whiteThemeMode
                         ? 'section-capsule'
                         : 'plain-with-pin'}
@@ -310,12 +312,6 @@
     .row-matrix-cell--desktop-card.is-active-cell,
     .row-matrix-cell--desktop-card.is-active-node {
         outline: none;
-    }
-
-    .row-matrix-cell--desktop-card.is-active-cell :global(.mandala-card),
-    .row-matrix-cell--desktop-card.is-active-node :global(.mandala-card) {
-        box-shadow: inset 0 0 0 var(--mandala-grid-highlight-width, 2px)
-            var(--mandala-grid-highlight-color, var(--mandala-color-selection));
     }
 
     .row-matrix-cell.is-placeholder,
