@@ -75,7 +75,7 @@
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
     import ViewOptionsCustomLayoutModal from './components/view-options-custom-layout-modal.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
-    import Portal from 'src/view/components/container/shared/portal.svelte';
+    import Portal from 'src/ui/shared/portal.svelte';
     import type {
         ContextMenuCopyLinkVariant,
         DetailSidebarPreviewMode,

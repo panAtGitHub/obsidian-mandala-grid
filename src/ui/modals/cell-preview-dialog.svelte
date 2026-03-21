@@ -10,7 +10,7 @@
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import { getView } from 'src/view/components/container/context';
-    import Portal from 'src/view/components/container/shared/portal.svelte';
+    import Portal from 'src/ui/shared/portal.svelte';
     import {
         closeCellPreviewDialog,
         openCellPreviewDialog,

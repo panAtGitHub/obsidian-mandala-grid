@@ -16,7 +16,7 @@
         Show9x9TitleOnlyStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/view/components/container/context';
-    import Button from 'src/view/components/container/shared/button.svelte';
+    import Button from 'src/ui/shared/button.svelte';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 
     const view = getView();
