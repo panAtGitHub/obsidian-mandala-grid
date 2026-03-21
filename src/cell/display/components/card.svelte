@@ -1,6 +1,6 @@
 <script lang="ts">
     import { NodeId } from 'src/stores/document/document-state-type';
-    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
+    import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
     import Content from 'src/cell/display/content/content.svelte';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import CardButtons

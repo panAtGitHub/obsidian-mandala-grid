@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActiveStatus } from '../../../active-status.enum';
+    import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
 
     export let editing: boolean;

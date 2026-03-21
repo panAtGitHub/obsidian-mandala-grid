@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
+    import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
     import { getView } from 'src/view/components/container/context';
     import {
         findSectionPosition

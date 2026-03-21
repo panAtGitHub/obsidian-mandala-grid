@@ -1,7 +1,7 @@
 <script lang="ts">
     import EditNodeButton from './components/edit-node-button.svelte';
     import FocusCardButton from './components/focus-card-button.svelte';
-    import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
+    import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
 
     export let editing: boolean;
     export let nodeId: string;

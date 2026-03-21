@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Column from './column/column.svelte';
+    import Column from 'src/views/view-columns/column.svelte';
     import { getView } from 'src/view/components/container/context';
     import {
         columnsStore,

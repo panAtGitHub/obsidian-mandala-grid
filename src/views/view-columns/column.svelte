@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Group from './components/group/group.svelte';
+    import Group from './components/group.svelte';
     import { getView } from 'src/view/components/container/context';
     import { groupsStore } from 'src/stores/cell/document-derived-stores';
     import { EditingState } from 'src/stores/view/default-view-state';
