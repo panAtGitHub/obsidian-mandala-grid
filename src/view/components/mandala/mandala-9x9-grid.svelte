@@ -87,7 +87,6 @@
                     selected={$selectedNodes.has(nodeId)}
                     pinned={$pinnedSections.has(section)}
                     {sectionColor}
-                    draggable={section !== baseTheme}
                     gridCell={{ mode: '9x9', row, col }}
                 />
             {:else if section}

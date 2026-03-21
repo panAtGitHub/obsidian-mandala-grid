@@ -3,9 +3,7 @@
     import { Pin } from 'lucide-svelte';
     import Content from 'src/view/components/container/column/components/group/components/card/components/content/content.svelte';
     import InlineEditor from 'src/view/components/container/column/components/group/components/card/components/content/inline-editor.svelte';
-    import Draggable from 'src/view/components/container/column/components/group/components/card/components/dnd/draggable.svelte';
     import CardStyle from 'src/view/components/container/column/components/group/components/card/components/card-style.svelte';
-    import { droppable } from 'src/view/actions/dnd/droppable';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/view/components/container/context';
     import { setActiveMainSplitNode } from 'src/view/components/container/column/components/group/components/card/components/content/store-actions/set-active-main-split-node';
@@ -47,7 +45,6 @@
     export let pinned: boolean;
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
-    export let draggable: boolean;
     export let preserveActiveBackground = false;
     export let sectionIndicatorVariant: SectionIndicatorVariant = 'plain';
     export let gridCell: {
@@ -199,7 +196,6 @@
     class:is-floating-mobile={isMobile && editing && !$showDetailSidebar}
     id={nodeId}
     style={cardStyle}
-    use:droppable
     on:mousedown={handleCardMouseDown}
     on:touchstart={handleCardTouchStart}
     on:click={handleCardClick}
@@ -237,10 +233,6 @@
             fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
             absoluteFontSize={isMobile ? $localFontStore : undefined}
         />
-    {:else if draggable}
-        <Draggable {nodeId} isInSidebar={false} dragActivation="whole-card">
-            <Content {nodeId} isInSidebar={false} />
-        </Draggable>
     {:else}
         <Content {nodeId} isInSidebar={false} />
     {/if}

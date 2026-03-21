@@ -98,7 +98,6 @@
                         ? $pinnedSections.has(cell.section)
                         : false}
                     sectionColor={getSectionColor(cell.section)}
-                    draggable={false}
                     gridCell={{
                         mode: 'week-7x9',
                         row: cell.row,

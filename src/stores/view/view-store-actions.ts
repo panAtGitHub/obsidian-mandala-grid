@@ -1,8 +1,6 @@
 import { SetSearchQueryAction } from 'src/stores/view/reducers/search/set-search-query';
 import { SetSearchResultsAction } from 'src/stores/view/reducers/search/set-search-results';
 import { ToggleSearchInputAction } from 'src/stores/view/reducers/search/toggle-search-input';
-import { SetDragStartedAction } from 'src/stores/view/reducers/document/on-drag-start';
-import { SetDragCanceled } from 'src/stores/view/reducers/document/on-drag-end';
 import { UpdateActiveBranchAction } from 'src/stores/view/reducers/document/helpers/update-active-branch';
 import { JumpToNodeAction } from 'src/stores/view/reducers/document/jump-to-node';
 import { ChangeActiveNodeAction } from 'src/stores/view/reducers/document/navigate-using-keyboard';
@@ -110,8 +108,6 @@ export type DisableEditModeAction = {
 export type ViewDocumentAction =
     | DisableEditModeAction
     | ToggleEditModeAction
-    | SetDragStartedAction
-    | SetDragCanceled
     | UpdateActiveBranchAction
     | {
           type: 'view/editor/disable/reset-confirmation';

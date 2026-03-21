@@ -50,10 +50,6 @@ export const defaultViewState = (
             column: '',
             node: '',
         },
-        dnd: {
-            node: '',
-            childGroups: new Set<string>(),
-        },
         activeNode: '',
         activeNodesOfColumn: {},
         selectedNodes: new Set<string>(),
@@ -78,10 +74,6 @@ export type ActiveBranch = {
     sortedParentNodes: string[];
     group: string;
     column: string;
-    node: string;
-};
-export type DNDState = {
-    childGroups: Set<string>;
     node: string;
 };
 export type EditingState = {

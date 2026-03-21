@@ -8,7 +8,6 @@
 
     export let columnId: string;
     export let activeChildGroups: Set<string>;
-    export let dndChildGroups: Set<string>;
     export let selectedNodes: Set<string>;
     export let parentNodes: Set<string>;
     export let activeGroup: string;
@@ -30,27 +29,25 @@
 <div class="column" id={columnId} >
     <div class="column-buffer" />
     {#each $groups as group (group.parentId)}
-        {#if !dndChildGroups.has(group.parentId)}
-            <Group
-                groupId={group.parentId}
-                {columnId}
-                {parentNodes}
-                {activeGroup}
-                {editedNodeState}
-                {searchQuery}
-                {searchResults}
-                {showAllNodes}
-                {searching}
-                {activeChildGroups}
-                {activeNode}
-                {idSection}
-                {selectedNodes}
-                {pinnedNodes}
-                {groupParentIds}
-                {pendingConfirmation}
-                {alwaysShowCardButtons}
-            />
-        {/if}
+        <Group
+            groupId={group.parentId}
+            {columnId}
+            {parentNodes}
+            {activeGroup}
+            {editedNodeState}
+            {searchQuery}
+            {searchResults}
+            {showAllNodes}
+            {searching}
+            {activeChildGroups}
+            {activeNode}
+            {idSection}
+            {selectedNodes}
+            {pinnedNodes}
+            {groupParentIds}
+            {pendingConfirmation}
+            {alwaysShowCardButtons}
+        />
     {/each}
     <div class="column-buffer" />
 </div>

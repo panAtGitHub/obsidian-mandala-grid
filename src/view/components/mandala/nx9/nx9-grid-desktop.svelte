@@ -126,7 +126,6 @@
                             selected={$selectedNodes.has(nodeId)}
                             pinned={$pinnedSections.has(section)}
                             sectionColor={getSectionColor(section)}
-                            draggable={false}
                             gridCell={{
                                 mode: 'nx9',
                                 row,

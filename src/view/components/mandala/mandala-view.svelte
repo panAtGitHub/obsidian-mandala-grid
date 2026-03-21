@@ -766,7 +766,6 @@
                                             cell.section,
                                         )}
                                         sectionColor={sectionBackground}
-                                        draggable={false}
                                     />
                                     {#if !Platform.isMobile && $show3x3SubgridNavButtons && !$hasOpenOverlayModal}
                                         <div
@@ -1450,11 +1449,6 @@
         overflow: auto;
     }
 
-    .mandala-root--9 :global(.draggable),
-    .mandala-root--9 :global(.draggable .content) {
-        height: 100%;
-    }
-
     /* 3×3：内容超出时在格子内部滚动（避免撑开格子） */
     .mandala-root--3 .mandala-grid :global(.lng-prev),
     .mandala-root--3 :global(.mandala-raw9-preview .lng-prev) {
@@ -1569,33 +1563,6 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow: auto;
-    }
-
-    .mandala-root--3 :global(.draggable),
-    .mandala-root--3 :global(.draggable .content) {
-        height: 100%;
-    }
-
-    .mandala-root--week :global(.draggable),
-    .mandala-root--week :global(.draggable .content) {
-        height: 100%;
-    }
-
-    .mandala-root--nx9 :global(.draggable),
-    .mandala-root--nx9 :global(.draggable .content) {
-        height: 100%;
-    }
-
-    .mandala-root--3 :global(.mandala-card .drag-handle) {
-        display: none !important;
-    }
-
-    .mandala-root--week :global(.mandala-card .drag-handle) {
-        display: none !important;
-    }
-
-    .mandala-root--nx9 :global(.mandala-card .drag-handle) {
-        display: none !important;
     }
 
     .mandala-empty {

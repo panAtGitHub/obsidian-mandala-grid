@@ -1,14 +1,12 @@
 <script lang="ts">
     import { NodeId } from 'src/stores/document/document-state-type';
     import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
-    import Draggable from './components/dnd/draggable.svelte';
     import InlineEditor from './components/content/inline-editor.svelte';
     import Content from './components/content/content.svelte';
     import CardButtons
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import clx from 'classnames';
-    import { droppable } from 'src/view/actions/dnd/droppable';
     import TreeIndex
         from 'src/view/components/container/column/components/group/components/card/components/card-buttons/tree-index-button.svelte';
     import CardStyle from './components/card-style.svelte';
@@ -55,7 +53,6 @@
                       : undefined,
     )}
     id={node}
-    use:droppable
 >
     {#if style}
         <CardStyle {style} />
@@ -63,9 +60,7 @@
     {#if active === ActiveStatus.node && editing}
         <InlineEditor nodeId={node} {style} />
     {:else}
-        <Draggable nodeId={node} {isInSidebar}>
-            <Content nodeId={node} {isInSidebar} />
-        </Draggable>
+        <Content nodeId={node} {isInSidebar} />
     {/if}
 
     <CardButtons

@@ -1,7 +1,6 @@
 <script lang="ts">
     import Column from './column/column.svelte';
     import { getView } from 'src/view/components/container/context';
-    import { scrollOnDndX } from 'src/view/actions/dnd/scroll-on-dnd-x/scroll-on-dnd-x';
     import {
         columnsStore,
         GroupParentIdsStore,
@@ -9,7 +8,6 @@
         PinnedNodesStore,
     } from 'src/stores/document/derived/document-derived-stores';
     import ColumnsBuffer from './buffers/columns-buffer.svelte';
-    import { dndStore } from 'src/stores/view/derived/dnd-store';
     import { activeBranchStore } from 'src/stores/view/derived/active-branch-store';
     import { activeNodeStore } from 'src/stores/view/derived/active-node-store';
     import { documentStateStore } from 'src/stores/view/derived/editing-store';
@@ -28,12 +26,10 @@
     import { zoomLevelStore } from 'src/stores/view/derived/zoom-level-store';
     import { textIsSelected } from 'src/view/actions/context-menu/card-context-menu/helpers/text-is-selected';
     import { hideFloatingButtons } from 'src/view/actions/hide-floating-buttons';
-    import { scrollOnDndY } from 'src/view/actions/dnd/scroll-on-dnd-y/scroll-on-dnd-y';
 
     const view = getView();
 
     const columns = columnsStore(view);
-    const dnd = dndStore(view);
     const activeBranch = activeBranchStore(view);
     const activeNode = activeNodeStore(view);
     const selectedNodes = selectedNodesStore(view);
@@ -92,8 +88,6 @@
     tabindex="0"
     on:click={saveNode}
     on:dblclick={centerActiveNode}
-    use:scrollOnDndX
-    use:scrollOnDndY
     use:hideFloatingButtons
 >
     <div class="columns">
@@ -102,7 +96,6 @@
         {#each $columns as column (column.id)}
             <Column
                 columnId={column.id}
-                dndChildGroups={$dnd.childGroups}
                 {parentNodes}
                 activeGroup={$activeBranch.group}
                 activeChildGroups={$activeBranch.childGroups}

@@ -1,6 +1,5 @@
 import {
     ActiveBranch,
-    DNDState,
     EditingState,
 } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
@@ -22,7 +21,6 @@ export type PendingDocumentConfirmation = {
 export type DocumentViewState = {
     editing: EditingState;
     activeBranch: ActiveBranch;
-    dnd: DNDState;
     activeNode: string;
     activeNodesOfColumn: ActiveNodesOfColumn;
     selectedNodes: Set<string>;

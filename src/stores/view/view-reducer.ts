@@ -5,8 +5,6 @@ import { setSearchResults } from 'src/stores/view/reducers/search/set-search-res
 import { toggleSearchInput } from 'src/stores/view/reducers/search/toggle-search-input';
 import { enableEditMode } from 'src/stores/view/reducers/document/enable-edit-mode';
 import { disableEditMode } from 'src/stores/view/reducers/document/disable-edit-mode';
-import { onDragStart } from 'src/stores/view/reducers/document/on-drag-start';
-import { onDragEnd } from 'src/stores/view/reducers/document/on-drag-end';
 import { updateActiveBranch } from 'src/stores/view/reducers/document/helpers/update-active-branch';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { navigateUsingKeyboard } from 'src/stores/view/reducers/document/navigate-using-keyboard';
@@ -175,14 +173,6 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/editor/disable-sidebar-editor': (state, action) => {
         if (action.type !== 'view/editor/disable-sidebar-editor') return;
         disableEditMode(state.document);
-    },
-    'view/dnd/set-drag-started': (state, action) => {
-        if (action.type !== 'view/dnd/set-drag-started') return;
-        onDragStart(state.document, action);
-    },
-    'view/dnd/set-drag-ended': (state, action) => {
-        if (action.type !== 'view/dnd/set-drag-ended') return;
-        onDragEnd(state.document);
     },
     'view/update-active-branch?source=document': (state, action, context) => {
         if (action.type !== 'view/update-active-branch?source=document') return;
