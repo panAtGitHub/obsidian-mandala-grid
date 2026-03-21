@@ -26,7 +26,10 @@
     style={style}
 >
     {#if showColorDot}
-        <span class="mandala-card-meta__color-dot" aria-hidden="true"></span>
+        <span
+            class="mandala-card-meta__color-capsule"
+            aria-hidden="true"
+        ></span>
     {/if}
     {#if showPin}
         <span class="mandala-card-meta__pin" aria-hidden="true">
@@ -62,9 +65,9 @@
         opacity: 0.7;
     }
 
-    .mandala-card-meta__color-dot {
-        width: 8px;
-        height: 8px;
+    .mandala-card-meta__color-capsule {
+        width: 10px;
+        height: 14px;
         border-radius: 999px;
         background: var(--mandala-card-meta-accent, currentColor);
         flex: 0 0 auto;
