@@ -7,10 +7,11 @@
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/view/components/mandala/nx9/nx9-next-core-cell.svelte';
-    import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
 
@@ -31,10 +32,7 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
-    const pinnedNodes = derived(
-        view.documentStore,
-        (state) => new Set(state.pinnedNodes.Ids),
-    );
+    const pinnedSections = PinnedSectionsStore(view);
     const sectionColors = SectionColorBySectionStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
@@ -49,10 +47,12 @@
     $: showFutureHint = rowCount <= 5;
 
     const getSectionColor = (section: string | null) => {
-        if (!section || $backgroundMode !== 'custom') return null;
-        const color = $sectionColors[section];
-        if (!color) return null;
-        return applyOpacityToHex(color, $sectionColorOpacity / 100);
+        return resolveCustomSectionColor({
+            section,
+            backgroundMode: $backgroundMode,
+            sectionColorsBySection: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+        });
     };
 
     const isActiveCell = (row: number, col: number) =>
@@ -124,7 +124,7 @@
                                 !$editingState.isInSidebar &&
                                 !$showDetailSidebar}
                             selected={$selectedNodes.has(nodeId)}
-                            pinned={$pinnedNodes.has(nodeId)}
+                            pinned={$pinnedSections.has(section)}
                             sectionColor={getSectionColor(section)}
                             draggable={false}
                             gridCell={{

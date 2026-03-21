@@ -9,7 +9,8 @@
     } from 'src/stores/settings/derived/view-settings-store';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
+    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/view/helpers/mandala/week-plan-context';
 
@@ -37,10 +38,7 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
-    const pinnedNodes = derived(
-        view.documentStore,
-        (state) => new Set(state.pinnedNodes.Ids),
-    );
+    const pinnedSections = PinnedSectionsStore(view);
 
     $: activeCell = $mandalaUiState.activeCellWeek7x9;
 
@@ -50,10 +48,12 @@
     };
 
     const getSectionColor = (section: string | null) => {
-        if (!section || $backgroundMode !== 'custom') return null;
-        const color = $sectionColors[section];
-        if (!color) return null;
-        return applyOpacityToHex(color, $sectionColorOpacity / 100);
+        return resolveCustomSectionColor({
+            section,
+            backgroundMode: $backgroundMode,
+            sectionColorsBySection: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+        });
     };
 </script>
 
@@ -94,7 +94,9 @@
                         !$editingState.isInSidebar &&
                         !$showDetailSidebar}
                     selected={$selectedNodes.has(cell.nodeId)}
-                    pinned={$pinnedNodes.has(cell.nodeId)}
+                    pinned={cell.section
+                        ? $pinnedSections.has(cell.section)
+                        : false}
                     sectionColor={getSectionColor(cell.section)}
                     draggable={false}
                     gridCell={{

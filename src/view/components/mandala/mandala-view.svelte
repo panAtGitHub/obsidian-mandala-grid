@@ -45,7 +45,8 @@
     import MobileNativeEditorSheet from 'src/view/components/mandala/mobile-native-editor-sheet.svelte';
     import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
+    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
     import {
         enterSubgridForNode,
@@ -113,10 +114,13 @@
         sectionColors: Record<string, string>,
         sectionColorOpacity: number,
     ) => {
-        const opacity = sectionColorOpacity / 100;
-        if (backgroundMode === 'custom' && sectionColors[section]) {
-            return applyOpacityToHex(sectionColors[section], opacity);
-        }
+        const customColor = resolveCustomSectionColor({
+            section,
+            backgroundMode,
+            sectionColorsBySection: sectionColors,
+            sectionColorOpacity,
+        });
+        if (customColor) return customColor;
         if (backgroundMode === 'gray' && isCrossIndex(index)) {
             return `color-mix(in srgb, var(--mandala-gray-block-base) ${sectionColorOpacity}%, transparent)`;
         }
@@ -313,10 +317,7 @@
         view.documentStore,
         (state) => state.sections.id_section,
     );
-    const pinnedNodes = derived(
-        view.documentStore,
-        (state) => new Set(state.pinnedNodes.Ids),
-    );
+    const pinnedSections = PinnedSectionsStore(view);
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
@@ -761,7 +762,9 @@
                                         selected={$selectedNodes.has(
                                             cell.nodeId,
                                         )}
-                                        pinned={$pinnedNodes.has(cell.nodeId)}
+                                        pinned={$pinnedSections.has(
+                                            cell.section,
+                                        )}
                                         sectionColor={sectionBackground}
                                         draggable={false}
                                     />

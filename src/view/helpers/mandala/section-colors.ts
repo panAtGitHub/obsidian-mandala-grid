@@ -1,4 +1,5 @@
 import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
+import type { Sections } from 'src/stores/document/document-state-type';
 import {
     compareSectionIds,
     swapSectionSubtreeIds,
@@ -42,6 +43,33 @@ export const applyOpacityToHex = (color: string, opacity: number) => {
     const alpha = Math.min(1, Math.max(0, opacity));
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
+
+export const resolveCustomSectionColor = ({
+    section,
+    backgroundMode,
+    sectionColorsBySection,
+    sectionColorOpacity,
+}: {
+    section: string | null;
+    backgroundMode: string;
+    sectionColorsBySection: Record<string, string>;
+    sectionColorOpacity: number;
+}) => {
+    if (!section || backgroundMode !== 'custom') return null;
+    const color = sectionColorsBySection[section];
+    if (!color) return null;
+    return applyOpacityToHex(color, sectionColorOpacity / 100);
+};
+
+export const createPinnedSectionSet = (
+    sections: Sections,
+    pinnedNodeIds: string[],
+) =>
+    new Set(
+        pinnedNodeIds
+            .map((nodeId) => sections.id_section[nodeId])
+            .filter((section): section is string => Boolean(section)),
+    );
 
 const createEmptySectionColorMap = (): SectionColorMap => ({
     '1_white': [],

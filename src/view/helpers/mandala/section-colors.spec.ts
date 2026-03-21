@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
     compareSectionIds,
+    createPinnedSectionSet,
     parsePinnedSectionsFromPersistedState,
+    resolveCustomSectionColor,
     serializeSectionColorMap,
     setSectionColor,
     swapSectionColors,
@@ -89,5 +91,36 @@ describe('section-colors', () => {
         expect(
             parsePinnedSectionsFromPersistedState([2, '1.2', 1.2, '1.2', 1]),
         ).toEqual(['1', '1.2', '2']);
+    });
+
+    it('resolves custom section colors by section id', () => {
+        expect(
+            resolveCustomSectionColor({
+                section: '1.2',
+                backgroundMode: 'custom',
+                sectionColorsBySection: {
+                    '1.2': '#677FEF',
+                },
+                sectionColorOpacity: 65,
+            }),
+        ).toBe('rgba(103, 127, 239, 0.65)');
+    });
+
+    it('creates pinned section sets from current section occupancy', () => {
+        expect(
+            createPinnedSectionSet(
+                {
+                    section_id: {
+                        '1.1': 'node-a',
+                        '1.2': 'node-b',
+                    },
+                    id_section: {
+                        'node-a': '1.1',
+                        'node-b': '1.2',
+                    },
+                },
+                ['node-b'],
+            ),
+        ).toEqual(new Set(['1.2']));
     });
 });

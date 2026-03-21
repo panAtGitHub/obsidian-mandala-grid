@@ -4,13 +4,14 @@
     import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
     import {
         MandalaBackgroundModeStore,
         MandalaGridCustomLayoutsStore,
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
 
     const view = getView();
 
@@ -19,10 +20,7 @@
         (state) => state.sections.section_id,
     );
 
-    const pinnedNodes = derived(
-        view.documentStore,
-        (state) => new Set(state.pinnedNodes.Ids),
-    );
+    const pinnedSections = PinnedSectionsStore(view);
 
     const activeNodeId = derived(
         view.viewStore,
@@ -54,10 +52,12 @@
     const customLayouts = MandalaGridCustomLayoutsStore(view);
 
     const getSectionColor = (section: string) => {
-        if ($backgroundMode !== 'custom') return null;
-        const color = $sectionColors[section];
-        if (!color) return null;
-        return applyOpacityToHex(color, $sectionColorOpacity / 100);
+        return resolveCustomSectionColor({
+            section,
+            backgroundMode: $backgroundMode,
+            sectionColorsBySection: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+        });
     };
 </script>
 
@@ -85,8 +85,8 @@
                     {active}
                     {editing}
                     selected={$selectedNodes.has(nodeId)}
-                    pinned={$pinnedNodes.has(nodeId)}
-                    sectionColor={sectionColor}
+                    pinned={$pinnedSections.has(section)}
+                    {sectionColor}
                     draggable={section !== baseTheme}
                     gridCell={{ mode: '9x9', row, col }}
                 />
