@@ -2,7 +2,7 @@
     import { PencilIcon, SaveIcon } from 'lucide-svelte';
     import { Platform } from 'obsidian';
     import { lang } from 'src/lang/lang';
-    import { getView } from '../../../../../../../../../context';
+    import { getView } from 'src/view/components/container/context';
     import FloatingButton from '../../shared/floating-button.svelte';
     import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
     import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';

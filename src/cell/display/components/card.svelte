@@ -4,12 +4,12 @@
     import Content from 'src/cell/display/content/content.svelte';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';
     import CardButtons
-        from 'src/view/components/container/column/components/group/components/card/components/card-buttons/card-buttons/card-buttons.svelte';
+        from 'src/cell/interaction/buttons/card-buttons/card-buttons.svelte';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import clx from 'classnames';
     import CardStyle from 'src/cell/display/style/card-style.svelte';
     import TreeIndex
-        from 'src/view/components/container/column/components/group/components/card/components/card-buttons/tree-index-button.svelte';
+        from 'src/cell/interaction/buttons/tree-index-button.svelte';
 
     export let node: NodeId;
     export let editing: boolean;

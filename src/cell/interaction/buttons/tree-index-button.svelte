@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { getView } from '../../../../../../../context';
     import { ActiveStatus } from 'src/view/components/container/column/components/group/components/active-status.enum';
+    import { getView } from 'src/view/components/container/context';
     import {
         findSectionPosition
-    } from 'src/view/components/container/column/components/group/components/card/components/card-buttons/helpers/find-section-position';
+    } from 'src/cell/interaction/buttons/helpers/find-section-position';
     import {
         openFileAndJumpToLine
-    } from 'src/view/components/container/column/components/group/components/card/components/card-buttons/helpers/openFileAndJumpToLine';
+    } from 'src/cell/interaction/buttons/helpers/openFileAndJumpToLine';
     import { lang } from 'src/lang/lang';
     import Pin from './pin-indicator.svelte';
 
@@ -15,8 +15,6 @@
     export let activeStatus: ActiveStatus | null;
     export let section: string;
     export let pinned: boolean;
-
-     
     const openFile = async () => {
         if (!view.file) return;
 

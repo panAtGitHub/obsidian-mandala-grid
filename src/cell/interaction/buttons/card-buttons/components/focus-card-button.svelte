@@ -2,7 +2,7 @@
     import { Focus } from 'lucide-svelte';
     import { lang } from 'src/lang/lang';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
-    import { getView } from '../../../../../../../../../context';
+    import { getView } from 'src/view/components/container/context';
     import FloatingButton from '../../shared/floating-button.svelte';
 
     export let nodeId: string;
