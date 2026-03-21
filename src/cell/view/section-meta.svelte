@@ -1,6 +1,6 @@
 <script lang="ts">
     import clx from 'classnames';
-    import { Lock } from 'lucide-svelte';
+    import { Pin } from 'lucide-svelte';
     import type { CellTextTone } from 'src/cell/model/card-types';
 
     export let sectionLabel = '';
@@ -15,35 +15,29 @@
 <div
     class={clx(
         className,
-        'section-meta',
-        showBackground ? 'section-meta--with-bg' : 'section-meta--without-bg',
+        'mandala-card-meta',
+        showBackground
+            ? 'mandala-card-meta--with-bg'
+            : 'mandala-card-meta--without-bg',
         showBackground && textTone
-            ? `section-meta--tone-${textTone}`
+            ? `mandala-card-meta--tone-${textTone}`
             : undefined,
     )}
     style={style}
 >
     {#if showColorDot}
-        <span
-            class="section-meta__color-dot mandala-card-meta__color-dot"
-            aria-hidden="true"
-        ></span>
+        <span class="mandala-card-meta__color-dot" aria-hidden="true"></span>
     {/if}
     {#if showPin}
-        <span
-            class="section-meta__lock mandala-card-meta__pin"
-            aria-hidden="true"
-        >
-            <Lock size={10} strokeWidth={2.2} />
+        <span class="mandala-card-meta__pin" aria-hidden="true">
+            <Pin size={10} strokeWidth={2.2} />
         </span>
     {/if}
-    <span class="section-meta__label mandala-card-meta__section"
-        >{sectionLabel}</span
-    >
+    <span class="mandala-card-meta__section">{sectionLabel}</span>
 </div>
 
 <style>
-    .section-meta {
+    .mandala-card-meta {
         position: absolute;
         top: 6px;
         right: 8px;
@@ -56,7 +50,7 @@
         z-index: 1;
     }
 
-    .section-meta--with-bg {
+    .mandala-card-meta--with-bg {
         min-height: 18px;
         padding: 1px 6px;
         border-radius: 6px;
@@ -64,11 +58,11 @@
         color: var(--text-muted);
     }
 
-    .section-meta--without-bg {
+    .mandala-card-meta--without-bg {
         opacity: 0.7;
     }
 
-    .section-meta__color-dot {
+    .mandala-card-meta__color-dot {
         width: 8px;
         height: 8px;
         border-radius: 999px;
@@ -77,7 +71,7 @@
         opacity: 0.9;
     }
 
-    .section-meta__lock {
+    .mandala-card-meta__pin {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -85,15 +79,15 @@
         opacity: 0.9;
     }
 
-    .section-meta__label {
+    .mandala-card-meta__section {
         line-height: 1;
     }
 
-    .section-meta--tone-dark {
+    .mandala-card-meta--tone-dark {
         color: #2f3a48;
     }
 
-    .section-meta--tone-light {
+    .mandala-card-meta--tone-light {
         color: #d0d8e6;
     }
 </style>
