@@ -1,7 +1,7 @@
 <script lang="ts">
     import Node from 'src/cell/display/components/card.svelte';
     import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import clx from 'classnames';
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';

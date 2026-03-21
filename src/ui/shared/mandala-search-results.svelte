@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import type { MandalaSearchResult } from 'src/view/helpers/mandala/search-utils';
     import { navigateToSearchResult, previewSearchResult } from 'src/view/helpers/mandala/search-utils';
     

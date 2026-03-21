@@ -3,7 +3,7 @@
     import Front from './front.svelte';
     import NumberOfConflicts from './status-bar.svelte';
     import { FilteredHotkeysStore } from 'src/stores/settings/derived/view-hotkeys-store';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
 
     import { X, Check } from 'lucide-svelte';
     import { Platform } from 'obsidian';

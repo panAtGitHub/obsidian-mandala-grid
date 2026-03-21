@@ -1,4 +1,4 @@
-import { getView } from 'src/view/components/container/context';
+import { getView } from 'src/views/shared/shell/context';
 
 export const loadInlineEditor = (target: HTMLElement, nodeId: string) => {
     const view = getView();

@@ -11,7 +11,7 @@
     import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
     import { enableEditModeInSidebar } from 'src/cell/interaction/actions/enable-edit-mode-in-sidebar';
     import { setActiveMainSplitNode } from 'src/cell/interaction/actions/set-active-main-split-node';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { getCursorPosition } from 'src/cell/display/content/event-handlers/get-cursor-position';
     import { handleLinks } from 'src/cell/display/content/event-handlers/handle-links/handle-links';
     import { isGrabbing } from './event-handlers/helpers/is-grabbing';

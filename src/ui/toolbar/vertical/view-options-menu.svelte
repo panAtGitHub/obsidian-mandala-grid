@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { Printer, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform, TFile, btoa } from 'obsidian';

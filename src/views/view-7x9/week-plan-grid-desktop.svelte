@@ -1,7 +1,7 @@
 <script lang="ts">
     import { derived } from 'src/lib/store/derived';
     import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { WeekPlanCompactModeStore } from 'src/stores/settings/derived/view-settings-store';
     import { buildWeekPlanBaseCells } from 'src/view/helpers/mandala/week-plan-context';
     import RowMatrixGridDesktop from 'src/views/view-7x9/row-matrix-grid-desktop.svelte';

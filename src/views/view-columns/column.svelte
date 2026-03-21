@@ -1,6 +1,6 @@
 <script lang="ts">
     import Group from './components/group.svelte';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { groupsStore } from 'src/stores/cell/document-derived-stores';
     import { EditingState } from 'src/stores/view/default-view-state';
     import { PendingDocumentConfirmation } from 'src/stores/view/view-state-type';

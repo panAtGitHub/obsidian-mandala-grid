@@ -6,7 +6,7 @@
     import VerticalTabHeader from './vertical-tab-header.svelte';
     import { ActiveSettingsTabStore } from 'src/ui/settings/settings-modal/active-settings-tab-store';
     import { X, Check } from 'lucide-svelte';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { Platform } from 'obsidian';
 
     const view = getView();

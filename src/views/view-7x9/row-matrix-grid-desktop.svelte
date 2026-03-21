@@ -1,6 +1,6 @@
 <script lang="ts">
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,

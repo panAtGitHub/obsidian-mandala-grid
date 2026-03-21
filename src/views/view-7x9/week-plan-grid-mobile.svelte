@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import {
         buildWeekPlanBaseCells,
         type WeekPlanBaseCell,

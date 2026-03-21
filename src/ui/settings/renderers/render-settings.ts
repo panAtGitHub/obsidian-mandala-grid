@@ -1,4 +1,4 @@
-import { getView } from 'src/view/components/container/context';
+import { getView } from 'src/views/shared/shell/context';
 import { FontSize } from 'src/ui/settings/fields/font-size';
 import { BackgroundColor } from 'src/ui/settings/fields/background-color';
 import { ActiveBranchBackground } from 'src/ui/settings/fields/active-branch-background';

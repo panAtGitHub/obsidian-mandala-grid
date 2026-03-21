@@ -2,7 +2,7 @@
     import { Settings } from 'lucide-svelte';
     import { Menu } from 'obsidian';
     import { lang } from 'src/lang/lang';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import {
         AltPrimaryModifier
     } from 'src/view/actions/keyboard-shortcuts/helpers/commands/presets/alt-primary-modifier';

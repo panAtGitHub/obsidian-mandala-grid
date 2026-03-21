@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { derived } from 'src/lib/store/derived';
     import {
         DayPlanEnabledStore,

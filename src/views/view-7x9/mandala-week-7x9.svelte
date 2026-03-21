@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { WeekStartStore } from 'src/stores/settings/derived/view-settings-store';
     import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
     import WeekPlanGridDesktop from 'src/views/view-7x9/week-plan-grid-desktop.svelte';

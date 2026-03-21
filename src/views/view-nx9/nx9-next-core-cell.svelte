@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { createNextNx9Core } from 'src/view/helpers/mandala/nx9/create-next-core';
 
     export let nextCoreSection: string;

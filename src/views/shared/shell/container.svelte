@@ -1,6 +1,6 @@
 <script lang="ts">
     import Column from 'src/views/view-columns/column.svelte';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import {
         columnsStore,
         GroupParentIdsStore,

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import Item from './breadcrumbs-item.svelte';
     import { activeBranchStore } from 'src/stores/view/derived/active-branch-store';
     import {

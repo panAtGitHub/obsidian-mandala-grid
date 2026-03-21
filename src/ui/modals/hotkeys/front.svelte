@@ -1,6 +1,6 @@
 <script lang="ts">
     import { lang } from 'src/lang/lang';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
 
     let searchTerm = '';
     const view = getView();

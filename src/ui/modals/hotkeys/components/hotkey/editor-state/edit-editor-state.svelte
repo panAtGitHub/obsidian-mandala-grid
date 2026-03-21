@@ -3,7 +3,7 @@
 
     import EditorState from './render-editor-state.svelte';
     import { CommandName } from '../../../../../../../../lang/hotkey-groups';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
 
     export let hotkey: ViewHotkey;
     export let commandName: CommandName;

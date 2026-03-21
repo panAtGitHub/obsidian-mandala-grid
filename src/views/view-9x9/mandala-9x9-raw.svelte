@@ -1,6 +1,6 @@
 <script lang="ts">
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { onDestroy } from 'svelte';
     import Content from 'src/cell/display/content/content.svelte';
     import InlineEditor from 'src/cell/display/content/inline-editor.svelte';

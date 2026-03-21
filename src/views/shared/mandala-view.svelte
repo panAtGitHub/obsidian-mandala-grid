@@ -24,7 +24,7 @@
         WhiteThemeModeStore,
         WeekStartStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {

@@ -10,7 +10,7 @@
     } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
     import { normalizeHotkeyKey } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/normalize-hotkey-key';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { lang } from 'src/lang/lang';
     import EditEditorState from './editor-state/edit-editor-state.svelte';
     import { StatefulViewHotkey } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';

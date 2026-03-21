@@ -1,7 +1,7 @@
 <script lang="ts">
     import Button from 'src/ui/shared/button.svelte';
     import { PanelLeftDashed } from 'lucide-svelte';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { ShowLeftSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { lang } from 'src/lang/lang';
 

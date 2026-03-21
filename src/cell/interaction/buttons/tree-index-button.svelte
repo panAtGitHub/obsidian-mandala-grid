@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import {
         findSectionPosition
     } from 'src/cell/interaction/buttons/helpers/find-section-position';

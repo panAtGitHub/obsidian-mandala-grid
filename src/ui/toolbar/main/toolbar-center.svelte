@@ -15,7 +15,7 @@
         Nx9RowsPerPageStore,
         Show9x9TitleOnlyStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import Button from 'src/ui/shared/button.svelte';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 

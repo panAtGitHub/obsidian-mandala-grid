@@ -1,7 +1,7 @@
 <script lang="ts">
     import { derived } from 'src/lib/store/derived';
     import { Nx9RowsPerPageStore } from 'src/stores/settings/derived/view-settings-store';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
     import Nx9GridDesktop from 'src/views/view-nx9/nx9-grid-desktop.svelte';
 

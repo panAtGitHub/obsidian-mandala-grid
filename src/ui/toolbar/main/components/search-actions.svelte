@@ -2,7 +2,7 @@
     import { Copy } from 'lucide-svelte';
     import Button from 'src/ui/shared/button.svelte';
     import { Menu } from 'obsidian';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import {
         copyFlatSearchResultsToClipboard
     } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/copy-flat-search-results-to-clipboard';

@@ -1,6 +1,6 @@
 <script>
     import SearchToggle from './components/search-toggle.svelte';
-    import { getView } from 'src/view/components/container/context';
+    import { getView } from 'src/views/shared/shell/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
     import SearchInput from './components/search-input.svelte';
     import LeftSidebarToggle from './components/left-sidebar-toggle.svelte';
