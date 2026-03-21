@@ -1,8 +1,8 @@
 @import url('theme/theme.css');
 @import url('theme/group.css');
 @import url('theme/node.css');
-@import url('makdown/inline-editor.css');
-@import url('makdown/makdown-preview.css');
+@import url('markdown/inline-editor.css');
+@import url('markdown/markdown-preview.css');
 @import url('card/floating-card-button.css');
 @import url('view/buttons.css');
 @import url('view/modal.css');
