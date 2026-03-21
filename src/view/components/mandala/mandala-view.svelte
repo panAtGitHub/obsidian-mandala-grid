@@ -45,7 +45,7 @@
     import MobileNativeEditorSheet from 'src/view/components/mandala/mobile-native-editor-sheet.svelte';
     import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/document-projections-store';
     import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
     import {

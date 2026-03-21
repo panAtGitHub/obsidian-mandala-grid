@@ -11,14 +11,17 @@
     import { searchStore } from 'src/stores/view/derived/search-store';
     import { NodeId } from 'src/stores/document/document-state-type';
     import { limitPreviewHeightStore } from 'src/stores/settings/derived/limit-preview-height-store';
-    import { IdSectionStore } from 'src/stores/document/derived/id-section-store';
-    import { selectedNodesStore } from 'src/stores/view/derived/selected-nodes-store';
-    import { PinnedNodesStore } from 'src/stores/document/derived/pinned-nodes-store';
-    import { GroupParentIdsStore } from 'src/stores/document/derived/meta';
-    import { AlwaysShowCardButtons, ApplyGapBetweenCardsStore } from 'src/stores/settings/derived/view-settings-store';
     import {
-        saveNodeContent
-    } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
+        IdSectionStore,
+        GroupParentIdsStore,
+        PinnedNodesStore,
+    } from 'src/stores/document/derived/document-projections-store';
+    import { selectedNodesStore } from 'src/stores/view/derived/selected-nodes-store';
+    import {
+        AlwaysShowCardButtons,
+        ApplyGapBetweenCardsStore,
+    } from 'src/stores/settings/derived/view-settings-store';
+    import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
     import { PendingConfirmationStore } from 'src/stores/view/derived/pending-confirmation';
     import { onMount } from 'svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
@@ -56,7 +59,7 @@
         if (textIsSelected()) return;
         const editingState = view.viewStore.getValue().document.editing;
         if (editingState.activeNodeId) {
-            saveNodeContent(view,true);
+            saveNodeContent(view, true);
         }
     };
 
@@ -128,9 +131,7 @@
         --scrollbar-bg: transparent;
     }
 
-
     .columns-container::-webkit-scrollbar {
         display: none;
     }
-
 </style>

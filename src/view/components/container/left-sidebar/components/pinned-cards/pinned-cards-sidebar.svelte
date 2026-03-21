@@ -1,21 +1,13 @@
 <script lang="ts">
     import { derived } from 'svelte/store';
-    import { PinnedNodesStore } from '../../../../../../stores/document/derived/pinned-nodes-store';
+    import { PinnedNodesStore } from '../../../../../../stores/document/derived/document-projections-store';
     import { getView } from '../../../context';
     import { ActivePinnedCardStore } from '../../../../../../stores/view/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
-    import {
-        scrollActivePinnedNode
-    } from 'src/view/components/container/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
-    import {
-        navigateToSearchResult
-    } from 'src/view/helpers/mandala/search-utils';
-    import {
-        setActiveSidebarNode
-    } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import {
-        CurrentFileSectionColorMapStore,
-    } from 'src/stores/document/derived/section-colors-store';
+    import { scrollActivePinnedNode } from 'src/view/components/container/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
+    import { navigateToSearchResult } from 'src/view/helpers/mandala/search-utils';
+    import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
+    import { CurrentFileSectionColorMapStore } from 'src/stores/document/derived/section-colors-store';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
@@ -62,8 +54,9 @@
         const title = titleLine.replace(/^#+\s*/, '').trim();
         const titleIndex = lines.indexOf(titleLine);
         const bodyLine =
-            lines.slice(titleIndex + 1).find((line) => line.trim().length > 0) ||
-            '';
+            lines
+                .slice(titleIndex + 1)
+                .find((line) => line.trim().length > 0) || '';
         return { title, body: bodyLine.trimEnd() };
     };
 
@@ -85,11 +78,15 @@
                     colorOrderMap.set(section, idx);
                 });
             }
-            const previewCache = new Map<string, { title: string; body: string }>();
+            const previewCache = new Map<
+                string,
+                { title: string; body: string }
+            >();
             const getPreview = (nodeId: string) => {
                 const cached = previewCache.get(nodeId);
                 if (cached) return cached;
-                const content = documentState.document.content[nodeId]?.content || '';
+                const content =
+                    documentState.document.content[nodeId]?.content || '';
                 const preview = parsePinnedContent(content);
                 previewCache.set(nodeId, preview);
                 return preview;
@@ -108,8 +105,9 @@
                     };
                 },
             );
-            const items = mappedItems
-                .filter((item): item is PinnedItem => Boolean(item));
+            const items = mappedItems.filter((item): item is PinnedItem =>
+                Boolean(item),
+            );
             const coloredItems: PinnedItem[] = [];
             for (const key of SECTION_COLOR_KEYS) {
                 const sections = colorMap[key] || [];
@@ -152,15 +150,11 @@
         return index === -1 ? Number.POSITIVE_INFINITY : index;
     };
 
-    const getPinnedOrder = (
-        orderMap: Map<string, number>,
-        section: string,
-    ) => orderMap.get(section) ?? Number.POSITIVE_INFINITY;
+    const getPinnedOrder = (orderMap: Map<string, number>, section: string) =>
+        orderMap.get(section) ?? Number.POSITIVE_INFINITY;
 
-    const getColorOrder = (
-        orderMap: Map<string, number>,
-        section: string,
-    ) => orderMap.get(section) ?? Number.POSITIVE_INFINITY;
+    const getColorOrder = (orderMap: Map<string, number>, section: string) =>
+        orderMap.get(section) ?? Number.POSITIVE_INFINITY;
 
     const sortByColor = (a: PinnedItem, b: PinnedItem) => {
         const aRank = getColorRank(a.colorKey);
@@ -271,10 +265,8 @@
                 <div
                     class="pinned-list-item"
                     class:selected={$activePinnedCard === item.nodeId}
-                    class:has-color={
-                        $backgroundMode === 'custom' &&
-                        Boolean($sectionColors[item.section])
-                    }
+                    class:has-color={$backgroundMode === 'custom' &&
+                        Boolean($sectionColors[item.section])}
                     style={getPinnedItemStyle(item.section)}
                     id={item.nodeId}
                     on:click={() => handleClick(item)}
@@ -350,7 +342,9 @@
         border-radius: var(--radius-m);
         background: var(--pinned-item-bg, var(--background-primary-alt));
         color: var(--text-normal);
-        transition: background-color 0.1s ease, border-color 0.1s ease;
+        transition:
+            background-color 0.1s ease,
+            border-color 0.1s ease;
     }
 
     .pinned-list-item:hover {
@@ -358,7 +352,10 @@
     }
 
     .pinned-list-item:active {
-        background: var(--pinned-item-bg, var(--background-modifier-active-hover));
+        background: var(
+            --pinned-item-bg,
+            var(--background-modifier-active-hover)
+        );
     }
 
     .pinned-list-item.selected {

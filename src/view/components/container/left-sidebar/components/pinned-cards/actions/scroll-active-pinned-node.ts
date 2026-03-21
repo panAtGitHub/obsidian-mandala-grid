@@ -1,6 +1,6 @@
 import { ActivePinnedCardStore } from 'src/stores/view/derived/pinned-cards-sidebar';
 import { scrollCardIntoView } from '../../recent-cards/helpers/scroll-card-into-view';
-import { PinnedNodesStore } from 'src/stores/document/derived/pinned-nodes-store';
+import { PinnedNodesStore } from 'src/stores/document/derived/document-projections-store';
 import { getView } from 'src/view/components/container/context';
 
 export const scrollActivePinnedNode = (containerRef: HTMLElement) => {

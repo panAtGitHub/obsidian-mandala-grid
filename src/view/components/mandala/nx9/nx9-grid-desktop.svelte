@@ -7,7 +7,7 @@
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/document-projections-store';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/view/components/mandala/nx9/nx9-next-core-cell.svelte';

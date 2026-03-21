@@ -4,7 +4,7 @@
     import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
     import MandalaCard from 'src/view/components/mandala/mandala-card.svelte';
     import { SectionColorBySectionStore } from 'src/stores/document/derived/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/document/derived/pinned-sections-store';
+    import { PinnedSectionsStore } from 'src/stores/document/derived/document-projections-store';
     import {
         MandalaBackgroundModeStore,
         MandalaGridCustomLayoutsStore,
