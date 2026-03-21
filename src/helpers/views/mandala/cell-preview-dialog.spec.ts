@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { toggleCellPreviewDialog } from 'src/view/helpers/mandala/cell-preview-dialog';
+import { toggleCellPreviewDialog } from 'src/helpers/views/mandala/cell-preview-dialog';
 
 vi.mock('obsidian', () => ({
     Platform: {

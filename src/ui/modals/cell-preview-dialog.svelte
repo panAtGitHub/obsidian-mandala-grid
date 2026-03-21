@@ -14,9 +14,9 @@
     import {
         closeCellPreviewDialog,
         openCellPreviewDialog,
-    } from 'src/view/helpers/mandala/cell-preview-dialog';
-    import { isPreviewDialogEditingNode } from 'src/view/helpers/mandala/is-preview-dialog-editing-node';
-    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+    } from 'src/helpers/views/mandala/cell-preview-dialog';
+    import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
+    import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
     import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
 
     const view = getView();

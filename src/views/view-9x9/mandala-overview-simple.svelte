@@ -5,10 +5,10 @@
     import {
         openSidebarAndEditMandalaNode,
         setActiveMandalaNode,
-    } from 'src/view/helpers/mandala/node-editing';
+    } from 'src/helpers/views/mandala/node-editing';
     import { derived } from 'src/lib/store/derived';
     import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
-    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
     import {
         executeMandalaSwap,
         handleMandalaSwapNodeClick,

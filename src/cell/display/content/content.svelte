@@ -7,7 +7,7 @@
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
-    import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
+    import { createMobileDoubleTapDetector } from 'src/helpers/views/mandala/mobile-double-tap';
     import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
     import { enableEditModeInSidebar } from 'src/cell/interaction/actions/enable-edit-mode-in-sidebar';
     import { setActiveMainSplitNode } from 'src/cell/interaction/actions/set-active-main-split-node';

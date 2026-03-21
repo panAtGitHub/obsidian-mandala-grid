@@ -4,10 +4,10 @@ import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/
 import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
-import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
 import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
-import { toggleCellPreviewDialog } from 'src/view/helpers/mandala/cell-preview-dialog';
+import { toggleCellPreviewDialog } from 'src/helpers/views/mandala/cell-preview-dialog';
 
 export const editCommands = () => {
     const ensureNodeForSection = (view: MandalaView, section: string) => {

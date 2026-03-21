@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     deriveSubgridThemeFromSection,
     resolveRestoredSubgridTheme,
-} from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
+} from 'src/helpers/views/mandala/resolve-restored-subgrid-theme';
 
 describe('deriveSubgridThemeFromSection', () => {
     it('returns the parent theme for child sections', () => {

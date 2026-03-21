@@ -14,7 +14,7 @@
     
     // Mandala 搜索相关导入
     import MandalaSearchResults from 'src/ui/shared/mandala-search-results.svelte';
-    import { convertToMandalaResults } from 'src/view/helpers/mandala/search-utils';
+    import { convertToMandalaResults } from 'src/helpers/views/mandala/search-utils';
 
     const view = getView();
     const search = searchStore(view);

@@ -11,7 +11,7 @@
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
-    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/view/helpers/mandala/week-plan-context';
 
     export let cells: WeekPlanBaseCell[] = [];

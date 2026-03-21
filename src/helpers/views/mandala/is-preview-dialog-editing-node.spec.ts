@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPreviewDialogEditingNode } from 'src/view/helpers/mandala/is-preview-dialog-editing-node';
+import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
 
 describe('is-preview-dialog-editing-node', () => {
     it('returns true only when the preview dialog owns editing for the same node', () => {

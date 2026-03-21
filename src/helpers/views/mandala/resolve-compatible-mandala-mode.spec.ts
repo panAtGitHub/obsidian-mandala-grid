@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { resolveCompatibleMandalaMode } from 'src/view/helpers/mandala/resolve-compatible-mandala-mode';
+import { resolveCompatibleMandalaMode } from 'src/helpers/views/mandala/resolve-compatible-mandala-mode';
 
 describe('resolveCompatibleMandalaMode', () => {
     test('keeps week plan mode when the file supports it', () => {

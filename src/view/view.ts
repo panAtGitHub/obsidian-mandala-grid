@@ -61,7 +61,7 @@ import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
 import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
-import { resolveRestoredSubgridTheme } from 'src/view/helpers/mandala/resolve-restored-subgrid-theme';
+import { resolveRestoredSubgridTheme } from 'src/helpers/views/mandala/resolve-restored-subgrid-theme';
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
     MandalaMode,
@@ -78,7 +78,7 @@ import {
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
 } from 'src/view/helpers/mandala/nx9/context';
-import { resolveCompatibleMandalaMode } from 'src/view/helpers/mandala/resolve-compatible-mandala-mode';
+import { resolveCompatibleMandalaMode } from 'src/helpers/views/mandala/resolve-compatible-mandala-mode';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 

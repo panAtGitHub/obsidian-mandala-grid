@@ -3,7 +3,7 @@
     import { getView } from 'src/views/shared/shell/context';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { contentStore } from 'src/stores/cell/document-derived-stores';
-    import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
+    import { createMobileDoubleTapDetector } from 'src/helpers/views/mandala/mobile-double-tap';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
     export let nodeId: string;

@@ -1,5 +1,5 @@
 import type { MandalaView } from 'src/view/view';
-import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
 
 export const setActiveMandalaNode = (
     view: MandalaView,

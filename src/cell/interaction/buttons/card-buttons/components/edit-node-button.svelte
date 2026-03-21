@@ -5,7 +5,7 @@
     import { getView } from 'src/views/shared/shell/context';
     import FloatingButton from '../../shared/floating-button.svelte';
     import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
-    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+    import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
 
     export let editing: boolean;
     export let nodeId: string;

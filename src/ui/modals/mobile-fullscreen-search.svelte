@@ -8,12 +8,12 @@
     import SearchNavigationButtons from 'src/ui/toolbar/main/components/search/search-navigation-buttons.svelte';
     import SearchActions from 'src/ui/toolbar/main/components/search-actions.svelte';
 
-    import type { MandalaSearchResult } from 'src/view/helpers/mandala/search-utils';
+    import type { MandalaSearchResult } from 'src/helpers/views/mandala/search-utils';
     import {
         convertToMandalaResults,
         navigateToSearchResult,
         previewSearchResult,
-    } from 'src/view/helpers/mandala/search-utils';
+    } from 'src/helpers/views/mandala/search-utils';
 
     const view = getView();
     const search = searchStore(view);

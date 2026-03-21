@@ -6,11 +6,11 @@
         buildWeekPlanBaseCells,
         type WeekPlanBaseCell,
     } from 'src/view/helpers/mandala/week-plan-context';
-    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,
         setActiveMandalaNode,
-    } from 'src/view/helpers/mandala/node-editing';
+    } from 'src/helpers/views/mandala/node-editing';
 
     export let rows: WeekPlanRow[] = [];
 

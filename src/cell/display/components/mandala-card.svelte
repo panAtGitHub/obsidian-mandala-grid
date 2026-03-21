@@ -18,17 +18,17 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
         isGridCenter,
-    } from 'src/view/helpers/mandala/mobile-navigation';
+    } from 'src/helpers/views/mandala/mobile-navigation';
     import {
         executeMandalaSwap,
         handleMandalaSwapNodeClick,
         shouldBlockMandalaNodeDoubleClickForSwap,
     } from 'src/view/helpers/mandala/mandala-swap';
-    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
-    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
-    import { enableSidebarEditorForNode } from 'src/view/helpers/mandala/node-editing';
-    import { isPreviewDialogEditingNode } from 'src/view/helpers/mandala/is-preview-dialog-editing-node';
+    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
+    import { enableSidebarEditorForNode } from 'src/helpers/views/mandala/node-editing';
+    import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';

@@ -32,7 +32,7 @@
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
-    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
     import MandalaOverviewSimple from 'src/views/view-9x9/mandala-overview-simple.svelte';
     import { flip } from 'svelte/animate';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
@@ -51,7 +51,7 @@
     import {
         enterSubgridForNode,
         exitCurrentSubgrid,
-    } from 'src/view/helpers/mandala/mobile-navigation';
+    } from 'src/helpers/views/mandala/mobile-navigation';
     import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
     import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
@@ -63,7 +63,7 @@
         resolveNx9Context,
     } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
-    import { setActiveCellWeek7x9 } from 'src/view/helpers/mandala/set-active-cell-week-7x9';
+    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
 
     const view = getView();

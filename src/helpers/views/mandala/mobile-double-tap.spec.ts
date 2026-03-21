@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createMobileDoubleTapDetector } from 'src/view/helpers/mandala/mobile-double-tap';
+import { createMobileDoubleTapDetector } from 'src/helpers/views/mandala/mobile-double-tap';
 
 describe('createMobileDoubleTapDetector', () => {
     it('returns false for the first tap', () => {

@@ -19,8 +19,8 @@
     import {
         enterSubgridForNode,
         exitCurrentSubgrid,
-    } from 'src/view/helpers/mandala/mobile-navigation';
-    import { openNodeEditor } from 'src/view/helpers/mandala/open-node-editor';
+    } from 'src/helpers/views/mandala/mobile-navigation';
+    import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';

@@ -13,7 +13,7 @@
         sectionAtRaw9x9Cell,
         type MandalaCell,
     } from 'src/view/helpers/mandala/mandala-9x9-raw';
-    import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+    import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
 
     const view = getView();
 

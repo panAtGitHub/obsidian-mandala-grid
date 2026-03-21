@@ -4,7 +4,7 @@ import {
     posOfSection9x9,
     sectionAtCell9x9,
 } from 'src/view/helpers/mandala/mandala-grid';
-import { setActiveCell9x9 } from 'src/view/helpers/mandala/set-active-cell-9x9';
+import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
