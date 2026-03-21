@@ -194,60 +194,6 @@
         z-index: 10;
     }
 
-    .mandala-card-meta {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        user-select: none;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    .mandala-card-meta--with-bg {
-        min-height: 18px;
-        padding: 1px 6px;
-        border-radius: 6px;
-        background: var(--mandala-card-meta-bg);
-        color: var(--text-muted);
-    }
-
-    .mandala-card-meta--without-bg {
-        opacity: 0.7;
-    }
-
-    .mandala-card-meta__color-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--mandala-card-meta-accent, currentColor);
-        box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
-        flex: 0 0 auto;
-    }
-
-    .mandala-card-meta__lock {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: currentColor;
-        opacity: 0.9;
-    }
-
-    .mandala-card-meta__section {
-        line-height: 1;
-    }
-
-    .mandala-card-meta--tone-dark {
-        color: #2f3a48;
-    }
-
-    .mandala-card-meta--tone-light {
-        color: #d0d8e6;
-    }
-
     .mandala-card--swap-source {
         box-shadow: 0 0 0 2px var(--interactive-accent);
     }
