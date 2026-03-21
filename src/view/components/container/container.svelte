@@ -2,7 +2,12 @@
     import Column from './column/column.svelte';
     import { getView } from 'src/view/components/container/context';
     import { scrollOnDndX } from 'src/view/actions/dnd/scroll-on-dnd-x/scroll-on-dnd-x';
-    import { columnsStore } from 'src/stores/document/derived/columns-store';
+    import {
+        columnsStore,
+        GroupParentIdsStore,
+        IdSectionStore,
+        PinnedNodesStore,
+    } from 'src/stores/document/derived/document-derived-stores';
     import ColumnsBuffer from './buffers/columns-buffer.svelte';
     import { dndStore } from 'src/stores/view/derived/dnd-store';
     import { activeBranchStore } from 'src/stores/view/derived/active-branch-store';
@@ -11,11 +16,6 @@
     import { searchStore } from 'src/stores/view/derived/search-store';
     import { NodeId } from 'src/stores/document/document-state-type';
     import { limitPreviewHeightStore } from 'src/stores/settings/derived/limit-preview-height-store';
-    import {
-        IdSectionStore,
-        GroupParentIdsStore,
-        PinnedNodesStore,
-    } from 'src/stores/document/derived/document-projections-store';
     import { selectedNodesStore } from 'src/stores/view/derived/selected-nodes-store';
     import {
         AlwaysShowCardButtons,

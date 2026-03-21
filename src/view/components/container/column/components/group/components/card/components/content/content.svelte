@@ -5,7 +5,7 @@
     import { getCursorPosition } from 'src/view/components/container/column/components/group/components/card/components/content/event-handlers/get-cursor-position';
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
-    import { contentStore } from 'src/stores/document/derived/content-store';
+    import { contentStore } from 'src/stores/document/derived/document-derived-stores';
     import { isGrabbing } from './event-handlers/helpers/is-grabbing';
     import { ShowHiddenCardInfoStore } from '../../../../../../../../../../stores/settings/derived/view-settings-store';
     import { setActiveSidebarNode } from '../../../../../../../../../../stores/view/subscriptions/actions/set-active-sidebar-node';

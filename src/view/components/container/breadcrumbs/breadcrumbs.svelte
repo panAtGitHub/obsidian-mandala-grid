@@ -2,8 +2,10 @@
     import { getView } from 'src/view/components/container/context';
     import Item from './breadcrumbs-item.svelte';
     import { activeBranchStore } from 'src/stores/view/derived/active-branch-store';
-    import { documentContentStore } from 'src/stores/document/derived/content-store';
-    import { IdSectionStore } from 'src/stores/document/derived/document-projections-store';
+    import {
+        documentContentStore,
+        IdSectionStore,
+    } from 'src/stores/document/derived/document-derived-stores';
 
     const view = getView();
     const activeBranch = activeBranchStore(view);

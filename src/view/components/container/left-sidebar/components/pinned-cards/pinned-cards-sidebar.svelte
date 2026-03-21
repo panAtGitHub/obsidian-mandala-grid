@@ -1,6 +1,6 @@
 <script lang="ts">
     import { derived } from 'svelte/store';
-    import { PinnedNodesStore } from '../../../../../../stores/document/derived/document-projections-store';
+    import { PinnedNodesStore } from 'src/stores/document/derived/document-derived-stores';
     import { getView } from '../../../context';
     import { ActivePinnedCardStore } from '../../../../../../stores/view/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
