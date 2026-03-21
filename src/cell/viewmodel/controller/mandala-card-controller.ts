@@ -9,6 +9,7 @@ import {
 } from 'src/helpers/views/mandala/mobile-navigation';
 import { enableSidebarEditorForNode } from 'src/helpers/views/mandala/node-editing';
 import type { MandalaView } from 'src/view/view';
+import type { CellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
 
 type SelectMandalaCardOptions = {
     view: MandalaView;
@@ -27,6 +28,7 @@ type DoubleClickMandalaCardOptions = {
     nodeId: string;
     displaySection: string;
     gridCell: CellGridPosition | null;
+    interactionPolicy: CellInteractionPolicy;
     isMobile: boolean;
     showDetailSidebar: boolean;
     event: MouseEvent;
@@ -73,15 +75,18 @@ export const doubleClickMandalaCard = ({
     nodeId,
     displaySection,
     gridCell,
+    interactionPolicy,
     isMobile,
     showDetailSidebar,
     event,
 }: DoubleClickMandalaCardOptions) => {
     if (isMobile) {
-        if (isGridCenter(view, nodeId, displaySection)) {
-            exitCurrentSubgrid(view);
-        } else {
-            enterSubgridForNode(view, nodeId);
+        if (interactionPolicy.mobileDoubleClickAction === 'subgrid-navigation') {
+            if (isGridCenter(view, nodeId, displaySection)) {
+                exitCurrentSubgrid(view);
+            } else {
+                enterSubgridForNode(view, nodeId);
+            }
         }
         return;
     }

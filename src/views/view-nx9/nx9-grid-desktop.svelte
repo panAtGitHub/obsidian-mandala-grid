@@ -15,6 +15,8 @@
     import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
     import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
+    import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
+    import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
 
     export let context: Nx9Context;
 
@@ -125,10 +127,13 @@
                             pinned: $pinnedSections.has(section),
                             style: undefined,
                             sectionColor: getSectionColor(section),
-                            preserveActiveBackground: $whiteThemeMode,
-                            sectionIndicatorVariant: !$whiteThemeMode
-                                ? 'section-capsule'
-                                : 'plain-with-pin',
+                            displayPolicy: buildCellDisplayPolicy({
+                                preset: 'grid-nx9',
+                                whiteThemeMode: $whiteThemeMode,
+                            }),
+                            interactionPolicy: buildCellInteractionPolicy({
+                                preset: 'grid-nx9',
+                            }),
                             gridCell: {
                                 mode: 'nx9',
                                 row,

@@ -2,10 +2,8 @@
     import clx from 'classnames';
     import CardMainContent from 'src/cell/view/components/card-main-content.svelte';
     import CardMeta from 'src/cell/view/components/card-meta.svelte';
-    import {
-        type SectionIndicatorVariant,
-    } from 'src/cell/model/mandala-card-meta';
     import type { CellGridPosition } from 'src/cell/model/card-types';
+    import type { CellDisplayPolicy } from 'src/cell/model/cell-display-policy';
     import CardStyle from 'src/cell/view/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/cell/model/build-mandala-card-render-model';
     import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
@@ -16,6 +14,7 @@
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
+    import type { CellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
     import {
         clickMandalaCard,
         doubleClickMandalaCard,
@@ -39,8 +38,8 @@
     export let pinned: boolean;
     export let style: NodeStyle | undefined;
     export let sectionColor: string | null = null;
-    export let preserveActiveBackground = false;
-    export let sectionIndicatorVariant: SectionIndicatorVariant = 'plain';
+    export let displayPolicy: CellDisplayPolicy;
+    export let interactionPolicy: CellInteractionPolicy;
     export let gridCell: CellGridPosition | null = null;
 
     const view = getView();
@@ -76,8 +75,7 @@
         pinned,
         style,
         sectionColor,
-        preserveActiveBackground,
-        sectionIndicatorVariant,
+        displayPolicy,
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,
         showDetailSidebar: $showDetailSidebar,
@@ -138,6 +136,7 @@
             nodeId,
             displaySection: renderModel.displaySection,
             gridCell,
+            interactionPolicy,
             isMobile,
             showDetailSidebar: $showDetailSidebar,
             event: e,
@@ -156,6 +155,7 @@
         isInSidebar={false}
         showInlineEditor={renderModel.showInlineEditor}
         showContent={renderModel.showContent}
+        hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
         fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
         absoluteFontSize={isMobile ? $localFontStore : undefined}
     />

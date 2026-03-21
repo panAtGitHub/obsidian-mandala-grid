@@ -8,6 +8,7 @@
     export let isInSidebar = false;
     export let showInlineEditor = false;
     export let showContent = true;
+    export let hideBuiltInHiddenInfo = false;
     export let fontSizeOffset: number | undefined;
     export let absoluteFontSize: number | undefined;
 </script>
@@ -20,5 +21,5 @@
         {absoluteFontSize}
     />
 {:else if showContent}
-    <Content {nodeId} {isInSidebar} />
+    <Content {nodeId} {isInSidebar} {hideBuiltInHiddenInfo} />
 {/if}

@@ -1,10 +1,10 @@
 import {
     buildMandalaCardMetaState,
-    type SectionIndicatorVariant,
 } from 'src/cell/model/mandala-card-meta';
 import { buildMandalaCardStyle } from 'src/cell/model/mandala-card-style';
 import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
 import type { CellStyle } from 'src/cell/model/card-types';
+import type { CellDisplayPolicy } from 'src/cell/model/cell-display-policy';
 import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
 import type { ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
 
@@ -17,8 +17,7 @@ type BuildMandalaCardRenderModelOptions = {
     pinned: boolean;
     style: CellStyle;
     sectionColor: string | null;
-    preserveActiveBackground?: boolean;
-    sectionIndicatorVariant: SectionIndicatorVariant;
+    displayPolicy: CellDisplayPolicy;
     previewDialogOpen: boolean;
     previewDialogNodeId: string | null;
     showDetailSidebar: boolean;
@@ -36,8 +35,7 @@ export const buildMandalaCardRenderModel = ({
     pinned,
     style,
     sectionColor,
-    preserveActiveBackground = false,
-    sectionIndicatorVariant,
+    displayPolicy,
     previewDialogOpen,
     previewDialogNodeId,
     showDetailSidebar,
@@ -49,7 +47,7 @@ export const buildMandalaCardRenderModel = ({
     const { cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
         active,
         sectionColor,
-        preserveActiveBackground,
+        preserveActiveBackground: displayPolicy.preserveActiveBackground,
         style,
         themeTone,
         themeUnderlayColor,
@@ -60,7 +58,7 @@ export const buildMandalaCardRenderModel = ({
         showColorDot: showSectionColorDot,
         textTone: capsuleTextTone,
     } = buildMandalaCardMetaState({
-        variant: sectionIndicatorVariant,
+        variant: displayPolicy.sectionIndicatorVariant,
         sectionColor,
         pinned,
         themeTone,
@@ -80,10 +78,11 @@ export const buildMandalaCardRenderModel = ({
         cardStyle,
         showInlineEditor,
         showContent: !showInlineEditor,
+        hideBuiltInHiddenInfo: displayPolicy.hideBuiltInHiddenInfo,
         style,
         displaySection,
         shouldHideBackgroundStyle,
-        sectionIndicatorVariant,
+        sectionIndicatorVariant: displayPolicy.sectionIndicatorVariant,
         showSectionBackground,
         showSectionPin,
         showSectionColorDot,

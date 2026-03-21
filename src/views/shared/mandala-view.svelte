@@ -27,6 +27,8 @@
     import { getView } from 'src/views/shared/shell/context';
     import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
     import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
+    import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
+    import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
         getMandalaLayoutById,
@@ -768,10 +770,16 @@
                                             style: undefined,
                                             sectionColor:
                                                 sectionBackground,
-                                            preserveActiveBackground:
-                                                $whiteThemeMode,
-                                            sectionIndicatorVariant:
-                                                'plain-with-pin',
+                                            displayPolicy:
+                                                buildCellDisplayPolicy({
+                                                    preset: 'grid-3x3',
+                                                    whiteThemeMode:
+                                                        $whiteThemeMode,
+                                                }),
+                                            interactionPolicy:
+                                                buildCellInteractionPolicy({
+                                                    preset: 'grid-3x3',
+                                                }),
                                             gridCell: null,
                                         })}
                                     <MandalaCard {...cardViewModel} />

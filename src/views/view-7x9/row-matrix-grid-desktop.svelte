@@ -14,6 +14,8 @@
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
     import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
+    import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
+    import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
 
     export let cells: WeekPlanBaseCell[] = [];
     export let compactMode = false;
@@ -95,12 +97,14 @@
                         : false,
                     style: undefined,
                     sectionColor: getSectionColor(cell.section),
-                    preserveActiveBackground: activeCell
-                        ? $whiteThemeMode
-                        : true,
-                    sectionIndicatorVariant: !$whiteThemeMode
-                        ? 'section-capsule'
-                        : 'plain-with-pin',
+                    displayPolicy: buildCellDisplayPolicy({
+                        preset: 'grid-7x9',
+                        whiteThemeMode: $whiteThemeMode,
+                        hasGridSelection: Boolean(activeCell),
+                    }),
+                    interactionPolicy: buildCellInteractionPolicy({
+                        preset: 'grid-7x9',
+                    }),
                     gridCell: {
                         mode: 'week-7x9',
                         row: cell.row,

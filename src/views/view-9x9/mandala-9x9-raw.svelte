@@ -157,7 +157,11 @@
                         <InlineEditor nodeId={nodeId} style={undefined} />
                     {:else}
                         <div class="mandala-raw9-preview">
-                            <Content nodeId={nodeId} isInSidebar={false} />
+                            <Content
+                                nodeId={nodeId}
+                                isInSidebar={false}
+                                hideBuiltInHiddenInfo={true}
+                            />
                         </div>
                     {/if}
                     <div class="mandala-raw9-label">{section}</div>

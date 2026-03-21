@@ -8,6 +8,7 @@ export type SharedCardRenderModel = {
     cardStyle: string | undefined;
     showInlineEditor: boolean;
     showContent: boolean;
+    hideBuiltInHiddenInfo: boolean;
     style: CellStyle;
 };
 

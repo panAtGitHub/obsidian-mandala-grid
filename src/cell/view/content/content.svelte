@@ -19,6 +19,7 @@
     export let nodeId: string;
     export let isInSidebar: boolean;
     export let mobileSidebarRenderedEditEnabled = false;
+    export let hideBuiltInHiddenInfo = false;
 
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
@@ -138,7 +139,7 @@
     on:click={handleClick}
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
-    class:hide-hidden-info={!$showHiddenCardInfo}
+    class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
     use:markdownPreviewAction={nodeId}
     use:hideIdleScrollbar
 ></div>

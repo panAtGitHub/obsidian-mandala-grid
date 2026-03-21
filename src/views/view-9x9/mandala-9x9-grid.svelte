@@ -13,6 +13,8 @@
     } from 'src/stores/settings/derived/view-settings-store';
     import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
+    import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
+    import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
 
     const view = getView();
 
@@ -86,8 +88,12 @@
                     pinned: $pinnedSections.has(section),
                     style: undefined,
                     sectionColor: getSectionColor(section),
-                    preserveActiveBackground: false,
-                    sectionIndicatorVariant: 'plain',
+                    displayPolicy: buildCellDisplayPolicy({
+                        preset: 'grid-9x9',
+                    }),
+                    interactionPolicy: buildCellInteractionPolicy({
+                        preset: 'grid-9x9',
+                    }),
                     gridCell: { mode: '9x9', row, col },
                 })}
                 <MandalaCard {...cardViewModel} />

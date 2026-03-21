@@ -11,8 +11,8 @@ export const buildMandalaCardViewModel = ({
     pinned,
     style,
     sectionColor,
-    preserveActiveBackground,
-    sectionIndicatorVariant,
+    displayPolicy,
+    interactionPolicy,
     gridCell,
 }: BuildMandalaCardViewModelOptions): MandalaCardViewModel => ({
     nodeId,
@@ -23,7 +23,7 @@ export const buildMandalaCardViewModel = ({
     pinned,
     style,
     sectionColor,
-    preserveActiveBackground,
-    sectionIndicatorVariant,
+    displayPolicy,
+    interactionPolicy,
     gridCell,
 });
