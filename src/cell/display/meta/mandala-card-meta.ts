@@ -3,11 +3,9 @@ import {
     type TextTone,
     type ThemeTone,
 } from 'src/view/helpers/mandala/contrast-text-tone';
+import type { CellSectionIndicatorVariant } from 'src/cell/model/card-types';
 
-export type SectionIndicatorVariant =
-    | 'plain'
-    | 'plain-with-pin'
-    | 'section-capsule';
+export type SectionIndicatorVariant = CellSectionIndicatorVariant;
 
 type BuildMandalaCardMetaStateOptions = {
     variant: SectionIndicatorVariant;

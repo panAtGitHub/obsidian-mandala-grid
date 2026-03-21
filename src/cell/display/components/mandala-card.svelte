@@ -7,6 +7,7 @@
         buildMandalaCardMetaState,
         type SectionIndicatorVariant,
     } from 'src/cell/display/meta/mandala-card-meta';
+    import type { CellGridPosition } from 'src/cell/model/card-types';
     import CardStyle from 'src/cell/display/style/card-style.svelte';
     import { buildMandalaCardStyle } from 'src/cell/display/style/mandala-card-style';
     import { enableEditModeInMainSplit } from 'src/cell/interaction/actions/enable-edit-mode-in-main-split';
@@ -47,12 +48,7 @@
     export let sectionColor: string | null = null;
     export let preserveActiveBackground = false;
     export let sectionIndicatorVariant: SectionIndicatorVariant = 'plain';
-    export let gridCell: {
-        mode: '9x9' | 'nx9' | 'week-7x9';
-        row: number;
-        col: number;
-        page?: number;
-    } | null = null;
+    export let gridCell: CellGridPosition | null = null;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
