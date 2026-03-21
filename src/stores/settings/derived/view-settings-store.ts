@@ -117,9 +117,6 @@ export const MandalaA4OrientationStore = (view: MandalaView) =>
 export const MandalaBackgroundModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.mandalaBackgroundMode);
 
-export const AlwaysShowCardButtons = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.view.alwaysShowCardButtons);
-
 export const ShowHiddenCardInfoStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) => state.view.showHiddenCardInfo);
 

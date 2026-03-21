@@ -433,11 +433,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/hotkeys/set-blank') return;
         setHotkeyAsBlank(store, action);
     },
-    'settings/view/set-always-show-card-buttons': (store, action) => {
-        if (action.type !== 'settings/view/set-always-show-card-buttons')
-            return;
-        store.view.alwaysShowCardButtons = action.payload.show;
-    },
     'settings/view/set-mandala-embed-debug': (store, action) => {
         if (action.type !== 'settings/view/set-mandala-embed-debug') return;
         store.view.mandalaEmbedDebug = action.payload.enabled;

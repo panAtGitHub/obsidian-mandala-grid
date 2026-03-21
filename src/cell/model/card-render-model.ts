@@ -21,8 +21,3 @@ export type MandalaCardRenderModel = SharedCardRenderModel & {
     metaStyle: string | undefined;
     isFloatingMobile: boolean;
 };
-
-export type ClassicCardRenderModel = SharedCardRenderModel & {
-    showCardButtons: boolean;
-    showTreeIndex: boolean;
-};

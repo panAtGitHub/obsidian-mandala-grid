@@ -42,11 +42,6 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     // general
     LinkPaneType(generalTab, settingsStore);
     MandalaEmbedDebug(generalTab, settingsStore);
-    /*AlwaysShowCardButtons(
-        generalTab,
-        settingsStore,
-        isMandala ? '始终显示格子操作图标' : undefined,
-    );*/
     ControlsBarButtons(
         generalTab,
         view,

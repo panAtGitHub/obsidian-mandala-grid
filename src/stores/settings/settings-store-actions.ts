@@ -220,12 +220,6 @@ export type SettingsActions =
       }
     | HotkeySettingsActions
     | {
-          type: 'settings/view/set-always-show-card-buttons';
-          payload: {
-              show: boolean;
-          };
-      }
-    | {
           type: 'settings/view/set-mandala-embed-debug';
           payload: {
               enabled: boolean;

@@ -1,4 +1,3 @@
-import type { ActiveStatus } from 'src/views/view-columns/components/active-status.enum';
 import type {
     CellGridPosition,
     CellSectionIndicatorVariant,
@@ -9,18 +8,6 @@ type SharedCardViewModel = {
     selected: boolean;
     pinned: boolean;
     style: CellStyle;
-};
-
-export type ClassicCardViewModel = SharedCardViewModel & {
-    nodeId: string;
-    section: string;
-    activeStatus: ActiveStatus | null;
-    editing: boolean;
-    confirmDisableEdit: boolean;
-    confirmDelete: boolean;
-    isInSidebar: boolean;
-    isSearchMatch: boolean;
-    alwaysShowCardButtons: boolean;
 };
 
 export type MandalaCardViewModel = SharedCardViewModel & {
