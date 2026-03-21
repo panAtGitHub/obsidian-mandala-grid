@@ -11,7 +11,7 @@
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
+    import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
 
     const view = getView();
 

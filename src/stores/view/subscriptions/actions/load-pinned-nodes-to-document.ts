@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import {
     compareSectionIds,
-} from 'src/view/helpers/mandala/section-colors';
+} from 'src/lib/mandala/section-colors';
 import { getCurrentFilePinnedSections } from 'src/lib/mandala/current-file-mandala-settings';
 
 const sameSections = (a: string[], b: string[]) =>

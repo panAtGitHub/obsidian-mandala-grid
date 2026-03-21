@@ -7,7 +7,7 @@ import {
     collectSubtreeSections,
     collapseToRootSections,
     getSortedUniqueSectionsFromNodes,
-} from 'src/view/helpers/mandala/section-export';
+} from 'src/lib/mandala/section-export';
 
 export const mapBranchesToText = (
     document: MandalaGridDocument,

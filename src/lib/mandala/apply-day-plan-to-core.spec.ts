@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { shouldApplyDayPlanSlotTemplate } from 'src/view/helpers/mandala/apply-day-plan-to-core';
+import { shouldApplyDayPlanSlotTemplate } from 'src/lib/mandala/apply-day-plan-to-core';
 
 describe('shouldApplyDayPlanSlotTemplate', () => {
     it('returns true when slot is empty', () => {

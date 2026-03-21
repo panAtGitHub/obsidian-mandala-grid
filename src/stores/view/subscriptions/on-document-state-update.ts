@@ -13,7 +13,7 @@ import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helper
 import {
     serializeSectionColorMapForSettings,
     swapSectionSubtreeColors,
-} from 'src/view/helpers/mandala/section-colors';
+} from 'src/lib/mandala/section-colors';
 import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
 
 type SaveOptions = {

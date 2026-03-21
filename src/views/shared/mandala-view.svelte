@@ -46,7 +46,7 @@
     import { mobilePopupFontSizeStore } from 'src/stores/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
-    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
+    import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
     import {
         enterSubgridForNode,
@@ -64,7 +64,7 @@
     } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
-    import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
+    import { resolveWeekPlanContext } from 'src/lib/mandala/week-plan-context';
 
     const view = getView();
     const layout = createLayoutStore();

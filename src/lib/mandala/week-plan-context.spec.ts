@@ -4,7 +4,7 @@ import {
     getDefaultWeekAnchorDate,
     resolveWeekPlanContext,
     resolveWeekPlanCurrentCell,
-} from 'src/view/helpers/mandala/week-plan-context';
+} from 'src/lib/mandala/week-plan-context';
 
 const frontmatter = `---
 mandala: true

@@ -9,7 +9,7 @@ import {
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { CurrentFileSectionColorMapStore } from 'src/stores/cell/section-colors-store';
 import { MandalaView } from 'src/view/view';
-import { parseSectionColorsFromPersistedState } from 'src/view/helpers/mandala/section-colors';
+import { parseSectionColorsFromPersistedState } from 'src/lib/mandala/section-colors';
 
 type DocumentAction = { type: string };
 

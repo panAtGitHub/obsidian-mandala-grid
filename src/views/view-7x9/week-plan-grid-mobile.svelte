@@ -5,7 +5,7 @@
     import {
         buildWeekPlanBaseCells,
         type WeekPlanBaseCell,
-    } from 'src/view/helpers/mandala/week-plan-context';
+    } from 'src/lib/mandala/week-plan-context';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,

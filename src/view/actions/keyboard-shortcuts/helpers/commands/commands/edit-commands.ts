@@ -6,7 +6,7 @@ import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
 import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
 import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
-import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
+import { resolveWeekPlanContext } from 'src/lib/mandala/week-plan-context';
 import { toggleCellPreviewDialog } from 'src/helpers/views/mandala/cell-preview-dialog';
 
 export const editCommands = () => {

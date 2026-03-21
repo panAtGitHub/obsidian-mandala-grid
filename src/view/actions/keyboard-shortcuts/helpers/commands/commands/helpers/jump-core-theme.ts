@@ -2,7 +2,7 @@ import { Notice } from 'obsidian';
 import {
     applyDayPlanToCore,
     resolveNextDayPlanDate,
-} from 'src/view/helpers/mandala/apply-day-plan-to-core';
+} from 'src/lib/mandala/apply-day-plan-to-core';
 import { MandalaView } from 'src/view/view';
 
 type CoreJumpDirection = 'up' | 'down';

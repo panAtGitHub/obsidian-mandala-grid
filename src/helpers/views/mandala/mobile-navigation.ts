@@ -8,7 +8,7 @@ import {
 import {
     applyDayPlanToCore,
     resolveNextDayPlanDate,
-} from 'src/view/helpers/mandala/apply-day-plan-to-core';
+} from 'src/lib/mandala/apply-day-plan-to-core';
 
 export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     if (view.mandalaMode !== '3x3') return;

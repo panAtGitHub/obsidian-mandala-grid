@@ -5,7 +5,7 @@ import {
     Content,
     NodeGroup,
 } from 'src/stores/document/document-state-type';
-import { createPinnedSectionSet } from 'src/view/helpers/mandala/section-colors';
+import { createPinnedSectionSet } from 'src/lib/mandala/section-colors';
 import { MandalaView } from 'src/view/view';
 
 // 这一组都是“从 documentStore 派生出某一小块数据”的轻量 store。

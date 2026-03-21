@@ -10,7 +10,7 @@ import {
     SECTION_COLOR_PALETTE,
     serializeSectionColorMapForSettings,
     setSectionColor,
-} from 'src/view/helpers/mandala/section-colors';
+} from 'src/lib/mandala/section-colors';
 import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
 import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
 

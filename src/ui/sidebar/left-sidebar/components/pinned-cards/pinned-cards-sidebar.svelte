@@ -13,7 +13,7 @@
         applyOpacityToHex,
         SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
-    } from 'src/view/helpers/mandala/section-colors';
+    } from 'src/lib/mandala/section-colors';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,

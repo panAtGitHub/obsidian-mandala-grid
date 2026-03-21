@@ -11,7 +11,7 @@
     import { getView } from 'src/views/shared/shell/context';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/views/view-nx9/nx9-next-core-cell.svelte';
-    import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
+    import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
 

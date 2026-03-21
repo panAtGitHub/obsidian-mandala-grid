@@ -24,7 +24,7 @@
 
     import { Platform } from 'obsidian';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
-    import { applyOpacityToHex } from 'src/view/helpers/mandala/section-colors';
+    import { applyOpacityToHex } from 'src/lib/mandala/section-colors';
     import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
     import {
         getReadableTextTone,

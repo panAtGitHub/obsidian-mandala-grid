@@ -3,7 +3,7 @@
     import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
     import { getView } from 'src/views/shared/shell/context';
     import { WeekPlanCompactModeStore } from 'src/stores/settings/derived/view-settings-store';
-    import { buildWeekPlanBaseCells } from 'src/view/helpers/mandala/week-plan-context';
+    import { buildWeekPlanBaseCells } from 'src/lib/mandala/week-plan-context';
     import RowMatrixGridDesktop from 'src/views/view-7x9/row-matrix-grid-desktop.svelte';
 
     export let rows: WeekPlanRow[] = [];

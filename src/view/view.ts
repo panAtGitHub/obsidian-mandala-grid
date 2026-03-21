@@ -58,7 +58,7 @@ import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-conte
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/engine/mandala-document';
-import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
+import { applySectionPatch } from 'src/lib/mandala/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { resolveRestoredSubgridTheme } from 'src/helpers/views/mandala/resolve-restored-subgrid-theme';

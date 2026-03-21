@@ -5,7 +5,7 @@ import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
 import {
     applySectionPatch,
     getSectionContentBySection,
-} from 'src/view/helpers/mandala/apply-section-patch';
+} from 'src/lib/mandala/apply-section-patch';
 import { cleanupSectionSessionFolder } from 'src/view/helpers/mandala/cleanup-section-session-folder';
 import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
 

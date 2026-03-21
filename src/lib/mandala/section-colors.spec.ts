@@ -9,7 +9,7 @@ import {
     swapSectionColors,
     swapSectionSubtreeColors,
     type SectionColorMap,
-} from 'src/view/helpers/mandala/section-colors';
+} from 'src/lib/mandala/section-colors';
 
 const createMap = (partial: Partial<SectionColorMap>): SectionColorMap => ({
     '1_white': [],

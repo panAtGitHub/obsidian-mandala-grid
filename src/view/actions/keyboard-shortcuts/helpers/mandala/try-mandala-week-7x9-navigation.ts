@@ -4,7 +4,7 @@ import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-
 import {
     resolveWeekPlanContext,
     resolveWeekPlanCurrentCell,
-} from 'src/view/helpers/mandala/week-plan-context';
+} from 'src/lib/mandala/week-plan-context';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
