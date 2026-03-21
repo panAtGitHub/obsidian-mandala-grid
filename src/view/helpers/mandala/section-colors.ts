@@ -3,7 +3,7 @@ import type { Sections } from 'src/stores/document/document-state-type';
 import {
     compareSectionIds,
     swapSectionSubtreeIds,
-} from 'src/mandala-v2/section-utils';
+} from 'src/engine/mandala-document/section-utils';
 
 export { compareSectionIds };
 

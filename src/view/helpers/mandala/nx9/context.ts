@@ -1,5 +1,5 @@
 import { collectTrailingEmptyCoreSections } from 'src/lib/mandala/clear-empty-subgrids';
-import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
 import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/stores/settings/settings-type';
 import type { Content } from 'src/stores/document/document-state-type';
 

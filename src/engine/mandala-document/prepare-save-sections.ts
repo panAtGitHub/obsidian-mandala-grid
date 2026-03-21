@@ -1,6 +1,6 @@
 import { collectTrailingEmptyCoreSections } from 'src/lib/mandala/clear-empty-subgrids';
 import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
-import { MandalaSectionId } from 'src/mandala-v2/types';
+import { MandalaSectionId } from 'src/engine/mandala-document/types';
 import {
     MandalaGridDocument,
     Sections,
@@ -9,7 +9,7 @@ import { buildSubtreeNonEmptyCountBySection } from 'src/stores/document/reducers
 import {
     compareSectionIds,
     getParentSection,
-} from 'src/mandala-v2/section-utils';
+} from 'src/engine/mandala-document/section-utils';
 
 type SerializableSection = {
     sectionId: MandalaSectionId;

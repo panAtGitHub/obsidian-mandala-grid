@@ -12,7 +12,7 @@ import { setHotkeyAsBlank } from 'src/stores/settings/reducers/set-hotkey-as-bla
 import { SettingsActions } from 'src/stores/settings/settings-store-actions';
 import { Platform } from 'obsidian';
 import { normalizeContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
-import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
 import {
     layoutIdToOrientation,
     normalizeCustomMandalaPattern,

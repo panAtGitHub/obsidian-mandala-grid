@@ -3,12 +3,12 @@ import {
     MandalaDocumentV2,
     MandalaSectionId,
     ParsedMandalaSection,
-} from 'src/mandala-v2/types';
+} from 'src/engine/mandala-document/types';
 import { id } from 'src/helpers/id';
 import {
     compareSectionIds,
     parseSectionParts,
-} from 'src/mandala-v2/section-utils';
+} from 'src/engine/mandala-document/section-utils';
 
 type ParsedSectionParts = {
     id: MandalaSectionId;

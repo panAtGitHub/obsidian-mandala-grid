@@ -1,4 +1,4 @@
-import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
 import { Sections } from 'src/stores/document/document-state-type';
 
 const isSameOrDescendantSection = (candidate: string, root: string) =>

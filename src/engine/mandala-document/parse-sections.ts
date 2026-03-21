@@ -1,7 +1,7 @@
 import {
     ParsedMandalaSection,
     ParsedMandalaSections,
-} from 'src/mandala-v2/types';
+} from 'src/engine/mandala-document/types';
 
 const SECTION_MARKER_RE = /<!--\s*section:\s*([0-9]+(?:\.[0-9]+)*)\s*-->/g;
 const encoder = new TextEncoder();

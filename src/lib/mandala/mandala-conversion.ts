@@ -1,5 +1,5 @@
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
-import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
+import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
 import { createMandalaMarkdownTemplate } from 'src/lib/mandala/create-mandala-markdown-template';
 
 export type MandalaConversionMode = 'template-with-content' | 'normalize-core';

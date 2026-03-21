@@ -1,7 +1,7 @@
 import {
     MandalaSectionValidationError,
     ParsedMandalaSection,
-} from 'src/mandala-v2/types';
+} from 'src/engine/mandala-document/types';
 
 const parseParts = (sectionId: string) => sectionId.split('.').map(Number);
 

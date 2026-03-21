@@ -1,4 +1,4 @@
-import { compareSectionIds, serializeSections } from 'src/mandala-v2';
+import { compareSectionIds, serializeSections } from 'src/engine/mandala-document';
 import {
     MandalaGridDocument,
     Sections,

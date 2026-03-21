@@ -2,7 +2,7 @@ import {
     buildMandalaDocumentV2,
     parseSections,
     validateSectionsStructure,
-} from 'src/mandala-v2';
+} from 'src/engine/mandala-document';
 import { buildSubtreeNonEmptyCountBySection } from 'src/stores/document/reducers/mandala/mandala-slot-authority';
 import { DocumentState } from 'src/stores/document/document-state-type';
 import { SavedDocument } from 'src/stores/document/document-store-actions';

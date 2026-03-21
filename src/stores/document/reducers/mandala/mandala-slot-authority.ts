@@ -8,7 +8,7 @@ import {
 import {
     compareSectionIds,
     getParentSection,
-} from 'src/mandala-v2/section-utils';
+} from 'src/engine/mandala-document/section-utils';
 
 const getSlotOfDirectChild = (section: string, parentSection: string) => {
     const parentParts = parentSection.split('.').length;
@@ -26,13 +26,13 @@ const assertSectionBijection = (sections: Sections) => {
     const idEntries = Object.entries(sections.id_section);
     if (sectionEntries.length !== idEntries.length) {
         throw new Error(
-            `[mandala-v2] section bijection mismatch: section_id=${sectionEntries.length}, id_section=${idEntries.length}`,
+            `[mandala-document] section bijection mismatch: section_id=${sectionEntries.length}, id_section=${idEntries.length}`,
         );
     }
     for (const [sectionId, nodeId] of sectionEntries) {
         if (sections.id_section[nodeId] !== sectionId) {
             throw new Error(
-                `[mandala-v2] section bijection broken at section "${sectionId}"`,
+                `[mandala-document] section bijection broken at section "${sectionId}"`,
             );
         }
     }
@@ -277,7 +277,7 @@ export const applyMandalaContentDelta = (
 };
 
 export const logMandalaIndexRepair = (state: DocumentState, reason: string) => {
-    logger.warn('[mandala-v2] rebuild slot authority indexes', {
+    logger.warn('[mandala-document] rebuild slot authority indexes', {
         reason,
         sections: Object.keys(state.sections.section_id).length,
     });

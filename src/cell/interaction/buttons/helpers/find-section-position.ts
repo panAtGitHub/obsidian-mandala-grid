@@ -1,4 +1,4 @@
-import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
+import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
 import { MandalaView } from 'src/view/view';
 import { get } from 'svelte/store';
 

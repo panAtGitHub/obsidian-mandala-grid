@@ -1,5 +1,5 @@
 import { Notice } from 'obsidian';
-import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
+import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
 import MandalaGrid from 'src/main';
 import {
     buildCenterDateHeading,

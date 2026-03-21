@@ -1,14 +1,14 @@
 import {
     MandalaSectionId,
     MANDALA_SECTION_ID_RE,
-} from 'src/mandala-v2/types';
+} from 'src/engine/mandala-document/types';
 import {
     MandalaGridDocument,
     Sections,
 } from 'src/stores/document/document-state-type';
-import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
 
-export { compareSectionIds } from 'src/mandala-v2/section-utils';
+export { compareSectionIds } from 'src/engine/mandala-document/section-utils';
 
 const normalizeSectionContent = (value: string) => value;
 

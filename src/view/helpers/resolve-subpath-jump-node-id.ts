@@ -1,6 +1,6 @@
 import { stripHeading } from 'obsidian';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
-import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
+import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
 import type {
     MandalaGridDocument,
     Sections,

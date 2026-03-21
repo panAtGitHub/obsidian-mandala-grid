@@ -45,7 +45,7 @@ import { lang } from 'src/lang/lang';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
-import { parseSectionMarker } from 'src/mandala-v2/parse-section-marker';
+import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
 import { selectCard } from 'src/cell/display/content/event-handlers/handle-links/helpers/select-card';
 import {
     DayPlanTodayNavigation,
@@ -57,7 +57,7 @@ import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
 import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { logger } from 'src/helpers/logger';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
-import { prepareSaveSections, serializeSections } from 'src/mandala-v2';
+import { prepareSaveSections, serializeSections } from 'src/engine/mandala-document';
 import { applySectionPatch } from 'src/view/helpers/mandala/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
@@ -692,7 +692,7 @@ export class MandalaView extends TextFileView {
                     this.lastSaveBlockedNoticeKey = blockedKey;
                     new Notice(message, 3500);
                 }
-                logger.error('[mandala-v2] save blocked', {
+                logger.error('[mandala-document] save blocked', {
                     file: this.file.path,
                     reason: message,
                     blocked_parents: prepared.stats.blockedParentCount,

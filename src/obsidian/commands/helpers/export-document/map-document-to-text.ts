@@ -1,5 +1,5 @@
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
-import { parseSections } from 'src/mandala-v2';
+import { parseSections } from 'src/engine/mandala-document';
 
 export const mapDocumentToText = (fileData: string) => {
     const { body, frontmatter } = extractFrontmatter(fileData);

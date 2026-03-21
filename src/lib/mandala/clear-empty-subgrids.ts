@@ -1,5 +1,5 @@
 import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
-import { compareSectionIds } from 'src/mandala-v2/section-utils';
+import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
 import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
 import {
     MandalaGridDocument,

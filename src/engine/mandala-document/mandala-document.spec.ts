@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildMandalaDocumentV2 } from 'src/mandala-v2/build-state';
-import { parseSections } from 'src/mandala-v2/parse-sections';
-import { prepareSaveSections } from 'src/mandala-v2/prepare-save-sections';
-import { serializeSections } from 'src/mandala-v2/serialize-sections';
-import { validateSectionsStructure } from 'src/mandala-v2/validate-structure';
+import { buildMandalaDocumentV2 } from 'src/engine/mandala-document/build-state';
+import { parseSections } from 'src/engine/mandala-document/parse-sections';
+import { prepareSaveSections } from 'src/engine/mandala-document/prepare-save-sections';
+import { serializeSections } from 'src/engine/mandala-document/serialize-sections';
+import { validateSectionsStructure } from 'src/engine/mandala-document/validate-structure';
 
 describe('mandala-v2 parser', () => {
     it('parses section markers and content blocks', () => {

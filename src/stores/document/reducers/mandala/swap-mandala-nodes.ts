@@ -1,13 +1,13 @@
 import {
     buildMandalaColumnsFromSections,
     createStableNodeId,
-} from 'src/mandala-v2/build-state';
+} from 'src/engine/mandala-document/build-state';
 import {
     compareSectionIds,
     getParentSection,
     isSectionInSubtree,
     swapSectionSubtreeIds,
-} from 'src/mandala-v2/section-utils';
+} from 'src/engine/mandala-document/section-utils';
 import { id } from 'src/helpers/id';
 import { SilentError } from 'src/lib/errors/errors';
 import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
