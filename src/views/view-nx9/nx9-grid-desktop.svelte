@@ -10,7 +10,7 @@
     import { PinnedSectionsStore } from 'src/stores/document/derived/document-derived-stores';
     import { getView } from 'src/view/components/container/context';
     import MandalaCard from 'src/cell/display/components/mandala-card.svelte';
-    import Nx9NextCoreCell from 'src/view/components/mandala/nx9/nx9-next-core-cell.svelte';
+    import Nx9NextCoreCell from 'src/views/view-nx9/nx9-next-core-cell.svelte';
     import { resolveCustomSectionColor } from 'src/view/helpers/mandala/section-colors';
     import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';

@@ -56,7 +56,7 @@
     import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';
-    import MandalaNx9 from 'src/view/components/mandala/mandala-nx9.svelte';
+    import MandalaNx9 from 'src/views/view-nx9/mandala-nx9.svelte';
     import MandalaWeek7x9 from 'src/view/components/mandala/mandala-week-7x9.svelte';
     import {
         normalizeNx9VisibleSection,

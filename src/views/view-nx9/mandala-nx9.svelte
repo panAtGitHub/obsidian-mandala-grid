@@ -3,7 +3,7 @@
     import { Nx9RowsPerPageStore } from 'src/stores/settings/derived/view-settings-store';
     import { getView } from 'src/view/components/container/context';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
-    import Nx9GridDesktop from 'src/view/components/mandala/nx9/nx9-grid-desktop.svelte';
+    import Nx9GridDesktop from 'src/views/view-nx9/nx9-grid-desktop.svelte';
 
     const view = getView();
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
