@@ -52,7 +52,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/view/helpers/mandala/mobile-navigation';
-    import MandalaNavIcon from 'src/view/components/mandala/mandala-nav-icon.svelte';
+    import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
     import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';

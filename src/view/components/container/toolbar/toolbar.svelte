@@ -13,7 +13,7 @@
     import { lang } from 'src/lang/lang';
     
     // Mandala 搜索相关导入
-    import MandalaSearchResults from 'src/view/components/mandala/mandala-search-results.svelte';
+    import MandalaSearchResults from 'src/ui/shared/mandala-search-results.svelte';
     import { convertToMandalaResults } from 'src/view/helpers/mandala/search-utils';
 
     const view = getView();
