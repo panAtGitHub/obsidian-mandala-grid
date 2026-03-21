@@ -24,20 +24,28 @@
     style={style}
 >
     {#if showColorDot}
-        <span class="section-meta__color-dot" aria-hidden="true"></span>
+        <span
+            class="section-meta__color-dot mandala-card-meta__color-dot"
+            aria-hidden="true"
+        ></span>
     {/if}
     {#if showPin}
-        <span class="section-meta__lock" aria-hidden="true">
+        <span
+            class="section-meta__lock mandala-card-meta__pin"
+            aria-hidden="true"
+        >
             <Lock size={10} strokeWidth={2.2} />
         </span>
     {/if}
-    <span class="section-meta__label">{sectionLabel}</span>
+    <span class="section-meta__label mandala-card-meta__section"
+        >{sectionLabel}</span
+    >
 </div>
 
 <style>
     .section-meta {
         position: absolute;
-        top: 8px;
+        top: 6px;
         right: 8px;
         display: inline-flex;
         align-items: center;
@@ -65,8 +73,8 @@
         height: 8px;
         border-radius: 999px;
         background: var(--mandala-card-meta-accent, currentColor);
-        box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
         flex: 0 0 auto;
+        opacity: 0.9;
     }
 
     .section-meta__lock {
