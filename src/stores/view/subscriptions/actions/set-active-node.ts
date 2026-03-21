@@ -18,7 +18,7 @@ export const setActiveNode = (
     let shouldSetActiveNode = true;
 
     if (activeNodeExists) {
-        // active view of file should always update except for dnd events
+        // 当前文件对应的视图在 swap 后保持当前激活节点，不跟随历史上下文跳转。
         if (
             view.isViewOfFile &&
             action.type === 'document/mandala/swap'
