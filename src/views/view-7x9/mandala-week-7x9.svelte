@@ -4,8 +4,8 @@
     import { getView } from 'src/view/components/container/context';
     import { WeekStartStore } from 'src/stores/settings/derived/view-settings-store';
     import { resolveWeekPlanContext } from 'src/view/helpers/mandala/week-plan-context';
-    import WeekPlanGridDesktop from 'src/view/components/mandala/week-plan-grid-desktop.svelte';
-    import WeekPlanGridMobile from 'src/view/components/mandala/week-plan-grid-mobile.svelte';
+    import WeekPlanGridDesktop from 'src/views/view-7x9/week-plan-grid-desktop.svelte';
+    import WeekPlanGridMobile from 'src/views/view-7x9/week-plan-grid-mobile.svelte';
 
     const view = getView();
     const weekStart = WeekStartStore(view);
