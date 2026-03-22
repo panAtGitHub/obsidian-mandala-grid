@@ -8,6 +8,7 @@
     export let showSectionColorDot = false;
     export let capsuleTextTone: CellTextTone | null = null;
     export let metaStyle: string | undefined;
+    export let density: 'normal' | 'compact' = 'normal';
 </script>
 
 <SectionMeta
@@ -18,4 +19,5 @@
     textTone={capsuleTextTone}
     style={metaStyle}
     className="mandala-card-meta"
+    {density}
 />

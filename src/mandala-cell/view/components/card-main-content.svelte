@@ -14,6 +14,7 @@
     export let absoluteFontSize: number | undefined;
     export let scrollbarMode: CellScrollbarMode = 'selected-hover';
     export let fillContent = false;
+    export let density: 'normal' | 'compact' = 'normal';
 </script>
 
 {#if showInlineEditor}
@@ -31,5 +32,6 @@
         {hideBuiltInHiddenInfo}
         {scrollbarMode}
         {fillContent}
+        {density}
     />
 {/if}

@@ -20,6 +20,7 @@
     export let style: string | undefined;
     // 允许外部补充类名，便于不同卡片视图复用。
     export let className = '';
+    export let density: 'normal' | 'compact' = 'normal';
 
     // 优先使用显式 variant；未提供时再从旧参数推导。
     $: resolvedVariant = variant ?? getLegacyVariant(showBackground, showColorDot);
@@ -35,6 +36,7 @@
         resolvedVariant === 'background' && textTone
             ? `mandala-card-meta--tone-${textTone}`
             : undefined,
+        density === 'compact' ? 'mandala-card-meta--compact' : undefined,
     );
 
     function getLegacyVariant(
@@ -110,6 +112,19 @@
 
     .mandala-card-meta__section {
         line-height: 1;
+    }
+
+    .mandala-card-meta--compact {
+        top: 2px;
+        right: 3px;
+        gap: 2px;
+        font-size: 9px;
+        opacity: 0.5;
+    }
+
+    .mandala-card-meta--compact .mandala-card-meta__pin :global(svg) {
+        width: 9px !important;
+        height: 9px !important;
     }
 
     /* 深浅文字 tone 只在整块背景模式下使用。 */

@@ -8,16 +8,19 @@ export type CellDisplayPolicy = {
     preserveActiveBackground: boolean;
     hideBuiltInHiddenInfo: boolean;
     contentLayout: 'intrinsic' | 'fill';
+    density: 'normal' | 'compact';
 };
 
 export const buildCellDisplayPolicy = ({
     preset,
     whiteThemeMode,
     hasGridSelection = false,
+    compactMode = false,
 }: {
     preset: CellDisplayPreset;
     whiteThemeMode?: boolean;
     hasGridSelection?: boolean;
+    compactMode?: boolean;
 }): CellDisplayPolicy => {
     if (preset === 'grid-9x9') {
         return {
@@ -26,6 +29,7 @@ export const buildCellDisplayPolicy = ({
             preserveActiveBackground: false,
             hideBuiltInHiddenInfo: true,
             contentLayout: 'intrinsic',
+            density: 'normal',
         };
     }
 
@@ -36,6 +40,7 @@ export const buildCellDisplayPolicy = ({
             preserveActiveBackground: Boolean(whiteThemeMode),
             hideBuiltInHiddenInfo: true,
             contentLayout: 'fill',
+            density: 'normal',
         };
     }
 
@@ -49,7 +54,8 @@ export const buildCellDisplayPolicy = ({
                 ? Boolean(whiteThemeMode)
                 : true,
             hideBuiltInHiddenInfo: true,
-            contentLayout: 'intrinsic',
+            contentLayout: 'fill',
+            density: compactMode ? 'compact' : 'normal',
         };
     }
 
@@ -61,5 +67,6 @@ export const buildCellDisplayPolicy = ({
         preserveActiveBackground: Boolean(whiteThemeMode),
         hideBuiltInHiddenInfo: true,
         contentLayout: 'fill',
+        density: 'normal',
     };
 };

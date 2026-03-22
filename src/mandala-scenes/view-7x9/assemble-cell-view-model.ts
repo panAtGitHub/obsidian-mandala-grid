@@ -19,6 +19,7 @@ type AssembleDesktopWeekPlanCellsOptions = {
     sectionIdMap: Record<string, string | undefined>;
     activeNodeId: string | null;
     activeCell: { row: number; col: number } | null;
+    compactMode: boolean;
     editingState: EditingState;
     selectedNodes: Set<string>;
     pinnedSections: Set<string>;
@@ -79,6 +80,7 @@ export const assembleDesktopWeekPlanCells = ({
     sectionIdMap,
     activeNodeId,
     activeCell,
+    compactMode,
     editingState,
     selectedNodes,
     pinnedSections,
@@ -92,6 +94,7 @@ export const assembleDesktopWeekPlanCells = ({
         preset: 'grid-7x9',
         whiteThemeMode,
         hasGridSelection: Boolean(activeCell),
+        compactMode,
     });
     const interactionPolicy = buildCellInteractionPolicy({
         preset: 'grid-7x9',

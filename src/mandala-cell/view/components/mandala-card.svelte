@@ -70,6 +70,7 @@
     let interactionPolicy = viewModel.interactionPolicy;
     let gridCell = viewModel.gridCell;
     let fillContent = false;
+    let contentDensity: 'normal' | 'compact' = 'normal';
 
     $: ({
         nodeId,
@@ -86,6 +87,7 @@
         gridCell,
     } = viewModel);
     $: fillContent = displayPolicy.contentLayout === 'fill';
+    $: contentDensity = displayPolicy.density;
 
     $: renderModel = buildMandalaCardRenderModel({
         nodeId,
@@ -182,6 +184,7 @@
         absoluteFontSize={isMobile ? $localFontStore : undefined}
         {scrollbarMode}
         {fillContent}
+        density={contentDensity}
     />
 
     <CardMeta
@@ -191,6 +194,7 @@
         showSectionColorDot={renderModel.showSectionColorDot}
         capsuleTextTone={renderModel.capsuleTextTone}
         metaStyle={renderModel.metaStyle}
+        density={contentDensity}
     />
 </div>
 

@@ -27,6 +27,7 @@
     export let hideBuiltInHiddenInfo = false;
     export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
     export let fillContent = false;
+    export let density: 'normal' | 'compact' = 'normal';
 
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
@@ -146,6 +147,7 @@
 <div
     class={`lng-prev markdown-preview-view markdown-preview-section markdown-rendered cell-scrollbar-mode--${scrollbarMode}`}
     class:lng-prev--fill={fillContent}
+    class:lng-prev--compact={density === 'compact'}
     on:click={handleClick}
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
@@ -171,5 +173,33 @@
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;
+    }
+
+    .lng-prev--compact {
+        padding: 2px 2px 3px 4px;
+        line-height: 1.12;
+        --p-spacing: 0px;
+    }
+
+    .lng-prev--compact > :global(*) {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .lng-prev--compact :global(p) {
+        margin-block-start: 0 !important;
+        margin-block-end: 0 !important;
+        line-height: 1.12;
+    }
+
+    .lng-prev--compact :global(h1),
+    .lng-prev--compact :global(h2),
+    .lng-prev--compact :global(h3),
+    .lng-prev--compact :global(h4),
+    .lng-prev--compact :global(h5),
+    .lng-prev--compact :global(h6) {
+        margin-top: 0 !important;
+        margin-bottom: 1px !important;
+        line-height: 1.08;
     }
 </style>

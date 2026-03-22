@@ -49,6 +49,7 @@
         sectionIdMap: $documentState.sections.section_id,
         activeNodeId: $activeNodeId,
         activeCell: $activeCell,
+        compactMode: $weekPlanCompactMode,
         editingState: $editingState,
         selectedNodes: $selectedNodes,
         pinnedSections: $pinnedSections,

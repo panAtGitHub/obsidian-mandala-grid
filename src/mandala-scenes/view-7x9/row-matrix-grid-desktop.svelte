@@ -19,7 +19,6 @@
 
 <div
     class="row-matrix-grid mandala-grid mandala-grid--row-matrix"
-    class:row-matrix-grid--compact={compactMode}
     style={`--row-matrix-font-size: var(${fontVariable}, var(--mandala-font-3x3));`}
 >
     {#each cells as cell (`${cell.row}-${cell.col}`)}
@@ -70,17 +69,6 @@
         justify-items: stretch;
     }
 
-    .row-matrix-grid--compact {
-        --week-compact-preview-padding: 2px 2px 3px 4px;
-        --week-compact-line-height: 1.12;
-        --week-compact-heading-line-height: 1.08;
-        --week-compact-heading-margin-bottom: 1px;
-        --week-compact-meta-font-size: 9px;
-        --week-compact-meta-gap: 2px;
-        --week-compact-meta-top: 2px;
-        --week-compact-meta-right: 3px;
-    }
-
     .row-matrix-cell {
         position: relative;
         display: flex;
@@ -115,104 +103,6 @@
         min-height: 0;
         min-width: 0;
     }
-
-    .row-matrix-cell--desktop-card :global(.lng-prev),
-    .row-matrix-cell--desktop-card :global(.editor-container),
-    .row-matrix-cell--desktop-card :global(.mandala-inline-editor),
-    .row-matrix-cell--desktop-card :global(.markdown-source-view),
-    .row-matrix-cell--desktop-card :global(.view-content) {
-        flex: 1 1 auto;
-        width: 100%;
-        min-height: 0;
-        min-width: 0;
-        height: 100%;
-    }
-
-    .row-matrix-cell--desktop-card :global(.editor-container),
-    .row-matrix-cell--desktop-card :global(.mandala-inline-editor),
-    .row-matrix-cell--desktop-card :global(.markdown-source-view),
-    .row-matrix-cell--desktop-card :global(.view-content) {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .row-matrix-cell--desktop-card :global(.editor-container) {
-        overflow: hidden;
-    }
-
-    .row-matrix-cell--desktop-card :global(.cm-editor),
-    .row-matrix-cell--desktop-card :global(.cm-editor .cm-scroller) {
-        width: 100%;
-        height: 100%;
-        min-width: 0;
-    }
-
-    .row-matrix-cell--desktop-card :global(.cm-editor .cm-scroller) {
-        overflow: auto !important;
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev) {
-        padding: var(--week-compact-preview-padding);
-        line-height: var(--week-compact-line-height);
-        --p-spacing: 0px;
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev > *) {
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev p) {
-        margin-block-start: 0 !important;
-        margin-block-end: 0 !important;
-        line-height: var(--week-compact-line-height);
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev h1),
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev h2),
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev h3),
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev h4),
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev h5),
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev h6) {
-        margin-top: 0 !important;
-        margin-bottom: var(--week-compact-heading-margin-bottom) !important;
-        line-height: var(--week-compact-heading-line-height);
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.mandala-card-meta) {
-        top: var(--week-compact-meta-top);
-        right: var(--week-compact-meta-right);
-        gap: var(--week-compact-meta-gap);
-        font-size: var(--week-compact-meta-font-size);
-        opacity: 0.5;
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.mandala-card-meta__lock svg) {
-            width: 9px;
-            height: 9px;
-        }
 
     .row-matrix-cell.is-active-cell,
     .row-matrix-cell.is-active-node {
