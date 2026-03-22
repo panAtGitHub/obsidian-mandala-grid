@@ -426,7 +426,8 @@
 
     .mandala-scroll {
         flex: 1 1 auto;
-        overflow: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
         padding: 12px;
     }
 
@@ -482,7 +483,8 @@
         flex: 0 0 auto;
         width: var(--desktop-square-size);
         height: var(--desktop-square-size);
-        overflow: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
         align-self: center;
     }
 
