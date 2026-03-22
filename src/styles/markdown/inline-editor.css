@@ -32,8 +32,6 @@
         padding: 6px !important;
         padding-bottom: 20px !important;
         padding-left: 12px !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
         scrollbar-width: thin;
     }
 

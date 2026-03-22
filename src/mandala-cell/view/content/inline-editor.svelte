@@ -56,6 +56,12 @@
         width: 100%;
         min-width: 0;
         height: 100%;
+        box-sizing: border-box;
+    }
+
+    .editor-container--fill :global(.cm-editor .cm-scroller) {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 
     .apply-style-rule {

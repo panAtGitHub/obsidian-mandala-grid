@@ -35,7 +35,6 @@
                 <MandalaCard
                     viewModel={cell.cardViewModel}
                     scrollbarMode="selected-hover"
-                    fillContent={true}
                 />
                 {#if !Platform.isMobile && show3x3SubgridNavButtons && !hasOpenOverlayModal}
                     <div

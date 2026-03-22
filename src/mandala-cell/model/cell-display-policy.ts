@@ -7,6 +7,7 @@ export type CellDisplayPolicy = {
     sectionIndicatorVariant: CellSectionIndicatorVariant;
     preserveActiveBackground: boolean;
     hideBuiltInHiddenInfo: boolean;
+    contentLayout: 'intrinsic' | 'fill';
 };
 
 export const buildCellDisplayPolicy = ({
@@ -24,6 +25,7 @@ export const buildCellDisplayPolicy = ({
             sectionIndicatorVariant: 'plain',
             preserveActiveBackground: false,
             hideBuiltInHiddenInfo: true,
+            contentLayout: 'intrinsic',
         };
     }
 
@@ -33,6 +35,7 @@ export const buildCellDisplayPolicy = ({
             sectionIndicatorVariant: 'plain-with-pin',
             preserveActiveBackground: Boolean(whiteThemeMode),
             hideBuiltInHiddenInfo: true,
+            contentLayout: 'fill',
         };
     }
 
@@ -46,6 +49,7 @@ export const buildCellDisplayPolicy = ({
                 ? Boolean(whiteThemeMode)
                 : true,
             hideBuiltInHiddenInfo: true,
+            contentLayout: 'intrinsic',
         };
     }
 
@@ -56,5 +60,6 @@ export const buildCellDisplayPolicy = ({
             : 'section-capsule',
         preserveActiveBackground: Boolean(whiteThemeMode),
         hideBuiltInHiddenInfo: true,
+        contentLayout: 'intrinsic',
     };
 };

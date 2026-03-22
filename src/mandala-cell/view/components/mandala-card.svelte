@@ -33,7 +33,6 @@
 
     export let viewModel: MandalaCardViewModel;
     export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
-    export let fillContent = false;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -70,6 +69,7 @@
     let displayPolicy = viewModel.displayPolicy;
     let interactionPolicy = viewModel.interactionPolicy;
     let gridCell = viewModel.gridCell;
+    let fillContent = false;
 
     $: ({
         nodeId,
@@ -85,6 +85,7 @@
         interactionPolicy,
         gridCell,
     } = viewModel);
+    $: fillContent = displayPolicy.contentLayout === 'fill';
 
     $: renderModel = buildMandalaCardRenderModel({
         nodeId,
