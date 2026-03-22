@@ -130,7 +130,10 @@
                         selectRealCell(cell.row, cell.col, cell.nodeId)}
                 >
                     {#if cell.cardViewModel}
-                        <MandalaCard viewModel={cell.cardViewModel} />
+                        <MandalaCard
+                            viewModel={cell.cardViewModel}
+                            scrollbarMode="selected-hover"
+                        />
                     {:else}
                         <div class="nx9-cell__empty">{cell.section}</div>
                     {/if}
@@ -238,10 +241,6 @@
         min-height: 0;
         min-width: 0;
         height: 100%;
-    }
-
-    .nx9-cell--desktop-card :global(.lng-prev) {
-        overflow: auto;
     }
 
     .nx9-cell--desktop-card :global(.editor-container),

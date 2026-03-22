@@ -10,6 +10,10 @@
     import { derived } from 'src/shared/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
+    import {
+        DEFAULT_CELL_SCROLLBAR_MODE,
+        type CellScrollbarMode,
+    } from 'src/mandala-cell/model/cell-scrollbar-mode';
     import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
     import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
     import {
@@ -28,6 +32,7 @@
     const isMobile = Platform.isMobile;
 
     export let viewModel: MandalaCardViewModel;
+    export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -173,6 +178,7 @@
         hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
         fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
         absoluteFontSize={isMobile ? $localFontStore : undefined}
+        {scrollbarMode}
     />
 
     <CardMeta

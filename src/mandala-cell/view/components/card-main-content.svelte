@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
+    import type { CellScrollbarMode } from 'src/mandala-cell/model/cell-scrollbar-mode';
     import Content from 'src/mandala-cell/view/content/content.svelte';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
 
@@ -11,6 +12,7 @@
     export let hideBuiltInHiddenInfo = false;
     export let fontSizeOffset: number | undefined;
     export let absoluteFontSize: number | undefined;
+    export let scrollbarMode: CellScrollbarMode = 'selected-hover';
 </script>
 
 {#if showInlineEditor}
@@ -21,5 +23,5 @@
         {absoluteFontSize}
     />
 {:else if showContent}
-    <Content {nodeId} {isInSidebar} {hideBuiltInHiddenInfo} />
+    <Content {nodeId} {isInSidebar} {hideBuiltInHiddenInfo} {scrollbarMode} />
 {/if}

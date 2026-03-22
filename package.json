@@ -4,6 +4,8 @@
     "description": "Mandala grid (3×3 / 9×9) editor for Obsidian.",
     "scripts": {
         "dev": "node esbuild.config.mjs",
+        "reload:plugin": "obsidian plugin:reload id=mandala-grid",
+        "reload:plugin:wait": "node scripts/reload-plugin-after-delay.mjs",
         "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/sync-manifest.mjs",
         "sync:obsidian": "rsync -av --delete --exclude 'data.json' temp/vault/.obsidian/plugins/mandala-grid-dev/ \"/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/\"",
         "build:sync": "npm run build && npm run sync:obsidian",

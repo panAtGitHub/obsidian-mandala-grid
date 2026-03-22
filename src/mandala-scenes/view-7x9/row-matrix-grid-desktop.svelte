@@ -37,7 +37,10 @@
         >
             {#if cell.nodeId}
                 {#if cell.cardViewModel}
-                    <MandalaCard viewModel={cell.cardViewModel} />
+                    <MandalaCard
+                        viewModel={cell.cardViewModel}
+                        scrollbarMode={compactMode ? 'hidden' : 'selected-hover'}
+                    />
                 {/if}
             {:else if cell.isPlaceholder || cell.emptyLabel}
                 <div class="row-matrix-cell__empty">
@@ -125,10 +128,6 @@
         height: 100%;
     }
 
-    .row-matrix-cell--desktop-card :global(.lng-prev) {
-        overflow: auto;
-    }
-
     .row-matrix-cell--desktop-card :global(.editor-container),
     .row-matrix-cell--desktop-card :global(.mandala-inline-editor),
     .row-matrix-cell--desktop-card :global(.markdown-source-view),
@@ -156,11 +155,6 @@
         .row-matrix-cell--desktop-card
         :global(.lng-prev) {
         padding: var(--week-compact-preview-padding);
-        overflow-x: hidden;
-        overflow-y: auto;
-        scrollbar-gutter: auto;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
         line-height: var(--week-compact-line-height);
         --p-spacing: 0px;
     }
@@ -170,12 +164,6 @@
         :global(.lng-prev > *) {
         max-height: none !important;
         overflow: visible !important;
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.lng-prev::-webkit-scrollbar) {
-        display: none;
     }
 
     .row-matrix-grid--compact
@@ -225,18 +213,6 @@
             width: 9px;
             height: 9px;
         }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.mandala-idle-scrollbar) {
-        scrollbar-width: none;
-    }
-
-    .row-matrix-grid--compact
-        .row-matrix-cell--desktop-card
-        :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
-        display: none;
-    }
 
     .row-matrix-cell.is-active-cell,
     .row-matrix-cell.is-active-node {

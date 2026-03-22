@@ -31,6 +31,7 @@
         padding: 6px !important;
         padding-bottom: 20px !important;
         padding-left: 12px !important;
+        scrollbar-width: thin;
     }
 
     & .cm-contentContainer div {

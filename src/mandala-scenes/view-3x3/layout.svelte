@@ -32,7 +32,10 @@
             }}
         >
             {#if cell.cardViewModel}
-                <MandalaCard viewModel={cell.cardViewModel} />
+                <MandalaCard
+                    viewModel={cell.cardViewModel}
+                    scrollbarMode="selected-hover"
+                />
                 {#if !Platform.isMobile && show3x3SubgridNavButtons && !hasOpenOverlayModal}
                     <div
                         class="mandala-subgrid-controls"
@@ -193,7 +196,7 @@
         border-left: 1px dashed var(--mandala-border-color);
         border-top: 1px dashed var(--mandala-border-color);
         box-sizing: border-box;
-        overflow: hidden;
+        overflow: visible;
     }
 
     :global(.mandala-white-theme) .mandala-cell:nth-child(-n + 3) {
@@ -333,7 +336,6 @@
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;
-        overflow: auto;
     }
 
     :global(.mandala-root--3) :global(.editor-container) {

@@ -12,6 +12,11 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = process.argv[2] === 'production';
+const DEV_PLUGIN_DIR =
+    '/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid';
+const BUILD_OUTDIR = prod
+    ? 'temp/vault/.obsidian/plugins/mandala-grid-dev'
+    : DEV_PLUGIN_DIR;
 
 const options = {
     banner: {
@@ -40,7 +45,7 @@ const options = {
     logLevel: 'info',
     sourcemap: prod ? false : 'inline',
     treeShaking: true,
-    outfile: 'temp/vault/.obsidian/plugins/mandala-grid-dev/main.js',
+    outfile: `${BUILD_OUTDIR}/main.js`,
     plugins: [
         inlineWorkerPlugin({ minify: prod }),
         esbuildSvelte({
@@ -60,7 +65,7 @@ const context = await esbuild.context(options);
 const cssOptions = {
     entryPoints: ['src/styles/styles.css'],
     bundle: true,
-    outfile: 'temp/vault/.obsidian/plugins/mandala-grid-dev/styles.css',
+    outfile: `${BUILD_OUTDIR}/styles.css`,
 };
 const cssContext = await esbuild.context(cssOptions);
 

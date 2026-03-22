@@ -654,7 +654,7 @@
     .mandala-root--3 {
         --mandala-card-height: 100%;
         --mandala-card-min-height: 0px;
-        --mandala-card-overflow: hidden;
+        --mandala-card-overflow: visible;
     }
 
     .mandala-root--week {

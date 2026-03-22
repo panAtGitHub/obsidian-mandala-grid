@@ -6,6 +6,10 @@
     import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
     import CellScrollbar from 'src/mandala-cell/view/style/cell-scrollbar.svelte';
+    import {
+        DEFAULT_CELL_SCROLLBAR_MODE,
+        type CellScrollbarMode,
+    } from 'src/mandala-cell/model/cell-scrollbar-mode';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
@@ -21,6 +25,7 @@
     export let isInSidebar: boolean;
     export let mobileSidebarRenderedEditEnabled = false;
     export let hideBuiltInHiddenInfo = false;
+    export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
 
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
@@ -138,13 +143,13 @@
 <CellScrollbar />
 
 <div
-    class="lng-prev markdown-preview-view markdown-preview-section markdown-rendered"
+    class={`lng-prev markdown-preview-view markdown-preview-section markdown-rendered cell-scrollbar-mode--${scrollbarMode}`}
     on:click={handleClick}
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
     use:markdownPreviewAction={nodeId}
-    use:hideIdleScrollbar
+    use:hideIdleScrollbar={scrollbarMode}
 ></div>
 
 <style>

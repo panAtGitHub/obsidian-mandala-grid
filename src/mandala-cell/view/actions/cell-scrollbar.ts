@@ -1,3 +1,8 @@
+import {
+    DEFAULT_CELL_SCROLLBAR_MODE,
+    type CellScrollbarMode,
+} from 'src/mandala-cell/model/cell-scrollbar-mode';
+
 const IDLE_HIDE_MS = 0;
 const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
@@ -16,7 +21,10 @@ const INTERACTION_EVENTS = [
 ] as const;
 const EXIT_EVENTS = ['pointerleave', 'touchend', 'touchcancel'] as const;
 
-export const hideIdleScrollbar = (element: HTMLElement) => {
+export const hideIdleScrollbar = (
+    element: HTMLElement,
+    mode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE,
+) => {
     const isInMandalaRoot = Boolean(element.closest(ROOT_SELECTOR));
     const isInMandalaGrid = Boolean(element.closest(GRID_SELECTOR));
     const isInSidebar = Boolean(element.closest(SIDEBAR_SELECTOR));
@@ -30,6 +38,18 @@ export const hideIdleScrollbar = (element: HTMLElement) => {
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     const hasIdleDelay = IDLE_HIDE_MS > 0;
     element.classList.add(IDLE_SCROLLBAR_CLASS);
+
+    if (mode !== 'interaction') {
+        return {
+            destroy: () => {
+                if (timeoutHandle) {
+                    clearTimeout(timeoutHandle);
+                }
+                element.classList.remove(IDLE_SCROLLBAR_CLASS);
+                element.classList.remove(SCROLLBAR_VISIBLE_CLASS);
+            },
+        };
+    }
 
     const clearHideTimer = () => {
         if (!timeoutHandle) return;
