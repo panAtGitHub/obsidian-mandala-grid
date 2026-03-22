@@ -5,7 +5,7 @@ import { ActiveBranch } from 'src/stores/view/default-view-state';
 import { createAlignBranchActions } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/create-align-branch-actions';
 import { runAlignBranchActions } from 'src/stores/view/subscriptions/effects/align-branch/run-align-branch-actions/run-align-branch-actions';
 import { skipAlign } from 'src/stores/view/subscriptions/effects/align-branch/helpers/skip-align';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import {
     ViewDocumentAction,
     ViewStoreAction,

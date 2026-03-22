@@ -1,4 +1,4 @@
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 
 export const compareDocuments = (
     docA: MandalaGridDocument,

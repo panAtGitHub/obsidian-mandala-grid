@@ -1,4 +1,4 @@
-import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
+import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
 
 const findSectionIndex = (lines: string[], section: string) => {
     for (let i = 0; i < lines.length; i += 1) {

@@ -1,7 +1,7 @@
 import {
     MandalaGridDocument,
     Sections,
-} from 'src/stores/document/document-state-type';
+} from 'src/mandala-document/state/document-state-type';
 import { compareSectionIds } from 'src/engine/mandala-document';
 import {
     collectSubtreeSections,

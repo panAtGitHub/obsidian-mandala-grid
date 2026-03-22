@@ -1,7 +1,7 @@
 import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
 import { resolveWeekPlanContext } from 'src/lib/mandala/week-plan-context';
-import type { Content } from 'src/stores/document/document-state-type';
+import type { Content } from 'src/mandala-document/state/document-state-type';
 
 type CustomLayout = {
     id: string;

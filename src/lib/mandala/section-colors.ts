@@ -1,9 +1,9 @@
 import { MandalaSectionColorAssignments } from 'src/mandala-settings/state/settings-type';
-import type { Sections } from 'src/stores/document/document-state-type';
+import type { Sections } from 'src/mandala-document/state/document-state-type';
 import {
     compareSectionIds,
     swapSectionSubtreeIds,
-} from 'src/engine/mandala-document/section-utils';
+} from 'src/mandala-document/engine/section-utils';
 
 export { compareSectionIds };
 

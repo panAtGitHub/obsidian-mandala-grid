@@ -1,9 +1,9 @@
 import { DocumentViewState } from 'src/stores/view/view-state-type';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import invariant from 'tiny-invariant';
 import { updateSelectedNodes } from 'src/stores/view/reducers/document/helpers/update-selected-nodes';
 import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/reset-selection-state';
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 
 export const updateSelectionState = (
     columns: Column[],

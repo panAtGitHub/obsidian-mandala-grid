@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { compareDocuments } from 'src/helpers/test-helpers/compare-documents';
 import { clone } from 'src/helpers/clone';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import invariant from 'tiny-invariant';
 
 const createDocument = (): MandalaGridDocument => ({

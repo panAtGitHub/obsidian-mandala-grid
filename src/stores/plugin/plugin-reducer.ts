@@ -1,6 +1,6 @@
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
 import { PluginState } from 'src/stores/plugin/plugin-state-type';
-import { defaultDocumentState } from 'src/stores/document/default-document-state';
+import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 
 const updateState = (state: PluginState, action: PluginStoreActions) => {
     if (action.type === 'plugin/documents/unregister-document-store') {

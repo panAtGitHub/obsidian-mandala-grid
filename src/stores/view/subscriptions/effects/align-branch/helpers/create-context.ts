@@ -2,7 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { ActiveBranch } from 'src/stores/view/default-view-state';
 import { adjustScrollBehavior } from 'src/stores/view/subscriptions/effects/align-branch/helpers/adjust-scroll-behavior';
 import { PluginAction } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
-import { Column, DocumentState } from 'src/stores/document/document-state-type';
+import { Column, DocumentState } from 'src/mandala-document/state/document-state-type';
 import { ActiveNodesOfColumn } from 'src/stores/view/view-state-type';
 
 export type PartialDOMRect = Pick<DOMRect, 'top' | 'height'>;

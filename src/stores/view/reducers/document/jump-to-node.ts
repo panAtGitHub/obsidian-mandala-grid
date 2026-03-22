@@ -1,6 +1,6 @@
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
-import { findNodeToJumpTo } from 'src/lib/tree-utils/find/find-node-to-jump-to';
+import { findNodeToJumpTo } from 'src/mandala-document/tree-utils/find/find-node-to-jump-to';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { updateSelectionState } from 'src/stores/view/reducers/document/helpers/update-selection-state';
 

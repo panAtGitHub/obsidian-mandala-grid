@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { Notice } from 'obsidian';
-import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
+import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
 import {
     parseDayPlanFrontmatter,
     shiftHotWindowToCore,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { removeStaleActiveNodes } from 'src/stores/view/reducers/document/helpers/remove-stale-active-nodes';
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { ActiveNodesOfColumn } from 'src/stores/view/view-state-type';
 
 describe('removeStaleActiveNodes', () => {

@@ -2,7 +2,7 @@ import {
     Column,
     Content,
     MandalaGridDocument,
-} from 'src/stores/document/document-state-type';
+} from 'src/mandala-document/state/document-state-type';
 
 import { __stringifySets } from 'src/helpers/test-helpers/stringify-sets';
 import { generateContent } from 'src/helpers/test-helpers/generate-content';

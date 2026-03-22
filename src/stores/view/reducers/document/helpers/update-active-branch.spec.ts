@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import { updateActiveBranch } from 'src/stores/view/reducers/document/helpers/update-active-branch';
 import { ActiveBranch } from 'src/stores/view/default-view-state';
 import { DocumentViewState } from 'src/stores/view/view-state-type';

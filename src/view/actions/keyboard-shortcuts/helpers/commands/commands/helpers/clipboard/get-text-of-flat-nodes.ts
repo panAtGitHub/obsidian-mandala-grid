@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { sortNodeIdsBySectionNumber } from 'src/lib/tree-utils/sort/sort-node-ids-by-section-number';
+import { sortNodeIdsBySectionNumber } from 'src/mandala-document/tree-utils/sort/sort-node-ids-by-section-number';
 
 export const getTextOfFlatNodes = (
     view: MandalaView,

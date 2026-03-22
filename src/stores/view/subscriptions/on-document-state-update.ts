@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { setActiveNode } from 'src/stores/view/subscriptions/actions/set-active-node';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';

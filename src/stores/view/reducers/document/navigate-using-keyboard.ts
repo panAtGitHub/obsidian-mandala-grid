@@ -1,7 +1,7 @@
-import { Column } from 'src/stores/document/document-state-type';
-import { AllDirections } from 'src/stores/document/document-store-actions';
+import { Column } from 'src/mandala-document/state/document-state-type';
+import { AllDirections } from 'src/mandala-document/state/document-store-actions';
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
-import { findNextActiveNodeOnKeyboardNavigation } from 'src/lib/tree-utils/find/find-next-active-node-on-keyboard-navigation';
+import { findNextActiveNodeOnKeyboardNavigation } from 'src/mandala-document/tree-utils/find/find-next-active-node-on-keyboard-navigation';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { updateSelectionState } from 'src/stores/view/reducers/document/helpers/update-selection-state';
 

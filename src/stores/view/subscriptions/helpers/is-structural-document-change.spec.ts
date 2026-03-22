@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultDocumentState } from 'src/stores/document/default-document-state';
+import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helpers/is-structural-document-change';
 
 describe('isStructuralDocumentChange', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultDocumentState } from 'src/stores/document/default-document-state';
+import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 
 describe('getDocumentEventType', () => {

@@ -1,10 +1,10 @@
 import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
-import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
-import { getAllChildren } from 'src/lib/tree-utils/get/get-all-children';
+import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
+import { getAllChildren } from 'src/mandala-document/tree-utils/get/get-all-children';
 import {
     MandalaGridDocument,
     Sections,
-} from 'src/stores/document/document-state-type';
+} from 'src/mandala-document/state/document-state-type';
 
 export type ClearEmptySubgridsPlan = {
     parentIds: string[];

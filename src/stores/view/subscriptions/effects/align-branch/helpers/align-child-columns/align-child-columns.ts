@@ -1,7 +1,7 @@
 import { AlignBranchContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { alignChildGroupOfColumn } from 'src/stores/view/subscriptions/effects/align-branch/helpers/align-child-columns/align-child-group-of-column';
 import { alignElementVertically } from 'src/lib/align-element/align-element-vertically';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 
 const getActiveNodeOfGroup = (
     context: AlignBranchContext,

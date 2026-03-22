@@ -1,10 +1,10 @@
 import { stripHeading } from 'obsidian';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
-import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
+import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
 import type {
     MandalaGridDocument,
     Sections,
-} from 'src/stores/document/document-state-type';
+} from 'src/mandala-document/state/document-state-type';
 
 type ResolveSubpathJumpNodeIdArgs = {
     markdown: string;

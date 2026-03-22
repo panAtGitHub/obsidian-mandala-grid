@@ -1,12 +1,12 @@
-import { Column } from 'src/stores/document/document-state-type';
-import { traverseUp } from 'src/lib/tree-utils/get/traverse-up';
-import { traverseDown } from 'src/lib/tree-utils/get/traverse-down';
-import { findGroupByNodeId } from 'src/lib/tree-utils/find/find-group-by-node-id';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { Column } from 'src/mandala-document/state/document-state-type';
+import { traverseUp } from 'src/mandala-document/tree-utils/get/traverse-up';
+import { traverseDown } from 'src/mandala-document/tree-utils/get/traverse-down';
+import { findGroupByNodeId } from 'src/mandala-document/tree-utils/find/find-group-by-node-id';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { removeStaleActiveNodes } from 'src/stores/view/reducers/document/helpers/remove-stale-active-nodes';
 import { compareActiveBranch } from 'src/stores/view/reducers/document/helpers/compare-active-branch';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import { ViewStoreAction } from 'src/stores/view/view-store-actions';
 
 export type UpdateActiveBranchAction =

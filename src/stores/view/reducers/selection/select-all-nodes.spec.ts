@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
 
 describe('selectAllNodes', () => {

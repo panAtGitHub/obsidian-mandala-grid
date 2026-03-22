@@ -16,16 +16,16 @@ import {
 
 import Component from 'src/mandala-scenes/shared/shell/main.svelte';
 import MandalaGrid from '../main';
-import { documentReducer } from 'src/stores/document/document-reducer';
+import { documentReducer } from 'src/mandala-document/state/document-reducer';
 import { Unsubscriber } from 'svelte/store';
 import { OnError, Store } from 'src/lib/store/store';
-import { defaultDocumentState } from 'src/stores/document/default-document-state';
+import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import {
     DocumentState,
     MandalaGridDocument,
-} from 'src/stores/document/document-state-type';
+} from 'src/mandala-document/state/document-state-type';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import { ViewState } from 'src/stores/view/view-state-type';
 import { ViewStoreAction } from 'src/stores/view/view-store-actions';
 import { defaultViewState } from 'src/stores/view/default-view-state';
@@ -45,7 +45,7 @@ import { lang } from 'src/lang/lang';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
-import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
+import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
 import { selectCard } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/helpers/select-card';
 import {
     DayPlanTodayNavigation,
@@ -56,7 +56,7 @@ import {
 import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
 import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
 import { logger } from 'src/helpers/logger';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/engine/mandala-document';
 import { applySectionPatch } from 'src/lib/mandala/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';

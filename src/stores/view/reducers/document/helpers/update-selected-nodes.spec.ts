@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { updateSelectedNodes } from 'src/stores/view/reducers/document/helpers/update-selected-nodes';
 
 const c3 = 'c8zp';

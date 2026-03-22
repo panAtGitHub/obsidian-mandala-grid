@@ -1,5 +1,5 @@
-import { Column } from 'src/stores/document/document-state-type';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { Column } from 'src/mandala-document/state/document-state-type';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 
 export const isNodeAlive = (columns: Column[], nodeId: string) => {
     if (!nodeId) return false;

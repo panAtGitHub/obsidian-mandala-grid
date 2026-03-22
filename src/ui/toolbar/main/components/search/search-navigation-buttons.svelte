@@ -2,7 +2,7 @@
     import { ChevronDown, ChevronUp } from 'lucide-svelte';
     import Button from 'src/ui/shared/button.svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import { sortNodeIdsBySectionNumber } from 'src/lib/tree-utils/sort/sort-node-ids-by-section-number';
+    import { sortNodeIdsBySectionNumber } from 'src/mandala-document/tree-utils/sort/sort-node-ids-by-section-number';
     import { activeNodeStore } from 'src/stores/view/derived/active-node-store';
     import { lang } from 'src/lang/lang';
 

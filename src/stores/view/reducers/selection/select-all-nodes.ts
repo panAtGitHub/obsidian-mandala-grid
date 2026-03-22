@@ -1,8 +1,8 @@
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
-import { findGroupByNodeId } from 'src/lib/tree-utils/find/find-group-by-node-id';
+import { findGroupByNodeId } from 'src/mandala-document/tree-utils/find/find-group-by-node-id';
 import invariant from 'tiny-invariant';
-import { findNodeColumn } from 'src/lib/tree-utils/find/find-node-column';
+import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { resolveSafeActiveNode } from 'src/stores/view/reducers/document/helpers/active-node-safety';
 
 export type SelectAllNodesAction = {

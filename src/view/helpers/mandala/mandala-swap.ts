@@ -1,5 +1,5 @@
 import { Notice } from 'obsidian';
-import { Sections } from 'src/stores/document/document-state-type';
+import { Sections } from 'src/mandala-document/state/document-state-type';
 import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 

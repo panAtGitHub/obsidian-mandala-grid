@@ -1,4 +1,4 @@
-import { Sections } from 'src/stores/document/document-state-type';
+import { Sections } from 'src/mandala-document/state/document-state-type';
 import invariant from 'tiny-invariant';
 
 export const getIdOfSection = (sections: Sections, section: string) => {

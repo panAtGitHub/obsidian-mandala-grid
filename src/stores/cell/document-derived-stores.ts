@@ -1,10 +1,10 @@
 import { derived } from 'src/lib/store/derived';
-import { sortTreeNodes } from 'src/lib/tree-utils/sort/sort-tree-nodes';
+import { sortTreeNodes } from 'src/mandala-document/tree-utils/sort/sort-tree-nodes';
 import {
     Column,
     Content,
     NodeGroup,
-} from 'src/stores/document/document-state-type';
+} from 'src/mandala-document/state/document-state-type';
 import { createPinnedSectionSet } from 'src/lib/mandala/section-colors';
 import { MandalaView } from 'src/view/view';
 

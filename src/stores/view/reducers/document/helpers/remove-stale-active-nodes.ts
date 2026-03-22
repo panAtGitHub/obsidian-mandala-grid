@@ -1,4 +1,4 @@
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { ActiveNodesOfColumn } from 'src/stores/view/view-state-type';
 
 export const removeStaleActiveNodes = (

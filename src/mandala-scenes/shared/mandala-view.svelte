@@ -42,7 +42,7 @@
     import { mobilePopupFontSizeStore } from 'src/stores/ui/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
-    import { findChildGroup } from 'src/lib/tree-utils/find/find-child-group';
+    import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
     import {
         enterSubgridForNode,
         exitCurrentSubgrid,

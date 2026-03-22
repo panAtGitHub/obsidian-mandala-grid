@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { AllDirections } from 'src/stores/document/document-store-actions';
+import { AllDirections } from 'src/mandala-document/state/document-store-actions';
 import { getElementById } from 'src/lib/align-element/helpers/get-element-by-id';
 import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
 

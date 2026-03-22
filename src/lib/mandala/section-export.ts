@@ -1,5 +1,5 @@
-import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
-import { Sections } from 'src/stores/document/document-state-type';
+import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
+import { Sections } from 'src/mandala-document/state/document-state-type';
 
 const isSameOrDescendantSection = (candidate: string, root: string) =>
     candidate === root || candidate.startsWith(`${root}.`);

@@ -1,0 +1,43 @@
+import { DocumentState } from 'src/mandala-document/state/document-state-type';
+
+export const defaultDocumentState = (): DocumentState => ({
+    document: {
+        columns: [],
+        content: {},
+    },
+    sections: {
+        id_section: {},
+        section_id: {},
+    },
+    file: {
+        frontmatter: '',
+    },
+    history: {
+        items: [],
+        state: {
+            activeIndex: -1,
+            canGoBack: false,
+            canGoForward: false,
+        },
+        context: {
+            activeSection: '',
+        },
+    },
+    pinnedNodes: {
+        Ids: [],
+    },
+    meta: {
+        groupParentIds: new Set(),
+        isMandala: false,
+        mandalaV2: {
+            enabled: false,
+            revision: 0,
+            rootGroupId: null,
+            orderedSections: [],
+            lastMutation: null,
+            parentToChildrenSlots: {},
+            subtreeNonEmptyCountBySection: {},
+            loadMetrics: null,
+        },
+    },
+});

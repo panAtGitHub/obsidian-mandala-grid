@@ -1,4 +1,4 @@
-import { Column, Content } from 'src/stores/document/document-state-type';
+import { Column, Content } from 'src/mandala-document/state/document-state-type';
 
 export const generateContent = (columns: Column[]) => {
     const content: Content = {};

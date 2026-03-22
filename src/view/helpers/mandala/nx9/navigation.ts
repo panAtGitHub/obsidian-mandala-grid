@@ -1,4 +1,4 @@
-import { AllDirections } from 'src/stores/document/document-store-actions';
+import { AllDirections } from 'src/mandala-document/state/document-store-actions';
 import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,

@@ -1,6 +1,6 @@
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { PluginAction } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import { CreateActionsContext } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/create-align-branch-actions';
 
 export const forceCenterActiveNodeV = (

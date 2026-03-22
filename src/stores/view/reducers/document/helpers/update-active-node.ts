@@ -1,4 +1,4 @@
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
 import { disableEditMode } from 'src/stores/view/reducers/document/disable-edit-mode';
 import { resetPendingConfirmation } from 'src/stores/view/reducers/document/reset-pending-confirmation';

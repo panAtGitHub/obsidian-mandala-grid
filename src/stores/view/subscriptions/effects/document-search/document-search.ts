@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import Fuse, { FuseResult } from 'fuse.js';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
-import { DocumentState } from 'src/stores/document/document-state-type';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
+import { DocumentState } from 'src/mandala-document/state/document-state-type';
 
 type SearchItem = { sectionId: string; nodeId: string; content: string };
 

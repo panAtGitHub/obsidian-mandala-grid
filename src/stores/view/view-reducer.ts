@@ -16,7 +16,7 @@ import { navigateActiveNode } from 'src/stores/view/reducers/ui/navigate-active-
 import { setActivePinnedNode } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
 import { toggleShowAllNodes } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
 import { resetPendingConfirmation } from 'src/stores/view/reducers/document/reset-pending-confirmation';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { Platform } from 'obsidian';
 

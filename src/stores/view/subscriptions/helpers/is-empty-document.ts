@@ -1,4 +1,4 @@
-import { Content } from 'src/stores/document/document-state-type';
+import { Content } from 'src/mandala-document/state/document-state-type';
 
 export const isEmptyDocument = (content: Content) => {
     const values = Object.values(content);

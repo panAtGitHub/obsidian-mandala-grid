@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { AllDirections } from 'src/stores/document/document-store-actions';
+import { AllDirections } from 'src/mandala-document/state/document-store-actions';
 import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
 import {
     resolveWeekPlanContext,

@@ -1,4 +1,4 @@
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 
 enum Mode {
     jump_down = 'jump_down',

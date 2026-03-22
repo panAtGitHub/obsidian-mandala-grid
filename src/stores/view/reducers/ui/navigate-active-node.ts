@@ -1,7 +1,7 @@
 import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { DocumentViewState } from 'src/stores/view/view-state-type';
-import { Column, Sections } from 'src/stores/document/document-state-type';
-import { findNextNode } from 'src/lib/tree-utils/find/find-next-node';
+import { Column, Sections } from 'src/mandala-document/state/document-state-type';
+import { findNextNode } from 'src/mandala-document/tree-utils/find/find-next-node';
 import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/reset-selection-state';
 
 export type NodeNavigationAction = {

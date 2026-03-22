@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { DocumentStoreAction } from 'src/stores/document/document-store-actions';
+import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 
 export const setActiveNode = (
     view: MandalaView,

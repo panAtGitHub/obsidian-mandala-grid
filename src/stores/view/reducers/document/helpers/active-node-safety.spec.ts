@@ -4,7 +4,7 @@ import {
     isNodeAlive,
     resolveSafeActiveNode,
 } from 'src/stores/view/reducers/document/helpers/active-node-safety';
-import { Column } from 'src/stores/document/document-state-type';
+import { Column } from 'src/mandala-document/state/document-state-type';
 
 const columns: Column[] = [
     {

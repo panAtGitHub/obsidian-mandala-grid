@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { NodeId } from 'src/stores/document/document-state-type';
+    import { NodeId } from 'src/mandala-document/state/document-state-type';
     import { loadInlineEditor } from 'src/view/actions/inline-editor/load-inline-editor';
     import { expandableTextareaAction } from 'src/view/actions/inline-editor/expandable-textarea-action';
     import { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { defaultViewState } from 'src/stores/view/default-view-state';
 import { viewReducer } from 'src/stores/view/view-reducer';
-import { MandalaGridDocument } from 'src/stores/document/document-state-type';
+import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 
 describe('viewReducer', () => {
     test('stores mandala mode in view-local state', () => {

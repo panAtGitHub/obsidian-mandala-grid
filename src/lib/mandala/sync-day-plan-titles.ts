@@ -1,4 +1,4 @@
-import { parseSectionMarker } from 'src/engine/mandala-document/parse-section-marker';
+import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
 import {
     parseDayPlanFrontmatter,
     slotsRecordToArray,

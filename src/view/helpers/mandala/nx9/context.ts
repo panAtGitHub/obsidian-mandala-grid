@@ -1,7 +1,7 @@
 import { collectTrailingEmptyCoreSections } from 'src/lib/mandala/clear-empty-subgrids';
-import { compareSectionIds } from 'src/engine/mandala-document/section-utils';
+import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
 import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/mandala-settings/state/settings-type';
-import type { Content } from 'src/stores/document/document-state-type';
+import type { Content } from 'src/mandala-document/state/document-state-type';
 
 export type Nx9CellPosition = { row: number; col: number };
 export type Nx9CellWithPage = Nx9CellPosition & { page: number };
