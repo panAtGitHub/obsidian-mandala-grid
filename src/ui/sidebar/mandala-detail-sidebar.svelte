@@ -24,22 +24,29 @@
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
     import DetailSidebarFloatingActions from './detail-sidebar-floating-actions.svelte';
+    import { createDetailSidebarResizeState } from './detail-sidebar-resize-state';
 
     const MIN_SIZE = 200;
 
     // 我们在侧边栏中也引入布局监听，仅用于响应 Resizer
     const layout = createLayoutStore();
 
-    // 用于交互的临时偏移值（用于持久化网格尺寸的微调，如果有必要的话）
-    // 用于 CSS transition 动画的宽度/高度，可以为 0
-    let animatedSidebarSize = 0;
-    // 实际大小值，不为 0
-    let sidebarSize = MIN_SIZE; // Changed from MIN_WIDTH to MIN_SIZE
-    let isResizing = false;
-    let startX = 0;
-    let startSize = 0;
-
     const view = getView();
+    const resizeState = createDetailSidebarResizeState({
+        isMobile: Platform.isMobile,
+        minSize: MIN_SIZE,
+        persistWidth: (width) => {
+            view.plugin.settings.dispatch({
+                type: 'view/mandala-detail-sidebar/set-width',
+                payload: {
+                    width,
+                },
+            });
+        },
+    });
+    const animatedSidebarSize = resizeState.animatedSize;
+    const sidebarSize = resizeState.sidebarSize;
+    const isResizing = resizeState.isResizing;
     const showSidebarStore = ShowMandalaDetailSidebarStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const editingState = derived(
@@ -125,74 +132,23 @@
                 const savedSize =
                     view.plugin.settings.getValue().view
                         .mandalaDetailSidebarWidth;
-                animatedSidebarSize =
-                    savedSize || ($layout.isPortrait ? MIN_SIZE : MIN_SIZE); // Use MIN_SIZE
-                sidebarSize = animatedSidebarSize;
+                resizeState.syncVisibility(show, savedSize);
             } else {
-                animatedSidebarSize = 0;
+                resizeState.syncVisibility(show, null);
             }
         }
     });
 
     onDestroy(() => {
         unsub();
+        resizeState.destroy();
     });
 
-    // 处理缩放逻辑 (PC 端侧边栏大小)
-    const onStartResize = (event: MouseEvent) => {
-        if (Platform.isMobile) return;
-        isResizing = true;
-        startX = $layout.isPortrait ? event.clientY : event.clientX;
-        startSize = animatedSidebarSize;
-        view.contentEl.addEventListener('mousemove', onResize);
-        view.contentEl.addEventListener('mouseup', onStopResize);
-
-        // 设置全局光标，防止拖动过快导致光标闪烁
-        document.body.setCssProps({
-            cursor: $layout.isPortrait ? 'row-resize' : 'col-resize',
+    const onStartResize = (event: MouseEvent) =>
+        resizeState.startResize(event, {
+            isPortrait: $layout.isPortrait,
+            contentEl: view.contentEl,
         });
-
-        event.preventDefault();
-        event.stopPropagation();
-    };
-
-    const onResize = (event: MouseEvent) => {
-        if (!isResizing || Platform.isMobile) return;
-        event.preventDefault();
-
-        if ($layout.isPortrait) {
-            const dy = event.clientY - startX;
-            animatedSidebarSize = Math.max(MIN_SIZE, startSize - dy);
-        } else {
-            const dx = event.clientX - startX;
-            animatedSidebarSize = Math.max(MIN_SIZE, startSize - dx);
-        }
-    };
-
-    const onStopResize = () => {
-        if (!isResizing || Platform.isMobile) return;
-        isResizing = false;
-        view.contentEl.removeEventListener('mousemove', onResize);
-        view.contentEl.removeEventListener('mouseup', onStopResize);
-
-        // 恢复全局光标
-        document.body.setCssProps({ cursor: '' });
-
-        // Desktop specific logic
-        if (!Platform.isMobile) {
-            const currentMin = $layout.isPortrait ? MIN_SIZE : MIN_SIZE; // Use MIN_SIZE
-            if (animatedSidebarSize < currentMin) {
-                animatedSidebarSize = currentMin;
-            }
-            sidebarSize = animatedSidebarSize;
-            view.plugin.settings.dispatch({
-                type: 'view/mandala-detail-sidebar/set-width',
-                payload: {
-                    width: animatedSidebarSize,
-                },
-            });
-        }
-    };
     const handleMobilePreviewDoubleTapEdit = (
         event: CustomEvent<{ nodeId: string }>,
     ) => {
@@ -239,14 +195,14 @@
 </script>
 
 <div
-    class={'mandala-detail-sidebar' + (isResizing ? '' : ' size-transition')}
+    class={'mandala-detail-sidebar' + ($isResizing ? '' : ' size-transition')}
     class:is-mobile={Platform.isMobile}
     class:is-portrait={$layout.isPortrait}
     style={Platform.isMobile
         ? !$showSidebarStore
             ? 'display: none;'
             : ''
-        : `--animated-sidebar-size: ${animatedSidebarSize}px; --sidebar-size: ${sidebarSize}px;`}
+        : `--animated-sidebar-size: ${$animatedSidebarSize}px; --sidebar-size: ${$sidebarSize}px;`}
 >
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
