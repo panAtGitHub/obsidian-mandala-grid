@@ -60,6 +60,6 @@ export const buildCellDisplayPolicy = ({
             : 'section-capsule',
         preserveActiveBackground: Boolean(whiteThemeMode),
         hideBuiltInHiddenInfo: true,
-        contentLayout: 'intrinsic',
+        contentLayout: 'fill',
     };
 };

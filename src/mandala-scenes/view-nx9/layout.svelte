@@ -231,41 +231,6 @@
         min-width: 0;
     }
 
-    .nx9-cell--desktop-card :global(.lng-prev),
-    .nx9-cell--desktop-card :global(.editor-container),
-    .nx9-cell--desktop-card :global(.mandala-inline-editor),
-    .nx9-cell--desktop-card :global(.markdown-source-view),
-    .nx9-cell--desktop-card :global(.view-content) {
-        flex: 1 1 auto;
-        width: 100%;
-        min-height: 0;
-        min-width: 0;
-        height: 100%;
-    }
-
-    .nx9-cell--desktop-card :global(.editor-container),
-    .nx9-cell--desktop-card :global(.mandala-inline-editor),
-    .nx9-cell--desktop-card :global(.markdown-source-view),
-    .nx9-cell--desktop-card :global(.view-content) {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .nx9-cell--desktop-card :global(.editor-container) {
-        overflow: hidden;
-    }
-
-    .nx9-cell--desktop-card :global(.cm-editor),
-    .nx9-cell--desktop-card :global(.cm-editor .cm-scroller) {
-        width: 100%;
-        height: 100%;
-        min-width: 0;
-    }
-
-    .nx9-cell--desktop-card :global(.cm-editor .cm-scroller) {
-        overflow: auto !important;
-    }
-
     .nx9-cell.is-empty-section,
     .nx9-cell--future-row {
         border: 1px dashed var(--background-modifier-border);
