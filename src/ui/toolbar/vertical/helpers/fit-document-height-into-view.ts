@@ -13,7 +13,7 @@ export const fitDocumentHeightIntoView = (view: MandalaView) => {
     });
     const documentElements = Array.from(
         view.container.querySelectorAll<HTMLElement>(
-            '.mandala-cell, .simple-cell, .week-plan-cell, .mandala-raw9-cell',
+            '.mandala-cell, .simple-cell, .week-plan-cell',
         ),
     );
     let result = 1;

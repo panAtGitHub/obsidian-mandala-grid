@@ -30,7 +30,7 @@
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
-    import MandalaOverviewSimple from 'src/views/view-9x9/mandala-overview-simple.svelte';
+    import NineByNineLayout from 'src/views/view-9x9/layout.svelte';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
     import ToolbarCenter from 'src/ui/toolbar/main/toolbar-center.svelte';
@@ -52,8 +52,8 @@
     import { lang } from 'src/lang/lang';
     import Mandala3x3Layout from 'src/views/view-3x3/layout.svelte';
     import { assemble3x3CellViewModels } from 'src/views/view-3x3/assemble-cell-view-model';
-    import MandalaNx9 from 'src/views/view-nx9/mandala-nx9.svelte';
-    import MandalaWeek7x9 from 'src/views/view-7x9/mandala-week-7x9.svelte';
+    import Nx9Layout from 'src/views/view-nx9/layout.svelte';
+    import WeekPlanLayout from 'src/views/view-7x9/layout.svelte';
     import {
         normalizeNx9VisibleSection,
         resolveNx9Context,
@@ -707,11 +707,11 @@
                         {getDownButtonLabel}
                     />
                 {:else if $mode === '9x9'}
-                    <MandalaOverviewSimple />
+                    <NineByNineLayout />
                 {:else if $mode === 'nx9'}
-                    <MandalaNx9 />
+                    <Nx9Layout />
                 {:else}
-                    <MandalaWeek7x9 />
+                    <WeekPlanLayout />
                 {/if}
             </div>
 

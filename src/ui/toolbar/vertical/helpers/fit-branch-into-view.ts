@@ -27,7 +27,6 @@ export const fitBranchIntoView = (view: MandalaView) => {
                 '.nx9-cell.is-active-node',
                 '.week-plan-cell.is-active-cell',
                 '.week-plan-cell.is-active-node',
-                '.mandala-raw9-cell--active',
             ].join(', '),
         ),
     );

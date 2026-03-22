@@ -3,7 +3,7 @@ const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
 
 const ROOT_SELECTOR = '.mandala-root--3, .mandala-root--9';
-const GRID_SELECTOR = '.mandala-grid, .mandala-9x9-grid, .mandala-raw9';
+const GRID_SELECTOR = '.mandala-grid';
 const SIDEBAR_SELECTOR = '.mandala-detail-sidebar';
 
 const INTERACTION_EVENTS = [

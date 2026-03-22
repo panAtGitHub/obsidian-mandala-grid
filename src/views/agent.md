@@ -21,19 +21,16 @@
   放多个场景共享的视图壳层、上下文和通用组件。
 
 - `view-9x9/`
-  9x9 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
+  9x9 场景目录；当前保留 `layout.svelte` 与 `assemble-cell-view-model.ts`，并由场景入口组件承接额外编排逻辑。
 
 - `view-3x3/`
   3x3 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
 
 - `view-nx9/`
-  nx9 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
+  nx9 场景目录；当前由 `layout.svelte` 直接承担场景入口与布局渲染，并配套 `assemble-cell-view-model.ts`。
 
 - `view-7x9/`
-  7x9 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`，桌面/移动布局继续作为子布局组件保留。
-
-- `view-columns/`
-  列式视图相关目录。
+  7x9 场景目录；当前由 `layout.svelte` 直接承担场景入口，并保留桌面/移动子布局组件与统一 assembler。
 
 ### 关于 3x3 场景
 
@@ -190,6 +187,7 @@ src/views/view-xxx/
 
 - 场景入口文件
   负责模式切换、上下文装配、端侧选择和少量场景级事件。
+  在简单场景里，这个职责可以直接并入 `layout.svelte`，不必为了分层而额外保留一层薄壳文件。
 
 - `layout.svelte`
   负责该场景最终如何渲染。

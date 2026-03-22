@@ -4,43 +4,215 @@
         SimpleSummaryActiveCell,
         SimpleSummaryCellModel,
     } from 'src/cell/model/simple-summary-cell-model';
-    import type { MandalaSwapInteractionState } from 'src/view/helpers/mandala/mandala-swap';
     import SimpleSummaryCell from 'src/cell/view/components/simple-summary-cell.svelte';
     import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
+    import { onMount } from 'svelte';
+    import { derived } from 'src/lib/store/derived';
+    import { getView } from 'src/views/shared/shell/context';
+    import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
+    import {
+        MandalaBorderOpacityStore,
+        MandalaBackgroundModeStore,
+        MandalaSectionColorOpacityStore,
+        Show9x9ParallelNavButtonsStore,
+        Show9x9TitleOnlyStore,
+    } from 'src/stores/settings/derived/view-settings-store';
+    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
+    import type { ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
+    import {
+        build9x9CellViewModels,
+        decorate9x9CellViewModels,
+        getBaseTheme,
+        toActiveSummaryCell,
+    } from 'src/views/view-9x9/assemble-cell-view-model';
 
-    export let cells: SimpleSummaryCellModel[] = [];
-    export let activeNodeId: string | null;
-    export let activeCell: SimpleSummaryActiveCell;
-    export let showTitleOnly = false;
-    export let swapState: MandalaSwapInteractionState;
-    export let borderOpacity = 100;
-    export let bodyLineClamp = 3;
-    export let showParallelNavButtons = false;
-    export let hasOpenOverlayModal = false;
-    export let currentCoreNumber = 1;
-    export let gridEl: HTMLDivElement | null = null;
-    export let jumpToPrevCore: (event: MouseEvent) => void;
-    export let jumpToNextCore: (event: MouseEvent) => void;
+    const view = getView();
+    const showTitleOnly = Show9x9TitleOnlyStore(view);
+    const show9x9ParallelNavButtons = Show9x9ParallelNavButtonsStore(view);
+    const sectionColors = SectionColorBySectionStore(view);
+    const borderOpacity = MandalaBorderOpacityStore(view);
+    const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
+    const backgroundMode = MandalaBackgroundModeStore(view);
+    const activeNodeId = derived(
+        view.viewStore,
+        (state) => state.document.activeNode,
+    );
+    const idToSection = derived(
+        view.documentStore,
+        (state) => state.sections.id_section,
+    );
+    const activeCellStore = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.activeCell9x9,
+    );
+    const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
+    const hasOpenOverlayModal = derived(view.viewStore, (state) => {
+        const controls = state.ui.controls;
+        return controls.showHelpSidebar || controls.showSettingsSidebar;
+    });
+
+    let gridEl: HTMLDivElement | null = null;
+    let bodyLineClamp = 3;
+    let currentCoreNumber = 1;
+    let cells: SimpleSummaryCellModel[] = [];
+    let currentActiveCell: SimpleSummaryActiveCell = null;
+
+    $: {
+        const section = $idToSection[$activeNodeId];
+        const nextCore = Number(getBaseTheme(section));
+        currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
+    }
+
+    const buildCells = (
+        state: ReturnType<typeof view.documentStore.getValue>,
+        nextSelectedLayoutId: string,
+        nextCustomLayouts: ReturnType<
+            typeof view.plugin.settings.getValue
+        >['view']['mandalaGridCustomLayouts'],
+        baseTheme: string,
+    ) =>
+        build9x9CellViewModels({
+            documentState: state,
+            selectedLayoutId: nextSelectedLayoutId,
+            customLayouts: nextCustomLayouts,
+            baseTheme,
+        });
+
+    const cellsStore = {
+        subscribe: (run: (value: ReturnType<typeof buildCells>) => void) => {
+            let documentState = view.documentStore.getValue();
+            let nextSelectedLayoutId = view.getCurrentMandalaLayoutId();
+            let nextCustomLayouts =
+                view.plugin.settings.getValue().view.mandalaGridCustomLayouts ??
+                [];
+
+            const update = () => {
+                const activeNodeId =
+                    view.viewStore.getValue().document.activeNode;
+                const section = documentState.sections.id_section[activeNodeId];
+                const theme = getBaseTheme(section);
+                run(
+                    buildCells(
+                        documentState,
+                        nextSelectedLayoutId,
+                        nextCustomLayouts,
+                        theme,
+                    ),
+                );
+            };
+
+            const unsubDoc = view.documentStore.subscribe((state) => {
+                documentState = state;
+                update();
+            });
+
+            const unsubSettings = view.plugin.settings.subscribe((settings) => {
+                nextSelectedLayoutId = view.getCurrentMandalaLayoutId(
+                    settings,
+                );
+                nextCustomLayouts = settings.view.mandalaGridCustomLayouts ?? [];
+                update();
+            });
+
+            const unsubTheme = view.viewStore.subscribe(() => {
+                update();
+            });
+
+            update();
+
+            return () => {
+                unsubDoc();
+                unsubSettings();
+                unsubTheme();
+            };
+        },
+    };
+
+    const getThemeTone = (): ThemeTone =>
+        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+
+    const getThemeUnderlayColor = () =>
+        window
+            .getComputedStyle(document.body)
+            .getPropertyValue('--background-primary')
+            .trim();
+
+    $: {
+        cells = decorate9x9CellViewModels({
+            cells: $cellsStore,
+            backgroundMode: $backgroundMode,
+            sectionColors: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+            themeTone: getThemeTone(),
+            themeUnderlayColor: getThemeUnderlayColor(),
+        });
+    }
+
+    $: currentActiveCell = toActiveSummaryCell($activeCellStore);
+
+    const updateBodyClamp = () => {
+        if (!gridEl) return;
+        const cell = gridEl.querySelector('.simple-cell') as HTMLElement | null;
+        const body = gridEl.querySelector('.cell-body') as HTMLElement | null;
+        const title = gridEl.querySelector('.cell-title') as HTMLElement | null;
+        if (!cell || !body) return;
+
+        const cellBox = cell.getBoundingClientRect();
+        const cellStyles = getComputedStyle(cell);
+        const padding =
+            parseFloat(cellStyles.paddingTop) +
+            parseFloat(cellStyles.paddingBottom);
+        const bodyLineHeight = parseFloat(getComputedStyle(body).lineHeight);
+        const titleLineHeight = title
+            ? parseFloat(getComputedStyle(title).lineHeight)
+            : bodyLineHeight;
+        const reservedTitleHeight = titleLineHeight * 2;
+        const reservedGap = 2;
+        const available =
+            cellBox.height - padding - reservedTitleHeight - reservedGap;
+        const lines = Math.max(1, Math.floor(available / bodyLineHeight));
+        bodyLineClamp = Math.min(lines, 12);
+    };
+
+    onMount(() => {
+        updateBodyClamp();
+        if (!gridEl) return;
+        const observer = new ResizeObserver(() => updateBodyClamp());
+        observer.observe(gridEl);
+        return () => observer.disconnect();
+    });
+
+    const jumpToPrevCore = (event: MouseEvent) => {
+        event.stopPropagation();
+        jumpCoreTheme(view, 'up');
+    };
+
+    const jumpToNextCore = (event: MouseEvent) => {
+        event.stopPropagation();
+        jumpCoreTheme(view, 'down');
+    };
 </script>
 
 <div class="simple-9x9-shell">
     <div
         class="simple-9x9-grid"
-        style={`--mandala-border-opacity: ${borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
+        style={`--mandala-border-opacity: ${$borderOpacity}%; --mandala-body-lines: ${bodyLineClamp};`}
         bind:this={gridEl}
     >
         {#each cells as cell (`${cell.row}-${cell.col}`)}
             <SimpleSummaryCell
                 {cell}
-                {activeNodeId}
-                {activeCell}
-                {showTitleOnly}
-                {swapState}
+                activeNodeId={$activeNodeId}
+                activeCell={currentActiveCell}
+                showTitleOnly={$showTitleOnly}
+                swapState={$swapState}
             />
         {/each}
     </div>
 
-    {#if !Platform.isMobile && showParallelNavButtons && !hasOpenOverlayModal}
+    {#if !Platform.isMobile &&
+        $show9x9ParallelNavButtons &&
+        !$hasOpenOverlayModal}
         {#if currentCoreNumber > 1}
             <button
                 class="parallel-nav-button parallel-nav-button--left"

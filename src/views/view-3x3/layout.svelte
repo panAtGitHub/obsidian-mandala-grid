@@ -329,8 +329,7 @@
         bottom: 0;
     }
 
-    :global(.mandala-root--3) .mandala-grid :global(.lng-prev),
-    :global(.mandala-root--3) :global(.mandala-raw9-preview .lng-prev) {
+    :global(.mandala-root--3) .mandala-grid :global(.lng-prev) {
         flex: 1 1 auto;
         min-height: 0;
         height: 100%;
