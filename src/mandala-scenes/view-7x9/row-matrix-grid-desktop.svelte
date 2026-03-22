@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
+    import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
     import type { WeekPlanDesktopCellViewModel } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';

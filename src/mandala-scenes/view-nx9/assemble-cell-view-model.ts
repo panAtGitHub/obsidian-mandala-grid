@@ -1,11 +1,11 @@
-import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
-import type { MandalaCardViewModel } from 'src/cell/model/card-view-model';
-import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
-import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
+import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
+import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
+import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
 import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
-import type { CellDisplayPolicy } from 'src/cell/model/cell-display-policy';
-import type { CellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
+import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 
 type Nx9EditingState = {
     activeNodeId: string | null;

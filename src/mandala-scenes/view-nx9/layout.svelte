@@ -13,7 +13,7 @@
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
     import { assembleNx9Rows } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
-    import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
+    import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
     import type {
         Nx9GhostRowViewModel,

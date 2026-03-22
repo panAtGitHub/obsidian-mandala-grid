@@ -6,7 +6,7 @@ import { applyOpacityToHex } from 'src/lib/mandala/section-colors';
 import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
-} from 'src/cell/model/simple-summary-cell-model';
+} from 'src/mandala-cell/model/simple-summary-cell-model';
 import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
 import type { MandalaCustomLayout } from 'src/stores/settings/settings-type';
 

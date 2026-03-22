@@ -3,8 +3,8 @@
     import type {
         SimpleSummaryActiveCell,
         SimpleSummaryCellModel,
-    } from 'src/cell/model/simple-summary-cell-model';
-    import SimpleSummaryCell from 'src/cell/view/components/simple-summary-cell.svelte';
+    } from 'src/mandala-cell/model/simple-summary-cell-model';
+    import SimpleSummaryCell from 'src/mandala-cell/view/components/simple-summary-cell.svelte';
     import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
     import { onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';

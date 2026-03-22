@@ -11,7 +11,7 @@
   1. 格子如何排列
   2. 场景状态如何组装成格子可消费的 view model / props
 
-`src/cell/` 负责单个格子的能力；`src/mandala-scenes/` 负责把很多格子组织成一个具体页面。
+`src/mandala-cell/` 负责单个格子的能力；`src/mandala-scenes/` 负责把很多格子组织成一个具体页面。
 
 ---
 
@@ -47,10 +47,10 @@
 - `shared/mandala-view.svelte`
   仍然负责模式切换、subgrid theme、today 跳转、外层容器和共享壳层逻辑。
 
-- `src/cell/model/cell-display-policy.ts`
+- `src/mandala-cell/model/cell-display-policy.ts`
   定义 `grid-3x3` 的显示策略。
 
-- `src/cell/viewmodel/policies/cell-interaction-policy.ts`
+- `src/mandala-cell/viewmodel/policies/cell-interaction-policy.ts`
   定义 `grid-3x3` 的交互策略，例如移动端双击进入子宫格导航。
 
 - `src/helpers/views/mandala/mobile-navigation.ts`
@@ -162,20 +162,20 @@ src/mandala-scenes/view-xxx/
 
 1. 先把“每个格子显示什么”的推导搬到 `assemble-cell-view-model.ts`
 2. 再让 `layout.svelte` 只消费组装结果
-3. 最后把真正通用的单格逻辑继续下沉到 `src/cell/`
+3. 最后把真正通用的单格逻辑继续下沉到 `src/mandala-cell/`
 
 ---
 
-## 与 `src/cell/` 的边界
+## 与 `src/mandala-cell/` 的边界
 
 - `src/mandala-scenes/` 决定“这个场景里，格子应该怎么用”
-- `src/cell/` 决定“格子本身如何显示、如何交互”
+- `src/mandala-cell/` 决定“格子本身如何显示、如何交互”
 
 判断标准：
 
 - 如果问题是“这个场景下哪些内容该显示”，优先改 `src/mandala-scenes/`
-- 如果问题是“所有场景下这个格子本来就该这么画”，优先改 `src/cell/`
-- 如果问题是“点击后发生什么”，通常看 `src/cell/viewmodel/`，必要时由场景层传策略
+- 如果问题是“所有场景下这个格子本来就该这么画”，优先改 `src/mandala-cell/`
+- 如果问题是“点击后发生什么”，通常看 `src/mandala-cell/viewmodel/`，必要时由场景层传策略
 
 ---
 

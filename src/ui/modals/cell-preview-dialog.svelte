@@ -8,7 +8,7 @@
         ShowCellQuickPreviewDialogStore,
     } from 'src/stores/settings/derived/view-settings-store';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
-    import InlineEditor from 'src/cell/view/content/inline-editor.svelte';
+    import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import Portal from 'src/ui/shared/portal.svelte';
     import {

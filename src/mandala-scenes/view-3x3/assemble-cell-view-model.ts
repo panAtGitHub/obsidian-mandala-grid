@@ -1,7 +1,7 @@
-import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
-import type { MandalaCardViewModel } from 'src/cell/model/card-view-model';
-import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
-import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
+import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
+import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
+import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
 import type { MandalaCustomLayout } from 'src/stores/settings/settings-type';
 import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';

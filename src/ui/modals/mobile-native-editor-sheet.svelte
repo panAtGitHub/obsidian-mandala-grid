@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import InlineEditor from 'src/cell/view/content/inline-editor.svelte';
+    import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
 
     export let nodeId: string;
     export let fontSize: number;
