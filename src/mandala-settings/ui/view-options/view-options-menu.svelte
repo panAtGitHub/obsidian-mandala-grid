@@ -2,14 +2,13 @@
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { Printer, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
-    import { Notice, Platform, btoa } from 'obsidian';
+    import { Notice, Platform } from 'obsidian';
     import {
         afterUpdate,
         createEventDispatcher,
         onDestroy,
         onMount,
     } from 'svelte';
-    import { toPng } from 'html-to-image';
     import { createClearEmptyMandalaSubgridsPlan } from 'src/mandala-display/logic/clear-empty-subgrids';
     import { derived } from 'src/shared/store/derived';
     import {
@@ -78,6 +77,9 @@
     import {
         createViewOptionsSettingsActions,
     } from './view-options-settings-actions';
+    import {
+        createViewOptionsExportActions,
+    } from './view-options-export-actions';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -227,6 +229,7 @@
         updateCustomGridLayout,
         deleteCustomGridLayout,
     } = settingsActions;
+    let exportCurrentFile: () => Promise<void> = async () => {};
 
     $: isExportModeModalOpen = $exportModeModalViewId === view.id;
     $: if (
@@ -672,324 +675,29 @@
         });
     };
 
+    $: ({ exportCurrentFile } = createViewOptionsExportActions({
+        view,
+        isMobile,
+        getExportMode: () => exportMode,
+        getIncludeSidebarInPngScreen: () => includeSidebarInPngScreen,
+        getWhiteThemeMode: () => $whiteThemeMode,
+        getSquareLayout: () => $squareLayout,
+        getBorderOpacity: () => $borderOpacity,
+        getGridHighlightWidth: () => $gridHighlightWidth,
+        getGridHighlightColor: () => $gridHighlightColorStore,
+        getA4Mode: () => $a4Mode,
+        getA4Orientation: () => $a4Orientation,
+        createCurrentExportPreset,
+        persistLastExportPreset,
+        closeExportMode,
+    }));
+
     const openCustomLayoutModal = () => {
         isCustomLayoutModalOpen = true;
     };
 
     const closeCustomLayoutModal = () => {
         isCustomLayoutModalOpen = false;
-    };
-
-    type ElectronDialog = {
-        dialog?: {
-            showSaveDialog: (options: {
-                title: string;
-                defaultPath: string;
-                filters: { name: string; extensions: string[] }[];
-            }) => Promise<{ canceled: boolean; filePath?: string }>;
-        };
-        remote?: {
-            dialog?: {
-                showSaveDialog: (options: {
-                    title: string;
-                    defaultPath: string;
-                    filters: { name: string; extensions: string[] }[];
-                }) => Promise<{ canceled: boolean; filePath?: string }>;
-            };
-            getCurrentWindow?: () => {
-                webContents?: {
-                    printToPDF?: (options: {
-                        pageSize: string | { width: number; height: number };
-                        landscape?: boolean;
-                        printBackground?: boolean;
-                        marginsType?: number;
-                    }) => Promise<Uint8Array>;
-                };
-            };
-        };
-    };
-
-    type ElectronFs = {
-        writeFile: (
-            path: string,
-            data: Uint8Array,
-            cb: (err?: Error) => void,
-        ) => void;
-    };
-
-    const applyInlineStyles = (
-        element: HTMLElement,
-        styles: Partial<CSSStyleDeclaration>,
-    ) => {
-        Object.assign(element.style, styles);
-    };
-
-    const collectCssVariables = (elements: HTMLElement[]) => {
-        const vars: Record<string, string> = {};
-        for (const element of elements) {
-            const computed = getComputedStyle(element);
-            for (let i = 0; i < computed.length; i += 1) {
-                const key = computed[i];
-                if (!key.startsWith('--')) continue;
-                const value = computed.getPropertyValue(key).trim();
-                if (!value) continue;
-                vars[key] = value;
-            }
-        }
-        return vars;
-    };
-
-    const applyCssVariables = (
-        element: HTMLElement,
-        vars: Record<string, string>,
-    ) => {
-        element.setCssProps(vars);
-    };
-
-    const withPrintTarget = (
-        target: HTMLElement,
-        callback: () => Promise<void>,
-    ) => {
-        document.body.classList.add('mandala-print-export');
-        document.body.classList.add('mandala-export-hide-controls');
-        target.classList.add('mandala-print-target');
-        return callback().finally(() => {
-            document.body.classList.remove('mandala-print-export');
-            document.body.classList.remove('mandala-export-hide-controls');
-            target.classList.remove('mandala-print-target');
-        });
-    };
-
-    const withExportControlsHidden = async (callback: () => Promise<void>) => {
-        document.body.classList.add('mandala-export-hide-controls');
-        try {
-            await callback();
-        } finally {
-            document.body.classList.remove('mandala-export-hide-controls');
-        }
-    };
-
-    const renderToPNGDataUrl = async (
-        target: HTMLElement,
-        options?: {
-            width?: number;
-            height?: number;
-            pixelRatio?: number;
-        },
-    ) => {
-        const backgroundColor = getComputedStyle(
-            document.documentElement,
-        ).getPropertyValue('--background-primary');
-        const safeBackground =
-            backgroundColor && backgroundColor.trim().length > 0
-                ? backgroundColor.trim()
-                : '#ffffff';
-        return toPng(target, {
-            pixelRatio: options?.pixelRatio ?? 2,
-            backgroundColor: safeBackground,
-            width: options?.width,
-            height: options?.height,
-        });
-    };
-
-    const exportToPNG = async (
-        target: HTMLElement,
-        options?: {
-            width?: number;
-            height?: number;
-            pixelRatio?: number;
-            dpi?: number;
-        },
-    ) => {
-        const exportPreset = createCurrentExportPreset();
-        const loadingNotice = new Notice('正在导出 PNG...', 0);
-        if (!target) {
-            loadingNotice.hide();
-            new Notice('未找到可导出的视图区域。');
-            return;
-        }
-
-        let dataUrl = '';
-        try {
-            dataUrl = await renderToPNGDataUrl(target, options);
-        } catch (_error) {
-            loadingNotice.hide();
-            new Notice('导出失败，请稍后再试。');
-            closeExportMode();
-            return;
-        }
-
-        // DPI metadata injection is disabled until PNG chunk placement is fixed.
-
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const defaultName = `mandala-${timestamp}.png`;
-
-        const electronRequire = (
-            window as unknown as { require?: (module: string) => unknown }
-        ).require;
-        const electron = electronRequire?.('electron') as
-            | ElectronDialog
-            | undefined;
-        const dialog = electron?.dialog ?? electron?.remote?.dialog;
-        if (dialog) {
-            const result = await dialog.showSaveDialog({
-                title: '导出 PNG',
-                defaultPath: defaultName,
-                filters: [{ name: 'PNG', extensions: ['png'] }],
-            });
-            if (!result.canceled && result.filePath) {
-                const fs = electronRequire?.('fs') as ElectronFs | undefined;
-                if (!fs) {
-                    loadingNotice.hide();
-                    new Notice('导出失败，请稍后再试。');
-                    closeExportMode();
-                    return;
-                }
-                const base64 = dataUrl.split(',')[1] ?? '';
-                const binary = atob(base64);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i += 1) {
-                    bytes[i] = binary.charCodeAt(i);
-                }
-                fs?.writeFile(result.filePath, bytes, (err) => {
-                    loadingNotice.hide();
-                    if (err) {
-                        new Notice('导出失败，请稍后再试。');
-                    } else {
-                        new Notice('PNG 导出完成。');
-                        persistLastExportPreset(exportPreset);
-                    }
-                });
-                closeExportMode();
-                return;
-            }
-            loadingNotice.hide();
-            closeExportMode();
-            return;
-        }
-
-        loadingNotice.hide();
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = defaultName;
-        link.click();
-        persistLastExportPreset(exportPreset);
-        closeExportMode();
-    };
-
-    const exportCurrentView = async (mode: 'png-square' | 'png-screen') => {
-        const createSquarePngExportTarget = (source: HTMLElement) => {
-            const rect = source.getBoundingClientRect();
-            const computed = getComputedStyle(source);
-            const borderColor = computed.getPropertyValue(
-                '--mandala-border-color',
-            );
-            const sourceWidth = Math.max(1, Math.ceil(rect.width));
-            const sourceHeight = Math.max(1, Math.ceil(rect.height));
-            const canvasSize = Math.max(sourceWidth, sourceHeight);
-            const scale = Math.min(
-                canvasSize / sourceWidth,
-                canvasSize / sourceHeight,
-            );
-            const tx = (canvasSize - sourceWidth * scale) / 2;
-            const ty = (canvasSize - sourceHeight * scale) / 2;
-            const cssVars = collectCssVariables([
-                document.documentElement,
-                view.containerEl,
-                source,
-            ]);
-
-            const wrapper = document.createElement('div');
-            applyCssVariables(wrapper, cssVars);
-            if (borderColor.trim().length > 0) {
-                applyInlineStyles(wrapper, {
-                    ['--mandala-border-color' as keyof CSSStyleDeclaration]:
-                        borderColor,
-                });
-            }
-            applyInlineStyles(wrapper, {
-                position: 'fixed',
-                left: '0',
-                top: '0',
-                width: `${canvasSize}px`,
-                height: `${canvasSize}px`,
-                zIndex: '-1',
-                pointerEvents: 'none',
-                overflow: 'hidden',
-                background: getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue('--background-primary'),
-                boxSizing: 'border-box',
-            });
-
-            const clone = source.cloneNode(true) as HTMLElement;
-            if ($whiteThemeMode) {
-                clone.classList.add('mandala-white-theme');
-            }
-            applyInlineStyles(clone, {
-                margin: '0',
-                transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-                left: '0',
-                top: '0',
-                position: 'absolute',
-                width: `${sourceWidth}px`,
-                height: `${sourceHeight}px`,
-                boxSizing: 'border-box',
-                transformOrigin: 'top left',
-            });
-
-            wrapper.appendChild(clone);
-            document.body.appendChild(wrapper);
-
-            return {
-                element: wrapper,
-                width: canvasSize,
-                height: canvasSize,
-                cleanup: () => wrapper.remove(),
-            };
-        };
-
-        const getExportTarget = () => {
-            if (mode === 'png-square') {
-                return view.contentEl.querySelector(
-                    '.mandala-scroll',
-                ) as HTMLElement | null;
-            }
-            if (!includeSidebarInPngScreen) {
-                return view.contentEl.querySelector(
-                    '.mandala-scroll',
-                ) as HTMLElement | null;
-            }
-            return view.contentEl.querySelector(
-                '.mandala-content-wrapper',
-            ) as HTMLElement | null;
-        };
-
-        const target = getExportTarget();
-        if (!target) {
-            new Notice('未找到可导出的视图区域。');
-            return;
-        }
-
-        if (mode === 'png-square' && $squareLayout) {
-            const exportTarget = createSquarePngExportTarget(target);
-            try {
-                await withExportControlsHidden(async () => {
-                    await exportToPNG(exportTarget.element, {
-                        pixelRatio: 2,
-                        width: exportTarget.width,
-                        height: exportTarget.height,
-                    });
-                });
-            } finally {
-                exportTarget.cleanup();
-            }
-            return;
-        }
-
-        await withExportControlsHidden(async () => {
-            await exportToPNG(target, { pixelRatio: 2 });
-        });
     };
 
     $: if ($a4Mode && exportMode !== 'pdf-a4') {
@@ -1007,276 +715,6 @@
     $: if (isExportModeModalOpen && !isInExportSession) {
         enterExportSession();
     }
-
-    const exportCurrentFile = async () => {
-        if (isMobile) {
-            new Notice('移动端不支持导出，请在桌面端操作');
-            return;
-        }
-        if (exportMode === 'pdf-a4') {
-            await exportCurrentViewPdf();
-            return;
-        }
-        await exportCurrentView(exportMode);
-    };
-
-    const exportCurrentViewPdf = async () => {
-        const exportPreset = createCurrentExportPreset();
-        if (!$a4Mode) {
-            new Notice('请先切换到 A4 大小再导出 PDF。');
-            return;
-        }
-
-        const loadingNotice = new Notice('正在导出 PDF...', 0);
-        const target = view.contentEl.querySelector(
-            '.mandala-scroll',
-        ) as HTMLElement | null;
-        if (!target) {
-            loadingNotice.hide();
-            new Notice('未找到可导出的视图区域。');
-            closeExportMode();
-            return;
-        }
-        const electronRequire = (
-            window as unknown as { require?: (module: string) => unknown }
-        ).require;
-        const electron = electronRequire?.('electron') as
-            | ElectronDialog
-            | undefined;
-        const dialog = electron?.dialog ?? electron?.remote?.dialog;
-        const getCurrentWindow = electron?.remote?.getCurrentWindow;
-        const webContents = getCurrentWindow?.().webContents;
-
-        if (!dialog || !webContents?.printToPDF) {
-            loadingNotice.hide();
-            new Notice('当前环境不支持 PDF 导出。');
-            closeExportMode();
-            return;
-        }
-
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const defaultName = `mandala-${timestamp}.pdf`;
-        const isLandscape = $a4Orientation === 'landscape';
-        const pageStyle = document.createElement('style');
-        pageStyle.textContent = `@page { size: A4 ${
-            isLandscape ? 'landscape' : 'portrait'
-        }; margin: 0; }`;
-        document.head.appendChild(pageStyle);
-
-        const createPrintLayer = (
-            source: HTMLElement,
-            orientation: 'portrait' | 'landscape',
-        ) => {
-            const computed = getComputedStyle(source);
-            const borderColor = computed.getPropertyValue(
-                '--mandala-border-color',
-            );
-            const sourceRoot = source.closest(
-                '.mandala-root',
-            ) as HTMLElement | null;
-            const layer = document.createElement('div');
-            layer.className = 'mandala-pdf-export-layer';
-            layer.classList.add('mandala-a4-mode');
-            if (orientation === 'landscape') {
-                layer.classList.add('mandala-a4-landscape');
-            }
-            if ($squareLayout) {
-                layer.classList.add('is-desktop-square-layout');
-            }
-            if (sourceRoot) {
-                sourceRoot.classList.forEach((className) => {
-                    if (className === 'mandala-root') return;
-                    layer.classList.add(className);
-                });
-            }
-            const cssVars = collectCssVariables([
-                document.documentElement,
-                view.containerEl,
-                sourceRoot ?? source,
-                source,
-            ]);
-            applyCssVariables(layer, cssVars);
-            applyInlineStyles(layer, {
-                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${$borderOpacity}%`,
-                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]: `${$gridHighlightWidth}px`,
-            });
-            if ($gridHighlightColorStore?.trim().length) {
-                applyInlineStyles(layer, {
-                    ['--mandala-grid-highlight-color' as keyof CSSStyleDeclaration]:
-                        $gridHighlightColorStore,
-                });
-            }
-            if (borderColor.trim().length > 0) {
-                applyInlineStyles(layer, {
-                    ['--mandala-border-color' as keyof CSSStyleDeclaration]:
-                        borderColor,
-                });
-            }
-            applyInlineStyles(layer, {
-                display: 'block',
-                width: orientation === 'landscape' ? '297mm' : '210mm',
-                height: orientation === 'landscape' ? '210mm' : '297mm',
-                padding: '1.27cm',
-                boxSizing: 'border-box',
-                background: getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue('--background-primary'),
-            });
-
-            const clone = source.cloneNode(true) as HTMLElement;
-            if ($whiteThemeMode) {
-                clone.classList.add('mandala-white-theme');
-            }
-            applyInlineStyles(clone, {
-                margin: '0',
-                transform: 'none',
-                left: '0',
-                top: '0',
-                position: 'static',
-                width: '100%',
-                height: '100%',
-                padding: '0',
-                boxSizing: 'border-box',
-            });
-
-            layer.appendChild(clone);
-            document.body.appendChild(layer);
-            document.body.classList.add('mandala-print-export');
-
-            return {
-                layer,
-                cleanup: () => {
-                    document.body.classList.remove('mandala-print-export');
-                    layer.remove();
-                },
-            };
-        };
-
-        try {
-            const printLayer = createPrintLayer(
-                target,
-                isLandscape ? 'landscape' : 'portrait',
-            );
-            await withPrintTarget(printLayer.layer, async () => {
-                const pdfData = await webContents.printToPDF({
-                    pageSize: 'A4',
-                    landscape: isLandscape,
-                    printBackground: true,
-                    marginsType: 1,
-                });
-                const result = await dialog.showSaveDialog({
-                    title: '导出 PDF',
-                    defaultPath: defaultName,
-                    filters: [{ name: 'PDF', extensions: ['pdf'] }],
-                });
-                if (!result.canceled && result.filePath) {
-                    const fs = electronRequire?.('fs') as
-                        | ElectronFs
-                        | undefined;
-                    if (!fs) {
-                        new Notice('导出失败，请稍后再试。');
-                        return;
-                    }
-                    const bytes =
-                        pdfData instanceof Uint8Array
-                            ? pdfData
-                            : new Uint8Array(pdfData);
-                    await new Promise<void>((resolve) => {
-                        fs.writeFile(result.filePath!, bytes, (err) => {
-                            if (err) {
-                                new Notice('导出失败，请稍后再试。');
-                            } else {
-                                new Notice('PDF 导出完成。');
-                                persistLastExportPreset(exportPreset);
-                            }
-                            resolve();
-                        });
-                    });
-                }
-            });
-            printLayer.cleanup();
-        } catch (_error) {
-            new Notice('导出失败，请稍后再试。');
-        } finally {
-            pageStyle.remove();
-            loadingNotice.hide();
-            closeExportMode();
-        }
-    };
-
-    const _addPngDpiChunk = (dataUrl: string, dpi: number) => {
-        const base64 = dataUrl.split(',')[1] ?? '';
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i += 1) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-
-        const signature = bytes.slice(0, 8);
-        const rest = bytes.slice(8);
-        const dpiToPpm = Math.round(dpi * 39.3701);
-        const chunkType = new TextEncoder().encode('pHYs');
-        const chunkData = new Uint8Array(9);
-        const view = new DataView(chunkData.buffer);
-        view.setUint32(0, dpiToPpm);
-        view.setUint32(4, dpiToPpm);
-        chunkData[8] = 1;
-
-        const chunkLength = new Uint8Array(4);
-        new DataView(chunkLength.buffer).setUint32(0, chunkData.length);
-        const crcData = new Uint8Array(chunkType.length + chunkData.length);
-        crcData.set(chunkType, 0);
-        crcData.set(chunkData, chunkType.length);
-        const crc = crc32(crcData);
-        const crcBytes = new Uint8Array(4);
-        new DataView(crcBytes.buffer).setUint32(0, crc);
-
-        const pngBytes = new Uint8Array(
-            signature.length +
-                chunkLength.length +
-                chunkType.length +
-                chunkData.length +
-                crcBytes.length +
-                rest.length,
-        );
-        let offset = 0;
-        pngBytes.set(signature, offset);
-        offset += signature.length;
-        pngBytes.set(chunkLength, offset);
-        offset += chunkLength.length;
-        pngBytes.set(chunkType, offset);
-        offset += chunkType.length;
-        pngBytes.set(chunkData, offset);
-        offset += chunkData.length;
-        pngBytes.set(crcBytes, offset);
-        offset += crcBytes.length;
-        pngBytes.set(rest, offset);
-
-        const binaryOutput = bytesToBinary(pngBytes);
-        const outputBase64 = btoa(binaryOutput);
-        return `data:image/png;base64,${outputBase64}`;
-    };
-
-    const bytesToBinary = (bytes: Uint8Array) => {
-        const chunkSize = 0x8000;
-        let result = '';
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-            result += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-        }
-        return result;
-    };
-
-    const crc32 = (input: Uint8Array) => {
-        let crc = 0xffffffff;
-        for (let i = 0; i < input.length; i += 1) {
-            crc ^= input[i];
-            for (let j = 0; j < 8; j += 1) {
-                const mask = -(crc & 1);
-                crc = (crc >>> 1) ^ (0xedb88320 & mask);
-            }
-        }
-        return (crc ^ 0xffffffff) >>> 0;
-    };
 
     const clearEmptySubgrids = () => {
         const state = view.documentStore.getValue();
