@@ -62,14 +62,21 @@ import { serializeSections } from 'src/mandala-document/engine/serialize-section
 import { applySectionPatch } from 'src/mandala-display/logic/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
+import {
+    captureMandalaUiState,
+    ensureCurrentFileCustomLayoutAvailable,
+    getCurrentMandalaLayoutId as resolveCurrentMandalaLayoutId,
+    persistCurrentMandalaViewState as persistCurrentFileMandalaViewState,
+    resolveInitialMandalaDetailSidebarVisible,
+    restoreMandalaUiState as restoreCachedMandalaUiState,
+    type MandalaUiStateSnapshot,
+} from 'src/view/helpers/mandala-view-state';
 import { resolveRestoredSubgridTheme } from 'src/mandala-interaction/helpers/resolve-restored-subgrid-theme';
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
     MandalaMode,
 } from 'src/mandala-settings/state/settings-type';
 import {
-    layoutIdToOrientation,
-    findMandalaCustomLayout,
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/mandala-display/logic/grid-layout';
@@ -126,17 +133,7 @@ export class MandalaView extends TextFileView {
     private readonly persistSnapshotErrorKeys = new Map<string, string>();
     private readonly mandalaUiStateByPath = new Map<
         string,
-        {
-            subgridTheme: string;
-            activeCell9x9: { row: number; col: number } | null;
-            activeCellNx9: {
-                row: number;
-                col: number;
-                page?: number;
-            } | null;
-            activeCellWeek7x9: { row: number; col: number } | null;
-            weekAnchorDate: string | null;
-        }
+        MandalaUiStateSnapshot
     >();
     constructor(
         leaf: WorkspaceLeaf,
@@ -156,7 +153,7 @@ export class MandalaView extends TextFileView {
         >(
             defaultViewState(
                 this.plugin.settings.getValue().view.mandalaMode,
-                this.resolveInitialMandalaDetailSidebarVisible(),
+                resolveInitialMandalaDetailSidebarVisible(this),
             ),
             viewReducer,
             this.onViewStoreError as OnError<ViewStoreAction>,
@@ -197,45 +194,7 @@ export class MandalaView extends TextFileView {
     }
 
     getCurrentMandalaLayoutId(settings = this.plugin.settings.getValue()) {
-        return resolveDocumentMandalaLayoutId({
-            path: this.getCurrentFilePath(),
-            settings,
-        });
-    }
-
-    private ensureCurrentFileCustomLayoutAvailable(
-        path: string,
-        settings = this.plugin.settings.getValue(),
-    ) {
-        const persistedMandalaView = settings.documents[path]?.mandalaView;
-        const layoutId = persistedMandalaView?.selectedLayoutId;
-        const selectedCustomLayout = persistedMandalaView?.selectedCustomLayout;
-        if (!layoutId?.startsWith('custom:') || !selectedCustomLayout) {
-            return settings;
-        }
-        const customLayouts = settings.view.mandalaGridCustomLayouts ?? [];
-        if (findMandalaCustomLayout(customLayouts, layoutId)) {
-            return settings;
-        }
-        this.plugin.settings.dispatch({
-            type: 'settings/view/mandala/add-custom-grid-layout',
-            payload: {
-                layout: selectedCustomLayout,
-            },
-        });
-        return this.plugin.settings.getValue();
-    }
-
-    private resolveInitialMandalaDetailSidebarVisible(
-        settings = this.plugin.settings.getValue(),
-    ) {
-        const path = this.getCurrentFilePath();
-        const persisted = path ? settings.documents[path]?.mandalaView : null;
-        return Platform.isMobile
-            ? persisted?.showDetailSidebarMobile ??
-                  settings.view.showMandalaDetailSidebarMobile
-            : persisted?.showDetailSidebarDesktop ??
-                  settings.view.showMandalaDetailSidebarDesktop;
+        return resolveCurrentMandalaLayoutId(this, settings);
     }
 
     isMandalaDetailSidebarVisible() {
@@ -282,8 +241,10 @@ export class MandalaView extends TextFileView {
 
     setCurrentNx9RowsPerPage(rowsPerPage: number) {
         if (!Number.isInteger(rowsPerPage) || rowsPerPage < 1) return;
-        this.persistCurrentMandalaViewState({
-            nx9RowsPerPage: rowsPerPage,
+        persistCurrentFileMandalaViewState(this, {
+            overrides: {
+                nx9RowsPerPage: rowsPerPage,
+            },
         });
     }
 
@@ -846,7 +807,8 @@ export class MandalaView extends TextFileView {
         this.dayPlanHotCores = activation.hotCoreSections;
         const settings = this.plugin.settings.getValue();
         const filePath = this.file?.path ?? '';
-        const hydratedSettings = this.ensureCurrentFileCustomLayoutAvailable(
+        const hydratedSettings = ensureCurrentFileCustomLayoutAvailable(
+            this,
             filePath,
             settings,
         );
@@ -963,124 +925,28 @@ export class MandalaView extends TextFileView {
     };
 
     private persistMandalaUiState(path: string) {
-        const viewState = this.viewStore.getValue();
-        this.mandalaUiStateByPath.set(path, {
-            subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
-            activeCell9x9: viewState.ui.mandala.activeCell9x9,
-            activeCellNx9: viewState.ui.mandala.activeCellNx9,
-            activeCellWeek7x9: viewState.ui.mandala.activeCellWeek7x9,
-            weekAnchorDate: viewState.ui.mandala.weekAnchorDate,
-        });
-
-        this.persistCurrentMandalaViewState(undefined, path);
+        this.mandalaUiStateByPath.set(
+            path,
+            captureMandalaUiState(this.viewStore.getValue()),
+        );
+        persistCurrentFileMandalaViewState(this, { explicitPath: path });
     }
 
     persistCurrentMandalaLayout(layoutId: string) {
-        this.persistCurrentMandalaViewState({ selectedLayoutId: layoutId });
-    }
-
-    private persistCurrentMandalaViewState(
-        overrides?: {
-            selectedLayoutId?: string | null;
-            nx9RowsPerPage?: number;
-        },
-        explicitPath?: string,
-    ) {
-        const path = explicitPath ?? this.getCurrentFilePath();
-        if (!path) return;
-
-        const viewState = this.viewStore.getValue();
-        const documentState = this.documentStore.getValue();
-        if (!documentState.meta.isMandala) return;
-
-        const settings = this.plugin.settings.getValue();
-        const activeNodeId = viewState.document.activeNode;
-        const lastActiveSection =
-            documentState.sections.id_section[activeNodeId] ?? null;
-        const subgridTheme = viewState.ui.mandala.subgridTheme ?? null;
-        const selectedLayoutId =
-            overrides?.selectedLayoutId ??
-            resolveDocumentMandalaLayoutId({
-                path,
-                settings,
-            });
-        const selectedCustomLayout = selectedLayoutId?.startsWith('custom:')
-            ? findMandalaCustomLayout(
-                  settings.view.mandalaGridCustomLayouts ?? [],
-                  selectedLayoutId,
-              )
-            : null;
-        const gridOrientation = layoutIdToOrientation(selectedLayoutId);
-        const currentMandalaViewState = settings.documents[path]?.mandalaView;
-        const nx9RowsPerPage =
-            overrides?.nx9RowsPerPage ??
-            currentMandalaViewState?.nx9RowsPerPage ??
-            DEFAULT_NX9_ROWS_PER_PAGE;
-
-        if (
-            (currentMandalaViewState?.selectedLayoutId ?? null) ===
-                selectedLayoutId &&
-            JSON.stringify(
-                currentMandalaViewState?.selectedCustomLayout ?? null,
-            ) === JSON.stringify(selectedCustomLayout ?? null) &&
-            currentMandalaViewState?.gridOrientation === gridOrientation &&
-            (currentMandalaViewState?.lastActiveSection ?? null) ===
-                lastActiveSection &&
-            (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme &&
-            (currentMandalaViewState?.nx9RowsPerPage ??
-                DEFAULT_NX9_ROWS_PER_PAGE) === nx9RowsPerPage
-        ) {
-            return;
-        }
-
-        this.plugin.settings.dispatch({
-            type: 'settings/documents/persist-mandala-view-state',
-            payload: {
-                path,
-                gridOrientation,
-                selectedLayoutId,
-                selectedCustomLayout: selectedCustomLayout ?? null,
-                lastActiveSection,
-                subgridTheme,
-                nx9RowsPerPage,
-            },
+        persistCurrentFileMandalaViewState(this, {
+            overrides: { selectedLayoutId: layoutId },
         });
     }
 
     private restoreMandalaUiState(path: string, fallbackSubgridTheme = '1') {
-        const nextState = this.mandalaUiStateByPath.get(path);
-        const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
-        const activeCell9x9 = nextState?.activeCell9x9 ?? null;
-        const activeCellNx9 = nextState?.activeCellNx9 ?? null;
-        const activeCellWeek7x9 = nextState?.activeCellWeek7x9 ?? null;
-        const weekAnchorDate = nextState?.weekAnchorDate ?? null;
-
-        this.viewStore.dispatch({
-            type: 'view/mandala/subgrid/enter',
-            payload: { theme: subgridTheme },
-        });
-        this.viewStore.dispatch({
-            type: 'view/mandala/active-cell/set',
-            payload: { cell: activeCell9x9 },
-        });
-        this.viewStore.dispatch({
-            type: 'view/mandala/nx9-active-cell/set',
-            payload: { cell: activeCellNx9 },
-        });
-        this.viewStore.dispatch({
-            type: 'view/mandala/week-active-cell/set',
-            payload: { cell: activeCellWeek7x9 },
-        });
-        this.viewStore.dispatch({
-            type: 'view/mandala/week-anchor-date/set',
-            payload: { date: weekAnchorDate },
-        });
-        this.viewStore.dispatch({
-            type: 'view/mandala/swap/cancel',
-        });
-        this.mandalaActiveCell9x9 = activeCell9x9;
-        this.mandalaActiveCellNx9 = activeCellNx9;
-        this.mandalaActiveCellWeek7x9 = activeCellWeek7x9;
+        const restored = restoreCachedMandalaUiState(
+            this,
+            this.mandalaUiStateByPath.get(path),
+            fallbackSubgridTheme,
+        );
+        this.mandalaActiveCell9x9 = restored.activeCell9x9;
+        this.mandalaActiveCellNx9 = restored.activeCellNx9;
+        this.mandalaActiveCellWeek7x9 = restored.activeCellWeek7x9;
     }
 
     private collectSectionIdsFromBody(body: string) {
