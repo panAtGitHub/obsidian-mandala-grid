@@ -2,11 +2,8 @@
     import clx from 'classnames';
     import CardMainContent from 'src/cell/view/components/card-main-content.svelte';
     import CardMeta from 'src/cell/view/components/card-meta.svelte';
-    import type { CellGridPosition } from 'src/cell/model/card-types';
-    import type { CellDisplayPolicy } from 'src/cell/model/cell-display-policy';
     import CardStyle from 'src/cell/view/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/cell/model/build-mandala-card-render-model';
-    import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
     import { getView } from 'src/views/shared/shell/context';
     import { Platform } from 'obsidian';
     import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
@@ -14,7 +11,7 @@
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/cell/model/card-render-model';
-    import type { CellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
+    import type { MandalaCardViewModel } from 'src/cell/model/card-view-model';
     import {
         clickMandalaCard,
         doubleClickMandalaCard,
@@ -30,18 +27,7 @@
     // 缓存平台状态，避免每次渲染都读取
     const isMobile = Platform.isMobile;
 
-    export let nodeId: string;
-    export let section: string;
-    export let active: boolean;
-    export let editing: boolean;
-    export let selected: boolean;
-    export let pinned: boolean;
-    export let style: NodeStyle | undefined;
-    export let sectionColor: string | null = null;
-    export let metaAccentColor: string | null = null;
-    export let displayPolicy: CellDisplayPolicy;
-    export let interactionPolicy: CellInteractionPolicy;
-    export let gridCell: CellGridPosition | null = null;
+    export let viewModel: MandalaCardViewModel;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -66,6 +52,33 @@
             )
             .trim();
     let renderModel: MandalaCardRenderModel;
+    let nodeId: string;
+    let section: string;
+    let active: boolean;
+    let editing: boolean;
+    let selected: boolean;
+    let pinned: boolean;
+    let nodeStyle = viewModel.style;
+    let sectionColor: string | null = null;
+    let metaAccentColor: string | null = null;
+    let displayPolicy = viewModel.displayPolicy;
+    let interactionPolicy = viewModel.interactionPolicy;
+    let gridCell = viewModel.gridCell;
+
+    $: ({
+        nodeId,
+        section,
+        active,
+        editing,
+        selected,
+        pinned,
+        style: nodeStyle,
+        sectionColor,
+        metaAccentColor,
+        displayPolicy,
+        interactionPolicy,
+        gridCell,
+    } = viewModel);
 
     $: renderModel = buildMandalaCardRenderModel({
         nodeId,
@@ -74,7 +87,7 @@
         active,
         editing,
         pinned,
-        style,
+        style: nodeStyle,
         sectionColor,
         metaAccentColor,
         displayPolicy,
@@ -145,15 +158,15 @@
         });
     }}
 >
-    {#if style &&
+    {#if nodeStyle &&
     !(renderModel.shouldHideBackgroundStyle &&
-        style.styleVariant === 'background-color')}
-        <CardStyle {style} />
+        nodeStyle.styleVariant === 'background-color')}
+        <CardStyle style={nodeStyle} />
     {/if}
 
     <CardMainContent
         {nodeId}
-        {style}
+        style={nodeStyle}
         isInSidebar={false}
         showInlineEditor={renderModel.showInlineEditor}
         showContent={renderModel.showContent}

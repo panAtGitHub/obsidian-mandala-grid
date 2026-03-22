@@ -37,7 +37,7 @@
         >
             {#if cell.nodeId}
                 {#if cell.cardViewModel}
-                    <MandalaCard {...cell.cardViewModel} />
+                    <MandalaCard viewModel={cell.cardViewModel} />
                 {/if}
             {:else if cell.isPlaceholder || cell.emptyLabel}
                 <div class="row-matrix-cell__empty">

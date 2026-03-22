@@ -32,7 +32,7 @@
             }}
         >
             {#if cell.cardViewModel}
-                <MandalaCard {...cell.cardViewModel} />
+                <MandalaCard viewModel={cell.cardViewModel} />
                 {#if !Platform.isMobile && show3x3SubgridNavButtons && !hasOpenOverlayModal}
                     <div
                         class="mandala-subgrid-controls"

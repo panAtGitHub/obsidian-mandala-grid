@@ -64,7 +64,7 @@
 ### 顶层与组合组件
 
 - `components/mandala-card.svelte`
-  标准 mandala card 的主组件。负责收集外部状态、构建 render model、绑定点击/双击/交换事件，并组合内容区与 meta 区。
+  标准 mandala card 的主组件。直接消费场景层组装好的 `MandalaCardViewModel`，负责补齐运行时上下文、构建 render model、绑定点击/双击/交换事件，并组合内容区与 meta 区。
 
 - `components/card-main-content.svelte`
   card 主内容区容器，负责决定是否显示 inline editor、内容主体、隐藏内建信息以及字体大小参数。
