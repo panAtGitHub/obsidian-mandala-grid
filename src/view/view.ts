@@ -70,7 +70,7 @@ import {
     resolveInitialMandalaDetailSidebarVisible,
     restoreMandalaUiState as restoreCachedMandalaUiState,
     type MandalaUiStateSnapshot,
-} from 'src/view/helpers/mandala-view-state';
+} from 'src/mandala-settings/state/current-file/mandala-view-state';
 import { resolveRestoredSubgridTheme } from 'src/mandala-interaction/helpers/resolve-restored-subgrid-theme';
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,

@@ -1,12 +1,12 @@
 import { Platform } from 'obsidian';
 import {
-    DEFAULT_NX9_ROWS_PER_PAGE,
-} from 'src/mandala-settings/state/settings-type';
-import {
     findMandalaCustomLayout,
     layoutIdToOrientation,
     resolveDocumentMandalaLayoutId,
 } from 'src/mandala-display/logic/grid-layout';
+import {
+    DEFAULT_NX9_ROWS_PER_PAGE,
+} from 'src/mandala-settings/state/settings-type';
 import type { ViewState } from 'src/stores/view/view-state-type';
 import type { MandalaView } from 'src/view/view';
 
