@@ -3,7 +3,7 @@ import { MandalaView } from 'src/view/view';
 import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import {
     getCurrentFileSectionColorMap,
-} from 'src/mandala-display/logic/current-file-mandala-settings';
+} from 'src/mandala-settings/state/current-file/current-file-preferences';
 import {
     createSectionColorIndex,
     SectionColorMap,

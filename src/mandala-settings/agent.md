@@ -16,6 +16,7 @@
 - `state/`
   放设置状态本体。
   包括 settings type、默认值、actions、reducer、derived store、migration、subscriptions。
+  当前文件级偏好读取也放在这里，例如 pinned sections、section colors、当前文件 mandala view 偏好等。
 
 - `ui/`
   放设置相关界面。

@@ -11,7 +11,7 @@ import {
     serializeSectionColorMapForSettings,
     setSectionColor,
 } from 'src/mandala-display/logic/section-colors';
-import { getCurrentFileSectionColorMap } from 'src/mandala-display/logic/current-file-mandala-settings';
+import { getCurrentFileSectionColorMap } from 'src/mandala-settings/state/current-file/current-file-preferences';
 import { resolveContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
 
 const createSectionColorPersistence = (view: MandalaView) => {

@@ -14,7 +14,7 @@ import {
     serializeSectionColorMapForSettings,
     swapSectionSubtreeColors,
 } from 'src/mandala-display/logic/section-colors';
-import { getCurrentFileSectionColorMap } from 'src/mandala-display/logic/current-file-mandala-settings';
+import { getCurrentFileSectionColorMap } from 'src/mandala-settings/state/current-file/current-file-preferences';
 
 type SaveOptions = {
     mode: 'content-only' | 'structural';
