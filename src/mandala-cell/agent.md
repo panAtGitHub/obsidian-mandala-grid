@@ -184,6 +184,42 @@
 - 要改“点了之后发生什么、不同平台行为差异”，优先看 `viewmodel/`。
 - 若某个逻辑同时涉及样式派生和交互，不要直接塞进 Svelte 组件；优先拆到 `model/` 或 `viewmodel/`。
 
+## 推荐阅读顺序
+
+如果你是第一次读 `src/mandala-cell/`，建议不要随机跳文件，优先按下面顺序读：
+
+### 1. 先看显示配置这条线
+
+1. `model/cell-display-policy.ts`
+   先知道“格子的显示配置有哪些字段”。
+2. `model/default-cell-display-policy.ts`
+   再知道“标准格子的默认值是什么”。
+3. `src/mandala-scenes/view-xxx/build-cell-display-overrides.ts`
+   再看“某个场景只改了哪些默认值”。
+4. `src/mandala-scenes/view-xxx/assemble-cell-view-model.ts`
+   最后看“默认值和场景微调是怎么合并的”。
+
+### 2. 再看标准格子数据流
+
+1. `model/card-view-model.ts`
+   了解场景层最终会把什么数据交给标准格子。
+2. `model/build-mandala-card-view-model.ts`
+   了解这些字段如何被统一装配。
+3. `model/build-mandala-card-render-model.ts`
+   了解 view model 如何继续被派生成 render model。
+4. `model/card-render-model.ts`
+   确认 view 层最终拿到的渲染字段有哪些。
+
+### 3. 最后看视图层
+
+1. `view/components/mandala-card.svelte`
+2. `view/components/card-main-content.svelte`
+3. `view/content/content.svelte`
+4. `view/content/inline-editor.svelte`
+5. `view/section-meta.svelte`
+
+这条顺序适合大多数“格子为什么长成这样”的问题。
+
 ## 微调落点
 
 - `src/mandala-cell/` 定义“一个标准格子最终可以如何呈现”。
