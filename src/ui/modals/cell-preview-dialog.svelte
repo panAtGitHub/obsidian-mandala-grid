@@ -17,7 +17,7 @@
     } from 'src/mandala-interaction/helpers/cell-preview-dialog';
     import { isPreviewDialogEditingNode } from 'src/mandala-interaction/helpers/is-preview-dialog-editing-node';
     import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
-    import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
+    import { resolveCellPreviewNodeId } from 'src/mandala-interaction/helpers/resolve-cell-preview-node-id';
 
     const view = getView();
     const previewDialog = derived(

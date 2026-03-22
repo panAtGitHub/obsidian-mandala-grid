@@ -1,7 +1,7 @@
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { cancelChanges } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/cancel-changes';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
+import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
 import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';

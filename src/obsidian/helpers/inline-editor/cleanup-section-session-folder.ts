@@ -1,6 +1,6 @@
 import { TFile } from 'obsidian';
 import { logger } from 'src/shared/helpers/logger';
-import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
+import { deleteSectionSessionTempFile } from 'src/obsidian/helpers/inline-editor/delete-section-session-temp-file';
 
 type SectionSessionFolderCleanupView = {
     app: {

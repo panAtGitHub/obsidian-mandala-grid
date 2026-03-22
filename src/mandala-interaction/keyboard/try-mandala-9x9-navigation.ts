@@ -3,7 +3,7 @@ import { AllDirections } from 'src/mandala-document/state/document-store-actions
 import {
     posOfSection9x9,
     sectionAtCell9x9,
-} from 'src/view/helpers/mandala/mandala-grid';
+} from 'src/mandala-display/logic/mandala-grid';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {

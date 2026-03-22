@@ -7,7 +7,7 @@ import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
 } from 'src/mandala-cell/model/simple-summary-cell-model';
-import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
+import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 
 type Build9x9CellsOptions = {

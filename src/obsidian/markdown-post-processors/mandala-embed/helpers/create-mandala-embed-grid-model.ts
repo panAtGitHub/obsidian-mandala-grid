@@ -1,4 +1,4 @@
-import { getMandalaLayout } from 'src/view/helpers/mandala/mandala-grid';
+import { getMandalaLayout } from 'src/mandala-display/logic/mandala-grid';
 
 const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
 const SECTION_COMMENT_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;

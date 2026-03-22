@@ -1,5 +1,5 @@
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
-import { sectionAtCell9x9 } from 'src/view/helpers/mandala/mandala-grid';
+import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import type { Content } from 'src/mandala-document/state/document-state-type';
 

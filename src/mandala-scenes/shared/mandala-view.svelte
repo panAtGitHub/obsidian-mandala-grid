@@ -28,7 +28,7 @@
     import {
         posOfSection9x9,
         sectionAtCell9x9,
-    } from 'src/view/helpers/mandala/mandala-grid';
+    } from 'src/mandala-display/logic/mandala-grid';
     import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
     import NineByNineLayout from 'src/mandala-scenes/view-9x9/layout.svelte';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';

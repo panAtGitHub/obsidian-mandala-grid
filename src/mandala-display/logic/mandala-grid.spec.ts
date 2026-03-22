@@ -4,7 +4,7 @@ import {
     posOfSection3x3,
     posOfSection9x9,
     sectionAtCell9x9,
-} from 'src/view/helpers/mandala/mandala-grid';
+} from 'src/mandala-display/logic/mandala-grid';
 
 describe('mandala-grid', () => {
     test('keeps builtin layouts stable', () => {

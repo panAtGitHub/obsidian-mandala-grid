@@ -4,7 +4,7 @@ import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-poli
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveCustomSectionColor } from 'src/mandala-display/logic/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
-import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
+import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 
 type ThreeByThreeEditingState = {
     activeNodeId: string | null;

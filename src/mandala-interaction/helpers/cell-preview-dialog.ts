@@ -1,6 +1,6 @@
 import { Platform } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
-import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
+import { resolveCellPreviewNodeId } from 'src/mandala-interaction/helpers/resolve-cell-preview-node-id';
 
 const isCellQuickPreviewEnabled = (view: MandalaView) =>
     Platform.isMobile

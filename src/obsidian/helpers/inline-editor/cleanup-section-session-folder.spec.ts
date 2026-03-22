@@ -1,6 +1,6 @@
 import { TFile } from 'obsidian';
 import { describe, expect, it, vi } from 'vitest';
-import { cleanupSectionSessionFolder } from 'src/view/helpers/mandala/cleanup-section-session-folder';
+import { cleanupSectionSessionFolder } from 'src/obsidian/helpers/inline-editor/cleanup-section-session-folder';
 
 describe('cleanupSectionSessionFolder', () => {
     it('deletes orphaned session files and removes the empty folder', async () => {

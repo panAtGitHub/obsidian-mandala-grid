@@ -3,7 +3,7 @@ import { AllDirections } from 'src/mandala-document/state/document-store-actions
 import {
     getMandalaLayoutById,
     posOfSection3x3,
-} from 'src/view/helpers/mandala/mandala-grid';
+} from 'src/mandala-display/logic/mandala-grid';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },

@@ -12,7 +12,7 @@ export const openNodeEditor = (
 ) => {
     if (Platform.isMobile) {
         void import(
-            'src/view/helpers/mandala/section-native-editor-session'
+            'src/obsidian/helpers/inline-editor/section-native-editor-session'
         ).then(({ startSectionNativeEditorSession }) => {
             void startSectionNativeEditorSession(view, nodeId);
         });

@@ -4,7 +4,7 @@ import { lang } from 'src/lang/lang';
 import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-block';
 import { copyLinkToHeading } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-heading';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
-import { startMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
+import { startMandalaSwap } from 'src/mandala-interaction/helpers/mandala-swap';
 import { resolveContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
 import {
     createPinToggleMenuItems,

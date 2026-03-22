@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
+import { resolveCellPreviewNodeId } from 'src/mandala-interaction/helpers/resolve-cell-preview-node-id';
 
 const frontmatter = `---
 mandala: true

@@ -1,6 +1,6 @@
 import { TFile } from 'obsidian';
 import { describe, expect, it, vi } from 'vitest';
-import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
+import { deleteSectionSessionTempFile } from 'src/obsidian/helpers/inline-editor/delete-section-session-temp-file';
 
 describe('deleteSectionSessionTempFile', () => {
     it('permanently deletes the temp markdown file', async () => {

@@ -5,7 +5,7 @@ import {
     setActiveMandalaNode,
 } from 'src/mandala-interaction/helpers/node-editing';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
-import type { MandalaSwapInteractionState } from 'src/view/helpers/mandala/mandala-swap';
+import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
 import type { MandalaView } from 'src/view/view';
 
 type SimpleSummaryPointerStartOptions = {

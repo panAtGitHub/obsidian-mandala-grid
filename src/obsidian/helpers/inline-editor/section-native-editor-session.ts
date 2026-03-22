@@ -6,8 +6,8 @@ import {
     applySectionPatch,
     getSectionContentBySection,
 } from 'src/mandala-display/logic/apply-section-patch';
-import { cleanupSectionSessionFolder } from 'src/view/helpers/mandala/cleanup-section-session-folder';
-import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
+import { cleanupSectionSessionFolder } from 'src/obsidian/helpers/inline-editor/cleanup-section-session-folder';
+import { deleteSectionSessionTempFile } from 'src/obsidian/helpers/inline-editor/delete-section-session-temp-file';
 
 type SectionEditSession = {
     tempFilePath: string;

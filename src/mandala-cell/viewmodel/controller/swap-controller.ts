@@ -3,7 +3,7 @@ import {
     handleMandalaSwapNodeClick,
     shouldBlockMandalaNodeDoubleClickForSwap,
     type MandalaSwapInteractionState,
-} from 'src/view/helpers/mandala/mandala-swap';
+} from 'src/mandala-interaction/helpers/mandala-swap';
 import type { MandalaView } from 'src/view/view';
 
 type HandleSwapPointerStartOptions = {

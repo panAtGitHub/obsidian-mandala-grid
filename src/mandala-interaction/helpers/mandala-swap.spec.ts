@@ -4,7 +4,7 @@ import {
     handleMandalaSwapNodeClick,
     shouldBlockMandalaNodeDoubleClickForSwap,
     type MandalaSwapInteractionState,
-} from 'src/view/helpers/mandala/mandala-swap';
+} from 'src/mandala-interaction/helpers/mandala-swap';
 import { Sections } from 'src/mandala-document/state/document-state-type';
 
 vi.mock('obsidian', () => ({
