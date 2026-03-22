@@ -19,6 +19,8 @@ export const createViewOptionsDocumentActions = ({
     getTemplatesFilePath,
     closeMenu,
 }: CreateViewOptionsDocumentActionsArgs) => {
+    const resolveTemplatesFilePath = () => getTemplatesFilePath() ?? null;
+
     return {
         clearEmptySubgrids() {
             const state = view.documentStore.getValue();
@@ -78,7 +80,7 @@ export const createViewOptionsDocumentActions = ({
         openTemplatesFileFromPath() {
             return openTemplatesFileFromPathAction(
                 view,
-                getTemplatesFilePath(),
+                resolveTemplatesFilePath(),
                 closeMenu,
             );
         },
@@ -90,7 +92,7 @@ export const createViewOptionsDocumentActions = ({
         saveCurrentThemeAsTemplate() {
             return saveCurrentThemeAsTemplateAction(
                 view,
-                getTemplatesFilePath(),
+                resolveTemplatesFilePath(),
                 closeMenu,
             );
         },
@@ -98,7 +100,7 @@ export const createViewOptionsDocumentActions = ({
         applyTemplateToCurrentTheme() {
             return applyTemplateToCurrentThemeAction(
                 view,
-                getTemplatesFilePath(),
+                resolveTemplatesFilePath(),
                 closeMenu,
             );
         },
