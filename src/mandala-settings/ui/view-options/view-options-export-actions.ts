@@ -370,8 +370,9 @@ export const createViewOptionsExportActions = ({
         const dialog = electron?.dialog ?? electron?.remote?.dialog;
         const getCurrentWindow = electron?.remote?.getCurrentWindow;
         const webContents = getCurrentWindow?.().webContents;
+        const printToPDF = webContents?.printToPDF;
 
-        if (!dialog || !webContents?.printToPDF) {
+        if (!dialog || !printToPDF) {
             loadingNotice.hide();
             new Notice('当前环境不支持 PDF 导出。');
             closeExportMode();
@@ -475,7 +476,7 @@ export const createViewOptionsExportActions = ({
                 isLandscape ? 'landscape' : 'portrait',
             );
             await withPrintTarget(printLayer.layer, async () => {
-                const pdfData = await webContents.printToPDF({
+                const pdfData = await printToPDF({
                     pageSize: 'A4',
                     landscape: isLandscape,
                     printBackground: true,
