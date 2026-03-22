@@ -42,13 +42,16 @@
   负责 3x3 格子的排列、卡片渲染、空格展示，以及子宫格导航按钮布局。
 
 - `view-3x3/assemble-cell-view-model.ts`
-  负责把 3x3 场景状态翻译成单格输入，包括 section、section 背景、pin、display policy、interaction policy 等。
+  负责把 3x3 场景状态翻译成单格输入，包括 section、section 背景、pin、interaction policy，以及默认格子配置与 3x3 微调的合并结果。
+
+- `view-3x3/build-cell-display-overrides.ts`
+  负责定义 3x3 相对于标准格子默认展示配置的差异，例如内容铺满、section 指示器样式、active 背景保留策略。
 
 - `shared/mandala-view.svelte`
   仍然负责模式切换、subgrid theme、today 跳转、外层容器和共享壳层逻辑。
 
-- `src/mandala-cell/model/cell-display-policy.ts`
-  定义 `grid-3x3` 的显示策略。
+- `src/mandala-cell/model/default-cell-display-policy.ts`
+  定义标准格子的默认展示配置，3x3 在 scene 层基于它做微调。
 
 - `src/mandala-cell/viewmodel/policies/cell-interaction-policy.ts`
   定义 `grid-3x3` 的交互策略，例如移动端双击进入子宫格导航。

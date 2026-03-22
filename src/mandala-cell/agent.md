@@ -40,7 +40,10 @@
 ### 展示策略与派生状态
 
 - `cell-display-policy.ts`
-  定义不同网格场景下 cell 的显示策略，例如 section 指示器样式、是否保留 active 背景、是否隐藏内建信息。
+  定义当前仍由共享策略工厂承接的 cell 显示策略，例如 `nx9 / 7x9 / 9x9` 的 section 指示器样式、是否保留 active 背景、是否隐藏内建信息。
+
+- `default-cell-display-policy.ts`
+  定义标准格子的默认展示配置。场景层如果没有特殊需求，应优先沿用这里的默认值。
 
 - `cell-display-policy.spec.ts`
   `cell-display-policy.ts` 的单元测试。

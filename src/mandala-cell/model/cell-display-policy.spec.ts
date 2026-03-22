@@ -2,18 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { buildCellDisplayPolicy } from './cell-display-policy';
 
 describe('buildCellDisplayPolicy', () => {
-    it('uses plain-with-pin for 3x3 cells and hides built-in hidden info', () => {
-        const policy = buildCellDisplayPolicy({
-            preset: 'grid-3x3',
-            whiteThemeMode: true,
-        });
-
-        expect(policy.sectionIndicatorVariant).toBe('plain-with-pin');
-        expect(policy.preserveActiveBackground).toBe(true);
-        expect(policy.hideBuiltInHiddenInfo).toBe(true);
-        expect(policy.scrollbarMode).toBe('selected-hover');
-    });
-
     it('keeps plain labels for 9x9 cells', () => {
         const policy = buildCellDisplayPolicy({
             preset: 'grid-9x9',

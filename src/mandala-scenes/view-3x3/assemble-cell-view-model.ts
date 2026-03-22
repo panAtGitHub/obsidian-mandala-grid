@@ -1,10 +1,11 @@
 import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
 import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
-import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
+import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
 
 type ThreeByThreeEditingState = {
     activeNodeId: string | null;
@@ -91,10 +92,12 @@ export const assemble3x3CellViewModels = ({
     whiteThemeMode,
 }: Assemble3x3CellViewModelsArgs): ThreeByThreeCellViewModel[] => {
     const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
-    const displayPolicy = buildCellDisplayPolicy({
-        preset: 'grid-3x3',
-        whiteThemeMode,
-    });
+    const displayPolicy = {
+        ...createDefaultCellDisplayPolicy(),
+        ...build3x3CellDisplayOverrides({
+            whiteThemeMode,
+        }),
+    };
     const interactionPolicy = buildCellInteractionPolicy({
         preset: 'grid-3x3',
     });
