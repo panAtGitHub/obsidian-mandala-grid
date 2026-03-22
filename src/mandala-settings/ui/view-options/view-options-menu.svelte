@@ -202,7 +202,6 @@
         toggleCopyHeadingEmbed,
         toggleCopyHeadingEmbedDollar,
         updateDetailSidebarPreviewMode,
-        toggleA4Mode,
         updateA4Mode,
         setA4Orientation,
         updateMandalaDetailSidebar,

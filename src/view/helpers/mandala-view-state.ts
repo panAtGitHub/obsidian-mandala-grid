@@ -1,7 +1,6 @@
 import { Platform } from 'obsidian';
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
-    type Settings,
 } from 'src/mandala-settings/state/settings-type';
 import {
     findMandalaCustomLayout,

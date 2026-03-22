@@ -4,6 +4,7 @@ import type {
     DetailSidebarPreviewMode,
     MandalaCustomLayout,
 } from 'src/mandala-settings/state/settings-type';
+import type { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import type { MandalaView } from 'src/view/view';
 
 export const clampGap = (value: number) => Math.min(20, Math.max(0, value));
@@ -35,7 +36,10 @@ export const createViewOptionsSettingsActions = ({
     getSquareLayout,
     getSelectedLayoutId,
 }: CreateViewOptionsSettingsActionsArgs) => {
-    const dispatch = view.plugin.settings.dispatch.bind(view.plugin.settings);
+    const settingsStore = view.plugin.settings as {
+        dispatch: (action: SettingsActions) => void;
+    };
+    const dispatch = (action: SettingsActions) => settingsStore.dispatch(action);
 
     const setContextMenuCopyLinkVisibility = (
         variant: ContextMenuCopyLinkVariant,

@@ -11,7 +11,7 @@ type ThreeByThreeEditingState = {
     isInSidebar: boolean;
 };
 
-type Assemble3x3CellViewModelsOptions = {
+export type Assemble3x3CellViewModelsArgs = {
     theme: string;
     selectedLayoutId: string | null;
     customLayouts: MandalaCustomLayout[];
@@ -89,7 +89,7 @@ export const assemble3x3CellViewModels = ({
     sectionColors,
     sectionColorOpacity,
     whiteThemeMode,
-}: Assemble3x3CellViewModelsOptions): ThreeByThreeCellViewModel[] => {
+}: Assemble3x3CellViewModelsArgs): ThreeByThreeCellViewModel[] => {
     const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
     const displayPolicy = buildCellDisplayPolicy({
         preset: 'grid-3x3',

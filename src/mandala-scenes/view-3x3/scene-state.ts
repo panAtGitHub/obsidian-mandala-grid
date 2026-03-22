@@ -1,4 +1,5 @@
 import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
+import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
 import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
 import {
     enterSubgridForNode,
@@ -35,7 +36,7 @@ export const syncThreeByThreeSceneState = ({
         documentState.file.frontmatter,
     );
     const dayPlanTodayTargetSection = todayNavigation.targetSection;
-    const dayPlan = todayNavigation.dayPlan;
+    const dayPlan = parseDayPlanFrontmatter(documentState.file.frontmatter);
     const allowSubgridExpansion = !(
         dayPlan &&
         dayPlan.daily_only_3x3 &&
