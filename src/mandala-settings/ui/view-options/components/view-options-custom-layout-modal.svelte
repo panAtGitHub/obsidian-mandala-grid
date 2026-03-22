@@ -5,7 +5,7 @@
     import {
         gridToPattern,
         patternToGrid,
-    } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
+    } from 'src/mandala-display/logic/grid-layout';
 
     export let open = false;
     export let isMobile = false;

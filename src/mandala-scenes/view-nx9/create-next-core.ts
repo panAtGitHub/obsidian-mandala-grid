@@ -4,8 +4,8 @@ import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,
     type Nx9CellWithPage,
-} from 'src/view/helpers/mandala/nx9/context';
-import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+} from 'src/mandala-scenes/view-nx9/context';
+import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 
 const resolveFallbackCell = (
     nextCoreSection: string,

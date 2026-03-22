@@ -16,7 +16,7 @@ import {
     legacyOrientationToLayoutId,
     normalizeMandalaCustomLayouts,
     resolveMandalaLayoutId,
-} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
+} from 'src/mandala-display/logic/grid-layout';
 
 const VALID_GRID_ORIENTATIONS = new Set([
     'south-start',

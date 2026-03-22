@@ -9,7 +9,7 @@ import {
     resolveNx9Context,
     resolveNx9PageNavigationTarget,
     sectionAtCellNx9,
-} from 'src/view/helpers/mandala/nx9/context';
+} from 'src/mandala-scenes/view-nx9/context';
 
 describe('nx9/context', () => {
     it('collects actual top-level core sections in numeric order', () => {

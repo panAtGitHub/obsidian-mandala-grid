@@ -57,8 +57,8 @@
     import {
         normalizeNx9VisibleSection,
         resolveNx9Context,
-    } from 'src/view/helpers/mandala/nx9/context';
-    import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+    } from 'src/mandala-scenes/view-nx9/context';
+    import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
     import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 

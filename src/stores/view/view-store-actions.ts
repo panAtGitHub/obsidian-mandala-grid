@@ -12,7 +12,7 @@ import { LeftSidebarTab } from 'src/mandala-settings/state/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { MandalaMode } from 'src/mandala-settings/state/settings-type';
-import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
+import type { Nx9ActiveCell } from 'src/mandala-scenes/view-nx9/context';
 
 export type MandalaActions =
     | {

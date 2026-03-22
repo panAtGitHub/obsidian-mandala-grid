@@ -27,7 +27,7 @@
   3x3 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
 
 - `view-nx9/`
-  nx9 场景目录；当前由 `layout.svelte` 直接承担场景入口与布局渲染，并配套 `assemble-cell-view-model.ts`。
+  nx9 场景目录；当前由 `layout.svelte` 直接承担场景入口与布局渲染，并配套 `assemble-cell-view-model.ts`、`context.ts`、`set-active-cell.ts` 等场景专属辅助。
 
 - `view-7x9/`
   7x9 场景目录；当前由 `layout.svelte` 直接承担场景入口，并保留桌面/移动子布局组件与统一 assembler。

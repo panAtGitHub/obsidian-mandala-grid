@@ -72,13 +72,13 @@ import {
     findMandalaCustomLayout,
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
-} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
-import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+} from 'src/mandala-display/logic/grid-layout';
+import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 import {
     resolveNx9Context,
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
-} from 'src/view/helpers/mandala/nx9/context';
+} from 'src/mandala-scenes/view-nx9/context';
 import { resolveCompatibleMandalaMode } from 'src/mandala-interaction/helpers/resolve-compatible-mandala-mode';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';

@@ -3,8 +3,8 @@ import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,
     resolveNx9CurrentCell,
-} from 'src/view/helpers/mandala/nx9/context';
-import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+} from 'src/mandala-scenes/view-nx9/context';
+import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },

@@ -11,7 +11,7 @@ import {
     normalizeCustomMandalaPattern,
     patternToCoreGrid,
     resolveMandalaLayoutId,
-} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
+} from 'src/mandala-display/logic/grid-layout';
 
 type MandalaLayout = {
     coreGrid: readonly (readonly string[])[];

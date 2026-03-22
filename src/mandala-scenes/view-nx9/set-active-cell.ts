@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
+import type { Nx9ActiveCell } from 'src/mandala-scenes/view-nx9/context';
 
 export type ActiveCellNx9 = Nx9ActiveCell | null;
 

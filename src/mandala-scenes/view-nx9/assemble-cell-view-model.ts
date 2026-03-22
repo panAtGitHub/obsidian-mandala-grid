@@ -3,7 +3,7 @@ import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-mode
 import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveCustomSectionColor } from 'src/mandala-display/logic/section-colors';
-import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
+import type { Nx9Context } from 'src/mandala-scenes/view-nx9/context';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 

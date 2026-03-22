@@ -5,7 +5,7 @@ import {
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import { MandalaMode } from 'src/mandala-settings/state/settings-type';
-import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
+import type { Nx9ActiveCell } from 'src/mandala-scenes/view-nx9/context';
 
 export type ActiveNodesOfColumn = {
     [columnId: string]: {

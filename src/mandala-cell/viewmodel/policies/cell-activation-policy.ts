@@ -1,7 +1,7 @@
 import type { CellGridPosition } from 'src/mandala-cell/model/card-types';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
-import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 import type { MandalaView } from 'src/view/view';
 
 export const activateMandalaGridCell = (

@@ -10,8 +10,8 @@
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
-    import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
+    import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
+    import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import { assembleNx9Rows } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';

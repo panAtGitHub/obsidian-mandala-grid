@@ -8,7 +8,7 @@ import {
     patternToPreviewRows,
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
-} from 'src/view/helpers/mandala/mandala-grid-custom-layout';
+} from 'src/mandala-display/logic/grid-layout';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 
 describe('mandala-grid-custom-layout', () => {
