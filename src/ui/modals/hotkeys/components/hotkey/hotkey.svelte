@@ -5,7 +5,7 @@
 
     import { CommandName } from '../../../../../../../lang/hotkey-groups';
     import { writable } from 'svelte/store';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { onMount } from 'svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {

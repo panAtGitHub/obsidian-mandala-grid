@@ -23,14 +23,14 @@
         WhiteThemeModeStore,
         WeekStartStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
     import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
-    import NineByNineLayout from 'src/views/view-9x9/layout.svelte';
+    import NineByNineLayout from 'src/mandala-scenes/view-9x9/layout.svelte';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
     import ToolbarCenter from 'src/ui/toolbar/main/toolbar-center.svelte';
@@ -50,10 +50,10 @@
     import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
     import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
     import { lang } from 'src/lang/lang';
-    import Mandala3x3Layout from 'src/views/view-3x3/layout.svelte';
-    import { assemble3x3CellViewModels } from 'src/views/view-3x3/assemble-cell-view-model';
-    import Nx9Layout from 'src/views/view-nx9/layout.svelte';
-    import WeekPlanLayout from 'src/views/view-7x9/layout.svelte';
+    import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
+    import { assemble3x3CellViewModels } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
+    import Nx9Layout from 'src/mandala-scenes/view-nx9/layout.svelte';
+    import WeekPlanLayout from 'src/mandala-scenes/view-7x9/layout.svelte';
     import {
         normalizeNx9VisibleSection,
         resolveNx9Context,

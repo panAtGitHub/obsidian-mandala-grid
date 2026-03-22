@@ -9,18 +9,18 @@
     } from 'src/stores/settings/derived/view-settings-store';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
-    import { assembleNx9Rows } from 'src/views/view-nx9/assemble-cell-view-model';
+    import { assembleNx9Rows } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
     import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
-    import Nx9NextCoreCell from 'src/views/view-nx9/nx9-next-core-cell.svelte';
+    import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
     import type {
         Nx9GhostRowViewModel,
         Nx9PaddingRowViewModel,
         Nx9RealCellViewModel,
         Nx9RowViewModel,
-    } from 'src/views/view-nx9/assemble-cell-view-model';
+    } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 
     const view = getView();
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);

@@ -1,17 +1,17 @@
-# src/views/agent.md
+# src/mandala-scenes/agent.md
 
-说明 `src/views` 目录的职责，以及后续新增“场景”时推荐采用的文件组织方式。
+说明 `src/mandala-scenes` 目录的职责，以及后续新增“场景”时推荐采用的文件组织方式。
 
 ## 总体职责
 
-- `src/views/`
+- `src/mandala-scenes/`
   负责“场景层”。
 - 这里的场景，指的是某一种完整的九宫格呈现方式，例如 `9x9`、`nx9`、`7x9`。
 - 场景层主要处理两件事：
   1. 格子如何排列
   2. 场景状态如何组装成格子可消费的 view model / props
 
-`src/cell/` 负责单个格子的能力；`src/views/` 负责把很多格子组织成一个具体页面。
+`src/cell/` 负责单个格子的能力；`src/mandala-scenes/` 负责把很多格子组织成一个具体页面。
 
 ---
 
@@ -34,7 +34,7 @@
 
 ### 关于 3x3 场景
 
-当前仓库里，`3x3` 已经开始独立成 `src/views/view-3x3/` 目录，但外层模式切换和部分场景状态仍由 `shared/mandala-view.svelte` 承担。
+当前仓库里，`3x3` 已经开始独立成 `src/mandala-scenes/view-3x3/` 目录，但外层模式切换和部分场景状态仍由 `shared/mandala-view.svelte` 承担。
 
 当前主要落点如下：
 
@@ -61,7 +61,7 @@
 后续继续整理时，推荐维持下面这个结构，并逐步把更多 3x3 专属逻辑从 `shared/mandala-view.svelte` 下沉到 `view-3x3/`：
 
 ```text
-src/views/view-3x3/
+src/mandala-scenes/view-3x3/
   layout.svelte
   assemble-cell-view-model.ts
 ```
@@ -81,7 +81,7 @@ src/views/view-3x3/
 以后每个场景目录，优先收敛成下面这类结构：
 
 ```text
-src/views/view-xxx/
+src/mandala-scenes/view-xxx/
   layout.svelte
   assemble-cell-view-model.ts
 ```
@@ -168,12 +168,12 @@ src/views/view-xxx/
 
 ## 与 `src/cell/` 的边界
 
-- `src/views/` 决定“这个场景里，格子应该怎么用”
+- `src/mandala-scenes/` 决定“这个场景里，格子应该怎么用”
 - `src/cell/` 决定“格子本身如何显示、如何交互”
 
 判断标准：
 
-- 如果问题是“这个场景下哪些内容该显示”，优先改 `src/views/`
+- 如果问题是“这个场景下哪些内容该显示”，优先改 `src/mandala-scenes/`
 - 如果问题是“所有场景下这个格子本来就该这么画”，优先改 `src/cell/`
 - 如果问题是“点击后发生什么”，通常看 `src/cell/viewmodel/`，必要时由场景层传策略
 

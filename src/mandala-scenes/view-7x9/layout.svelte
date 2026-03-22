@@ -1,11 +1,11 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { WeekStartStore } from 'src/stores/settings/derived/view-settings-store';
     import { resolveWeekPlanContext } from 'src/lib/mandala/week-plan-context';
-    import WeekPlanGridDesktop from 'src/views/view-7x9/week-plan-grid-desktop.svelte';
-    import WeekPlanGridMobile from 'src/views/view-7x9/week-plan-grid-mobile.svelte';
+    import WeekPlanGridDesktop from 'src/mandala-scenes/view-7x9/week-plan-grid-desktop.svelte';
+    import WeekPlanGridMobile from 'src/mandala-scenes/view-7x9/week-plan-grid-mobile.svelte';
 
     const view = getView();
     const weekStart = WeekStartStore(view);

@@ -5,7 +5,7 @@
     import { showContextMenu } from 'src/view/actions/context-menu/show-context-menu';
     import { viewHotkeysAction } from 'src/view/actions/keyboard-shortcuts/view-hotkeys-action';
     import { mouseWheelZoom } from 'src/view/actions/mouse-wheel-zoom';
-    import MandalaViewComponent from 'src/views/shared/mandala-view.svelte';
+    import MandalaViewComponent from 'src/mandala-scenes/shared/mandala-view.svelte';
     import CellPreviewDialog from 'src/ui/modals/cell-preview-dialog.svelte';
     import HotkeysModal from 'src/ui/modals/hotkeys/hotkeys.svelte';
     import SettingsModal from 'src/ui/settings/settings-modal/settings.svelte';

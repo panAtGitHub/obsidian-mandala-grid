@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
     import { Text } from 'lucide-svelte';
     import { lang } from 'src/lang/lang';

@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
-    import { assembleMobileWeekPlanCells } from 'src/views/view-7x9/assemble-cell-view-model';
+    import { assembleMobileWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,

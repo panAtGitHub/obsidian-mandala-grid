@@ -14,7 +14,7 @@ import {
     stripHeading,
 } from 'obsidian';
 
-import Component from 'src/views/shared/shell/main.svelte';
+import Component from 'src/mandala-scenes/shared/shell/main.svelte';
 import MandalaGrid from '../main';
 import { documentReducer } from 'src/stores/document/document-reducer';
 import { Unsubscriber } from 'svelte/store';

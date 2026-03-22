@@ -2,7 +2,7 @@
     import { onDestroy } from 'svelte';
     import { derived as svelteDerived } from 'svelte/store';
 
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
     import SearchInput from 'src/ui/toolbar/main/components/search-input.svelte';
     import SearchNavigationButtons from 'src/ui/toolbar/main/components/search/search-navigation-buttons.svelte';

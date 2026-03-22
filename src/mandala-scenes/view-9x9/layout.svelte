@@ -5,10 +5,10 @@
         SimpleSummaryCellModel,
     } from 'src/cell/model/simple-summary-cell-model';
     import SimpleSummaryCell from 'src/cell/view/components/simple-summary-cell.svelte';
-    import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
+    import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
     import { onMount } from 'svelte';
     import { derived } from 'src/lib/store/derived';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import {
         MandalaBorderOpacityStore,
@@ -24,7 +24,7 @@
         decorate9x9CellViewModels,
         getBaseTheme,
         toActiveSummaryCell,
-    } from 'src/views/view-9x9/assemble-cell-view-model';
+    } from 'src/mandala-scenes/view-9x9/assemble-cell-view-model';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);

@@ -2,7 +2,7 @@
     import { Platform } from 'obsidian';
     import { lang } from 'src/lang/lang';
     import { MoreVertical, Wrench } from 'lucide-svelte';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { derived, writable } from 'svelte/store';
     import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
     import Button from 'src/ui/shared/button.svelte';

@@ -1,4 +1,4 @@
-import { getView } from 'src/views/shared/shell/context';
+import { getView } from 'src/mandala-scenes/shared/shell/context';
 
 export const loadInlineEditor = (target: HTMLElement, nodeId: string) => {
     const view = getView();

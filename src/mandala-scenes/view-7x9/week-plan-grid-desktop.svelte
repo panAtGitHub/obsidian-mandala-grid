@@ -1,7 +1,7 @@
 <script lang="ts">
     import { derived } from 'src/lib/store/derived';
     import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
     import {
@@ -11,8 +11,8 @@
         WeekPlanCompactModeStore,
         WhiteThemeModeStore,
     } from 'src/stores/settings/derived/view-settings-store';
-    import { assembleDesktopWeekPlanCells } from 'src/views/view-7x9/assemble-cell-view-model';
-    import RowMatrixGridDesktop from 'src/views/view-7x9/row-matrix-grid-desktop.svelte';
+    import { assembleDesktopWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
+    import RowMatrixGridDesktop from 'src/mandala-scenes/view-7x9/row-matrix-grid-desktop.svelte';
 
     export let rows: WeekPlanRow[] = [];
 

@@ -6,7 +6,7 @@
     import { maxZoomLevel, minZoomLevel } from '../../../../../stores/settings/reducers/change-zoom-level';
     import { ZoomButtonsList } from './zoom-buttons-list';
     import { KeyboardStore } from '../../../../../stores/view/derived/keyboard-store';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { RotateCcw, RotateCw } from 'lucide-svelte';
     import Button from 'src/ui/shared/button.svelte';
     import IconRenderer from 'src/ui/shared/icon-renderer.svelte';

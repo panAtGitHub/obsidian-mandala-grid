@@ -3,8 +3,8 @@
     import { CalendarDays } from 'lucide-svelte';
     import { flip } from 'svelte/animate';
     import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
-    import type { ThreeByThreeCellViewModel } from 'src/views/view-3x3/assemble-cell-view-model';
-    import MandalaNavIcon from 'src/views/shared/mandala-nav-icon.svelte';
+    import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
+    import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
 
     export let cells: ThreeByThreeCellViewModel[] = [];
     export let theme = '1';

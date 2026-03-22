@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { getView } from 'src/views/shared/shell/context';
+import { getView } from 'src/mandala-scenes/shared/shell/context';
 import { get } from 'svelte/store';
 import { limitPreviewHeightStore } from 'src/stores/settings/derived/limit-preview-height-store';
 

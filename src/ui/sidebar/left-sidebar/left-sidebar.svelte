@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
         LeftSidebarActiveTabStore,
         ShowLeftSidebarStore,

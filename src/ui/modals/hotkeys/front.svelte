@@ -1,6 +1,6 @@
 <script lang="ts">
     import { lang } from 'src/lang/lang';
-    import { getView } from 'src/views/shared/shell/context';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
 
     let searchTerm = '';
     const view = getView();
