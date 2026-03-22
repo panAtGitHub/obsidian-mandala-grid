@@ -2,7 +2,7 @@
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { Printer, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
-    import { Notice, Platform, TFile, btoa } from 'obsidian';
+    import { Notice, Platform, btoa } from 'obsidian';
     import {
         afterUpdate,
         createEventDispatcher,
@@ -46,7 +46,6 @@
         WhiteThemeModeStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getDefaultTheme } from 'src/stores/view/subscriptions/effects/css-variables/helpers/get-default-theme';
-    import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
     import {
         DEFAULT_CARDS_GAP,
         DEFAULT_INACTIVE_NODE_OPACITY,
@@ -56,26 +55,14 @@
         DEFAULT_MANDALA_GRID_HIGHLIGHT_COLOR,
         DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
     } from 'src/mandala-settings/state/default-settings';
-    import {
-        appendMandalaTemplate,
-        MandalaTemplate,
-        parseMandalaTemplates,
-    } from 'src/mandala-display/logic/mandala-templates';
-    import {
-        normalizeSlotTitle,
-        upsertSlotHeading,
-    } from 'src/mandala-display/logic/day-plan';
-    import {
-        openMandalaTemplateNameModal,
-        openMandalaTemplateSelectModal,
-        openMandalaTemplatesFileModal,
-    } from 'src/obsidian/modals/mandala-templates-modal';
     import ViewOptionsFontPanel from './components/view-options-font-panel.svelte';
     import ViewOptionsDisplayPanel from './components/view-options-display-panel.svelte';
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
     import ViewOptionsCustomLayoutModal from './components/view-options-custom-layout-modal.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
-    import Portal from 'src/shared/ui/portal.svelte';
+    import ExportModeModal, {
+        type ExportMode,
+    } from './components/export-mode-modal.svelte';
     import type {
         ContextMenuCopyLinkVariant,
         DetailSidebarPreviewMode,
@@ -87,6 +74,12 @@
         exportModeModalViewId,
         openExportModeModalForView,
     } from './export-mode-modal-store';
+    import {
+        applyTemplateToCurrentThemeAction,
+        openTemplatesFileFromPathAction,
+        pickTemplatesFileAction,
+        saveCurrentThemeAsTemplateAction,
+    } from './view-options-template-actions';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -771,6 +764,7 @@
 
     let exportSessionSnapshot: PrintConfig | null = null;
     let isInExportSession = false;
+    let exportEditPanelProps: Record<string, unknown> = {};
 
     const capturePrintConfig = (): PrintConfig => {
         return {
@@ -1571,255 +1565,6 @@
         closeMenu();
     };
 
-    const getTemplatesFileFromPath = () => {
-        if (!$templatesFilePathStore) return null;
-        const file = view.plugin.app.vault.getAbstractFileByPath(
-            $templatesFilePathStore,
-        );
-        return file instanceof TFile ? file : null;
-    };
-
-    const openTemplatesFileFromPath = async () => {
-        const file = getTemplatesFileFromPath();
-        if (!file) {
-            new Notice('模板文件不存在，请重新指定。');
-            return;
-        }
-        await openFile(view.plugin, file, 'tab');
-        closeMenu();
-    };
-
-    const pickTemplatesFile = async () => {
-        const file = await openMandalaTemplatesFileModal(view.plugin);
-        if (!file) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/general/set-mandala-templates-file-path',
-            payload: { path: file.path },
-        });
-    };
-
-    const ensureTemplatesFile = async () => {
-        const existing = getTemplatesFileFromPath();
-        if (existing) return existing;
-        if ($templatesFilePathStore) {
-            new Notice('模板文件不存在，请重新指定。');
-            view.plugin.settings.dispatch({
-                type: 'settings/general/set-mandala-templates-file-path',
-                payload: { path: null },
-            });
-        }
-        const file = await openMandalaTemplatesFileModal(view.plugin);
-        if (!file) return null;
-        view.plugin.settings.dispatch({
-            type: 'settings/general/set-mandala-templates-file-path',
-            payload: { path: file.path },
-        });
-        return file;
-    };
-
-    const ensureMandala3x3 = () => {
-        if (view.mandalaMode !== '3x3') {
-            new Notice('仅支持 3x3 视图。');
-            return false;
-        }
-        const state = view.documentStore.getValue();
-        if (!state.meta.isMandala) {
-            new Notice('当前文档不是九宫格格式。');
-            return false;
-        }
-        return true;
-    };
-
-    const getCurrentThemeSlots = (theme: string) => {
-        const state = view.documentStore.getValue();
-        const slots: string[] = [];
-        for (let i = 1; i <= 8; i += 1) {
-            const section = `${theme}.${i}`;
-            const nodeId = state.sections.section_id[section];
-            const content = nodeId
-                ? state.document.content[nodeId]?.content ?? ''
-                : '';
-            slots.push(content);
-        }
-        return slots;
-    };
-
-    const toDayPlanSlotsRecord = (slots: string[]) => {
-        const record: Record<string, string> = {};
-        for (let i = 0; i < 8; i += 1) {
-            record[String(i + 1)] = normalizeSlotTitle(slots[i] ?? '');
-        }
-        return record;
-    };
-
-    const updateDayPlanSlotsInFrontmatter = async (slots: string[]) => {
-        if (!view.file) return false;
-        const cache = view.plugin.app.metadataCache.getFileCache(view.file);
-        const rawPlan = cache?.frontmatter?.mandala_plan;
-        if (!rawPlan || typeof rawPlan !== 'object') return false;
-        const plan = rawPlan as Record<string, unknown>;
-        if (plan.enabled !== true) return false;
-
-        await view.plugin.app.fileManager.processFrontMatter(
-            view.file,
-            (frontmatter) => {
-                const frontmatterRecord = frontmatter as Record<
-                    string,
-                    unknown
-                >;
-                const currentPlan = frontmatterRecord.mandala_plan;
-                if (!currentPlan || typeof currentPlan !== 'object') return;
-                frontmatterRecord.mandala_plan = {
-                    ...(currentPlan as Record<string, unknown>),
-                    slots: toDayPlanSlotsRecord(slots),
-                };
-            },
-        );
-        return true;
-    };
-
-    const applyDayPlanSlotsToAllCoreThemes = (slots: string[]) => {
-        const normalizedSlots = slots.map((slot) => normalizeSlotTitle(slot));
-        const coreThemes = Object.keys(
-            view.documentStore.getValue().sections.section_id,
-        )
-            .filter((section) => /^\d+$/.test(section))
-            .sort((a, b) => Number(a) - Number(b));
-
-        for (const theme of coreThemes) {
-            const state = view.documentStore.getValue();
-            const centerNodeId = state.sections.section_id[theme];
-            if (!centerNodeId) continue;
-            view.documentStore.dispatch({
-                type: 'document/mandala/ensure-children',
-                payload: { parentNodeId: centerNodeId, count: 8 },
-            });
-        }
-
-        for (const theme of coreThemes) {
-            for (let i = 1; i <= 8; i += 1) {
-                const refreshed = view.documentStore.getValue();
-                const section = `${theme}.${i}`;
-                const nodeId = refreshed.sections.section_id[section];
-                if (!nodeId) continue;
-                const slotTitle = normalizedSlots[i - 1];
-                if (!slotTitle) continue;
-                const content =
-                    refreshed.document.content[nodeId]?.content ?? '';
-                view.documentStore.dispatch({
-                    type: 'document/update-node-content',
-                    payload: {
-                        nodeId,
-                        content: upsertSlotHeading(content, slotTitle),
-                    },
-                    context: { isInSidebar: false },
-                });
-            }
-        }
-    };
-
-    const saveCurrentThemeAsTemplate = async () => {
-        if (!ensureMandala3x3()) return;
-        const file = await ensureTemplatesFile();
-        if (!file) return;
-        const templateName = await openMandalaTemplateNameModal(view.plugin);
-        if (!templateName) return;
-
-        let raw = '';
-        try {
-            raw = await view.plugin.app.vault.read(file);
-        } catch {
-            new Notice('读取模板文件失败。');
-            return;
-        }
-        const templates = parseMandalaTemplates(raw);
-        if (templates.some((template) => template.name === templateName)) {
-            new Notice('模板名称已存在，请更换名称。');
-            return;
-        }
-
-        const theme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
-        const slots = getCurrentThemeSlots(theme);
-        const template: MandalaTemplate = { name: templateName, slots };
-        const nextContent = appendMandalaTemplate(raw, template);
-        try {
-            await view.plugin.app.vault.modify(file, nextContent);
-        } catch {
-            new Notice('写入模板文件失败。');
-            return;
-        }
-        new Notice('模板已保存。');
-        closeMenu();
-    };
-
-    const applyTemplateToCurrentTheme = async () => {
-        if (!ensureMandala3x3()) return;
-        const file = await ensureTemplatesFile();
-        if (!file) return;
-
-        let raw = '';
-        try {
-            raw = await view.plugin.app.vault.read(file);
-        } catch {
-            new Notice('读取模板文件失败。');
-            return;
-        }
-        const templates = parseMandalaTemplates(raw);
-        if (templates.length === 0) {
-            new Notice('模板文件中没有模板。');
-            return;
-        }
-
-        const selected = await openMandalaTemplateSelectModal(
-            view.plugin,
-            templates,
-        );
-        if (!selected) return;
-
-        const normalizedSlots = Array.from({ length: 8 }, (_, index) =>
-            normalizeSlotTitle(selected.slots[index] ?? ''),
-        );
-        const isDayPlan =
-            await updateDayPlanSlotsInFrontmatter(normalizedSlots);
-        if (isDayPlan) {
-            applyDayPlanSlotsToAllCoreThemes(normalizedSlots);
-            new Notice('已根据文档前置区调整的标题进行全局替换。');
-            closeMenu();
-            return;
-        }
-
-        const state = view.documentStore.getValue();
-        const theme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
-        const centerNodeId = state.sections.section_id[theme];
-        if (!centerNodeId) {
-            new Notice('未找到当前主题中心格子。');
-            return;
-        }
-
-        view.documentStore.dispatch({
-            type: 'document/mandala/ensure-children',
-            payload: { parentNodeId: centerNodeId, count: 8 },
-        });
-
-        const refreshed = view.documentStore.getValue();
-        for (let i = 1; i <= 8; i += 1) {
-            const section = `${theme}.${i}`;
-            const nodeId = refreshed.sections.section_id[section];
-            if (!nodeId) continue;
-            view.documentStore.dispatch({
-                type: 'document/update-node-content',
-                payload: {
-                    nodeId,
-                    content: selected.slots[i - 1] ?? '',
-                },
-                context: { isInSidebar: false },
-            });
-        }
-
-        new Notice('模板已应用。');
-        closeMenu();
-    };
-
     const closeMenu = (preserveExportModeSession = false) => {
         if (!preserveExportModeSession) {
             exitExportSession();
@@ -1833,6 +1578,27 @@
         showPanoramaOptions = false;
         isCustomLayoutModalOpen = false;
     };
+
+    const openTemplatesFileFromPath = () =>
+        openTemplatesFileFromPathAction(view, $templatesFilePathStore, () =>
+            closeMenu(),
+        );
+
+    const pickTemplatesFile = () => pickTemplatesFileAction(view);
+
+    const saveCurrentThemeAsTemplate = () =>
+        saveCurrentThemeAsTemplateAction(
+            view,
+            $templatesFilePathStore,
+            () => closeMenu(),
+        );
+
+    const applyTemplateToCurrentTheme = () =>
+        applyTemplateToCurrentThemeAction(
+            view,
+            $templatesFilePathStore,
+            () => closeMenu(),
+        );
 
     const openHotkeysModal = () => {
         view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
@@ -1964,6 +1730,48 @@
         !isMobile && exportModalPosition
             ? `left:${exportModalPosition.left}px;top:${exportModalPosition.top}px;right:auto;`
             : undefined;
+    $: exportEditPanelProps = {
+        show: true,
+        showTrigger: false,
+        whiteThemeMode: $whiteThemeMode,
+        showImmersiveOptions,
+        showPanoramaOptions,
+        containerBg: $containerBg,
+        activeBranchBg: $activeBranchBg,
+        activeBranchColor: $activeBranchColor,
+        inactiveNodeOpacity: $inactiveNodeOpacity,
+        borderOpacity: $borderOpacity,
+        backgroundMode: $backgroundMode,
+        sectionColorOpacity: $sectionColorOpacity,
+        squareLayout: $squareLayout,
+        cardsGap: $cardsGap,
+        selectedLayoutId: $selectedLayoutId,
+        customLayouts: $customLayouts,
+        toggle: () => undefined,
+        updateWhiteThemeMode,
+        toggleImmersiveOptions,
+        togglePanoramaOptions,
+        updateContainerBg,
+        resetContainerBg,
+        updateActiveBranchBg,
+        resetActiveBranchBg,
+        updateActiveBranchColor,
+        resetActiveBranchColor,
+        stepInactiveOpacity,
+        updateInactiveNodeOpacity,
+        resetInactiveNodeOpacity,
+        stepBorderOpacity,
+        updateBorderOpacity,
+        updateBackgroundMode,
+        stepOpacity,
+        updateSectionColorOpacity,
+        updateSquareLayout,
+        stepCardsGap,
+        updateCardsGap,
+        resetCardsGap,
+        selectGridLayout,
+        openCustomLayoutModal,
+    };
 
     const getVisibleViewport = () => {
         const vv = window.visualViewport;
@@ -2327,209 +2135,34 @@
     on:touchend={stopExportModalDrag}
 />
 
-{#if isExportModeModalOpen}
-    <Portal>
-        <div class="export-mode-overlay" />
-        <div
-            class="mandala-modal export-mode-modal"
-            class:is-mobile={isMobile}
-            style={exportModalInlineStyle}
-            on:mousedown|stopPropagation
-            on:touchstart|stopPropagation
-        >
-            <div
-                class="view-options-menu__header export-mode-modal__header"
-                on:mousedown={startExportModalDrag}
-                on:touchstart={startExportModalDrag}
-            >
-                <span class="view-options-menu__title">
-                    导出模式（临时会话，按住标题可移动）
-                </span>
-                <button
-                    class="view-options-menu__close"
-                    on:click={closeExportMode}
-                >
-                    <X class="icon" size={16} />
-                </button>
-            </div>
-            <div class="view-options-menu__items">
-                <div class="view-options-menu__submenu export-mode-flow">
-                    <div class="view-options-menu__note">
-                        仅本次导出生效，关闭后恢复编辑状态。
-                    </div>
-                    <div class="view-options-menu__subsection-title">
-                        1. 导出目标
-                    </div>
-                    <div class="export-target-tabs">
-                        <button
-                            class="export-target-tab"
-                            class:is-active={exportMode === 'png-square'}
-                            on:click={() => setExportMode('png-square')}
-                        >
-                            PNG 格子范围
-                        </button>
-                        <button
-                            class="export-target-tab"
-                            class:is-active={exportMode === 'png-screen'}
-                            on:click={() => setExportMode('png-screen')}
-                        >
-                            PNG 屏幕范围
-                        </button>
-                        <button
-                            class="export-target-tab"
-                            class:is-active={exportMode === 'pdf-a4'}
-                            on:click={() => setExportMode('pdf-a4')}
-                        >
-                            PDF A4
-                        </button>
-                    </div>
-                    <div class="export-mode-status">
-                        <span class="export-mode-badge">{exportModeLabel}</span>
-                        <span
-                            class="export-mode-badge export-mode-badge--muted"
-                        >
-                            {exportModeHint}
-                        </span>
-                    </div>
-                    <div class="export-appearance-status">
-                        <span
-                            class="export-mode-badge export-mode-badge--muted"
-                        >
-                            {appearanceStyleLabel}
-                        </span>
-                        <span
-                            class="export-mode-badge export-mode-badge--muted"
-                        >
-                            {appearanceShapeLabel}
-                        </span>
-                        <span
-                            class="export-mode-badge export-mode-badge--muted"
-                        >
-                            {appearanceBackgroundLabel}
-                        </span>
-                        <span
-                            class="export-mode-badge export-mode-badge--muted"
-                        >
-                            {appearanceOrientationLabel}
-                        </span>
-                    </div>
-                    <div class="view-options-menu__subsection-title">
-                        2. 专属选项
-                    </div>
-                    {#if exportMode === 'png-screen'}
-                        <div class="view-options-menu__row">
-                            <label class="view-options-menu__inline-option">
-                                <input
-                                    type="checkbox"
-                                    checked={includeSidebarInPngScreen}
-                                    on:change={toggleIncludeSidebarInPngScreen}
-                                />
-                                <span>包含侧边栏</span>
-                            </label>
-                        </div>
-                    {:else if exportMode === 'pdf-a4'}
-                        <div class="view-options-menu__row">
-                            <span>A4 方向</span>
-                            <select
-                                value={$a4Orientation}
-                                on:change={_updateA4Orientation}
-                            >
-                                <option value="portrait">纵向</option>
-                                <option value="landscape">横向</option>
-                            </select>
-                        </div>
-                    {:else}
-                        <div class="view-options-menu__note">
-                            {$squareLayout
-                                ? '当前为正方形布局，按格子范围导出并自动留白。'
-                                : '当前为自适应布局，按格子范围导出长方形。'}
-                        </div>
-                    {/if}
-                    <div class="export-style-header">
-                        <div class="view-options-menu__subsection-title">
-                            3. 外观样式
-                        </div>
-                        <button
-                            class="export-style-toggle"
-                            on:click={() =>
-                                (showExportStyleDetails =
-                                    !showExportStyleDetails)}
-                        >
-                            {showExportStyleDetails ? '收起' : '展开'}
-                        </button>
-                    </div>
-                    {#if showExportStyleDetails}
-                        <div class="export-style-panel">
-                            <ViewOptionsEditPanel
-                                show={true}
-                                showTrigger={false}
-                                whiteThemeMode={$whiteThemeMode}
-                                {showImmersiveOptions}
-                                {showPanoramaOptions}
-                                containerBg={$containerBg}
-                                activeBranchBg={$activeBranchBg}
-                                activeBranchColor={$activeBranchColor}
-                                inactiveNodeOpacity={$inactiveNodeOpacity}
-                                borderOpacity={$borderOpacity}
-                                backgroundMode={$backgroundMode}
-                                sectionColorOpacity={$sectionColorOpacity}
-                                squareLayout={$squareLayout}
-                                cardsGap={$cardsGap}
-                                selectedLayoutId={$selectedLayoutId}
-                                customLayouts={$customLayouts}
-                                toggle={() => undefined}
-                                {updateWhiteThemeMode}
-                                {toggleImmersiveOptions}
-                                {togglePanoramaOptions}
-                                {updateContainerBg}
-                                {resetContainerBg}
-                                {updateActiveBranchBg}
-                                {resetActiveBranchBg}
-                                {updateActiveBranchColor}
-                                {resetActiveBranchColor}
-                                {stepInactiveOpacity}
-                                {updateInactiveNodeOpacity}
-                                {resetInactiveNodeOpacity}
-                                {stepBorderOpacity}
-                                {updateBorderOpacity}
-                                {updateBackgroundMode}
-                                {stepOpacity}
-                                {updateSectionColorOpacity}
-                                {updateSquareLayout}
-                                {stepCardsGap}
-                                {updateCardsGap}
-                                {resetCardsGap}
-                                {selectGridLayout}
-                                {openCustomLayoutModal}
-                            />
-                        </div>
-                    {/if}
-                    <div class="export-secondary-row">
-                        <button
-                            class="view-options-menu__subitem"
-                            on:click={applyLastExportPreset}
-                            disabled={!$lastExportPresetStore}
-                        >
-                            采用上一次导出设置
-                        </button>
-                        <button
-                            class="view-options-menu__subitem"
-                            on:click={closeExportMode}
-                        >
-                            取消设置并退出
-                        </button>
-                    </div>
-                    <button
-                        class="view-options-menu__subitem export-primary-button"
-                        on:click={exportCurrentFile}
-                    >
-                        {exportActionLabel}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </Portal>
-{/if}
+<ExportModeModal
+    open={isExportModeModalOpen}
+    {isMobile}
+    inlineStyle={exportModalInlineStyle}
+    {exportMode}
+    {exportModeLabel}
+    {exportModeHint}
+    {appearanceStyleLabel}
+    {appearanceShapeLabel}
+    {appearanceBackgroundLabel}
+    {appearanceOrientationLabel}
+    {includeSidebarInPngScreen}
+    a4Orientation={$a4Orientation}
+    {showExportStyleDetails}
+    squareLayout={$squareLayout}
+    editPanelProps={exportEditPanelProps}
+    canApplyLastExportPreset={Boolean($lastExportPresetStore)}
+    {exportActionLabel}
+    onClose={closeExportMode}
+    onStartDrag={startExportModalDrag}
+    onSetExportMode={setExportMode}
+    onToggleIncludeSidebar={toggleIncludeSidebarInPngScreen}
+    onUpdateA4Orientation={_updateA4Orientation}
+    onToggleStyleDetails={() =>
+        (showExportStyleDetails = !showExportStyleDetails)}
+    onApplyLastExportPreset={applyLastExportPreset}
+    onExportCurrentFile={exportCurrentFile}
+/>
 
 <ViewOptionsCustomLayoutModal
     open={isCustomLayoutModalOpen}
@@ -2542,169 +2175,3 @@
     onUpdateCustomLayout={updateCustomGridLayout}
     onDeleteCustomLayout={deleteCustomGridLayout}
 />
-
-<style>
-    .export-mode-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 1200;
-        background: rgba(0, 0, 0, 0.18);
-        pointer-events: none;
-    }
-
-    .export-mode-modal {
-        position: fixed;
-        z-index: 1201;
-        right: 16px;
-        top: 72px;
-        width: min(420px, calc(100vw - 24px));
-        max-height: calc(100vh - 96px);
-    }
-
-    :global(.is-mobile) .export-mode-modal {
-        inset: 8px;
-        width: auto;
-        max-height: none;
-    }
-
-    .export-mode-modal__header {
-        cursor: move;
-        user-select: none;
-        touch-action: none;
-    }
-
-    :global(.is-mobile) .export-mode-modal__header {
-        cursor: default;
-        touch-action: auto;
-    }
-
-    .export-mode-status {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .export-appearance-status {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .export-mode-flow {
-        gap: 10px;
-    }
-
-    .export-target-tabs {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .export-target-tab {
-        border: 1px solid var(--background-modifier-border);
-        background: var(--background-primary);
-        border-radius: 8px;
-        padding: 5px 10px;
-        cursor: pointer;
-        font-size: 12px;
-        color: var(--text-muted);
-    }
-
-    .export-target-tab.is-active {
-        border-color: var(--interactive-accent);
-        color: var(--text-normal);
-        background: color-mix(
-            in srgb,
-            var(--interactive-accent) 12%,
-            var(--background-primary)
-        );
-    }
-
-    .export-style-panel {
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 8px;
-        padding: 6px 8px;
-        background: var(--background-primary);
-    }
-
-    .export-style-panel :global(.view-options-menu__row) {
-        justify-content: space-between;
-    }
-
-    .export-style-panel :global(.view-options-menu__row > span) {
-        flex: 1 1 auto;
-        min-width: 0;
-        white-space: nowrap;
-    }
-
-    .export-style-panel :global(.view-options-menu__row-controls) {
-        margin-left: auto;
-    }
-
-    .export-style-panel :global(.view-options-menu__range) {
-        flex: 1 1 auto;
-        min-width: 0;
-        margin-left: auto;
-        justify-content: flex-end;
-    }
-
-    .export-style-panel :global(.view-options-menu__range input[type='range']) {
-        flex: 0 0 40px;
-        max-width: 40px;
-    }
-
-    .export-style-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .export-style-toggle {
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 6px;
-        background: var(--background-primary);
-        color: var(--text-muted);
-        padding: 2px 8px;
-        font-size: 12px;
-        cursor: pointer;
-    }
-
-    .export-style-toggle:hover {
-        color: var(--text-normal);
-        background: var(--background-modifier-hover);
-    }
-
-    .export-secondary-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .export-primary-button {
-        border-color: var(--interactive-accent);
-        background: var(--interactive-accent);
-        color: var(--text-on-accent);
-        font-weight: 600;
-        text-align: center;
-    }
-
-    .export-primary-button:hover {
-        filter: brightness(0.95);
-    }
-
-    .export-mode-badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 2px 8px;
-        font-size: 11px;
-        color: var(--text-normal);
-        background: var(--background-modifier-hover);
-        border: 1px solid var(--background-modifier-border);
-    }
-
-    .export-mode-badge--muted {
-        color: var(--text-muted);
-    }
-</style>
