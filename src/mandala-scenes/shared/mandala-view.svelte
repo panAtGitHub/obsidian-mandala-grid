@@ -42,16 +42,19 @@
     import { mobilePopupFontSizeStore } from 'src/stores/ui/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
-    import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
-    import {
-        enterSubgridForNode,
-        exitCurrentSubgrid,
-    } from 'src/mandala-interaction/helpers/mobile-navigation';
     import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
-    import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
     import { lang } from 'src/lang/lang';
     import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
-    import { assemble3x3CellViewModels } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
+    import {
+        buildThreeByThreeCells,
+        enterThreeByThreeSubgridFromButton,
+        exitThreeByThreeSubgridFromButton,
+        focusThreeByThreeTodayFromButton,
+        getThreeByThreeDownButtonLabel,
+        getThreeByThreeUpButtonLabel,
+        resolveThreeByThreeTheme,
+        syncThreeByThreeSceneState,
+    } from 'src/mandala-scenes/view-3x3/scene-state';
     import Nx9Layout from 'src/mandala-scenes/view-nx9/layout.svelte';
     import WeekPlanLayout from 'src/mandala-scenes/view-7x9/layout.svelte';
     import {
@@ -383,40 +386,13 @@
         }
     }
 
-    $: {
-        const dayPlan = getCachedDayPlan($documentState.file.frontmatter);
-        const todayNavigation = resolveDayPlanTodayNavigation(
-            $documentState.file.frontmatter,
-        );
-        dayPlanTodayTargetSection = todayNavigation.targetSection;
-        const allowSubgridExpansion = !(
-            dayPlan &&
-            dayPlan.daily_only_3x3 &&
-            $subgridTheme?.includes('.')
-        );
-        if (
-            allowSubgridExpansion &&
-            $mode === '3x3' &&
-            $subgridTheme &&
-            !$subgridTheme.includes('.') &&
-            $documentState.meta.isMandala
-        ) {
-            const themeNodeId = $sectionToNodeId[$subgridTheme];
-            if (themeNodeId) {
-                const childGroup = findChildGroup(
-                    $documentState.document.columns,
-                    themeNodeId,
-                );
-                const childCount = childGroup?.nodes.length ?? 0;
-                if (childCount < 8) {
-                    view.documentStore.dispatch({
-                        type: 'document/mandala/ensure-children',
-                        payload: { parentNodeId: themeNodeId, count: 8 },
-                    });
-                }
-            }
-        }
-    }
+    $: dayPlanTodayTargetSection = syncThreeByThreeSceneState({
+        view,
+        mode: $mode,
+        subgridTheme: $subgridTheme,
+        documentState: $documentState,
+        sectionToNodeId: $sectionToNodeId,
+    });
     // 手机端编辑统一走原生 section 会话，不再走 InlineEditor 弹层路径。
     let isMobilePopupEditing = false;
     $: isMobileFullScreenSearch = Platform.isMobile && $search.showInput;
@@ -446,29 +422,8 @@
         mobileEditorViewport.handleFocusOut();
     };
 
-    const enterSubgridFromButton = (event: MouseEvent, nodeId: string) => {
-        event.stopPropagation();
-        enterSubgridForNode(view, nodeId);
-    };
-
-    const exitSubgridFromButton = (event: MouseEvent) => {
-        event.stopPropagation();
-        exitCurrentSubgrid(view);
-    };
-
-    const getUpButtonLabel = (theme: string) =>
-        theme.includes('.') ? '退出上一层子九宫格' : '上一层核心九宫格';
-
-    const getDownButtonLabel = (theme: string) =>
-        theme.includes('.') ? '进入下一层子九宫格' : '下一层核心九宫格';
-
-    const focusDayPlanTodayFromButton = (event: MouseEvent) => {
-        event.stopPropagation();
-        view.focusDayPlanToday();
-    };
-
-    $: threeByThreeTheme = $subgridTheme ?? '1';
-    $: threeByThreeCells = assemble3x3CellViewModels({
+    $: threeByThreeTheme = resolveThreeByThreeTheme($subgridTheme);
+    $: threeByThreeCells = buildThreeByThreeCells({
         theme: threeByThreeTheme,
         selectedLayoutId: $selectedLayoutId,
         customLayouts: $customLayouts,
@@ -547,11 +502,18 @@
                         {dayPlanTodayTargetSection}
                         {activeCoreSection}
                         todayButtonLabel={lang.day_plan_today_button_label}
-                        {enterSubgridFromButton}
-                        {exitSubgridFromButton}
-                        {focusDayPlanTodayFromButton}
-                        {getUpButtonLabel}
-                        {getDownButtonLabel}
+                        enterSubgridFromButton={(event, nodeId) =>
+                            enterThreeByThreeSubgridFromButton(
+                                view,
+                                event,
+                                nodeId,
+                            )}
+                        exitSubgridFromButton={(event) =>
+                            exitThreeByThreeSubgridFromButton(view, event)}
+                        focusDayPlanTodayFromButton={(event) =>
+                            focusThreeByThreeTodayFromButton(view, event)}
+                        getUpButtonLabel={getThreeByThreeUpButtonLabel}
+                        getDownButtonLabel={getThreeByThreeDownButtonLabel}
                     />
                 {:else if $mode === '9x9'}
                     <NineByNineLayout />
