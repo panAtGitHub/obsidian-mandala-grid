@@ -4,6 +4,8 @@ import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
 import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
 import type { Nx9Context } from 'src/view/helpers/mandala/nx9/context';
+import type { CellDisplayPolicy } from 'src/cell/model/cell-display-policy';
+import type { CellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
 
 type Nx9EditingState = {
     activeNodeId: string | null;
@@ -92,12 +94,15 @@ const createRealCellViewModel = ({
     sectionColorOpacity,
     backgroundMode,
     showDetailSidebar,
-    whiteThemeMode,
+    displayPolicy,
+    interactionPolicy,
     row,
     col,
     rowCount,
     coreSection,
 }: AssembleNx9RowsOptions & {
+    displayPolicy: CellDisplayPolicy;
+    interactionPolicy: CellInteractionPolicy;
     row: number;
     col: number;
     rowCount: number;
@@ -138,13 +143,8 @@ const createRealCellViewModel = ({
                       sectionColorOpacity,
                   }),
                   metaAccentColor: sectionColors[section] ?? null,
-                  displayPolicy: buildCellDisplayPolicy({
-                      preset: 'grid-nx9',
-                      whiteThemeMode,
-                  }),
-                  interactionPolicy: buildCellInteractionPolicy({
-                      preset: 'grid-nx9',
-                  }),
+                  displayPolicy,
+                  interactionPolicy,
                   gridCell: {
                       mode: 'nx9',
                       row,
@@ -159,15 +159,28 @@ const createRealCellViewModel = ({
 export const assembleNx9Rows = (
     options: AssembleNx9RowsOptions,
 ): Nx9RowViewModel[] => {
-    const { context, activeCell } = options;
+    const {
+        context,
+        activeCell,
+        whiteThemeMode,
+    } = options;
     const rowCount = context.rowsPerPage;
     const showFutureHint = rowCount <= 5;
+    const displayPolicy: CellDisplayPolicy = buildCellDisplayPolicy({
+        preset: 'grid-nx9',
+        whiteThemeMode,
+    });
+    const interactionPolicy: CellInteractionPolicy = buildCellInteractionPolicy({
+        preset: 'grid-nx9',
+    });
 
     return context.pageRows.map((rowModel, row) => {
         if (rowModel.kind === 'real-core-row') {
             return Array.from({ length: 9 }, (_, col) =>
                 createRealCellViewModel({
                     ...options,
+                    displayPolicy,
+                    interactionPolicy,
                     row,
                     col,
                     rowCount,

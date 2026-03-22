@@ -87,8 +87,17 @@ export const assembleDesktopWeekPlanCells = ({
     backgroundMode,
     showDetailSidebar,
     whiteThemeMode,
-}: AssembleDesktopWeekPlanCellsOptions): WeekPlanDesktopCellViewModel[] =>
-    buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => ({
+}: AssembleDesktopWeekPlanCellsOptions): WeekPlanDesktopCellViewModel[] => {
+    const displayPolicy = buildCellDisplayPolicy({
+        preset: 'grid-7x9',
+        whiteThemeMode,
+        hasGridSelection: Boolean(activeCell),
+    });
+    const interactionPolicy = buildCellInteractionPolicy({
+        preset: 'grid-7x9',
+    });
+
+    return buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => ({
         ...cell,
         isActiveCell:
             !!activeCell &&
@@ -119,14 +128,8 @@ export const assembleDesktopWeekPlanCells = ({
                   metaAccentColor: cell.section
                       ? sectionColors[cell.section] ?? null
                       : null,
-                  displayPolicy: buildCellDisplayPolicy({
-                      preset: 'grid-7x9',
-                      whiteThemeMode,
-                      hasGridSelection: Boolean(activeCell),
-                  }),
-                  interactionPolicy: buildCellInteractionPolicy({
-                      preset: 'grid-7x9',
-                  }),
+                  displayPolicy,
+                  interactionPolicy,
                   gridCell: {
                       mode: 'week-7x9',
                       row: cell.row,
@@ -135,6 +138,7 @@ export const assembleDesktopWeekPlanCells = ({
               })
             : null,
     }));
+};
 
 export const assembleMobileWeekPlanCells = ({
     rows,
