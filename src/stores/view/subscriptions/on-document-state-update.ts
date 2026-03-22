@@ -10,11 +10,7 @@ import { updateSelectedNodes } from 'src/stores/view/subscriptions/actions/updat
 import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document';
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helpers/is-structural-document-change';
-import {
-    serializeSectionColorMapForSettings,
-    swapSectionSubtreeColors,
-} from 'src/mandala-display/logic/section-colors';
-import { getCurrentFileSectionColorMap } from 'src/mandala-settings/state/current-file/current-file-preferences';
+import { syncSwapSideEffects } from 'src/stores/view/subscriptions/effects/document-sync/sync-swap-side-effects';
 
 type SaveOptions = {
     mode: 'content-only' | 'structural';
@@ -145,35 +141,8 @@ export const onDocumentStateUpdate = (
     if (pinnedNodesUpdate) {
         persistPinnedNodes(view);
     }
-    if (type === 'document/mandala/swap' && view.file) {
-        const sourceSection =
-            documentState.sections.id_section[action.payload.sourceNodeId];
-        const targetSection =
-            documentState.sections.id_section[action.payload.targetNodeId];
-        if (sourceSection && targetSection) {
-            const sectionColorMap = getCurrentFileSectionColorMap(view);
-            const nextMap = swapSectionSubtreeColors(
-                sectionColorMap,
-                sourceSection,
-                targetSection,
-            );
-            const currentSerialized = JSON.stringify(
-                serializeSectionColorMapForSettings(sectionColorMap),
-            );
-            const nextSerialized = JSON.stringify(
-                serializeSectionColorMapForSettings(nextMap),
-            );
-            if (currentSerialized !== nextSerialized) {
-                view.plugin.settings.dispatch({
-                    type: 'settings/documents/persist-mandala-section-colors',
-                    payload: {
-                        path: view.file.path,
-                        map: serializeSectionColorMapForSettings(nextMap),
-                    },
-                });
-            }
-        }
-        persistPinnedNodes(view);
+    if (type === 'document/mandala/swap') {
+        syncSwapSideEffects(view, action);
     }
     if (
         pinnedNodesUpdate ||
