@@ -21,10 +21,12 @@
 <style>
     .editor-container {
         width: 100%;
+        min-width: 0;
         min-height: var(--min-node-height);
         height: fit-content;
         overflow: hidden;
         display: flex;
+        box-sizing: border-box;
     }
 
     .apply-style-rule {

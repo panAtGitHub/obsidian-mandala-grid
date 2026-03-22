@@ -12,6 +12,7 @@
     & .cm-editor .cm-scroller {
         width: 100%;
         min-width: 0;
+        box-sizing: border-box;
     }
 
     & .view-header,
@@ -31,6 +32,8 @@
         padding: 6px !important;
         padding-bottom: 20px !important;
         padding-left: 12px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
         scrollbar-width: thin;
     }
 

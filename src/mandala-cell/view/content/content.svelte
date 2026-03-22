@@ -155,7 +155,10 @@
 <style>
     .lng-prev {
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
         min-height: var(--min-node-height);
+        box-sizing: border-box;
 
         font-size: var(--font-text-size);
         padding: 6px 6px 10px 12px;

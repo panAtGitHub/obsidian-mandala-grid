@@ -3,8 +3,8 @@
     :global(.mandala-idle-scrollbar) {
         --mandala-idle-scrollbar-thumb: var(--color-base-30);
         --mandala-idle-scrollbar-thumb-active: var(--color-base-40);
-        overflow: auto;
-        overflow: overlay;
+        overflow-y: auto;
+        overflow-x: hidden;
         scrollbar-gutter: auto;
         scrollbar-width: thin;
         position: relative;
