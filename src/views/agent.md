@@ -23,6 +23,9 @@
 - `view-9x9/`
   9x9 场景目录。
 
+- `view-3x3/`
+  3x3 场景目录。
+
 - `view-nx9/`
   nx9 场景目录。
 
@@ -34,12 +37,18 @@
 
 ### 关于 3x3 场景
 
-当前仓库里，`3x3` 还没有独立成 `src/views/view-3x3/` 目录。
+当前仓库里，`3x3` 已经开始独立成 `src/views/view-3x3/` 目录，但外层模式切换和部分场景状态仍由 `shared/mandala-view.svelte` 承担。
 
-它目前主要落在这些位置：
+当前主要落点如下：
+
+- `view-3x3/layout.svelte`
+  负责 3x3 格子的排列、卡片渲染、空格展示，以及子宫格导航按钮布局。
+
+- `view-3x3/assemble-cell-view-model.ts`
+  负责把 3x3 场景状态翻译成单格输入，包括 section、section 背景、pin、display policy、interaction policy 等。
 
 - `shared/mandala-view.svelte`
-  共享视图壳里直接包含了 `3x3` 模式分支、3x3 子宫格导航按钮、subgrid theme 相关逻辑，以及 3x3 场景下的格子渲染入口。
+  仍然负责模式切换、subgrid theme、today 跳转、外层容器和共享壳层逻辑。
 
 - `src/cell/model/cell-display-policy.ts`
   定义 `grid-3x3` 的显示策略。
@@ -50,9 +59,9 @@
 - `src/helpers/views/mandala/mobile-navigation.ts`
   承担 3x3 的子宫格进入、退出和移动端导航逻辑。
 
-这说明当前的 `3x3` 更像“历史上直接写在共享壳层里的场景分支”，而不是已经完成目录化整理的独立场景。
+这说明当前的 `3x3` 已经进入“场景目录化”的第一步，但还没有彻底完成场景层与共享壳层的完全分离。
 
-后续如果要继续整理 `views` 层，`3x3` 是最适合优先抽离出来的对象之一，推荐目标结构：
+后续继续整理时，推荐维持下面这个结构，并逐步把更多 3x3 专属逻辑从 `shared/mandala-view.svelte` 下沉到 `view-3x3/`：
 
 ```text
 src/views/view-3x3/
