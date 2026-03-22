@@ -9,7 +9,6 @@
         onDestroy,
         onMount,
     } from 'svelte';
-    import { createClearEmptyMandalaSubgridsPlan } from 'src/mandala-display/logic/clear-empty-subgrids';
     import { derived } from 'src/shared/store/derived';
     import {
         ContextMenuCopyLinkVisibilityStore,
@@ -69,17 +68,14 @@
         openExportModeModalForView,
     } from './export-mode-modal-store';
     import {
-        applyTemplateToCurrentThemeAction,
-        openTemplatesFileFromPathAction,
-        pickTemplatesFileAction,
-        saveCurrentThemeAsTemplateAction,
-    } from './view-options-template-actions';
-    import {
         createViewOptionsSettingsActions,
     } from './view-options-settings-actions';
     import {
         createViewOptionsExportActions,
     } from './view-options-export-actions';
+    import {
+        createViewOptionsDocumentActions,
+    } from './view-options-document-actions';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -229,6 +225,12 @@
         updateCustomGridLayout,
         deleteCustomGridLayout,
     } = settingsActions;
+    let clearEmptySubgrids = () => {};
+    let openTemplatesFileFromPath = () => {};
+    let pickTemplatesFile = () => {};
+    let saveCurrentThemeAsTemplate = () => {};
+    let applyTemplateToCurrentTheme = () => {};
+    let openHotkeysModal = () => {};
     let exportCurrentFile: () => Promise<void> = async () => {};
 
     $: isExportModeModalOpen = $exportModeModalViewId === view.id;
@@ -716,60 +718,6 @@
         enterExportSession();
     }
 
-    const clearEmptySubgrids = () => {
-        const state = view.documentStore.getValue();
-        if (!state.meta.isMandala) {
-            new Notice('当前文档不是九宫格格式。');
-            closeMenu();
-            return;
-        }
-
-        const theme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
-        const centerNodeId = state.sections.section_id[theme];
-        if (!centerNodeId) {
-            new Notice('未找到当前主题中心格子。');
-            closeMenu();
-            return;
-        }
-
-        view.viewStore.dispatch({
-            type: 'view/set-active-node/document',
-            payload: { id: centerNodeId },
-        });
-        view.viewStore.dispatch({
-            type: 'view/selection/set-selection',
-            payload: { ids: [centerNodeId] },
-        });
-        view.alignBranch.align({ type: 'view/align-branch/center-node' });
-
-        const plan = createClearEmptyMandalaSubgridsPlan(
-            state.document,
-            state.sections,
-        );
-        if (plan.parentIds.length === 0 && plan.rootNodeIds.length === 0) {
-            new Notice('没有可清空的空白九宫格。');
-            closeMenu();
-            return;
-        }
-        const nextActiveNodeId = plan.rootNodeIds.includes(centerNodeId)
-            ? state.sections.section_id['1'] ?? centerNodeId
-            : centerNodeId;
-
-        view.documentStore.dispatch({
-            type: 'document/mandala/clear-empty-subgrids',
-            payload: {
-                parentIds: plan.parentIds,
-                rootNodeIds: plan.rootNodeIds,
-                activeNodeId: nextActiveNodeId,
-            },
-        });
-
-        new Notice(
-            `已清理 ${plan.parentIds.length} 个空白九宫格、${plan.rootSections.length} 个尾部空核心，共删除 ${plan.nodesToRemove.length} 个格子。`,
-        );
-        closeMenu();
-    };
-
     const closeMenu = (preserveExportModeSession = false) => {
         if (!preserveExportModeSession) {
             exitExportSession();
@@ -784,31 +732,18 @@
         isCustomLayoutModalOpen = false;
     };
 
-    const openTemplatesFileFromPath = () =>
-        openTemplatesFileFromPathAction(view, $templatesFilePathStore, () =>
-            closeMenu(),
-        );
-
-    const pickTemplatesFile = () => pickTemplatesFileAction(view);
-
-    const saveCurrentThemeAsTemplate = () =>
-        saveCurrentThemeAsTemplateAction(
-            view,
-            $templatesFilePathStore,
-            () => closeMenu(),
-        );
-
-    const applyTemplateToCurrentTheme = () =>
-        applyTemplateToCurrentThemeAction(
-            view,
-            $templatesFilePathStore,
-            () => closeMenu(),
-        );
-
-    const openHotkeysModal = () => {
-        view.viewStore.dispatch({ type: 'view/hotkeys/toggle-modal' });
-        closeMenu();
-    };
+    $: ({
+        clearEmptySubgrids,
+        openTemplatesFileFromPath,
+        pickTemplatesFile,
+        saveCurrentThemeAsTemplate,
+        applyTemplateToCurrentTheme,
+        openHotkeysModal,
+    } = createViewOptionsDocumentActions({
+        view,
+        getTemplatesFilePath: () => $templatesFilePathStore,
+        closeMenu: () => closeMenu(),
+    }));
 
     const openExportModeModal = () => {
         enterExportSession();
