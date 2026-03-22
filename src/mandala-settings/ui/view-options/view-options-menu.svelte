@@ -74,6 +74,9 @@
         createViewOptionsExportActions,
     } from './view-options-export-actions';
     import {
+        createViewOptionsExportModalState,
+    } from './view-options-export-modal-state';
+    import {
         createViewOptionsDocumentActions,
     } from './view-options-document-actions';
 
@@ -90,12 +93,6 @@
     let listenersAttached = false;
     let previousShow = show;
     let isExportModeModalOpen = false;
-    let exportModalPosition: { left: number; top: number } | null = null;
-    let exportDragOffset: { x: number; y: number } | null = null;
-    let exportDragCandidate: {
-        offsetX: number;
-        offsetY: number;
-    } | null = null;
     let exportModalInlineStyle: string | undefined = undefined;
     let isCustomLayoutModalOpen = false;
 
@@ -120,6 +117,8 @@
         ContextMenuCopyLinkVisibilityStore(view);
     const detailSidebarPreviewMode = DetailSidebarPreviewModeStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
+    const exportModalState = createViewOptionsExportModalState({ isMobile });
+    const exportModalPosition = exportModalState.position;
     const themeDefaults = getDefaultTheme();
     const cardsGap = derived(
         view.plugin.settings,
@@ -747,129 +746,19 @@
 
     const openExportModeModal = () => {
         enterExportSession();
-        const initialWidth = Math.min(420, window.innerWidth - 24);
-        const initialTop = getExportModalSafeTop();
-        exportModalPosition = clampExportModalPosition(
-            window.innerWidth - initialWidth - 16,
-            initialTop,
-        );
-        exportDragOffset = null;
+        exportModalState.open();
         openExportModeModalForView(view.id);
         closeMenu(true);
     };
 
     const closeExportMode = () => {
+        exportModalState.close();
         closeExportModeModal();
         exitExportSession();
     };
 
-    const onExportModeKeyDown = (event: KeyboardEvent) => {
-        if (!isExportModeModalOpen) return;
-        if (event.key !== 'Escape') return;
-        event.preventDefault();
-        closeExportMode();
-    };
-
-    const readCssLengthVar = (
-        styles: CSSStyleDeclaration,
-        name: string,
-    ): number => {
-        const raw = styles.getPropertyValue(name).trim();
-        if (!raw) return 0;
-        const parsed = Number.parseFloat(raw);
-        return Number.isFinite(parsed) ? parsed : 0;
-    };
-
-    const getExportModalSafeTop = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const bodyStyles = getComputedStyle(document.body);
-        const headerHeight = Math.max(
-            readCssLengthVar(rootStyles, '--header-height'),
-            readCssLengthVar(bodyStyles, '--header-height'),
-            40,
-        );
-        const titlebarHeight = Math.max(
-            readCssLengthVar(rootStyles, '--titlebar-height'),
-            readCssLengthVar(bodyStyles, '--titlebar-height'),
-        );
-        return Math.max(headerHeight, titlebarHeight, 40) + 8;
-    };
-
-    const clampExportModalPosition = (left: number, top: number) => {
-        const width = Math.min(420, window.innerWidth - 24);
-        const margin = 8;
-        const maxLeft = Math.max(margin, window.innerWidth - width - margin);
-        const minTop = getExportModalSafeTop();
-        const maxTop = Math.max(minTop, window.innerHeight - 120);
-        return {
-            left: Math.min(Math.max(left, margin), maxLeft),
-            top: Math.min(Math.max(top, minTop), maxTop),
-        };
-    };
-
-    const getPointer = (event: MouseEvent | TouchEvent) => {
-        if (event instanceof MouseEvent) {
-            return { x: event.clientX, y: event.clientY };
-        }
-        if (event.touches.length > 0) {
-            return {
-                x: event.touches[0].clientX,
-                y: event.touches[0].clientY,
-            };
-        }
-        return null;
-    };
-
-    const startExportModalDrag = (event: MouseEvent | TouchEvent) => {
-        if (isMobile || !isExportModeModalOpen) return;
-        if (event instanceof MouseEvent && event.button !== 0) return;
-        const target = event.target;
-        if (!(target instanceof HTMLElement)) return;
-        if (target.closest('.view-options-menu__close')) return;
-        const modal = target.closest('.export-mode-modal');
-        if (!(modal instanceof HTMLElement)) return;
-
-        const pointer = getPointer(event);
-        if (!pointer) return;
-
-        const rect = modal.getBoundingClientRect();
-        exportDragOffset = null;
-        exportDragCandidate = {
-            offsetX: pointer.x - rect.left,
-            offsetY: pointer.y - rect.top,
-        };
-    };
-
-    const moveExportModalDrag = (event: MouseEvent | TouchEvent) => {
-        if (isMobile || !isExportModeModalOpen) return;
-        if (event instanceof MouseEvent && event.buttons !== 1) return;
-        const pointer = getPointer(event);
-        if (!pointer) return;
-
-        if (!exportDragOffset && exportDragCandidate) {
-            exportDragOffset = {
-                x: exportDragCandidate.offsetX,
-                y: exportDragCandidate.offsetY,
-            };
-        }
-
-        if (!exportDragOffset) return;
-        exportModalPosition = clampExportModalPosition(
-            pointer.x - exportDragOffset.x,
-            pointer.y - exportDragOffset.y,
-        );
-        event.preventDefault();
-    };
-
-    const stopExportModalDrag = () => {
-        exportDragOffset = null;
-        exportDragCandidate = null;
-    };
-
     $: exportModalInlineStyle =
-        !isMobile && exportModalPosition
-            ? `left:${exportModalPosition.left}px;top:${exportModalPosition.top}px;right:auto;`
-            : undefined;
+        exportModalState.toInlineStyle($exportModalPosition);
     $: exportEditPanelProps = {
         show: true,
         showTrigger: false,
@@ -1268,11 +1157,18 @@
 {/if}
 
 <svelte:window
-    on:keydown={onExportModeKeyDown}
-    on:mousemove={moveExportModalDrag}
-    on:mouseup={stopExportModalDrag}
-    on:touchmove|nonpassive={moveExportModalDrag}
-    on:touchend={stopExportModalDrag}
+    on:keydown={(event) =>
+        exportModalState.handleEscape(
+            event,
+            isExportModeModalOpen,
+            closeExportMode,
+        )}
+    on:mousemove={(event) =>
+        exportModalState.moveDrag(event, isExportModeModalOpen)}
+    on:mouseup={() => exportModalState.stopDrag()}
+    on:touchmove|nonpassive={(event) =>
+        exportModalState.moveDrag(event, isExportModeModalOpen)}
+    on:touchend={() => exportModalState.stopDrag()}
 />
 
 <ExportModeModal
@@ -1294,7 +1190,8 @@
     canApplyLastExportPreset={Boolean($lastExportPresetStore)}
     {exportActionLabel}
     onClose={closeExportMode}
-    onStartDrag={startExportModalDrag}
+    onStartDrag={(event) =>
+        exportModalState.startDrag(event, isExportModeModalOpen)}
     onSetExportMode={setExportMode}
     onToggleIncludeSidebar={toggleIncludeSidebarInPngScreen}
     onUpdateA4Orientation={_updateA4Orientation}
