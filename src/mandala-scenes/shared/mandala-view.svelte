@@ -61,6 +61,7 @@
     import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
     import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
+    import { createMobileEditorViewportController } from 'src/mandala-scenes/shared/mobile-editor-viewport';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -101,159 +102,12 @@
     let contentWrapperRef: HTMLElement | null = null;
     let contentWrapperObserver: ResizeObserver | null = null;
     let mobilePopupEditorBodyEl: HTMLDivElement | null = null;
-    let visualViewportHeight = 0;
-    let visualViewportOffsetTop = 0;
-    let visualViewportBottomInset = 0;
-    let keyboardOverlayFallback = 0;
-    let isMobileEditorFocused = false;
-    let mobileCursorGuardCleanup: (() => void) | null = null;
-
-    const updateVisualViewport = () => {
-        const vv = window.visualViewport;
-        if (!vv) {
-            visualViewportHeight = window.innerHeight;
-            visualViewportOffsetTop = 0;
-            visualViewportBottomInset = 0;
-            keyboardOverlayFallback = isMobileEditorFocused ? 280 : 0;
-            return;
-        }
-        visualViewportHeight = vv.height;
-        visualViewportOffsetTop = vv.offsetTop;
-        visualViewportBottomInset = Math.max(
-            0,
-            window.innerHeight - vv.height - vv.offsetTop,
-        );
-        // 部分输入法扩展面板不会反映在 visualViewport，焦点态下给一个兜底底部留白
-        const viewportReportedKeyboard =
-            visualViewportBottomInset > 40 ||
-            window.innerHeight - visualViewportHeight > 100;
-        keyboardOverlayFallback =
-            isMobileEditorFocused && !viewportReportedKeyboard ? 280 : 0;
-    };
-
-    const handleMobileEditorFocusIn = () => {
-        isMobileEditorFocused = true;
-        updateVisualViewport();
-    };
-
-    const handleMobileEditorFocusOut = () => {
-        window.setTimeout(() => {
-            isMobileEditorFocused = Boolean(
-                mobilePopupEditorBodyEl?.contains(document.activeElement),
-            );
-            updateVisualViewport();
-        }, 0);
-    };
-
-    const getActiveCursorRect = (): DOMRect | null => {
-        if (!mobilePopupEditorBodyEl) return null;
-        const cursor = mobilePopupEditorBodyEl.querySelector(
-            '.cm-cursorLayer .cm-cursor',
-        ) as HTMLElement | null;
-        if (cursor) return cursor.getBoundingClientRect();
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return null;
-        return selection.getRangeAt(0).getBoundingClientRect();
-    };
-
-    const hasActiveRangeSelectionInMobileEditor = () => {
-        if (!mobilePopupEditorBodyEl) return false;
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-            return false;
-        }
-        const anchorNode = selection.anchorNode;
-        const focusNode = selection.focusNode;
-        return Boolean(
-            anchorNode &&
-                focusNode &&
-                mobilePopupEditorBodyEl.contains(anchorNode) &&
-                mobilePopupEditorBodyEl.contains(focusNode),
-        );
-    };
-
-    const ensureMobileCursorVisible = () => {
-        if (!isMobilePopupEditing || !mobilePopupEditorBodyEl) return;
-        if (hasActiveRangeSelectionInMobileEditor()) return;
-        const scroller = mobilePopupEditorBodyEl.querySelector(
-            '.cm-editor .cm-scroller',
-        ) as HTMLElement | null;
-        if (!scroller) return;
-        const cursorRect = getActiveCursorRect();
-        if (!cursorRect) return;
-        const vv = window.visualViewport;
-        const visibleTop = vv ? vv.offsetTop : 0;
-        const visibleBottom = vv
-            ? vv.offsetTop + vv.height
-            : window.innerHeight;
-        const topLimit = visibleTop + 8;
-        const bottomLimit = visibleBottom - 12;
-        if (cursorRect.bottom > bottomLimit) {
-            scroller.scrollTop += cursorRect.bottom - bottomLimit;
-        } else if (cursorRect.top < topLimit) {
-            scroller.scrollTop -= topLimit - cursorRect.top;
-        }
-    };
-
-    const scheduleEnsureMobileCursorVisible = () => {
-        window.requestAnimationFrame(() => {
-            ensureMobileCursorVisible();
-            window.setTimeout(() => {
-                ensureMobileCursorVisible();
-            }, 24);
-        });
-    };
-
-    const setupMobileCursorGuard = () => {
-        if (!mobilePopupEditorBodyEl) return () => {};
-        const onEditorActivity = () => {
-            updateVisualViewport();
-            scheduleEnsureMobileCursorVisible();
-        };
-        mobilePopupEditorBodyEl.addEventListener('input', onEditorActivity);
-        mobilePopupEditorBodyEl.addEventListener('keyup', onEditorActivity);
-        mobilePopupEditorBodyEl.addEventListener(
-            'compositionend',
-            onEditorActivity,
-        );
-        mobilePopupEditorBodyEl.addEventListener('touchend', onEditorActivity);
-        mobilePopupEditorBodyEl.addEventListener('click', onEditorActivity);
-        document.addEventListener('selectionchange', onEditorActivity);
-        window.visualViewport?.addEventListener('resize', onEditorActivity);
-        window.visualViewport?.addEventListener('scroll', onEditorActivity);
-        scheduleEnsureMobileCursorVisible();
-        return () => {
-            mobilePopupEditorBodyEl?.removeEventListener(
-                'input',
-                onEditorActivity,
-            );
-            mobilePopupEditorBodyEl?.removeEventListener(
-                'keyup',
-                onEditorActivity,
-            );
-            mobilePopupEditorBodyEl?.removeEventListener(
-                'compositionend',
-                onEditorActivity,
-            );
-            mobilePopupEditorBodyEl?.removeEventListener(
-                'touchend',
-                onEditorActivity,
-            );
-            mobilePopupEditorBodyEl?.removeEventListener(
-                'click',
-                onEditorActivity,
-            );
-            document.removeEventListener('selectionchange', onEditorActivity);
-            window.visualViewport?.removeEventListener(
-                'resize',
-                onEditorActivity,
-            );
-            window.visualViewport?.removeEventListener(
-                'scroll',
-                onEditorActivity,
-            );
-        };
-    };
+    const mobileEditorViewport = createMobileEditorViewportController();
+    const mobileViewportHeight = mobileEditorViewport.height;
+    const mobileViewportOffsetTop = mobileEditorViewport.offsetTop;
+    const mobileViewportBottomInset = mobileEditorViewport.bottomInset;
+    const mobileKeyboardOverlayFallback =
+        mobileEditorViewport.keyboardFallback;
 
     const recomputeDesktopSquareSize = () => {
         if (Platform.isMobile || !$squareLayout || !contentWrapperRef) {
@@ -312,10 +166,7 @@
     onMount(() => {
         view.container = containerRef;
         focusContainer(view);
-        updateVisualViewport();
-        window.visualViewport?.addEventListener('resize', updateVisualViewport);
-        window.visualViewport?.addEventListener('scroll', updateVisualViewport);
-        window.addEventListener('orientationchange', updateVisualViewport);
+        mobileEditorViewport.mount();
 
         contentWrapperObserver = new ResizeObserver(() => {
             recomputeDesktopSquareSize();
@@ -327,28 +178,16 @@
     });
 
     onDestroy(() => {
-        mobileCursorGuardCleanup?.();
-        mobileCursorGuardCleanup = null;
-        window.visualViewport?.removeEventListener(
-            'resize',
-            updateVisualViewport,
-        );
-        window.visualViewport?.removeEventListener(
-            'scroll',
-            updateVisualViewport,
-        );
-        window.removeEventListener('orientationchange', updateVisualViewport);
+        mobileEditorViewport.destroy();
         contentWrapperObserver?.disconnect();
         contentWrapperObserver = null;
     });
 
     $: {
-        if (!isMobilePopupEditing || !mobilePopupEditorBodyEl) {
-            mobileCursorGuardCleanup?.();
-            mobileCursorGuardCleanup = null;
-        } else if (!mobileCursorGuardCleanup) {
-            mobileCursorGuardCleanup = setupMobileCursorGuard();
-        }
+        mobileEditorViewport.sync(
+            isMobilePopupEditing,
+            mobilePopupEditorBodyEl,
+        );
     }
 
     $: if (!Platform.isMobile) {
@@ -599,6 +438,14 @@
         mobilePopupFontSizeStore.setFontSize($mobilePopupFontSizeStore - 1);
     };
 
+    const handleMobileEditorFocusIn = () => {
+        mobileEditorViewport.handleFocusIn();
+    };
+
+    const handleMobileEditorFocusOut = () => {
+        mobileEditorViewport.handleFocusOut();
+    };
+
     const enterSubgridFromButton = (event: MouseEvent, nodeId: string) => {
         event.stopPropagation();
         enterSubgridForNode(view, nodeId);
@@ -653,8 +500,8 @@
     class:mandala-a4-mode={$a4Mode}
     class:mandala-a4-landscape={$a4Mode && $a4Orientation === 'landscape'}
     style="--mandala-square-size: {squareSize}px; --desktop-square-size: {desktopSquareSize}px; --mandala-border-opacity: {$borderOpacity}%; --mandala-grid-highlight-color: {$gridHighlightColor ||
-        'var(--mandala-color-selection)'}; --mandala-grid-highlight-width: {$gridHighlightWidth}px; --vvh: {visualViewportHeight ||
-        window.innerHeight}px; --vvo: {visualViewportOffsetTop}px; --vvb: {visualViewportBottomInset}px; --vkf: {keyboardOverlayFallback}px;"
+        'var(--mandala-color-selection)'}; --mandala-grid-highlight-width: {$gridHighlightWidth}px; --vvh: {$mobileViewportHeight ||
+        window.innerHeight}px; --vvo: {$mobileViewportOffsetTop}px; --vvb: {$mobileViewportBottomInset}px; --vkf: {$mobileKeyboardOverlayFallback}px;"
 >
     {#if isMobilePopupEditing}
         <MobileNativeEditorSheet
