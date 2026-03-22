@@ -63,12 +63,7 @@
     import ExportModeModal, {
         type ExportMode,
     } from './components/export-mode-modal.svelte';
-    import type {
-        ContextMenuCopyLinkVariant,
-        DetailSidebarPreviewMode,
-        LastExportPreset,
-        MandalaCustomLayout,
-    } from 'src/mandala-settings/state/settings-type';
+    import type { LastExportPreset } from 'src/mandala-settings/state/settings-type';
     import {
         closeExportModeModal,
         exportModeModalViewId,
@@ -80,6 +75,9 @@
         pickTemplatesFileAction,
         saveCurrentThemeAsTemplateAction,
     } from './view-options-template-actions';
+    import {
+        createViewOptionsSettingsActions,
+    } from './view-options-settings-actions';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -182,6 +180,54 @@
         view.plugin.settings,
         (state) => state.view.lastExportPreset,
     );
+    const settingsActions = createViewOptionsSettingsActions({
+        view,
+        isMobile,
+        getContextMenuCopyLinkVisibility: () => $contextMenuCopyLinkVisibility,
+        getA4Mode: () => $a4Mode,
+        getShowMandalaDetailSidebar: () => $showMandalaDetailSidebar,
+        getSquareLayout: () => $squareLayout,
+        getSelectedLayoutId: () => $selectedLayoutId,
+    });
+    const {
+        toggleWhiteTheme,
+        toggleHiddenCardInfo,
+        toggle9x9ParallelNavButtons,
+        toggle3x3SubgridNavButtons,
+        toggleDayPlanTodayButton,
+        toggleCellQuickPreviewDialog,
+        toggleCopyBlockPlain,
+        toggleCopyBlockEmbed,
+        toggleCopyHeadingPlain,
+        toggleCopyHeadingEmbed,
+        toggleCopyHeadingEmbedDollar,
+        updateDetailSidebarPreviewMode,
+        toggleA4Mode,
+        updateA4Mode,
+        setA4Orientation,
+        updateMandalaDetailSidebar,
+        updateCardsGapValue,
+        updateFontSize3x3Value,
+        updateFontSize9x9Value,
+        updateFontSize7x9Value,
+        updateFontSizeSidebarValue,
+        updateFontSizeCellPreviewValue,
+        updateHeadingsFontSizeValue,
+        updateBorderOpacityValue,
+        updateSectionColorOpacityValue,
+        updateGridHighlightWidthValue,
+        updateInactiveNodeOpacityValue,
+        updateContainerBgColor,
+        updateActiveBranchBgColor,
+        updateActiveBranchColorValue,
+        updateGridHighlightColorValue,
+        updateBackgroundMode,
+        updateSquareLayout,
+        selectGridLayout,
+        createCustomGridLayout,
+        updateCustomGridLayout,
+        deleteCustomGridLayout,
+    } = settingsActions;
 
     $: isExportModeModalOpen = $exportModeModalViewId === view.id;
     $: if (
@@ -191,105 +237,6 @@
     ) {
         updateMandalaDetailSidebar(false);
     }
-
-    const toggleWhiteTheme = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/toggle-white-theme',
-        });
-    };
-
-    const toggleHiddenCardInfo = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/toggle-hidden-card-info',
-        });
-    };
-
-    const toggle9x9ParallelNavButtons = () => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/toggle-9x9-parallel-nav-buttons-mobile'
-                : 'settings/view/toggle-9x9-parallel-nav-buttons-desktop',
-        });
-    };
-
-    const toggle3x3SubgridNavButtons = () => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/toggle-3x3-subgrid-nav-buttons-mobile'
-                : 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop',
-        });
-    };
-
-    const toggleDayPlanTodayButton = () => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/toggle-day-plan-today-button-mobile'
-                : 'settings/view/toggle-day-plan-today-button-desktop',
-        });
-    };
-
-    const toggleCellQuickPreviewDialog = () => {
-        view.plugin.settings.dispatch({
-            type: isMobile
-                ? 'settings/view/toggle-cell-quick-preview-dialog-mobile'
-                : 'settings/view/toggle-cell-quick-preview-dialog-desktop',
-        });
-    };
-
-    const setContextMenuCopyLinkVisibility = (
-        variant: ContextMenuCopyLinkVariant,
-        visible: boolean,
-    ) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/context-menu-copy-link/set-visibility',
-            payload: { variant, visible },
-        });
-    };
-
-    const toggleCopyBlockPlain = () =>
-        setContextMenuCopyLinkVisibility(
-            'block-plain',
-            !$contextMenuCopyLinkVisibility['block-plain'],
-        );
-    const toggleCopyBlockEmbed = () =>
-        setContextMenuCopyLinkVisibility(
-            'block-embed',
-            !$contextMenuCopyLinkVisibility['block-embed'],
-        );
-    const toggleCopyHeadingPlain = () =>
-        setContextMenuCopyLinkVisibility(
-            'heading-plain',
-            !$contextMenuCopyLinkVisibility['heading-plain'],
-        );
-    const toggleCopyHeadingEmbed = () =>
-        setContextMenuCopyLinkVisibility(
-            'heading-embed',
-            !$contextMenuCopyLinkVisibility['heading-embed'],
-        );
-    const toggleCopyHeadingEmbedDollar = () =>
-        setContextMenuCopyLinkVisibility(
-            'heading-embed-dollar',
-            !$contextMenuCopyLinkVisibility['heading-embed-dollar'],
-        );
-
-    const updateDetailSidebarPreviewMode = (mode: DetailSidebarPreviewMode) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/detail-sidebar/set-preview-mode',
-            payload: { mode },
-        });
-    };
-
-    const toggleA4Mode = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/toggle-a4-mode',
-        });
-    };
-
-    const updateA4Mode = (enabled: boolean) => {
-        if (enabled !== $a4Mode) {
-            toggleA4Mode();
-        }
-    };
 
     type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
     let exportMode: ExportMode = 'png-screen';
@@ -315,12 +262,6 @@
     const toggleIncludeSidebarInPngScreen = () => {
         includeSidebarInPngScreen = !includeSidebarInPngScreen;
         updateMandalaDetailSidebar(includeSidebarInPngScreen);
-    };
-
-    const updateMandalaDetailSidebar = (enabled: boolean) => {
-        if (enabled !== $showMandalaDetailSidebar) {
-            view.toggleCurrentMandalaDetailSidebar();
-        }
     };
 
     $: exportModeLabel =
@@ -402,110 +343,11 @@
         if (!(target instanceof HTMLSelectElement)) return;
         const orientation =
             target.value === 'landscape' ? 'landscape' : 'portrait';
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-a4-orientation',
-            payload: { orientation },
-        });
+        setA4Orientation(orientation);
     };
-
-    const clampGap = (value: number) => Math.min(20, Math.max(0, value));
-    const clampOpacity = (value: number) => Math.min(100, Math.max(0, value));
-    const clampGridHighlightWidth = (value: number) =>
-        Math.min(8, Math.max(1, value));
-    const clampFontSize = (value: number) => Math.min(36, Math.max(6, value));
-    const clampH1FontSize = (value: number) => Math.min(4, Math.max(1, value));
     const roundToDecimal = (value: number, decimalPlaces: number) =>
         Math.round(value * Math.pow(10, decimalPlaces)) /
         Math.pow(10, decimalPlaces);
-
-    const updateCardsGapValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/layout/set-cards-gap',
-            payload: { gap: clampGap(value) },
-        });
-    };
-
-    const createPlatformFontSizeUpdater = (
-        desktopType:
-            | 'settings/view/font-size/set-3x3-desktop'
-            | 'settings/view/font-size/set-9x9-desktop'
-            | 'settings/view/font-size/set-7x9-desktop'
-            | 'settings/view/font-size/set-sidebar-desktop'
-            | 'settings/view/font-size/set-cell-preview-desktop',
-        mobileType:
-            | 'settings/view/font-size/set-3x3-mobile'
-            | 'settings/view/font-size/set-9x9-mobile'
-            | 'settings/view/font-size/set-7x9-mobile'
-            | 'settings/view/font-size/set-sidebar-mobile'
-            | 'settings/view/font-size/set-cell-preview-mobile',
-    ) => {
-        return (value: number) => {
-            view.plugin.settings.dispatch({
-                type: isMobile ? mobileType : desktopType,
-                payload: { fontSize: clampFontSize(value) },
-            });
-        };
-    };
-
-    const updateFontSize3x3Value = createPlatformFontSizeUpdater(
-        'settings/view/font-size/set-3x3-desktop',
-        'settings/view/font-size/set-3x3-mobile',
-    );
-
-    const updateFontSize9x9Value = createPlatformFontSizeUpdater(
-        'settings/view/font-size/set-9x9-desktop',
-        'settings/view/font-size/set-9x9-mobile',
-    );
-
-    const updateFontSize7x9Value = createPlatformFontSizeUpdater(
-        'settings/view/font-size/set-7x9-desktop',
-        'settings/view/font-size/set-7x9-mobile',
-    );
-
-    const updateFontSizeSidebarValue = createPlatformFontSizeUpdater(
-        'settings/view/font-size/set-sidebar-desktop',
-        'settings/view/font-size/set-sidebar-mobile',
-    );
-
-    const updateFontSizeCellPreviewValue = createPlatformFontSizeUpdater(
-        'settings/view/font-size/set-cell-preview-desktop',
-        'settings/view/font-size/set-cell-preview-mobile',
-    );
-
-    const updateHeadingsFontSizeValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-h1-font-size',
-            payload: { fontSize_em: clampH1FontSize(value) },
-        });
-    };
-
-    const updateBorderOpacityValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-border-opacity',
-            payload: { opacity: clampOpacity(value) },
-        });
-    };
-
-    const updateSectionColorOpacityValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-section-color-opacity',
-            payload: { opacity: clampOpacity(value) },
-        });
-    };
-
-    const updateGridHighlightWidthValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-grid-highlight-width',
-            payload: { width: clampGridHighlightWidth(value) },
-        });
-    };
-
-    const updateInactiveNodeOpacityValue = (value: number) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-inactive-node-opacity',
-            payload: { opacity: clampOpacity(value) },
-        });
-    };
 
     const parseFiniteNumber = (raw: string) => {
         const trimmed = raw.trim();
@@ -632,65 +474,41 @@
     const updateContainerBg = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-container-bg-color',
-            payload: { backgroundColor: target.value },
-        });
+        updateContainerBgColor(target.value);
     };
 
     const resetContainerBg = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-container-bg-color',
-            payload: { backgroundColor: undefined },
-        });
+        updateContainerBgColor(undefined);
     };
 
     const updateActiveBranchBg = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-active-branch-bg-color',
-            payload: { backgroundColor: target.value },
-        });
+        updateActiveBranchBgColor(target.value);
     };
 
     const resetActiveBranchBg = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-active-branch-bg-color',
-            payload: { backgroundColor: undefined },
-        });
+        updateActiveBranchBgColor(undefined);
     };
 
     const updateActiveBranchColor = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-active-branch-color',
-            payload: { color: target.value },
-        });
+        updateActiveBranchColorValue(target.value);
     };
 
     const resetActiveBranchColor = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/theme/set-active-branch-color',
-            payload: { color: undefined },
-        });
+        updateActiveBranchColorValue(undefined);
     };
 
     const updateGridHighlightColor = (event: Event) => {
         const target = event.target;
         if (!(target instanceof HTMLInputElement)) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-grid-highlight-color',
-            payload: { color: target.value },
-        });
+        updateGridHighlightColorValue(target.value);
     };
 
     const resetGridHighlightColor = () => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-grid-highlight-color',
-            payload: { color: undefined },
-        });
+        updateGridHighlightColorValue(undefined);
     };
 
     const resetInactiveNodeOpacity = () => {
@@ -732,22 +550,6 @@
     const resetHeadingsFontSize = () => {
         updateHeadingsFontSizeValue(DEFAULT_H1_FONT_SIZE_EM);
     };
-
-    const updateBackgroundMode = (mode: 'none' | 'custom' | 'gray') => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/set-background-mode',
-            payload: { mode },
-        });
-    };
-
-    const updateSquareLayout = (enabled: boolean) => {
-        if (enabled !== $squareLayout) {
-            view.plugin.settings.dispatch({
-                type: 'settings/view/toggle-square-layout',
-            });
-        }
-    };
-
     type PrintConfig = {
         exportMode: ExportMode;
         includeSidebarInPngScreen: boolean;
@@ -871,46 +673,12 @@
         });
     };
 
-    const selectGridLayout = (layoutId: string) => {
-        if (layoutId === $selectedLayoutId) return;
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/select-grid-layout',
-            payload: { layoutId },
-        });
-        view.persistCurrentMandalaLayout(layoutId);
-    };
-
     const openCustomLayoutModal = () => {
         isCustomLayoutModalOpen = true;
     };
 
     const closeCustomLayoutModal = () => {
         isCustomLayoutModalOpen = false;
-    };
-
-    const createCustomGridLayout = (layout: MandalaCustomLayout) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/create-custom-grid-layout',
-            payload: { layout },
-        });
-    };
-
-    const updateCustomGridLayout = (
-        id: string,
-        name: string,
-        pattern: string,
-    ) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/update-custom-grid-layout',
-            payload: { id, name, pattern },
-        });
-    };
-
-    const deleteCustomGridLayout = (id: string) => {
-        view.plugin.settings.dispatch({
-            type: 'settings/view/mandala/delete-custom-grid-layout',
-            payload: { id },
-        });
     };
 
     type ElectronDialog = {
