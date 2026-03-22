@@ -4,8 +4,9 @@
     import { get } from 'svelte/store';
     import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
     import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
+    import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
+    import CellScrollbar from 'src/mandala-cell/view/style/cell-scrollbar.svelte';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
     import { enableEditModeInMainSplit } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-main-split';
@@ -133,6 +134,8 @@
         e.stopPropagation();
     };
 </script>
+
+<CellScrollbar />
 
 <div
     class="lng-prev markdown-preview-view markdown-preview-section markdown-rendered"

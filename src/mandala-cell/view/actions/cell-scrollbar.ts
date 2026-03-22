@@ -51,6 +51,7 @@ export const hideIdleScrollbar = (element: HTMLElement) => {
         element.classList.add(SCROLLBAR_VISIBLE_CLASS);
         scheduleHide();
     };
+
     const onExit = () => {
         if (hasIdleDelay) {
             scheduleHide();

@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
+import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
 
 type SetupOptions = {
     withSidebar?: boolean;
