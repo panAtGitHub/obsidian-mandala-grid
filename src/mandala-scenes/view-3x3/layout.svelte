@@ -35,6 +35,7 @@
                 <MandalaCard
                     viewModel={cell.cardViewModel}
                     scrollbarMode="selected-hover"
+                    fillContent={true}
                 />
                 {#if !Platform.isMobile && show3x3SubgridNavButtons && !hasOpenOverlayModal}
                     <div
@@ -330,17 +331,5 @@
         position: absolute;
         left: calc(50% - 12px);
         bottom: 0;
-    }
-
-    :global(.mandala-root--3) .mandala-grid :global(.lng-prev) {
-        flex: 1 1 auto;
-        min-height: 0;
-        height: 100%;
-    }
-
-    :global(.mandala-root--3) :global(.editor-container) {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
     }
 </style>

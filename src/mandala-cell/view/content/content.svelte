@@ -26,6 +26,7 @@
     export let mobileSidebarRenderedEditEnabled = false;
     export let hideBuiltInHiddenInfo = false;
     export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
+    export let fillContent = false;
 
     const view = getView();
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
@@ -144,6 +145,7 @@
 
 <div
     class={`lng-prev markdown-preview-view markdown-preview-section markdown-rendered cell-scrollbar-mode--${scrollbarMode}`}
+    class:lng-prev--fill={fillContent}
     on:click={handleClick}
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
@@ -163,5 +165,11 @@
         font-size: var(--font-text-size);
         padding: 6px 6px 10px 12px;
         color-scheme: light;
+    }
+
+    .lng-prev--fill {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
     }
 </style>

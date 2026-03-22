@@ -13,6 +13,7 @@
     export let fontSizeOffset: number | undefined;
     export let absoluteFontSize: number | undefined;
     export let scrollbarMode: CellScrollbarMode = 'selected-hover';
+    export let fillContent = false;
 </script>
 
 {#if showInlineEditor}
@@ -21,7 +22,14 @@
         {style}
         {fontSizeOffset}
         {absoluteFontSize}
+        {fillContent}
     />
 {:else if showContent}
-    <Content {nodeId} {isInSidebar} {hideBuiltInHiddenInfo} {scrollbarMode} />
+    <Content
+        {nodeId}
+        {isInSidebar}
+        {hideBuiltInHiddenInfo}
+        {scrollbarMode}
+        {fillContent}
+    />
 {/if}

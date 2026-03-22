@@ -33,6 +33,7 @@
 
     export let viewModel: MandalaCardViewModel;
     export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
+    export let fillContent = false;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -179,6 +180,7 @@
         fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
         absoluteFontSize={isMobile ? $localFontStore : undefined}
         {scrollbarMode}
+        {fillContent}
     />
 
     <CardMeta
