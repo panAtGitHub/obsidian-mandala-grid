@@ -1,62 +1,19 @@
 <script lang="ts">
-    import { derived } from 'src/lib/store/derived';
     import { getView } from 'src/views/shared/shell/context';
-    import {
-        MandalaBackgroundModeStore,
-        MandalaSectionColorOpacityStore,
-        ShowMandalaDetailSidebarStore,
-        WhiteThemeModeStore,
-    } from 'src/stores/settings/derived/view-settings-store';
     import MandalaCard from 'src/cell/view/components/mandala-card.svelte';
-    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
-    import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
-    import { buildMandalaCardViewModel } from 'src/cell/model/build-mandala-card-view-model';
-    import { buildCellDisplayPolicy } from 'src/cell/model/cell-display-policy';
-    import { buildCellInteractionPolicy } from 'src/cell/viewmodel/policies/cell-interaction-policy';
+    import type { WeekPlanDesktopCellViewModel } from 'src/views/view-7x9/assemble-cell-view-model';
 
-    export let cells: WeekPlanBaseCell[] = [];
+    export let cells: WeekPlanDesktopCellViewModel[] = [];
     export let compactMode = false;
     export let fontVariable = '--mandala-font-7x9';
 
     const view = getView();
-    const sectionColors = SectionColorBySectionStore(view);
-    const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
-    const backgroundMode = MandalaBackgroundModeStore(view);
-    const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
-    const whiteThemeMode = WhiteThemeModeStore(view);
-
-    const activeNodeId = derived(
-        view.viewStore,
-        (state) => state.document.activeNode,
-    );
-    const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
-    const editingState = derived(
-        view.viewStore,
-        (state) => state.document.editing,
-    );
-    const selectedNodes = derived(
-        view.viewStore,
-        (state) => state.document.selectedNodes,
-    );
-    const pinnedSections = PinnedSectionsStore(view);
-
-    $: activeCell = $mandalaUiState.activeCellWeek7x9;
 
     const handleCellClick = (cell: WeekPlanBaseCell) => {
         if (!cell.nodeId) return;
         setActiveCellWeek7x9(view, { row: cell.row, col: cell.col });
-    };
-
-    const getSectionColor = (section: string | null) => {
-        return resolveCustomSectionColor({
-            section,
-            backgroundMode: $backgroundMode,
-            sectionColorsBySection: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
-        });
     };
 </script>
 
@@ -74,47 +31,14 @@
                 !!cell.emptyLabel}
             class:is-clickable={!!cell.nodeId}
             class:is-center-column={cell.isCenterColumn}
-            class:is-active-cell={activeCell &&
-                activeCell.row === cell.row &&
-                activeCell.col === cell.col}
-            class:is-active-node={!activeCell &&
-                !!cell.nodeId &&
-                cell.nodeId === $activeNodeId}
+            class:is-active-cell={cell.isActiveCell}
+            class:is-active-node={cell.isActiveNode}
             on:click|capture={() => handleCellClick(cell)}
         >
             {#if cell.nodeId}
-                {@const cardViewModel = buildMandalaCardViewModel({
-                    nodeId: cell.nodeId,
-                    section: cell.section ?? '',
-                    active: cell.nodeId === $activeNodeId,
-                    editing:
-                        $editingState.activeNodeId === cell.nodeId &&
-                        !$editingState.isInSidebar &&
-                        !$showDetailSidebar,
-                    selected: $selectedNodes.has(cell.nodeId),
-                    pinned: cell.section
-                        ? $pinnedSections.has(cell.section)
-                        : false,
-                    style: undefined,
-                    sectionColor: getSectionColor(cell.section),
-                    metaAccentColor: cell.section
-                        ? $sectionColors[cell.section] ?? null
-                        : null,
-                    displayPolicy: buildCellDisplayPolicy({
-                        preset: 'grid-7x9',
-                        whiteThemeMode: $whiteThemeMode,
-                        hasGridSelection: Boolean(activeCell),
-                    }),
-                    interactionPolicy: buildCellInteractionPolicy({
-                        preset: 'grid-7x9',
-                    }),
-                    gridCell: {
-                        mode: 'week-7x9',
-                        row: cell.row,
-                        col: cell.col,
-                    },
-                })}
-                <MandalaCard {...cardViewModel} />
+                {#if cell.cardViewModel}
+                    <MandalaCard {...cell.cardViewModel} />
+                {/if}
             {:else if cell.isPlaceholder || cell.emptyLabel}
                 <div class="row-matrix-cell__empty">
                     {cell.emptyLabel ?? ''}

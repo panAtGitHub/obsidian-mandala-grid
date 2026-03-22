@@ -2,10 +2,8 @@
     import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
     import { derived } from 'src/lib/store/derived';
     import { getView } from 'src/views/shared/shell/context';
-    import {
-        buildWeekPlanBaseCells,
-        type WeekPlanBaseCell,
-    } from 'src/lib/mandala/week-plan-context';
+    import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
+    import { assembleMobileWeekPlanCells } from 'src/views/view-7x9/assemble-cell-view-model';
     import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,
@@ -25,45 +23,6 @@
         view.viewStore,
         (state) => state.ui.mandala.activeCellWeek7x9,
     );
-
-    type CellSummary = { title: string; body: string };
-    const summaryCache = new Map<string, CellSummary>();
-
-    const normalizeCellPreviewText = (raw: string) =>
-        raw
-            .replace(/^\s*[-*+]\s+\[[ xX]\]\s*/gm, '')
-            .replace(/^\s*[-*+]\s+/gm, '')
-            .replace(/^\s*\d+\.\s+/gm, '')
-            .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
-            .replace(/\[\[([^\]]+)\]\]/g, '$1')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-    const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
-    const buildSummary = (nodeId: string, content: string): CellSummary => {
-        const cacheKey = `${nodeId}::${content}`;
-        const cached = summaryCache.get(cacheKey);
-        if (cached) return cached;
-
-        const lines = content.split('\n');
-        const firstLine = lines[0]?.trim() ?? '';
-        let title = '';
-        let body = '';
-
-        if (firstLine && HEADING_RE.test(firstLine)) {
-            title = normalizeCellPreviewText(firstLine.replace(HEADING_RE, ''));
-            body = normalizeCellPreviewText(lines.slice(1).join('\n')).slice(
-                0,
-                150,
-            );
-        } else {
-            body = normalizeCellPreviewText(lines.join('\n')).slice(0, 150);
-        }
-
-        const summary = { title, body };
-        summaryCache.set(cacheKey, summary);
-        return summary;
-    };
 
     const renderText = (element: HTMLElement, content: string) => {
         const render = () => {
@@ -88,22 +47,10 @@
     let cells: MobileCell[] = [];
 
     $: {
-        const baseCells = buildWeekPlanBaseCells({
+        cells = assembleMobileWeekPlanCells({
             rows,
             sectionIdMap: $documentState.sections.section_id,
-        });
-        cells = baseCells.map((cell) => {
-            const content = cell.nodeId
-                ? $documentState.document.content[cell.nodeId]?.content ?? ''
-                : '';
-            const summary = cell.nodeId
-                ? buildSummary(cell.nodeId, content)
-                : { title: '', body: '' };
-            return {
-                ...cell,
-                title: summary.title,
-                body: summary.body,
-            };
+            documentContent: $documentState.document.content,
         });
     }
 
