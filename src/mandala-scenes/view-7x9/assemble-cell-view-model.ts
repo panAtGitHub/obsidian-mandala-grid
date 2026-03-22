@@ -2,7 +2,7 @@ import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-
 import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
 import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
-import { resolveCustomSectionColor } from 'src/mandala-display/logic/section-colors';
+import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildWeekPlanBaseCells,
     type WeekPlanBaseCell,
@@ -122,7 +122,7 @@ export const assembleDesktopWeekPlanCells = ({
                       ? pinnedSections.has(cell.section)
                       : false,
                   style: undefined,
-                  sectionColor: resolveCustomSectionColor({
+                  sectionColor: resolveSectionBackgroundInput({
                       section: cell.section,
                       backgroundMode,
                       sectionColorsBySection: sectionColors,

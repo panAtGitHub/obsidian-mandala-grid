@@ -16,6 +16,7 @@ export type MandalaCardViewModel = SharedCardViewModel & {
     section: string;
     active: boolean;
     editing: boolean;
+    // 用户自定义色应用透明度后的最终背景输入；没有自定义色时为 null。
     sectionColor: string | null;
     metaAccentColor: string | null;
     displayPolicy: CellDisplayPolicy;

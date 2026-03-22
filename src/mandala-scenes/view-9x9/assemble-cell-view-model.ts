@@ -2,7 +2,7 @@ import {
     getReadableTextTone,
     type ThemeTone,
 } from 'src/mandala-interaction/helpers/contrast-text-tone';
-import { applyOpacityToHex } from 'src/mandala-display/logic/section-colors';
+import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
@@ -161,15 +161,15 @@ export const decorate9x9CellViewModels = ({
     themeTone,
     themeUnderlayColor,
 }: Decorate9x9CellsOptions): SimpleSummaryCellModel[] => {
-    const opacity = sectionColorOpacity / 100;
-
     return cells.map((cell) => {
-        const sectionColor =
-            backgroundMode === 'custom' && cell.section
-                ? sectionColors[cell.section]
-                : null;
-        const background = sectionColor
-            ? applyOpacityToHex(sectionColor, opacity)
+        const customBackground = resolveSectionBackgroundInput({
+            section: cell.section,
+            backgroundMode,
+            sectionColorsBySection: sectionColors,
+            sectionColorOpacity,
+        });
+        const background = customBackground
+            ? customBackground
             : backgroundMode === 'gray' && cell.isGrayBlock
               ? `color-mix(in srgb, var(--mandala-gray-block-base) ${sectionColorOpacity}%, transparent)`
               : null;

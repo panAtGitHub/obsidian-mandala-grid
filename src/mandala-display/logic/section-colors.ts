@@ -44,22 +44,31 @@ export const applyOpacityToHex = (color: string, opacity: number) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-export const resolveCustomSectionColor = ({
-    section,
-    backgroundMode,
-    sectionColorsBySection,
-    sectionColorOpacity,
-}: {
+type ResolveSectionBackgroundInputOptions = {
     section: string | null;
     backgroundMode: string;
     sectionColorsBySection: Record<string, string>;
     sectionColorOpacity: number;
-}) => {
+};
+
+// 用户自定义色进入 cell / scene 前的最终背景输入：
+// 只应用用户色本身与透明度，不在这里再叠加其他场景底色。
+export const resolveSectionBackgroundInput = ({
+    section,
+    backgroundMode,
+    sectionColorsBySection,
+    sectionColorOpacity,
+}: ResolveSectionBackgroundInputOptions) => {
     if (!section || backgroundMode !== 'custom') return null;
     const color = sectionColorsBySection[section];
     if (!color) return null;
     return applyOpacityToHex(color, sectionColorOpacity / 100);
 };
+
+// 兼容旧调用名；语义等同于 resolveSectionBackgroundInput。
+export const resolveCustomSectionColor = (
+    options: ResolveSectionBackgroundInputOptions,
+) => resolveSectionBackgroundInput(options);
 
 export const createPinnedSectionSet = (
     sections: Sections,

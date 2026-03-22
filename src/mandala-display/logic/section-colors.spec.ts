@@ -3,6 +3,7 @@ import {
     compareSectionIds,
     createPinnedSectionSet,
     parsePinnedSectionsFromPersistedState,
+    resolveSectionBackgroundInput,
     resolveCustomSectionColor,
     serializeSectionColorMap,
     setSectionColor,
@@ -95,7 +96,7 @@ describe('section-colors', () => {
 
     it('resolves custom section colors by section id', () => {
         expect(
-            resolveCustomSectionColor({
+            resolveSectionBackgroundInput({
                 section: '1.2',
                 backgroundMode: 'custom',
                 sectionColorsBySection: {
@@ -104,6 +105,28 @@ describe('section-colors', () => {
                 sectionColorOpacity: 65,
             }),
         ).toBe('rgba(103, 127, 239, 0.65)');
+    });
+
+    it('keeps the legacy custom section color helper aligned with the new background input helper', () => {
+        expect(
+            resolveCustomSectionColor({
+                section: '1.2',
+                backgroundMode: 'custom',
+                sectionColorsBySection: {
+                    '1.2': '#677FEF',
+                },
+                sectionColorOpacity: 65,
+            }),
+        ).toBe(
+            resolveSectionBackgroundInput({
+                section: '1.2',
+                backgroundMode: 'custom',
+                sectionColorsBySection: {
+                    '1.2': '#677FEF',
+                },
+                sectionColorOpacity: 65,
+            }),
+        );
     });
 
     it('creates pinned section sets from current section occupancy', () => {

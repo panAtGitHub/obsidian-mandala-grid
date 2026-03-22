@@ -2,7 +2,7 @@ import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-
 import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
 import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
-import { resolveCustomSectionColor } from 'src/mandala-display/logic/section-colors';
+import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type { Nx9Context } from 'src/mandala-scenes/view-nx9/context';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
@@ -136,7 +136,7 @@ const createRealCellViewModel = ({
                   selected: selectedNodes.has(nodeId),
                   pinned: pinnedSections.has(section),
                   style: undefined,
-                  sectionColor: resolveCustomSectionColor({
+                  sectionColor: resolveSectionBackgroundInput({
                       section,
                       backgroundMode,
                       sectionColorsBySection: sectionColors,
