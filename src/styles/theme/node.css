@@ -32,7 +32,7 @@
 }*/
 
 .inactive-node {
-    opacity: var(--inactive-card-opacity);
+    opacity: 1;
 }
 
 /* hover effects (disabled in pure white theme) */
