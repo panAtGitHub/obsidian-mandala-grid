@@ -14,7 +14,7 @@
     import Content from 'src/mandala-cell/view/content/content.svelte';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
     import SourcePreview from 'src/mandala-cell/view/content/source-preview.svelte';
-    import { Platform, setIcon } from 'obsidian';
+    import { Platform } from 'obsidian';
     import { createLayoutStore } from 'src/stores/view/orientation-store';
     import {
         enterSubgridForNode,
@@ -23,7 +23,7 @@
     import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
-    import { lang } from 'src/lang/lang';
+    import DetailSidebarFloatingActions from './detail-sidebar-floating-actions.svelte';
 
     const MIN_SIZE = 200;
 
@@ -209,15 +209,6 @@
         });
     };
 
-    const applyObsidianIcon = (node: HTMLElement, iconName: string) => {
-        setIcon(node, iconName);
-        return {
-            update(nextIconName: string) {
-                setIcon(node, nextIconName);
-            },
-        };
-    };
-
     const enterSubgridFromFloatingButton = (event: MouseEvent) => {
         event.stopPropagation();
         if (!$activeNodeId || !canEnterSubgrid) return;
@@ -292,109 +283,28 @@
             {:else}
                 <div class="no-selection">请选择一个格子进行编辑</div>
             {/if}
-            {#if Platform.isMobile &&
-                (($mode === '3x3' && $show3x3SubgridNavButtons) ||
-                    ($dayPlanEnabled &&
-                        $showDayPlanTodayButton &&
+            {#if Platform.isMobile}
+                <DetailSidebarFloatingActions
+                    isThreeByThreeMode={$mode === '3x3'}
+                    isNineByNineMode={$mode === '9x9'}
+                    show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
+                    show9x9ParallelNavButtons={$show9x9ParallelNavButtons}
+                    dayPlanEnabled={$dayPlanEnabled}
+                    showDayPlanTodayButton={$showDayPlanTodayButton}
+                    showTodayButton={Boolean(
                         dayPlanTodayNavigation.targetSection &&
-                        activeSection?.split('.')[0] !==
-                            dayPlanTodayNavigation.targetSection))}
-                <div class="mobile-subgrid-floating-controls">
-                    {#if $mode === '3x3' && $show3x3SubgridNavButtons}
-                        <button
-                            class="mobile-subgrid-floating-btn"
-                            type="button"
-                            aria-label="退出上一层子九宫格"
-                            disabled={!canExitSubgrid}
-                            on:click={exitSubgridFromFloatingButton}
-                        >
-                            <span
-                                class="mobile-subgrid-floating-btn__icon"
-                                use:applyObsidianIcon={'chevron-up'}
-                            />
-                        </button>
-                        <button
-                            class="mobile-subgrid-floating-btn"
-                            type="button"
-                            aria-label="进入下一层子九宫格"
-                            disabled={!canEnterSubgrid}
-                            on:click={enterSubgridFromFloatingButton}
-                        >
-                            <span
-                                class="mobile-subgrid-floating-btn__icon"
-                                use:applyObsidianIcon={'chevron-down'}
-                            />
-                        </button>
-                    {/if}
-                    {#if $dayPlanEnabled &&
-                        $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection &&
-                        activeSection?.split('.')[0] !==
-                            dayPlanTodayNavigation.targetSection}
-                        <button
-                            class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
-                            type="button"
-                            aria-label={lang.day_plan_today_button_label}
-                            on:click={focusDayPlanTodayFromFloatingButton}
-                        >
-                            <span
-                                class="mobile-subgrid-floating-btn__icon"
-                                use:applyObsidianIcon={'calendar-days'}
-                            />
-                        </button>
-                    {/if}
-                </div>
-            {:else if Platform.isMobile &&
-                (($mode === '9x9' && $show9x9ParallelNavButtons) ||
-                    ($dayPlanEnabled &&
-                        $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection &&
-                        activeSection?.split('.')[0] !==
-                            dayPlanTodayNavigation.targetSection))}
-                <div class="mobile-subgrid-floating-controls">
-                    {#if $mode === '9x9' && $show9x9ParallelNavButtons}
-                        <button
-                            class="mobile-subgrid-floating-btn"
-                            type="button"
-                            aria-label="进入上一层核心九宫格"
-                            disabled={!canJumpPrevCore}
-                            on:click={jumpPrevCoreFromFloatingButton}
-                        >
-                            <span
-                                class="mobile-subgrid-floating-btn__icon"
-                                use:applyObsidianIcon={'chevron-left'}
-                            />
-                        </button>
-                        <button
-                            class="mobile-subgrid-floating-btn"
-                            type="button"
-                            aria-label="进入下一层核心九宫格"
-                            on:click={jumpNextCoreFromFloatingButton}
-                        >
-                            <span
-                                class="mobile-subgrid-floating-btn__icon"
-                                use:applyObsidianIcon={'chevron-right'}
-                            />
-                        </button>
-                    {/if}
-                    {#if $dayPlanEnabled &&
-                        $showDayPlanTodayButton &&
-                        dayPlanTodayNavigation.targetSection &&
-                        activeSection?.split('.')[0] !==
-                            dayPlanTodayNavigation.targetSection}
-                        <button
-                            class="mobile-subgrid-floating-btn mobile-day-plan-today-btn"
-                            type="button"
-                            aria-label={lang.day_plan_today_button_label}
-                            on:click={focusDayPlanTodayFromFloatingButton}
-                        >
-                            <span
-                                class="mobile-subgrid-floating-btn__icon"
-                                use:applyObsidianIcon={'calendar-days'}
-                            />
-                        </button>
-                    {/if}
-                </div>
+                            activeSection?.split('.')[0] !==
+                                dayPlanTodayNavigation.targetSection,
+                    )}
+                    {canExitSubgrid}
+                    {canEnterSubgrid}
+                    {canJumpPrevCore}
+                    onExitSubgrid={exitSubgridFromFloatingButton}
+                    onEnterSubgrid={enterSubgridFromFloatingButton}
+                    onJumpPrevCore={jumpPrevCoreFromFloatingButton}
+                    onJumpNextCore={jumpNextCoreFromFloatingButton}
+                    onFocusToday={focusDayPlanTodayFromFloatingButton}
+                />
             {/if}
         </div>
     {/if}
@@ -495,42 +405,6 @@
         /* 移动端不再有最小宽度限制，自适应填充 */
         padding: 12px;
         overflow-y: auto;
-    }
-
-    .mobile-subgrid-floating-controls {
-        position: absolute;
-        right: 12px;
-        top: 18px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 12;
-        pointer-events: auto;
-    }
-
-    .mobile-subgrid-floating-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 999px;
-        border: 1px solid var(--background-modifier-border);
-        background: var(--background-primary);
-        color: var(--text-normal);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: var(--shadow-s);
-    }
-
-    .mobile-subgrid-floating-btn:disabled {
-        opacity: 0.35;
-    }
-
-    .mobile-subgrid-floating-btn__icon {
-        width: 18px;
-        height: 18px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
     }
 
     /* 桌面端详情侧栏左侧不再额外留白，中间空白由主视图提供 */
