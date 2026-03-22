@@ -177,6 +177,21 @@ src/mandala-scenes/view-xxx/
 - 如果问题是“所有场景下这个格子本来就该这么画”，优先改 `src/mandala-cell/`
 - 如果问题是“点击后发生什么”，通常看 `src/mandala-cell/viewmodel/`，必要时由场景层传策略
 
+### 关于场景微调
+
+场景层允许做“选择和组装”，但不应该直接接管格子内部实现。
+
+推荐这样判断：
+
+- 如果是场景想启用某种格子能力，例如内容铺满、紧凑密度、滚动策略、meta 变体，应在 `assemble-cell-view-model.ts` 中传递语义化策略，再由 `src/mandala-cell/` 实现。
+- 如果是格子内部的具体视觉或编辑表现，例如 `.lng-prev`、`.editor-container`、`.cm-scroller`、`.view-content` 的尺寸、滚动和盒模型，不应继续写在 scene 的 `layout.svelte` 里，应回收到 `src/mandala-cell/`。
+- 场景层应该保留的微调，主要是格子外框和布局层面的调整，例如行列排列、gap、slot 容器、active slot 外观、场景按钮和占位单元。
+
+一句话：
+
+- `src/mandala-scenes/` 负责“这个场景想用哪种格子策略”
+- `src/mandala-cell/` 负责“这种策略最终长成什么样”
+
 ---
 
 ## 当前落地状态
