@@ -22,7 +22,7 @@
         SquareLayoutStore,
         WhiteThemeModeStore,
         WeekStartStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
     import {

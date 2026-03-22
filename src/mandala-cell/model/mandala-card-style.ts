@@ -1,4 +1,4 @@
-import type { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+import type { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
 import {
     getReadableTextTone,
     type TextTone,

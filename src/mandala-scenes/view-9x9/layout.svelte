@@ -16,7 +16,7 @@
         MandalaSectionColorOpacityStore,
         Show9x9ParallelNavButtonsStore,
         Show9x9TitleOnlyStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
     import type { ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
     import {

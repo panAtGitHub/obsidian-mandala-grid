@@ -1,5 +1,5 @@
 import { getTheme } from 'src/obsidian/helpers/get-theme';
-import { Theme } from 'src/stores/settings/settings-type';
+import { Theme } from 'src/mandala-settings/state/settings-type';
 
 type DefaultTheme = Pick<
     Theme,

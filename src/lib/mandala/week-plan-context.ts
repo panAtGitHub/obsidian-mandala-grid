@@ -5,7 +5,7 @@ import {
     sectionAtCellWeek7x9,
     type WeekPlanRow,
 } from 'src/lib/mandala/day-plan';
-import type { WeekStart } from 'src/stores/settings/settings-type';
+import type { WeekStart } from 'src/mandala-settings/state/settings-type';
 
 export type WeekPlanCellPosition = { row: number; col: number };
 export type WeekPlanBaseCell = {

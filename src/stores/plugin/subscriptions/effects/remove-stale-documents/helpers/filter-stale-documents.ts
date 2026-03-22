@@ -1,4 +1,4 @@
-import { Settings } from 'src/stores/settings/settings-type';
+import { Settings } from 'src/mandala-settings/state/settings-type';
 
 export const filterStaleDocuments = (
     settings: Pick<Settings, 'documents'>,

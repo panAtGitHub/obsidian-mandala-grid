@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+    import type { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
     import Content from 'src/mandala-cell/view/content/content.svelte';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
 

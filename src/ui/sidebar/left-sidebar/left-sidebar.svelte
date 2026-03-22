@@ -3,11 +3,11 @@
     import {
         LeftSidebarActiveTabStore,
         ShowLeftSidebarStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import TabHeader from './components/tab-header/tab-header.svelte';
     import { onMount, onDestroy } from 'svelte';
     import PinnedCards from 'src/ui/sidebar/left-sidebar/components/pinned-cards/pinned-cards-sidebar.svelte';
-    import { limitPreviewHeightStore } from 'src/stores/settings/derived/limit-preview-height-store';
+    import { limitPreviewHeightStore } from 'src/mandala-settings/state/derived/limit-preview-height-store';
     import { Platform } from 'obsidian';
 
     const MIN_WIDTH = 250;

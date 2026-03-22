@@ -8,16 +8,16 @@
     import Button from 'src/ui/shared/button.svelte';
     import {
         ScrollSettingsStore,
-    } from 'src/stores/settings/derived/scrolling-store';
+    } from 'src/mandala-settings/state/derived/scrolling-store';
     import {
         ApplyGapBetweenCardsStore,
         MandalaModeStore,
         ShowHiddenCardInfoStore,
         ShowMandalaDetailSidebarStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
-    import ViewOptionsMenu from './view-options-menu.svelte';
+    import ViewOptionsMenu from 'src/mandala-settings/ui/view-options/view-options-menu.svelte';
     import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
 
     const view = getView();

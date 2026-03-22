@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { getView } from 'src/mandala-scenes/shared/shell/context';
 import { get } from 'svelte/store';
-import { limitPreviewHeightStore } from 'src/stores/settings/derived/limit-preview-height-store';
+import { limitPreviewHeightStore } from 'src/mandala-settings/state/derived/limit-preview-height-store';
 
 const deletionKeys = new Set(['Backspace', 'Delete', 'x', ' ']);
 

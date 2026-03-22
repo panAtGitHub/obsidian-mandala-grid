@@ -3,7 +3,7 @@ import { filterStaleDocuments } from './filter-stale-documents';
 import {
     DocumentPreferences,
     Settings,
-} from 'src/stores/settings/settings-type';
+} from 'src/mandala-settings/state/settings-type';
 
 type PartialSettings = Pick<Settings, 'documents'>;
 const sample: DocumentPreferences = {

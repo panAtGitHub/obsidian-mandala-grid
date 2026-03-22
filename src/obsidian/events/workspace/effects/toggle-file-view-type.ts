@@ -28,7 +28,7 @@ import {
     openDayPlanSlotsSyncModeModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
 
-import { setViewType } from 'src/stores/settings/actions/set-view-type';
+import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 
 const refreshMandalaViewData = (
     plugin: MandalaGrid,

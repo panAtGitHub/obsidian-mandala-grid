@@ -2,7 +2,7 @@ import type {
     BuiltinMandalaGridOrientation,
     MandalaCustomLayout,
     MandalaGridOrientation,
-} from 'src/stores/settings/settings-type';
+} from 'src/mandala-settings/state/settings-type';
 import {
     BUILTIN_MANDALA_LAYOUT_PATTERNS,
     coreGridToPattern,

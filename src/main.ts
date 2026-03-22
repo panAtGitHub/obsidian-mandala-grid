@@ -3,21 +3,21 @@ import { type Extension } from '@codemirror/state';
 import { MANDALA_VIEW_TYPE, MandalaView } from './view/view';
 import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
 import { around } from 'monkey-around';
-import { settingsReducer } from 'src/stores/settings/settings-reducer';
+import { settingsReducer } from 'src/mandala-settings/state/settings-reducer';
 import { deepMerge } from 'src/helpers/deep-merge';
-import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
+import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import { Store } from 'src/lib/store/store';
 import {
     DocumentsPreferences,
     Settings,
-} from 'src/stores/settings/settings-type';
-import { Settings_0_5_4 } from 'src/stores/settings/migrations/old-settings-type';
+} from 'src/mandala-settings/state/settings-type';
+import { Settings_0_5_4 } from 'src/mandala-settings/state/migrations/old-settings-type';
 import { registerFileMenuEvent } from 'src/obsidian/events/workspace/register-file-menu-event';
 import {
     addCommands,
     getManagedCommandIds,
 } from 'src/obsidian/commands/add-commands';
-import { settingsSubscriptions } from 'src/stores/settings/subscriptions/settings-subscriptions';
+import { settingsSubscriptions } from 'src/mandala-settings/state/subscriptions/settings-subscriptions';
 import { PluginState } from 'src/stores/plugin/plugin-state-type';
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
 import { pluginReducer } from 'src/stores/plugin/plugin-reducer';
@@ -25,7 +25,7 @@ import { DefaultPluginState } from 'src/stores/plugin/default-plugin-state';
 import { StatusBar } from 'src/obsidian/status-bar/status-bar';
 import { onPluginError } from 'src/lib/store/on-plugin-error';
 import { customIcons, loadCustomIcons } from 'src/helpers/load-custom-icons';
-import { migrateSettings } from 'src/stores/settings/migrations/migrate-settings';
+import { migrateSettings } from 'src/mandala-settings/state/migrations/migrate-settings';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
@@ -48,7 +48,7 @@ import {
 import { statusBarWorker } from 'src/workers/worker-instances';
 import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
-import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import { lang } from 'src/lang/lang';
 import { MandalaGridSettingTab } from 'src/obsidian/settings/mandala-grid-setting-tab';
 

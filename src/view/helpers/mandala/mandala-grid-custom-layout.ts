@@ -3,7 +3,7 @@ import type {
     MandalaCustomLayout,
     MandalaGridOrientation,
     Settings,
-} from 'src/stores/settings/settings-type';
+} from 'src/mandala-settings/state/settings-type';
 
 export const DEFAULT_MANDALA_CUSTOM_PATTERN = '123405678';
 

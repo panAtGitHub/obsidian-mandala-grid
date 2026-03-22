@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+    import { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
 
     export let style: NodeStyle;
 </script>

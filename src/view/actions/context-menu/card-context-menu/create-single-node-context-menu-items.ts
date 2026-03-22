@@ -5,7 +5,7 @@ import { copyLinkToBlock } from 'src/view/actions/context-menu/card-context-menu
 import { copyLinkToHeading } from 'src/view/actions/context-menu/card-context-menu/helpers/copy-link-to-heading';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
 import { startMandalaSwap } from 'src/view/helpers/mandala/mandala-swap';
-import { resolveContextMenuCopyLinkVisibility } from 'src/stores/settings/helpers/context-menu-copy-link-visibility';
+import { resolveContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
 import {
     createPinToggleMenuItems,
     createSectionColorMenuItems,

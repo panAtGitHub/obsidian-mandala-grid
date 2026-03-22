@@ -1,5 +1,5 @@
 import { Modifier } from 'obsidian';
-import { CustomHotkeys } from 'src/stores/settings/settings-type';
+import { CustomHotkeys } from 'src/mandala-settings/state/settings-type';
 
 const modifiers = ['Alt', 'Shift'] as Modifier[];
 export const NavigateWhileEditing: CustomHotkeys = {

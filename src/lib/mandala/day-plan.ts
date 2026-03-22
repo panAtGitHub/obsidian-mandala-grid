@@ -2,7 +2,7 @@ import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     WeekStart,
-} from 'src/stores/settings/settings-type';
+} from 'src/mandala-settings/state/settings-type';
 
 export const DAY_PLAN_FRONTMATTER_KEY = 'mandala_plan';
 export const DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE = '## {date} {cn}';

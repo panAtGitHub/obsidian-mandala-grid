@@ -14,7 +14,7 @@
         MandalaModeStore,
         Nx9RowsPerPageStore,
         Show9x9TitleOnlyStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import Button from 'src/ui/shared/button.svelte';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';

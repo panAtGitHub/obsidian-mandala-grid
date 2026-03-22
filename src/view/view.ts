@@ -37,7 +37,7 @@ import { id } from 'src/helpers/id';
 import invariant from 'tiny-invariant';
 import { customIcons } from 'src/helpers/load-custom-icons';
 
-import { setViewType } from 'src/stores/settings/actions/set-view-type';
+import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { DocumentSearch } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import { AlignBranch } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
@@ -65,7 +65,7 @@ import { resolveRestoredSubgridTheme } from 'src/helpers/views/mandala/resolve-r
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
     MandalaMode,
-} from 'src/stores/settings/settings-type';
+} from 'src/mandala-settings/state/settings-type';
 import {
     layoutIdToOrientation,
     findMandalaCustomLayout,

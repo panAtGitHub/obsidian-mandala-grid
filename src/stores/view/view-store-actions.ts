@@ -8,10 +8,10 @@ import { ToggleFuzzySearchAction } from 'src/stores/view/reducers/search/toggle-
 import { NodeNavigationAction } from 'src/stores/view/reducers/ui/navigate-active-node';
 import { SetActivePinnedNodeAction } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
 import { ToggleShowAllNodesAction } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
-import { LeftSidebarTab } from 'src/stores/settings/settings-type';
+import { LeftSidebarTab } from 'src/mandala-settings/state/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
-import { MandalaMode } from 'src/stores/settings/settings-type';
+import { MandalaMode } from 'src/mandala-settings/state/settings-type';
 import type { Nx9ActiveCell } from 'src/view/helpers/mandala/nx9/context';
 
 export type MandalaActions =

@@ -10,7 +10,7 @@
         ShowMandalaDetailSidebarStore,
         WeekPlanCompactModeStore,
         WhiteThemeModeStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { assembleDesktopWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
     import RowMatrixGridDesktop from 'src/mandala-scenes/view-7x9/row-matrix-grid-desktop.svelte';
 

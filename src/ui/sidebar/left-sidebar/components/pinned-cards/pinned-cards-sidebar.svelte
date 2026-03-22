@@ -17,7 +17,7 @@
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
     import {
         getReadableTextTone,

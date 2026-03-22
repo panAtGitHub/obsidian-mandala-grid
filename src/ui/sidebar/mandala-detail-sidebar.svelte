@@ -9,7 +9,7 @@
         Show3x3SubgridNavButtonsStore,
         ShowDayPlanTodayButtonStore,
         Show9x9ParallelNavButtonsStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import { onDestroy, tick } from 'svelte';
     import Content from 'src/mandala-cell/view/content/content.svelte';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';

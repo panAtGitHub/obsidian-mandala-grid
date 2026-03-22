@@ -15,7 +15,7 @@ import { waitForActiveNodeToStopMoving } from 'src/lib/align-element/helpers/wai
 import { createContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { actionPriority } from 'src/stores/view/subscriptions/effects/align-branch/constants/action-priority';
 import { logger } from 'src/helpers/logger';
-import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 
 export type PluginAction =
     | DocumentStoreAction

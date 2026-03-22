@@ -3,7 +3,7 @@
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
     import { contentStore } from 'src/stores/cell/document-derived-stores';
-    import { ShowHiddenCardInfoStore } from 'src/stores/settings/derived/view-settings-store';
+    import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';

@@ -1,6 +1,6 @@
 import { derived, readable } from 'svelte/store';
 import { MandalaView } from 'src/view/view';
-import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import {
     getCurrentFileSectionColorMap,
 } from 'src/lib/mandala/current-file-mandala-settings';

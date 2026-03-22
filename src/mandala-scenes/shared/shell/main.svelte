@@ -8,7 +8,7 @@
     import MandalaViewComponent from 'src/mandala-scenes/shared/mandala-view.svelte';
     import CellPreviewDialog from 'src/ui/modals/cell-preview-dialog.svelte';
     import HotkeysModal from 'src/ui/modals/hotkeys/hotkeys.svelte';
-    import SettingsModal from 'src/ui/settings/settings-modal/settings.svelte';
+    import SettingsModal from 'src/mandala-settings/ui/settings-panel/settings-modal/settings.svelte';
     import { MandalaView } from 'src/view/view';
     import { localFontStore } from 'src/stores/local-font-store';
     import {
@@ -23,7 +23,7 @@
         MandalaFontSizeSidebarMobileStore,
         ShowLeftSidebarStore,
         WhiteThemeModeStore,
-    } from 'src/stores/settings/derived/view-settings-store';
+    } from 'src/mandala-settings/state/derived/view-settings-store';
     import LeftSidebar from 'src/ui/sidebar/left-sidebar/left-sidebar.svelte';
     import { Platform } from 'obsidian';
 

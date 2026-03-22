@@ -1,4 +1,4 @@
-import { CustomHotkeys } from 'src/stores/settings/settings-type';
+import { CustomHotkeys } from 'src/mandala-settings/state/settings-type';
 
 export const AltPrimaryModifier: CustomHotkeys = {
     /*

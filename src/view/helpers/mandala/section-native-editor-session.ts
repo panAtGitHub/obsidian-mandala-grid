@@ -1,6 +1,6 @@
 import { MarkdownView, Notice, TFile, ViewState } from 'obsidian';
 import { logger } from 'src/helpers/logger';
-import { setViewType } from 'src/stores/settings/actions/set-view-type';
+import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
 import {
     applySectionPatch,

@@ -1,5 +1,5 @@
 import { ViewState } from 'src/stores/view/view-state-type';
-import { MandalaMode } from 'src/stores/settings/settings-type';
+import { MandalaMode } from 'src/mandala-settings/state/settings-type';
 
 export const defaultViewState = (
     mandalaMode: MandalaMode = '3x3',

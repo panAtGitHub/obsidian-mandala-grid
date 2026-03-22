@@ -5,7 +5,7 @@ import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
 import { MANDALA_VIEW_TYPE } from 'src/view/view';
-import { setViewType } from 'src/stores/settings/actions/set-view-type';
+import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import {
     analyzeMandalaContent,
     convertToMandalaMarkdown,

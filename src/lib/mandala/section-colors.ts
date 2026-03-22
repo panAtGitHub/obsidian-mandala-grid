@@ -1,4 +1,4 @@
-import { MandalaSectionColorAssignments } from 'src/stores/settings/settings-type';
+import { MandalaSectionColorAssignments } from 'src/mandala-settings/state/settings-type';
 import type { Sections } from 'src/stores/document/document-state-type';
 import {
     compareSectionIds,

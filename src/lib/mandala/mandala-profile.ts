@@ -4,7 +4,7 @@ import {
     parseDayPlanFrontmatterWithMandala,
     sectionFromDateInPlanYear,
 } from 'src/lib/mandala/day-plan';
-import type { WeekStart } from 'src/stores/settings/settings-type';
+import type { WeekStart } from 'src/mandala-settings/state/settings-type';
 
 export type MandalaProfileKind = 'none' | 'generic' | 'day-plan';
 

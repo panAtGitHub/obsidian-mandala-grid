@@ -3,7 +3,7 @@ import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-mode
 import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
-import type { MandalaCustomLayout } from 'src/stores/settings/settings-type';
+import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/view/helpers/mandala/mandala-grid';
 
 type ThreeByThreeEditingState = {

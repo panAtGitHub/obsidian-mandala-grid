@@ -9,7 +9,7 @@ import {
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
 } from 'src/view/helpers/mandala/mandala-grid-custom-layout';
-import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
+import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 
 describe('mandala-grid-custom-layout', () => {
     test('converts pattern to grid and back', () => {

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { Store } from 'src/lib/store/store';
-import { DEFAULT_SETTINGS } from 'src/stores/settings/default-settings';
-import { settingsReducer } from 'src/stores/settings/settings-reducer';
+import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
+import { settingsReducer } from 'src/mandala-settings/state/settings-reducer';
 import {
     DocumentPreferences,
     Settings,
-} from 'src/stores/settings/settings-type';
-import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+} from 'src/mandala-settings/state/settings-type';
+import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import { CurrentFileSectionColorMapStore } from 'src/stores/cell/section-colors-store';
 import { MandalaView } from 'src/view/view';
 import { parseSectionColorsFromPersistedState } from 'src/lib/mandala/section-colors';

@@ -2,7 +2,7 @@
     import { NodeId } from 'src/stores/document/document-state-type';
     import { loadInlineEditor } from 'src/view/actions/inline-editor/load-inline-editor';
     import { expandableTextareaAction } from 'src/view/actions/inline-editor/expandable-textarea-action';
-    import { NodeStyle } from 'src/stores/settings/types/style-rules-types';
+    import { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
 
     export let nodeId: NodeId;
     export let style: NodeStyle | undefined;

@@ -1,6 +1,6 @@
 import MandalaGrid from 'src/main';
 import { ViewState, WorkspaceLeaf } from 'obsidian';
-import { ViewType } from 'src/stores/settings/settings-type';
+import { ViewType } from 'src/mandala-settings/state/settings-type';
 
 export const toggleObsidianViewType = (
     plugin: MandalaGrid,

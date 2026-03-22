@@ -1,4 +1,4 @@
-import { Theme } from 'src/stores/settings/settings-type';
+import { Theme } from 'src/mandala-settings/state/settings-type';
 
 export const cssVariables = {
     colors: {

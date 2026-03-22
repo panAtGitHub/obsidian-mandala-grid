@@ -6,7 +6,7 @@
     import { buildMandalaCardRenderModel } from 'src/mandala-cell/model/build-mandala-card-render-model';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { Platform } from 'obsidian';
-    import { ShowMandalaDetailSidebarStore } from 'src/stores/settings/derived/view-settings-store';
+    import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { derived } from 'src/lib/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
     import { type ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';

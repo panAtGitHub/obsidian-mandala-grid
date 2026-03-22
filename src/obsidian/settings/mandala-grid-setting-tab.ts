@@ -5,7 +5,7 @@ import {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     WeekStart,
-} from 'src/stores/settings/settings-type';
+} from 'src/mandala-settings/state/settings-type';
 
 export class MandalaGridSettingTab extends PluginSettingTab {
     plugin: MandalaGrid;

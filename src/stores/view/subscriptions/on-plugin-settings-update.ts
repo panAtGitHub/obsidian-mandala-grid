@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { Settings } from 'src/stores/settings/settings-type';
+import { Settings } from 'src/mandala-settings/state/settings-type';
 import { applyFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-font-size';
 import { applyCssColor } from 'src/stores/view/subscriptions/effects/css-variables/apply-css-color';
 import { applyCardWidth } from 'src/stores/view/subscriptions/effects/css-variables/apply-card-width';
@@ -9,7 +9,7 @@ import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-cont
 import { applyInactiveNodeOpacity } from 'src/stores/view/subscriptions/effects/css-variables/apply-inactive-node-opacity';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { applyHeadingsFontSize } from 'src/stores/view/subscriptions/effects/css-variables/apply-headings-font-size';
-import { SettingsActions } from 'src/stores/settings/settings-store-actions';
+import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 
 export const onPluginSettingsUpdate = (
     view: MandalaView,

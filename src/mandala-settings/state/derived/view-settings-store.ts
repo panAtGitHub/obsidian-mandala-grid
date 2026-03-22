@@ -1,0 +1,221 @@
+import { MandalaView } from 'src/view/view';
+import { derived } from 'src/lib/store/derived';
+import MandalaGrid from 'src/main';
+import { Platform } from 'obsidian';
+import { resolveContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
+import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/mandala-settings/state/settings-type';
+
+export const ViewSettingsStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view);
+
+export const MandalaFontSize3x3DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize3x3Desktop,
+    );
+
+export const MandalaFontSize3x3MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize3x3Mobile,
+    );
+
+export const MandalaFontSize9x9DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize9x9Desktop,
+    );
+
+export const MandalaFontSize9x9MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize9x9Mobile,
+    );
+
+export const MandalaFontSize7x9DesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize7x9Desktop,
+    );
+
+export const MandalaFontSize7x9MobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSize7x9Mobile,
+    );
+
+export const MandalaFontSizeSidebarDesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSizeSidebarDesktop,
+    );
+
+export const MandalaFontSizeSidebarMobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaFontSizeSidebarMobile,
+    );
+
+export const MandalaCellPreviewFontSizeDesktopStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaCellPreviewFontSizeDesktop,
+    );
+
+export const MandalaCellPreviewFontSizeMobileStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaCellPreviewFontSizeMobile,
+    );
+
+export const ShowLeftSidebarStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.showLeftSidebar);
+
+export const LeftSidebarWidthStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.leftSidebarWidth);
+
+export const LeftSidebarActiveTabStore = (view: MandalaView) =>
+    derived(view.plugin.settings, () => 'pinned-cards');
+
+export const ApplyGapBetweenCardsStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.applyGapBetweenCards);
+
+export const MandalaModeStore = (view: MandalaView) =>
+    derived(view.viewStore, (state) => state.ui.mandala.mode);
+
+export const Nx9RowsPerPageStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => {
+        const path = view.getCurrentFilePath();
+        const value = path
+            ? state.documents[path]?.mandalaView?.nx9RowsPerPage
+            : null;
+        return Number.isInteger(value) && (value ?? 0) >= 1
+            ? value
+            : DEFAULT_NX9_ROWS_PER_PAGE;
+    });
+
+export const MandalaGridOrientationStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.mandalaGridOrientation);
+
+export const MandalaGridSelectedLayoutIdStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        view.getCurrentMandalaLayoutId(state),
+    );
+
+export const MandalaGridCustomLayoutsStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridCustomLayouts,
+    );
+
+export const MandalaA4ModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.mandalaA4Mode);
+
+export const MandalaA4OrientationStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.mandalaA4Orientation);
+
+export const MandalaBackgroundModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.mandalaBackgroundMode);
+
+export const ShowHiddenCardInfoStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.showHiddenCardInfo);
+
+export const DetailSidebarPreviewModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.detailSidebarPreviewModeMobile ?? 'rendered'
+            : state.view.detailSidebarPreviewModeDesktop ?? 'rendered',
+    );
+
+export const Show3x3SubgridNavButtonsStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.show3x3SubgridNavButtonsMobile ?? true
+            : state.view.show3x3SubgridNavButtonsDesktop ?? true,
+    );
+
+export const Show9x9ParallelNavButtonsStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.show9x9ParallelNavButtonsMobile ?? true
+            : state.view.show9x9ParallelNavButtonsDesktop ?? true,
+    );
+
+export const ShowDayPlanTodayButtonStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.showDayPlanTodayButtonMobile ?? true
+            : state.view.showDayPlanTodayButtonDesktop ?? true,
+    );
+
+export const ShowCellQuickPreviewDialogStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        Platform.isMobile
+            ? state.view.showCellQuickPreviewDialogMobile ?? false
+            : state.view.showCellQuickPreviewDialogDesktop ?? true,
+    );
+
+export const DayPlanEnabledStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.dayPlanEnabled);
+
+export const WeekPlanEnabledStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekPlanEnabled);
+
+export const WeekPlanCompactModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekPlanCompactMode);
+
+export const WeekStartStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.general.weekStart);
+
+export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) =>
+        resolveContextMenuCopyLinkVisibility(state.view),
+    );
+
+export const ShowMandalaDetailSidebarStore = (view: MandalaView) =>
+    derived(view.viewStore, (state) => state.ui.mandala.showDetailSidebar);
+
+export const MandalaDetailSidebarWidthStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaDetailSidebarWidth,
+    );
+
+export const Show9x9TitleOnlyStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.show9x9TitleOnly);
+
+export const SquareLayoutStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.squareLayout);
+
+export const WhiteThemeModeStore = (view: MandalaView) =>
+    derived(view.plugin.settings, (state) => state.view.whiteThemeMode);
+
+export const MandalaBorderOpacityStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridBorderOpacity,
+    );
+
+export const MandalaSectionColorOpacityStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaSectionColorOpacity,
+    );
+
+export const MandalaGridHighlightColorStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridHighlightColor,
+    );
+
+export const MandalaGridHighlightWidthStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaGridHighlightWidth,
+    );
+
+export const HiddenVerticalToolbarButtons = (plugin: MandalaGrid) =>
+    derived(
+        plugin.settings,
+        (state) => state.view.hiddenVerticalToolbarButtons,
+    );

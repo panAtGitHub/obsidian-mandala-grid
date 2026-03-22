@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { MandalaViewDocumentPreferences } from 'src/stores/settings/settings-type';
+import { MandalaViewDocumentPreferences } from 'src/mandala-settings/state/settings-type';
 import {
     parsePinnedSectionsFromPersistedState,
     parseSectionColorsFromPersistedState,
