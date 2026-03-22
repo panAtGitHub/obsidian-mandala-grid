@@ -3,7 +3,7 @@ import {
     NodeId,
 } from 'src/mandala-document/state/document-state-type';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
-import { id } from 'src/helpers/id';
+import { id } from 'src/shared/helpers/id';
 import { VerticalDirection } from 'src/mandala-document/state/document-store-actions';
 import { findGroupByParentId } from 'src/mandala-document/tree-utils/find/find-group-by-node-id';
 

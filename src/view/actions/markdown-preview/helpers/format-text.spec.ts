@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { formatText } from 'src/view/actions/markdown-preview/helpers/format-text';
-import { generateLoremIpsumWithMarkdown } from 'src/helpers/test-helpers/generate-lorem-ipsum-with.markdown';
+import { generateLoremIpsumWithMarkdown } from 'src/shared/test-helpers/generate-lorem-ipsum-with.markdown';
 
 describe('format-text', () => {
     test('case 1: empty line', () => {

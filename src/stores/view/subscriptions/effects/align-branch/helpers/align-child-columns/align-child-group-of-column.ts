@@ -1,5 +1,5 @@
-import { getElementById } from 'src/lib/align-element/helpers/get-element-by-id';
-import { alignGroupOfElementsVertically } from 'src/lib/align-element/align-group-of-elements-vertically';
+import { getElementById } from 'src/shared/lib/align-element/helpers/get-element-by-id';
+import { alignGroupOfElementsVertically } from 'src/shared/lib/align-element/align-group-of-elements-vertically';
 import { AlignBranchContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { Column } from 'src/mandala-document/state/document-state-type';
 

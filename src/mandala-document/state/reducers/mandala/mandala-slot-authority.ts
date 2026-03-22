@@ -1,5 +1,5 @@
-import { __dev__, logger } from 'src/helpers/logger';
-import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
+import { __dev__, logger } from 'src/shared/helpers/logger';
+import { isNonEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import { getAllChildren } from 'src/mandala-document/tree-utils/get/get-all-children';
 import {
     DocumentState,

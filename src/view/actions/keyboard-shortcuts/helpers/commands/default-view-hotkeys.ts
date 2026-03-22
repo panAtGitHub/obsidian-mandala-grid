@@ -6,7 +6,7 @@ import { CommandName, GroupName } from 'src/lang/hotkey-groups';
 import {
     enterSubgridForNode,
     exitCurrentSubgrid,
-} from 'src/helpers/views/mandala/mobile-navigation';
+} from 'src/mandala-interaction/helpers/mobile-navigation';
 import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';

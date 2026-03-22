@@ -2,7 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { eventToString } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/event-to-string';
 import { viewHotkeys } from 'src/view/actions/keyboard-shortcuts/helpers/commands/update-view-hotkeys-dictionary';
 import { handleEscapeKey } from 'src/view/actions/on-escape/helpers/handle-escape-key';
-import { onPluginError } from 'src/lib/store/on-plugin-error';
+import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { isEditing } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/is-editing';
 import { KeymapEventHandler } from 'obsidian';
 

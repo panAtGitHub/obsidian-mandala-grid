@@ -1,7 +1,7 @@
 import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import { findNodeColumnAndParent } from 'src/mandala-document/tree-utils/find/find-node-column-and-parent';
 import { findGroupByNodeId } from 'src/mandala-document/tree-utils/find/find-group-by-node-id';
-import { SilentError } from 'src/lib/errors/errors';
+import { SilentError } from 'src/shared/lib/errors/errors';
 
 export const insertNodeAfterParent = (
     document: Pick<MandalaGridDocument, 'columns'>,

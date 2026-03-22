@@ -22,7 +22,7 @@ import {
     getMandalaEmbedOrientation,
     resolveMandalaEmbedTarget,
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 import {
     type MandalaEmbedTarget,
     type MandalaEmbedManagedPayload,

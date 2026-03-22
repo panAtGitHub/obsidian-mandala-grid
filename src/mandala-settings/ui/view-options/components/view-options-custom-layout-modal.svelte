@@ -1,7 +1,7 @@
 <script lang="ts">
     import { X } from 'lucide-svelte';
     import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
-    import Portal from 'src/ui/shared/portal.svelte';
+    import Portal from 'src/shared/ui/portal.svelte';
     import {
         gridToPattern,
         patternToGrid,

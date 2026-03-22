@@ -1,8 +1,8 @@
 import { MandalaView } from 'src/view/view';
 import {
     compareSectionIds,
-} from 'src/lib/mandala/section-colors';
-import { getCurrentFilePinnedSections } from 'src/lib/mandala/current-file-mandala-settings';
+} from 'src/mandala-display/logic/section-colors';
+import { getCurrentFilePinnedSections } from 'src/mandala-display/logic/current-file-mandala-settings';
 
 const sameSections = (a: string[], b: string[]) =>
     a.length === b.length && a.every((value, index) => value === b[index]);

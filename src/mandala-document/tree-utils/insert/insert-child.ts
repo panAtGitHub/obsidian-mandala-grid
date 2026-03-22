@@ -1,6 +1,6 @@
 import { findNodeColumn } from '../find/find-node-column';
 import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
-import { id } from 'src/helpers/id';
+import { id } from 'src/shared/helpers/id';
 import { sortGroups } from 'src/mandala-document/tree-utils/sort/sort-groups';
 
 export const insertChild = (

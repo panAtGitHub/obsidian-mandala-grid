@@ -1,6 +1,6 @@
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-import { tryMandala3x3Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-3x3-navigation';
-import { tryMandala9x9Navigation } from 'src/view/actions/keyboard-shortcuts/helpers/mandala/try-mandala-9x9-navigation';
+import { tryMandala3x3Navigation } from 'src/mandala-interaction/keyboard/try-mandala-3x3-navigation';
+import { tryMandala9x9Navigation } from 'src/mandala-interaction/keyboard/try-mandala-9x9-navigation';
 
 export const selectionCommands = () => {
     const commands: DefaultViewCommand[] = [];

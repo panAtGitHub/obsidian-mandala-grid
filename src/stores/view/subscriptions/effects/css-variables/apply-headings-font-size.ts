@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { DEFAULT_H1_FONT_SIZE_EM } from 'src/mandala-settings/state/default-settings';
-import { roundUp } from 'src/helpers/round-up';
+import { roundUp } from 'src/shared/helpers/round-up';
 
 const variables = [
     '--h2-size',

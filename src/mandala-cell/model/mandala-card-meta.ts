@@ -2,7 +2,7 @@ import {
     getReadableTextTone,
     type TextTone,
     type ThemeTone,
-} from 'src/helpers/views/mandala/contrast-text-tone';
+} from 'src/mandala-interaction/helpers/contrast-text-tone';
 import type { CellSectionIndicatorVariant } from 'src/mandala-cell/model/card-types';
 
 export type SectionIndicatorVariant = CellSectionIndicatorVariant;

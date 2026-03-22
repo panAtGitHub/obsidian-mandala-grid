@@ -2,12 +2,12 @@ import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-
 import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
 import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
-import { resolveCustomSectionColor } from 'src/lib/mandala/section-colors';
+import { resolveCustomSectionColor } from 'src/mandala-display/logic/section-colors';
 import {
     buildWeekPlanBaseCells,
     type WeekPlanBaseCell,
-} from 'src/lib/mandala/week-plan-context';
-import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
+} from 'src/mandala-display/logic/week-plan-context';
+import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
 
 type EditingState = {
     activeNodeId: string | null;

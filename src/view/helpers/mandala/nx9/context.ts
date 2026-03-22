@@ -1,4 +1,4 @@
-import { collectTrailingEmptyCoreSections } from 'src/lib/mandala/clear-empty-subgrids';
+import { collectTrailingEmptyCoreSections } from 'src/mandala-display/logic/clear-empty-subgrids';
 import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
 import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/mandala-settings/state/settings-type';
 import type { Content } from 'src/mandala-document/state/document-state-type';

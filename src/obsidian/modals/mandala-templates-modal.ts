@@ -11,7 +11,7 @@ import { createNewFile } from 'src/obsidian/events/workspace/effects/create-new-
 import {
     MandalaTemplate,
     formatTemplatePreview,
-} from 'src/lib/mandala/mandala-templates';
+} from 'src/mandala-display/logic/mandala-templates';
 
 export const openMandalaTemplateNameModal = (plugin: MandalaGrid) =>
     new Promise<string | null>((resolve) => {

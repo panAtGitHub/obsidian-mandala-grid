@@ -7,7 +7,7 @@
     import SimpleSummaryCell from 'src/mandala-cell/view/components/simple-summary-cell.svelte';
     import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
     import { onMount } from 'svelte';
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import {
@@ -17,8 +17,8 @@
         Show9x9ParallelNavButtonsStore,
         Show9x9TitleOnlyStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
-    import type { ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
+    import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
+    import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
     import {
         build9x9CellViewModels,
         decorate9x9CellViewModels,

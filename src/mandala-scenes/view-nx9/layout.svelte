@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
@@ -7,8 +7,8 @@
         ShowMandalaDetailSidebarStore,
         WhiteThemeModeStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
+    import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';

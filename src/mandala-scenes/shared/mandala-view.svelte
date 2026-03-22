@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import { onDestroy, onMount } from 'svelte';
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import {
         DayPlanEnabledStore,
         MandalaA4ModeStore,
@@ -29,7 +29,7 @@
         posOfSection9x9,
         sectionAtCell9x9,
     } from 'src/view/helpers/mandala/mandala-grid';
-    import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
+    import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
     import NineByNineLayout from 'src/mandala-scenes/view-9x9/layout.svelte';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
@@ -40,15 +40,15 @@
     import MobileFullScreenSearch from 'src/ui/modals/mobile-fullscreen-search.svelte';
     import MobileNativeEditorSheet from 'src/ui/modals/mobile-native-editor-sheet.svelte';
     import { mobilePopupFontSizeStore } from 'src/stores/ui/mobile-popup-font-store';
-    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
+    import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
     import {
         enterSubgridForNode,
         exitCurrentSubgrid,
-    } from 'src/helpers/views/mandala/mobile-navigation';
-    import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
-    import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
+    } from 'src/mandala-interaction/helpers/mobile-navigation';
+    import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
+    import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
     import { lang } from 'src/lang/lang';
     import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
     import { assemble3x3CellViewModels } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
@@ -59,8 +59,8 @@
         resolveNx9Context,
     } from 'src/view/helpers/mandala/nx9/context';
     import { setActiveCellNx9 } from 'src/view/helpers/mandala/nx9/set-active-cell';
-    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
-    import { resolveWeekPlanContext } from 'src/lib/mandala/week-plan-context';
+    import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
+    import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 
     const view = getView();
     const layout = createLayoutStore();

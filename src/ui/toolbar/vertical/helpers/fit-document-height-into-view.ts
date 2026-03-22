@@ -1,7 +1,7 @@
 import invariant from 'tiny-invariant';
 import { get } from 'svelte/store';
 import { zoomLevelStore } from 'src/stores/view/derived/zoom-level-store';
-import { getCombinedBoundingClientRect } from 'src/lib/align-element/helpers/get-combined-client-rect';
+import { getCombinedBoundingClientRect } from 'src/shared/lib/align-element/helpers/get-combined-client-rect';
 import { MandalaView } from 'src/view/view';
 
 export const fitDocumentHeightIntoView = (view: MandalaView) => {

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Button from 'src/ui/shared/button.svelte';
+    import Button from 'src/shared/ui/button.svelte';
     import { PanelLeftDashed } from 'lucide-svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { ShowLeftSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';

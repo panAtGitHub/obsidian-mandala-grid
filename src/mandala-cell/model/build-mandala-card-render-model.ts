@@ -5,8 +5,8 @@ import { buildMandalaCardStyle } from 'src/mandala-cell/model/mandala-card-style
 import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
 import type { CellStyle } from 'src/mandala-cell/model/card-types';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
-import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
-import type { ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
+import { isPreviewDialogEditingNode } from 'src/mandala-interaction/helpers/is-preview-dialog-editing-node';
+import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
 
 type BuildMandalaCardRenderModelOptions = {
     nodeId: string;

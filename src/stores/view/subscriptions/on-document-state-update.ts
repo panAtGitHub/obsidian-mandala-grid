@@ -13,8 +13,8 @@ import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helper
 import {
     serializeSectionColorMapForSettings,
     swapSectionSubtreeColors,
-} from 'src/lib/mandala/section-colors';
-import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
+} from 'src/mandala-display/logic/section-colors';
+import { getCurrentFileSectionColorMap } from 'src/mandala-display/logic/current-file-mandala-settings';
 
 type SaveOptions = {
     mode: 'content-only' | 'structural';

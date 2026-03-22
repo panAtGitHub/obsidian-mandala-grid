@@ -1,4 +1,4 @@
-import { sanitizeFileName } from 'src/helpers/sanitize-file-name';
+import { sanitizeFileName } from 'src/shared/helpers/sanitize-file-name';
 
 export const getUniqueFileName = (
     folderPath: string,

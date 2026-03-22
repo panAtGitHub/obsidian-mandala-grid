@@ -6,8 +6,8 @@ import {
     enterSubgridForNode,
     exitCurrentSubgrid,
     isGridCenter,
-} from 'src/helpers/views/mandala/mobile-navigation';
-import { enableSidebarEditorForNode } from 'src/helpers/views/mandala/node-editing';
+} from 'src/mandala-interaction/helpers/mobile-navigation';
+import { enableSidebarEditorForNode } from 'src/mandala-interaction/helpers/node-editing';
 import type { MandalaView } from 'src/view/view';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 

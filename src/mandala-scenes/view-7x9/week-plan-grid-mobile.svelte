@@ -1,14 +1,14 @@
 <script lang="ts">
-    import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
-    import { derived } from 'src/lib/store/derived';
+    import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
+    import { derived } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import type { WeekPlanBaseCell } from 'src/lib/mandala/week-plan-context';
+    import type { WeekPlanBaseCell } from 'src/mandala-display/logic/week-plan-context';
     import { assembleMobileWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
-    import { setActiveCellWeek7x9 } from 'src/helpers/views/mandala/set-active-cell-week-7x9';
+    import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,
         setActiveMandalaNode,
-    } from 'src/helpers/views/mandala/node-editing';
+    } from 'src/mandala-interaction/helpers/node-editing';
 
     export let rows: WeekPlanRow[] = [];
 

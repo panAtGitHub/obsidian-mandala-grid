@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { delay } from 'src/helpers/delay';
+import { delay } from 'src/shared/helpers/delay';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 
 export const selectCard = async (view: MandalaView, id: string) => {

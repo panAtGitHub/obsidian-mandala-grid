@@ -9,12 +9,12 @@ import {
     analyzeMandalaContent,
     convertToMandalaMarkdown,
     MandalaConversionMode,
-} from 'src/lib/mandala/mandala-conversion';
+} from 'src/mandala-display/logic/mandala-conversion';
 import {
     createDayPlanTitleSyncBatches,
     syncDayPlanTitlesBySections,
     syncDayPlanTitlesInMarkdown,
-} from 'src/lib/mandala/sync-day-plan-titles';
+} from 'src/mandala-display/logic/sync-day-plan-titles';
 import { refreshDayPlanDateHeadingsInMarkdown } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import {
     buildCenterDateHeading,
@@ -22,7 +22,7 @@ import {
     dayOfYearFromDate,
     getDayPlanDateHeadingSettings,
     parseDayPlanFromMarkdown,
-} from 'src/lib/mandala/day-plan';
+} from 'src/mandala-display/logic/day-plan';
 import {
     DayPlanSlotsSyncMode,
     openDayPlanSlotsSyncModeModal,

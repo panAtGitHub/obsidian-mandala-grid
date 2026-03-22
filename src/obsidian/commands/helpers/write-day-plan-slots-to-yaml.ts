@@ -4,7 +4,7 @@ import {
     DAY_PLAN_FRONTMATTER_KEY,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
-} from 'src/lib/mandala/day-plan';
+} from 'src/mandala-display/logic/day-plan';
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
 
 const getFirstNonEmptyLine = (content: string) =>

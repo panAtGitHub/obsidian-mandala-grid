@@ -1,4 +1,4 @@
-import { id } from 'src/helpers/id';
+import { id } from 'src/shared/helpers/id';
 import { Column, Content } from 'src/mandala-document/state/document-state-type';
 
 export const insertFirstNode = (columns: Column[], content: Content) => {

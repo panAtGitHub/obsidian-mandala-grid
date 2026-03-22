@@ -7,9 +7,9 @@
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { Platform } from 'obsidian';
     import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
-    import { type ThemeTone } from 'src/helpers/views/mandala/contrast-text-tone';
+    import { type ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
     import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
     import {

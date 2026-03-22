@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { delay } from 'src/helpers/delay';
+import { delay } from 'src/shared/helpers/delay';
 import { delayAlign } from 'src/stores/view/subscriptions/effects/align-branch/helpers/delay-align';
 import { ActiveBranch } from 'src/stores/view/default-view-state';
 import { createAlignBranchActions } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/create-align-branch-actions';
@@ -11,10 +11,10 @@ import {
     ViewStoreAction,
 } from 'src/stores/view/view-store-actions';
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
-import { waitForActiveNodeToStopMoving } from 'src/lib/align-element/helpers/wait-for-active-node-to-stop-moving';
+import { waitForActiveNodeToStopMoving } from 'src/shared/lib/align-element/helpers/wait-for-active-node-to-stop-moving';
 import { createContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { actionPriority } from 'src/stores/view/subscriptions/effects/align-branch/constants/action-priority';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 
 export type PluginAction =

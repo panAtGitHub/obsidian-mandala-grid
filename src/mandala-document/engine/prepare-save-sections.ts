@@ -1,5 +1,5 @@
-import { collectTrailingEmptyCoreSections } from 'src/lib/mandala/clear-empty-subgrids';
-import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
+import { collectTrailingEmptyCoreSections } from 'src/mandala-display/logic/clear-empty-subgrids';
+import { isEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import { MandalaSectionId } from 'src/mandala-document/engine/types';
 import {
     MandalaGridDocument,

@@ -10,7 +10,7 @@ import {
     analyzeMandalaContent,
     convertToMandalaMarkdown,
     MandalaConversionMode,
-} from 'src/lib/mandala/mandala-conversion';
+} from 'src/mandala-display/logic/mandala-conversion';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import {
     allSlotsFilled,
@@ -25,21 +25,21 @@ import {
     parseDayPlanFrontmatter,
     slotsRecordToArray,
     upsertSlotHeading,
-} from 'src/lib/mandala/day-plan';
+} from 'src/mandala-display/logic/day-plan';
 import {
     ensureSectionChildren,
     getSectionContent,
     replaceSectionContent,
-} from 'src/lib/mandala/day-plan-sections';
+} from 'src/mandala-display/logic/day-plan-sections';
 import { openMandalaTemplateSelectModal } from 'src/obsidian/modals/mandala-templates-modal';
-import { parseMandalaTemplates } from 'src/lib/mandala/mandala-templates';
+import { parseMandalaTemplates } from 'src/mandala-display/logic/mandala-templates';
 import {
     openDayPlanConfirmModal,
     openDayPlanDailyOnlyModal,
     openDayPlanSlotsInputModal,
     openDayPlanYearInputModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 
 const MANDALA_KEY = 'mandala';
 let isSettingUpDayPlan = false;

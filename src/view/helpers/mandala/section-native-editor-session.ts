@@ -1,11 +1,11 @@
 import { MarkdownView, Notice, TFile, ViewState } from 'obsidian';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
 import {
     applySectionPatch,
     getSectionContentBySection,
-} from 'src/lib/mandala/apply-section-patch';
+} from 'src/mandala-display/logic/apply-section-patch';
 import { cleanupSectionSessionFolder } from 'src/view/helpers/mandala/cleanup-section-session-folder';
 import { deleteSectionSessionTempFile } from 'src/view/helpers/mandala/delete-section-session-temp-file';
 

@@ -1,5 +1,5 @@
 import { Notice } from 'obsidian';
-import { isEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
+import { isEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,

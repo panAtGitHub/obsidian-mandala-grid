@@ -2,12 +2,12 @@
     import { Platform } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
-    import { contentStore } from 'src/stores/cell/document-derived-stores';
+    import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
     import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
     import { hideIdleScrollbar } from 'src/view/actions/hide-idle-scrollbar';
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
-    import { createMobileDoubleTapDetector } from 'src/helpers/views/mandala/mobile-double-tap';
+    import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
     import { enableEditModeInMainSplit } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-main-split';
     import { enableEditModeInSidebar } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-sidebar';
     import { setActiveMainSplitNode } from 'src/mandala-cell/viewmodel/actions/set-active-main-split-node';

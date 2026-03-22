@@ -1,4 +1,4 @@
-import { relativeTime } from 'src/helpers/relative-time';
+import { relativeTime } from 'src/shared/helpers/relative-time';
 
 export const updateRelativeTime = (element: HTMLElement) => {
     const interval = setInterval(() => {

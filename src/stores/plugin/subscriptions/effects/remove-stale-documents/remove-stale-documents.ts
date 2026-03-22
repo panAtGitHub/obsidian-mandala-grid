@@ -1,5 +1,5 @@
 import MandalaGrid from 'src/main';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 import { filterStaleDocuments } from 'src/stores/plugin/subscriptions/effects/remove-stale-documents/helpers/filter-stale-documents';
 import { getAllLoadedFiles } from 'src/stores/plugin/subscriptions/effects/remove-stale-documents/helpers/get-all-loaded-files';
 

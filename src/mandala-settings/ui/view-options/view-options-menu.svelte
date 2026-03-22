@@ -10,8 +10,8 @@
         onMount,
     } from 'svelte';
     import { toPng } from 'html-to-image';
-    import { createClearEmptyMandalaSubgridsPlan } from 'src/lib/mandala/clear-empty-subgrids';
-    import { derived } from 'src/lib/store/derived';
+    import { createClearEmptyMandalaSubgridsPlan } from 'src/mandala-display/logic/clear-empty-subgrids';
+    import { derived } from 'src/shared/store/derived';
     import {
         ContextMenuCopyLinkVisibilityStore,
         DetailSidebarPreviewModeStore,
@@ -60,11 +60,11 @@
         appendMandalaTemplate,
         MandalaTemplate,
         parseMandalaTemplates,
-    } from 'src/lib/mandala/mandala-templates';
+    } from 'src/mandala-display/logic/mandala-templates';
     import {
         normalizeSlotTitle,
         upsertSlotHeading,
-    } from 'src/lib/mandala/day-plan';
+    } from 'src/mandala-display/logic/day-plan';
     import {
         openMandalaTemplateNameModal,
         openMandalaTemplateSelectModal,
@@ -75,7 +75,7 @@
     import ViewOptionsEditPanel from './components/view-options-edit-panel.svelte';
     import ViewOptionsCustomLayoutModal from './components/view-options-custom-layout-modal.svelte';
     import ViewOptionsTemplatePanel from './components/view-options-template-panel.svelte';
-    import Portal from 'src/ui/shared/portal.svelte';
+    import Portal from 'src/shared/ui/portal.svelte';
     import type {
         ContextMenuCopyLinkVariant,
         DetailSidebarPreviewMode,

@@ -22,7 +22,7 @@ import {
     resolveMandalaSourceEmbedMatch,
     type ResolvedMandalaSourceEmbedMatch,
 } from 'src/obsidian/editor-extensions/mandala-source-embed/helpers/resolve-mandala-source-embed-match';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 import {
     buildMandalaEmbedModelCacheKey,
     buildMandalaEmbedRenderKey,

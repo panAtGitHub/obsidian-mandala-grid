@@ -1,19 +1,19 @@
 <script lang="ts">
     import { derived } from 'svelte/store';
-    import { PinnedNodesStore } from 'src/stores/cell/document-derived-stores';
+    import { PinnedNodesStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { ActivePinnedCardStore } from 'src/stores/ui/derived/pinned-cards-sidebar';
     import NoItems from '../no-items/no-items.svelte';
     import { scrollActivePinnedNode } from 'src/ui/sidebar/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
-    import { navigateToSearchResult } from 'src/helpers/views/mandala/search-utils';
+    import { navigateToSearchResult } from 'src/mandala-interaction/helpers/search-utils';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { CurrentFileSectionColorMapStore } from 'src/stores/cell/section-colors-store';
+    import { CurrentFileSectionColorMapStore } from 'src/mandala-display/stores/section-colors-store';
     import {
         createSectionColorIndex,
         applyOpacityToHex,
         SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
-    } from 'src/lib/mandala/section-colors';
+    } from 'src/mandala-display/logic/section-colors';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
@@ -22,7 +22,7 @@
     import {
         getReadableTextTone,
         type ThemeTone,
-    } from 'src/helpers/views/mandala/contrast-text-tone';
+    } from 'src/mandala-interaction/helpers/contrast-text-tone';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);

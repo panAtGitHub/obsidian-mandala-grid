@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import { tick } from 'svelte';
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import {
         MandalaCellPreviewFontSizeDesktopStore,
         MandalaCellPreviewFontSizeMobileStore,
@@ -10,13 +10,13 @@
     import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import Portal from 'src/ui/shared/portal.svelte';
+    import Portal from 'src/shared/ui/portal.svelte';
     import {
         closeCellPreviewDialog,
         openCellPreviewDialog,
-    } from 'src/helpers/views/mandala/cell-preview-dialog';
-    import { isPreviewDialogEditingNode } from 'src/helpers/views/mandala/is-preview-dialog-editing-node';
-    import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
+    } from 'src/mandala-interaction/helpers/cell-preview-dialog';
+    import { isPreviewDialogEditingNode } from 'src/mandala-interaction/helpers/is-preview-dialog-editing-node';
+    import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
     import { resolveCellPreviewNodeId } from 'src/view/helpers/mandala/resolve-cell-preview-node-id';
 
     const view = getView();

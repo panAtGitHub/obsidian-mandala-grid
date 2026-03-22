@@ -1,8 +1,8 @@
 import {
     getReadableTextTone,
     type ThemeTone,
-} from 'src/helpers/views/mandala/contrast-text-tone';
-import { applyOpacityToHex } from 'src/lib/mandala/section-colors';
+} from 'src/mandala-interaction/helpers/contrast-text-tone';
+import { applyOpacityToHex } from 'src/mandala-display/logic/section-colors';
 import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,

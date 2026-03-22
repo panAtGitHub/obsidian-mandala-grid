@@ -4,7 +4,7 @@ import {
     MandalaSectionId,
     ParsedMandalaSection,
 } from 'src/mandala-document/engine/types';
-import { id } from 'src/helpers/id';
+import { id } from 'src/shared/helpers/id';
 import {
     compareSectionIds,
     parseSectionParts,

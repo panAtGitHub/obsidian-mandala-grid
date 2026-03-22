@@ -11,7 +11,7 @@ import {
     ArrowLeftCircle,
     ArrowRightCircle,
 } from 'lucide-svelte';
-import { CustomIcon } from 'src/helpers/load-custom-icons';
+import { CustomIcon } from 'src/shared/helpers/load-custom-icons';
 import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
 
 export type ToolbarButtonsGroup = {

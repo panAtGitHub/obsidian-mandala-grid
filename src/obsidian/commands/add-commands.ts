@@ -1,12 +1,12 @@
 import type { Command } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
-import { slugify } from 'src/helpers/slugify';
+import { slugify } from 'src/shared/helpers/slugify';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
-import { customIcons } from 'src/helpers/load-custom-icons';
+import { customIcons } from 'src/shared/helpers/load-custom-icons';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
-import { onPluginError } from 'src/lib/store/on-plugin-error';
+import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
 import { openExportModeModalForView } from 'src/mandala-settings/ui/view-options/export-mode-modal-store';

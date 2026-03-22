@@ -10,8 +10,8 @@ import {
     SECTION_COLOR_PALETTE,
     serializeSectionColorMapForSettings,
     setSectionColor,
-} from 'src/lib/mandala/section-colors';
-import { getCurrentFileSectionColorMap } from 'src/lib/mandala/current-file-mandala-settings';
+} from 'src/mandala-display/logic/section-colors';
+import { getCurrentFileSectionColorMap } from 'src/mandala-display/logic/current-file-mandala-settings';
 import { resolveContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
 
 const createSectionColorPersistence = (view: MandalaView) => {

@@ -1,6 +1,6 @@
 import { ActivePinnedCardStore } from 'src/stores/ui/derived/pinned-cards-sidebar';
 import { scrollCardIntoView } from '../../recent-cards/helpers/scroll-card-into-view';
-import { PinnedNodesStore } from 'src/stores/cell/document-derived-stores';
+import { PinnedNodesStore } from 'src/mandala-display/stores/document-derived-stores';
 import { getView } from 'src/mandala-scenes/shared/shell/context';
 
 export const scrollActivePinnedNode = (containerRef: HTMLElement) => {

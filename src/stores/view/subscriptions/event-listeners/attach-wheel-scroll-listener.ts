@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
+import { findNearestVerticalScrollPane } from 'src/shared/lib/align-element/helpers/find-scrollable-pane';
 
 export const attachWheelScrollListener = (view: MandalaView) => {
     view.plugin.registerDomEvent(view.contentEl, 'wheel', (evt) => {

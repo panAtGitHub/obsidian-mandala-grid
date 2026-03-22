@@ -2,7 +2,7 @@
     import { Search } from 'lucide-svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
-    import Button from 'src/ui/shared/button.svelte';
+    import Button from 'src/shared/ui/button.svelte';
     import { lang } from 'src/lang/lang';
 
     const view = getView();

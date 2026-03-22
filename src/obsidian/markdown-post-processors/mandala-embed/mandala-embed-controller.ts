@@ -1,6 +1,6 @@
 import { MarkdownRenderChild, MarkdownView, type TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 import { type MandalaEmbedManagedPayload } from 'src/obsidian/markdown-post-processors/mandala-embed/mandala-embed-controller-types';
 import {

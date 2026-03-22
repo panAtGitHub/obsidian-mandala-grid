@@ -1,4 +1,4 @@
-import { WorkerPromise } from 'src/helpers/worker-promise';
+import { WorkerPromise } from 'src/shared/helpers/worker-promise';
 import type {
     DocumentProgressProps,
     StatusBarWorkerResult,

@@ -18,7 +18,7 @@ import Component from 'src/mandala-scenes/shared/shell/main.svelte';
 import MandalaGrid from '../main';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
 import { Unsubscriber } from 'svelte/store';
-import { OnError, Store } from 'src/lib/store/store';
+import { OnError, Store } from 'src/shared/store/store';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import {
     DocumentState,
@@ -31,11 +31,11 @@ import { ViewStoreAction } from 'src/stores/view/view-store-actions';
 import { defaultViewState } from 'src/stores/view/default-view-state';
 import { viewReducer } from 'src/stores/view/view-reducer';
 import { viewSubscriptions } from 'src/stores/view/subscriptions/view-subscriptions';
-import { onPluginError } from 'src/lib/store/on-plugin-error';
+import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { InlineEditor } from 'src/obsidian/helpers/inline-editor/inline-editor';
-import { id } from 'src/helpers/id';
+import { id } from 'src/shared/helpers/id';
 import invariant from 'tiny-invariant';
-import { customIcons } from 'src/helpers/load-custom-icons';
+import { customIcons } from 'src/shared/helpers/load-custom-icons';
 
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/toggle-obsidian-view-type';
@@ -52,16 +52,16 @@ import {
     resolveDayPlanTodayNavigation,
     MandalaProfileActivation,
     resolveMandalaProfileActivation,
-} from 'src/lib/mandala/mandala-profile';
-import { parseDayPlanFrontmatter } from 'src/lib/mandala/day-plan';
-import { isNonEmptyMandalaContent } from 'src/lib/mandala/is-empty-mandala-content';
-import { logger } from 'src/helpers/logger';
+} from 'src/mandala-display/logic/mandala-profile';
+import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
+import { isNonEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
+import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { prepareSaveSections, serializeSections } from 'src/engine/mandala-document';
-import { applySectionPatch } from 'src/lib/mandala/apply-section-patch';
+import { applySectionPatch } from 'src/mandala-display/logic/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
-import { resolveRestoredSubgridTheme } from 'src/helpers/views/mandala/resolve-restored-subgrid-theme';
+import { resolveRestoredSubgridTheme } from 'src/mandala-interaction/helpers/resolve-restored-subgrid-theme';
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
     MandalaMode,
@@ -78,7 +78,7 @@ import {
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
 } from 'src/view/helpers/mandala/nx9/context';
-import { resolveCompatibleMandalaMode } from 'src/helpers/views/mandala/resolve-compatible-mandala-mode';
+import { resolveCompatibleMandalaMode } from 'src/mandala-interaction/helpers/resolve-compatible-mandala-mode';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 

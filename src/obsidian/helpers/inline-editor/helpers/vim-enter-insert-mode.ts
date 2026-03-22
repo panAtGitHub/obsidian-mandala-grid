@@ -1,6 +1,6 @@
 import { MarkdownView } from 'obsidian';
 import MandalaGrid from 'src/main';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 
 export const vimEnterInsertMode = (plugin: MandalaGrid, view: MarkdownView) => {
     const config = (

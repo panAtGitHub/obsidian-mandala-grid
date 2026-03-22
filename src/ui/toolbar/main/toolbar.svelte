@@ -9,12 +9,12 @@
     import { writable, derived } from 'svelte/store';
     import { Menu } from 'lucide-svelte';
     import { Platform } from 'obsidian';
-    import Button from 'src/ui/shared/button.svelte';
+    import Button from 'src/shared/ui/button.svelte';
     import { lang } from 'src/lang/lang';
     
     // Mandala 搜索相关导入
-    import MandalaSearchResults from 'src/ui/shared/mandala-search-results.svelte';
-    import { convertToMandalaResults } from 'src/helpers/views/mandala/search-utils';
+    import MandalaSearchResults from 'src/shared/ui/mandala-search-results.svelte';
+    import { convertToMandalaResults } from 'src/mandala-interaction/helpers/search-utils';
 
     const view = getView();
     const search = searchStore(view);

@@ -2,10 +2,10 @@ import MandalaGrid from 'src/main';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { TFolder } from 'obsidian';
 import { createNewFile } from 'src/obsidian/events/workspace/effects/create-new-file';
-import { onPluginError } from 'src/lib/store/on-plugin-error';
+import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { lang } from 'src/lang/lang';
 import { openFileInMandalaGrid } from 'src/obsidian/events/workspace/effects/open-file-in-mandala';
-import { createMandalaMarkdownTemplate } from 'src/lib/mandala/create-mandala-markdown-template';
+import { createMandalaMarkdownTemplate } from 'src/mandala-display/logic/create-mandala-markdown-template';
 
 export const createMandalaGridDocument = async (plugin: MandalaGrid) => {
     try {

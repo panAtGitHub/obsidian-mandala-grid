@@ -3,8 +3,8 @@ import type { SimpleSummaryCellModel } from 'src/mandala-cell/model/simple-summa
 import {
     openSidebarAndEditMandalaNode,
     setActiveMandalaNode,
-} from 'src/helpers/views/mandala/node-editing';
-import { setActiveCell9x9 } from 'src/helpers/views/mandala/set-active-cell-9x9';
+} from 'src/mandala-interaction/helpers/node-editing';
+import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import type { MandalaSwapInteractionState } from 'src/view/helpers/mandala/mandala-swap';
 import type { MandalaView } from 'src/view/view';
 

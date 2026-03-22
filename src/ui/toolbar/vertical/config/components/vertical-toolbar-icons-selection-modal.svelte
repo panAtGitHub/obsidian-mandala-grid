@@ -1,10 +1,10 @@
 <script lang="ts">
     import { ToolbarButton, verticalToolbarButtons } from '../vertical-toolbar-buttons';
-    import Button from 'src/ui/shared/button.svelte';
+    import Button from 'src/shared/ui/button.svelte';
     import { derived } from 'svelte/store';
     import { HiddenVerticalToolbarButtons } from 'src/mandala-settings/state/derived/view-settings-store';
     import MandalaGrid from 'src/main';
-    import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
+    import IconRenderer from 'src/shared/ui/icon-renderer.svelte';
 
     export let close: () => void;
     export let plugin: MandalaGrid;

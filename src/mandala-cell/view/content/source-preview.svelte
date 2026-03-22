@@ -2,8 +2,8 @@
     import { MarkdownView, Platform } from 'obsidian';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
-    import { contentStore } from 'src/stores/cell/document-derived-stores';
-    import { createMobileDoubleTapDetector } from 'src/helpers/views/mandala/mobile-double-tap';
+    import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
+    import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
     export let nodeId: string;

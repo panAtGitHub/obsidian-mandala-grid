@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { getSearchResultsFromDocument } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/clipboard/get-search-results-from-document';
-import { clone } from 'src/helpers/clone';
+import { clone } from 'src/shared/helpers/clone';
 
 describe('get-search-results-from-clipboard', () => {
     test('case: should host results up', () => {

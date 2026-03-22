@@ -3,7 +3,7 @@ import {
     getReadableTextTone,
     type TextTone,
     type ThemeTone,
-} from 'src/helpers/views/mandala/contrast-text-tone';
+} from 'src/mandala-interaction/helpers/contrast-text-tone';
 
 export type BuildMandalaCardStyleOptions = {
     active: boolean;

@@ -7,11 +7,11 @@ import {
     extractDateFromCenterHeading,
     getDayPlanDateHeadingSettings,
     parseDayPlanFromMarkdown,
-} from 'src/lib/mandala/day-plan';
+} from 'src/mandala-display/logic/day-plan';
 import {
     getSectionContent,
     replaceSectionContent,
-} from 'src/lib/mandala/day-plan-sections';
+} from 'src/mandala-display/logic/day-plan-sections';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { lang } from 'src/lang/lang';
 

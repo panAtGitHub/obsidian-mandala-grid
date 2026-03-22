@@ -8,8 +8,8 @@
     import { KeyboardStore } from '../../../../../stores/view/derived/keyboard-store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { RotateCcw, RotateCw } from 'lucide-svelte';
-    import Button from 'src/ui/shared/button.svelte';
-    import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
+    import Button from 'src/shared/ui/button.svelte';
+    import IconRenderer from 'src/shared/ui/icon-renderer.svelte';
 
     const view = getView();
     const keyboardStore = KeyboardStore(view);

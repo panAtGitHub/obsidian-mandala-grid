@@ -4,9 +4,9 @@ import { MANDALA_VIEW_TYPE, MandalaView } from './view/view';
 import { createSetViewState } from 'src/obsidian/patches/create-set-view-state';
 import { around } from 'monkey-around';
 import { settingsReducer } from 'src/mandala-settings/state/settings-reducer';
-import { deepMerge } from 'src/helpers/deep-merge';
+import { deepMerge } from 'src/shared/helpers/deep-merge';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
-import { Store } from 'src/lib/store/store';
+import { Store } from 'src/shared/store/store';
 import {
     DocumentsPreferences,
     Settings,
@@ -23,8 +23,8 @@ import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
 import { pluginReducer } from 'src/stores/plugin/plugin-reducer';
 import { DefaultPluginState } from 'src/stores/plugin/default-plugin-state';
 import { StatusBar } from 'src/obsidian/status-bar/status-bar';
-import { onPluginError } from 'src/lib/store/on-plugin-error';
-import { customIcons, loadCustomIcons } from 'src/helpers/load-custom-icons';
+import { onPluginError } from 'src/shared/store/on-plugin-error';
+import { customIcons, loadCustomIcons } from 'src/shared/helpers/load-custom-icons';
 import { migrateSettings } from 'src/mandala-settings/state/migrations/migrate-settings';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';

@@ -10,7 +10,7 @@ import {
     RotateCcw,
     ScanSearch,
 } from 'lucide-svelte';
-import { CustomIcon } from 'src/helpers/load-custom-icons';
+import { CustomIcon } from 'src/shared/helpers/load-custom-icons';
 import { VerticalToolbarActions } from 'src/ui/toolbar/vertical/vertical-toolbar-actions';
 
 export type ToolbarButtonsGroup = {

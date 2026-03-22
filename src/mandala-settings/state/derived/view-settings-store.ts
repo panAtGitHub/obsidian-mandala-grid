@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { derived } from 'src/lib/store/derived';
+import { derived } from 'src/shared/store/derived';
 import MandalaGrid from 'src/main';
 import { Platform } from 'obsidian';
 import { resolveContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';

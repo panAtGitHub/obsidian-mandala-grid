@@ -5,7 +5,7 @@
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { derived, writable } from 'svelte/store';
     import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
-    import Button from 'src/ui/shared/button.svelte';
+    import Button from 'src/shared/ui/button.svelte';
     import {
         ScrollSettingsStore,
     } from 'src/mandala-settings/state/derived/scrolling-store';
@@ -18,7 +18,7 @@
     import { VerticalToolbarButtonsList } from './vertical-toolbar-buttons-list';
     import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
     import ViewOptionsMenu from 'src/mandala-settings/ui/view-options/view-options-menu.svelte';
-    import IconRenderer from 'src/ui/shared/icon-renderer.svelte';
+    import IconRenderer from 'src/shared/ui/icon-renderer.svelte';
 
     const view = getView();
 

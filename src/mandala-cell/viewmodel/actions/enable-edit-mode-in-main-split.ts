@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
-import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
+import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
 
 export const enableEditModeInMainSplit = (
     view: MandalaView,

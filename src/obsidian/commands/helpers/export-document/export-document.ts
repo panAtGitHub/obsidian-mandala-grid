@@ -1,6 +1,6 @@
 import { createNewFile } from 'src/obsidian/events/workspace/effects/create-new-file';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
-import { onPluginError } from 'src/lib/store/on-plugin-error';
+import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { mapDocumentToText } from 'src/obsidian/commands/helpers/export-document/map-document-to-text';
 import { MandalaView } from 'src/view/view';
 import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';

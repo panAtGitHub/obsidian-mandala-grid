@@ -53,7 +53,7 @@
 - `src/mandala-cell/viewmodel/policies/cell-interaction-policy.ts`
   定义 `grid-3x3` 的交互策略，例如移动端双击进入子宫格导航。
 
-- `src/helpers/views/mandala/mobile-navigation.ts`
+- `src/mandala-interaction/helpers/mobile-navigation.ts`
   承担 3x3 的子宫格进入、退出和移动端导航逻辑。
 
 这说明当前的 `3x3` 已经进入“场景目录化”的第一步，但还没有彻底完成场景层与共享壳层的完全分离。

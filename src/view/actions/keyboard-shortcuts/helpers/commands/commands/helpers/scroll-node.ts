@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/mandala-document/state/document-store-actions';
-import { getElementById } from 'src/lib/align-element/helpers/get-element-by-id';
-import { findNearestVerticalScrollPane } from 'src/lib/align-element/helpers/find-scrollable-pane';
+import { getElementById } from 'src/shared/lib/align-element/helpers/get-element-by-id';
+import { findNearestVerticalScrollPane } from 'src/shared/lib/align-element/helpers/find-scrollable-pane';
 
 export const scrollNode = (view: MandalaView, direction: AllDirections) => {
     const container = view.container;

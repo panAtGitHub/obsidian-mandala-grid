@@ -15,7 +15,7 @@ import { unpinNode } from 'src/mandala-document/state/reducers/pinned-nodes/unpi
 import { removeStalePinnedNodes } from 'src/mandala-document/state/reducers/pinned-nodes/remove-stale-pinned-nodes';
 import { loadPinnedNodes } from 'src/mandala-document/state/reducers/pinned-nodes/load-pinned-nodes';
 import { refreshGroupParentIds } from 'src/mandala-document/state/reducers/meta/refresh-group-parent-ids';
-import { NO_UPDATE } from 'src/lib/store/store';
+import { NO_UPDATE } from 'src/shared/store/store';
 import { deleteChildNodes } from 'src/mandala-document/tree-utils/delete/delete-child-nodes';
 import { deleteNodeById } from 'src/mandala-document/tree-utils/delete/delete-node-by-id';
 import {

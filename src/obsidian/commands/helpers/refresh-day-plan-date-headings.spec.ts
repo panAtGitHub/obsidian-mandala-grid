@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     refreshDayPlanDateHeadingsInMarkdown,
 } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
-import { getDayPlanDateHeadingSettings } from 'src/lib/mandala/day-plan';
+import { getDayPlanDateHeadingSettings } from 'src/mandala-display/logic/day-plan';
 
 describe('refreshDayPlanDateHeadingsInMarkdown', () => {
     it('refreshes all core date headings using current settings', () => {

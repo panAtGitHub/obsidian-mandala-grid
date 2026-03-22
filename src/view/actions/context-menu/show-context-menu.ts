@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
-import { onLongPress } from 'src/helpers/on-long-press';
+import { onLongPress } from 'src/shared/helpers/on-long-press';
 import { showNodeContextMenu } from 'src/view/actions/context-menu/card-context-menu/show-node-context-menu';
 import { shouldShowNodeContextMenu } from 'src/view/actions/context-menu/card-context-menu/should-show-node-context-menu';
 import { shouldShowViewContextMenu } from 'src/view/actions/context-menu/view-context-menu/should-show-view-context-menu';

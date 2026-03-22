@@ -7,16 +7,16 @@
         Grid3x3,
         Type,
     } from 'lucide-svelte';
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import { openNx9RowsPerPageModal } from 'src/obsidian/modals/nx9-rows-per-page-modal';
-    import { addDaysIsoDate } from 'src/lib/mandala/day-plan';
+    import { addDaysIsoDate } from 'src/mandala-display/logic/day-plan';
     import {
         MandalaModeStore,
         Nx9RowsPerPageStore,
         Show9x9TitleOnlyStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import Button from 'src/ui/shared/button.svelte';
+    import Button from 'src/shared/ui/button.svelte';
     import { resolveNx9Context } from 'src/view/helpers/mandala/nx9/context';
 
     const view = getView();

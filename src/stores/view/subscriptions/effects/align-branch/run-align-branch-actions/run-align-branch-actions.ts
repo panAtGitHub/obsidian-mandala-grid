@@ -1,8 +1,8 @@
 import { AlignBranchContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { AlignBranchAction } from 'src/stores/view/subscriptions/effects/align-branch/create-align-branch-actions/create-align-branch-actions';
 import { scrollFirstColumnToTheLeft } from 'src/stores/view/subscriptions/effects/align-branch/run-align-branch-actions/actions/scroll-first-column-to-the-left';
-import { alignElementVertically } from 'src/lib/align-element/align-element-vertically';
-import { alignElementHorizontally } from 'src/lib/align-element/align-element-horizontally';
+import { alignElementVertically } from 'src/shared/lib/align-element/align-element-vertically';
+import { alignElementHorizontally } from 'src/shared/lib/align-element/align-element-horizontally';
 import { alignParentsNodes } from 'src/stores/view/subscriptions/effects/align-branch/run-align-branch-actions/actions/align-parents-nodes';
 import { alignChildColumns } from 'src/stores/view/subscriptions/effects/align-branch/helpers/align-child-columns/align-child-columns';
 import { alignInactiveColumns } from 'src/stores/view/subscriptions/effects/align-branch/helpers/align-child-columns/align-inactive-columns';

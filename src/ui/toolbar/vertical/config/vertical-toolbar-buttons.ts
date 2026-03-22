@@ -8,7 +8,7 @@ import {
     ScanSearch,
     Eye,
 } from 'lucide-svelte';
-import { CustomIcon, customIcons } from 'src/helpers/load-custom-icons';
+import { CustomIcon, customIcons } from 'src/shared/helpers/load-custom-icons';
 
 export type ToolbarButton =
     | 'settings'

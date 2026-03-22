@@ -11,7 +11,7 @@ import {
     ConflictingHotkeys,
     HotkeysSearchTerm,
 } from 'src/stores/view/derived/hotkeys-store';
-import { groupArrayByProperty } from 'src/helpers/array-helpers/group-array-by-property';
+import { groupArrayByProperty } from 'src/shared/helpers/array-helpers/group-array-by-property';
 import { lang } from 'src/lang/lang';
 import MandalaGrid from 'src/main';
 import { getDynamicLabel } from 'src/ui/modals/hotkeys/components/helpers/get-dynamic-label';

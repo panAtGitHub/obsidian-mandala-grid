@@ -8,8 +8,8 @@ import {
     isSectionInSubtree,
     swapSectionSubtreeIds,
 } from 'src/mandala-document/engine/section-utils';
-import { id } from 'src/helpers/id';
-import { SilentError } from 'src/lib/errors/errors';
+import { id } from 'src/shared/helpers/id';
+import { SilentError } from 'src/shared/lib/errors/errors';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { sortGroups } from 'src/mandala-document/tree-utils/sort/sort-groups';
 import {

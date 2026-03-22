@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import { derived } from 'src/lib/store/derived';
+    import { derived } from 'src/shared/store/derived';
     import {
         DayPlanEnabledStore,
         DetailSidebarPreviewModeStore,
@@ -19,10 +19,10 @@
     import {
         enterSubgridForNode,
         exitCurrentSubgrid,
-    } from 'src/helpers/views/mandala/mobile-navigation';
-    import { openNodeEditor } from 'src/helpers/views/mandala/open-node-editor';
+    } from 'src/mandala-interaction/helpers/mobile-navigation';
+    import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
-    import { resolveDayPlanTodayNavigation } from 'src/lib/mandala/mandala-profile';
+    import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
     import { lang } from 'src/lang/lang';
 
     const MIN_SIZE = 200;

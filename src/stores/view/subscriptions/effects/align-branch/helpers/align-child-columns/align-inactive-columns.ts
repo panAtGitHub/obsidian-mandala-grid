@@ -1,4 +1,4 @@
-import { alignElementVertically } from 'src/lib/align-element/align-element-vertically';
+import { alignElementVertically } from 'src/shared/lib/align-element/align-element-vertically';
 import { AlignBranchContext } from 'src/stores/view/subscriptions/effects/align-branch/helpers/create-context';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 

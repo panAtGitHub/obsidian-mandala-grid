@@ -1,6 +1,6 @@
 import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import { AllDirections } from 'src/mandala-document/state/document-store-actions';
-import { clone } from 'src/helpers/clone';
+import { clone } from 'src/shared/helpers/clone';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import invariant from 'tiny-invariant';
 import { findAdjacentNode } from 'src/mandala-document/tree-utils/find/find-adjacent-node';

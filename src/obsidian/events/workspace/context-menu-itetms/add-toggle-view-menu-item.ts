@@ -2,7 +2,7 @@ import { Menu, TFile, WorkspaceLeaf } from 'obsidian';
 import MandalaGrid from 'src/main';
 import { MANDALA_VIEW_TYPE } from 'src/view/view';
 import { lang } from 'src/lang/lang';
-import { customIcons } from 'src/helpers/load-custom-icons';
+import { customIcons } from 'src/shared/helpers/load-custom-icons';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 

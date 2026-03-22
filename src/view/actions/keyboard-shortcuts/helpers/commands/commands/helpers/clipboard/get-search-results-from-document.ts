@@ -7,7 +7,7 @@ import {
     collectSubtreeSections,
     collapseToRootSections,
     getSortedUniqueSectionsFromNodes,
-} from 'src/lib/mandala/section-export';
+} from 'src/mandala-display/logic/section-export';
 
 const toOutlineLine = (sectionId: string, content: string) => {
     const depth = Math.max(0, sectionId.split('.').length - 1);

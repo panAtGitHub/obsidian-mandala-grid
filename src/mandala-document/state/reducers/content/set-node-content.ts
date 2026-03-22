@@ -1,5 +1,5 @@
 import { Content } from 'src/mandala-document/state/document-state-type';
-import { logger } from 'src/helpers/logger';
+import { logger } from 'src/shared/helpers/logger';
 
 export type SetNodeContentAction = {
     type: 'document/update-node-content';

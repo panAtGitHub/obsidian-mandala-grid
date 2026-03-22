@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { derived } from 'src/lib/store/derived';
-    import type { WeekPlanRow } from 'src/lib/mandala/day-plan';
+    import { derived } from 'src/shared/store/derived';
+    import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import { SectionColorBySectionStore } from 'src/stores/cell/section-colors-store';
-    import { PinnedSectionsStore } from 'src/stores/cell/document-derived-stores';
+    import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
+    import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
