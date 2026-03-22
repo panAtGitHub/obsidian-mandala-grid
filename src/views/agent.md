@@ -21,16 +21,16 @@
   放多个场景共享的视图壳层、上下文和通用组件。
 
 - `view-9x9/`
-  9x9 场景目录。
+  9x9 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
 
 - `view-3x3/`
-  3x3 场景目录。
+  3x3 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
 
 - `view-nx9/`
-  nx9 场景目录。
+  nx9 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
 
 - `view-7x9/`
-  7x9 场景目录。
+  7x9 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`，桌面/移动布局继续作为子布局组件保留。
 
 - `view-columns/`
   列式视图相关目录。
@@ -182,24 +182,23 @@ src/views/view-xxx/
 
 ---
 
-## 当前代码的建议方向
+## 当前落地状态
 
-当前 `view-9x9`、`view-nx9`、`view-7x9` 里，部分文件同时承担了布局和组装职责。后续整理时，优先把每个场景收敛成：
+当前 `view-3x3`、`view-9x9`、`view-nx9`、`view-7x9` 都已经开始按“场景 layout + assembler”分层。
 
-```text
-src/views/view-9x9/
-  layout.svelte
-  assemble-cell-view-model.ts
-```
+目前可以按下面规则理解：
 
-如果需要区分端侧，再演化成：
+- 场景入口文件
+  负责模式切换、上下文装配、端侧选择和少量场景级事件。
 
-```text
-src/views/view-9x9/
-  desktop-layout.svelte
-  mobile-layout.svelte
-  assemble-cell-view-model.ts
-```
+- `layout.svelte`
+  负责该场景最终如何渲染。
+
+- `assemble-cell-view-model.ts`
+  负责把 store / document / UI 状态转成格子或行模型。
+
+- 其他子组件
+  作为 layout 的子布局或子片段继续存在，例如桌面/移动布局拆分、特殊占位格、导航按钮片段等。
 
 这样做的目标不是“文件更漂亮”，而是让你以后能快速判断：
 
