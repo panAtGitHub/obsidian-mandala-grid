@@ -1,4 +1,4 @@
-import { serializeSections } from 'src/engine/mandala-document';
+import { serializeSections } from 'src/mandala-document/engine/serialize-sections';
 
 const createInitialMandalaSections = () => {
     const sections: { sectionId: string; content: string }[] = [

@@ -1,8 +1,6 @@
-import {
-    buildMandalaDocumentV2,
-    parseSections,
-    validateSectionsStructure,
-} from 'src/engine/mandala-document';
+import { buildMandalaDocumentV2 } from 'src/mandala-document/engine/build-state';
+import { parseSections } from 'src/mandala-document/engine/parse-sections';
+import { validateSectionsStructure } from 'src/mandala-document/engine/validate-structure';
 import { buildSubtreeNonEmptyCountBySection } from 'src/mandala-document/state/reducers/mandala/mandala-slot-authority';
 import { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { SavedDocument } from 'src/mandala-document/state/document-store-actions';

@@ -2,7 +2,7 @@ import {
     MandalaGridDocument,
     Sections,
 } from 'src/mandala-document/state/document-state-type';
-import { compareSectionIds } from 'src/engine/mandala-document';
+import { compareSectionIds } from 'src/mandala-document/engine/serialize-sections';
 import {
     collectSubtreeSections,
     collapseToRootSections,
