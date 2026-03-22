@@ -1,6 +1,6 @@
 import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
 import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
-import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
@@ -8,6 +8,7 @@ import {
     type WeekPlanBaseCell,
 } from 'src/mandala-display/logic/week-plan-context';
 import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
+import { build7x9CellDisplayOverrides } from 'src/mandala-scenes/view-7x9/build-cell-display-overrides';
 
 type EditingState = {
     activeNodeId: string | null;
@@ -90,12 +91,14 @@ export const assembleDesktopWeekPlanCells = ({
     showDetailSidebar,
     whiteThemeMode,
 }: AssembleDesktopWeekPlanCellsOptions): WeekPlanDesktopCellViewModel[] => {
-    const displayPolicy = buildCellDisplayPolicy({
-        preset: 'grid-7x9',
-        whiteThemeMode,
-        hasGridSelection: Boolean(activeCell),
-        compactMode,
-    });
+    const displayPolicy = {
+        ...createDefaultCellDisplayPolicy(),
+        ...build7x9CellDisplayOverrides({
+            whiteThemeMode,
+            hasGridSelection: Boolean(activeCell),
+            compactMode,
+        }),
+    };
     const interactionPolicy = buildCellInteractionPolicy({
         preset: 'grid-7x9',
     });

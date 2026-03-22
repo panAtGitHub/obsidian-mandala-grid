@@ -1,11 +1,12 @@
 import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
 import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
-import { buildCellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type { Nx9Context } from 'src/mandala-scenes/view-nx9/context';
-import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
+import { buildNx9CellDisplayOverrides } from 'src/mandala-scenes/view-nx9/build-cell-display-overrides';
 
 type Nx9EditingState = {
     activeNodeId: string | null;
@@ -166,10 +167,12 @@ export const assembleNx9Rows = (
     } = options;
     const rowCount = context.rowsPerPage;
     const showFutureHint = rowCount <= 5;
-    const displayPolicy: CellDisplayPolicy = buildCellDisplayPolicy({
-        preset: 'grid-nx9',
-        whiteThemeMode,
-    });
+    const displayPolicy: CellDisplayPolicy = {
+        ...createDefaultCellDisplayPolicy(),
+        ...buildNx9CellDisplayOverrides({
+            whiteThemeMode,
+        }),
+    };
     const interactionPolicy: CellInteractionPolicy = buildCellInteractionPolicy({
         preset: 'grid-nx9',
     });

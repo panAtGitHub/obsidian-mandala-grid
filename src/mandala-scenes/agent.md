@@ -47,6 +47,12 @@
 - `view-3x3/build-cell-display-overrides.ts`
   负责定义 3x3 相对于标准格子默认展示配置的差异，例如内容铺满、section 指示器样式、active 背景保留策略。
 
+- `view-nx9/build-cell-display-overrides.ts`
+  负责定义 nx9 相对于标准格子默认展示配置的差异，例如内容铺满，以及白色主题下的 section / active 背景策略。
+
+- `view-7x9/build-cell-display-overrides.ts`
+  负责定义 7x9 相对于标准格子默认展示配置的差异，例如内容铺满、紧凑密度、滚动策略与 active 背景保留策略。
+
 - `shared/mandala-view.svelte`
   仍然负责模式切换、subgrid theme、today 跳转、外层容器和共享壳层逻辑。
 
@@ -67,6 +73,7 @@
 src/mandala-scenes/view-3x3/
   layout.svelte
   assemble-cell-view-model.ts
+  build-cell-display-overrides.ts
 ```
 
 其中：
@@ -76,6 +83,9 @@ src/mandala-scenes/view-3x3/
 
 - `assemble-cell-view-model.ts`
   负责 3x3 场景下的格子 props 组装，例如 section、pin、display policy、interaction policy、主题 section 等。
+
+- `build-cell-display-overrides.ts`
+  负责 3x3 相对于标准格子默认展示配置的微调，不直接改格子内部 DOM。
 
 ---
 
@@ -87,9 +97,10 @@ src/mandala-scenes/view-3x3/
 src/mandala-scenes/view-xxx/
   layout.svelte
   assemble-cell-view-model.ts
+  build-cell-display-overrides.ts
 ```
 
-这两个文件的职责要明确分开。
+这三个文件的职责要明确分开。
 
 ### `layout.svelte`
 
@@ -130,6 +141,26 @@ src/mandala-scenes/view-xxx/
 - 具体的点击事件绑定写法
 
 一句话：`assemble-cell-view-model.ts` 只负责“把场景状态翻译成格子输入”。
+
+### `build-cell-display-overrides.ts`
+
+负责定义“这个场景相对于标准格子默认值”的显示微调。
+
+它应该处理：
+
+- 内容是否铺满
+- 是否切换为紧凑密度
+- 是否改 section 指示器变体
+- 是否调整滚动策略
+- 是否保留 active 背景
+
+它不应该处理：
+
+- DOM 选择器级别的内部样式改写
+- 场景布局结构
+- 交互事件绑定
+
+一句话：`build-cell-display-overrides.ts` 只负责“场景想对标准格子改哪里”。
 
 ---
 

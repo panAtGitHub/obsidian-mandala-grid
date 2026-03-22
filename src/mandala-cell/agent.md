@@ -40,13 +40,13 @@
 ### 展示策略与派生状态
 
 - `cell-display-policy.ts`
-  定义当前仍由共享策略工厂承接的 cell 显示策略，例如 `nx9 / 7x9 / 9x9` 的 section 指示器样式、是否保留 active 背景、是否隐藏内建信息。
+  定义 cell 展示策略的数据结构类型。默认值与场景 overrides 都围绕这个类型组装最终显示策略。
 
 - `default-cell-display-policy.ts`
   定义标准格子的默认展示配置。场景层如果没有特殊需求，应优先沿用这里的默认值。
 
 - `cell-display-policy.spec.ts`
-  `cell-display-policy.ts` 的单元测试。
+  已移除。默认配置与各场景 overrides 分别在各自文件旁边测试。
 
 - `mandala-card-meta.ts`
   根据 section 指示器变体、section 颜色、pin 状态、主题明暗，计算 meta 区域该显示背景、pin、胶囊色块和文字 tone。
