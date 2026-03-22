@@ -679,24 +679,6 @@
         --mandala-card-overflow: hidden;
     }
 
-    .mandala-root--9 :global(.editor-container) {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-    }
-
-    .mandala-root--week :global(.editor-container) {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-    }
-
-    .mandala-root--nx9 :global(.editor-container) {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-    }
-
     .is-editing-mobile.mandala-root {
         height: var(--vvh, 100dvh) !important;
         overflow: hidden !important;

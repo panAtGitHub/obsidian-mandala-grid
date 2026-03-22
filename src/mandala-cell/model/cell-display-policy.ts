@@ -1,4 +1,5 @@
 import type { CellSectionIndicatorVariant } from 'src/mandala-cell/model/card-types';
+import type { CellScrollbarMode } from 'src/mandala-cell/model/cell-scrollbar-mode';
 
 export type CellDisplayPreset = 'grid-3x3' | 'grid-7x9' | 'grid-nx9' | 'grid-9x9';
 
@@ -9,6 +10,7 @@ export type CellDisplayPolicy = {
     hideBuiltInHiddenInfo: boolean;
     contentLayout: 'intrinsic' | 'fill';
     density: 'normal' | 'compact';
+    scrollbarMode: CellScrollbarMode;
 };
 
 export const buildCellDisplayPolicy = ({
@@ -30,6 +32,7 @@ export const buildCellDisplayPolicy = ({
             hideBuiltInHiddenInfo: true,
             contentLayout: 'intrinsic',
             density: 'normal',
+            scrollbarMode: 'hidden',
         };
     }
 
@@ -41,6 +44,7 @@ export const buildCellDisplayPolicy = ({
             hideBuiltInHiddenInfo: true,
             contentLayout: 'fill',
             density: 'normal',
+            scrollbarMode: 'selected-hover',
         };
     }
 
@@ -56,6 +60,7 @@ export const buildCellDisplayPolicy = ({
             hideBuiltInHiddenInfo: true,
             contentLayout: 'fill',
             density: compactMode ? 'compact' : 'normal',
+            scrollbarMode: compactMode ? 'hidden' : 'selected-hover',
         };
     }
 
@@ -68,5 +73,6 @@ export const buildCellDisplayPolicy = ({
         hideBuiltInHiddenInfo: true,
         contentLayout: 'fill',
         density: 'normal',
+        scrollbarMode: 'selected-hover',
     };
 };

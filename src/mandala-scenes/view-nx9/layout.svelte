@@ -130,10 +130,7 @@
                         selectRealCell(cell.row, cell.col, cell.nodeId)}
                 >
                     {#if cell.cardViewModel}
-                        <MandalaCard
-                            viewModel={cell.cardViewModel}
-                            scrollbarMode="selected-hover"
-                        />
+                        <MandalaCard viewModel={cell.cardViewModel} />
                     {:else}
                         <div class="nx9-cell__empty">{cell.section}</div>
                     {/if}
