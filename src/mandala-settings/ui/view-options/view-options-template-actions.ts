@@ -59,7 +59,8 @@ const updateDayPlanSlotsInFrontmatter = async (
 ) => {
     if (!view.file) return false;
     const cache = view.plugin.app.metadataCache.getFileCache(view.file);
-    const rawPlan = cache?.frontmatter?.mandala_plan;
+    const frontmatter = cache?.frontmatter as Record<string, unknown> | null;
+    const rawPlan = frontmatter?.mandala_plan;
     if (!rawPlan || typeof rawPlan !== 'object') return false;
     const plan = rawPlan as Record<string, unknown>;
     if (plan.enabled !== true) return false;

@@ -38,9 +38,9 @@ export const createMobileEditorViewportController = () => {
 
     const getActiveCursorRect = (): DOMRect | null => {
         if (!editorBodyEl) return null;
-        const cursor = editorBodyEl.querySelector(
+        const cursor = editorBodyEl.querySelector<HTMLElement>(
             '.cm-cursorLayer .cm-cursor',
-        ) as HTMLElement | null;
+        );
         if (cursor) return cursor.getBoundingClientRect();
         const selection = window.getSelection();
         if (!selection || selection.rangeCount === 0) return null;
@@ -66,9 +66,9 @@ export const createMobileEditorViewportController = () => {
     const ensureCursorVisible = () => {
         if (!isEditing || !editorBodyEl) return;
         if (hasActiveRangeSelection()) return;
-        const scroller = editorBodyEl.querySelector(
+        const scroller = editorBodyEl.querySelector<HTMLElement>(
             '.cm-editor .cm-scroller',
-        ) as HTMLElement | null;
+        );
         if (!scroller) return;
         const cursorRect = getActiveCursorRect();
         if (!cursorRect) return;
