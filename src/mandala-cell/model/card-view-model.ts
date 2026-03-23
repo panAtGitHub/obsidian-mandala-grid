@@ -1,7 +1,4 @@
-import type {
-    CellGridPosition,
-    CellStyle,
-} from 'src/mandala-cell/model/card-types';
+import type { CellStyle } from 'src/mandala-cell/model/card-types';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
@@ -19,7 +16,6 @@ type SharedCardViewModel = {
     metaAccentColor: string | null;
     displayPolicy: CellDisplayPolicy;
     interactionPolicy: CellInteractionPolicy;
-    gridCell: CellGridPosition | null;
 };
 
 export type MandalaCardUiState = {

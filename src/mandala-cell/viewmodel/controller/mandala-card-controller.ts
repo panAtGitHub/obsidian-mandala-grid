@@ -1,7 +1,5 @@
 import { enableEditModeInMainSplit } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-main-split';
 import { setActiveMainSplitNode } from 'src/mandala-cell/viewmodel/actions/set-active-main-split-node';
-import { activateMandalaGridCell } from 'src/mandala-cell/viewmodel/policies/cell-activation-policy';
-import type { CellGridPosition } from 'src/mandala-cell/model/card-types';
 import {
     enterSubgridForNode,
     exitCurrentSubgrid,
@@ -14,7 +12,6 @@ import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/
 type SelectMandalaCardOptions = {
     view: MandalaView;
     nodeId: string;
-    gridCell: CellGridPosition | null;
     isMobile: boolean;
     event: MouseEvent;
 };
@@ -27,7 +24,6 @@ type DoubleClickMandalaCardOptions = {
     view: MandalaView;
     nodeId: string;
     displaySection: string;
-    gridCell: CellGridPosition | null;
     interactionPolicy: CellInteractionPolicy;
     isMobile: boolean;
     showDetailSidebar: boolean;
@@ -37,11 +33,9 @@ type DoubleClickMandalaCardOptions = {
 export const selectMandalaCard = ({
     view,
     nodeId,
-    gridCell,
     isMobile,
     event,
 }: SelectMandalaCardOptions) => {
-    activateMandalaGridCell(view, gridCell);
     setActiveMainSplitNode(view, nodeId, event);
 
     if (isMobile) {
@@ -52,7 +46,6 @@ export const selectMandalaCard = ({
 export const clickMandalaCard = ({
     view,
     nodeId,
-    gridCell,
     isMobile,
     swapActive,
     event,
@@ -64,7 +57,6 @@ export const clickMandalaCard = ({
     selectMandalaCard({
         view,
         nodeId,
-        gridCell,
         isMobile,
         event,
     });
@@ -74,7 +66,6 @@ export const doubleClickMandalaCard = ({
     view,
     nodeId,
     displaySection,
-    gridCell,
     interactionPolicy,
     isMobile,
     showDetailSidebar,
@@ -94,7 +85,6 @@ export const doubleClickMandalaCard = ({
     selectMandalaCard({
         view,
         nodeId,
-        gridCell,
         isMobile,
         event,
     });

@@ -12,10 +12,7 @@ const baseOptions = () => ({
         sectionColor: null,
         metaAccentColor: null,
         displayPolicy: createDefaultCellDisplayPolicy(),
-        interactionPolicy: buildCellInteractionPolicy({
-            preset: 'grid-nx9',
-        }),
-        gridCell: null,
+        interactionPolicy: buildCellInteractionPolicy({}),
     },
     uiState: {
         active: false,

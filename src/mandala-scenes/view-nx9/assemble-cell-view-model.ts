@@ -183,9 +183,7 @@ const createDisplayPolicy = (whiteThemeMode: boolean): CellDisplayPolicy => ({
 });
 
 const createInteractionPolicy = (): CellInteractionPolicy =>
-    buildCellInteractionPolicy({
-        preset: 'grid-nx9',
-    });
+    buildCellInteractionPolicy({});
 
 const buildCardUiState = ({
     nodeId,
@@ -400,12 +398,6 @@ export const buildNx9PageStaticRows = ({
                       metaAccentColor: sectionColors[cell.section] ?? null,
                       displayPolicy,
                       interactionPolicy,
-                      gridCell: {
-                          mode: 'nx9',
-                          row: cell.row,
-                          col: cell.col,
-                          page: context.currentPage,
-                      },
                       contentEnabled: hydratedNodeIds.has(cell.nodeId),
                   })
                 : null,

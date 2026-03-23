@@ -61,7 +61,6 @@
     let nodeStyle = viewModel.style;
     let displayPolicy = viewModel.displayPolicy;
     let interactionPolicy = viewModel.interactionPolicy;
-    let gridCell = viewModel.gridCell;
     let hasSectionColor = false;
     let active = false;
     let editing = false;
@@ -79,7 +78,6 @@
         style: nodeStyle,
         displayPolicy,
         interactionPolicy,
-        gridCell,
     } = viewModel);
     $: ({ active, editing, selected, pinned } = uiState);
     $: hasSectionColor = !!viewModel.sectionColor;
@@ -150,7 +148,6 @@
         clickMandalaCard({
             view,
             nodeId,
-            gridCell,
             isMobile,
             swapActive: $swapState.active,
             event: e,
@@ -161,7 +158,6 @@
             view,
             nodeId,
             displaySection: renderModel.displaySection,
-            gridCell,
             interactionPolicy,
             isMobile,
             showDetailSidebar: $showDetailSidebar,

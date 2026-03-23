@@ -103,7 +103,7 @@ export const assemble3x3CellViewModels = ({
         }),
     };
     const interactionPolicy = buildCellInteractionPolicy({
-        preset: 'grid-3x3',
+        mobileDoubleClickAction: 'subgrid-navigation',
     });
 
     return layout.childSlots.map((slot, index) => {
@@ -134,7 +134,6 @@ export const assemble3x3CellViewModels = ({
                       metaAccentColor: sectionColors[section] ?? null,
                       displayPolicy,
                       interactionPolicy,
-                      gridCell: null,
                   })
                 : null,
             cardUiState: {

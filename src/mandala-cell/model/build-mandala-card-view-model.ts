@@ -15,7 +15,6 @@ export const buildMandalaCardViewModel = ({
     metaAccentColor,
     displayPolicy,
     interactionPolicy,
-    gridCell,
 }: BuildMandalaCardViewModelOptions): MandalaCardViewModel => ({
     nodeId,
     section,
@@ -25,5 +24,4 @@ export const buildMandalaCardViewModel = ({
     metaAccentColor,
     displayPolicy,
     interactionPolicy,
-    gridCell,
 });

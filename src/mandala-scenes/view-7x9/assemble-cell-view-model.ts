@@ -106,9 +106,7 @@ export const assembleDesktopWeekPlanCells = ({
             compactMode,
         }),
     };
-    const interactionPolicy = buildCellInteractionPolicy({
-        preset: 'grid-7x9',
-    });
+    const interactionPolicy = buildCellInteractionPolicy({});
 
     return buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => ({
         ...cell,
@@ -135,11 +133,6 @@ export const assembleDesktopWeekPlanCells = ({
                       : null,
                   displayPolicy,
                   interactionPolicy,
-                  gridCell: {
-                      mode: 'week-7x9',
-                      row: cell.row,
-                      col: cell.col,
-                  },
               })
             : null,
         cardUiState: {
