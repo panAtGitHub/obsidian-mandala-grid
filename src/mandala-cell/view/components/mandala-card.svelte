@@ -32,7 +32,6 @@
     export let themeSnapshot: MandalaThemeSnapshot | undefined = undefined;
 
     const cellRuntime = getCellRuntime();
-    const view = cellRuntime.view;
     const showDetailSidebar = cellRuntime.showDetailSidebar;
     const swapState = cellRuntime.swapState;
     const previewDialog = cellRuntime.previewDialog;
