@@ -12,7 +12,6 @@
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
-        normalizeNx9VisibleSection,
         resolveNx9PageContext,
         resolveNx9StructureContext,
         type Nx9PageContext,
@@ -74,6 +73,7 @@
     let rowCount = 1;
     let futureScale = 1;
     let activeSection: string | null = null;
+    let activeCoreSection: string | null = null;
     let structureContext: Nx9StructureContext;
     let nx9Context: Nx9PageContext;
     let pageFrame: Nx9PageFrameRowViewModel[] = [];
@@ -112,7 +112,7 @@
             revision,
             contentRevision,
             rowsPerPage,
-            normalizeNx9VisibleSection(activeSection) ?? '',
+            activeSection?.split('.')[0] ?? '',
         ].join('|');
         if (key === cachedStructureKey && cachedStructureContext) {
             return cachedStructureContext;
@@ -237,11 +237,12 @@
 
     $: activeCell = $mandalaUiState.activeCellNx9;
     $: activeSection = $documentSnapshot.idToSection[$activeNodeId] ?? null;
+    $: activeCoreSection = activeSection?.split('.')[0] ?? null;
     $: structureContext = resolveCachedStructureContext({
         sectionIdMap: $documentSnapshot.sectionIdMap,
         documentContent: $documentSnapshot.documentContent,
         rowsPerPage: $nx9RowsPerPage,
-        activeSection,
+        activeSection: activeCoreSection,
         revision: $documentSnapshot.revision,
         contentRevision: $documentSnapshot.contentRevision,
     });
@@ -265,7 +266,6 @@
             $documentSnapshot.contentRevision,
             currentPage,
             rowCount,
-            normalizeNx9VisibleSection(activeSection) ?? '',
         ].join('|');
         if (hydrationMarker !== marker) {
             hydrationMarker = marker;
