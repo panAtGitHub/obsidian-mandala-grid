@@ -1,20 +1,19 @@
 import {
-    executeMandalaSwap,
     handleMandalaSwapNodeClick,
     shouldBlockMandalaNodeDoubleClickForSwap,
     type MandalaSwapInteractionState,
 } from 'src/mandala-interaction/helpers/mandala-swap';
-import type { MandalaView } from 'src/view/view';
+import type { CellRuntimeContext } from 'src/view/cell-runtime-context';
 
 type HandleSwapPointerStartOptions = {
-    view: MandalaView;
+    cellRuntime: CellRuntimeContext;
     swapState: MandalaSwapInteractionState;
     nodeId: string | null;
     event: MouseEvent | TouchEvent;
 };
 
 export const handleSwapPointerStart = ({
-    view,
+    cellRuntime,
     swapState,
     nodeId,
     event,
@@ -25,7 +24,7 @@ export const handleSwapPointerStart = ({
 
     if (
         handleMandalaSwapNodeClick(swapState, nodeId, (source, target) =>
-            executeMandalaSwap(view, source, target),
+            cellRuntime.executeSwap(source, target),
         )
     ) {
         event.preventDefault();

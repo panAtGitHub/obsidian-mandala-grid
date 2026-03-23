@@ -5,6 +5,7 @@ import {
     openSidebarAndEditMandalaNode,
     setActiveMandalaNode,
 } from 'src/mandala-interaction/helpers/node-editing';
+import { executeMandalaSwap } from 'src/mandala-interaction/helpers/mandala-swap';
 import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
 import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
 import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
@@ -41,6 +42,7 @@ export type CellRuntimeContext = {
     enablePinnedSidebarEdit: (nodeId: string) => void;
     enableDetailSidebarEdit: (nodeId: string) => void;
     openSidebarAndEditNode: (nodeId: string) => void;
+    executeSwap: (sourceNodeId: string, targetNodeId: string) => void;
     handleLinks: (event: MouseEvent) => void;
     isGrabbing: () => boolean;
     setInlineCursor: (
@@ -127,6 +129,8 @@ export const createCellRuntimeContext = (
             enableSidebarEditorForNode(view, nodeId),
         openSidebarAndEditNode: (nodeId: string) =>
             openSidebarAndEditMandalaNode(view, nodeId),
+        executeSwap: (sourceNodeId: string, targetNodeId: string) =>
+            executeMandalaSwap(view, sourceNodeId, targetNodeId),
         handleLinks: (event: MouseEvent) => handleLinks(view, event),
         isGrabbing: () => isGrabbing(view),
         setInlineCursor: (

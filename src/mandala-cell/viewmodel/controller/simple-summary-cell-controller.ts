@@ -53,7 +53,7 @@ export const pointerStartSimpleSummaryCell = ({
     event,
 }: SimpleSummaryPointerStartOptions) =>
     handleSwapPointerStart({
-        view: cellRuntime.view,
+        cellRuntime,
         swapState,
         nodeId: cell.nodeId || null,
         event,

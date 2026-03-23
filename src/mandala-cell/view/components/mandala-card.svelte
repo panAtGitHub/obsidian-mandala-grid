@@ -99,7 +99,7 @@
 
     const handleCardMouseDown = (e: MouseEvent) => {
         handleSwapPointerStart({
-            view,
+            cellRuntime,
             swapState: $swapState,
             nodeId,
             event: e,
@@ -108,7 +108,7 @@
 
     const handleCardTouchStart = (e: TouchEvent) => {
         handleSwapPointerStart({
-            view,
+            cellRuntime,
             swapState: $swapState,
             nodeId,
             event: e,
