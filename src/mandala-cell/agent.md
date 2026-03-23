@@ -101,16 +101,10 @@
 
 ## viewmodel/
 
-### actions/
+### runtime contract
 
-- `actions/set-active-main-split-node.ts`
-  设置主分栏当前 active 节点。
-
-- `actions/enable-edit-mode-in-main-split.ts`
-  在主分栏中切换指定节点进入编辑态。
-
-- `actions/enable-edit-mode-in-sidebar.ts`
-  在侧边栏中为指定节点开启编辑态。
+- `src/view/cell-runtime-context.ts`
+  cell 层运行时合同入口。scene / view 层在这里把 active、编辑、内容订阅、preview action 等能力收敛为中性接口，再通过 context 提供给 cell 组件和 controller。
 
 ### controller/
 

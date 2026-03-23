@@ -4,11 +4,8 @@
     import CardMeta from 'src/mandala-cell/view/components/card-meta.svelte';
     import CardStyle from 'src/mandala-cell/view/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/mandala-cell/model/build-mandala-card-render-model';
-    import { getView } from 'src/view/context';
+    import { getCellRuntime } from 'src/view/context';
     import { Platform } from 'obsidian';
-    import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { derived } from 'src/shared/store/derived';
-    import { localFontStore } from 'src/stores/local-font-store';
     import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
     import type {
         MandalaCardUiState,
@@ -34,17 +31,13 @@
     export let uiState: MandalaCardUiState;
     export let themeSnapshot: MandalaThemeSnapshot | undefined = undefined;
 
-    const view = getView();
-    const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
-    const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
-    const previewDialog = derived(
-        view.viewStore,
-        (state) => state.ui.previewDialog,
-    );
-    const idToSection = derived(
-        view.documentStore,
-        (state) => state.sections.id_section,
-    );
+    const cellRuntime = getCellRuntime();
+    const view = cellRuntime.view;
+    const showDetailSidebar = cellRuntime.showDetailSidebar;
+    const swapState = cellRuntime.swapState;
+    const previewDialog = cellRuntime.previewDialog;
+    const idToSection = cellRuntime.idToSection;
+    const localFontSize = cellRuntime.localFontSize;
     const getThemeTone = () =>
         document.body.classList.contains('theme-dark') ? 'dark' : 'light';
     const getThemeUnderlayColor = () =>
@@ -145,7 +138,7 @@
     on:touchstart={handleCardTouchStart}
     on:click={(e) =>
         clickMandalaCard({
-            view,
+            cellRuntime,
             nodeId,
             isMobile,
             swapActive: $swapState.active,
@@ -154,7 +147,7 @@
     on:dblclick={(e) => {
         if (shouldBlockSwapDoubleClick($swapState)) return;
         doubleClickMandalaCard({
-            view,
+            cellRuntime,
             nodeId,
             displaySection: renderModel.displaySection,
             interactionPolicy,
@@ -194,8 +187,8 @@
             showInlineEditor={renderModel.showInlineEditor}
             showContent={renderModel.showContent}
             hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
-            fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
-            absoluteFontSize={isMobile ? $localFontStore : undefined}
+            fontSizeOffset={isMobile ? $localFontSize - 16 : 0}
+            absoluteFontSize={isMobile ? $localFontSize : undefined}
             {scrollbarMode}
             {fillContent}
             density={contentDensity}

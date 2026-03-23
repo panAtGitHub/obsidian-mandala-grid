@@ -1,16 +1,13 @@
-import { enableEditModeInMainSplit } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-main-split';
-import { setActiveMainSplitNode } from 'src/mandala-cell/viewmodel/actions/set-active-main-split-node';
 import {
     enterSubgridForNode,
     exitCurrentSubgrid,
     isGridCenter,
 } from 'src/mandala-interaction/helpers/mobile-navigation';
-import { enableSidebarEditorForNode } from 'src/mandala-interaction/helpers/node-editing';
-import type { MandalaView } from 'src/view/view';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
+import type { CellRuntimeContext } from 'src/view/cell-runtime-context';
 
 type SelectMandalaCardOptions = {
-    view: MandalaView;
+    cellRuntime: CellRuntimeContext;
     nodeId: string;
     isMobile: boolean;
     event: MouseEvent;
@@ -21,7 +18,7 @@ type ClickMandalaCardOptions = SelectMandalaCardOptions & {
 };
 
 type DoubleClickMandalaCardOptions = {
-    view: MandalaView;
+    cellRuntime: CellRuntimeContext;
     nodeId: string;
     displaySection: string;
     interactionPolicy: CellInteractionPolicy;
@@ -31,12 +28,12 @@ type DoubleClickMandalaCardOptions = {
 };
 
 export const selectMandalaCard = ({
-    view,
+    cellRuntime,
     nodeId,
     isMobile,
     event,
 }: SelectMandalaCardOptions) => {
-    setActiveMainSplitNode(view, nodeId, event);
+    cellRuntime.activateMainSplitNode(nodeId, event);
 
     if (isMobile) {
         return;
@@ -44,7 +41,7 @@ export const selectMandalaCard = ({
 };
 
 export const clickMandalaCard = ({
-    view,
+    cellRuntime,
     nodeId,
     isMobile,
     swapActive,
@@ -55,7 +52,7 @@ export const clickMandalaCard = ({
     }
 
     selectMandalaCard({
-        view,
+        cellRuntime,
         nodeId,
         isMobile,
         event,
@@ -63,7 +60,7 @@ export const clickMandalaCard = ({
 };
 
 export const doubleClickMandalaCard = ({
-    view,
+    cellRuntime,
     nodeId,
     displaySection,
     interactionPolicy,
@@ -71,6 +68,8 @@ export const doubleClickMandalaCard = ({
     showDetailSidebar,
     event,
 }: DoubleClickMandalaCardOptions) => {
+    const view = cellRuntime.view;
+
     if (isMobile) {
         if (interactionPolicy.mobileDoubleClickAction === 'subgrid-navigation') {
             if (isGridCenter(view, nodeId, displaySection)) {
@@ -83,16 +82,16 @@ export const doubleClickMandalaCard = ({
     }
 
     selectMandalaCard({
-        view,
+        cellRuntime,
         nodeId,
         isMobile,
         event,
     });
 
     if (showDetailSidebar) {
-        enableSidebarEditorForNode(view, nodeId);
+        cellRuntime.enableDetailSidebarEdit(nodeId);
         return;
     }
 
-    enableEditModeInMainSplit(view, nodeId);
+    cellRuntime.enableMainSplitEdit(nodeId);
 };

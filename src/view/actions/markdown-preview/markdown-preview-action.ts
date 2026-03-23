@@ -1,4 +1,4 @@
-import { getPlugin, getView } from 'src/mandala-scenes/shared/shell/context';
+import { getPlugin, getView } from 'src/view/context';
 import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
 import { renderMarkdownContent } from 'src/view/actions/markdown-preview/helpers/render-markdown-content';
 

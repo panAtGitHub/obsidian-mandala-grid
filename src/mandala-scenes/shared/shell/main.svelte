@@ -1,6 +1,7 @@
 <script lang="ts">
     import { setContext } from 'svelte';
     import MandalaGrid from 'src/main';
+    import { createCellRuntimeContext } from 'src/view/cell-runtime-context';
     import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
     import { showContextMenu } from 'src/view/actions/context-menu/show-context-menu';
     import { viewHotkeysAction } from 'src/view/actions/keyboard-shortcuts/view-hotkeys-action';
@@ -32,6 +33,7 @@
 
     setContext('plugin', plugin);
     setContext('view', view);
+    setContext('cell-runtime', createCellRuntimeContext(view));
 
     const controls = uiControlsStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);

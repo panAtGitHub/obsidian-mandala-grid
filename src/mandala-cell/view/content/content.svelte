@@ -2,24 +2,15 @@
     import { Platform } from 'obsidian';
     import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
-    import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
-    import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
     import CellScrollbar from 'src/mandala-cell/view/style/cell-scrollbar.svelte';
     import {
         DEFAULT_CELL_SCROLLBAR_MODE,
         type CellScrollbarMode,
     } from 'src/mandala-cell/model/cell-scrollbar-mode';
-    import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
-    import { enableEditModeInMainSplit } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-main-split';
-    import { enableEditModeInSidebar } from 'src/mandala-cell/viewmodel/actions/enable-edit-mode-in-sidebar';
-    import { setActiveMainSplitNode } from 'src/mandala-cell/viewmodel/actions/set-active-main-split-node';
-    import { getView } from 'src/view/context';
+    import { getCellRuntime } from 'src/view/context';
     import { getCursorPosition } from 'src/mandala-cell/viewmodel/content-event-handlers/get-cursor-position';
-    import { handleLinks } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/handle-links';
-    import { isGrabbing } from 'src/mandala-cell/viewmodel/content-event-handlers/helpers/is-grabbing';
 
     export let nodeId: string;
     export let isInSidebar: boolean;
@@ -29,8 +20,9 @@
     export let fillContent = false;
     export let density: 'normal' | 'compact' = 'normal';
 
-    const view = getView();
-    const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
+    const cellRuntime = getCellRuntime();
+    const showHiddenCardInfo = cellRuntime.showHiddenCardInfo;
+    const markdownPreview = cellRuntime.markdownPreviewAction;
     const dispatch = createEventDispatcher<{
         mobilePreviewDoubleTapEdit: { nodeId: string };
     }>();
@@ -38,26 +30,26 @@
 
     const setActiveNode = (e: MouseEvent) => {
         if (isInSidebar) {
-            setActiveSidebarNode(view, nodeId);
+            cellRuntime.activatePinnedSidebarNode(nodeId);
         } else {
-            setActiveMainSplitNode(view, nodeId, e);
+            cellRuntime.activateMainSplitNode(nodeId, e);
         }
     };
 
     const enableEditMode = () => {
         if (isInSidebar) {
-            enableEditModeInSidebar(view, nodeId);
+            cellRuntime.enablePinnedSidebarEdit(nodeId);
         } else {
-            enableEditModeInMainSplit(view, nodeId);
+            cellRuntime.enableMainSplitEdit(nodeId);
         }
     };
 
     const enableEditModeAtCursor = (e: MouseEvent) => {
-        const content = get(contentStore(view, nodeId));
+        const content = get(cellRuntime.contentForNode(nodeId));
         const cursor = getCursorPosition(content, e);
         setActiveNode(e);
         if (cursor) {
-            view.inlineEditor.setNodeCursor(nodeId, cursor);
+            cellRuntime.setInlineCursor(nodeId, cursor);
         }
         enableEditMode();
     };
@@ -99,14 +91,14 @@
     };
 
     const handleClick = (e: MouseEvent) => {
-        if (isGrabbing(view)) return;
+        if (cellRuntime.isGrabbing()) return;
 
         // 移动端：仅激活节点，禁止任何编辑相关的副作用
         if (Platform.isMobile) {
             const target = e.target as HTMLElement | null;
             const anchor = target?.closest('a');
             if (anchor) {
-                handleLinks(view, e);
+                cellRuntime.handleLinks(e);
                 return;
             }
 
@@ -120,7 +112,7 @@
             return;
         }
 
-        handleLinks(view, e);
+        cellRuntime.handleLinks(e);
         setActiveNode(e);
 
         // 内容层已完成点击处理，避免继续冒泡到外层卡片重复触发选择逻辑
@@ -128,7 +120,7 @@
     };
 
     const handleDoubleClick = (e: MouseEvent) => {
-        if (isGrabbing(view)) return;
+        if (cellRuntime.isGrabbing()) return;
 
         // 移动端：双击不进入编辑，由父组件 MandalaCard 处理导航（3x3）/无动作（9x9）
         if (Platform.isMobile) {
@@ -152,7 +144,7 @@
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
-    use:markdownPreviewAction={nodeId}
+    use:markdownPreview={nodeId}
     use:hideIdleScrollbar={{ mode: scrollbarMode, enabled: !isInSidebar }}
 ></div>
 

@@ -1,14 +1,14 @@
 <script lang="ts">
     import { MarkdownView, Platform } from 'obsidian';
-    import { getView } from 'src/view/context';
+    import { getCellRuntime } from 'src/view/context';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
-    import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
     export let nodeId: string;
 
-    const view = getView();
+    const cellRuntime = getCellRuntime();
+    const view = cellRuntime.view;
     const dispatch = createEventDispatcher<{
         mobilePreviewDoubleTapEdit: { nodeId: string };
     }>();
@@ -148,7 +148,7 @@
         if (currentNodeId === nextNodeId) return;
         unsubscribe();
         currentNodeId = nextNodeId;
-        const store = contentStore(view, nextNodeId);
+        const store = cellRuntime.contentForNode(nextNodeId);
         unsubscribe = store.subscribe((value) => {
             updateContent(value);
         });

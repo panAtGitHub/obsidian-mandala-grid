@@ -1,30 +1,26 @@
 import { handleSwapPointerStart } from 'src/mandala-cell/viewmodel/controller/swap-controller';
 import type { SimpleSummaryCellModel } from 'src/mandala-cell/model/simple-summary-cell-model';
-import {
-    openSidebarAndEditMandalaNode,
-    setActiveMandalaNode,
-} from 'src/mandala-interaction/helpers/node-editing';
 import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
-import type { MandalaView } from 'src/view/view';
+import type { CellRuntimeContext } from 'src/view/cell-runtime-context';
 
 type ActivateSimpleSummaryCell = (cell: SimpleSummaryCellModel) => void;
 
 type SimpleSummaryPointerStartOptions = {
-    view: MandalaView;
+    cellRuntime: CellRuntimeContext;
     swapState: MandalaSwapInteractionState;
     cell: SimpleSummaryCellModel;
     event: MouseEvent | TouchEvent;
 };
 
 type SimpleSummaryClickOptions = {
-    view: MandalaView;
+    cellRuntime: CellRuntimeContext;
     swapActive: boolean;
     cell: SimpleSummaryCellModel;
     activateCell: ActivateSimpleSummaryCell;
 };
 
 type SimpleSummaryDoubleClickOptions = {
-    view: MandalaView;
+    cellRuntime: CellRuntimeContext;
     swapActive: boolean;
     isMobile: boolean;
     cell: SimpleSummaryCellModel;
@@ -32,7 +28,7 @@ type SimpleSummaryDoubleClickOptions = {
 };
 
 export const clickSimpleSummaryCell = ({
-    view,
+    cellRuntime,
     swapActive,
     cell,
     activateCell,
@@ -47,24 +43,24 @@ export const clickSimpleSummaryCell = ({
         return;
     }
 
-    setActiveMandalaNode(view, cell.nodeId);
+    cellRuntime.activateMandalaNode(cell.nodeId);
 };
 
 export const pointerStartSimpleSummaryCell = ({
-    view,
+    cellRuntime,
     swapState,
     cell,
     event,
 }: SimpleSummaryPointerStartOptions) =>
     handleSwapPointerStart({
-        view,
+        view: cellRuntime.view,
         swapState,
         nodeId: cell.nodeId || null,
         event,
     });
 
 export const doubleClickSimpleSummaryCell = ({
-    view,
+    cellRuntime,
     swapActive,
     isMobile,
     cell,
@@ -83,5 +79,5 @@ export const doubleClickSimpleSummaryCell = ({
         return;
     }
 
-    openSidebarAndEditMandalaNode(view, cell.nodeId);
+    cellRuntime.openSidebarAndEditNode(cell.nodeId);
 };

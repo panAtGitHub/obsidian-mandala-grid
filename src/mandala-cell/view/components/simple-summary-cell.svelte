@@ -15,7 +15,7 @@
         SimpleSummaryCellModel,
     } from 'src/mandala-cell/model/simple-summary-cell-model';
     import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
-    import { getView } from 'src/view/context';
+    import { getCellRuntime } from 'src/view/context';
 
     export let cell: SimpleSummaryCellModel;
     export let activeNodeId: string | null;
@@ -24,7 +24,7 @@
     export let swapState: MandalaSwapInteractionState;
     export let activateCell: (cell: SimpleSummaryCellModel) => void;
 
-    const view = getView();
+    const cellRuntime = getCellRuntime();
 
     const renderCellMarkdown = (element: HTMLElement, content: string) => {
         const render = () => {
@@ -72,28 +72,28 @@
     id={cell.nodeId || undefined}
     on:mousedown={(event) =>
         pointerStartSimpleSummaryCell({
-            view,
+            cellRuntime,
             swapState,
             cell,
             event,
         })}
     on:touchstart={(event) =>
         pointerStartSimpleSummaryCell({
-            view,
+            cellRuntime,
             swapState,
             cell,
             event,
         })}
     on:click={() =>
         clickSimpleSummaryCell({
-            view,
+            cellRuntime,
             swapActive: swapState.active,
             cell,
             activateCell,
         })}
     on:dblclick={() =>
         doubleClickSimpleSummaryCell({
-            view,
+            cellRuntime,
             swapActive: swapState.active,
             isMobile: Platform.isMobile,
             cell,
