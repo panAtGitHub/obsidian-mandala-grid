@@ -15,6 +15,7 @@ import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-to
 type BuildMandalaCardRenderModelOptions = {
     viewModel: MandalaCardViewModel;
     uiState: MandalaCardUiState;
+    visualActive?: boolean;
     fallbackSection?: string;
     previewDialogOpen: boolean;
     previewDialogNodeId: string | null;
@@ -27,6 +28,7 @@ type BuildMandalaCardRenderModelOptions = {
 export const buildMandalaCardRenderModel = ({
     viewModel,
     uiState,
+    visualActive = uiState.active,
     fallbackSection,
     previewDialogOpen,
     previewDialogNodeId,
@@ -47,7 +49,7 @@ export const buildMandalaCardRenderModel = ({
     const { active, editing, pinned } = uiState;
     const displaySection = section || fallbackSection || '';
     const { cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
-        active,
+        active: visualActive,
         sectionColor,
         preserveActiveBackground: displayPolicy.preserveActiveBackground,
         style,

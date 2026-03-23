@@ -57,4 +57,20 @@ describe('buildMandalaCardRenderModel', () => {
         expect(model.showInlineEditor).toBe(true);
         expect(model.showContent).toBe(false);
     });
+
+    it('keeps active editor semantics when visual active surface is disabled', () => {
+        const model = buildMandalaCardRenderModel({
+            ...baseOptions(),
+            uiState: {
+                ...baseOptions().uiState,
+                active: true,
+                editing: true,
+            },
+            visualActive: false,
+        });
+
+        expect(model.showInlineEditor).toBe(true);
+        expect(model.showContent).toBe(false);
+        expect(model.cardStyle).toBeUndefined();
+    });
 });

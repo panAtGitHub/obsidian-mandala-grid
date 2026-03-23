@@ -889,7 +889,16 @@
 
     .nx9-cell--desktop-card.is-active-cell,
     .nx9-cell--desktop-card.is-active-node {
-        outline: none;
+        z-index: 1;
+    }
+
+    .nx9-cell--desktop-card
+        :global(
+            .mandala-card:hover:not(.mandala-card--swap-source):not(
+                    .mandala-card--swap-target
+                )
+        ) {
+        box-shadow: none !important;
     }
 
     .nx9-cell__empty {
