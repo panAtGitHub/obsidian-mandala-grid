@@ -18,6 +18,7 @@ export const tryMandalaNx9Navigation = (
     direction: AllDirections,
     options?: { extendSelection?: boolean },
 ) => {
+    const startedAt = performance.now();
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return false;
     if (view.mandalaMode !== 'nx9') return false;
@@ -64,6 +65,15 @@ export const tryMandalaNx9Navigation = (
 
     const nextSection = context.sectionForCell(nextRow, nextCol, nextPage);
     setActiveCellNx9(view, { row: nextRow, col: nextCol, page: nextPage });
+    view.recordPerfAfterNextPaint('interaction.nx9.navigate', startedAt, {
+        direction,
+        from_page: current.page,
+        to_page: nextPage,
+        from_row: current.row,
+        to_row: nextRow,
+        from_col: current.col,
+        to_col: nextCol,
+    });
     if (!nextSection) return true;
 
     const nextNodeId = docState.sections.section_id[nextSection];

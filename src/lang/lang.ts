@@ -16,6 +16,7 @@ export const lang = {
         '将当前核心九宫的 8 个标题写回「日计划」模板',
     cmd_refresh_day_plan_date_headings: '按当前设置刷新日计划日期标题',
     cmd_open_export_mode: '打开导出模式',
+    cmd_export_perf_snapshot: '导出性能快照',
     ocm_new_document: '新建九宫格文档',
 
     // add sections

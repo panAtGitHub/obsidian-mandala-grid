@@ -20,12 +20,19 @@ export const onViewStateUpdate = (
     const e = getViewEventType(type);
 
     const activeNodeChange = e.activeNode || e.activeNodeHistory;
+    const previousActiveNode = localState.previousActiveNode || null;
+    const nextActiveNode = viewState.document.activeNode || null;
     const activeNodeHasChanged =
-        localState.previousActiveNode !== viewState.document.activeNode;
+        previousActiveNode !== nextActiveNode;
     if (activeNodeHasChanged) {
         localState.previousActiveNode = viewState.document.activeNode;
     }
     if (activeNodeChange && activeNodeHasChanged) {
+        view.recordPerfEvent('view.active-node.changed', {
+            action_type: action.type,
+            prev_node_id: previousActiveNode,
+            next_node_id: nextActiveNode,
+        });
         persistActiveNodeInPluginSettings(view);
         void view.plugin.statusBar.updateProgressIndicatorAndChildCount(view);
     }

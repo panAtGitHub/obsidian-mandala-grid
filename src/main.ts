@@ -51,6 +51,8 @@ import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-e
 import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import { lang } from 'src/lang/lang';
 import { MandalaGridSettingTab } from 'src/obsidian/settings/mandala-grid-setting-tab';
+import { __dev__ } from 'src/shared/helpers/logger';
+import { PerfRecorder } from 'src/perf/perf-recorder';
 
 export type SettingsStore = Store<Settings, SettingsActions>;
 export type PluginStore = Store<PluginState, PluginStoreActions>;
@@ -59,6 +61,7 @@ export default class MandalaGrid extends Plugin {
     settings: SettingsStore;
     store: PluginStore;
     statusBar: StatusBar;
+    perfRecorder!: PerfRecorder;
     private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
     private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
     private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null =
@@ -75,6 +78,10 @@ export default class MandalaGrid extends Plugin {
     viewType: DocumentsPreferences = {};
 
     async onload() {
+        this.perfRecorder = new PerfRecorder({
+            pluginVersion: this.manifest.version,
+            runtimeEnv: __dev__ ? 'development' : 'production',
+        });
         await this.loadSettings();
         this.store = new Store<PluginState, PluginStoreActions>(
             DefaultPluginState(),
@@ -197,26 +204,43 @@ export default class MandalaGrid extends Plugin {
 
         this.refreshMandalaEmbedTimeout = setTimeout(() => {
             this.refreshMandalaEmbedTimeout = null;
+            const refreshStartedMs = performance.now();
             const forceAllRefresh = this.pendingMandalaEmbedRefreshAll;
             const changedPathSet = new Set(
                 this.pendingMandalaEmbedChangedPaths,
             );
             this.pendingMandalaEmbedRefreshAll = false;
             this.pendingMandalaEmbedChangedPaths.clear();
+            const openViews = getOpenMandalaEmbedRefreshViews(this);
+            const openMarkdownViewCount = openViews.length;
 
             if (forceAllRefresh) {
+                const previewViewCount = openViews.filter(
+                    (view) => view.mode === 'preview',
+                ).length;
                 const scrollSnapshots = captureMarkdownPreviewScrolls(this);
                 this.mandalaEmbedRefreshEpoch += 1;
                 this.replaceMandalaSourceEmbedExtensions();
                 this.app.workspace.updateOptions();
                 rerenderOpenMarkdownPreviews(this);
                 restoreMarkdownPreviewScrolls(scrollSnapshots);
+                this.perfRecorder.record('workspace.embed-refresh', {
+                    force_all: true,
+                    changed_path_count: changedPathSet.size,
+                    open_markdown_view_count: openMarkdownViewCount,
+                    preview_source_count: previewViewCount,
+                    preview_target_count: 0,
+                    live_preview_target_count: 0,
+                    total_ms: Number(
+                        (performance.now() - refreshStartedMs).toFixed(2),
+                    ),
+                });
                 return;
             }
 
             const refreshPlan = resolveMandalaEmbedRefreshPlan(
                 this,
-                getOpenMandalaEmbedRefreshViews(this),
+                openViews,
                 changedPathSet,
             );
             if (
@@ -224,6 +248,17 @@ export default class MandalaGrid extends Plugin {
                 refreshPlan.previewTargetPaths.size === 0 &&
                 refreshPlan.livePreviewTargetPaths.size === 0
             ) {
+                this.perfRecorder.record('workspace.embed-refresh', {
+                    force_all: false,
+                    changed_path_count: changedPathSet.size,
+                    open_markdown_view_count: openMarkdownViewCount,
+                    preview_source_count: 0,
+                    preview_target_count: 0,
+                    live_preview_target_count: 0,
+                    total_ms: Number(
+                        (performance.now() - refreshStartedMs).toFixed(2),
+                    ),
+                });
                 return;
             }
 
@@ -250,6 +285,19 @@ export default class MandalaGrid extends Plugin {
                     refreshPlan.livePreviewTargetPaths,
                 );
             }
+
+            this.perfRecorder.record('workspace.embed-refresh', {
+                force_all: false,
+                changed_path_count: changedPathSet.size,
+                open_markdown_view_count: openMarkdownViewCount,
+                preview_source_count: refreshPlan.previewSourcePaths.size,
+                preview_target_count: refreshPlan.previewTargetPaths.size,
+                live_preview_target_count:
+                    refreshPlan.livePreviewTargetPaths.size,
+                total_ms: Number(
+                    (performance.now() - refreshStartedMs).toFixed(2),
+                ),
+            });
         }, delay_ms);
     }
 

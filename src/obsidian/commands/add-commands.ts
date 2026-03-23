@@ -12,6 +12,7 @@ import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-m
 import { openExportModeModalForView } from 'src/mandala-settings/ui/view-options/export-mode-modal-store';
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
+import { exportPerfSnapshot } from 'src/obsidian/commands/helpers/export-perf-snapshot';
 
 type ManagedCommand = Omit<Command, 'id' | 'callback'> & {
     commandId: string;
@@ -107,6 +108,16 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
             if (!view) return false;
             if (checking) return true;
             openExportModeModalForView(view.id);
+        },
+    });
+
+    commands.push({
+        commandId: 'export-perf-snapshot',
+        name: lang.cmd_export_perf_snapshot,
+        icon: customIcons.mandalaGrid.name,
+        checkCallback: (checking) => {
+            if (checking) return true;
+            void exportPerfSnapshot(plugin);
         },
     });
 

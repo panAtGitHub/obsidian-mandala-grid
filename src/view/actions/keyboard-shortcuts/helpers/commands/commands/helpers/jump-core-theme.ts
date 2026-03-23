@@ -11,6 +11,7 @@ export const jumpCoreTheme = (
     view: MandalaView,
     direction: CoreJumpDirection,
 ) => {
+    const startedAt = performance.now();
     if (!view.mandalaMode) return;
 
     const docState = view.documentStore.getValue();
@@ -64,6 +65,11 @@ export const jumpCoreTheme = (
             type: 'view/set-active-node/mouse-silent',
             payload: { id: nextNodeId },
         });
+        view.recordPerfAfterNextPaint('interaction.9x9.jump-core', startedAt, {
+            direction,
+            from_core: core,
+            to_core: nextCore,
+        });
         return;
     }
 
@@ -80,5 +86,10 @@ export const jumpCoreTheme = (
     view.viewStore.dispatch({
         type: 'view/set-active-node/mouse-silent',
         payload: { id: prevNodeId },
+    });
+    view.recordPerfAfterNextPaint('interaction.9x9.jump-core', startedAt, {
+        direction,
+        from_core: core,
+        to_core: prevCore,
     });
 };

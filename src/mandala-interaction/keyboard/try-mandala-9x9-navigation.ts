@@ -18,6 +18,7 @@ export const tryMandala9x9Navigation = (
     direction: AllDirections,
     options?: { extendSelection?: boolean },
 ) => {
+    const startedAt = performance.now();
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return false;
     if (view.mandalaMode !== '9x9') return false;
@@ -61,6 +62,13 @@ export const tryMandala9x9Navigation = (
     if (!nextSection) return true;
 
     setActiveCell9x9(view, { row: nextRow, col: nextCol });
+    view.recordPerfAfterNextPaint('interaction.9x9.navigate', startedAt, {
+        direction,
+        from_row: current.row,
+        from_col: current.col,
+        to_row: nextRow,
+        to_col: nextCol,
+    });
 
     const nextNodeId = docState.sections.section_id[nextSection];
     if (!nextNodeId) return true;

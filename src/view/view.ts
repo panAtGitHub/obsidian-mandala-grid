@@ -198,6 +198,24 @@ export class MandalaView extends TextFileView {
         return this.activeFilePath ?? this.file?.path ?? null;
     }
 
+    recordPerfEvent(name: string, payload: Record<string, unknown> = {}) {
+        this.plugin.perfRecorder.record(name, payload, {
+            filePath: this.getCurrentFilePath(),
+            mode: this.mandalaMode,
+        });
+    }
+
+    recordPerfAfterNextPaint(
+        name: string,
+        startedAt: number,
+        payload: Record<string, unknown> = {},
+    ) {
+        this.plugin.perfRecorder.recordAfterNextPaint(name, startedAt, payload, {
+            filePath: this.getCurrentFilePath(),
+            mode: this.mandalaMode,
+        });
+    }
+
     getCurrentMandalaLayoutId(settings = this.plugin.settings.getValue()) {
         return getCurrentMandalaLayoutIdFromRuntimeState(this, settings);
     }
@@ -697,7 +715,7 @@ export class MandalaView extends TextFileView {
             }
         }
 
-        logger.debug('[perf][view] saveDocument', {
+        const savePerfPayload = {
             file: this.file.path,
             mode,
             used_fast_path: usedFastPath,
@@ -710,7 +728,9 @@ export class MandalaView extends TextFileView {
             save_total_ms: Number(
                 (performance.now() - saveStartedMs).toFixed(2),
             ),
-        });
+        };
+        logger.debug('[perf][view] saveDocument', savePerfPayload);
+        this.recordPerfEvent('view.save-document', savePerfPayload);
         const data: string = state.file.frontmatter + body;
         if (data !== this.data) {
             if (data.trim().length === 0) {
@@ -849,7 +869,7 @@ export class MandalaView extends TextFileView {
             }
             loadedFromDisk = true;
             this.scheduleFirstRenderProbe(startMs, event);
-            logger.debug('[perf][view] loadFullDocument', {
+            const loadFullDocumentPerfPayload = {
                 file: this.file?.path,
                 event,
                 bytes: loadMetrics?.bytes ?? 0,
@@ -858,7 +878,22 @@ export class MandalaView extends TextFileView {
                 build_ms: loadMetrics?.buildMs ?? 0,
                 loadCostMs: Number(loadCostMs.toFixed(2)),
                 nextActiveSection,
+            };
+            logger.debug(
+                '[perf][view] loadFullDocument',
+                loadFullDocumentPerfPayload,
+            );
+            this.recordPerfEvent('document.load-from-disk', {
+                event: event ?? null,
+                bytes: loadMetrics?.bytes ?? 0,
+                sections_count: loadMetrics?.sectionsCount ?? 0,
+                parse_ms: loadMetrics?.parseMs ?? 0,
+                build_ms: loadMetrics?.buildMs ?? 0,
             });
+            this.recordPerfEvent(
+                'view.load-full-document',
+                loadFullDocumentPerfPayload,
+            );
         } else if (frontmatterHasChanged) {
             updateFrontmatter(this, frontmatter);
             this.lastLoadedFrontmatter = frontmatter;
@@ -888,7 +923,7 @@ export class MandalaView extends TextFileView {
         if (this.isActive && this.isViewOfFile) {
             this.ensureCompatibleMandalaMode(frontmatter);
         }
-        logger.debug('[perf][view] loadDocumentToStore', {
+        const loadDocumentToStorePerfPayload = {
             file: this.file?.path,
             event,
             bytes:
@@ -910,7 +945,15 @@ export class MandalaView extends TextFileView {
             kind: activation.kind,
             activationCostMs: Number(activationCostMs.toFixed(2)),
             switch_total_ms: Number((performance.now() - startMs).toFixed(2)),
-        });
+        };
+        logger.debug(
+            '[perf][view] loadDocumentToStore',
+            loadDocumentToStorePerfPayload,
+        );
+        this.recordPerfEvent(
+            'view.load-document-to-store',
+            loadDocumentToStorePerfPayload,
+        );
     };
 
     private persistMandalaUiState(path: string) {
@@ -1070,14 +1113,22 @@ export class MandalaView extends TextFileView {
                         80,
                     );
                 } else {
-                    logger.debug('[perf][view] focusMandalaSection-timeout', {
+                    const timeoutPerfPayload = {
                         file: this.file?.path,
                         targetSection,
                         attempts: attempt + 1,
                         costMs: Number(
                             (performance.now() - startMs).toFixed(2),
                         ),
-                    });
+                    };
+                    logger.debug(
+                        '[perf][view] focusMandalaSection-timeout',
+                        timeoutPerfPayload,
+                    );
+                    this.recordPerfEvent(
+                        'view.focus-section-timeout',
+                        timeoutPerfPayload,
+                    );
                 }
                 return;
             }
@@ -1091,12 +1142,14 @@ export class MandalaView extends TextFileView {
                 type: 'view/set-active-node/mouse-silent',
                 payload: { id: nodeId },
             });
-            logger.debug('[perf][view] focusMandalaSection', {
+            const focusPerfPayload = {
                 file: this.file?.path,
                 targetSection,
                 attempts: attempt + 1,
                 costMs: Number((performance.now() - startMs).toFixed(2)),
-            });
+            };
+            logger.debug('[perf][view] focusMandalaSection', focusPerfPayload);
+            this.recordPerfEvent('view.focus-section', focusPerfPayload);
         };
 
         this.focusMandalaSectionTimer = window.setTimeout(() => run(0), 80);
@@ -1138,7 +1191,7 @@ export class MandalaView extends TextFileView {
                     const loadMetrics =
                         this.documentStore.getValue().meta.mandalaV2
                             .loadMetrics;
-                    logger.debug('[perf][view] firstRender', {
+                    const firstRenderPerfPayload = {
                         file: this.file?.path,
                         event,
                         bytes: loadMetrics?.bytes ?? 0,
@@ -1148,7 +1201,12 @@ export class MandalaView extends TextFileView {
                         first_render_ms: Number(
                             (performance.now() - loadStartedMs).toFixed(2),
                         ),
-                    });
+                    };
+                    logger.debug('[perf][view] firstRender', firstRenderPerfPayload);
+                    this.recordPerfEvent(
+                        'view.first-render',
+                        firstRenderPerfPayload,
+                    );
                 },
             );
         });

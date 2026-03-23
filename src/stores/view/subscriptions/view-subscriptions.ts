@@ -21,6 +21,7 @@ export const viewSubscriptions = (view: MandalaView) => {
     const unsubFromView = view.viewStore.subscribe(
         (viewState, action, initialRun) => {
             if (initialRun) {
+                localState.previousActiveNode = viewState.document.activeNode;
                 onMountSubscriptions = onViewMount(view);
             } else if (action) {
                 onViewStateUpdate(view, action, localState);
