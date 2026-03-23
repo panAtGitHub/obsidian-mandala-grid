@@ -1,7 +1,7 @@
 import { MandalaView } from 'src/view/view';
-import { handleBlockLink } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/block-link/handle-block-link';
-import { handleFileLink } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/file-link/handle-file-link';
-import { handleHeading } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/heading-link/handle-heading';
+import { handleBlockLink } from 'src/view/helpers/handle-links/block-link/handle-block-link';
+import { handleFileLink } from 'src/view/helpers/handle-links/file-link/handle-file-link';
+import { handleHeading } from 'src/view/helpers/handle-links/heading-link/handle-heading';
 import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
 

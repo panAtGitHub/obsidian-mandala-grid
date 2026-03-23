@@ -1,5 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import { getExistingRightTabGroup } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/helpers/get-existing-right-tab-group';
+import { getExistingRightTabGroup } from 'src/view/helpers/handle-links/helpers/get-existing-right-tab-group';
 import { WorkspaceLeaf } from 'obsidian';
 
 export const openFileInExistingRightTabGroup = (

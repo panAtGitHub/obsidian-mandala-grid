@@ -1,6 +1,6 @@
 import { MandalaView } from 'src/view/view';
-import { handleGlobalBlockLink } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/block-link/handle-global-block-link';
-import { getCurrentFileSubpath } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/helpers/get-current-file-subpath';
+import { handleGlobalBlockLink } from 'src/view/helpers/handle-links/block-link/handle-global-block-link';
+import { getCurrentFileSubpath } from 'src/view/helpers/handle-links/helpers/get-current-file-subpath';
 
 export const handleHeading = (
     view: MandalaView,

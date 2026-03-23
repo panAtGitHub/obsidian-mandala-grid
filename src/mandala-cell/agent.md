@@ -130,44 +130,6 @@
 - `content-event-handlers/get-cursor-position.ts`
   提供编辑态光标位置读取的基础工具。
 
-- `content-event-handlers/helpers/is-grabbing.ts`
-  判断当前视图是否处于 grabbing / 拖动态。
-
-- `content-event-handlers/handle-links/handle-links.ts`
-  cell 内容区链接点击的总入口，负责分发不同类型链接的处理逻辑。
-
-- `content-event-handlers/handle-links/file-link/handle-file-link.ts`
-  处理文件链接跳转。
-
-- `content-event-handlers/handle-links/heading-link/handle-heading.ts`
-  处理 heading 链接跳转。
-
-- `content-event-handlers/handle-links/heading-link/handle-local-heading-link.ts`
-  处理当前文件内的本地 heading 跳转。
-
-- `content-event-handlers/handle-links/block-link/handle-block-link.ts`
-  处理 block 链接跳转。
-
-- `content-event-handlers/handle-links/block-link/handle-local-block-link.ts`
-  处理当前文档内的本地 block 跳转。
-
-- `content-event-handlers/handle-links/block-link/handle-global-block-link.ts`
-  处理跨文档 block 链接，以及根据修饰键决定打开 pane 类型。
-
-- `content-event-handlers/handle-links/helpers/select-card.ts`
-  链接跳转前后用于选中 card 的辅助函数。
-
-- `content-event-handlers/handle-links/helpers/get-current-file-subpath.ts`
-  解析当前文件上下文中的 subpath。
-
-- `content-event-handlers/handle-links/helpers/get-existing-right-tab-group.ts`
-  获取现有右侧 tabs 容器。
-
-- `content-event-handlers/handle-links/helpers/open-file-in-existing-right-tab-group.ts`
-  把文件打开到已有的右侧 tab group 中。
-
----
-
 ## 修改建议
 
 - 要改“显示什么、样式如何派生”，优先看 `model/`。

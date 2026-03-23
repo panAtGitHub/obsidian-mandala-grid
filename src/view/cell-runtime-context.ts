@@ -1,7 +1,5 @@
 import type { Readable } from 'svelte/store';
 import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
-import { handleLinks } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/handle-links';
-import { isGrabbing } from 'src/mandala-cell/viewmodel/content-event-handlers/helpers/is-grabbing';
 import {
     enableSidebarEditorForNode,
     openSidebarAndEditMandalaNode,
@@ -18,6 +16,8 @@ import { expandableTextareaAction } from 'src/view/actions/inline-editor/expanda
 import { loadInlineEditor } from 'src/view/actions/inline-editor/load-inline-editor';
 import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
 import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
+import { handleLinks } from 'src/view/helpers/handle-links/handle-links';
+import { isGrabbing } from 'src/view/helpers/is-grabbing';
 import type { MandalaView } from 'src/view/view';
 
 export type PreviewDialogSnapshot = {

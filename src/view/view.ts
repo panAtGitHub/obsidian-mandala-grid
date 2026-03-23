@@ -46,7 +46,7 @@ import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/documen
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
 import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
-import { selectCard } from 'src/mandala-cell/viewmodel/content-event-handlers/handle-links/helpers/select-card';
+import { selectCard } from 'src/view/helpers/handle-links/helpers/select-card';
 import {
     DayPlanTodayNavigation,
     resolveDayPlanTodayNavigation,
