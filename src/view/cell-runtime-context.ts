@@ -154,8 +154,8 @@ export const createCellRuntimeContext = (
             },
         } as never) as InlineMarkdownView;
 
-        markdownView.mandalaSetViewData = async (data, clear) => {
-            await MarkdownView.prototype.setViewData.call(
+        markdownView.mandalaSetViewData = (data, clear) => {
+            MarkdownView.prototype.setViewData.call(
                 markdownView,
                 data,
                 clear,
