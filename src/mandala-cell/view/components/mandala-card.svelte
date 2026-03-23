@@ -56,6 +56,7 @@
     let section: string;
     let active: boolean;
     let editing: boolean;
+    let contentEnabled: boolean;
     let selected: boolean;
     let pinned: boolean;
     let nodeStyle = viewModel.style;
@@ -73,6 +74,7 @@
         section,
         active,
         editing,
+        contentEnabled,
         selected,
         pinned,
         style: nodeStyle,
@@ -92,6 +94,7 @@
         fallbackSection: $idToSection[nodeId],
         active,
         editing,
+        contentEnabled,
         pinned,
         style: nodeStyle,
         sectionColor,
@@ -164,9 +167,7 @@
         });
     }}
 >
-    {#if nodeStyle &&
-    !(renderModel.shouldHideBackgroundStyle &&
-        nodeStyle.styleVariant === 'background-color')}
+    {#if nodeStyle && !(renderModel.shouldHideBackgroundStyle && nodeStyle.styleVariant === 'background-color')}
         <CardStyle style={nodeStyle} />
     {/if}
 

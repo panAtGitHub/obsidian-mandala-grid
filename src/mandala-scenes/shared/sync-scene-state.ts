@@ -41,6 +41,7 @@ type SyncSceneStateArgs = {
 export const createSceneStateSynchronizer = () => {
     let cachedDayPlanFrontmatter: string | null = null;
     let cachedDayPlan = parseDayPlanFrontmatter('');
+    let previousMode: MandalaMode | null = null;
 
     const getCachedDayPlan = (frontmatter: string) => {
         if (frontmatter !== cachedDayPlanFrontmatter) {
@@ -50,21 +51,22 @@ export const createSceneStateSynchronizer = () => {
         return cachedDayPlan;
     };
 
-    return ({
+    const syncModeCompatibility = ({
         view,
         mode,
         dayPlanEnabled,
         subgridTheme,
         sectionToNodeId,
-        idToSection,
-        activeNodeId,
         documentState,
-        selectedLayoutId,
-        customLayouts,
-        nx9RowsPerPage,
-        weekAnchorDate,
-        weekStart,
-    }: SyncSceneStateArgs) => {
+    }: Pick<
+        SyncSceneStateArgs,
+        | 'view'
+        | 'mode'
+        | 'dayPlanEnabled'
+        | 'subgridTheme'
+        | 'sectionToNodeId'
+        | 'documentState'
+    >) => {
         if (mode && !subgridTheme) {
             view.viewStore.dispatch({
                 type: 'view/mandala/subgrid/enter',
@@ -81,7 +83,10 @@ export const createSceneStateSynchronizer = () => {
             view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
         }
 
-        if (mode === 'nx9' && !view.canUseNx9Mode(documentState.file.frontmatter)) {
+        if (
+            mode === 'nx9' &&
+            !view.canUseNx9Mode(documentState.file.frontmatter)
+        ) {
             view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
         }
 
@@ -96,111 +101,158 @@ export const createSceneStateSynchronizer = () => {
                 payload: { theme: '1' },
             });
         }
+    };
 
-        if (mode !== '9x9') {
+    const clearInactiveModeState = (
+        view: MandalaView,
+        mode: MandalaMode,
+        hasModeChanged: boolean,
+    ) => {
+        if (!hasModeChanged) return;
+        if (mode !== '9x9' && view.mandalaActiveCell9x9) {
+            setActiveCell9x9(view, null);
+        }
+        if (mode !== 'nx9' && view.mandalaActiveCellNx9) {
+            setActiveCellNx9(view, null);
+        }
+        if (mode !== 'week-7x9' && view.mandalaActiveCellWeek7x9) {
+            setActiveCellWeek7x9(view, null);
+        }
+    };
+
+    const sync9x9State = ({
+        view,
+        idToSection,
+        activeNodeId,
+        selectedLayoutId,
+        customLayouts,
+    }: Pick<
+        SyncSceneStateArgs,
+        | 'view'
+        | 'idToSection'
+        | 'activeNodeId'
+        | 'selectedLayoutId'
+        | 'customLayouts'
+    >) => {
+        const section = idToSection[activeNodeId ?? ''];
+        const baseTheme = getBaseTheme(section);
+        if (!section) {
             if (view.mandalaActiveCell9x9) {
                 setActiveCell9x9(view, null);
             }
-        } else {
-            const section = idToSection[activeNodeId ?? ''];
-            const baseTheme = getBaseTheme(section);
-            if (!section) {
-                if (view.mandalaActiveCell9x9) {
-                    setActiveCell9x9(view, null);
-                }
-            } else {
-                const cell = view.mandalaActiveCell9x9;
-                const pos = posOfSection9x9(
-                    section,
-                    selectedLayoutId,
-                    baseTheme,
-                    customLayouts,
-                );
-                if (cell) {
-                    const mapped = sectionAtCell9x9(
-                        cell.row,
-                        cell.col,
-                        selectedLayoutId,
-                        baseTheme,
-                        customLayouts,
-                    );
-                    if (!mapped || mapped !== section) {
-                        setActiveCell9x9(view, pos ?? null);
-                    }
-                }
-            }
-        }
-
-        if (mode !== 'nx9') {
-            if (view.mandalaActiveCellNx9) {
-                setActiveCellNx9(view, null);
-            }
-        } else {
-            const section = idToSection[activeNodeId ?? ''];
-            const nx9Context = resolveNx9Context({
-                sectionIdMap: documentState.sections.section_id,
-                documentContent: documentState.document.content,
-                rowsPerPage: nx9RowsPerPage,
-                activeSection: section,
-                activeCell: view.mandalaActiveCellNx9,
-            });
-            const visibleSection = normalizeNx9VisibleSection(section);
-            const pos = nx9Context.posForSection(section);
-            const cell = view.mandalaActiveCellNx9;
-            if (!section) {
-                if (cell) {
-                    setActiveCellNx9(view, null);
-                }
-            } else if (!cell && pos) {
-                setActiveCellNx9(view, {
-                    row: pos.row,
-                    col: pos.col,
-                    page: pos.page,
-                });
-            } else if (cell) {
-                const mapped = nx9Context.sectionForCell(
-                    cell.row,
-                    cell.col,
-                    cell.page,
-                );
-                const isGhostCreateCell = nx9Context.isGhostCreateCell(
-                    cell.row,
-                    cell.col,
-                    cell.page,
-                );
-                if (!mapped && !isGhostCreateCell) {
-                    setActiveCellNx9(
-                        view,
-                        pos
-                            ? {
-                                  row: pos.row,
-                                  col: pos.col,
-                                  page: pos.page,
-                              }
-                            : null,
-                    );
-                } else if (mapped && mapped !== visibleSection) {
-                    setActiveCellNx9(
-                        view,
-                        pos
-                            ? {
-                                  row: pos.row,
-                                  col: pos.col,
-                                  page: pos.page,
-                              }
-                            : null,
-                    );
-                }
-            }
-        }
-
-        if (mode !== 'week-7x9') {
-            if (view.mandalaActiveCellWeek7x9) {
-                setActiveCellWeek7x9(view, null);
-            }
             return;
         }
+        const cell = view.mandalaActiveCell9x9;
+        const pos = posOfSection9x9(
+            section,
+            selectedLayoutId,
+            baseTheme,
+            customLayouts,
+        );
+        if (cell) {
+            const mapped = sectionAtCell9x9(
+                cell.row,
+                cell.col,
+                selectedLayoutId,
+                baseTheme,
+                customLayouts,
+            );
+            if (!mapped || mapped !== section) {
+                setActiveCell9x9(view, pos ?? null);
+            }
+        }
+    };
 
+    const syncNx9State = ({
+        view,
+        idToSection,
+        activeNodeId,
+        documentState,
+        nx9RowsPerPage,
+    }: Pick<
+        SyncSceneStateArgs,
+        | 'view'
+        | 'idToSection'
+        | 'activeNodeId'
+        | 'documentState'
+        | 'nx9RowsPerPage'
+    >) => {
+        const section = idToSection[activeNodeId ?? ''];
+        const nx9Context = resolveNx9Context({
+            sectionIdMap: documentState.sections.section_id,
+            documentContent: documentState.document.content,
+            rowsPerPage: nx9RowsPerPage,
+            activeSection: section,
+            activeCell: view.mandalaActiveCellNx9,
+        });
+        const visibleSection = normalizeNx9VisibleSection(section);
+        const pos = nx9Context.posForSection(section);
+        const cell = view.mandalaActiveCellNx9;
+        if (!section) {
+            if (cell) {
+                setActiveCellNx9(view, null);
+            }
+        } else if (!cell && pos) {
+            setActiveCellNx9(view, {
+                row: pos.row,
+                col: pos.col,
+                page: pos.page,
+            });
+        } else if (cell) {
+            const mapped = nx9Context.sectionForCell(
+                cell.row,
+                cell.col,
+                cell.page,
+            );
+            const isGhostCreateCell = nx9Context.isGhostCreateCell(
+                cell.row,
+                cell.col,
+                cell.page,
+            );
+            if (!mapped && !isGhostCreateCell) {
+                setActiveCellNx9(
+                    view,
+                    pos
+                        ? {
+                              row: pos.row,
+                              col: pos.col,
+                              page: pos.page,
+                          }
+                        : null,
+                );
+                return;
+            }
+            if (mapped && mapped !== visibleSection) {
+                setActiveCellNx9(
+                    view,
+                    pos
+                        ? {
+                              row: pos.row,
+                              col: pos.col,
+                              page: pos.page,
+                          }
+                        : null,
+                );
+            }
+        }
+    };
+
+    const syncWeekState = ({
+        view,
+        documentState,
+        weekAnchorDate,
+        weekStart,
+        idToSection,
+        activeNodeId,
+    }: Pick<
+        SyncSceneStateArgs,
+        | 'view'
+        | 'documentState'
+        | 'weekAnchorDate'
+        | 'weekStart'
+        | 'idToSection'
+        | 'activeNodeId'
+    >) => {
         const weekContext = resolveWeekPlanContext({
             frontmatter: documentState.file.frontmatter,
             anchorDate: weekAnchorDate,
@@ -226,5 +278,23 @@ export const createSceneStateSynchronizer = () => {
                 setActiveCellWeek7x9(view, pos ?? null);
             }
         }
+    };
+
+    return (args: SyncSceneStateArgs) => {
+        syncModeCompatibility(args);
+        const hasModeChanged = previousMode !== args.mode;
+        clearInactiveModeState(args.view, args.mode, hasModeChanged);
+
+        if (args.mode === '9x9') {
+            sync9x9State(args);
+        }
+        if (args.mode === 'nx9') {
+            syncNx9State(args);
+        }
+        if (args.mode === 'week-7x9') {
+            syncWeekState(args);
+        }
+
+        previousMode = args.mode;
     };
 };

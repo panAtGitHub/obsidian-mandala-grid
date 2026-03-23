@@ -57,13 +57,29 @@ export const jumpCoreTheme = (
             view.documentStore.getValue().sections.section_id[nextCore];
         if (!nextNodeId) return;
 
-        view.viewStore.dispatch({
-            type: 'view/mandala/subgrid/enter',
-            payload: { theme: nextCore },
+        view.beginSceneSyncTrace('trace.core-jump.sync-scene', {
+            direction,
+            from_core: core,
+            to_core: nextCore,
         });
-        view.viewStore.dispatch({
-            type: 'view/set-active-node/mouse-silent',
-            payload: { id: nextNodeId },
+        const dispatchStartedAt = performance.now();
+        view.viewStore.batch(() => {
+            view.viewStore.dispatch({
+                type: 'view/mandala/subgrid/enter',
+                payload: { theme: nextCore },
+            });
+            view.viewStore.dispatch({
+                type: 'view/set-active-node/core-jump',
+                payload: { id: nextNodeId },
+            });
+        });
+        view.recordPerfEvent('trace.core-jump.dispatch', {
+            direction,
+            from_core: core,
+            to_core: nextCore,
+            total_ms: Number(
+                (performance.now() - dispatchStartedAt).toFixed(2),
+            ),
         });
         view.recordPerfAfterNextPaint('interaction.9x9.jump-core', startedAt, {
             direction,
@@ -79,13 +95,27 @@ export const jumpCoreTheme = (
     const prevNodeId = docState.sections.section_id[prevCore];
     if (!prevNodeId) return;
 
-    view.viewStore.dispatch({
-        type: 'view/mandala/subgrid/enter',
-        payload: { theme: prevCore },
+    view.beginSceneSyncTrace('trace.core-jump.sync-scene', {
+        direction,
+        from_core: core,
+        to_core: prevCore,
     });
-    view.viewStore.dispatch({
-        type: 'view/set-active-node/mouse-silent',
-        payload: { id: prevNodeId },
+    const dispatchStartedAt = performance.now();
+    view.viewStore.batch(() => {
+        view.viewStore.dispatch({
+            type: 'view/mandala/subgrid/enter',
+            payload: { theme: prevCore },
+        });
+        view.viewStore.dispatch({
+            type: 'view/set-active-node/core-jump',
+            payload: { id: prevNodeId },
+        });
+    });
+    view.recordPerfEvent('trace.core-jump.dispatch', {
+        direction,
+        from_core: core,
+        to_core: prevCore,
+        total_ms: Number((performance.now() - dispatchStartedAt).toFixed(2)),
     });
     view.recordPerfAfterNextPaint('interaction.9x9.jump-core', startedAt, {
         direction,

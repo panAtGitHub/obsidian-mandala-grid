@@ -129,6 +129,7 @@ export const assemble3x3CellViewModels = ({
                           editingState.activeNodeId === nodeId &&
                           !editingState.isInSidebar &&
                           !showDetailSidebar,
+                      contentEnabled: true,
                       selected: selectedNodes.has(nodeId),
                       pinned: pinnedSections.has(section),
                       style: undefined,

@@ -7,7 +7,7 @@
     import SimpleSummaryCell from 'src/mandala-cell/view/components/simple-summary-cell.svelte';
     import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
     import { onMount } from 'svelte';
-    import { derived } from 'src/shared/store/derived';
+    import { derived, derivedEq } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import {
@@ -37,13 +37,42 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
-    const idToSection = derived(
-        view.documentStore,
-        (state) => state.sections.id_section,
-    );
     const activeCellStore = derived(
         view.viewStore,
         (state) => state.ui.mandala.activeCell9x9,
+    );
+    const idToSection = derivedEq(
+        view.documentStore,
+        (state) => ({
+            revision: state.meta.mandalaV2.revision,
+            idToSection: state.sections.id_section,
+        }),
+        (a, b) => a.revision === b.revision,
+    );
+    const gridDocument = derivedEq(
+        view.documentStore,
+        (state) => ({
+            revision: state.meta.mandalaV2.revision,
+            contentRevision: state.meta.mandalaV2.contentRevision,
+            documentState: state,
+        }),
+        (a, b) =>
+            a.revision === b.revision &&
+            a.contentRevision === b.contentRevision,
+    );
+    const layoutSnapshot = derivedEq(
+        view.plugin.settings,
+        (settings) => {
+            const customLayouts = settings.view.mandalaGridCustomLayouts ?? [];
+            return {
+                selectedLayoutId: view.getCurrentMandalaLayoutId(settings),
+                customLayouts,
+                customLayoutsKey: JSON.stringify(customLayouts),
+            };
+        },
+        (a, b) =>
+            a.selectedLayoutId === b.selectedLayoutId &&
+            a.customLayoutsKey === b.customLayoutsKey,
     );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
@@ -54,97 +83,159 @@
     let gridEl: HTMLDivElement | null = null;
     let bodyLineClamp = 3;
     let currentCoreNumber = 1;
+    let baseCells: SimpleSummaryCellModel[] = [];
     let cells: SimpleSummaryCellModel[] = [];
     let currentActiveCell: SimpleSummaryActiveCell = null;
+    let themeTone: ThemeTone = 'light';
+    let themeUnderlayColor = '';
+    let bodyThemeObserver: MutationObserver | null = null;
+
+    let cachedBaseCellsKey = '';
+    let cachedBaseCells: SimpleSummaryCellModel[] = [];
+    let cachedDecoratedCells: {
+        cells: SimpleSummaryCellModel[];
+        backgroundMode: string;
+        sectionColors: Record<string, string>;
+        sectionColorOpacity: number;
+        themeTone: ThemeTone;
+        themeUnderlayColor: string;
+        value: SimpleSummaryCellModel[];
+    } | null = null;
 
     $: {
-        const section = $idToSection[$activeNodeId];
+        const section = $idToSection.idToSection[$activeNodeId];
         const nextCore = Number(getBaseTheme(section));
         currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
     }
 
-    const buildCells = (
-        state: ReturnType<typeof view.documentStore.getValue>,
-        nextSelectedLayoutId: string,
-        nextCustomLayouts: ReturnType<
-            typeof view.plugin.settings.getValue
-        >['view']['mandalaGridCustomLayouts'],
-        baseTheme: string,
-    ) =>
-        build9x9CellViewModels({
-            documentState: state,
-            selectedLayoutId: nextSelectedLayoutId,
-            customLayouts: nextCustomLayouts,
-            baseTheme,
-        });
-
-    const cellsStore = {
-        subscribe: (run: (value: ReturnType<typeof buildCells>) => void) => {
-            let documentState = view.documentStore.getValue();
-            let nextSelectedLayoutId = view.getCurrentMandalaLayoutId();
-            let nextCustomLayouts =
-                view.plugin.settings.getValue().view.mandalaGridCustomLayouts ??
-                [];
-
-            const update = () => {
-                const activeNodeId =
-                    view.viewStore.getValue().document.activeNode;
-                const section = documentState.sections.id_section[activeNodeId];
-                const theme = getBaseTheme(section);
-                run(
-                    buildCells(
-                        documentState,
-                        nextSelectedLayoutId,
-                        nextCustomLayouts,
-                        theme,
-                    ),
-                );
-            };
-
-            const unsubDoc = view.documentStore.subscribe((state) => {
-                documentState = state;
-                update();
-            });
-
-            const unsubSettings = view.plugin.settings.subscribe((settings) => {
-                nextSelectedLayoutId = view.getCurrentMandalaLayoutId(
-                    settings,
-                );
-                nextCustomLayouts = settings.view.mandalaGridCustomLayouts ?? [];
-                update();
-            });
-
-            const unsubTheme = view.viewStore.subscribe(() => {
-                update();
-            });
-
-            update();
-
-            return () => {
-                unsubDoc();
-                unsubSettings();
-                unsubTheme();
-            };
-        },
-    };
-
-    const getThemeTone = (): ThemeTone =>
-        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
-
-    const getThemeUnderlayColor = () =>
-        window
+    const syncThemeSnapshot = () => {
+        themeTone = document.body.classList.contains('theme-dark')
+            ? 'dark'
+            : 'light';
+        themeUnderlayColor = window
             .getComputedStyle(document.body)
             .getPropertyValue('--background-primary')
             .trim();
+    };
+
+    const resolveBaseCells = ({
+        documentState,
+        revision,
+        contentRevision,
+        selectedLayoutId,
+        customLayouts,
+        customLayoutsKey,
+        baseTheme,
+    }: {
+        documentState: ReturnType<typeof view.documentStore.getValue>;
+        revision: number;
+        contentRevision: number;
+        selectedLayoutId: string;
+        customLayouts: ReturnType<
+            typeof view.plugin.settings.getValue
+        >['view']['mandalaGridCustomLayouts'];
+        customLayoutsKey: string;
+        baseTheme: string;
+    }) => {
+        const key = [
+            revision,
+            contentRevision,
+            selectedLayoutId,
+            customLayoutsKey,
+            baseTheme,
+        ].join('|');
+        if (key === cachedBaseCellsKey) return cachedBaseCells;
+
+        const startedAt = performance.now();
+        cachedBaseCells = build9x9CellViewModels({
+            documentState,
+            selectedLayoutId,
+            customLayouts,
+            baseTheme,
+        });
+        cachedBaseCellsKey = key;
+        view.recordPerfEvent('trace.9x9.build-cells', {
+            total_ms: Number((performance.now() - startedAt).toFixed(2)),
+            cell_count: cachedBaseCells.length,
+            base_theme: baseTheme,
+        });
+        return cachedBaseCells;
+    };
+
+    const resolveDecoratedCells = ({
+        sourceCells,
+        backgroundMode,
+        sectionColors,
+        sectionColorOpacity,
+        themeTone,
+        themeUnderlayColor,
+    }: {
+        sourceCells: SimpleSummaryCellModel[];
+        backgroundMode: string;
+        sectionColors: Record<string, string>;
+        sectionColorOpacity: number;
+        themeTone: ThemeTone;
+        themeUnderlayColor: string;
+    }) => {
+        if (
+            cachedDecoratedCells &&
+            cachedDecoratedCells.cells === sourceCells &&
+            cachedDecoratedCells.backgroundMode === backgroundMode &&
+            cachedDecoratedCells.sectionColors === sectionColors &&
+            cachedDecoratedCells.sectionColorOpacity === sectionColorOpacity &&
+            cachedDecoratedCells.themeTone === themeTone &&
+            cachedDecoratedCells.themeUnderlayColor === themeUnderlayColor
+        ) {
+            return cachedDecoratedCells.value;
+        }
+
+        const startedAt = performance.now();
+        const value = decorate9x9CellViewModels({
+            cells: sourceCells,
+            backgroundMode,
+            sectionColors,
+            sectionColorOpacity,
+            themeTone,
+            themeUnderlayColor,
+        });
+        cachedDecoratedCells = {
+            cells: sourceCells,
+            backgroundMode,
+            sectionColors,
+            sectionColorOpacity,
+            themeTone,
+            themeUnderlayColor,
+            value,
+        };
+        view.recordPerfEvent('trace.9x9.decorate-cells', {
+            total_ms: Number((performance.now() - startedAt).toFixed(2)),
+            cell_count: value.length,
+        });
+        return value;
+    };
 
     $: {
-        cells = decorate9x9CellViewModels({
-            cells: $cellsStore,
+        const section = $idToSection.idToSection[$activeNodeId];
+        const baseTheme = getBaseTheme(section);
+        baseCells = resolveBaseCells({
+            documentState: $gridDocument.documentState,
+            revision: $gridDocument.revision,
+            contentRevision: $gridDocument.contentRevision,
+            selectedLayoutId: $layoutSnapshot.selectedLayoutId,
+            customLayouts: $layoutSnapshot.customLayouts,
+            customLayoutsKey: $layoutSnapshot.customLayoutsKey,
+            baseTheme,
+        });
+    }
+
+    $: {
+        cells = resolveDecoratedCells({
+            sourceCells: baseCells,
             backgroundMode: $backgroundMode,
             sectionColors: $sectionColors,
             sectionColorOpacity: $sectionColorOpacity,
-            themeTone: getThemeTone(),
-            themeUnderlayColor: getThemeUnderlayColor(),
+            themeTone,
+            themeUnderlayColor,
         });
     }
 
@@ -175,11 +266,24 @@
     };
 
     onMount(() => {
+        syncThemeSnapshot();
         updateBodyClamp();
-        if (!gridEl) return;
-        const observer = new ResizeObserver(() => updateBodyClamp());
-        observer.observe(gridEl);
-        return () => observer.disconnect();
+        bodyThemeObserver = new MutationObserver(() => syncThemeSnapshot());
+        bodyThemeObserver.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class', 'style'],
+        });
+        const observer = gridEl
+            ? new ResizeObserver(() => updateBodyClamp())
+            : null;
+        if (observer && gridEl) {
+            observer.observe(gridEl);
+        }
+        return () => {
+            observer?.disconnect();
+            bodyThemeObserver?.disconnect();
+            bodyThemeObserver = null;
+        };
     });
 
     const jumpToPrevCore = (event: MouseEvent) => {
@@ -210,9 +314,7 @@
         {/each}
     </div>
 
-    {#if !Platform.isMobile &&
-        $show9x9ParallelNavButtons &&
-        !$hasOpenOverlayModal}
+    {#if !Platform.isMobile && $show9x9ParallelNavButtons && !$hasOpenOverlayModal}
         {#if currentCoreNumber > 1}
             <button
                 class="parallel-nav-button parallel-nav-button--left"
@@ -236,11 +338,7 @@
             on:click={jumpToNextCore}
         >
             <span class="parallel-nav-button__icon">
-                <MandalaNavIcon
-                    direction="right"
-                    size={16}
-                    strokeWidth={2.3}
-                />
+                <MandalaNavIcon direction="right" size={16} strokeWidth={2.3} />
             </span>
         </button>
     {/if}
@@ -317,11 +415,8 @@
             var(--background-modifier-border) 45%
         );
         box-shadow:
-            0 0 0 1px color-mix(
-                in srgb,
-                var(--interactive-accent) 45%,
-                transparent
-            ),
+            0 0 0 1px
+                color-mix(in srgb, var(--interactive-accent) 45%, transparent),
             var(--shadow-s);
         transform: translate(-50%, -50%) translateY(-1px);
     }

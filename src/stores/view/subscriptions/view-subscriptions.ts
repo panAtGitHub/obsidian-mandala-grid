@@ -1,6 +1,9 @@
 import { MandalaView } from 'src/view/view';
 import { onViewMount } from 'src/stores/view/subscriptions/on-view-mount';
-import { onViewStateUpdate } from 'src/stores/view/subscriptions/on-view-state-update';
+import {
+    flushPendingViewSideEffects,
+    onViewStateUpdate,
+} from 'src/stores/view/subscriptions/on-view-state-update';
 import { onDocumentStateUpdate } from 'src/stores/view/subscriptions/on-document-state-update';
 import { onPluginSettingsUpdate } from 'src/stores/view/subscriptions/on-plugin-settings-update';
 import { onPluginStateUpdate } from 'src/stores/view/subscriptions/on-plugin-state-update';
@@ -16,6 +19,8 @@ export const viewSubscriptions = (view: MandalaView) => {
 
     const localState = {
         previousActiveNode: '',
+        navigationSideEffectsTimer: null,
+        hasPendingNavigationSideEffects: false,
     };
     let onMountSubscriptions = new Set<() => void>();
     const unsubFromView = view.viewStore.subscribe(
@@ -44,6 +49,7 @@ export const viewSubscriptions = (view: MandalaView) => {
     const unsubFromCache = onMetadataCache(view);
 
     return () => {
+        flushPendingViewSideEffects(view, localState);
         unsubFromDocument();
         unsubFromCache();
         unsubFromView();

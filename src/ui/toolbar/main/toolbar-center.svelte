@@ -40,13 +40,16 @@
     $: canUseNx9Mode = view.canUseNx9Mode($documentState.file.frontmatter);
     $: activeSection =
         $documentState.sections.id_section[$activeNodeId] ?? null;
-    $: nx9Context = resolveNx9Context({
-        sectionIdMap: $documentState.sections.section_id,
-        documentContent: $documentState.document.content,
-        rowsPerPage: $nx9RowsPerPage,
-        activeSection,
-        activeCell: $mandalaUiState.activeCellNx9,
-    });
+    $: nx9Context =
+        $mode === 'nx9'
+            ? resolveNx9Context({
+                  sectionIdMap: $documentState.sections.section_id,
+                  documentContent: $documentState.document.content,
+                  rowsPerPage: $nx9RowsPerPage,
+                  activeSection,
+                  activeCell: $mandalaUiState.activeCellNx9,
+              })
+            : null;
 
     const toggleMandalaMode = () => {
         view.cycleMandalaMode();
@@ -175,7 +178,7 @@
                 <Button
                     classes="topbar-button"
                     label="上一页"
-                    disabled={nx9Context.currentPage <= 0}
+                    disabled={!nx9Context || nx9Context.currentPage <= 0}
                     on:click={goToPreviousNx9Page}
                     tooltipPosition="bottom"
                 >
@@ -192,8 +195,8 @@
                 <Button
                     classes="topbar-button"
                     label="下一页"
-                    disabled={nx9Context.currentPage >=
-                        nx9Context.totalPages - 1}
+                    disabled={!nx9Context ||
+                        nx9Context.currentPage >= nx9Context.totalPages - 1}
                     on:click={goToNextNx9Page}
                     tooltipPosition="bottom"
                 >

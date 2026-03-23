@@ -68,7 +68,10 @@ const buildMobileSummary = (content: string) => {
 
     if (firstLine && HEADING_RE.test(firstLine)) {
         title = normalizeCellPreviewText(firstLine.replace(HEADING_RE, ''));
-        body = normalizeCellPreviewText(lines.slice(1).join('\n')).slice(0, 150);
+        body = normalizeCellPreviewText(lines.slice(1).join('\n')).slice(
+            0,
+            150,
+        );
     } else {
         body = normalizeCellPreviewText(lines.join('\n')).slice(0, 150);
     }
@@ -120,6 +123,7 @@ export const assembleDesktopWeekPlanCells = ({
                       editingState.activeNodeId === cell.nodeId &&
                       !editingState.isInSidebar &&
                       !showDetailSidebar,
+                  contentEnabled: true,
                   selected: selectedNodes.has(cell.nodeId),
                   pinned: cell.section
                       ? pinnedSections.has(cell.section)

@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { derived } from 'src/shared/store/derived';
+    import { onDestroy } from 'svelte';
+    import { derived, derivedEq } from 'src/shared/store/derived';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
@@ -10,13 +11,24 @@
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
+    import {
+        normalizeNx9VisibleSection,
+        resolveNx9PageContext,
+        resolveNx9StructureContext,
+        type Nx9PageContext,
+        type Nx9StructureContext,
+    } from 'src/mandala-scenes/view-nx9/context';
     import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
-    import { assembleNx9Rows } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
+    import {
+        assembleNx9PageFrame,
+        collectNx9HydratableNodeIds,
+        decorateNx9PageFrame,
+    } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
     import type {
         Nx9GhostRowViewModel,
+        Nx9PageFrameRowViewModel,
         Nx9PaddingRowViewModel,
         Nx9RealCellViewModel,
         Nx9RowViewModel,
@@ -24,7 +36,19 @@
 
     const view = getView();
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
-    const documentState = derived(view.documentStore, (state) => state);
+    const documentSnapshot = derivedEq(
+        view.documentStore,
+        (state) => ({
+            revision: state.meta.mandalaV2.revision,
+            contentRevision: state.meta.mandalaV2.contentRevision,
+            sectionIdMap: state.sections.section_id,
+            idToSection: state.sections.id_section,
+            documentContent: state.document.content,
+        }),
+        (a, b) =>
+            a.revision === b.revision &&
+            a.contentRevision === b.contentRevision,
+    );
     const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
     const activeNodeId = derived(
         view.viewStore,
@@ -49,24 +73,214 @@
     let currentPage = 0;
     let rowCount = 1;
     let futureScale = 1;
+    let activeSection: string | null = null;
+    let structureContext: Nx9StructureContext;
+    let nx9Context: Nx9PageContext;
+    let pageFrame: Nx9PageFrameRowViewModel[] = [];
+    let hydratedNodeIds = new Set<string>();
+    let hydrationMarker = '';
+    let hydrationRequestId = 0;
+    let cachedStructureKey = '';
+    let cachedStructureContext: Nx9StructureContext | null = null;
+    let cachedPageContext: {
+        structureContext: Nx9StructureContext;
+        requestedPage: number;
+        value: Nx9PageContext;
+    } | null = null;
+    let cachedPageFrame: {
+        context: Nx9PageContext;
+        sectionIdMap: Record<string, string>;
+        value: Nx9PageFrameRowViewModel[];
+    } | null = null;
 
-    $: nx9Context = resolveNx9Context({
-        sectionIdMap: $documentState.sections.section_id,
-        documentContent: $documentState.document.content,
-        rowsPerPage: $nx9RowsPerPage,
-        activeSection:
-            $documentState.sections.id_section[$activeNodeId] ?? null,
-        activeCell: $mandalaUiState.activeCellNx9,
+    const resolveCachedStructureContext = ({
+        sectionIdMap,
+        documentContent,
+        rowsPerPage,
+        activeSection,
+        revision,
+        contentRevision,
+    }: {
+        sectionIdMap: Record<string, string>;
+        documentContent: Record<string, { content?: string }>;
+        rowsPerPage: number;
+        activeSection: string | null;
+        revision: number;
+        contentRevision: number;
+    }) => {
+        const key = [
+            revision,
+            contentRevision,
+            rowsPerPage,
+            normalizeNx9VisibleSection(activeSection) ?? '',
+        ].join('|');
+        if (key === cachedStructureKey && cachedStructureContext) {
+            return cachedStructureContext;
+        }
+        const startedAt = performance.now();
+        cachedStructureContext = resolveNx9StructureContext({
+            sectionIdMap,
+            documentContent,
+            rowsPerPage,
+            activeSection,
+        });
+        cachedStructureKey = key;
+        view.recordPerfEvent('trace.nx9.resolve-context', {
+            total_ms: Number((performance.now() - startedAt).toFixed(2)),
+            rows_per_page: rowsPerPage,
+            total_pages: cachedStructureContext.totalPages,
+            root_section: normalizeNx9VisibleSection(activeSection) ?? null,
+        });
+        return cachedStructureContext;
+    };
+
+    const resolveCachedPageContext = ({
+        structureContext,
+        activeSection,
+        activeCell,
+    }: {
+        structureContext: Nx9StructureContext;
+        activeSection: string | null;
+        activeCell: { row: number; col: number; page?: number } | null;
+    }) => {
+        const requestedPage =
+            activeCell?.page ??
+            structureContext.posForSection(activeSection)?.page ??
+            0;
+        if (
+            cachedPageContext &&
+            cachedPageContext.structureContext === structureContext &&
+            cachedPageContext.requestedPage === requestedPage
+        ) {
+            return cachedPageContext.value;
+        }
+        const value = resolveNx9PageContext({
+            structureContext,
+            activeSection,
+            activeCell,
+        });
+        cachedPageContext = {
+            structureContext,
+            requestedPage,
+            value,
+        };
+        return value;
+    };
+
+    const resolveCachedPageFrame = ({
+        context,
+        sectionIdMap,
+    }: {
+        context: Nx9PageContext;
+        sectionIdMap: Record<string, string>;
+    }) => {
+        if (
+            cachedPageFrame &&
+            cachedPageFrame.context === context &&
+            cachedPageFrame.sectionIdMap === sectionIdMap
+        ) {
+            return cachedPageFrame.value;
+        }
+        const startedAt = performance.now();
+        const value = assembleNx9PageFrame({
+            context,
+            documentState: {
+                sections: {
+                    section_id: sectionIdMap,
+                },
+            },
+        });
+        cachedPageFrame = {
+            context,
+            sectionIdMap,
+            value,
+        };
+        view.recordPerfEvent('trace.nx9.assemble-rows', {
+            total_ms: Number((performance.now() - startedAt).toFixed(2)),
+            row_count: value.length,
+            page: context.currentPage,
+        });
+        return value;
+    };
+
+    const schedulePageHydration = (
+        marker: string,
+        page: number,
+        nodeIds: string[],
+    ) => {
+        if (nodeIds.length <= hydratedNodeIds.size) return;
+        const requestId = ++hydrationRequestId;
+        const startedAt = performance.now();
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (
+                    requestId !== hydrationRequestId ||
+                    hydrationMarker !== marker
+                ) {
+                    return;
+                }
+                hydratedNodeIds = new Set(nodeIds);
+                view.recordPerfEvent('trace.nx9.hydrate-page', {
+                    total_ms: Number(
+                        (performance.now() - startedAt).toFixed(2),
+                    ),
+                    page,
+                    node_count: nodeIds.length,
+                });
+            });
+        });
+    };
+
+    onDestroy(() => {
+        hydrationRequestId += 1;
     });
 
     $: activeCell = $mandalaUiState.activeCellNx9;
+    $: activeSection = $documentSnapshot.idToSection[$activeNodeId] ?? null;
+    $: structureContext = resolveCachedStructureContext({
+        sectionIdMap: $documentSnapshot.sectionIdMap,
+        documentContent: $documentSnapshot.documentContent,
+        rowsPerPage: $nx9RowsPerPage,
+        activeSection,
+        revision: $documentSnapshot.revision,
+        contentRevision: $documentSnapshot.contentRevision,
+    });
+    $: nx9Context = resolveCachedPageContext({
+        structureContext,
+        activeSection,
+        activeCell,
+    });
     $: currentPage = nx9Context.currentPage;
     $: rowCount = nx9Context.rowsPerPage;
     $: futureScale =
         rowCount <= 5 ? 1 : Math.max(0.58, Math.min(1, 5 / rowCount));
-    $: rows = assembleNx9Rows({
+    $: pageFrame = resolveCachedPageFrame({
         context: nx9Context,
-        documentState: $documentState,
+        sectionIdMap: $documentSnapshot.sectionIdMap,
+    });
+    $: {
+        const nodeIds = collectNx9HydratableNodeIds(pageFrame);
+        const marker = [
+            $documentSnapshot.revision,
+            $documentSnapshot.contentRevision,
+            currentPage,
+            rowCount,
+            normalizeNx9VisibleSection(activeSection) ?? '',
+        ].join('|');
+        if (hydrationMarker !== marker) {
+            hydrationMarker = marker;
+            const initialNodeId =
+                nodeIds.find((nodeId) => nodeId === $activeNodeId) ??
+                nodeIds[0] ??
+                null;
+            hydratedNodeIds = initialNodeId
+                ? new Set([initialNodeId])
+                : new Set();
+            schedulePageHydration(marker, currentPage, nodeIds);
+        }
+    }
+    $: rows = decorateNx9PageFrame({
+        context: nx9Context,
         activeNodeId: $activeNodeId,
         activeCell,
         editingState: $editingState,
@@ -77,6 +291,8 @@
         backgroundMode: $backgroundMode,
         showDetailSidebar: $showDetailSidebar,
         whiteThemeMode: $whiteThemeMode,
+        hydratedNodeIds,
+        pageFrame,
     });
 
     const selectGhostCreateCell = (row: number) => {
@@ -102,7 +318,9 @@
 
     const isGhostRow = (row: Nx9RowViewModel): row is Nx9GhostRowViewModel =>
         !Array.isArray(row) && row.kind === 'ghost-row';
-    const isPaddingRow = (row: Nx9RowViewModel): row is Nx9PaddingRowViewModel =>
+    const isPaddingRow = (
+        row: Nx9RowViewModel,
+    ): row is Nx9PaddingRowViewModel =>
         !Array.isArray(row) && row.kind === 'padding-row';
     const isRealRow = (row: Nx9RowViewModel): row is Nx9RealCellViewModel[] =>
         Array.isArray(row);

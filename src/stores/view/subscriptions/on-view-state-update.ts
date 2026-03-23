@@ -6,10 +6,69 @@ import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-cont
 import { persistActiveNodeInPluginSettings } from 'src/stores/view/subscriptions/actions/persist-active-node-in-plugin-settings';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 
+const NAVIGATION_ACTIVE_NODE_ACTIONS = new Set<ViewStoreAction['type']>([
+    'view/set-active-node/core-jump',
+    'view/set-active-node/9x9-nav',
+    'view/set-active-node/nx9-nav',
+    'view/set-active-node/focus-section',
+]);
+
+const NAVIGATION_ACTIVE_NODE_DEBOUNCE_MS = 120;
+
+export type ViewSubscriptionLocalState = {
+    previousActiveNode: string;
+    navigationSideEffectsTimer: number | null;
+    hasPendingNavigationSideEffects: boolean;
+};
+
+const clearPendingNavigationSideEffects = (
+    localState: ViewSubscriptionLocalState,
+) => {
+    if (localState.navigationSideEffectsTimer !== null) {
+        window.clearTimeout(localState.navigationSideEffectsTimer);
+        localState.navigationSideEffectsTimer = null;
+    }
+    localState.hasPendingNavigationSideEffects = false;
+};
+
+const runActiveNodeSideEffects = (view: MandalaView) => {
+    persistActiveNodeInPluginSettings(view);
+    void view.plugin.statusBar.updateProgressIndicatorAndChildCount(view);
+};
+
+const scheduleNavigationSideEffects = (
+    view: MandalaView,
+    localState: ViewSubscriptionLocalState,
+) => {
+    localState.hasPendingNavigationSideEffects = true;
+    if (localState.navigationSideEffectsTimer !== null) {
+        window.clearTimeout(localState.navigationSideEffectsTimer);
+    }
+    localState.navigationSideEffectsTimer = window.setTimeout(() => {
+        localState.navigationSideEffectsTimer = null;
+        if (!localState.hasPendingNavigationSideEffects) return;
+        localState.hasPendingNavigationSideEffects = false;
+        runActiveNodeSideEffects(view);
+    }, NAVIGATION_ACTIVE_NODE_DEBOUNCE_MS);
+};
+
+export const flushPendingViewSideEffects = (
+    view: MandalaView,
+    localState: ViewSubscriptionLocalState,
+) => {
+    if (localState.navigationSideEffectsTimer !== null) {
+        window.clearTimeout(localState.navigationSideEffectsTimer);
+        localState.navigationSideEffectsTimer = null;
+    }
+    if (!localState.hasPendingNavigationSideEffects) return;
+    localState.hasPendingNavigationSideEffects = false;
+    runActiveNodeSideEffects(view);
+};
+
 export const onViewStateUpdate = (
     view: MandalaView,
     action: ViewStoreAction,
-    localState: { previousActiveNode: string },
+    localState: ViewSubscriptionLocalState,
 ) => {
     const viewStore = view.viewStore;
     const viewState = viewStore.getValue();
@@ -22,8 +81,7 @@ export const onViewStateUpdate = (
     const activeNodeChange = e.activeNode || e.activeNodeHistory;
     const previousActiveNode = localState.previousActiveNode || null;
     const nextActiveNode = viewState.document.activeNode || null;
-    const activeNodeHasChanged =
-        previousActiveNode !== nextActiveNode;
+    const activeNodeHasChanged = previousActiveNode !== nextActiveNode;
     if (activeNodeHasChanged) {
         localState.previousActiveNode = viewState.document.activeNode;
     }
@@ -33,8 +91,12 @@ export const onViewStateUpdate = (
             prev_node_id: previousActiveNode,
             next_node_id: nextActiveNode,
         });
-        persistActiveNodeInPluginSettings(view);
-        void view.plugin.statusBar.updateProgressIndicatorAndChildCount(view);
+        if (NAVIGATION_ACTIVE_NODE_ACTIONS.has(action.type)) {
+            scheduleNavigationSideEffects(view, localState);
+        } else {
+            clearPendingNavigationSideEffects(localState);
+            runActiveNodeSideEffects(view);
+        }
     }
     if (action.type === 'view/search/set-query') {
         updateSearchResults(view);

@@ -32,6 +32,7 @@ export const defaultDocumentState = (): DocumentState => ({
         mandalaV2: {
             enabled: false,
             revision: 0,
+            contentRevision: 0,
             rootGroupId: null,
             orderedSections: [],
             lastMutation: null,

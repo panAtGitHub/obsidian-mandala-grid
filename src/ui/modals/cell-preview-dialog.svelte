@@ -42,27 +42,32 @@
     let previewNodeId: string | null = null;
     let sectionLabel = '';
 
-    $: resolvedReadonlyNodeId = !$editingState.activeNodeId
-        ? resolveCellPreviewNodeId({
-              mode: view.mandalaMode,
-              activeNodeId: $viewState.document.activeNode,
-              activeNodeSection:
-                  $idToSection[$viewState.document.activeNode] ?? null,
-              activeCell9x9: $viewState.ui.mandala.activeCell9x9,
-              activeCellNx9: $viewState.ui.mandala.activeCellNx9,
-              activeCellWeek7x9: $viewState.ui.mandala.activeCellWeek7x9,
-              sectionIdMap: view.documentStore.getValue().sections.section_id,
-              documentContent: view.documentStore.getValue().document.content,
-              nx9RowsPerPage: view.getCurrentNx9RowsPerPage(),
-              selectedLayoutId: view.getCurrentMandalaLayoutId(),
-              customLayouts:
-                  view.plugin.settings.getValue().view
-                      .mandalaGridCustomLayouts ?? [],
-              frontmatter: view.documentStore.getValue().file.frontmatter,
-              weekAnchorDate: $viewState.ui.mandala.weekAnchorDate,
-              weekStart: view.plugin.settings.getValue().general.weekStart,
-          })
-        : null;
+    $: resolvedReadonlyNodeId =
+        $previewDialog.open &&
+        $cellQuickPreviewEnabled &&
+        !$editingState.activeNodeId
+            ? resolveCellPreviewNodeId({
+                  mode: view.mandalaMode,
+                  activeNodeId: $viewState.document.activeNode,
+                  activeNodeSection:
+                      $idToSection[$viewState.document.activeNode] ?? null,
+                  activeCell9x9: $viewState.ui.mandala.activeCell9x9,
+                  activeCellNx9: $viewState.ui.mandala.activeCellNx9,
+                  activeCellWeek7x9: $viewState.ui.mandala.activeCellWeek7x9,
+                  sectionIdMap:
+                      view.documentStore.getValue().sections.section_id,
+                  documentContent:
+                      view.documentStore.getValue().document.content,
+                  nx9RowsPerPage: view.getCurrentNx9RowsPerPage(),
+                  selectedLayoutId: view.getCurrentMandalaLayoutId(),
+                  customLayouts:
+                      view.plugin.settings.getValue().view
+                          .mandalaGridCustomLayouts ?? [],
+                  frontmatter: view.documentStore.getValue().file.frontmatter,
+                  weekAnchorDate: $viewState.ui.mandala.weekAnchorDate,
+                  weekStart: view.plugin.settings.getValue().general.weekStart,
+              })
+            : null;
     $: if (
         $previewDialog.open &&
         $cellQuickPreviewEnabled &&

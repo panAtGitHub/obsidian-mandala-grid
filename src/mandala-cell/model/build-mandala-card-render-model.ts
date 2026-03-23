@@ -1,6 +1,4 @@
-import {
-    buildMandalaCardMetaState,
-} from 'src/mandala-cell/model/mandala-card-meta';
+import { buildMandalaCardMetaState } from 'src/mandala-cell/model/mandala-card-meta';
 import { buildMandalaCardStyle } from 'src/mandala-cell/model/mandala-card-style';
 import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
 import type { CellStyle } from 'src/mandala-cell/model/card-types';
@@ -18,6 +16,7 @@ type BuildMandalaCardRenderModelOptions = {
     fallbackSection?: string;
     active: boolean;
     editing: boolean;
+    contentEnabled: boolean;
     pinned: boolean;
     style: CellStyle;
     sectionColor: string | null;
@@ -37,6 +36,7 @@ export const buildMandalaCardRenderModel = ({
     fallbackSection,
     active,
     editing,
+    contentEnabled,
     pinned,
     style,
     sectionColor,
@@ -83,7 +83,7 @@ export const buildMandalaCardRenderModel = ({
     return {
         cardStyle,
         showInlineEditor,
-        showContent: !showInlineEditor,
+        showContent: contentEnabled && !showInlineEditor,
         hideBuiltInHiddenInfo: displayPolicy.hideBuiltInHiddenInfo,
         style,
         displaySection,

@@ -22,6 +22,7 @@ export type DocumentMeta = {
     mandalaV2: {
         enabled: boolean;
         revision: number;
+        contentRevision: number;
         rootGroupId: string | null;
         orderedSections: string[];
         lastMutation: {

@@ -80,7 +80,7 @@ export const tryMandalaNx9Navigation = (
     if (!nextNodeId || nextNodeId === activeNodeId) return true;
 
     view.viewStore.dispatch({
-        type: 'view/set-active-node/mouse-silent',
+        type: 'view/set-active-node/nx9-nav',
         payload: { id: nextNodeId },
     });
 

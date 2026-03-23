@@ -78,9 +78,7 @@ import {
     toggleCurrentMandalaDetailSidebar as toggleCurrentMandalaDetailSidebarFromRuntimeState,
 } from 'src/view/helpers/mandala-view-runtime-state';
 import { resolveRestoredSubgridTheme } from 'src/mandala-interaction/helpers/resolve-restored-subgrid-theme';
-import {
-    MandalaMode,
-} from 'src/mandala-settings/state/settings-type';
+import { MandalaMode } from 'src/mandala-settings/state/settings-type';
 import {
     resolveDocumentMandalaLayoutId,
     resolveMandalaLayoutId,
@@ -134,6 +132,11 @@ export class MandalaView extends TextFileView {
     private lastActivationNotice: string | null = null;
     private lastSaveBlockedNoticeKey: string | null = null;
     private lastPersistTransitionNoticeKey: string | null = null;
+    private pendingSceneSyncTrace: {
+        name: string;
+        payload: Record<string, unknown>;
+        startedAt: number;
+    } | null = null;
     private readonly persistSnapshotQueue: PersistSnapshotQueue;
     private readonly persistSnapshotErrorKeys = new Map<string, string>();
     private readonly mandalaUiStateByPath = new Map<
@@ -210,9 +213,33 @@ export class MandalaView extends TextFileView {
         startedAt: number,
         payload: Record<string, unknown> = {},
     ) {
-        this.plugin.perfRecorder.recordAfterNextPaint(name, startedAt, payload, {
-            filePath: this.getCurrentFilePath(),
-            mode: this.mandalaMode,
+        this.plugin.perfRecorder.recordAfterNextPaint(
+            name,
+            startedAt,
+            payload,
+            {
+                filePath: this.getCurrentFilePath(),
+                mode: this.mandalaMode,
+            },
+        );
+    }
+
+    beginSceneSyncTrace(name: string, payload: Record<string, unknown> = {}) {
+        this.pendingSceneSyncTrace = {
+            name,
+            payload,
+            startedAt: performance.now(),
+        };
+    }
+
+    flushSceneSyncTrace(payload: Record<string, unknown> = {}) {
+        if (!this.pendingSceneSyncTrace) return;
+        const trace = this.pendingSceneSyncTrace;
+        this.pendingSceneSyncTrace = null;
+        this.recordPerfEvent(trace.name, {
+            ...trace.payload,
+            ...payload,
+            total_ms: Number((performance.now() - trace.startedAt).toFixed(2)),
         });
     }
 
@@ -1134,13 +1161,15 @@ export class MandalaView extends TextFileView {
             }
 
             this.focusMandalaSectionTimer = null;
-            this.viewStore.dispatch({
-                type: 'view/mandala/subgrid/enter',
-                payload: { theme: targetSection },
-            });
-            this.viewStore.dispatch({
-                type: 'view/set-active-node/mouse-silent',
-                payload: { id: nodeId },
+            this.viewStore.batch(() => {
+                this.viewStore.dispatch({
+                    type: 'view/mandala/subgrid/enter',
+                    payload: { theme: targetSection },
+                });
+                this.viewStore.dispatch({
+                    type: 'view/set-active-node/focus-section',
+                    payload: { id: nodeId },
+                });
             });
             const focusPerfPayload = {
                 file: this.file?.path,
@@ -1202,7 +1231,10 @@ export class MandalaView extends TextFileView {
                             (performance.now() - loadStartedMs).toFixed(2),
                         ),
                     };
-                    logger.debug('[perf][view] firstRender', firstRenderPerfPayload);
+                    logger.debug(
+                        '[perf][view] firstRender',
+                        firstRenderPerfPayload,
+                    );
                     this.recordPerfEvent(
                         'view.first-render',
                         firstRenderPerfPayload,

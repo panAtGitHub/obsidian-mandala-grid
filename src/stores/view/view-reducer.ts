@@ -41,6 +41,34 @@ const handlers: Record<string, ViewActionHandler> = {
             resetSelectionState(state.document);
         }
     },
+    'view/set-active-node/core-jump': (state, action, context) => {
+        if (action.type !== 'view/set-active-node/core-jump') return;
+        updateActiveNode(state.document, action.payload.id, context.columns);
+        if (!state.document.selectedNodes.has(state.document.activeNode)) {
+            resetSelectionState(state.document);
+        }
+    },
+    'view/set-active-node/9x9-nav': (state, action, context) => {
+        if (action.type !== 'view/set-active-node/9x9-nav') return;
+        updateActiveNode(state.document, action.payload.id, context.columns);
+        if (!state.document.selectedNodes.has(state.document.activeNode)) {
+            resetSelectionState(state.document);
+        }
+    },
+    'view/set-active-node/nx9-nav': (state, action, context) => {
+        if (action.type !== 'view/set-active-node/nx9-nav') return;
+        updateActiveNode(state.document, action.payload.id, context.columns);
+        if (!state.document.selectedNodes.has(state.document.activeNode)) {
+            resetSelectionState(state.document);
+        }
+    },
+    'view/set-active-node/focus-section': (state, action, context) => {
+        if (action.type !== 'view/set-active-node/focus-section') return;
+        updateActiveNode(state.document, action.payload.id, context.columns);
+        if (!state.document.selectedNodes.has(state.document.activeNode)) {
+            resetSelectionState(state.document);
+        }
+    },
     'view/set-active-node/document': (state, action, context) => {
         if (action.type !== 'view/set-active-node/document') return;
         updateActiveNode(state.document, action.payload.id, context.columns);

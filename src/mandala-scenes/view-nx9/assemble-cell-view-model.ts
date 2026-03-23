@@ -4,7 +4,10 @@ import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-poli
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
-import type { Nx9Context } from 'src/mandala-scenes/view-nx9/context';
+import type {
+    Nx9Context,
+    Nx9PageContext,
+} from 'src/mandala-scenes/view-nx9/context';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { buildNx9CellDisplayOverrides } from 'src/mandala-scenes/view-nx9/build-cell-display-overrides';
 
@@ -13,13 +16,8 @@ type Nx9EditingState = {
     isInSidebar: boolean;
 };
 
-type AssembleNx9RowsOptions = {
-    context: Nx9Context;
-    documentState: {
-        sections: {
-            section_id: Record<string, string>;
-        };
-    };
+type SharedDecorateNx9RowsOptions = {
+    context: Nx9PageContext;
     activeNodeId: string | null;
     activeCell: { row: number; col: number; page?: number } | null;
     editingState: Nx9EditingState;
@@ -30,6 +28,15 @@ type AssembleNx9RowsOptions = {
     backgroundMode: string;
     showDetailSidebar: boolean;
     whiteThemeMode: boolean;
+    hydratedNodeIds: Set<string>;
+};
+
+type AssembleNx9RowsOptions = SharedDecorateNx9RowsOptions & {
+    documentState: {
+        sections: {
+            section_id: Record<string, string>;
+        };
+    };
 };
 
 export type Nx9RealCellViewModel = {
@@ -72,6 +79,16 @@ export type Nx9RowViewModel =
     | Nx9GhostRowViewModel
     | Nx9PaddingRowViewModel;
 
+export type Nx9RealCellFrameViewModel = Omit<
+    Nx9RealCellViewModel,
+    'isActiveCell' | 'isActiveNode' | 'cardViewModel'
+>;
+
+export type Nx9PageFrameRowViewModel =
+    | Nx9RealCellFrameViewModel[]
+    | Nx9GhostRowViewModel
+    | Nx9PaddingRowViewModel;
+
 const isActiveCell = (
     activeCell: { row: number; col: number; page?: number } | null,
     row: number,
@@ -83,32 +100,37 @@ const isActiveCell = (
     activeCell.col === col &&
     (activeCell.page ?? currentPage) === currentPage;
 
-const createRealCellViewModel = ({
+const createDisplayPolicy = (whiteThemeMode: boolean): CellDisplayPolicy => ({
+    ...createDefaultCellDisplayPolicy(),
+    ...buildNx9CellDisplayOverrides({
+        whiteThemeMode,
+    }),
+});
+
+const createInteractionPolicy = (): CellInteractionPolicy =>
+    buildCellInteractionPolicy({
+        preset: 'grid-nx9',
+    });
+
+const createRealCellFrameViewModel = ({
     context,
     documentState,
-    activeNodeId,
-    activeCell,
-    editingState,
-    selectedNodes,
-    pinnedSections,
-    sectionColors,
-    sectionColorOpacity,
-    backgroundMode,
-    showDetailSidebar,
-    displayPolicy,
-    interactionPolicy,
     row,
     col,
     rowCount,
     coreSection,
-}: AssembleNx9RowsOptions & {
-    displayPolicy: CellDisplayPolicy;
-    interactionPolicy: CellInteractionPolicy;
+}: {
+    context: Nx9PageContext;
+    documentState: {
+        sections: {
+            section_id: Record<string, string>;
+        };
+    };
     row: number;
     col: number;
     rowCount: number;
     coreSection: string;
-}): Nx9RealCellViewModel => {
+}): Nx9RealCellFrameViewModel => {
     const section = col === 0 ? coreSection : `${coreSection}.${col}`;
     const nodeId = documentState.sections.section_id[section] ?? null;
 
@@ -119,71 +141,33 @@ const createRealCellViewModel = ({
         col,
         section,
         nodeId,
-        isActiveCell: isActiveCell(activeCell, row, col, context.currentPage),
-        isActiveNode: !activeCell && !!nodeId && nodeId === activeNodeId,
         isTopEdge: row === 0,
         isBottomEdge: row === rowCount - 1,
         isLeftEdge: col === 0,
         isRightEdge: col === 8,
-        cardViewModel: nodeId
-            ? buildMandalaCardViewModel({
-                  nodeId,
-                  section,
-                  active: nodeId === activeNodeId,
-                  editing:
-                      editingState.activeNodeId === nodeId &&
-                      !editingState.isInSidebar &&
-                      !showDetailSidebar,
-                  selected: selectedNodes.has(nodeId),
-                  pinned: pinnedSections.has(section),
-                  style: undefined,
-                  sectionColor: resolveSectionBackgroundInput({
-                      section,
-                      backgroundMode,
-                      sectionColorsBySection: sectionColors,
-                      sectionColorOpacity,
-                  }),
-                  metaAccentColor: sectionColors[section] ?? null,
-                  displayPolicy,
-                  interactionPolicy,
-                  gridCell: {
-                      mode: 'nx9',
-                      row,
-                      col,
-                      page: context.currentPage,
-                  },
-              })
-            : null,
     };
 };
 
-export const assembleNx9Rows = (
-    options: AssembleNx9RowsOptions,
-): Nx9RowViewModel[] => {
-    const {
-        context,
-        activeCell,
-        whiteThemeMode,
-    } = options;
+export const assembleNx9PageFrame = ({
+    context,
+    documentState,
+}: {
+    context: Nx9PageContext;
+    documentState: {
+        sections: {
+            section_id: Record<string, string>;
+        };
+    };
+}): Nx9PageFrameRowViewModel[] => {
     const rowCount = context.rowsPerPage;
     const showFutureHint = rowCount <= 5;
-    const displayPolicy: CellDisplayPolicy = {
-        ...createDefaultCellDisplayPolicy(),
-        ...buildNx9CellDisplayOverrides({
-            whiteThemeMode,
-        }),
-    };
-    const interactionPolicy: CellInteractionPolicy = buildCellInteractionPolicy({
-        preset: 'grid-nx9',
-    });
 
     return context.pageRows.map((rowModel, row) => {
         if (rowModel.kind === 'real-core-row') {
             return Array.from({ length: 9 }, (_, col) =>
-                createRealCellViewModel({
-                    ...options,
-                    displayPolicy,
-                    interactionPolicy,
+                createRealCellFrameViewModel({
+                    context,
+                    documentState,
                     row,
                     col,
                     rowCount,
@@ -198,7 +182,7 @@ export const assembleNx9Rows = (
                 key: `${context.currentPage}-${row}-ghost`,
                 row,
                 nextCoreSection: rowModel.nextCoreSection,
-                isActiveCell: isActiveCell(activeCell, row, 0, context.currentPage),
+                isActiveCell: false,
                 isTopEdge: row === 0,
                 isBottomEdge: row === rowCount - 1,
                 showFutureHint,
@@ -212,5 +196,110 @@ export const assembleNx9Rows = (
             isTopEdge: row === 0,
             isBottomEdge: row === rowCount - 1,
         };
+    });
+};
+
+export const collectNx9HydratableNodeIds = (
+    pageFrame: Nx9PageFrameRowViewModel[],
+) =>
+    pageFrame.flatMap((row) =>
+        Array.isArray(row)
+            ? row
+                  .map((cell) => cell.nodeId)
+                  .filter((nodeId): nodeId is string => Boolean(nodeId))
+            : [],
+    );
+
+export const decorateNx9PageFrame = ({
+    context,
+    pageFrame,
+    activeNodeId,
+    activeCell,
+    editingState,
+    selectedNodes,
+    pinnedSections,
+    sectionColors,
+    sectionColorOpacity,
+    backgroundMode,
+    showDetailSidebar,
+    whiteThemeMode,
+    hydratedNodeIds,
+}: SharedDecorateNx9RowsOptions & {
+    pageFrame: Nx9PageFrameRowViewModel[];
+}): Nx9RowViewModel[] => {
+    const displayPolicy = createDisplayPolicy(whiteThemeMode);
+    const interactionPolicy = createInteractionPolicy();
+
+    return pageFrame.map((row) => {
+        if (!Array.isArray(row)) {
+            if (row.kind === 'ghost-row') {
+                return {
+                    ...row,
+                    isActiveCell: isActiveCell(
+                        activeCell,
+                        row.row,
+                        0,
+                        context.currentPage,
+                    ),
+                };
+            }
+            return row;
+        }
+
+        return row.map((cell) => ({
+            ...cell,
+            isActiveCell: isActiveCell(
+                activeCell,
+                cell.row,
+                cell.col,
+                context.currentPage,
+            ),
+            isActiveNode:
+                !activeCell && !!cell.nodeId && cell.nodeId === activeNodeId,
+            cardViewModel: cell.nodeId
+                ? buildMandalaCardViewModel({
+                      nodeId: cell.nodeId,
+                      section: cell.section,
+                      active: cell.nodeId === activeNodeId,
+                      editing:
+                          editingState.activeNodeId === cell.nodeId &&
+                          !editingState.isInSidebar &&
+                          !showDetailSidebar,
+                      selected: selectedNodes.has(cell.nodeId),
+                      pinned: pinnedSections.has(cell.section),
+                      style: undefined,
+                      sectionColor: resolveSectionBackgroundInput({
+                          section: cell.section,
+                          backgroundMode,
+                          sectionColorsBySection: sectionColors,
+                          sectionColorOpacity,
+                      }),
+                      metaAccentColor: sectionColors[cell.section] ?? null,
+                      displayPolicy,
+                      interactionPolicy,
+                      gridCell: {
+                          mode: 'nx9',
+                          row: cell.row,
+                          col: cell.col,
+                          page: context.currentPage,
+                      },
+                      contentEnabled: hydratedNodeIds.has(cell.nodeId),
+                  })
+                : null,
+        }));
+    });
+};
+
+export const assembleNx9Rows = (
+    options: AssembleNx9RowsOptions,
+): Nx9RowViewModel[] => {
+    const pageFrame = assembleNx9PageFrame({
+        context: options.context,
+        documentState: options.documentState,
+    });
+    return decorateNx9PageFrame({
+        ...options,
+        pageFrame,
+        hydratedNodeIds: new Set(collectNx9HydratableNodeIds(pageFrame)),
     });
 };

@@ -135,8 +135,21 @@ type ToggleHelpSidebarAction = {
 type ToggleSettingsSidebarAction = {
     type: 'view/settings/toggle-modal';
 };
+export type NavigationActiveNodeActionType =
+    | 'core-jump'
+    | '9x9-nav'
+    | 'nx9-nav'
+    | 'focus-section';
+
+type SetActiveNodeSource =
+    | 'mouse'
+    | 'mouse-silent'
+    | 'search'
+    | 'document'
+    | NavigationActiveNodeActionType;
+
 type SetActiveNodeAction = {
-    type: `view/set-active-node/${'mouse' | 'mouse-silent' | 'search' | 'document'}`;
+    type: `view/set-active-node/${SetActiveNodeSource}`;
     payload: {
         id: string;
     };

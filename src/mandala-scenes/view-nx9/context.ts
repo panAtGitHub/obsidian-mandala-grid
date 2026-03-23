@@ -35,6 +35,19 @@ export type Nx9Context = {
     isSelectableCell: (row: number, col: number, page?: number) => boolean;
 };
 
+export type Nx9StructureContext = {
+    coreSections: string[];
+    effectiveCoreSections: string[];
+    rowsPerPage: number;
+    rows: Nx9RowModel[];
+    totalPages: number;
+    posForSection: (
+        section: string | null | undefined,
+    ) => Nx9CellWithPage | null;
+};
+
+export type Nx9PageContext = Nx9Context;
+
 const CORE_SECTION_PATTERN = /^\d+$/;
 
 const clampPage = (page: number, totalPages: number) =>
@@ -202,6 +215,30 @@ export const resolveNx9Context = ({
     activeSection: string | null | undefined;
     activeCell?: Nx9ActiveCell | null | undefined;
 }): Nx9Context => {
+    const structureContext = resolveNx9StructureContext({
+        sectionIdMap,
+        documentContent,
+        rowsPerPage,
+        activeSection,
+    });
+    return resolveNx9PageContext({
+        structureContext,
+        activeSection,
+        activeCell,
+    });
+};
+
+export const resolveNx9StructureContext = ({
+    sectionIdMap,
+    documentContent,
+    rowsPerPage,
+    activeSection,
+}: {
+    sectionIdMap: Record<string, string | undefined>;
+    documentContent: Content;
+    rowsPerPage: number | null | undefined;
+    activeSection: string | null | undefined;
+}): Nx9StructureContext => {
     const normalizedRowsPerPage = normalizeNx9RowsPerPage(rowsPerPage);
     const coreSections = collectNx9CoreSections(sectionIdMap);
     const effectiveCoreSections = collectEffectiveNx9CoreSections({
@@ -211,38 +248,13 @@ export const resolveNx9Context = ({
     });
     const rows = buildNx9Rows(effectiveCoreSections);
     const totalPages = getNx9TotalPages(rows.length, normalizedRowsPerPage);
-    const activePos = activeSection
-        ? posOfSectionNx9(
-              activeSection,
-              effectiveCoreSections,
-              normalizedRowsPerPage,
-          )
-        : null;
-    const currentPage = clampPage(
-        activeCell?.page ?? activePos?.page ?? 0,
-        totalPages,
-    );
-    const pageRows = buildNx9PageRows({
-        rows,
-        rowsPerPage: normalizedRowsPerPage,
-        page: currentPage,
-    });
-    const getPageRows = (page: number) =>
-        buildNx9PageRows({
-            rows,
-            rowsPerPage: normalizedRowsPerPage,
-            page: clampPage(page, totalPages),
-        });
 
     return {
         coreSections,
         effectiveCoreSections,
         rowsPerPage: normalizedRowsPerPage,
+        rows,
         totalPages,
-        currentPage,
-        pageRows,
-        sectionForCell: (row, col, page = currentPage) =>
-            sectionAtCellNx9(row, col, getPageRows(page)),
         posForSection: (section) =>
             section
                 ? posOfSectionNx9(
@@ -251,6 +263,53 @@ export const resolveNx9Context = ({
                       normalizedRowsPerPage,
                   )
                 : null,
+    };
+};
+
+export const resolveNx9PageContext = ({
+    structureContext,
+    activeSection,
+    activeCell,
+}: {
+    structureContext: Nx9StructureContext;
+    activeSection: string | null | undefined;
+    activeCell?: Nx9ActiveCell | null | undefined;
+}): Nx9PageContext => {
+    const {
+        coreSections,
+        effectiveCoreSections,
+        rowsPerPage,
+        rows,
+        totalPages,
+        posForSection,
+    } = structureContext;
+    const activePos = activeSection ? posForSection(activeSection) : null;
+    const currentPage = clampPage(
+        activeCell?.page ?? activePos?.page ?? 0,
+        totalPages,
+    );
+    const pageRows = buildNx9PageRows({
+        rows,
+        rowsPerPage,
+        page: currentPage,
+    });
+    const getPageRows = (page: number) =>
+        buildNx9PageRows({
+            rows,
+            rowsPerPage,
+            page: clampPage(page, totalPages),
+        });
+
+    return {
+        coreSections,
+        effectiveCoreSections,
+        rowsPerPage,
+        totalPages,
+        currentPage,
+        pageRows,
+        sectionForCell: (row, col, page = currentPage) =>
+            sectionAtCellNx9(row, col, getPageRows(page)),
+        posForSection,
         isGhostCreateCell: (row, col, page = currentPage) =>
             isGhostCreateCellNx9(row, col, getPageRows(page)),
         isSelectableCell: (row, col, page = currentPage) =>

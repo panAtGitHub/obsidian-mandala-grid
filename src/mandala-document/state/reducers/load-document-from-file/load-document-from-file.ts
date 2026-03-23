@@ -50,6 +50,7 @@ export const loadDocumentFromFile = (
     state.meta.mandalaV2 = {
         enabled: true,
         revision: state.meta.mandalaV2.revision + 1,
+        contentRevision: state.meta.mandalaV2.contentRevision + 1,
         rootGroupId: documentV2.rootGroupId,
         orderedSections: documentV2.orderedSections,
         lastMutation: null,

@@ -81,6 +81,7 @@ const updateDocumentState = (
             state.document.content[action.payload.nodeId]?.content ?? '';
         const update = setNodeContent(state.document.content, action);
         if (!update) return NO_UPDATE;
+        state.meta.mandalaV2.contentRevision += 1;
         applyMandalaContentDelta(
             state,
             action.payload.nodeId,
@@ -101,6 +102,7 @@ const updateDocumentState = (
             action,
         );
         if (changedNodeIds.length === 0) return NO_UPDATE;
+        state.meta.mandalaV2.contentRevision += 1;
         for (const nodeId of changedNodeIds) {
             applyMandalaContentDelta(
                 state,
@@ -204,7 +206,8 @@ const updateDocumentState = (
     } else if (action.type === 'document/mandala/clear-empty-subgrids') {
         const parentIds = action.payload.parentIds.filter(Boolean);
         const rootNodeIds = action.payload.rootNodeIds.filter(Boolean);
-        if (parentIds.length === 0 && rootNodeIds.length === 0) return NO_UPDATE;
+        if (parentIds.length === 0 && rootNodeIds.length === 0)
+            return NO_UPDATE;
         removeMandalaDescendantSectionsByParents(state, parentIds, {
             commit: false,
         });
@@ -229,6 +232,7 @@ const updateDocumentState = (
         newActiveNodeId = loadDocumentFromFile(state, action);
     } else if (action.type === 'document/format-headings') {
         formatHeadings(state.document.content, state.sections);
+        state.meta.mandalaV2.contentRevision += 1;
         newActiveNodeId = getIdOfSection(
             state.sections,
             state.history.context.activeSection,

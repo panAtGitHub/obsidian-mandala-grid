@@ -95,8 +95,7 @@
     const mobileViewportHeight = mobileEditorViewport.height;
     const mobileViewportOffsetTop = mobileEditorViewport.offsetTop;
     const mobileViewportBottomInset = mobileEditorViewport.bottomInset;
-    const mobileKeyboardOverlayFallback =
-        mobileEditorViewport.keyboardFallback;
+    const mobileKeyboardOverlayFallback = mobileEditorViewport.keyboardFallback;
 
     const recomputeDesktopSquareSize = () => {
         if (Platform.isMobile || !$squareLayout || !contentWrapperRef) {
@@ -213,15 +212,21 @@
             weekAnchorDate: $weekAnchorDate,
             weekStart: $weekStart,
         });
+        view.flushSceneSyncTrace({
+            mode: $mode,
+        });
     }
 
-    $: dayPlanTodayTargetSection = syncThreeByThreeSceneState({
-        view,
-        mode: $mode,
-        subgridTheme: $subgridTheme,
-        documentState: $documentState,
-        sectionToNodeId: $sectionToNodeId,
-    });
+    $: dayPlanTodayTargetSection =
+        $mode === '3x3'
+            ? syncThreeByThreeSceneState({
+                  view,
+                  mode: $mode,
+                  subgridTheme: $subgridTheme,
+                  documentState: $documentState,
+                  sectionToNodeId: $sectionToNodeId,
+              })
+            : null;
     // 手机端编辑统一走原生 section 会话，不再走 InlineEditor 弹层路径。
     let isMobilePopupEditing = false;
     $: isMobileFullScreenSearch = Platform.isMobile && $search.showInput;
@@ -252,21 +257,24 @@
     };
 
     $: threeByThreeTheme = resolveThreeByThreeTheme($subgridTheme);
-    $: threeByThreeCells = buildThreeByThreeCells({
-        theme: threeByThreeTheme,
-        selectedLayoutId: $selectedLayoutId,
-        customLayouts: $customLayouts,
-        sectionToNodeId: $sectionToNodeId,
-        activeNodeId: $activeNodeId,
-        editingState: $editingState,
-        selectedNodes: $selectedNodes,
-        pinnedSections: $pinnedSections,
-        showDetailSidebar: $showDetailSidebar,
-        backgroundMode: $backgroundMode,
-        sectionColors: $sectionColors,
-        sectionColorOpacity: $sectionColorOpacity,
-        whiteThemeMode: $whiteThemeMode,
-    });
+    $: threeByThreeCells =
+        $mode === '3x3'
+            ? buildThreeByThreeCells({
+                  theme: threeByThreeTheme,
+                  selectedLayoutId: $selectedLayoutId,
+                  customLayouts: $customLayouts,
+                  sectionToNodeId: $sectionToNodeId,
+                  activeNodeId: $activeNodeId,
+                  editingState: $editingState,
+                  selectedNodes: $selectedNodes,
+                  pinnedSections: $pinnedSections,
+                  showDetailSidebar: $showDetailSidebar,
+                  backgroundMode: $backgroundMode,
+                  sectionColors: $sectionColors,
+                  sectionColorOpacity: $sectionColorOpacity,
+                  whiteThemeMode: $whiteThemeMode,
+              })
+            : [];
 </script>
 
 <div
