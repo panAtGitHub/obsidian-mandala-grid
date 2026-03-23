@@ -71,9 +71,6 @@
     let contentDensity: 'normal' | 'compact' = 'normal';
     let scrollbarMode = displayPolicy.scrollbarMode;
     let hoverElevationEnabled = true;
-    let suppressSurfaceState = false;
-    let visualActive = false;
-    let visualInactive = false;
 
     $: ({
         nodeId,
@@ -88,21 +85,17 @@
     $: contentDensity = displayPolicy.density;
     $: scrollbarMode = displayPolicy.scrollbarMode;
     $: hoverElevationEnabled = gridCell?.mode !== 'nx9';
-    $: suppressSurfaceState = gridCell?.mode === 'nx9';
-    $: visualActive = active && !suppressSurfaceState;
-    $: visualInactive = !active && !suppressSurfaceState;
 
     $: renderModel = buildMandalaCardRenderModel({
         viewModel,
         uiState,
-        visualActive,
         fallbackSection: $idToSection[nodeId],
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,
         showDetailSidebar: $showDetailSidebar,
         isMobile,
         themeTone: themeSnapshot?.themeTone ?? getThemeTone(),
-        themeUnderlayColor: visualActive
+        themeUnderlayColor: active
             ? themeSnapshot?.activeThemeUnderlayColor ??
               themeSnapshot?.themeUnderlayColor ??
               getThemeUnderlayColor()
@@ -131,13 +124,11 @@
 <div
     class={clx(
         'mandala-card',
-        visualActive ? 'active-node' : undefined,
-        visualInactive ? 'inactive-node' : undefined,
+        active ? 'active-node' : 'inactive-node',
         hasSectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
-        visualActive ? 'node-border--active' : undefined,
-        suppressSurfaceState ? 'mandala-card--surface-static' : undefined,
+        active ? 'node-border--active' : undefined,
     )}
     class:mandala-card--hover-elevation={hoverElevationEnabled}
     class:mandala-card--swap-source={isSwapSourceNode($swapState, nodeId)}
