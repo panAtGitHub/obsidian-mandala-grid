@@ -16,4 +16,6 @@ export const buildNx9CellDisplayOverrides = ({
           }
         : {}),
     contentLayout: 'fill',
+    hoverBehavior: 'none',
+    inactiveSurfaceMode: 'detached',
 });

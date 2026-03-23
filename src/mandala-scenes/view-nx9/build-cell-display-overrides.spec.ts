@@ -11,6 +11,8 @@ describe('buildNx9CellDisplayOverrides', () => {
             sectionIndicatorVariant: 'plain-with-pin',
             preserveActiveBackground: true,
             contentLayout: 'fill',
+            hoverBehavior: 'none',
+            inactiveSurfaceMode: 'detached',
         });
     });
 
@@ -21,6 +23,8 @@ describe('buildNx9CellDisplayOverrides', () => {
             }),
         ).toEqual({
             contentLayout: 'fill',
+            hoverBehavior: 'none',
+            inactiveSurfaceMode: 'detached',
         });
     });
 });

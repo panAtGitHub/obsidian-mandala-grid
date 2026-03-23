@@ -10,6 +10,8 @@ describe('createDefaultCellDisplayPolicy', () => {
             contentLayout: 'intrinsic',
             density: 'normal',
             scrollbarMode: 'selected-hover',
+            hoverBehavior: 'elevated',
+            inactiveSurfaceMode: 'inline',
         });
     });
 });

@@ -13,4 +13,6 @@ export type CellDisplayPolicy = {
     contentLayout: 'intrinsic' | 'fill';
     density: 'normal' | 'compact';
     scrollbarMode: CellScrollbarMode;
+    hoverBehavior: 'elevated' | 'none';
+    inactiveSurfaceMode: 'inline' | 'detached';
 };

@@ -72,6 +72,7 @@
     let scrollbarMode = displayPolicy.scrollbarMode;
     let hoverElevationEnabled = true;
     let detachInactiveSurface = false;
+    let suppressHoverSurfaceEffect = false;
 
     $: ({
         nodeId,
@@ -85,8 +86,10 @@
     $: fillContent = displayPolicy.contentLayout === 'fill';
     $: contentDensity = displayPolicy.density;
     $: scrollbarMode = displayPolicy.scrollbarMode;
-    $: hoverElevationEnabled = gridCell?.mode !== 'nx9';
-    $: detachInactiveSurface = gridCell?.mode === 'nx9' && !active;
+    $: hoverElevationEnabled = displayPolicy.hoverBehavior === 'elevated';
+    $: suppressHoverSurfaceEffect = displayPolicy.hoverBehavior === 'none';
+    $: detachInactiveSurface =
+        displayPolicy.inactiveSurfaceMode === 'detached' && !active;
 
     $: renderModel = buildMandalaCardRenderModel({
         viewModel,
@@ -132,7 +135,7 @@
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
         detachInactiveSurface ? 'mandala-card--detached-inactive' : undefined,
-        gridCell?.mode === 'nx9' ? 'mandala-card--nx9' : undefined,
+        suppressHoverSurfaceEffect ? 'mandala-card--hover-static' : undefined,
     )}
     class:mandala-card--hover-elevation={hoverElevationEnabled}
     class:mandala-card--swap-source={isSwapSourceNode($swapState, nodeId)}
@@ -270,7 +273,7 @@
     }
 
     :global(.mandala-view:not(.mandala-white-theme))
-        .mandala-card--nx9:hover {
+        .mandala-card--hover-static:hover {
         box-shadow: none !important;
     }
 
