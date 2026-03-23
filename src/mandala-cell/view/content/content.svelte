@@ -153,7 +153,7 @@
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
     use:markdownPreviewAction={nodeId}
-    use:hideIdleScrollbar={scrollbarMode}
+    use:hideIdleScrollbar={{ mode: scrollbarMode, enabled: !isInSidebar }}
 ></div>
 
 <style>

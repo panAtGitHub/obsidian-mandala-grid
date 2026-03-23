@@ -7,10 +7,6 @@ const IDLE_HIDE_MS = 0;
 const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
 
-const ROOT_SELECTOR = '.mandala-root--3, .mandala-root--9';
-const GRID_SELECTOR = '.mandala-grid';
-const SIDEBAR_SELECTOR = '.mandala-detail-sidebar';
-
 const INTERACTION_EVENTS = [
     'pointerenter',
     'pointermove',
@@ -21,15 +17,31 @@ const INTERACTION_EVENTS = [
 ] as const;
 const EXIT_EVENTS = ['pointerleave', 'touchend', 'touchcancel'] as const;
 
+type HideIdleScrollbarOptions = {
+    mode?: CellScrollbarMode;
+    enabled?: boolean;
+};
+
+const normalizeOptions = (
+    options: HideIdleScrollbarOptions | CellScrollbarMode | undefined,
+): Required<HideIdleScrollbarOptions> =>
+    typeof options === 'string'
+        ? {
+              mode: options,
+              enabled: true,
+          }
+        : {
+              mode: options?.mode ?? DEFAULT_CELL_SCROLLBAR_MODE,
+              enabled: options?.enabled ?? true,
+          };
+
 export const hideIdleScrollbar = (
     element: HTMLElement,
-    mode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE,
+    options: HideIdleScrollbarOptions | CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE,
 ) => {
-    const isInMandalaRoot = Boolean(element.closest(ROOT_SELECTOR));
-    const isInMandalaGrid = Boolean(element.closest(GRID_SELECTOR));
-    const isInSidebar = Boolean(element.closest(SIDEBAR_SELECTOR));
+    const { mode, enabled } = normalizeOptions(options);
 
-    if (!isInMandalaRoot || !isInMandalaGrid || isInSidebar) {
+    if (!enabled) {
         return {
             destroy: () => {},
         };

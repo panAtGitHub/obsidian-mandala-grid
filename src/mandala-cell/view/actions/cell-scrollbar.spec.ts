@@ -4,34 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
 
 type SetupOptions = {
-    withSidebar?: boolean;
-    rootClass?: 'mandala-root--3' | 'mandala-root--9';
+    enabled?: boolean;
 };
 
 const setupTarget = (options: SetupOptions = {}) => {
-    const root = document.createElement('div');
-    root.className = `mandala-root ${options.rootClass ?? 'mandala-root--3'}`;
-
-    const host = document.createElement('div');
-    host.className = options.withSidebar
-        ? 'mandala-detail-sidebar'
-        : 'mandala-grid';
-
-    const gridContainer = options.withSidebar
-        ? document.createElement('div')
-        : host;
-    if (options.withSidebar) {
-        gridContainer.className = 'mandala-grid';
-        host.appendChild(gridContainer);
-    }
-
     const target = document.createElement('div');
     target.className = 'lng-prev';
-    gridContainer.appendChild(target);
-    root.appendChild(host);
-    document.body.appendChild(root);
+    document.body.appendChild(target);
 
-    return { target };
+    return { target, enabled: options.enabled ?? true };
 };
 
 describe('hideIdleScrollbar', () => {
@@ -46,8 +27,11 @@ describe('hideIdleScrollbar', () => {
     });
 
     it('reveals on pointer enter and hides on pointer leave when delay is 0', () => {
-        const { target } = setupTarget();
-        const action = hideIdleScrollbar(target);
+        const { target, enabled } = setupTarget();
+        const action = hideIdleScrollbar(target, {
+            mode: 'interaction',
+            enabled,
+        });
 
         expect(target.classList.contains('mandala-idle-scrollbar')).toBe(true);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
@@ -62,8 +46,11 @@ describe('hideIdleScrollbar', () => {
     });
 
     it('keeps visible while interacting repeatedly', () => {
-        const { target } = setupTarget();
-        const action = hideIdleScrollbar(target);
+        const { target, enabled } = setupTarget();
+        const action = hideIdleScrollbar(target, {
+            mode: 'interaction',
+            enabled,
+        });
 
         target.dispatchEvent(new Event('wheel'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
@@ -77,8 +64,11 @@ describe('hideIdleScrollbar', () => {
     });
 
     it('reveals when container scrolls', () => {
-        const { target } = setupTarget();
-        const action = hideIdleScrollbar(target);
+        const { target, enabled } = setupTarget();
+        const action = hideIdleScrollbar(target, {
+            mode: 'interaction',
+            enabled,
+        });
 
         target.dispatchEvent(new Event('scroll'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
@@ -88,9 +78,12 @@ describe('hideIdleScrollbar', () => {
         action.destroy();
     });
 
-    it('does not activate inside mandala detail sidebar', () => {
-        const { target } = setupTarget({ withSidebar: true });
-        const action = hideIdleScrollbar(target);
+    it('does not activate when the scene disables it explicitly', () => {
+        const { target, enabled } = setupTarget({ enabled: false });
+        const action = hideIdleScrollbar(target, {
+            mode: 'interaction',
+            enabled,
+        });
 
         target.dispatchEvent(new Event('pointerenter'));
         target.dispatchEvent(new Event('pointerleave'));
@@ -102,8 +95,11 @@ describe('hideIdleScrollbar', () => {
     });
 
     it('cleans up timer and listeners on destroy', () => {
-        const { target } = setupTarget();
-        const action = hideIdleScrollbar(target);
+        const { target, enabled } = setupTarget();
+        const action = hideIdleScrollbar(target, {
+            mode: 'interaction',
+            enabled,
+        });
 
         target.dispatchEvent(new Event('touchstart'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
