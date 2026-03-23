@@ -129,7 +129,7 @@
             total_ms: Number((performance.now() - startedAt).toFixed(2)),
             rows_per_page: rowsPerPage,
             total_pages: cachedStructureContext.totalPages,
-            root_section: normalizeNx9VisibleSection(activeSection) ?? null,
+            root_section: activeSection?.split('.')[0] ?? null,
         });
         return cachedStructureContext;
     };
