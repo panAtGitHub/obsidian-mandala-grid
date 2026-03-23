@@ -1,6 +1,6 @@
 <script lang="ts">
     import { MarkdownView, Platform } from 'obsidian';
-    import { getView } from 'src/mandala-scenes/shared/shell/context';
+    import { getView } from 'src/view/context';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';

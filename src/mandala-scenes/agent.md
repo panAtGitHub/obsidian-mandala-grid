@@ -60,7 +60,7 @@
   定义标准格子的默认展示配置，3x3 在 scene 层基于它做微调。
 
 - `src/mandala-cell/viewmodel/policies/cell-interaction-policy.ts`
-  定义 `grid-3x3` 的交互策略，例如移动端双击进入子宫格导航。
+  定义场景传给 cell 的交互能力，例如移动端双击是否触发子宫格导航。
 
 - `src/mandala-interaction/helpers/mobile-navigation.ts`
   承担 3x3 的子宫格进入、退出和移动端导航逻辑。

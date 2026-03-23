@@ -15,7 +15,7 @@
         SimpleSummaryCellModel,
     } from 'src/mandala-cell/model/simple-summary-cell-model';
     import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
-    import { getView } from 'src/mandala-scenes/shared/shell/context';
+    import { getView } from 'src/view/context';
 
     export let cell: SimpleSummaryCellModel;
     export let activeNodeId: string | null;

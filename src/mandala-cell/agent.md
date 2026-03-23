@@ -126,13 +126,10 @@
 ### policies/
 
 - `policies/cell-interaction-policy.ts`
-  定义不同场景下的 cell 交互策略，例如移动端双击行为。
+  定义 cell 的交互能力策略，例如移动端双击行为；scene 层应传入语义化能力字段，而不是把场景名传进来。
 
 - `policies/cell-interaction-policy.spec.ts`
   `cell-interaction-policy.ts` 的单元测试。
-
-- `policies/cell-activation-policy.ts`
-  负责“某个 cell 被激活时应该联动更新哪些外部状态”的策略逻辑。
 
 ### content-event-handlers/
 

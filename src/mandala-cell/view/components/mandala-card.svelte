@@ -4,7 +4,7 @@
     import CardMeta from 'src/mandala-cell/view/components/card-meta.svelte';
     import CardStyle from 'src/mandala-cell/view/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/mandala-cell/model/build-mandala-card-render-model';
-    import { getView } from 'src/mandala-scenes/shared/shell/context';
+    import { getView } from 'src/view/context';
     import { Platform } from 'obsidian';
     import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { derived } from 'src/shared/store/derived';
