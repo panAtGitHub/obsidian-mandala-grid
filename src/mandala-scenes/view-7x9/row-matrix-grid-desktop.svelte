@@ -36,7 +36,10 @@
         >
             {#if cell.nodeId}
                 {#if cell.cardViewModel}
-                    <MandalaCard viewModel={cell.cardViewModel} />
+                    <MandalaCard
+                        viewModel={cell.cardViewModel}
+                        uiState={cell.cardUiState}
+                    />
                 {/if}
             {:else if cell.isPlaceholder || cell.emptyLabel}
                 <div class="row-matrix-cell__empty">

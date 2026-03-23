@@ -9,11 +9,7 @@ type BuildMandalaCardViewModelOptions = MandalaCardViewModel;
 export const buildMandalaCardViewModel = ({
     nodeId,
     section,
-    active,
-    editing,
     contentEnabled,
-    selected,
-    pinned,
     style,
     sectionColor,
     metaAccentColor,
@@ -23,11 +19,7 @@ export const buildMandalaCardViewModel = ({
 }: BuildMandalaCardViewModelOptions): MandalaCardViewModel => ({
     nodeId,
     section,
-    active,
-    editing,
     contentEnabled,
-    selected,
-    pinned,
     style,
     sectionColor,
     metaAccentColor,

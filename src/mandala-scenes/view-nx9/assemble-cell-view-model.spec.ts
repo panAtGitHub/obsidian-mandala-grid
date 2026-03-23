@@ -1,0 +1,189 @@
+import { describe, expect, it } from 'vitest';
+import {
+    applyNx9PageInteractionState,
+    assembleNx9PageFrame,
+    buildNx9PageIndex,
+    buildNx9PageStaticRows,
+    patchNx9ActiveInteractionState,
+    type Nx9InteractionSnapshot,
+    type Nx9RealCellViewModel,
+} from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
+import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
+
+const createFixture = () => {
+    const sectionIdMap = {
+        '1': 'node-1',
+        '1.1': 'node-1-1',
+        '1.2': 'node-1-2',
+        '2': 'node-2',
+        '2.1': 'node-2-1',
+    };
+    const context = resolveNx9Context({
+        sectionIdMap,
+        documentContent: {
+            'node-1': { content: 'row 1 center' },
+            'node-1-1': { content: 'row 1 child 1' },
+            'node-1-2': { content: 'row 1 child 2' },
+            'node-2': { content: 'row 2 center' },
+            'node-2-1': { content: 'row 2 child 1' },
+        },
+        rowsPerPage: 2,
+        activeSection: '1',
+    });
+    const pageFrame = assembleNx9PageFrame({
+        context,
+        documentState: {
+            sections: {
+                section_id: sectionIdMap,
+            },
+        },
+    });
+    const staticRows = buildNx9PageStaticRows({
+        context,
+        pageFrame,
+        sectionColors: {},
+        sectionColorOpacity: 100,
+        backgroundMode: 'none',
+        whiteThemeMode: false,
+        hydratedNodeIds: new Set([
+            'node-1',
+            'node-1-1',
+            'node-1-2',
+            'node-2',
+            'node-2-1',
+        ]),
+    });
+    const pageIndex = buildNx9PageIndex(pageFrame);
+
+    return {
+        context,
+        staticRows,
+        pageIndex,
+    };
+};
+
+const buildInteraction = ({
+    activeNodeId,
+    activeCell,
+}: {
+    activeNodeId: string | null;
+    activeCell: { row: number; col: number; page: number } | null;
+}): Nx9InteractionSnapshot => ({
+    activeNodeId,
+    activeCell,
+    activeCellKey: activeCell
+        ? `${activeCell.page}:${activeCell.row}:${activeCell.col}`
+        : null,
+    editingNodeId: null,
+    editingInSidebar: false,
+    selectedStamp: '',
+    pinnedStamp: '',
+    showDetailSidebar: false,
+});
+
+describe('nx9/assemble-cell-view-model', () => {
+    it('patches only the touched row on same-row active movement', () => {
+        const { context, staticRows, pageIndex } = createFixture();
+        const rows = applyNx9PageInteractionState({
+            context,
+            staticRows,
+            activeNodeId: 'node-1',
+            activeCell: { row: 0, col: 0, page: 0 },
+            editingState: { activeNodeId: null, isInSidebar: false },
+            selectedNodes: new Set(),
+            pinnedSections: new Set(),
+            showDetailSidebar: false,
+        });
+
+        const previousRow0 = rows[0] as Nx9RealCellViewModel[];
+        const previousRow1 = rows[1] as Nx9RealCellViewModel[];
+
+        const patched = patchNx9ActiveInteractionState({
+            rows,
+            staticRows,
+            pageIndex,
+            context,
+            previousInteraction: buildInteraction({
+                activeNodeId: 'node-1',
+                activeCell: { row: 0, col: 0, page: 0 },
+            }),
+            nextInteraction: buildInteraction({
+                activeNodeId: 'node-1-1',
+                activeCell: { row: 0, col: 1, page: 0 },
+            }),
+        });
+
+        const nextRows = patched.rows;
+        const nextRow0 = nextRows[0] as Nx9RealCellViewModel[];
+        const nextRow1 = nextRows[1] as Nx9RealCellViewModel[];
+
+        expect(patched.changedRowCount).toBe(1);
+        expect(patched.changedCellCount).toBe(2);
+        expect(nextRow0).not.toBe(previousRow0);
+        expect(nextRow1).toBe(previousRow1);
+        expect(nextRow0[0]).not.toBe(previousRow0[0]);
+        expect(nextRow0[1]).not.toBe(previousRow0[1]);
+        expect(nextRow0[2]).toBe(previousRow0[2]);
+        expect(nextRow0[0].cardViewModel).toBe(previousRow0[0].cardViewModel);
+        expect(nextRow0[1].cardViewModel).toBe(previousRow0[1].cardViewModel);
+    });
+
+    it('patches both touched rows on cross-row active movement', () => {
+        const { context, staticRows, pageIndex } = createFixture();
+        const rows = applyNx9PageInteractionState({
+            context,
+            staticRows,
+            activeNodeId: 'node-1',
+            activeCell: { row: 0, col: 0, page: 0 },
+            editingState: { activeNodeId: null, isInSidebar: false },
+            selectedNodes: new Set(),
+            pinnedSections: new Set(),
+            showDetailSidebar: false,
+        });
+
+        const previousRow0 = rows[0] as Nx9RealCellViewModel[];
+        const previousRow1 = rows[1] as Nx9RealCellViewModel[];
+
+        const patched = patchNx9ActiveInteractionState({
+            rows,
+            staticRows,
+            pageIndex,
+            context,
+            previousInteraction: buildInteraction({
+                activeNodeId: 'node-1',
+                activeCell: { row: 0, col: 0, page: 0 },
+            }),
+            nextInteraction: buildInteraction({
+                activeNodeId: 'node-2',
+                activeCell: { row: 1, col: 0, page: 0 },
+            }),
+        });
+
+        const nextRows = patched.rows;
+
+        expect(patched.changedRowCount).toBe(2);
+        expect(patched.changedCellCount).toBe(2);
+        expect(nextRows[0]).not.toBe(previousRow0);
+        expect(nextRows[1]).not.toBe(previousRow1);
+    });
+
+    it('applies selection state in the full interaction pass', () => {
+        const { context, staticRows } = createFixture();
+        const rows = applyNx9PageInteractionState({
+            context,
+            staticRows,
+            activeNodeId: 'node-1',
+            activeCell: { row: 0, col: 0, page: 0 },
+            editingState: { activeNodeId: null, isInSidebar: false },
+            selectedNodes: new Set(['node-1-1']),
+            pinnedSections: new Set(['2']),
+            showDetailSidebar: false,
+        });
+        const firstRow = rows[0] as Nx9RealCellViewModel[];
+        const secondRow = rows[1] as Nx9RealCellViewModel[];
+
+        expect(firstRow[1].cardUiState.selected).toBe(true);
+        expect(firstRow[0].cardUiState.selected).toBe(false);
+        expect(secondRow[0].cardUiState.pinned).toBe(true);
+    });
+});

@@ -1,18 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import { buildMandalaCardRenderModel } from 'src/mandala-cell/model/build-mandala-card-render-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
+import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 
 const baseOptions = () => ({
-    nodeId: 'node-1',
-    section: '1',
-    active: false,
-    editing: false,
-    contentEnabled: true,
-    pinned: false,
-    style: undefined,
-    sectionColor: null,
-    metaAccentColor: null,
-    displayPolicy: createDefaultCellDisplayPolicy(),
+    viewModel: {
+        nodeId: 'node-1',
+        section: '1',
+        contentEnabled: true,
+        style: undefined,
+        sectionColor: null,
+        metaAccentColor: null,
+        displayPolicy: createDefaultCellDisplayPolicy(),
+        interactionPolicy: buildCellInteractionPolicy({
+            preset: 'grid-nx9',
+        }),
+        gridCell: null,
+    },
+    uiState: {
+        active: false,
+        editing: false,
+        selected: false,
+        pinned: false,
+    },
     previewDialogOpen: false,
     previewDialogNodeId: null,
     showDetailSidebar: false,
@@ -24,7 +34,10 @@ describe('buildMandalaCardRenderModel', () => {
     it('hides markdown content when content hydration is disabled', () => {
         const model = buildMandalaCardRenderModel({
             ...baseOptions(),
-            contentEnabled: false,
+            viewModel: {
+                ...baseOptions().viewModel,
+                contentEnabled: false,
+            },
         });
 
         expect(model.showInlineEditor).toBe(false);
@@ -34,9 +47,11 @@ describe('buildMandalaCardRenderModel', () => {
     it('still hides content when inline editor owns the card', () => {
         const model = buildMandalaCardRenderModel({
             ...baseOptions(),
-            active: true,
-            editing: true,
-            contentEnabled: true,
+            uiState: {
+                ...baseOptions().uiState,
+                active: true,
+                editing: true,
+            },
         });
 
         expect(model.showInlineEditor).toBe(true);

@@ -1,8 +1,10 @@
 import { buildMandalaCardMetaState } from 'src/mandala-cell/model/mandala-card-meta';
 import { buildMandalaCardStyle } from 'src/mandala-cell/model/mandala-card-style';
 import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
-import type { CellStyle } from 'src/mandala-cell/model/card-types';
-import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import type {
+    MandalaCardUiState,
+    MandalaCardViewModel,
+} from 'src/mandala-cell/model/card-view-model';
 import { isPreviewDialogEditingNode } from 'src/mandala-interaction/helpers/is-preview-dialog-editing-node';
 import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
 
@@ -11,17 +13,9 @@ import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-to
 // 2. 再看 mandala-card-style.ts 和 mandala-card-meta.ts，了解背景和 meta 如何派生
 // 3. 最后看本文件，理解这些输入如何合并成 view 真正消费的 render model
 type BuildMandalaCardRenderModelOptions = {
-    nodeId: string;
-    section: string;
+    viewModel: MandalaCardViewModel;
+    uiState: MandalaCardUiState;
     fallbackSection?: string;
-    active: boolean;
-    editing: boolean;
-    contentEnabled: boolean;
-    pinned: boolean;
-    style: CellStyle;
-    sectionColor: string | null;
-    metaAccentColor: string | null;
-    displayPolicy: CellDisplayPolicy;
     previewDialogOpen: boolean;
     previewDialogNodeId: string | null;
     showDetailSidebar: boolean;
@@ -31,17 +25,9 @@ type BuildMandalaCardRenderModelOptions = {
 };
 
 export const buildMandalaCardRenderModel = ({
-    nodeId,
-    section,
+    viewModel,
+    uiState,
     fallbackSection,
-    active,
-    editing,
-    contentEnabled,
-    pinned,
-    style,
-    sectionColor,
-    metaAccentColor,
-    displayPolicy,
     previewDialogOpen,
     previewDialogNodeId,
     showDetailSidebar,
@@ -49,6 +35,16 @@ export const buildMandalaCardRenderModel = ({
     themeTone,
     themeUnderlayColor,
 }: BuildMandalaCardRenderModelOptions): MandalaCardRenderModel => {
+    const {
+        nodeId,
+        section,
+        contentEnabled,
+        style,
+        sectionColor,
+        metaAccentColor,
+        displayPolicy,
+    } = viewModel;
+    const { active, editing, pinned } = uiState;
     const displaySection = section || fallbackSection || '';
     const { cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
         active,

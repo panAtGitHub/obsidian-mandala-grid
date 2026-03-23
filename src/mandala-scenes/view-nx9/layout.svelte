@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { derived, derivedEq } from 'src/shared/store/derived';
     import {
         MandalaBackgroundModeStore,
@@ -19,19 +19,24 @@
     } from 'src/mandala-scenes/view-nx9/context';
     import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import {
+        applyNx9PageInteractionState,
         assembleNx9PageFrame,
+        buildNx9PageIndex,
+        buildNx9PageStaticRows,
         collectNx9HydratableNodeIds,
-        decorateNx9PageFrame,
+        patchNx9ActiveInteractionState,
+        type Nx9GhostRowViewModel,
+        type Nx9InteractionSnapshot,
+        type Nx9PageFrameRowViewModel,
+        type Nx9PageIndex,
+        type Nx9PaddingRowViewModel,
+        type Nx9RealCellViewModel,
+        type Nx9RowViewModel,
+        type Nx9StaticRowViewModel,
     } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
+    import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
-    import type {
-        Nx9GhostRowViewModel,
-        Nx9PageFrameRowViewModel,
-        Nx9PaddingRowViewModel,
-        Nx9RealCellViewModel,
-        Nx9RowViewModel,
-    } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 
     const view = getView();
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
@@ -48,20 +53,46 @@
             a.revision === b.revision &&
             a.contentRevision === b.contentRevision,
     );
-    const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
+    const activeCellStore = derived(
+        view.viewStore,
+        (state) => state.ui.mandala.activeCellNx9,
+    );
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
     );
-    const editingState = derived(
+    const editingState = derivedEq(
         view.viewStore,
-        (state) => state.document.editing,
+        (state) => ({
+            activeNodeId: state.document.editing.activeNodeId,
+            isInSidebar: state.document.editing.isInSidebar,
+        }),
+        (a, b) =>
+            a.activeNodeId === b.activeNodeId &&
+            a.isInSidebar === b.isInSidebar,
     );
-    const selectedNodes = derived(
+    const selectedNodesSnapshot = derivedEq(
         view.viewStore,
-        (state) => state.document.selectedNodes,
+        (state) => {
+            const ids = Array.from(state.document.selectedNodes).sort();
+            return {
+                value: state.document.selectedNodes,
+                stamp: ids.join('|'),
+            };
+        },
+        (a, b) => a.stamp === b.stamp,
     );
-    const pinnedSections = PinnedSectionsStore(view);
+    const pinnedSectionsSnapshot = derivedEq(
+        PinnedSectionsStore(view),
+        (sections) => {
+            const values = Array.from(sections).sort();
+            return {
+                value: sections,
+                stamp: values.join('|'),
+            };
+        },
+        (a, b) => a.stamp === b.stamp,
+    );
     const sectionColors = SectionColorBySectionStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
@@ -69,17 +100,32 @@
     const whiteThemeMode = WhiteThemeModeStore(view);
 
     let rows: Nx9RowViewModel[] = [];
+    let staticRows: Nx9StaticRowViewModel[] = [];
     let currentPage = 0;
     let rowCount = 1;
     let futureScale = 1;
     let activeSection: string | null = null;
     let activeCoreSection: string | null = null;
+    let activeCell: { row: number; col: number; page?: number } | null = null;
     let structureContext: Nx9StructureContext;
     let nx9Context: Nx9PageContext;
     let pageFrame: Nx9PageFrameRowViewModel[] = [];
+    let pageIndex: Nx9PageIndex = {
+        cellByKey: {},
+        cellByPosition: {},
+        positionByNodeId: {},
+        nodeIds: [],
+    };
     let hydratedNodeIds = new Set<string>();
     let hydrationMarker = '';
     let hydrationRequestId = 0;
+    let bodyThemeObserver: MutationObserver | null = null;
+    let themeSnapshot: MandalaThemeSnapshot = {
+        themeTone: 'light',
+        themeUnderlayColor: '',
+        activeThemeUnderlayColor: '',
+    };
+
     let cachedStructureKey = '';
     let cachedStructureContext: Nx9StructureContext | null = null;
     let cachedPageContext: {
@@ -91,6 +137,24 @@
         context: Nx9PageContext;
         sectionIdMap: Record<string, string>;
         value: Nx9PageFrameRowViewModel[];
+    } | null = null;
+    let cachedPageIndex: {
+        pageFrame: Nx9PageFrameRowViewModel[];
+        value: Nx9PageIndex;
+    } | null = null;
+    let cachedStaticRows: {
+        pageFrame: Nx9PageFrameRowViewModel[];
+        backgroundMode: string;
+        sectionColors: Record<string, string>;
+        sectionColorOpacity: number;
+        whiteThemeMode: boolean;
+        hydratedNodeIds: Set<string>;
+        value: Nx9StaticRowViewModel[];
+    } | null = null;
+    let cachedRuntimeRows: {
+        staticRows: Nx9StaticRowViewModel[];
+        interaction: Nx9InteractionSnapshot;
+        value: Nx9RowViewModel[];
     } | null = null;
 
     const resolveCachedStructureContext = ({
@@ -203,6 +267,254 @@
         return value;
     };
 
+    const resolveCachedPageIndex = ({
+        pageFrame,
+    }: {
+        pageFrame: Nx9PageFrameRowViewModel[];
+    }) => {
+        if (cachedPageIndex?.pageFrame === pageFrame) {
+            return cachedPageIndex.value;
+        }
+        const value = buildNx9PageIndex(pageFrame);
+        cachedPageIndex = {
+            pageFrame,
+            value,
+        };
+        return value;
+    };
+
+    const resolveCachedStaticRows = ({
+        context,
+        pageFrame,
+        sectionColors,
+        sectionColorOpacity,
+        backgroundMode,
+        whiteThemeMode,
+        hydratedNodeIds,
+    }: {
+        context: Nx9PageContext;
+        pageFrame: Nx9PageFrameRowViewModel[];
+        sectionColors: Record<string, string>;
+        sectionColorOpacity: number;
+        backgroundMode: string;
+        whiteThemeMode: boolean;
+        hydratedNodeIds: Set<string>;
+    }) => {
+        if (
+            cachedStaticRows &&
+            cachedStaticRows.pageFrame === pageFrame &&
+            cachedStaticRows.backgroundMode === backgroundMode &&
+            cachedStaticRows.sectionColors === sectionColors &&
+            cachedStaticRows.sectionColorOpacity === sectionColorOpacity &&
+            cachedStaticRows.whiteThemeMode === whiteThemeMode &&
+            cachedStaticRows.hydratedNodeIds === hydratedNodeIds
+        ) {
+            return cachedStaticRows.value;
+        }
+
+        const startedAt = performance.now();
+        const value = buildNx9PageStaticRows({
+            context,
+            pageFrame,
+            sectionColors,
+            sectionColorOpacity,
+            backgroundMode,
+            whiteThemeMode,
+            hydratedNodeIds,
+        });
+        cachedStaticRows = {
+            pageFrame,
+            backgroundMode,
+            sectionColors,
+            sectionColorOpacity,
+            whiteThemeMode,
+            hydratedNodeIds,
+            value,
+        };
+        view.recordPerfEvent('trace.nx9.build-static-rows', {
+            total_ms: Number((performance.now() - startedAt).toFixed(2)),
+            row_count: value.length,
+            cell_count: pageFrame.reduce(
+                (count, row) => count + (Array.isArray(row) ? row.length : 0),
+                0,
+            ),
+            page: context.currentPage,
+        });
+        return value;
+    };
+
+    const buildInteractionSnapshot = ({
+        context,
+        activeNodeId,
+        activeCell,
+        editingState,
+        selectedStamp,
+        pinnedStamp,
+        showDetailSidebar,
+    }: {
+        context: Nx9PageContext;
+        activeNodeId: string | null;
+        activeCell: { row: number; col: number; page?: number } | null;
+        editingState: { activeNodeId: string | null; isInSidebar: boolean };
+        selectedStamp: string;
+        pinnedStamp: string;
+        showDetailSidebar: boolean;
+    }): Nx9InteractionSnapshot => {
+        const normalizedActiveCell = activeCell
+            ? {
+                  row: activeCell.row,
+                  col: activeCell.col,
+                  page: activeCell.page ?? context.currentPage,
+              }
+            : null;
+
+        return {
+            activeNodeId,
+            activeCell: normalizedActiveCell,
+            activeCellKey: normalizedActiveCell
+                ? `${normalizedActiveCell.page}:${normalizedActiveCell.row}:${normalizedActiveCell.col}`
+                : null,
+            editingNodeId: editingState.activeNodeId,
+            editingInSidebar: editingState.isInSidebar,
+            selectedStamp,
+            pinnedStamp,
+            showDetailSidebar,
+        };
+    };
+
+    const sameInteractionSnapshot = (
+        a: Nx9InteractionSnapshot,
+        b: Nx9InteractionSnapshot,
+    ) =>
+        a.activeNodeId === b.activeNodeId &&
+        a.activeCellKey === b.activeCellKey &&
+        a.editingNodeId === b.editingNodeId &&
+        a.editingInSidebar === b.editingInSidebar &&
+        a.selectedStamp === b.selectedStamp &&
+        a.pinnedStamp === b.pinnedStamp &&
+        a.showDetailSidebar === b.showDetailSidebar;
+
+    const canPatchActiveInteractionState = (
+        previousInteraction: Nx9InteractionSnapshot,
+        nextInteraction: Nx9InteractionSnapshot,
+    ) => {
+        const nonActiveStable =
+            previousInteraction.editingNodeId ===
+                nextInteraction.editingNodeId &&
+            previousInteraction.editingInSidebar ===
+                nextInteraction.editingInSidebar &&
+            previousInteraction.selectedStamp ===
+                nextInteraction.selectedStamp &&
+            previousInteraction.pinnedStamp === nextInteraction.pinnedStamp &&
+            previousInteraction.showDetailSidebar ===
+                nextInteraction.showDetailSidebar;
+
+        const activeChanged =
+            previousInteraction.activeNodeId !== nextInteraction.activeNodeId ||
+            previousInteraction.activeCellKey !== nextInteraction.activeCellKey;
+
+        return nonActiveStable && activeChanged;
+    };
+
+    const resolveRuntimeRows = ({
+        staticRows,
+        pageIndex,
+        context,
+        activeNodeId,
+        activeCell,
+        editingState,
+        selectedNodes,
+        selectedStamp,
+        pinnedSections,
+        pinnedStamp,
+        showDetailSidebar,
+    }: {
+        staticRows: Nx9StaticRowViewModel[];
+        pageIndex: Nx9PageIndex;
+        context: Nx9PageContext;
+        activeNodeId: string | null;
+        activeCell: { row: number; col: number; page?: number } | null;
+        editingState: { activeNodeId: string | null; isInSidebar: boolean };
+        selectedNodes: Set<string>;
+        selectedStamp: string;
+        pinnedSections: Set<string>;
+        pinnedStamp: string;
+        showDetailSidebar: boolean;
+    }) => {
+        const interaction = buildInteractionSnapshot({
+            context,
+            activeNodeId,
+            activeCell,
+            editingState,
+            selectedStamp,
+            pinnedStamp,
+            showDetailSidebar,
+        });
+
+        if (
+            cachedRuntimeRows &&
+            cachedRuntimeRows.staticRows === staticRows &&
+            sameInteractionSnapshot(cachedRuntimeRows.interaction, interaction)
+        ) {
+            return cachedRuntimeRows.value;
+        }
+
+        if (
+            cachedRuntimeRows &&
+            cachedRuntimeRows.staticRows === staticRows &&
+            canPatchActiveInteractionState(
+                cachedRuntimeRows.interaction,
+                interaction,
+            )
+        ) {
+            const startedAt = performance.now();
+            const patched = patchNx9ActiveInteractionState({
+                rows: cachedRuntimeRows.value,
+                staticRows,
+                pageIndex,
+                context,
+                previousInteraction: cachedRuntimeRows.interaction,
+                nextInteraction: interaction,
+            });
+            cachedRuntimeRows = {
+                staticRows,
+                interaction,
+                value: patched.rows,
+            };
+            view.recordPerfEvent('trace.nx9.patch-active-state', {
+                total_ms: Number((performance.now() - startedAt).toFixed(2)),
+                changed_row_count: patched.changedRowCount,
+                changed_cell_count: patched.changedCellCount,
+                page: context.currentPage,
+            });
+            return patched.rows;
+        }
+
+        const startedAt = performance.now();
+        const value = applyNx9PageInteractionState({
+            context,
+            staticRows,
+            activeNodeId,
+            activeCell,
+            editingState,
+            selectedNodes,
+            pinnedSections,
+            showDetailSidebar,
+        });
+        cachedRuntimeRows = {
+            staticRows,
+            interaction,
+            value,
+        };
+        view.recordPerfEvent('trace.nx9.apply-ui-full', {
+            total_ms: Number((performance.now() - startedAt).toFixed(2)),
+            row_count: value.length,
+            cell_count: pageIndex.nodeIds.length,
+            page: context.currentPage,
+        });
+        return value;
+    };
+
     const schedulePageHydration = (
         marker: string,
         page: number,
@@ -231,11 +543,40 @@
         });
     };
 
-    onDestroy(() => {
-        hydrationRequestId += 1;
+    const syncThemeSnapshot = () => {
+        const styles = window.getComputedStyle(document.body);
+        const inactiveThemeUnderlayColor =
+            styles.getPropertyValue('--background-active-parent').trim() ||
+            styles.getPropertyValue('--background-primary').trim();
+        const activeThemeUnderlayColor =
+            styles.getPropertyValue('--background-active-node').trim() ||
+            inactiveThemeUnderlayColor;
+
+        themeSnapshot = {
+            themeTone: document.body.classList.contains('theme-dark')
+                ? 'dark'
+                : 'light',
+            themeUnderlayColor: inactiveThemeUnderlayColor,
+            activeThemeUnderlayColor,
+        };
+    };
+
+    onMount(() => {
+        syncThemeSnapshot();
+        bodyThemeObserver = new MutationObserver(() => syncThemeSnapshot());
+        bodyThemeObserver.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class', 'style'],
+        });
     });
 
-    $: activeCell = $mandalaUiState.activeCellNx9;
+    onDestroy(() => {
+        hydrationRequestId += 1;
+        bodyThemeObserver?.disconnect();
+        bodyThemeObserver = null;
+    });
+
+    $: activeCell = $activeCellStore;
     $: activeSection = $documentSnapshot.idToSection[$activeNodeId] ?? null;
     $: activeCoreSection = activeSection?.split('.')[0] ?? null;
     $: structureContext = resolveCachedStructureContext({
@@ -259,6 +600,7 @@
         context: nx9Context,
         sectionIdMap: $documentSnapshot.sectionIdMap,
     });
+    $: pageIndex = resolveCachedPageIndex({ pageFrame });
     $: {
         const nodeIds = collectNx9HydratableNodeIds(pageFrame);
         const marker = [
@@ -279,20 +621,27 @@
             schedulePageHydration(marker, currentPage, nodeIds);
         }
     }
-    $: rows = decorateNx9PageFrame({
+    $: staticRows = resolveCachedStaticRows({
+        context: nx9Context,
+        pageFrame,
+        sectionColors: $sectionColors,
+        sectionColorOpacity: $sectionColorOpacity,
+        backgroundMode: $backgroundMode,
+        whiteThemeMode: $whiteThemeMode,
+        hydratedNodeIds,
+    });
+    $: rows = resolveRuntimeRows({
+        staticRows,
+        pageIndex,
         context: nx9Context,
         activeNodeId: $activeNodeId,
         activeCell,
         editingState: $editingState,
-        selectedNodes: $selectedNodes,
-        pinnedSections: $pinnedSections,
-        sectionColors: $sectionColors,
-        sectionColorOpacity: $sectionColorOpacity,
-        backgroundMode: $backgroundMode,
+        selectedNodes: $selectedNodesSnapshot.value,
+        selectedStamp: $selectedNodesSnapshot.stamp,
+        pinnedSections: $pinnedSectionsSnapshot.value,
+        pinnedStamp: $pinnedSectionsSnapshot.stamp,
         showDetailSidebar: $showDetailSidebar,
-        whiteThemeMode: $whiteThemeMode,
-        hydratedNodeIds,
-        pageFrame,
     });
 
     const selectGhostCreateCell = (row: number) => {
@@ -348,7 +697,11 @@
                         selectRealCell(cell.row, cell.col, cell.nodeId)}
                 >
                     {#if cell.cardViewModel}
-                        <MandalaCard viewModel={cell.cardViewModel} />
+                        <MandalaCard
+                            viewModel={cell.cardViewModel}
+                            uiState={cell.cardUiState}
+                            {themeSnapshot}
+                        />
                     {:else}
                         <div class="nx9-cell__empty">{cell.section}</div>
                     {/if}

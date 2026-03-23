@@ -1,5 +1,8 @@
 import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
-import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
+import type {
+    MandalaCardUiState,
+    MandalaCardViewModel,
+} from 'src/mandala-cell/model/card-view-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
@@ -39,6 +42,7 @@ type AssembleMobileWeekPlanCellsOptions = {
 
 export type WeekPlanDesktopCellViewModel = WeekPlanBaseCell & {
     cardViewModel: MandalaCardViewModel | null;
+    cardUiState: MandalaCardUiState;
     isActiveCell: boolean;
     isActiveNode: boolean;
 };
@@ -118,16 +122,7 @@ export const assembleDesktopWeekPlanCells = ({
             ? buildMandalaCardViewModel({
                   nodeId: cell.nodeId,
                   section: cell.section ?? '',
-                  active: cell.nodeId === activeNodeId,
-                  editing:
-                      editingState.activeNodeId === cell.nodeId &&
-                      !editingState.isInSidebar &&
-                      !showDetailSidebar,
                   contentEnabled: true,
-                  selected: selectedNodes.has(cell.nodeId),
-                  pinned: cell.section
-                      ? pinnedSections.has(cell.section)
-                      : false,
                   style: undefined,
                   sectionColor: resolveSectionBackgroundInput({
                       section: cell.section,
@@ -147,6 +142,16 @@ export const assembleDesktopWeekPlanCells = ({
                   },
               })
             : null,
+        cardUiState: {
+            active: cell.nodeId === activeNodeId,
+            editing:
+                !!cell.nodeId &&
+                editingState.activeNodeId === cell.nodeId &&
+                !editingState.isInSidebar &&
+                !showDetailSidebar,
+            selected: !!cell.nodeId && selectedNodes.has(cell.nodeId),
+            pinned: cell.section ? pinnedSections.has(cell.section) : false,
+        },
     }));
 };
 

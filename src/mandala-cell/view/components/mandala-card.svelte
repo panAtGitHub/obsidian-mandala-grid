@@ -9,9 +9,12 @@
     import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { derived } from 'src/shared/store/derived';
     import { localFontStore } from 'src/stores/local-font-store';
-    import { type ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
     import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
-    import type { MandalaCardViewModel } from 'src/mandala-cell/model/card-view-model';
+    import type {
+        MandalaCardUiState,
+        MandalaCardViewModel,
+        MandalaThemeSnapshot,
+    } from 'src/mandala-cell/model/card-view-model';
     import {
         clickMandalaCard,
         doubleClickMandalaCard,
@@ -28,6 +31,8 @@
     const isMobile = Platform.isMobile;
 
     export let viewModel: MandalaCardViewModel;
+    export let uiState: MandalaCardUiState;
+    export let themeSnapshot: MandalaThemeSnapshot | undefined = undefined;
 
     const view = getView();
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -40,7 +45,7 @@
         view.documentStore,
         (state) => state.sections.id_section,
     );
-    const getThemeTone = (): ThemeTone =>
+    const getThemeTone = () =>
         document.body.classList.contains('theme-dark') ? 'dark' : 'light';
     const getThemeUnderlayColor = () =>
         window
@@ -53,59 +58,48 @@
             .trim();
     let renderModel: MandalaCardRenderModel;
     let nodeId: string;
-    let section: string;
-    let active: boolean;
-    let editing: boolean;
-    let contentEnabled: boolean;
-    let selected: boolean;
-    let pinned: boolean;
     let nodeStyle = viewModel.style;
-    let sectionColor: string | null = null;
-    let metaAccentColor: string | null = null;
     let displayPolicy = viewModel.displayPolicy;
     let interactionPolicy = viewModel.interactionPolicy;
     let gridCell = viewModel.gridCell;
+    let hasSectionColor = false;
+    let active = false;
+    let editing = false;
+    let selected = false;
+    let pinned = false;
     let fillContent = false;
     let contentDensity: 'normal' | 'compact' = 'normal';
     let scrollbarMode = displayPolicy.scrollbarMode;
+    let hoverElevationEnabled = true;
 
     $: ({
         nodeId,
-        section,
-        active,
-        editing,
-        contentEnabled,
-        selected,
-        pinned,
         style: nodeStyle,
-        sectionColor,
-        metaAccentColor,
         displayPolicy,
         interactionPolicy,
         gridCell,
     } = viewModel);
+    $: ({ active, editing, selected, pinned } = uiState);
+    $: hasSectionColor = !!viewModel.sectionColor;
     $: fillContent = displayPolicy.contentLayout === 'fill';
     $: contentDensity = displayPolicy.density;
     $: scrollbarMode = displayPolicy.scrollbarMode;
+    $: hoverElevationEnabled = gridCell?.mode !== 'nx9';
 
     $: renderModel = buildMandalaCardRenderModel({
-        nodeId,
-        section,
+        viewModel,
+        uiState,
         fallbackSection: $idToSection[nodeId],
-        active,
-        editing,
-        contentEnabled,
-        pinned,
-        style: nodeStyle,
-        sectionColor,
-        metaAccentColor,
-        displayPolicy,
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,
         showDetailSidebar: $showDetailSidebar,
         isMobile,
-        themeTone: getThemeTone(),
-        themeUnderlayColor: getThemeUnderlayColor(),
+        themeTone: themeSnapshot?.themeTone ?? getThemeTone(),
+        themeUnderlayColor: active
+            ? themeSnapshot?.activeThemeUnderlayColor ??
+              themeSnapshot?.themeUnderlayColor ??
+              getThemeUnderlayColor()
+            : themeSnapshot?.themeUnderlayColor ?? getThemeUnderlayColor(),
     });
 
     const handleCardMouseDown = (e: MouseEvent) => {
@@ -131,11 +125,12 @@
     class={clx(
         'mandala-card',
         active ? 'active-node' : 'inactive-node',
-        sectionColor ? 'mandala-card--with-section-color' : undefined,
+        hasSectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
     )}
+    class:mandala-card--hover-elevation={hoverElevationEnabled}
     class:mandala-card--swap-source={isSwapSourceNode($swapState, nodeId)}
     class:mandala-card--swap-target={isSwapTargetNode($swapState, nodeId)}
     class:mandala-card--swap-disabled={isSwapDisabledNode($swapState, nodeId)}
@@ -216,7 +211,8 @@
         --scrollbar-active-thumb-bg: var(--color-base-40);
     }
 
-    :global(.mandala-view:not(.mandala-white-theme)) .mandala-card:hover {
+    :global(.mandala-view:not(.mandala-white-theme))
+        .mandala-card--hover-elevation:hover {
         z-index: 10;
     }
 
