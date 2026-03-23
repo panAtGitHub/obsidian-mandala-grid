@@ -19,6 +19,7 @@
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
+    import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
     import {
         build9x9CellViewModels,
         decorate9x9CellViewModels,
@@ -295,6 +296,13 @@
         event.stopPropagation();
         jumpCoreTheme(view, 'down');
     };
+
+    const activateSummaryCell = (cell: SimpleSummaryCellModel) => {
+        setActiveCell9x9(view, {
+            row: cell.row,
+            col: cell.col,
+        });
+    };
 </script>
 
 <div class="simple-9x9-shell">
@@ -310,6 +318,7 @@
                 activeCell={currentActiveCell}
                 showTitleOnly={$showTitleOnly}
                 swapState={$swapState}
+                activateCell={activateSummaryCell}
             />
         {/each}
     </div>

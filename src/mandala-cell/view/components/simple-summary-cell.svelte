@@ -22,6 +22,7 @@
     export let activeCell: SimpleSummaryActiveCell;
     export let showTitleOnly = false;
     export let swapState: MandalaSwapInteractionState;
+    export let activateCell: (cell: SimpleSummaryCellModel) => void;
 
     const view = getView();
 
@@ -88,6 +89,7 @@
             view,
             swapActive: swapState.active,
             cell,
+            activateCell,
         })}
     on:dblclick={() =>
         doubleClickSimpleSummaryCell({
@@ -95,6 +97,7 @@
             swapActive: swapState.active,
             isMobile: Platform.isMobile,
             cell,
+            activateCell,
         })}
 >
     <div class="cell-content">

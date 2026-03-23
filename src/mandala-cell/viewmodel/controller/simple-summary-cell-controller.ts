@@ -4,9 +4,10 @@ import {
     openSidebarAndEditMandalaNode,
     setActiveMandalaNode,
 } from 'src/mandala-interaction/helpers/node-editing';
-import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
 import type { MandalaView } from 'src/view/view';
+
+type ActivateSimpleSummaryCell = (cell: SimpleSummaryCellModel) => void;
 
 type SimpleSummaryPointerStartOptions = {
     view: MandalaView;
@@ -19,6 +20,7 @@ type SimpleSummaryClickOptions = {
     view: MandalaView;
     swapActive: boolean;
     cell: SimpleSummaryCellModel;
+    activateCell: ActivateSimpleSummaryCell;
 };
 
 type SimpleSummaryDoubleClickOptions = {
@@ -26,18 +28,20 @@ type SimpleSummaryDoubleClickOptions = {
     swapActive: boolean;
     isMobile: boolean;
     cell: SimpleSummaryCellModel;
+    activateCell: ActivateSimpleSummaryCell;
 };
 
 export const clickSimpleSummaryCell = ({
     view,
     swapActive,
     cell,
+    activateCell,
 }: SimpleSummaryClickOptions) => {
     if (swapActive) {
         return;
     }
 
-    setActiveCell9x9(view, { row: cell.row, col: cell.col });
+    activateCell(cell);
 
     if (!cell.nodeId) {
         return;
@@ -64,13 +68,14 @@ export const doubleClickSimpleSummaryCell = ({
     swapActive,
     isMobile,
     cell,
+    activateCell,
 }: SimpleSummaryDoubleClickOptions) => {
     if (swapActive) {
         return;
     }
 
     if (!cell.nodeId) {
-        setActiveCell9x9(view, { row: cell.row, col: cell.col });
+        activateCell(cell);
         return;
     }
 
