@@ -154,8 +154,9 @@ export const createCellRuntimeContext = (
             },
         } as never) as InlineMarkdownView;
 
-        const boundSetViewData = markdownView.setViewData.bind(markdownView);
-        markdownView.mandalaSetViewData = boundSetViewData;
+        const originalSetViewData = markdownView.setViewData;
+        markdownView.mandalaSetViewData = (data, clear) =>
+            originalSetViewData.call(markdownView, data, clear);
         markdownView.setViewData = function (
             this: void,
             _data: string,
