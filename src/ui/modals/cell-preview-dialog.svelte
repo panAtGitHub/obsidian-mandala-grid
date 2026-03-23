@@ -7,7 +7,7 @@
         MandalaCellPreviewFontSizeMobileStore,
         ShowCellQuickPreviewDialogStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
+    import { createViewMarkdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import Portal from 'src/shared/ui/portal.svelte';
@@ -20,6 +20,7 @@
     import { resolveCellPreviewNodeId } from 'src/mandala-interaction/helpers/resolve-cell-preview-node-id';
 
     const view = getView();
+    const markdownPreviewAction = createViewMarkdownPreviewAction(view);
     const previewDialog = derived(
         view.viewStore,
         (state) => state.ui.previewDialog,

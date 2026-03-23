@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { MarkdownView, Platform } from 'obsidian';
+    import { Platform } from 'obsidian';
     import { getCellRuntime } from 'src/view/context';
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
@@ -8,7 +8,6 @@
     export let nodeId: string;
 
     const cellRuntime = getCellRuntime();
-    const view = cellRuntime.view;
     const dispatch = createEventDispatcher<{
         mobilePreviewDoubleTapEdit: { nodeId: string };
     }>();
@@ -24,12 +23,6 @@
         'Escape',
     ]);
     const ALLOWED_MODIFIER_KEYS = new Set(['a', 'c', 'f']);
-    const noopSetViewData = function (
-        this: void,
-        _data: string,
-        _clear: boolean,
-    ): void {};
-
     let content = '';
     let hostEl: HTMLDivElement | null = null;
     let markdownView: InlineMarkdownView | null = null;
@@ -159,29 +152,11 @@
     }
 
     onMount(async () => {
-        if (!hostEl || !view.file) return;
+        if (!hostEl) return;
 
-        const workspace = view.plugin.app.workspace;
-        markdownView = new MarkdownView({
-            containerEl: hostEl,
-            app: view.plugin.app,
-            workspace,
-            history: {
-                backHistory: [],
-                forwardHistory: [],
-            },
-        } as never) as InlineMarkdownView;
-
-        const boundSetViewData = markdownView.setViewData.bind(markdownView);
-        markdownView.mandalaSetViewData = boundSetViewData;
-        markdownView.setViewData = noopSetViewData;
-
-        if (markdownView.getMode() === 'preview') {
-            await markdownView.setState({ mode: 'source' }, { history: false });
-        }
-
-        markdownView.file = view.file;
-        await markdownView.onLoadFile(view.file);
+        markdownView =
+            await cellRuntime.createReadonlySourcePreviewView(hostEl);
+        if (!markdownView) return;
         unsubscribeReadonlyGuards = bindReadonlyGuards();
         updateContent(content);
     });

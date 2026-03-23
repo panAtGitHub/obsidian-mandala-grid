@@ -1,8 +1,3 @@
-import {
-    enterSubgridForNode,
-    exitCurrentSubgrid,
-    isGridCenter,
-} from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import type { CellRuntimeContext } from 'src/view/cell-runtime-context';
 
@@ -68,14 +63,12 @@ export const doubleClickMandalaCard = ({
     showDetailSidebar,
     event,
 }: DoubleClickMandalaCardOptions) => {
-    const view = cellRuntime.view;
-
     if (isMobile) {
         if (interactionPolicy.mobileDoubleClickAction === 'subgrid-navigation') {
-            if (isGridCenter(view, nodeId, displaySection)) {
-                exitCurrentSubgrid(view);
+            if (cellRuntime.isMobileGridCenter(nodeId, displaySection)) {
+                cellRuntime.exitMobileSubgrid();
             } else {
-                enterSubgridForNode(view, nodeId);
+                cellRuntime.enterMobileSubgrid(nodeId);
             }
         }
         return;
