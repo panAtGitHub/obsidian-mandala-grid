@@ -1,8 +1,7 @@
 <script lang="ts">
     import { NodeId } from 'src/mandala-document/state/document-state-type';
-    import { loadInlineEditor } from 'src/view/actions/inline-editor/load-inline-editor';
-    import { expandableTextareaAction } from 'src/view/actions/inline-editor/expandable-textarea-action';
     import { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
+    import { getCellRuntime } from 'src/view/context';
 
     export let nodeId: NodeId;
     export let style: NodeStyle | undefined;
@@ -10,6 +9,10 @@
     export let absoluteFontSize: number | undefined = undefined;
     export let disableAutoResize: boolean = false;
     export let fillContent = false;
+
+    const cellRuntime = getCellRuntime();
+    const loadInlineEditorAction = cellRuntime.loadInlineEditorAction;
+    const expandableTextarea = cellRuntime.expandableTextareaAction;
 </script>
 
 <div
@@ -17,8 +20,8 @@
         (style ? ' apply-style-rule' : '') +
         (fillContent ? ' editor-container--fill' : '')}
     style="--local-font-size-offset: {absoluteFontSize ? 0 : fontSizeOffset}px; {absoluteFontSize ? `--font-text-size: ${absoluteFontSize}px; font-size: ${absoluteFontSize}px;` : ''}"
-    use:loadInlineEditor={nodeId}
-    use:expandableTextareaAction={!disableAutoResize}
+    use:loadInlineEditorAction={nodeId}
+    use:expandableTextarea={!disableAutoResize}
 ></div>
 
 <style>

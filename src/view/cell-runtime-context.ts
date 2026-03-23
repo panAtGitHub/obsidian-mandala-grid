@@ -14,6 +14,8 @@ import { derived } from 'src/shared/store/derived';
 import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
 import { localFontStore } from 'src/stores/local-font-store';
 import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
+import { expandableTextareaAction } from 'src/view/actions/inline-editor/expandable-textarea-action';
+import { loadInlineEditor } from 'src/view/actions/inline-editor/load-inline-editor';
 import { markdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
 import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
 import type { MandalaView } from 'src/view/view';
@@ -45,6 +47,8 @@ export type CellRuntimeContext = {
         nodeId: string,
         cursor: { line: number; ch: number },
     ) => void;
+    loadInlineEditorAction: typeof loadInlineEditor;
+    expandableTextareaAction: typeof expandableTextareaAction;
     markdownPreviewAction: typeof markdownPreviewAction;
 };
 
@@ -131,6 +135,8 @@ export const createCellRuntimeContext = (
         ) => {
             view.inlineEditor.setNodeCursor(nodeId, cursor);
         },
+        loadInlineEditorAction: loadInlineEditor,
+        expandableTextareaAction,
         markdownPreviewAction,
     };
 };
