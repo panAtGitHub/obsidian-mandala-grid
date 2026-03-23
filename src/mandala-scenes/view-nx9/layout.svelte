@@ -603,11 +603,12 @@
     $: pageIndex = resolveCachedPageIndex({ pageFrame });
     $: {
         const nodeIds = collectNx9HydratableNodeIds(pageFrame);
+        const pageSignature = nodeIds.join('|');
         const marker = [
             $documentSnapshot.revision,
-            $documentSnapshot.contentRevision,
             currentPage,
             rowCount,
+            pageSignature,
         ].join('|');
         if (hydrationMarker !== marker) {
             hydrationMarker = marker;
@@ -619,6 +620,12 @@
                 ? new Set([initialNodeId])
                 : new Set();
             schedulePageHydration(marker, currentPage, nodeIds);
+        } else if (
+            $activeNodeId &&
+            nodeIds.includes($activeNodeId) &&
+            !hydratedNodeIds.has($activeNodeId)
+        ) {
+            hydratedNodeIds = new Set(hydratedNodeIds).add($activeNodeId);
         }
     }
     $: staticRows = resolveCachedStaticRows({
