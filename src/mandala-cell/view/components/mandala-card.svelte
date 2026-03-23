@@ -71,6 +71,7 @@
     let contentDensity: 'normal' | 'compact' = 'normal';
     let scrollbarMode = displayPolicy.scrollbarMode;
     let hoverElevationEnabled = true;
+    let detachInactiveSurface = false;
 
     $: ({
         nodeId,
@@ -85,6 +86,7 @@
     $: contentDensity = displayPolicy.density;
     $: scrollbarMode = displayPolicy.scrollbarMode;
     $: hoverElevationEnabled = gridCell?.mode !== 'nx9';
+    $: detachInactiveSurface = gridCell?.mode === 'nx9' && !active;
 
     $: renderModel = buildMandalaCardRenderModel({
         viewModel,
@@ -124,11 +126,13 @@
 <div
     class={clx(
         'mandala-card',
-        active ? 'active-node' : 'inactive-node',
+        active ? 'active-node' : !detachInactiveSurface ? 'inactive-node' : undefined,
         hasSectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
         active ? 'node-border--active' : undefined,
+        detachInactiveSurface ? 'mandala-card--detached-inactive' : undefined,
+        gridCell?.mode === 'nx9' ? 'mandala-card--nx9' : undefined,
     )}
     class:mandala-card--hover-elevation={hoverElevationEnabled}
     class:mandala-card--swap-source={isSwapSourceNode($swapState, nodeId)}
@@ -136,7 +140,7 @@
     class:mandala-card--swap-disabled={isSwapDisabledNode($swapState, nodeId)}
     class:is-floating-mobile={renderModel.isFloatingMobile}
     id={nodeId}
-    style={renderModel.cardStyle}
+    style={detachInactiveSurface ? undefined : renderModel.cardStyle}
     on:mousedown={handleCardMouseDown}
     on:touchstart={handleCardTouchStart}
     on:click={(e) =>
@@ -162,33 +166,53 @@
         });
     }}
 >
-    {#if nodeStyle && !(renderModel.shouldHideBackgroundStyle && nodeStyle.styleVariant === 'background-color')}
+    {#if detachInactiveSurface}
+        <div
+            class="mandala-card__inactive-surface mandala-card inactive-node"
+            style={renderModel.surfaceStyle}
+            aria-hidden="true"
+        >
+            {#if nodeStyle && !(renderModel.shouldHideBackgroundStyle && nodeStyle.styleVariant === 'background-color')}
+                <CardStyle style={nodeStyle} />
+            {/if}
+        </div>
+    {:else if nodeStyle && !(renderModel.shouldHideBackgroundStyle && nodeStyle.styleVariant === 'background-color')}
         <CardStyle style={nodeStyle} />
     {/if}
 
-    <CardMainContent
-        {nodeId}
-        style={nodeStyle}
-        isInSidebar={false}
-        showInlineEditor={renderModel.showInlineEditor}
-        showContent={renderModel.showContent}
-        hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
-        fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
-        absoluteFontSize={isMobile ? $localFontStore : undefined}
-        {scrollbarMode}
-        {fillContent}
-        density={contentDensity}
-    />
+    <div
+        class={clx(
+            'mandala-card__body',
+            detachInactiveSurface
+                ? 'mandala-card__body--detached-inactive'
+                : undefined,
+        )}
+        style={detachInactiveSurface ? renderModel.bodyStyle : undefined}
+    >
+        <CardMainContent
+            {nodeId}
+            style={nodeStyle}
+            isInSidebar={false}
+            showInlineEditor={renderModel.showInlineEditor}
+            showContent={renderModel.showContent}
+            hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
+            fontSizeOffset={isMobile ? $localFontStore - 16 : 0}
+            absoluteFontSize={isMobile ? $localFontStore : undefined}
+            {scrollbarMode}
+            {fillContent}
+            density={contentDensity}
+        />
 
-    <CardMeta
-        displaySection={renderModel.displaySection}
-        showSectionBackground={renderModel.showSectionBackground}
-        showSectionPin={renderModel.showSectionPin}
-        showSectionColorDot={renderModel.showSectionColorDot}
-        capsuleTextTone={renderModel.capsuleTextTone}
-        metaStyle={renderModel.metaStyle}
-        density={contentDensity}
-    />
+        <CardMeta
+            displaySection={renderModel.displaySection}
+            showSectionBackground={renderModel.showSectionBackground}
+            showSectionPin={renderModel.showSectionPin}
+            showSectionColorDot={renderModel.showSectionColorDot}
+            capsuleTextTone={renderModel.capsuleTextTone}
+            metaStyle={renderModel.metaStyle}
+            density={contentDensity}
+        />
+    </div>
 </div>
 
 <style>
@@ -211,9 +235,43 @@
         --scrollbar-active-thumb-bg: var(--color-base-40);
     }
 
+    .mandala-card--detached-inactive {
+        background: transparent;
+    }
+
+    .mandala-card__inactive-surface {
+        position: absolute;
+        inset: 0;
+        width: auto;
+        min-width: 0;
+        min-height: 0;
+        height: auto;
+        pointer-events: none;
+        z-index: 0;
+        overflow: visible;
+        transition: none;
+    }
+
+    .mandala-card__body {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+    }
+
     :global(.mandala-view:not(.mandala-white-theme))
         .mandala-card--hover-elevation:hover {
         z-index: 10;
+    }
+
+    :global(.mandala-view:not(.mandala-white-theme))
+        .mandala-card--nx9:hover {
+        box-shadow: none !important;
     }
 
     .mandala-card--swap-source {

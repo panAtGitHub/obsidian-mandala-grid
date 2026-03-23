@@ -10,6 +10,8 @@ import type {
 // 3. 最后看本文件，确认 render model 最终提供给 view 的字段有哪些
 export type SharedCardRenderModel = {
     cardStyle: string | undefined;
+    surfaceStyle: string | undefined;
+    bodyStyle: string | undefined;
     showInlineEditor: boolean;
     showContent: boolean;
     hideBuiltInHiddenInfo: boolean;

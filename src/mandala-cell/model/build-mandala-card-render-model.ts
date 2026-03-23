@@ -46,7 +46,12 @@ export const buildMandalaCardRenderModel = ({
     } = viewModel;
     const { active, editing, pinned } = uiState;
     const displaySection = section || fallbackSection || '';
-    const { cardStyle, shouldHideBackgroundStyle } = buildMandalaCardStyle({
+    const {
+        cardStyle,
+        surfaceStyle,
+        bodyStyle,
+        shouldHideBackgroundStyle,
+    } = buildMandalaCardStyle({
         active,
         sectionColor,
         preserveActiveBackground: displayPolicy.preserveActiveBackground,
@@ -78,6 +83,8 @@ export const buildMandalaCardRenderModel = ({
 
     return {
         cardStyle,
+        surfaceStyle,
+        bodyStyle,
         showInlineEditor,
         showContent: contentEnabled && !showInlineEditor,
         hideBuiltInHiddenInfo: displayPolicy.hideBuiltInHiddenInfo,

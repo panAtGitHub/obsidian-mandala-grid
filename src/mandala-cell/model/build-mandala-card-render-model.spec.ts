@@ -57,4 +57,15 @@ describe('buildMandalaCardRenderModel', () => {
         expect(model.showInlineEditor).toBe(true);
         expect(model.showContent).toBe(false);
     });
+
+    it('exposes detached surface/body styles for inactive cards', () => {
+        const model = buildMandalaCardRenderModel({
+            ...baseOptions(),
+        });
+
+        expect(model.surfaceStyle).toContain(
+            'background-color: var(--background-active-parent)',
+        );
+        expect(model.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+    });
 });

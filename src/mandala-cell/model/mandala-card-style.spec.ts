@@ -77,4 +77,36 @@ describe('buildMandalaCardStyle', () => {
         expect(state.textTone).toBe('light');
         expect(state.cardStyle).toContain('--text-normal: #f3f6fd');
     });
+
+    it('provides detached inactive surface and body styles for plain nx9 cards', () => {
+        const state = buildMandalaCardStyle({
+            active: false,
+            sectionColor: null,
+            style: undefined,
+            themeTone: 'light',
+        });
+
+        expect(state.surfaceStyle).toContain(
+            'background-color: var(--background-active-parent)',
+        );
+        expect(state.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+        expect(state.bodyStyle).toContain(
+            '--text-normal: var(--color-active-parent)',
+        );
+    });
+
+    it('keeps contrast text tokens on detached inactive section-color cards', () => {
+        const state = buildMandalaCardStyle({
+            active: false,
+            sectionColor: 'rgba(103, 127, 239, 0.65)',
+            style: undefined,
+            themeTone: 'light',
+        });
+
+        expect(state.surfaceStyle).toContain(
+            'background-color: rgba(103, 127, 239, 0.65)',
+        );
+        expect(state.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+        expect(state.bodyStyle).toContain('--text-normal: #0f131a');
+    });
 });

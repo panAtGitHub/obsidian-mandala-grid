@@ -18,6 +18,8 @@ export type MandalaCardStyleState = {
     backgroundColor: string | null;
     textTone: TextTone | null;
     cardStyle: string | undefined;
+    surfaceStyle: string | undefined;
+    bodyStyle: string | undefined;
     shouldHideBackgroundStyle: boolean;
 };
 
@@ -68,6 +70,35 @@ export const buildMandalaCardStyle = ({
         themeUnderlayColor,
     );
 
+    const surfaceStyle = [
+        shouldForceActiveBackground
+            ? 'background-color: var(--background-active-node) !important'
+            : sectionColor
+              ? `background-color: ${sectionColor}`
+              : !active && style?.styleVariant !== 'background-color'
+                ? 'background-color: var(--background-active-parent)'
+                : '',
+    ]
+        .filter((chunk) => chunk.length > 0)
+        .join('; ');
+
+    const bodyStyle = [
+        !active ? 'opacity: var(--inactive-card-opacity)' : '',
+        !shouldForceActiveBackground && textTone === 'dark'
+            ? DARK_TEXT_TOKENS
+            : '',
+        !shouldForceActiveBackground && textTone === 'light'
+            ? LIGHT_TEXT_TOKENS
+            : '',
+        !backgroundColor && active
+            ? '--text-normal: var(--color-active-node)'
+            : !backgroundColor
+              ? '--text-normal: var(--color-active-parent)'
+              : '',
+    ]
+        .filter((chunk) => chunk.length > 0)
+        .join('; ');
+
     const cardStyle = [
         shouldForceActiveBackground
             ? 'background-color: var(--background-active-node) !important'
@@ -88,6 +119,8 @@ export const buildMandalaCardStyle = ({
         backgroundColor,
         textTone,
         cardStyle: cardStyle.length > 0 ? cardStyle : undefined,
+        surfaceStyle: surfaceStyle.length > 0 ? surfaceStyle : undefined,
+        bodyStyle: bodyStyle.length > 0 ? bodyStyle : undefined,
         shouldHideBackgroundStyle: Boolean(
             (sectionColor || shouldForceActiveBackground) &&
                 style?.styleVariant === 'background-color',
