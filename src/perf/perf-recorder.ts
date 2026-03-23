@@ -75,7 +75,11 @@ const normalizePerfPayload = (payload: PerfPayloadInput = {}): PerfPayload =>
     );
 
 const defaultScheduleAfterNextPaint = (callback: () => void) => {
-    const requestFrame = globalThis.requestAnimationFrame?.bind(globalThis);
+    const requestFrame =
+        typeof globalThis.requestAnimationFrame === 'function'
+            ? (nextFrame: FrameRequestCallback) =>
+                  globalThis.requestAnimationFrame(nextFrame)
+            : null;
     if (!requestFrame) {
         globalThis.setTimeout(callback, 0);
         return;

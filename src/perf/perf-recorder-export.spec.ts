@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { PerfRecorder } from 'src/perf/perf-recorder';
 
+const CONFIG_DIR = 'config-dir';
+const PERF_EXPORT_DIR = `${CONFIG_DIR}/mandala-grid/perf`;
+
 describe('PerfRecorder exportSnapshot', () => {
     it('writes archive and latest snapshot files, then clears the buffer', async () => {
         const recorder = new PerfRecorder({
@@ -15,7 +18,7 @@ describe('PerfRecorder exportSnapshot', () => {
         recorder.record('view.save-document', { save_total_ms: 12.3 });
 
         const result = await recorder.exportSnapshot({
-            directoryPath: '.obsidian/mandala-grid/perf',
+            directoryPath: PERF_EXPORT_DIR,
             ensureFolderRecursive: async (path) => {
                 ensuredPaths.push(path);
             },
@@ -25,21 +28,21 @@ describe('PerfRecorder exportSnapshot', () => {
             exportedAt: new Date(2026, 2, 23, 1, 2, 3),
         });
 
-        expect(ensuredPaths).toEqual(['.obsidian/mandala-grid/perf']);
+        expect(ensuredPaths).toEqual([PERF_EXPORT_DIR]);
         expect(result).toEqual({
             archivePath:
-                '.obsidian/mandala-grid/perf/mandala-grid-perf-20260323-010203.json',
-            latestPath: '.obsidian/mandala-grid/perf/latest.json',
+                `${PERF_EXPORT_DIR}/mandala-grid-perf-20260323-010203.json`,
+            latestPath: `${PERF_EXPORT_DIR}/latest.json`,
             eventCount: 1,
         });
         expect(Array.from(writtenFiles.keys())).toEqual([
-            '.obsidian/mandala-grid/perf/mandala-grid-perf-20260323-010203.json',
-            '.obsidian/mandala-grid/perf/latest.json',
+            `${PERF_EXPORT_DIR}/mandala-grid-perf-20260323-010203.json`,
+            `${PERF_EXPORT_DIR}/latest.json`,
         ]);
         expect(
             JSON.parse(
                 writtenFiles.get(
-                    '.obsidian/mandala-grid/perf/mandala-grid-perf-20260323-010203.json',
+                    `${PERF_EXPORT_DIR}/mandala-grid-perf-20260323-010203.json`,
                 ) ?? '{}',
             ),
         ).toMatchObject({
@@ -62,7 +65,7 @@ describe('PerfRecorder exportSnapshot', () => {
 
         await expect(
             recorder.exportSnapshot({
-                directoryPath: '.obsidian/mandala-grid/perf',
+                directoryPath: PERF_EXPORT_DIR,
                 ensureFolderRecursive: async () => undefined,
                 writeFile: async (path) => {
                     if (path.endsWith('latest.json')) {
@@ -91,7 +94,7 @@ describe('PerfRecorder exportSnapshot', () => {
 
         recorder.record('event-1', { value: 1 });
         await recorder.exportSnapshot({
-            directoryPath: '.obsidian/mandala-grid/perf',
+            directoryPath: PERF_EXPORT_DIR,
             ensureFolderRecursive: async () => undefined,
             writeFile,
             exportedAt: new Date(2026, 2, 23, 1, 2, 3),
@@ -99,17 +102,14 @@ describe('PerfRecorder exportSnapshot', () => {
 
         recorder.record('event-2', { value: 2 });
         await recorder.exportSnapshot({
-            directoryPath: '.obsidian/mandala-grid/perf',
+            directoryPath: PERF_EXPORT_DIR,
             ensureFolderRecursive: async () => undefined,
             writeFile,
             exportedAt: new Date(2026, 2, 23, 1, 2, 5),
         });
 
         expect(
-            JSON.parse(
-                writtenFiles.get('.obsidian/mandala-grid/perf/latest.json') ??
-                    '{}',
-            ),
+            JSON.parse(writtenFiles.get(`${PERF_EXPORT_DIR}/latest.json`) ?? '{}'),
         ).toMatchObject({
             eventCount: 1,
             events: [{ name: 'event-2' }],

@@ -366,7 +366,6 @@ export const buildNx9PageIndex = (
 };
 
 export const buildNx9PageStaticRows = ({
-    context,
     pageFrame,
     sectionColors,
     sectionColorOpacity,

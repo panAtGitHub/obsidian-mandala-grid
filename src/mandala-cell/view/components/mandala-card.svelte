@@ -63,7 +63,6 @@
     let interactionPolicy = viewModel.interactionPolicy;
     let hasSectionColor = false;
     let active = false;
-    let editing = false;
     let selected = false;
     let pinned = false;
     let fillContent = false;
@@ -79,7 +78,7 @@
         displayPolicy,
         interactionPolicy,
     } = viewModel);
-    $: ({ active, editing, selected, pinned } = uiState);
+    $: ({ active, selected, pinned } = uiState);
     $: hasSectionColor = !!viewModel.sectionColor;
     $: fillContent = displayPolicy.contentLayout === 'fill';
     $: contentDensity = displayPolicy.density;

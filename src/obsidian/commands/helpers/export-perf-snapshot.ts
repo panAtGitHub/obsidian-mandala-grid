@@ -2,7 +2,7 @@ import { Notice, TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { onPluginError } from 'src/shared/store/on-plugin-error';
 
-const PERF_EXPORT_DIR = '.obsidian/mandala-grid/perf';
+const PERF_EXPORT_SUBDIR = 'mandala-grid/perf';
 
 const isAlreadyExistsError = (error: unknown) =>
     error instanceof Error &&
@@ -42,7 +42,7 @@ const writeFile = async (
 export const exportPerfSnapshot = async (plugin: MandalaGrid) => {
     try {
         const result = await plugin.perfRecorder.exportSnapshot({
-            directoryPath: PERF_EXPORT_DIR,
+            directoryPath: `${plugin.app.vault.configDir}/${PERF_EXPORT_SUBDIR}`,
             ensureFolderRecursive: (path) => ensureFolderRecursive(plugin, path),
             writeFile: (path, data) => writeFile(plugin, path, data),
         });
