@@ -37,6 +37,7 @@
     import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
+    import { getMandalaActiveCellNx9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
@@ -55,7 +56,7 @@
     );
     const activeCellStore = derived(
         view.viewStore,
-        (state) => state.ui.mandala.activeCellNx9,
+        (state) => getMandalaActiveCellNx9(state),
     );
     const activeNodeId = derived(
         view.viewStore,

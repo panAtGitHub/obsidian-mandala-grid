@@ -23,6 +23,10 @@
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import Button from 'src/shared/ui/button.svelte';
     import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
+    import {
+        getMandalaActiveCellNx9,
+        getMandalaWeekAnchorDate,
+    } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
     const mode = MandalaModeStore(view);
@@ -36,9 +40,12 @@
     );
     const weekAnchorDate = derived(
         view.viewStore,
-        (state) => state.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
+        (state) => getMandalaWeekAnchorDate(state),
     );
-    const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
+    const activeCellNx9 = derived(
+        view.viewStore,
+        (state) => getMandalaActiveCellNx9(state),
+    );
     let sceneKey: MandalaSceneKey = {
         viewKind: '3x3',
         variant: 'default',
@@ -59,7 +66,7 @@
                   documentContent: $documentState.document.content,
                   rowsPerPage: $nx9RowsPerPage,
                   activeSection,
-                  activeCell: $mandalaUiState.activeCellNx9,
+                  activeCell: $activeCellNx9,
               })
             : null;
 

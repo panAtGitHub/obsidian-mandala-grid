@@ -7,6 +7,12 @@ import {
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
 } from 'src/mandala-settings/state/settings-type';
+import {
+    getMandalaActiveCell9x9,
+    getMandalaActiveCellNx9,
+    getMandalaActiveCellWeek7x9,
+    getMandalaWeekAnchorDate,
+} from 'src/mandala-scenes/shared/scene-runtime';
 import type { ViewState } from 'src/stores/view/view-state-type';
 import type { MandalaView } from 'src/view/view';
 
@@ -22,10 +28,10 @@ export const captureMandalaUiState = (
     viewState: ViewState,
 ): MandalaUiStateSnapshot => ({
     subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
-    activeCell9x9: viewState.ui.mandala.activeCell9x9,
-    activeCellNx9: viewState.ui.mandala.activeCellNx9,
-    activeCellWeek7x9: viewState.ui.mandala.sceneState.nx9.weekPlan.activeCell,
-    weekAnchorDate: viewState.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
+    activeCell9x9: getMandalaActiveCell9x9(viewState),
+    activeCellNx9: getMandalaActiveCellNx9(viewState),
+    activeCellWeek7x9: getMandalaActiveCellWeek7x9(viewState),
+    weekAnchorDate: getMandalaWeekAnchorDate(viewState),
 });
 
 export const getCurrentMandalaLayoutId = (

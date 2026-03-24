@@ -346,7 +346,8 @@ const handlers: Record<string, ViewActionHandler> = {
             action.payload.cell
                 ? {
                       kind: 'cell',
-                      scene: '9x9',
+                      viewKind: '9x9',
+                      variant: 'default',
                       row: action.payload.cell.row,
                       col: action.payload.cell.col,
                   }
@@ -362,7 +363,8 @@ const handlers: Record<string, ViewActionHandler> = {
             action.payload.cell
                 ? {
                       kind: 'cell',
-                      scene: 'week-7x9',
+                      viewKind: 'nx9',
+                      variant: 'week-7x9',
                       row: action.payload.cell.row,
                       col: action.payload.cell.col,
                   }
@@ -378,7 +380,8 @@ const handlers: Record<string, ViewActionHandler> = {
             action.payload.cell
                 ? {
                       kind: 'cell',
-                      scene: 'nx9',
+                      viewKind: 'nx9',
+                      variant: 'default',
                       row: action.payload.cell.row,
                       col: action.payload.cell.col,
                       page: action.payload.cell.page,

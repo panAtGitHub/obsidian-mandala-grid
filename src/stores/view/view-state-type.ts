@@ -4,6 +4,7 @@ import {
 } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
+import { type MandalaSceneVariant } from 'src/mandala-display/logic/mandala-profile';
 import { MandalaMode } from 'src/mandala-settings/state/settings-type';
 import type { Nx9ActiveCell } from 'src/mandala-scenes/view-nx9/context';
 
@@ -36,7 +37,8 @@ export type FocusTarget =
       }
     | {
           kind: 'cell';
-          scene: '9x9' | 'nx9' | 'week-7x9';
+          viewKind: MandalaMode;
+          variant: MandalaSceneVariant;
           row: number;
           col: number;
           page?: number;

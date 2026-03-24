@@ -26,6 +26,7 @@
         getBaseTheme,
         toActiveSummaryCell,
     } from 'src/mandala-scenes/view-9x9/assemble-cell-view-model';
+    import { getMandalaActiveCell9x9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
     const showTitleOnly = Show9x9TitleOnlyStore(view);
@@ -40,7 +41,7 @@
     );
     const activeCellStore = derived(
         view.viewStore,
-        (state) => state.ui.mandala.activeCell9x9,
+        (state) => getMandalaActiveCell9x9(state),
     );
     const idToSection = derivedEq(
         view.documentStore,

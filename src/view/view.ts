@@ -87,6 +87,12 @@ import {
 } from 'src/mandala-display/logic/grid-layout';
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 import {
+    getMandalaActiveCell9x9,
+    getMandalaActiveCellNx9,
+    getMandalaWeekAnchorDate,
+    getMandalaActiveCellWeek7x9,
+} from 'src/mandala-scenes/shared/scene-runtime';
+import {
     resolveNx9Context,
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
@@ -113,9 +119,6 @@ export class MandalaView extends TextFileView {
     alignBranch: AlignBranch;
     id: string;
     zoomFactor: number;
-    mandalaActiveCell9x9: { row: number; col: number } | null = null;
-    mandalaActiveCellNx9: { row: number; col: number; page?: number } | null =
-        null;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
     private hasPendingExplicitJump = false;
@@ -199,8 +202,7 @@ export class MandalaView extends TextFileView {
     }
 
     get mandalaActiveCellWeek7x9() {
-        return this.viewStore.getValue().ui.mandala.sceneState.nx9.weekPlan
-            .activeCell;
+        return getMandalaActiveCellWeek7x9(this.viewStore.getValue());
     }
 
     set mandalaActiveCellWeek7x9(cell: { row: number; col: number } | null) {
@@ -211,8 +213,31 @@ export class MandalaView extends TextFileView {
     }
 
     get mandalaWeekAnchorDate() {
-        return this.viewStore.getValue().ui.mandala.sceneState.nx9.weekPlan
-            .anchorDate;
+        return getMandalaWeekAnchorDate(this.viewStore.getValue());
+    }
+
+    get mandalaActiveCell9x9() {
+        return getMandalaActiveCell9x9(this.viewStore.getValue());
+    }
+
+    set mandalaActiveCell9x9(cell: { row: number; col: number } | null) {
+        this.viewStore.dispatch({
+            type: 'view/mandala/active-cell/set',
+            payload: { cell },
+        });
+    }
+
+    get mandalaActiveCellNx9() {
+        return getMandalaActiveCellNx9(this.viewStore.getValue());
+    }
+
+    set mandalaActiveCellNx9(
+        cell: { row: number; col: number; page?: number } | null,
+    ) {
+        this.viewStore.dispatch({
+            type: 'view/mandala/nx9-active-cell/set',
+            payload: { cell },
+        });
     }
 
     getCurrentFilePath() {

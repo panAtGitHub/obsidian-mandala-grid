@@ -18,6 +18,12 @@
     import { isPreviewDialogEditingNode } from 'src/mandala-interaction/helpers/is-preview-dialog-editing-node';
     import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
     import { resolveCellPreviewNodeId } from 'src/mandala-interaction/helpers/resolve-cell-preview-node-id';
+    import {
+        getMandalaActiveCell9x9,
+        getMandalaActiveCellNx9,
+        getMandalaActiveCellWeek7x9,
+        getMandalaWeekAnchorDate,
+    } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
     const markdownPreviewAction = createViewMarkdownPreviewAction(view);
@@ -55,10 +61,9 @@
                   activeNodeId: $viewState.document.activeNode,
                   activeNodeSection:
                       $idToSection[$viewState.document.activeNode] ?? null,
-                  activeCell9x9: $viewState.ui.mandala.activeCell9x9,
-                  activeCellNx9: $viewState.ui.mandala.activeCellNx9,
-                  activeCellWeek7x9:
-                      $viewState.ui.mandala.sceneState.nx9.weekPlan.activeCell,
+                  activeCell9x9: getMandalaActiveCell9x9($viewState),
+                  activeCellNx9: getMandalaActiveCellNx9($viewState),
+                  activeCellWeek7x9: getMandalaActiveCellWeek7x9($viewState),
                   sectionIdMap:
                       view.documentStore.getValue().sections.section_id,
                   documentContent:
@@ -69,8 +74,7 @@
                       view.plugin.settings.getValue().view
                           .mandalaGridCustomLayouts ?? [],
                   frontmatter: view.documentStore.getValue().file.frontmatter,
-                  weekAnchorDate:
-                      $viewState.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
+                  weekAnchorDate: getMandalaWeekAnchorDate($viewState),
                   weekStart: view.plugin.settings.getValue().general.weekStart,
               })
             : null;
