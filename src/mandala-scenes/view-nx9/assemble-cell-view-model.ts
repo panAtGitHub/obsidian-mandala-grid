@@ -5,13 +5,11 @@ import type {
 } from 'src/mandala-cell/model/card-view-model';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
-import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type {
     Nx9CellWithPage,
     Nx9PageContext,
 } from 'src/mandala-scenes/view-nx9/context';
-import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { buildNx9CellDisplayOverrides } from 'src/mandala-scenes/view-nx9/build-cell-display-overrides';
 
 type Nx9EditingState = {
@@ -181,9 +179,6 @@ const createDisplayPolicy = (whiteThemeMode: boolean): CellDisplayPolicy => ({
         whiteThemeMode,
     }),
 });
-
-const createInteractionPolicy = (): CellInteractionPolicy =>
-    buildCellInteractionPolicy({});
 
 const buildCardUiState = ({
     nodeId,
@@ -374,7 +369,6 @@ export const buildNx9PageStaticRows = ({
     hydratedNodeIds,
 }: SharedStaticNx9RowsOptions): Nx9StaticRowViewModel[] => {
     const displayPolicy = createDisplayPolicy(whiteThemeMode);
-    const interactionPolicy = createInteractionPolicy();
 
     return pageFrame.map((row) => {
         if (!Array.isArray(row)) {
@@ -396,7 +390,6 @@ export const buildNx9PageStaticRows = ({
                       }),
                       metaAccentColor: sectionColors[cell.section] ?? null,
                       displayPolicy,
-                      interactionPolicy,
                       contentEnabled: hydratedNodeIds.has(cell.nodeId),
                   })
                 : null,

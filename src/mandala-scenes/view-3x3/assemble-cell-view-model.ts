@@ -4,7 +4,6 @@ import type {
     MandalaCardViewModel,
 } from 'src/mandala-cell/model/card-view-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
-import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
@@ -102,9 +101,6 @@ export const assemble3x3CellViewModels = ({
             whiteThemeMode,
         }),
     };
-    const interactionPolicy = buildCellInteractionPolicy({
-        mobileDoubleClickAction: 'subgrid-navigation',
-    });
 
     return layout.childSlots.map((slot, index) => {
         const section = slot ? `${theme}.${slot}` : theme;
@@ -133,7 +129,6 @@ export const assemble3x3CellViewModels = ({
                       sectionColor: sectionBackground,
                       metaAccentColor: sectionColors[section] ?? null,
                       displayPolicy,
-                      interactionPolicy,
                   })
                 : null,
             cardUiState: {

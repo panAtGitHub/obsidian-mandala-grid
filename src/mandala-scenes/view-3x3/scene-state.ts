@@ -4,6 +4,7 @@ import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala
 import {
     enterSubgridForNode,
     exitCurrentSubgrid,
+    isGridCenter,
 } from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import type { MandalaView } from 'src/view/view';
@@ -92,6 +93,20 @@ export const focusThreeByThreeTodayFromButton = (
 ) => {
     event.stopPropagation();
     view.focusDayPlanToday();
+};
+
+export const handleThreeByThreeMobileCardDoubleClick = (
+    view: MandalaView,
+    event: MouseEvent,
+    nodeId: string,
+    displaySection: string,
+) => {
+    event.stopPropagation();
+    if (isGridCenter(view, nodeId, displaySection)) {
+        exitCurrentSubgrid(view);
+        return;
+    }
+    enterSubgridForNode(view, nodeId);
 };
 
 export const getThreeByThreeUpButtonLabel = (theme: string) =>

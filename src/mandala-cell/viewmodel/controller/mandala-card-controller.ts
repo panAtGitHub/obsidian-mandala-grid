@@ -1,4 +1,3 @@
-import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import type { CellRuntimeContext } from 'src/view/cell-runtime-context';
 
 type SelectMandalaCardOptions = {
@@ -16,11 +15,17 @@ type DoubleClickMandalaCardOptions = {
     cellRuntime: CellRuntimeContext;
     nodeId: string;
     displaySection: string;
-    interactionPolicy: CellInteractionPolicy;
+    onMobileDoubleClick: MandalaCardMobileDoubleClickHandler | null;
     isMobile: boolean;
     showDetailSidebar: boolean;
     event: MouseEvent;
 };
+
+export type MandalaCardMobileDoubleClickHandler = (args: {
+    nodeId: string;
+    displaySection: string;
+    event: MouseEvent;
+}) => void;
 
 export const selectMandalaCard = ({
     cellRuntime,
@@ -58,19 +63,17 @@ export const doubleClickMandalaCard = ({
     cellRuntime,
     nodeId,
     displaySection,
-    interactionPolicy,
+    onMobileDoubleClick,
     isMobile,
     showDetailSidebar,
     event,
 }: DoubleClickMandalaCardOptions) => {
     if (isMobile) {
-        if (interactionPolicy.mobileDoubleClickAction === 'subgrid-navigation') {
-            if (cellRuntime.isMobileGridCenter(nodeId, displaySection)) {
-                cellRuntime.exitMobileSubgrid();
-            } else {
-                cellRuntime.enterMobileSubgrid(nodeId);
-            }
-        }
+        onMobileDoubleClick?.({
+            nodeId,
+            displaySection,
+            event,
+        });
         return;
     }
 

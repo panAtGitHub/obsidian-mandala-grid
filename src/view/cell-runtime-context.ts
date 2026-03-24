@@ -21,11 +21,6 @@ import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-
 import { handleLinks } from 'src/view/helpers/handle-links/handle-links';
 import { isGrabbing } from 'src/view/helpers/is-grabbing';
 import type { MandalaView } from 'src/view/view';
-import {
-    enterSubgridForNode,
-    exitCurrentSubgrid,
-    isGridCenter,
-} from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
 export type PreviewDialogSnapshot = {
@@ -71,9 +66,7 @@ export type CellRuntimeContext = {
     executeSwap: (sourceNodeId: string, targetNodeId: string) => void;
     handleLinks: (event: MouseEvent) => void;
     isGrabbing: () => boolean;
-    isMobileGridCenter: (nodeId: string, displaySection: string) => boolean;
-    enterMobileSubgrid: (nodeId: string) => void;
-    exitMobileSubgrid: () => void;
+    isMobilePlatform: boolean;
     createReadonlySourcePreviewView: (
         hostEl: HTMLElement,
     ) => Promise<InlineMarkdownView | null>;
@@ -202,11 +195,7 @@ export const createCellRuntimeContext = (
             executeMandalaSwap(view, sourceNodeId, targetNodeId),
         handleLinks: (event: MouseEvent) => handleLinks(view, event),
         isGrabbing: () => isGrabbing(view),
-        isMobileGridCenter: (nodeId: string, displaySection: string) =>
-            isGridCenter(view, nodeId, displaySection),
-        enterMobileSubgrid: (nodeId: string) =>
-            enterSubgridForNode(view, nodeId),
-        exitMobileSubgrid: () => exitCurrentSubgrid(view),
+        isMobilePlatform: Platform.isMobile,
         createReadonlySourcePreviewView,
         setInlineCursor: (
             nodeId: string,

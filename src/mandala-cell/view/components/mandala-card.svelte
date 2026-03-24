@@ -15,6 +15,7 @@
     import {
         clickMandalaCard,
         doubleClickMandalaCard,
+        type MandalaCardMobileDoubleClickHandler,
     } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
     import {
         handleSwapPointerStart,
@@ -30,6 +31,8 @@
     export let viewModel: MandalaCardViewModel;
     export let uiState: MandalaCardUiState;
     export let themeSnapshot: MandalaThemeSnapshot | undefined = undefined;
+    export let onMobileDoubleClick: MandalaCardMobileDoubleClickHandler | null =
+        null;
 
     const cellRuntime = getCellRuntime();
     const showDetailSidebar = cellRuntime.showDetailSidebar;
@@ -52,7 +55,6 @@
     let nodeId: string;
     let nodeStyle = viewModel.style;
     let displayPolicy = viewModel.displayPolicy;
-    let interactionPolicy = viewModel.interactionPolicy;
     let hasSectionColor = false;
     let active = false;
     let selected = false;
@@ -68,7 +70,6 @@
         nodeId,
         style: nodeStyle,
         displayPolicy,
-        interactionPolicy,
     } = viewModel);
     $: ({ active, selected, pinned } = uiState);
     $: hasSectionColor = !!viewModel.sectionColor;
@@ -149,7 +150,7 @@
             cellRuntime,
             nodeId,
             displaySection: renderModel.displaySection,
-            interactionPolicy,
+            onMobileDoubleClick,
             isMobile,
             showDetailSidebar: $showDetailSidebar,
             event: e,

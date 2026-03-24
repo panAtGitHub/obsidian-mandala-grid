@@ -3,6 +3,7 @@
     import { CalendarDays } from 'lucide-svelte';
     import { flip } from 'svelte/animate';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
+    import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
     import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
     import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
 
@@ -21,6 +22,8 @@
     export let focusDayPlanTodayFromButton: (event: MouseEvent) => void;
     export let getUpButtonLabel: (theme: string) => string;
     export let getDownButtonLabel: (theme: string) => string;
+    export let onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null =
+        null;
 </script>
 
 <div class="mandala-grid mandala-grid--3 mandala-grid--core">
@@ -35,6 +38,7 @@
                 <MandalaCard
                     viewModel={cell.cardViewModel}
                     uiState={cell.cardUiState}
+                    onMobileDoubleClick={onMobileCardDoubleClick}
                 />
                 {#if !Platform.isMobile && show3x3SubgridNavButtons && !hasOpenOverlayModal}
                     <div

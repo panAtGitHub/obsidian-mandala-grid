@@ -1,6 +1,5 @@
 import type { CellStyle } from 'src/mandala-cell/model/card-types';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
-import type { CellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
 
 // 阅读顺序建议（标准格子数据流）：
@@ -15,7 +14,6 @@ type SharedCardViewModel = {
     sectionColor: string | null;
     metaAccentColor: string | null;
     displayPolicy: CellDisplayPolicy;
-    interactionPolicy: CellInteractionPolicy;
 };
 
 export type MandalaCardUiState = {

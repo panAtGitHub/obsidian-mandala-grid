@@ -4,7 +4,6 @@ import type {
     MandalaCardViewModel,
 } from 'src/mandala-cell/model/card-view-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
-import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildWeekPlanBaseCells,
@@ -106,8 +105,6 @@ export const assembleDesktopWeekPlanCells = ({
             compactMode,
         }),
     };
-    const interactionPolicy = buildCellInteractionPolicy({});
-
     return buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => ({
         ...cell,
         isActiveCell:
@@ -132,7 +129,6 @@ export const assembleDesktopWeekPlanCells = ({
                       ? sectionColors[cell.section] ?? null
                       : null,
                   displayPolicy,
-                  interactionPolicy,
               })
             : null,
         cardUiState: {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildMandalaCardRenderModel } from 'src/mandala-cell/model/build-mandala-card-render-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
-import { buildCellInteractionPolicy } from 'src/mandala-cell/viewmodel/policies/cell-interaction-policy';
 
 const baseOptions = () => ({
     viewModel: {
@@ -12,7 +11,6 @@ const baseOptions = () => ({
         sectionColor: null,
         metaAccentColor: null,
         displayPolicy: createDefaultCellDisplayPolicy(),
-        interactionPolicy: buildCellInteractionPolicy({}),
     },
     uiState: {
         active: false,

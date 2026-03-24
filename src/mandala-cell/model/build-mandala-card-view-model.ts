@@ -14,7 +14,6 @@ export const buildMandalaCardViewModel = ({
     sectionColor,
     metaAccentColor,
     displayPolicy,
-    interactionPolicy,
 }: BuildMandalaCardViewModelOptions): MandalaCardViewModel => ({
     nodeId,
     section,
@@ -23,5 +22,4 @@ export const buildMandalaCardViewModel = ({
     sectionColor,
     metaAccentColor,
     displayPolicy,
-    interactionPolicy,
 });

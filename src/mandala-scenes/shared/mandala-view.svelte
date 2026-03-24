@@ -46,6 +46,7 @@
         focusThreeByThreeTodayFromButton,
         getThreeByThreeDownButtonLabel,
         getThreeByThreeUpButtonLabel,
+        handleThreeByThreeMobileCardDoubleClick,
         resolveThreeByThreeTheme,
         syncThreeByThreeSceneState,
     } from 'src/mandala-scenes/view-3x3/scene-state';
@@ -349,6 +350,17 @@
                             exitThreeByThreeSubgridFromButton(view, event)}
                         focusDayPlanTodayFromButton={(event) =>
                             focusThreeByThreeTodayFromButton(view, event)}
+                        onMobileCardDoubleClick={({
+                            nodeId,
+                            displaySection,
+                            event,
+                        }) =>
+                            handleThreeByThreeMobileCardDoubleClick(
+                                view,
+                                event,
+                                nodeId,
+                                displaySection,
+                            )}
                         getUpButtonLabel={getThreeByThreeUpButtonLabel}
                         getDownButtonLabel={getThreeByThreeDownButtonLabel}
                     />
