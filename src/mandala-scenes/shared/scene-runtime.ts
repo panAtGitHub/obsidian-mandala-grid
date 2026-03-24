@@ -9,18 +9,23 @@ export type ActiveCell9x9 = { row: number; col: number } | null;
 export type ActiveCellWeek7x9 = { row: number; col: number } | null;
 
 const getMandalaSceneState = (viewState: ViewState) =>
-    viewState.ui.mandala.sceneState ?? {
+    ({
         nineByNine: {
-            activeCell: null,
+            activeCell:
+                viewState.ui.mandala.sceneState?.nineByNine?.activeCell ?? null,
         },
         nx9: {
-            activeCell: null,
+            activeCell: viewState.ui.mandala.sceneState?.nx9?.activeCell ?? null,
             weekPlan: {
-                activeCell: null,
-                anchorDate: null,
+                activeCell:
+                    viewState.ui.mandala.sceneState?.nx9?.weekPlan?.activeCell ??
+                    null,
+                anchorDate:
+                    viewState.ui.mandala.sceneState?.nx9?.weekPlan?.anchorDate ??
+                    null,
             },
         },
-    };
+    }) as ViewState['ui']['mandala']['sceneState'];
 
 export const getMandalaWeekPlanState = (viewState: ViewState) =>
     getMandalaSceneState(viewState).nx9.weekPlan;

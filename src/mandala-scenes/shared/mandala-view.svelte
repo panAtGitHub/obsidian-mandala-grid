@@ -6,6 +6,7 @@
         resolveMandalaSceneKey,
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
+    import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
     import {
         DayPlanEnabledStore,
         MandalaA4ModeStore,
@@ -152,7 +153,7 @@
     const documentState = derived(view.documentStore, (state) => state);
     const weekAnchorDate = derived(
         view.viewStore,
-        (state) => state.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
+        (state) => getMandalaWeekAnchorDate(state),
     );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
