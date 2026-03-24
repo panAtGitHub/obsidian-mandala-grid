@@ -1,4 +1,4 @@
-import { MarkdownView } from 'obsidian';
+import { MarkdownView, Platform } from 'obsidian';
 import type { Readable } from 'svelte/store';
 import { contentStore } from 'src/mandala-display/stores/document-derived-stores';
 import {
