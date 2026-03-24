@@ -1,4 +1,5 @@
 import type { MandalaSceneVariant } from 'src/mandala-display/logic/mandala-profile';
+import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
 import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
@@ -54,7 +55,7 @@ export const resolveCellPreviewNodeId = (
     }
 
     if (mode === '9x9' && activeCell9x9) {
-        const baseTheme = activeNodeSection?.split('.')[0] ?? '1';
+        const baseTheme = getSectionCore(activeNodeSection) ?? '1';
         const section = sectionAtCell9x9(
             activeCell9x9.row,
             activeCell9x9.col,

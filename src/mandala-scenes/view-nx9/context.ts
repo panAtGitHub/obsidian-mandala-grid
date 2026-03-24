@@ -1,5 +1,8 @@
 import { collectTrailingEmptyCoreSections } from 'src/mandala-display/logic/clear-empty-subgrids';
-import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
+import {
+    buildMandalaTopologyIndex,
+    getSectionCore,
+} from 'src/mandala-display/logic/mandala-topology';
 import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/mandala-settings/state/settings-type';
 import type { Content } from 'src/mandala-document/state/document-state-type';
 
@@ -73,12 +76,9 @@ export const normalizeNx9VisibleSection = (
 export const collectNx9CoreSections = (
     sectionIdMap: Record<string, string | undefined>,
 ) =>
-    Object.keys(sectionIdMap)
-        .filter(
-            (section) =>
-                CORE_SECTION_PATTERN.test(section) && sectionIdMap[section],
-        )
-        .sort(compareSectionIds);
+    buildMandalaTopologyIndex(sectionIdMap).coreSections.filter((section) =>
+        CORE_SECTION_PATTERN.test(section),
+    );
 
 export const collectEffectiveNx9CoreSections = ({
     sectionIdMap,
@@ -89,16 +89,19 @@ export const collectEffectiveNx9CoreSections = ({
     documentContent: Content;
     activeSection?: string | null | undefined;
 }) => {
+    const topology = buildMandalaTopologyIndex(sectionIdMap);
     const trailingCoreSections = collectTrailingEmptyCoreSections(
-        Object.entries(sectionIdMap)
-            .filter((entry): entry is [string, string] => Boolean(entry[1]))
-            .map(([sectionId, nodeId]) => ({
+        topology.sectionsWithNode.map((sectionId) => {
+            const nodeId = topology.entries[sectionId]?.nodeId;
+            return {
                 sectionId,
-                content: documentContent[nodeId]?.content ?? '',
-            })),
+                content: nodeId ? documentContent[nodeId]?.content ?? '' : '',
+            };
+        }),
     );
-    const activeCoreSection =
-        normalizeNx9VisibleSection(activeSection)?.split('.')[0];
+    const activeCoreSection = getSectionCore(
+        normalizeNx9VisibleSection(activeSection),
+    );
     const activeTrailingIndex = activeCoreSection
         ? trailingCoreSections.indexOf(activeCoreSection)
         : -1;
@@ -107,8 +110,7 @@ export const collectEffectiveNx9CoreSections = ({
             ? trailingCoreSections
             : trailingCoreSections.slice(activeTrailingIndex + 1),
     );
-
-    return collectNx9CoreSections(sectionIdMap).filter(
+    return topology.coreSections.filter(
         (section) => !removableTrailingCoreSections.has(section),
     );
 };

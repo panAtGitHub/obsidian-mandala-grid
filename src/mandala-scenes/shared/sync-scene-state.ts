@@ -3,6 +3,7 @@ import {
     posOfSection9x9,
     sectionAtCell9x9,
 } from 'src/mandala-display/logic/mandala-grid';
+import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import {
     resolveMandalaProfile,
@@ -23,8 +24,7 @@ import {
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 import type { MandalaView } from 'src/view/view';
 
-const getBaseTheme = (section: string | undefined) =>
-    section ? section.split('.')[0] : '1';
+const getBaseTheme = (section: string | undefined) => getSectionCore(section) ?? '1';
 
 type SyncSceneStateArgs = {
     view: MandalaView;
