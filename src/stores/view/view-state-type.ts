@@ -66,10 +66,12 @@ export type ViewState = {
             focusTarget: FocusTarget | null;
             showDetailSidebar: boolean;
             subgridTheme: string | null;
-            activeCell9x9: { row: number; col: number } | null;
-            activeCellNx9: Nx9ActiveCell | null;
             sceneState: {
+                nineByNine: {
+                    activeCell: { row: number; col: number } | null;
+                };
                 nx9: {
+                    activeCell: Nx9ActiveCell | null;
                     weekPlan: {
                         activeCell: { row: number; col: number } | null;
                         anchorDate: string | null;

@@ -152,59 +152,18 @@ export const restoreMandalaUiState = (
     const focusTarget = nextState?.focusTarget ?? null;
     const weekAnchorDate = nextState?.weekAnchorDate ?? null;
 
-    const activeCell9x9 =
-        focusTarget?.kind === 'cell' && focusTarget.viewKind === '9x9'
-            ? {
-                  row: focusTarget.row,
-                  col: focusTarget.col,
-              }
-            : null;
-    const activeCellNx9 =
-        focusTarget?.kind === 'cell' &&
-        focusTarget.viewKind === 'nx9' &&
-        focusTarget.variant !== 'week-7x9'
-            ? {
-                  row: focusTarget.row,
-                  col: focusTarget.col,
-                  page: focusTarget.page,
-              }
-            : null;
-    const activeCellWeek7x9 =
-        focusTarget?.kind === 'cell' &&
-        focusTarget.viewKind === 'nx9' &&
-        focusTarget.variant === 'week-7x9'
-            ? {
-                  row: focusTarget.row,
-                  col: focusTarget.col,
-              }
-            : null;
-
     view.viewStore.dispatch({
         type: 'view/mandala/subgrid/enter',
         payload: { theme: subgridTheme },
     });
     view.viewStore.dispatch({
-        type: 'view/mandala/active-cell/set',
-        payload: { cell: activeCell9x9 },
-    });
-    view.viewStore.dispatch({
-        type: 'view/mandala/nx9-active-cell/set',
-        payload: { cell: activeCellNx9 },
-    });
-    view.viewStore.dispatch({
-        type: 'view/mandala/week-active-cell/set',
-        payload: { cell: activeCellWeek7x9 },
-    });
-    view.viewStore.dispatch({
         type: 'view/mandala/week-anchor-date/set',
         payload: { date: weekAnchorDate },
     });
-    if (!focusTarget || focusTarget.kind === 'node') {
-        view.viewStore.dispatch({
-            type: 'view/mandala/focus-target/set',
-            payload: { focusTarget },
-        });
-    }
+    view.viewStore.dispatch({
+        type: 'view/mandala/focus-target/set',
+        payload: { focusTarget },
+    });
     view.viewStore.dispatch({
         type: 'view/mandala/swap/cancel',
     });

@@ -27,10 +27,12 @@ export const defaultViewState = (
             focusTarget: null,
             showDetailSidebar,
             subgridTheme: '1',
-            activeCell9x9: null,
-            activeCellNx9: null,
             sceneState: {
+                nineByNine: {
+                    activeCell: null,
+                },
                 nx9: {
+                    activeCell: null,
                     weekPlan: {
                         activeCell: null,
                         anchorDate: null,

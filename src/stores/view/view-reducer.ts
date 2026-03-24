@@ -30,6 +30,36 @@ const setFocusTarget = (state: ViewState, focusTarget: FocusTarget | null) => {
     state.ui.mandala.focusTarget = focusTarget;
 };
 
+const syncSceneCellCachesFromFocusTarget = (state: ViewState) => {
+    const focusTarget = state.ui.mandala.focusTarget;
+    state.ui.mandala.sceneState.nineByNine.activeCell =
+        focusTarget?.kind === 'cell' && focusTarget.viewKind === '9x9'
+            ? {
+                  row: focusTarget.row,
+                  col: focusTarget.col,
+              }
+            : null;
+    state.ui.mandala.sceneState.nx9.activeCell =
+        focusTarget?.kind === 'cell' &&
+        focusTarget.viewKind === 'nx9' &&
+        focusTarget.variant !== 'week-7x9'
+            ? {
+                  row: focusTarget.row,
+                  col: focusTarget.col,
+                  page: focusTarget.page,
+              }
+            : null;
+    state.ui.mandala.sceneState.nx9.weekPlan.activeCell =
+        focusTarget?.kind === 'cell' &&
+        focusTarget.viewKind === 'nx9' &&
+        focusTarget.variant === 'week-7x9'
+            ? {
+                  row: focusTarget.row,
+                  col: focusTarget.col,
+              }
+            : null;
+};
+
 const syncNodeFocusTarget = (state: ViewState) => {
     setFocusTarget(
         state,
@@ -40,6 +70,7 @@ const syncNodeFocusTarget = (state: ViewState) => {
               }
             : null,
     );
+    syncSceneCellCachesFromFocusTarget(state);
 };
 
 const handlers: Record<string, ViewActionHandler> = {
@@ -340,7 +371,6 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/mandala/active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/active-cell/set') return;
-        state.ui.mandala.activeCell9x9 = action.payload.cell;
         setFocusTarget(
             state,
             action.payload.cell
@@ -353,11 +383,11 @@ const handlers: Record<string, ViewActionHandler> = {
                   }
                 : null,
         );
+        syncSceneCellCachesFromFocusTarget(state);
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/week-active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/week-active-cell/set') return;
-        state.ui.mandala.sceneState.nx9.weekPlan.activeCell = action.payload.cell;
         setFocusTarget(
             state,
             action.payload.cell
@@ -370,11 +400,11 @@ const handlers: Record<string, ViewActionHandler> = {
                   }
                 : null,
         );
+        syncSceneCellCachesFromFocusTarget(state);
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/nx9-active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/nx9-active-cell/set') return;
-        state.ui.mandala.activeCellNx9 = action.payload.cell;
         setFocusTarget(
             state,
             action.payload.cell
@@ -388,6 +418,7 @@ const handlers: Record<string, ViewActionHandler> = {
                   }
                 : null,
         );
+        syncSceneCellCachesFromFocusTarget(state);
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/week-anchor-date/set': (state, action) => {
@@ -399,6 +430,7 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/mandala/focus-target/set': (state, action) => {
         if (action.type !== 'view/mandala/focus-target/set') return;
         setFocusTarget(state, action.payload.focusTarget);
+        syncSceneCellCachesFromFocusTarget(state);
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/swap/start': (state, action) => {

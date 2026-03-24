@@ -13,11 +13,11 @@ export const getMandalaWeekPlanState = (viewState: ViewState) =>
 
 export const getMandalaActiveCell9x9 = (
     viewState: ViewState,
-): ActiveCell9x9 => viewState.ui.mandala.activeCell9x9;
+): ActiveCell9x9 => viewState.ui.mandala.sceneState.nineByNine.activeCell;
 
 export const getMandalaActiveCellNx9 = (
     viewState: ViewState,
-): Nx9ActiveCell | null => viewState.ui.mandala.activeCellNx9;
+): Nx9ActiveCell | null => viewState.ui.mandala.sceneState.nx9.activeCell;
 
 export const getMandalaActiveCellWeek7x9 = (
     viewState: ViewState,
