@@ -226,9 +226,9 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.general.weekPlanCompactMode).toBe(false);
     });
 
-    test('disabling week plan exits week mode', () => {
+    test('disabling week plan keeps mandala mode unchanged', () => {
         const settings = DEFAULT_SETTINGS();
-        settings.view.mandalaMode = 'week-7x9';
+        settings.view.mandalaMode = 'nx9';
 
         settingsReducer(settings, {
             type: 'settings/general/set-week-plan-enabled',
@@ -236,6 +236,6 @@ describe('settingsReducer custom grid layouts', () => {
         });
 
         expect(settings.general.weekPlanEnabled).toBe(false);
-        expect(settings.view.mandalaMode).toBe('3x3');
+        expect(settings.view.mandalaMode).toBe('nx9');
     });
 });

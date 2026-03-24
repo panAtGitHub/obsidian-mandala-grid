@@ -51,7 +51,9 @@ import {
     DayPlanTodayNavigation,
     resolveDayPlanTodayNavigation,
     MandalaProfileActivation,
+    MandalaSceneKey,
     resolveMandalaProfileActivation,
+    resolveMandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
 import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
 import { isNonEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
@@ -270,8 +272,24 @@ export class MandalaView extends TextFileView {
         return (
             !Platform.isMobile &&
             this.documentStore.getValue().meta.isMandala &&
-            !parseDayPlanFrontmatter(frontmatter)
+            (!parseDayPlanFrontmatter(frontmatter) || this.canUseWeekPlanMode(frontmatter))
         );
+    }
+
+    getMandalaSceneKey(
+        frontmatter = this.documentStore.getValue().file.frontmatter,
+    ): MandalaSceneKey {
+        return resolveMandalaSceneKey({
+            frontmatter,
+            viewKind: this.mandalaMode,
+            weekPlanEnabled: this.plugin.settings.getValue().general.weekPlanEnabled,
+        });
+    }
+
+    isWeekPlanVariant(
+        frontmatter = this.documentStore.getValue().file.frontmatter,
+    ) {
+        return this.getMandalaSceneKey(frontmatter).variant === 'week-7x9';
     }
 
     getCurrentNx9RowsPerPage(settings = this.plugin.settings.getValue()) {
@@ -335,14 +353,8 @@ export class MandalaView extends TextFileView {
     }
 
     setMandalaMode(mode: MandalaMode) {
-        if (mode === 'week-7x9' && !this.canUseWeekPlanMode()) {
-            new Notice(
-                '周计划视图仅支持已开启周计划功能、且启用日计划的九宫格文件。',
-            );
-            return false;
-        }
         if (mode === 'nx9' && !this.canUseNx9Mode()) {
-            new Notice('Nx9 视图仅支持桌面端的普通九宫格文件。');
+            new Notice('Nx9 视图仅支持桌面端的 mandala 文件。');
             return false;
         }
         this.viewStore.dispatch({
@@ -362,11 +374,9 @@ export class MandalaView extends TextFileView {
             current === '3x3'
                 ? '9x9'
                 : current === '9x9'
-                  ? this.canUseWeekPlanMode()
-                      ? 'week-7x9'
-                      : this.canUseNx9Mode()
-                        ? 'nx9'
-                        : '3x3'
+                  ? this.canUseNx9Mode()
+                      ? 'nx9'
+                      : '3x3'
                   : '3x3';
         return this.setMandalaMode(next);
     }
@@ -377,7 +387,6 @@ export class MandalaView extends TextFileView {
         const currentMode = this.mandalaMode;
         const nextMode = resolveCompatibleMandalaMode({
             currentMode,
-            canUseWeekPlanMode: this.canUseWeekPlanMode(frontmatter),
             canUseNx9Mode: this.canUseNx9Mode(frontmatter),
         });
 
@@ -1397,8 +1406,7 @@ export class MandalaView extends TextFileView {
         const maybeMode = (state as { mandalaMode?: unknown }).mandalaMode;
         return maybeMode === '3x3' ||
             maybeMode === '9x9' ||
-            maybeMode === 'nx9' ||
-            maybeMode === 'week-7x9'
+            maybeMode === 'nx9'
             ? maybeMode
             : null;
     }

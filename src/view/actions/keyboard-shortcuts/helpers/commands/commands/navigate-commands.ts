@@ -14,10 +14,10 @@ const spatialNavigation = (view: MandalaView, direction: AllDirections) => {
         if (tryMandala9x9Navigation(view, direction)) return;
     }
     if (view.mandalaMode === 'nx9') {
+        if (view.isWeekPlanVariant()) {
+            if (tryMandalaWeek7x9Navigation(view, direction)) return;
+        }
         if (tryMandalaNx9Navigation(view, direction)) return;
-    }
-    if (view.mandalaMode === 'week-7x9') {
-        if (tryMandalaWeek7x9Navigation(view, direction)) return;
     }
     view.viewStore.dispatch({
         type: 'view/set-active-node/keyboard',

@@ -40,6 +40,7 @@ export const toggleCellPreviewDialog = (view: MandalaView) => {
     const settings = view.plugin.settings.getValue();
     const nodeId = resolveCellPreviewNodeId({
         mode: view.mandalaMode,
+        variant: view.getMandalaSceneKey(documentState.file.frontmatter).variant,
         activeNodeId: viewState.document.activeNode,
         activeNodeSection:
             documentState.sections.id_section[viewState.document.activeNode] ??

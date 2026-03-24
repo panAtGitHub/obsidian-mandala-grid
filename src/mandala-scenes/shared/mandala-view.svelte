@@ -3,6 +3,10 @@
     import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/shared/store/derived';
     import {
+        resolveMandalaSceneKey,
+        type MandalaSceneKey,
+    } from 'src/mandala-display/logic/mandala-profile';
+    import {
         DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
@@ -196,11 +200,22 @@
         (state) => state.document.selectedNodes,
     );
     let dayPlanTodayTargetSection: string | null = null;
+    let sceneKey: MandalaSceneKey = {
+        viewKind: '3x3',
+        variant: 'default',
+    };
+
+    $: sceneKey = resolveMandalaSceneKey({
+        frontmatter: $documentState.file.frontmatter,
+        viewKind: $mode,
+        weekPlanEnabled: view.plugin.settings.getValue().general.weekPlanEnabled,
+    });
 
     $: {
         syncSceneState({
             view,
             mode: $mode,
+            variant: sceneKey.variant,
             dayPlanEnabled: $dayPlanEnabled,
             subgridTheme: $subgridTheme,
             sectionToNodeId: $sectionToNodeId,
@@ -283,7 +298,7 @@
     class:mandala-root--3={$mode === '3x3'}
     class:mandala-root--9={$mode === '9x9'}
     class:mandala-root--nx9={$mode === 'nx9'}
-    class:mandala-root--week={$mode === 'week-7x9'}
+    class:mandala-root--week={sceneKey.variant === 'week-7x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
@@ -366,11 +381,11 @@
                     />
                 {:else if $mode === '9x9'}
                     <NineByNineLayout />
-                {:else if $mode === 'nx9'}
-                    <Nx9Layout />
-                {:else}
-                    <WeekPlanLayout />
-                {/if}
+        {:else if $mode === 'nx9' && sceneKey.variant === 'week-7x9'}
+            <WeekPlanLayout />
+        {:else if $mode === 'nx9'}
+            <Nx9Layout />
+        {/if}
             </div>
 
             <MandalaDetailSidebar />

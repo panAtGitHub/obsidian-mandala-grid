@@ -49,6 +49,9 @@
         !$editingState.activeNodeId
             ? resolveCellPreviewNodeId({
                   mode: view.mandalaMode,
+                  variant: view.getMandalaSceneKey(
+                      view.documentStore.getValue().file.frontmatter,
+                  ).variant,
                   activeNodeId: $viewState.document.activeNode,
                   activeNodeSection:
                       $idToSection[$viewState.document.activeNode] ?? null,

@@ -18,7 +18,7 @@ export const tryMandalaWeek7x9Navigation = (
     direction: AllDirections,
     options?: { extendSelection?: boolean },
 ) => {
-    if (view.mandalaMode !== 'week-7x9') return false;
+    if (view.mandalaMode !== 'nx9' || !view.isWeekPlanVariant()) return false;
 
     const documentState = view.documentStore.getValue();
     const weekContext = resolveWeekPlanContext({

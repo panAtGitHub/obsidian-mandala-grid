@@ -11,7 +11,12 @@
     import { openNx9RowsPerPageModal } from 'src/obsidian/modals/nx9-rows-per-page-modal';
     import { addDaysIsoDate } from 'src/mandala-display/logic/day-plan';
     import {
+        resolveMandalaSceneKey,
+        type MandalaSceneKey,
+    } from 'src/mandala-display/logic/mandala-profile';
+    import {
         MandalaModeStore,
+        WeekPlanEnabledStore,
         Nx9RowsPerPageStore,
         Show9x9TitleOnlyStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
@@ -21,6 +26,7 @@
 
     const view = getView();
     const mode = MandalaModeStore(view);
+    const weekPlanEnabled = WeekPlanEnabledStore(view);
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
     const show9x9TitleOnly = Show9x9TitleOnlyStore(view);
     const documentState = derived(view.documentStore, (state) => state);
@@ -33,11 +39,17 @@
         (state) => state.ui.mandala.weekAnchorDate,
     );
     const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
+    let sceneKey: MandalaSceneKey = {
+        viewKind: '3x3',
+        variant: 'default',
+    };
 
-    $: canUseWeekPlanMode = view.canUseWeekPlanMode(
-        $documentState.file.frontmatter,
-    );
     $: canUseNx9Mode = view.canUseNx9Mode($documentState.file.frontmatter);
+    $: sceneKey = resolveMandalaSceneKey({
+        frontmatter: $documentState.file.frontmatter,
+        viewKind: $mode,
+        weekPlanEnabled: $weekPlanEnabled,
+    });
     $: activeSection =
         $documentState.sections.id_section[$activeNodeId] ?? null;
     $: nx9Context =
@@ -123,11 +135,9 @@
             label={$mode === '3x3'
                 ? '切换到 9x9'
                 : $mode === '9x9'
-                  ? canUseWeekPlanMode
-                      ? '切换到周计划'
-                      : canUseNx9Mode
-                        ? '切换到 Nx9'
-                        : '切换到 3x3'
+                  ? canUseNx9Mode
+                      ? '切换到 Nx9'
+                      : '切换到 3x3'
                   : $mode === 'nx9'
                     ? '切换到 3x3'
                     : '切换到 3x3'}
@@ -137,16 +147,12 @@
             {#if $mode === '3x3'}
                 <Grid3x3 class="svg-icon" size="18" />
             {:else if $mode === '9x9'}
-                {#if canUseWeekPlanMode}
-                    <CalendarDays class="svg-icon" size="18" />
-                {:else}
-                    <Grid2x2 class="svg-icon" size="18" />
-                {/if}
+                <Grid2x2 class="svg-icon" size="18" />
             {:else}
                 <Grid2x2 class="svg-icon" size="18" />
             {/if}
         </Button>
-        {#if $mode === 'week-7x9'}
+        {#if $mode === 'nx9' && sceneKey.variant === 'week-7x9'}
             <div class="week-nav-group">
                 <Button
                     classes="topbar-button"

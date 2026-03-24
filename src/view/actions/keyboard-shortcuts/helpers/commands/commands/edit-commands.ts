@@ -129,7 +129,8 @@ export const editCommands = () => {
                             nodeId;
                     }
                 } else if (
-                    view.mandalaMode === 'week-7x9' &&
+                    view.mandalaMode === 'nx9' &&
+                    view.isWeekPlanVariant() &&
                     view.mandalaActiveCellWeek7x9
                 ) {
                     const weekContext = resolveWeekPlanContext({

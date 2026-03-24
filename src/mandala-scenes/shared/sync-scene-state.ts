@@ -4,6 +4,7 @@ import {
     sectionAtCell9x9,
 } from 'src/mandala-display/logic/mandala-grid';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
+import type { MandalaSceneVariant } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
@@ -25,6 +26,7 @@ const getBaseTheme = (section: string | undefined) =>
 type SyncSceneStateArgs = {
     view: MandalaView;
     mode: MandalaMode;
+    variant: MandalaSceneVariant;
     dayPlanEnabled: boolean;
     subgridTheme: string | null | undefined;
     sectionToNodeId: Record<string, string | undefined>;
@@ -54,6 +56,7 @@ export const createSceneStateSynchronizer = () => {
     const syncModeCompatibility = ({
         view,
         mode,
+        variant,
         dayPlanEnabled,
         subgridTheme,
         sectionToNodeId,
@@ -62,6 +65,7 @@ export const createSceneStateSynchronizer = () => {
         SyncSceneStateArgs,
         | 'view'
         | 'mode'
+        | 'variant'
         | 'dayPlanEnabled'
         | 'subgridTheme'
         | 'sectionToNodeId'
@@ -75,7 +79,8 @@ export const createSceneStateSynchronizer = () => {
         }
 
         if (
-            mode === 'week-7x9' &&
+            mode === 'nx9' &&
+            variant === 'week-7x9' &&
             (!dayPlanEnabled ||
                 !view.plugin.settings.getValue().general.weekPlanEnabled ||
                 !getCachedDayPlan(documentState.file.frontmatter))
@@ -106,6 +111,7 @@ export const createSceneStateSynchronizer = () => {
     const clearInactiveModeState = (
         view: MandalaView,
         mode: MandalaMode,
+        variant: MandalaSceneVariant,
         hasModeChanged: boolean,
     ) => {
         if (!hasModeChanged) return;
@@ -115,7 +121,7 @@ export const createSceneStateSynchronizer = () => {
         if (mode !== 'nx9' && view.mandalaActiveCellNx9) {
             setActiveCellNx9(view, null);
         }
-        if (mode !== 'week-7x9' && view.mandalaActiveCellWeek7x9) {
+        if (variant !== 'week-7x9' && view.mandalaActiveCellWeek7x9) {
             setActiveCellWeek7x9(view, null);
         }
     };
@@ -283,15 +289,20 @@ export const createSceneStateSynchronizer = () => {
     return (args: SyncSceneStateArgs) => {
         syncModeCompatibility(args);
         const hasModeChanged = previousMode !== args.mode;
-        clearInactiveModeState(args.view, args.mode, hasModeChanged);
+        clearInactiveModeState(
+            args.view,
+            args.mode,
+            args.variant,
+            hasModeChanged,
+        );
 
         if (args.mode === '9x9') {
             sync9x9State(args);
         }
-        if (args.mode === 'nx9') {
+        if (args.mode === 'nx9' && args.variant !== 'week-7x9') {
             syncNx9State(args);
         }
-        if (args.mode === 'week-7x9') {
+        if (args.mode === 'nx9' && args.variant === 'week-7x9') {
             syncWeekState(args);
         }
 

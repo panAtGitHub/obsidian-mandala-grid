@@ -1,3 +1,4 @@
+import type { MandalaSceneVariant } from 'src/mandala-display/logic/mandala-profile';
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
 import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
@@ -10,7 +11,8 @@ type CustomLayout = {
 };
 
 export type ResolveCellPreviewNodeIdArgs = {
-    mode: '3x3' | '9x9' | 'nx9' | 'week-7x9';
+    mode: '3x3' | '9x9' | 'nx9';
+    variant: MandalaSceneVariant;
     activeNodeId: string;
     activeNodeSection: string | null;
     activeCell9x9: { row: number; col: number } | null;
@@ -31,6 +33,7 @@ export const resolveCellPreviewNodeId = (
 ) => {
     const {
         mode,
+        variant,
         activeNodeId,
         activeNodeSection,
         activeCell9x9,
@@ -63,7 +66,7 @@ export const resolveCellPreviewNodeId = (
         return nodeId || activeNodeId || null;
     }
 
-    if (mode === 'nx9' && activeCellNx9) {
+    if (mode === 'nx9' && variant !== 'week-7x9' && activeCellNx9) {
         const context = resolveNx9Context({
             sectionIdMap,
             documentContent,
@@ -80,7 +83,7 @@ export const resolveCellPreviewNodeId = (
         return nodeId || activeNodeId || null;
     }
 
-    if (mode === 'week-7x9' && activeCellWeek7x9) {
+    if (mode === 'nx9' && variant === 'week-7x9' && activeCellWeek7x9) {
         const weekContext = resolveWeekPlanContext({
             frontmatter,
             anchorDate: weekAnchorDate,

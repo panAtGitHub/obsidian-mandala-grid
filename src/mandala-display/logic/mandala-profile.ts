@@ -4,9 +4,21 @@ import {
     parseDayPlanFrontmatterWithMandala,
     sectionFromDateInPlanYear,
 } from 'src/mandala-display/logic/day-plan';
-import type { WeekStart } from 'src/mandala-settings/state/settings-type';
+import type {
+    MandalaMode,
+    WeekStart,
+} from 'src/mandala-settings/state/settings-type';
 
 export type MandalaProfileKind = 'none' | 'generic' | 'day-plan';
+export type MandalaSceneVariant = 'default' | 'day-plan' | 'week-7x9';
+export type MandalaSceneKey = {
+    viewKind: MandalaMode;
+    variant: MandalaSceneVariant;
+};
+export type MandalaProfile = {
+    kind: Exclude<MandalaProfileKind, 'none'>;
+    dayPlan: DayPlanFrontmatter | null;
+};
 
 export type MandalaProfileActivation = {
     kind: MandalaProfileKind;
@@ -87,6 +99,60 @@ export const resolveMandalaProfileActivation = (
         hotCoreSections: getHotCoreSections(dayPlan.year, date, weekStart),
         notice: null,
         dayPlan,
+    };
+};
+
+export const resolveMandalaProfile = (
+    frontmatter: string,
+): MandalaProfile | null => {
+    const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
+    if (!parsed.mandalaEnabled) return null;
+    if (parsed.dayPlan?.enabled) {
+        return {
+            kind: 'day-plan',
+            dayPlan: parsed.dayPlan,
+        };
+    }
+    return {
+        kind: 'generic',
+        dayPlan: null,
+    };
+};
+
+export const resolveMandalaSceneKey = ({
+    frontmatter,
+    viewKind,
+    weekPlanEnabled,
+}: {
+    frontmatter: string;
+    viewKind: MandalaMode;
+    weekPlanEnabled: boolean;
+}): MandalaSceneKey => {
+    const profile = resolveMandalaProfile(frontmatter);
+    if (!profile || profile.kind === 'generic') {
+        return {
+            viewKind,
+            variant: 'default',
+        };
+    }
+
+    if (viewKind === '3x3') {
+        return {
+            viewKind,
+            variant: 'day-plan',
+        };
+    }
+
+    if (viewKind === 'nx9' && weekPlanEnabled) {
+        return {
+            viewKind,
+            variant: 'week-7x9',
+        };
+    }
+
+    return {
+        viewKind,
+        variant: 'default',
     };
 };
 

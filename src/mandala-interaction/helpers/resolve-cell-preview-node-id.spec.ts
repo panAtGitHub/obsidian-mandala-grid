@@ -24,6 +24,7 @@ describe('resolve-cell-preview-node-id', () => {
         expect(
             resolveCellPreviewNodeId({
                 mode: '3x3',
+                variant: 'default',
                 activeNodeId: 'node-1',
                 activeNodeSection: '1',
                 activeCell9x9: null,
@@ -45,6 +46,7 @@ describe('resolve-cell-preview-node-id', () => {
         expect(
             resolveCellPreviewNodeId({
                 mode: '9x9',
+                variant: 'default',
                 activeNodeId: 'fallback-node',
                 activeNodeSection: '2.4',
                 activeCell9x9: { row: 0, col: 0 },
@@ -66,6 +68,7 @@ describe('resolve-cell-preview-node-id', () => {
         expect(
             resolveCellPreviewNodeId({
                 mode: '9x9',
+                variant: 'default',
                 activeNodeId: 'fallback-node',
                 activeNodeSection: '2.4',
                 activeCell9x9: { row: 0, col: 0 },
@@ -87,6 +90,7 @@ describe('resolve-cell-preview-node-id', () => {
         expect(
             resolveCellPreviewNodeId({
                 mode: 'nx9',
+                variant: 'default',
                 activeNodeId: 'fallback-node',
                 activeNodeSection: '4.5',
                 activeCell9x9: null,
@@ -112,6 +116,7 @@ describe('resolve-cell-preview-node-id', () => {
         expect(
             resolveCellPreviewNodeId({
                 mode: 'nx9',
+                variant: 'default',
                 activeNodeId: 'fallback-node',
                 activeNodeSection: '4.5',
                 activeCell9x9: null,
@@ -136,7 +141,8 @@ describe('resolve-cell-preview-node-id', () => {
     it('prefers the active week cell and falls back to the active node', () => {
         expect(
             resolveCellPreviewNodeId({
-                mode: 'week-7x9',
+                mode: 'nx9',
+                variant: 'week-7x9',
                 activeNodeId: 'fallback-node',
                 activeNodeSection: '75.4',
                 activeCell9x9: null,
@@ -157,7 +163,8 @@ describe('resolve-cell-preview-node-id', () => {
 
         expect(
             resolveCellPreviewNodeId({
-                mode: 'week-7x9',
+                mode: 'nx9',
+                variant: 'week-7x9',
                 activeNodeId: 'fallback-node',
                 activeNodeSection: '75.4',
                 activeCell9x9: null,
