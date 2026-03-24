@@ -30,6 +30,18 @@ const setFocusTarget = (state: ViewState, focusTarget: FocusTarget | null) => {
     state.ui.mandala.focusTarget = focusTarget;
 };
 
+const syncNodeFocusTarget = (state: ViewState) => {
+    setFocusTarget(
+        state,
+        state.document.activeNode
+            ? {
+                  kind: 'node',
+                  nodeId: state.document.activeNode,
+              }
+            : null,
+    );
+};
+
 const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/mouse': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse') return;
@@ -189,6 +201,7 @@ const handlers: Record<string, ViewActionHandler> = {
             action.payload.nodeId,
             action.payload.isInSidebar,
         );
+        syncNodeFocusTarget(state);
     },
     'view/editor/enable-sidebar-editor': (state, action) => {
         if (action.type !== 'view/editor/enable-sidebar-editor') return;
@@ -203,6 +216,10 @@ const handlers: Record<string, ViewActionHandler> = {
             }
         }
         enableEditMode(state.document, action.payload.id, true);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
     },
     'view/editor/disable/reset-confirmation': (state, action) => {
         if (action.type !== 'view/editor/disable/reset-confirmation') return;
@@ -270,6 +287,10 @@ const handlers: Record<string, ViewActionHandler> = {
             state.pinnedNodes,
             action.payload.id,
         );
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
     },
     'search/view/toggle-show-all-nodes': (state, action) => {
         if (action.type !== 'search/view/toggle-show-all-nodes') return;
@@ -414,6 +435,7 @@ const updateDocumentState = (
     }
 
     if (activeNode !== state.document.activeNode) {
+        syncNodeFocusTarget(state);
         updateActiveBranch(state.document, context.columns, false);
     }
 };

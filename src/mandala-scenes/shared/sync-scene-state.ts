@@ -1,10 +1,13 @@
-import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
+import { Platform } from 'obsidian';
 import {
     posOfSection9x9,
     sectionAtCell9x9,
 } from 'src/mandala-display/logic/mandala-grid';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
-import type { MandalaSceneVariant } from 'src/mandala-display/logic/mandala-profile';
+import {
+    resolveMandalaProfile,
+    type MandalaSceneVariant,
+} from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
@@ -41,17 +44,7 @@ type SyncSceneStateArgs = {
 };
 
 export const createSceneStateSynchronizer = () => {
-    let cachedDayPlanFrontmatter: string | null = null;
-    let cachedDayPlan = parseDayPlanFrontmatter('');
-    let previousMode: MandalaMode | null = null;
-
-    const getCachedDayPlan = (frontmatter: string) => {
-        if (frontmatter !== cachedDayPlanFrontmatter) {
-            cachedDayPlanFrontmatter = frontmatter;
-            cachedDayPlan = parseDayPlanFrontmatter(frontmatter);
-        }
-        return cachedDayPlan;
-    };
+    let previousSceneKey: `${MandalaMode}:${MandalaSceneVariant}` | null = null;
 
     const syncModeCompatibility = ({
         view,
@@ -71,6 +64,16 @@ export const createSceneStateSynchronizer = () => {
         | 'sectionToNodeId'
         | 'documentState'
     >) => {
+        const profile = resolveMandalaProfile(documentState.file.frontmatter);
+        const canUseWeekVariant =
+            dayPlanEnabled &&
+            view.plugin.settings.getValue().general.weekPlanEnabled &&
+            profile?.kind === 'day-plan';
+        const canUseNx9Mode =
+            !Platform.isMobile &&
+            documentState.meta.isMandala &&
+            (!profile?.dayPlan || canUseWeekVariant);
+
         if (mode && !subgridTheme) {
             view.viewStore.dispatch({
                 type: 'view/mandala/subgrid/enter',
@@ -81,17 +84,12 @@ export const createSceneStateSynchronizer = () => {
         if (
             mode === 'nx9' &&
             variant === 'week-7x9' &&
-            (!dayPlanEnabled ||
-                !view.plugin.settings.getValue().general.weekPlanEnabled ||
-                !getCachedDayPlan(documentState.file.frontmatter))
+            !canUseWeekVariant
         ) {
             view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
         }
 
-        if (
-            mode === 'nx9' &&
-            !view.canUseNx9Mode(documentState.file.frontmatter)
-        ) {
+        if (mode === 'nx9' && !canUseNx9Mode) {
             view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
         }
 
@@ -112,9 +110,9 @@ export const createSceneStateSynchronizer = () => {
         view: MandalaView,
         mode: MandalaMode,
         variant: MandalaSceneVariant,
-        hasModeChanged: boolean,
+        hasSceneChanged: boolean,
     ) => {
-        if (!hasModeChanged) return;
+        if (!hasSceneChanged) return;
         if (mode !== '9x9' && view.mandalaActiveCell9x9) {
             setActiveCell9x9(view, null);
         }
@@ -288,12 +286,13 @@ export const createSceneStateSynchronizer = () => {
 
     return (args: SyncSceneStateArgs) => {
         syncModeCompatibility(args);
-        const hasModeChanged = previousMode !== args.mode;
+        const sceneKey = `${args.mode}:${args.variant}` as const;
+        const hasSceneChanged = previousSceneKey !== sceneKey;
         clearInactiveModeState(
             args.view,
             args.mode,
             args.variant,
-            hasModeChanged,
+            hasSceneChanged,
         );
 
         if (args.mode === '9x9') {
@@ -306,6 +305,6 @@ export const createSceneStateSynchronizer = () => {
             syncWeekState(args);
         }
 
-        previousMode = args.mode;
+        previousSceneKey = sceneKey;
     };
 };
