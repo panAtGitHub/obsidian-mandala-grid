@@ -36,8 +36,14 @@ describe('cell-preview-dialog', () => {
                         mandala: {
                             activeCell9x9: null,
                             activeCellNx9: null,
-                            activeCellWeek7x9: null,
-                            weekAnchorDate: null,
+                            sceneState: {
+                                nx9: {
+                                    weekPlan: {
+                                        activeCell: null,
+                                        anchorDate: null,
+                                    },
+                                },
+                            },
                         },
                     },
                 }),
@@ -67,6 +73,11 @@ describe('cell-preview-dialog', () => {
             },
             getCurrentMandalaLayoutId: () => 'builtin:left-to-right',
             getCurrentNx9RowsPerPage: () => 3,
+            mandalaWeekAnchorDate: null,
+            getMandalaSceneKey: () => ({
+                viewKind: '3x3',
+                variant: 'default',
+            }),
             plugin: {
                 settings: {
                     getValue: () => ({

@@ -12,7 +12,7 @@
     const documentState = derived(view.documentStore, (state) => state);
     const anchorDate = derived(
         view.viewStore,
-        (state) => state.ui.mandala.weekAnchorDate,
+        (state) => state.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
     );
 
     let weekContext = resolveWeekPlanContext({

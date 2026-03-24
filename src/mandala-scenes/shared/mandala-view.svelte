@@ -147,7 +147,7 @@
     const documentState = derived(view.documentStore, (state) => state);
     const weekAnchorDate = derived(
         view.viewStore,
-        (state) => state.ui.mandala.weekAnchorDate,
+        (state) => state.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
     );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {

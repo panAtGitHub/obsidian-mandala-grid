@@ -24,12 +24,19 @@ export const defaultViewState = (
         },
         mandala: {
             mode: mandalaMode,
+            focusTarget: null,
             showDetailSidebar,
             subgridTheme: '1',
             activeCell9x9: null,
             activeCellNx9: null,
-            activeCellWeek7x9: null,
-            weekAnchorDate: null,
+            sceneState: {
+                nx9: {
+                    weekPlan: {
+                        activeCell: null,
+                        anchorDate: null,
+                    },
+                },
+            },
             swap: {
                 active: false,
                 sourceNodeId: null,

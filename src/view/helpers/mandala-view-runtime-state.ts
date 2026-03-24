@@ -76,5 +76,4 @@ export const restoreCachedMandalaUiState = (
     );
     view.mandalaActiveCell9x9 = restored.activeCell9x9;
     view.mandalaActiveCellNx9 = restored.activeCellNx9;
-    view.mandalaActiveCellWeek7x9 = restored.activeCellWeek7x9;
 };

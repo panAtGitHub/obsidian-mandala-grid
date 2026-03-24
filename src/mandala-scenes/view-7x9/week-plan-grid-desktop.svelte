@@ -25,7 +25,7 @@
     );
     const activeCell = derived(
         view.viewStore,
-        (state) => state.ui.mandala.activeCellWeek7x9,
+        (state) => state.ui.mandala.sceneState.nx9.weekPlan.activeCell,
     );
     const editingState = derived(
         view.viewStore,

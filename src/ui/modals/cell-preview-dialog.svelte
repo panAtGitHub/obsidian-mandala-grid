@@ -57,7 +57,8 @@
                       $idToSection[$viewState.document.activeNode] ?? null,
                   activeCell9x9: $viewState.ui.mandala.activeCell9x9,
                   activeCellNx9: $viewState.ui.mandala.activeCellNx9,
-                  activeCellWeek7x9: $viewState.ui.mandala.activeCellWeek7x9,
+                  activeCellWeek7x9:
+                      $viewState.ui.mandala.sceneState.nx9.weekPlan.activeCell,
                   sectionIdMap:
                       view.documentStore.getValue().sections.section_id,
                   documentContent:
@@ -68,7 +69,8 @@
                       view.plugin.settings.getValue().view
                           .mandalaGridCustomLayouts ?? [],
                   frontmatter: view.documentStore.getValue().file.frontmatter,
-                  weekAnchorDate: $viewState.ui.mandala.weekAnchorDate,
+                  weekAnchorDate:
+                      $viewState.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
                   weekStart: view.plugin.settings.getValue().general.weekStart,
               })
             : null;

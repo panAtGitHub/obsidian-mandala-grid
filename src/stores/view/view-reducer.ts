@@ -1,4 +1,3 @@
-import { ViewState } from 'src/stores/view/view-state-type';
 import { ViewStoreAction } from 'src/stores/view/view-store-actions';
 import { setSearchQuery } from 'src/stores/view/reducers/search/set-search-query';
 import { setSearchResults } from 'src/stores/view/reducers/search/set-search-results';
@@ -19,6 +18,7 @@ import { resetPendingConfirmation } from 'src/stores/view/reducers/document/rese
 import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { Platform } from 'obsidian';
+import type { FocusTarget, ViewState } from 'src/stores/view/view-state-type';
 
 type ViewActionHandler = (
     state: ViewState,
@@ -26,10 +26,18 @@ type ViewActionHandler = (
     context: MandalaGridDocument,
 ) => void;
 
+const setFocusTarget = (state: ViewState, focusTarget: FocusTarget | null) => {
+    state.ui.mandala.focusTarget = focusTarget;
+};
+
 const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/mouse': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -37,6 +45,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/mouse-silent': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse-silent') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -44,6 +56,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/core-jump': (state, action, context) => {
         if (action.type !== 'view/set-active-node/core-jump') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -51,6 +67,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/9x9-nav': (state, action, context) => {
         if (action.type !== 'view/set-active-node/9x9-nav') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -58,6 +78,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/nx9-nav': (state, action, context) => {
         if (action.type !== 'view/set-active-node/nx9-nav') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -65,6 +89,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/focus-section': (state, action, context) => {
         if (action.type !== 'view/set-active-node/focus-section') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -72,6 +100,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/document': (state, action, context) => {
         if (action.type !== 'view/set-active-node/document') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -79,6 +111,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/search': (state, action, context) => {
         if (action.type !== 'view/set-active-node/search') return;
         updateActiveNode(state.document, action.payload.id, context.columns);
+        setFocusTarget(state, {
+            kind: 'node',
+            nodeId: action.payload.id,
+        });
         if (!state.document.selectedNodes.has(state.document.activeNode)) {
             resetSelectionState(state.document);
         }
@@ -284,21 +320,56 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/mandala/active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/active-cell/set') return;
         state.ui.mandala.activeCell9x9 = action.payload.cell;
+        setFocusTarget(
+            state,
+            action.payload.cell
+                ? {
+                      kind: 'cell',
+                      scene: '9x9',
+                      row: action.payload.cell.row,
+                      col: action.payload.cell.col,
+                  }
+                : null,
+        );
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/week-active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/week-active-cell/set') return;
-        state.ui.mandala.activeCellWeek7x9 = action.payload.cell;
+        state.ui.mandala.sceneState.nx9.weekPlan.activeCell = action.payload.cell;
+        setFocusTarget(
+            state,
+            action.payload.cell
+                ? {
+                      kind: 'cell',
+                      scene: 'week-7x9',
+                      row: action.payload.cell.row,
+                      col: action.payload.cell.col,
+                  }
+                : null,
+        );
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/nx9-active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/nx9-active-cell/set') return;
         state.ui.mandala.activeCellNx9 = action.payload.cell;
+        setFocusTarget(
+            state,
+            action.payload.cell
+                ? {
+                      kind: 'cell',
+                      scene: 'nx9',
+                      row: action.payload.cell.row,
+                      col: action.payload.cell.col,
+                      page: action.payload.cell.page,
+                  }
+                : null,
+        );
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/week-anchor-date/set': (state, action) => {
         if (action.type !== 'view/mandala/week-anchor-date/set') return;
-        state.ui.mandala.weekAnchorDate = action.payload.date;
+        state.ui.mandala.sceneState.nx9.weekPlan.anchorDate =
+            action.payload.date;
         state.ui.mandala = { ...state.ui.mandala };
     },
     'view/mandala/swap/start': (state, action) => {

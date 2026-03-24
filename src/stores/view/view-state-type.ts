@@ -29,6 +29,18 @@ export type DocumentViewState = {
 export type PinnedNodes = {
     activeNode: string;
 };
+export type FocusTarget =
+    | {
+          kind: 'node';
+          nodeId: string;
+      }
+    | {
+          kind: 'cell';
+          scene: '9x9' | 'nx9' | 'week-7x9';
+          row: number;
+          col: number;
+          page?: number;
+      };
 export type ViewState = {
     search: {
         query: string;
@@ -49,12 +61,19 @@ export type ViewState = {
         };
         mandala: {
             mode: MandalaMode;
+            focusTarget: FocusTarget | null;
             showDetailSidebar: boolean;
             subgridTheme: string | null;
             activeCell9x9: { row: number; col: number } | null;
             activeCellNx9: Nx9ActiveCell | null;
-            activeCellWeek7x9: { row: number; col: number } | null;
-            weekAnchorDate: string | null;
+            sceneState: {
+                nx9: {
+                    weekPlan: {
+                        activeCell: { row: number; col: number } | null;
+                        anchorDate: string | null;
+                    };
+                };
+            };
             swap: {
                 active: boolean;
                 sourceNodeId: string | null;

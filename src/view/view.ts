@@ -52,10 +52,10 @@ import {
     resolveDayPlanTodayNavigation,
     MandalaProfileActivation,
     MandalaSceneKey,
+    resolveMandalaProfile,
     resolveMandalaProfileActivation,
     resolveMandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
-import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
 import { isNonEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
@@ -116,7 +116,6 @@ export class MandalaView extends TextFileView {
     mandalaActiveCell9x9: { row: number; col: number } | null = null;
     mandalaActiveCellNx9: { row: number; col: number; page?: number } | null =
         null;
-    mandalaActiveCellWeek7x9: { row: number; col: number } | null = null;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
     private hasPendingExplicitJump = false;
@@ -199,6 +198,23 @@ export class MandalaView extends TextFileView {
         return this.viewStore.getValue().ui.mandala.mode;
     }
 
+    get mandalaActiveCellWeek7x9() {
+        return this.viewStore.getValue().ui.mandala.sceneState.nx9.weekPlan
+            .activeCell;
+    }
+
+    set mandalaActiveCellWeek7x9(cell: { row: number; col: number } | null) {
+        this.viewStore.dispatch({
+            type: 'view/mandala/week-active-cell/set',
+            payload: { cell },
+        });
+    }
+
+    get mandalaWeekAnchorDate() {
+        return this.viewStore.getValue().ui.mandala.sceneState.nx9.weekPlan
+            .anchorDate;
+    }
+
     getCurrentFilePath() {
         return this.activeFilePath ?? this.file?.path ?? null;
     }
@@ -260,9 +276,10 @@ export class MandalaView extends TextFileView {
     canUseWeekPlanMode(
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ) {
+        const profile = resolveMandalaProfile(frontmatter);
         return (
             this.plugin.settings.getValue().general.weekPlanEnabled &&
-            Boolean(parseDayPlanFrontmatter(frontmatter))
+            profile?.kind === 'day-plan'
         );
     }
 
@@ -272,7 +289,8 @@ export class MandalaView extends TextFileView {
         return (
             !Platform.isMobile &&
             this.documentStore.getValue().meta.isMandala &&
-            (!parseDayPlanFrontmatter(frontmatter) || this.canUseWeekPlanMode(frontmatter))
+            (!resolveMandalaProfile(frontmatter)?.dayPlan ||
+                this.canUseWeekPlanMode(frontmatter))
         );
     }
 

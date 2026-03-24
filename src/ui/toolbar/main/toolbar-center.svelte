@@ -36,7 +36,7 @@
     );
     const weekAnchorDate = derived(
         view.viewStore,
-        (state) => state.ui.mandala.weekAnchorDate,
+        (state) => state.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
     );
     const mandalaUiState = derived(view.viewStore, (state) => state.ui.mandala);
     let sceneKey: MandalaSceneKey = {

@@ -136,8 +136,7 @@ export const editCommands = () => {
                     const weekContext = resolveWeekPlanContext({
                         frontmatter:
                             view.documentStore.getValue().file.frontmatter,
-                        anchorDate:
-                            view.viewStore.getValue().ui.mandala.weekAnchorDate,
+                        anchorDate: view.mandalaWeekAnchorDate,
                         weekStart:
                             view.plugin.settings.getValue().general.weekStart,
                     });

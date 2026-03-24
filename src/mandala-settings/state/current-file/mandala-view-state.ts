@@ -24,8 +24,8 @@ export const captureMandalaUiState = (
     subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
     activeCell9x9: viewState.ui.mandala.activeCell9x9,
     activeCellNx9: viewState.ui.mandala.activeCellNx9,
-    activeCellWeek7x9: viewState.ui.mandala.activeCellWeek7x9,
-    weekAnchorDate: viewState.ui.mandala.weekAnchorDate,
+    activeCellWeek7x9: viewState.ui.mandala.sceneState.nx9.weekPlan.activeCell,
+    weekAnchorDate: viewState.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
 });
 
 export const getCurrentMandalaLayoutId = (
