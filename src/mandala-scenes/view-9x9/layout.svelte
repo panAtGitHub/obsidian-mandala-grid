@@ -21,9 +21,13 @@
     import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
     import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
     import {
+        buildMandalaTopologyIndex,
+        type MandalaTopologyIndex,
+    } from 'src/mandala-display/logic/mandala-topology';
+    import {
         build9x9CellViewModels,
         decorate9x9CellViewModels,
-        getBaseTheme,
+        resolve9x9BaseTheme,
         toActiveSummaryCell,
     } from 'src/mandala-scenes/view-9x9/assemble-cell-view-model';
     import { getMandalaActiveCell9x9 } from 'src/mandala-scenes/shared/scene-runtime';
@@ -51,12 +55,20 @@
         }),
         (a, b) => a.revision === b.revision,
     );
+    const topologySnapshot = derivedEq(
+        view.documentStore,
+        (state) => ({
+            revision: state.meta.mandalaV2.revision,
+            topology: buildMandalaTopologyIndex(state.sections.section_id),
+        }),
+        (a, b) => a.revision === b.revision,
+    );
     const gridDocument = derivedEq(
         view.documentStore,
         (state) => ({
             revision: state.meta.mandalaV2.revision,
             contentRevision: state.meta.mandalaV2.contentRevision,
-            documentState: state,
+            contentByNodeId: state.document.content,
         }),
         (a, b) =>
             a.revision === b.revision &&
@@ -106,7 +118,7 @@
 
     $: {
         const section = $idToSection.idToSection[$activeNodeId];
-        const nextCore = Number(getBaseTheme(section));
+        const nextCore = Number(resolve9x9BaseTheme(section));
         currentCoreNumber = Number.isFinite(nextCore) ? nextCore : 1;
     }
 
@@ -121,7 +133,8 @@
     };
 
     const resolveBaseCells = ({
-        documentState,
+        topology,
+        contentByNodeId,
         revision,
         contentRevision,
         selectedLayoutId,
@@ -129,7 +142,8 @@
         customLayoutsKey,
         baseTheme,
     }: {
-        documentState: ReturnType<typeof view.documentStore.getValue>;
+        topology: MandalaTopologyIndex;
+        contentByNodeId: Record<string, { content?: string }>;
         revision: number;
         contentRevision: number;
         selectedLayoutId: string;
@@ -150,7 +164,8 @@
 
         const startedAt = performance.now();
         cachedBaseCells = build9x9CellViewModels({
-            documentState,
+            topology,
+            contentByNodeId,
             selectedLayoutId,
             customLayouts,
             baseTheme,
@@ -218,9 +233,10 @@
 
     $: {
         const section = $idToSection.idToSection[$activeNodeId];
-        const baseTheme = getBaseTheme(section);
+        const baseTheme = resolve9x9BaseTheme(section);
         baseCells = resolveBaseCells({
-            documentState: $gridDocument.documentState,
+            topology: $topologySnapshot.topology,
+            contentByNodeId: $gridDocument.contentByNodeId,
             revision: $gridDocument.revision,
             contentRevision: $gridDocument.contentRevision,
             selectedLayoutId: $layoutSnapshot.selectedLayoutId,

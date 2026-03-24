@@ -4,6 +4,8 @@ import type {
     MandalaCardViewModel,
 } from 'src/mandala-cell/model/card-view-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
+import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
+import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
@@ -18,7 +20,7 @@ export type Assemble3x3CellViewModelsArgs = {
     theme: string;
     selectedLayoutId: string | null;
     customLayouts: MandalaCustomLayout[];
-    sectionToNodeId: Record<string, string>;
+    topology: MandalaTopologyIndex;
     activeNodeId: string | null;
     editingState: ThreeByThreeEditingState;
     selectedNodes: Set<string>;
@@ -83,7 +85,7 @@ export const assemble3x3CellViewModels = ({
     theme,
     selectedLayoutId,
     customLayouts,
-    sectionToNodeId,
+    topology,
     activeNodeId,
     editingState,
     selectedNodes,
@@ -104,7 +106,7 @@ export const assemble3x3CellViewModels = ({
 
     return layout.childSlots.map((slot, index) => {
         const section = slot ? `${theme}.${slot}` : theme;
-        const nodeId = sectionToNodeId[section] ?? null;
+        const nodeId = getSectionNodeId(topology, section);
         const sectionBackground = getSectionBackground({
             section,
             index,

@@ -2,6 +2,11 @@ import {
     getReadableTextTone,
     type ThemeTone,
 } from 'src/mandala-interaction/helpers/contrast-text-tone';
+import {
+    getSectionCore,
+    getSectionNodeId,
+    type MandalaTopologyIndex,
+} from 'src/mandala-display/logic/mandala-topology';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type {
     SimpleSummaryCellModel,
@@ -11,15 +16,8 @@ import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 
 type Build9x9CellsOptions = {
-    documentState: {
-        sections: {
-            section_id: Record<string, string>;
-            id_section: Record<string, string>;
-        };
-        document: {
-            content: Record<string, { content?: string }>;
-        };
-    };
+    topology: MandalaTopologyIndex;
+    contentByNodeId: Record<string, { content?: string }>;
     selectedLayoutId: string;
     customLayouts: MandalaCustomLayout[];
     baseTheme: string;
@@ -64,11 +62,9 @@ const buildCellMarkdown = (rawBody: string) =>
 const isMarkdownHeading = (line: string) => HEADING_RE.test(line);
 const stripHeadingPrefix = (line: string) => line.replace(HEADING_RE, '');
 
-export const getBaseTheme = (section: string | undefined) =>
-    section ? section.split('.')[0] : '1';
-
 export const build9x9CellViewModels = ({
-    documentState,
+    topology,
+    contentByNodeId,
     selectedLayoutId,
     customLayouts,
     baseTheme,
@@ -106,10 +102,10 @@ export const build9x9CellViewModels = ({
             let nodeId = '';
 
             if (section) {
-                const id = documentState.sections.section_id[section];
-                if (id) {
-                    nodeId = id;
-                    const nodeContent = documentState.document.content[id]?.content;
+                const currentNodeId = getSectionNodeId(topology, section);
+                if (currentNodeId) {
+                    nodeId = currentNodeId;
+                    const nodeContent = contentByNodeId[currentNodeId]?.content;
                     if (nodeContent) {
                         const lines = nodeContent.split('\n');
                         const firstLine = lines[0]?.trim() ?? '';
@@ -195,3 +191,6 @@ export const toActiveSummaryCell = (
     activeCell: { row: number; col: number } | null,
 ): SimpleSummaryActiveCell =>
     activeCell ? { row: activeCell.row, col: activeCell.col } : null;
+
+export const resolve9x9BaseTheme = (section: string | null | undefined) =>
+    getSectionCore(section) ?? '1';

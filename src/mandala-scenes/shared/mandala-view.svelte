@@ -42,6 +42,7 @@
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { lang } from 'src/lang/lang';
+    import { buildMandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
     import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
     import {
         buildThreeByThreeCells,
@@ -124,6 +125,10 @@
     const sectionToNodeId = derived(
         view.documentStore,
         (state) => state.sections.section_id,
+    );
+    const topology = derived(
+        view.documentStore,
+        (state) => buildMandalaTopologyIndex(state.sections.section_id),
     );
     const idToSection = derived(
         view.documentStore,
@@ -279,7 +284,7 @@
                   theme: threeByThreeTheme,
                   selectedLayoutId: $selectedLayoutId,
                   customLayouts: $customLayouts,
-                  sectionToNodeId: $sectionToNodeId,
+                  topology: $topology,
                   activeNodeId: $activeNodeId,
                   editingState: $editingState,
                   selectedNodes: $selectedNodes,

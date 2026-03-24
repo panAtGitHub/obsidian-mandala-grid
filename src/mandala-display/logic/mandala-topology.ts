@@ -79,6 +79,11 @@ export const getTopologyEntry = (
     section: string | null | undefined,
 ) => (section ? topology.entries[section] ?? null : null);
 
+export const getSectionNodeId = (
+    topology: MandalaTopologyIndex,
+    section: string | null | undefined,
+) => getTopologyEntry(topology, section)?.nodeId ?? null;
+
 export const getSectionCore = (section: string | null | undefined) => {
     if (!section) return null;
     const parts = parseSectionParts(section);

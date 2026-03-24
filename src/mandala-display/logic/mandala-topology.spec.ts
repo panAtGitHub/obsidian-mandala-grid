@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     buildMandalaTopologyIndex,
     getSectionCore,
+    getSectionNodeId,
     getTopologyEntry,
 } from 'src/mandala-display/logic/mandala-topology';
 
@@ -35,6 +36,7 @@ describe('mandala-topology', () => {
             coreSection: '3',
             slot: 4,
         });
+        expect(getSectionNodeId(topology, '3.4')).toBe('node-34');
         expect(topology.childrenBySection['3']).toEqual(['3.4']);
         expect(topology.childrenBySection['3.4']).toEqual(['3.4.5']);
     });

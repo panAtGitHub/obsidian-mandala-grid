@@ -1,5 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/mandala-document/state/document-store-actions';
+import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
 import {
     posOfSection9x9,
     sectionAtCell9x9,
@@ -29,7 +30,7 @@ export const tryMandala9x9Navigation = (
     const selectedLayoutId = view.getCurrentMandalaLayoutId();
     const customLayouts =
         view.plugin.settings.getValue().view.mandalaGridCustomLayouts ?? [];
-    const baseTheme = activeSection ? activeSection.split('.')[0] : '1';
+    const baseTheme = getSectionCore(activeSection) ?? '1';
     const cell = view.mandalaActiveCell9x9;
     const current =
         cell ??
