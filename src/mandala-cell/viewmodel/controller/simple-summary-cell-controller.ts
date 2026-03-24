@@ -22,7 +22,7 @@ type SimpleSummaryClickOptions = {
 type SimpleSummaryDoubleClickOptions = {
     cellRuntime: CellRuntimeContext;
     swapActive: boolean;
-    isMobile: boolean;
+    allowDoubleClickEdit: boolean;
     cell: SimpleSummaryCellModel;
     activateCell: ActivateSimpleSummaryCell;
 };
@@ -62,7 +62,7 @@ export const pointerStartSimpleSummaryCell = ({
 export const doubleClickSimpleSummaryCell = ({
     cellRuntime,
     swapActive,
-    isMobile,
+    allowDoubleClickEdit,
     cell,
     activateCell,
 }: SimpleSummaryDoubleClickOptions) => {
@@ -75,7 +75,7 @@ export const doubleClickSimpleSummaryCell = ({
         return;
     }
 
-    if (isMobile) {
+    if (!allowDoubleClickEdit) {
         return;
     }
 

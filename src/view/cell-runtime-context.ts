@@ -11,7 +11,6 @@ import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor
 import { ShowHiddenCardInfoStore } from 'src/mandala-settings/state/derived/view-settings-store';
 import { ShowMandalaDetailSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
 import { derived } from 'src/shared/store/derived';
-import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
 import { localFontStore } from 'src/stores/local-font-store';
 import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helpers/mandala-swap';
 import { createExpandableTextareaAction } from 'src/view/actions/inline-editor/expandable-textarea-action';
@@ -57,10 +56,8 @@ export type CellRuntimeContext = {
     localFontSize: typeof localFontStore;
     contentForNode: (nodeId: string) => Readable<string>;
     activateMainSplitNode: (nodeId: string, event: MouseEvent) => void;
-    activatePinnedSidebarNode: (nodeId: string) => void;
     activateMandalaNode: (nodeId: string, silent?: boolean) => void;
     enableMainSplitEdit: (nodeId: string) => void;
-    enablePinnedSidebarEdit: (nodeId: string) => void;
     enableDetailSidebarEdit: (nodeId: string) => void;
     openSidebarAndEditNode: (nodeId: string) => void;
     executeSwap: (sourceNodeId: string, targetNodeId: string) => void;
@@ -121,16 +118,6 @@ export const createCellRuntimeContext = (
         });
     };
 
-    const enablePinnedSidebarEdit = (nodeId: string) => {
-        view.viewStore.dispatch({
-            type: 'view/editor/enable-sidebar-editor',
-            payload: { id: nodeId },
-            context: {
-                activeSidebarTab: 'pinned-cards',
-            },
-        });
-    };
-
     const createReadonlySourcePreviewView = async (
         hostEl: HTMLElement,
     ): Promise<InlineMarkdownView | null> => {
@@ -181,12 +168,9 @@ export const createCellRuntimeContext = (
         localFontSize: localFontStore,
         contentForNode: (nodeId: string) => contentStore(view, nodeId),
         activateMainSplitNode,
-        activatePinnedSidebarNode: (nodeId: string) =>
-            setActiveSidebarNode(view, nodeId),
         activateMandalaNode: (nodeId: string, silent = false) =>
             setActiveMandalaNode(view, nodeId, silent),
         enableMainSplitEdit,
-        enablePinnedSidebarEdit,
         enableDetailSidebarEdit: (nodeId: string) =>
             enableSidebarEditorForNode(view, nodeId),
         openSidebarAndEditNode: (nodeId: string) =>

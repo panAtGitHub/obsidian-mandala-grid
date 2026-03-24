@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { Platform } from 'obsidian';
     import {
         clickSimpleSummaryCell,
         doubleClickSimpleSummaryCell,
@@ -23,6 +22,7 @@
     export let showTitleOnly = false;
     export let swapState: MandalaSwapInteractionState;
     export let activateCell: (cell: SimpleSummaryCellModel) => void;
+    export let allowDoubleClickEdit = true;
 
     const cellRuntime = getCellRuntime();
 
@@ -95,7 +95,7 @@
         doubleClickSimpleSummaryCell({
             cellRuntime,
             swapActive: swapState.active,
-            isMobile: Platform.isMobile,
+            allowDoubleClickEdit,
             cell,
             activateCell,
         })}

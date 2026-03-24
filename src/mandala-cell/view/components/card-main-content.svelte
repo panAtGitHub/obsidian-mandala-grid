@@ -6,7 +6,6 @@
 
     export let nodeId: string;
     export let style: NodeStyle | undefined;
-    export let isInSidebar = false;
     export let showInlineEditor = false;
     export let showContent = true;
     export let hideBuiltInHiddenInfo = false;
@@ -15,6 +14,13 @@
     export let scrollbarMode: CellScrollbarMode = 'selected-hover';
     export let fillContent = false;
     export let density: 'normal' | 'compact' = 'normal';
+    export let isMobilePlatform = false;
+    export let idleScrollbarEnabled = true;
+    export let activateNode: (event: MouseEvent) => void = () => {};
+    export let enableEditMode: () => void = () => {};
+    export let onMobilePreviewDoubleTapEdit:
+        | ((nodeId: string) => void)
+        | null = null;
 </script>
 
 {#if showInlineEditor}
@@ -28,10 +34,14 @@
 {:else if showContent}
     <Content
         {nodeId}
-        {isInSidebar}
         {hideBuiltInHiddenInfo}
         {scrollbarMode}
         {fillContent}
         {density}
+        {isMobilePlatform}
+        {idleScrollbarEnabled}
+        {activateNode}
+        {enableEditMode}
+        {onMobilePreviewDoubleTapEdit}
     />
 {/if}

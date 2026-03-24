@@ -1,11 +1,10 @@
 <script lang="ts">
     import clx from 'classnames';
+    import { getCellRuntime } from 'src/view/context';
     import CardMainContent from 'src/mandala-cell/view/components/card-main-content.svelte';
     import CardMeta from 'src/mandala-cell/view/components/card-meta.svelte';
     import CardStyle from 'src/mandala-cell/view/style/card-style.svelte';
     import { buildMandalaCardRenderModel } from 'src/mandala-cell/model/build-mandala-card-render-model';
-    import { getCellRuntime } from 'src/view/context';
-    import { Platform } from 'obsidian';
     import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
     import type {
         MandalaCardUiState,
@@ -25,9 +24,6 @@
         shouldBlockSwapDoubleClick,
     } from 'src/mandala-cell/viewmodel/controller/swap-controller';
 
-    // 缓存平台状态，避免每次渲染都读取
-    const isMobile = Platform.isMobile;
-
     export let viewModel: MandalaCardViewModel;
     export let uiState: MandalaCardUiState;
     export let themeSnapshot: MandalaThemeSnapshot | undefined = undefined;
@@ -35,6 +31,7 @@
         null;
 
     const cellRuntime = getCellRuntime();
+    const isMobile = cellRuntime.isMobilePlatform;
     const showDetailSidebar = cellRuntime.showDetailSidebar;
     const swapState = cellRuntime.swapState;
     const previewDialog = cellRuntime.previewDialog;
@@ -114,6 +111,14 @@
             event: e,
         });
     };
+
+    const activateMainCardNode = (event: MouseEvent) => {
+        cellRuntime.activateMainSplitNode(nodeId, event);
+    };
+
+    const enableMainCardEdit = () => {
+        cellRuntime.enableMainSplitEdit(nodeId);
+    };
 </script>
 
 <div
@@ -183,7 +188,6 @@
         <CardMainContent
             {nodeId}
             style={nodeStyle}
-            isInSidebar={false}
             showInlineEditor={renderModel.showInlineEditor}
             showContent={renderModel.showContent}
             hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
@@ -192,6 +196,11 @@
             {scrollbarMode}
             {fillContent}
             density={contentDensity}
+            isMobilePlatform={isMobile}
+            idleScrollbarEnabled={true}
+            activateNode={activateMainCardNode}
+            enableEditMode={enableMainCardEdit}
+            onMobilePreviewDoubleTapEdit={null}
         />
 
         <CardMeta

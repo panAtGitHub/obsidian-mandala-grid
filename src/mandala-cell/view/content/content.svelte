@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { Platform } from 'obsidian';
-    import { createEventDispatcher } from 'svelte';
     import { get } from 'svelte/store';
     import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
     import CellScrollbar from 'src/mandala-cell/view/style/cell-scrollbar.svelte';
@@ -13,41 +11,27 @@
     import { getCursorPosition } from 'src/mandala-cell/viewmodel/content-event-handlers/get-cursor-position';
 
     export let nodeId: string;
-    export let isInSidebar: boolean;
-    export let mobileSidebarRenderedEditEnabled = false;
     export let hideBuiltInHiddenInfo = false;
     export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
     export let fillContent = false;
     export let density: 'normal' | 'compact' = 'normal';
+    export let isMobilePlatform = false;
+    export let idleScrollbarEnabled = true;
+    export let activateNode: (event: MouseEvent) => void = () => {};
+    export let enableEditMode: () => void = () => {};
+    export let onMobilePreviewDoubleTapEdit:
+        | ((nodeId: string) => void)
+        | null = null;
 
     const cellRuntime = getCellRuntime();
     const showHiddenCardInfo = cellRuntime.showHiddenCardInfo;
     const markdownPreview = cellRuntime.markdownPreviewAction;
-    const dispatch = createEventDispatcher<{
-        mobilePreviewDoubleTapEdit: { nodeId: string };
-    }>();
     const doubleTapDetector = createMobileDoubleTapDetector();
-
-    const setActiveNode = (e: MouseEvent) => {
-        if (isInSidebar) {
-            cellRuntime.activatePinnedSidebarNode(nodeId);
-        } else {
-            cellRuntime.activateMainSplitNode(nodeId, e);
-        }
-    };
-
-    const enableEditMode = () => {
-        if (isInSidebar) {
-            cellRuntime.enablePinnedSidebarEdit(nodeId);
-        } else {
-            cellRuntime.enableMainSplitEdit(nodeId);
-        }
-    };
 
     const enableEditModeAtCursor = (e: MouseEvent) => {
         const content = get(cellRuntime.contentForNode(nodeId));
         const cursor = getCursorPosition(content, e);
-        setActiveNode(e);
+        activateNode(e);
         if (cursor) {
             cellRuntime.setInlineCursor(nodeId, cursor);
         }
@@ -60,8 +44,8 @@
         );
 
     const handleMobileTouchEnd = (e: TouchEvent) => {
-        if (!Platform.isMobile) return;
-        if (!mobileSidebarRenderedEditEnabled) {
+        if (!isMobilePlatform) return;
+        if (!onMobilePreviewDoubleTapEdit) {
             doubleTapDetector.reset();
             return;
         }
@@ -87,14 +71,14 @@
 
         e.preventDefault();
         e.stopPropagation();
-        dispatch('mobilePreviewDoubleTapEdit', { nodeId });
+        onMobilePreviewDoubleTapEdit(nodeId);
     };
 
     const handleClick = (e: MouseEvent) => {
         if (cellRuntime.isGrabbing()) return;
 
         // 移动端：仅激活节点，禁止任何编辑相关的副作用
-        if (Platform.isMobile) {
+        if (isMobilePlatform) {
             const target = e.target as HTMLElement | null;
             const anchor = target?.closest('a');
             if (anchor) {
@@ -102,18 +86,18 @@
                 return;
             }
 
-            if (mobileSidebarRenderedEditEnabled) {
+            if (onMobilePreviewDoubleTapEdit) {
                 e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
                 return;
             }
 
-            setActiveNode(e);
+            activateNode(e);
             e.stopPropagation(); // 防止冒泡到 MandalaCard 再次触发选择逻辑
             return;
         }
 
         cellRuntime.handleLinks(e);
-        setActiveNode(e);
+        activateNode(e);
 
         // 内容层已完成点击处理，避免继续冒泡到外层卡片重复触发选择逻辑
         e.stopPropagation();
@@ -123,7 +107,7 @@
         if (cellRuntime.isGrabbing()) return;
 
         // 移动端：双击不进入编辑，由父组件 MandalaCard 处理导航（3x3）/无动作（9x9）
-        if (Platform.isMobile) {
+        if (isMobilePlatform) {
             return;
         }
 
@@ -145,7 +129,7 @@
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
     use:markdownPreview={nodeId}
-    use:hideIdleScrollbar={{ mode: scrollbarMode, enabled: !isInSidebar }}
+    use:hideIdleScrollbar={{ mode: scrollbarMode, enabled: idleScrollbarEnabled }}
 ></div>
 
 <style>

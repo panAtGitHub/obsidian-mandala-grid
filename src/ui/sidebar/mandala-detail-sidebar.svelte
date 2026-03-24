@@ -23,6 +23,7 @@
     import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
+    import { getCellRuntime } from 'src/view/context';
     import DetailSidebarFloatingActions from './detail-sidebar-floating-actions.svelte';
     import { createDetailSidebarResizeState } from './detail-sidebar-resize-state';
 
@@ -32,6 +33,7 @@
     const layout = createLayoutStore();
 
     const view = getView();
+    const cellRuntime = getCellRuntime();
     const resizeState = createDetailSidebarResizeState({
         isMobile: Platform.isMobile,
         minSize: MIN_SIZE,
@@ -149,20 +151,27 @@
             isPortrait: $layout.isPortrait,
             contentEl: view.contentEl,
         });
-    const handleMobilePreviewDoubleTapEdit = (
-        event: CustomEvent<{ nodeId: string }>,
-    ) => {
+    const handleMobilePreviewDoubleTapEdit = (nodeId: string) => {
         if (!Platform.isMobile) return;
         if (
             $detailSidebarPreviewMode !== 'rendered' &&
             $detailSidebarPreviewMode !== 'source'
         )
             return;
-        const nodeId = event.detail?.nodeId;
         if (!nodeId) return;
         openNodeEditor(view, nodeId, {
             desktopIsInSidebar: true,
         });
+    };
+
+    const activateSidebarPreviewNode = (event: MouseEvent) => {
+        if (!$activeNodeId) return;
+        cellRuntime.activateMainSplitNode($activeNodeId, event);
+    };
+
+    const enableSidebarPreviewEdit = () => {
+        if (!$activeNodeId) return;
+        cellRuntime.enableMainSplitEdit($activeNodeId);
     };
 
     const enterSubgridFromFloatingButton = (event: MouseEvent) => {
@@ -223,15 +232,20 @@
                         {:else if $detailSidebarPreviewMode === 'source'}
                             <SourcePreview
                                 nodeId={$activeNodeId}
-                                on:mobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
+                                isMobilePlatform={cellRuntime.isMobilePlatform}
+                                onMobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
                             />
                         {:else}
                             <Content
                                 nodeId={$activeNodeId}
-                                isInSidebar={false}
-                                mobileSidebarRenderedEditEnabled={Platform.isMobile &&
-                                    $detailSidebarPreviewMode === 'rendered'}
-                                on:mobilePreviewDoubleTapEdit={handleMobilePreviewDoubleTapEdit}
+                                isMobilePlatform={cellRuntime.isMobilePlatform}
+                                idleScrollbarEnabled={true}
+                                activateNode={activateSidebarPreviewNode}
+                                enableEditMode={enableSidebarPreviewEdit}
+                                onMobilePreviewDoubleTapEdit={cellRuntime.isMobilePlatform &&
+                                $detailSidebarPreviewMode === 'rendered'
+                                    ? handleMobilePreviewDoubleTapEdit
+                                    : null}
                             />
                         {/if}
                     {/key}

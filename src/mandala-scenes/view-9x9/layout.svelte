@@ -319,6 +319,7 @@
                 showTitleOnly={$showTitleOnly}
                 swapState={$swapState}
                 activateCell={activateSummaryCell}
+                allowDoubleClickEdit={!Platform.isMobile}
             />
         {/each}
     </div>

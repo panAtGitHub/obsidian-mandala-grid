@@ -1,16 +1,16 @@
 <script lang="ts">
-    import { Platform } from 'obsidian';
     import { getCellRuntime } from 'src/view/context';
-    import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
     import type { InlineMarkdownView } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
     export let nodeId: string;
+    export let isMobilePlatform = false;
+    export let onMobilePreviewDoubleTapEdit:
+        | ((nodeId: string) => void)
+        | null = null;
 
     const cellRuntime = getCellRuntime();
-    const dispatch = createEventDispatcher<{
-        mobilePreviewDoubleTapEdit: { nodeId: string };
-    }>();
     const EDITABLE_NAV_KEYS = new Set([
         'ArrowUp',
         'ArrowDown',
@@ -90,7 +90,7 @@
     };
 
     const blockMobilePreviewInteraction = (event: Event) => {
-        if (!Platform.isMobile) return;
+        if (!isMobilePlatform) return;
         event.preventDefault();
         event.stopPropagation();
     };
@@ -101,7 +101,11 @@
         );
 
     const handleMobilePreviewTouchEnd = (event: TouchEvent) => {
-        if (!Platform.isMobile) return;
+        if (!isMobilePlatform) return;
+        if (!onMobilePreviewDoubleTapEdit) {
+            doubleTapDetector.reset();
+            return;
+        }
         const target = event.target as HTMLElement | null;
         if (isInteractiveTarget(target)) {
             doubleTapDetector.reset();
@@ -122,11 +126,11 @@
 
         event.preventDefault();
         event.stopPropagation();
-        dispatch('mobilePreviewDoubleTapEdit', { nodeId });
+        onMobilePreviewDoubleTapEdit(nodeId);
     };
 
     const blurMobileFocus = (event: FocusEvent) => {
-        if (!Platform.isMobile) return;
+        if (!isMobilePlatform) return;
         const target = event.target;
         if (target instanceof HTMLElement) {
             target.blur();
