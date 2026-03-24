@@ -13,6 +13,7 @@ import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { MandalaMode } from 'src/mandala-settings/state/settings-type';
 import type { Nx9ActiveCell } from 'src/mandala-scenes/view-nx9/context';
+import type { FocusTarget } from 'src/stores/view/view-state-type';
 
 export type MandalaActions =
     | {
@@ -45,6 +46,10 @@ export type MandalaActions =
     | {
           type: 'view/mandala/week-anchor-date/set';
           payload: { date: string | null };
+      }
+    | {
+          type: 'view/mandala/focus-target/set';
+          payload: { focusTarget: FocusTarget | null };
       }
     | {
           type: 'view/mandala/swap/start';

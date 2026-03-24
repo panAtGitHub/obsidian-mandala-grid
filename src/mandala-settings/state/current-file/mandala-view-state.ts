@@ -8,19 +8,14 @@ import {
     DEFAULT_NX9_ROWS_PER_PAGE,
 } from 'src/mandala-settings/state/settings-type';
 import {
-    getMandalaActiveCell9x9,
-    getMandalaActiveCellNx9,
-    getMandalaActiveCellWeek7x9,
     getMandalaWeekAnchorDate,
 } from 'src/mandala-scenes/shared/scene-runtime';
-import type { ViewState } from 'src/stores/view/view-state-type';
+import type { FocusTarget, ViewState } from 'src/stores/view/view-state-type';
 import type { MandalaView } from 'src/view/view';
 
 export type MandalaUiStateSnapshot = {
     subgridTheme: string;
-    activeCell9x9: { row: number; col: number } | null;
-    activeCellNx9: { row: number; col: number; page?: number } | null;
-    activeCellWeek7x9: { row: number; col: number } | null;
+    focusTarget: FocusTarget | null;
     weekAnchorDate: string | null;
 };
 
@@ -28,9 +23,7 @@ export const captureMandalaUiState = (
     viewState: ViewState,
 ): MandalaUiStateSnapshot => ({
     subgridTheme: viewState.ui.mandala.subgridTheme ?? '1',
-    activeCell9x9: getMandalaActiveCell9x9(viewState),
-    activeCellNx9: getMandalaActiveCellNx9(viewState),
-    activeCellWeek7x9: getMandalaActiveCellWeek7x9(viewState),
+    focusTarget: viewState.ui.mandala.focusTarget,
     weekAnchorDate: getMandalaWeekAnchorDate(viewState),
 });
 
@@ -156,10 +149,35 @@ export const restoreMandalaUiState = (
     fallbackSubgridTheme = '1',
 ) => {
     const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
-    const activeCell9x9 = nextState?.activeCell9x9 ?? null;
-    const activeCellNx9 = nextState?.activeCellNx9 ?? null;
-    const activeCellWeek7x9 = nextState?.activeCellWeek7x9 ?? null;
+    const focusTarget = nextState?.focusTarget ?? null;
     const weekAnchorDate = nextState?.weekAnchorDate ?? null;
+
+    const activeCell9x9 =
+        focusTarget?.kind === 'cell' && focusTarget.viewKind === '9x9'
+            ? {
+                  row: focusTarget.row,
+                  col: focusTarget.col,
+              }
+            : null;
+    const activeCellNx9 =
+        focusTarget?.kind === 'cell' &&
+        focusTarget.viewKind === 'nx9' &&
+        focusTarget.variant !== 'week-7x9'
+            ? {
+                  row: focusTarget.row,
+                  col: focusTarget.col,
+                  page: focusTarget.page,
+              }
+            : null;
+    const activeCellWeek7x9 =
+        focusTarget?.kind === 'cell' &&
+        focusTarget.viewKind === 'nx9' &&
+        focusTarget.variant === 'week-7x9'
+            ? {
+                  row: focusTarget.row,
+                  col: focusTarget.col,
+              }
+            : null;
 
     view.viewStore.dispatch({
         type: 'view/mandala/subgrid/enter',
@@ -181,13 +199,17 @@ export const restoreMandalaUiState = (
         type: 'view/mandala/week-anchor-date/set',
         payload: { date: weekAnchorDate },
     });
+    if (!focusTarget || focusTarget.kind === 'node') {
+        view.viewStore.dispatch({
+            type: 'view/mandala/focus-target/set',
+            payload: { focusTarget },
+        });
+    }
     view.viewStore.dispatch({
         type: 'view/mandala/swap/cancel',
     });
 
     return {
-        activeCell9x9,
-        activeCellNx9,
-        activeCellWeek7x9,
+        focusTarget,
     };
 };

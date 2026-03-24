@@ -6,13 +6,14 @@
     import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
     import WeekPlanGridDesktop from 'src/mandala-scenes/view-7x9/week-plan-grid-desktop.svelte';
     import WeekPlanGridMobile from 'src/mandala-scenes/view-7x9/week-plan-grid-mobile.svelte';
+    import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
     const weekStart = WeekStartStore(view);
     const documentState = derived(view.documentStore, (state) => state);
     const anchorDate = derived(
         view.viewStore,
-        (state) => state.ui.mandala.sceneState.nx9.weekPlan.anchorDate,
+        (state) => getMandalaWeekAnchorDate(state),
     );
 
     let weekContext = resolveWeekPlanContext({

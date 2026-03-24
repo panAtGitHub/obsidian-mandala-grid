@@ -13,6 +13,7 @@
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { assembleDesktopWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
     import RowMatrixGridDesktop from 'src/mandala-scenes/view-7x9/row-matrix-grid-desktop.svelte';
+    import { getMandalaActiveCellWeek7x9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     export let rows: WeekPlanRow[] = [];
 
@@ -25,7 +26,7 @@
     );
     const activeCell = derived(
         view.viewStore,
-        (state) => state.ui.mandala.sceneState.nx9.weekPlan.activeCell,
+        (state) => getMandalaActiveCellWeek7x9(state),
     );
     const editingState = derived(
         view.viewStore,

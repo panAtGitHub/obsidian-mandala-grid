@@ -9,6 +9,7 @@
         openSidebarAndEditMandalaNode,
         setActiveMandalaNode,
     } from 'src/mandala-interaction/helpers/node-editing';
+    import { getMandalaActiveCellWeek7x9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     export let rows: WeekPlanRow[] = [];
 
@@ -21,7 +22,7 @@
     );
     const activeCell = derived(
         view.viewStore,
-        (state) => state.ui.mandala.sceneState.nx9.weekPlan.activeCell,
+        (state) => getMandalaActiveCellWeek7x9(state),
     );
 
     const renderText = (element: HTMLElement, content: string) => {

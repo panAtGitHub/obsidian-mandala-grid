@@ -69,11 +69,9 @@ export const restoreCachedMandalaUiState = (
     mandalaUiStateByPath: Map<string, ReturnType<typeof captureMandalaUiState>>,
     fallbackSubgridTheme = '1',
 ) => {
-    const restored = restoreMandalaUiState(
+    restoreMandalaUiState(
         view,
         mandalaUiStateByPath.get(path),
         fallbackSubgridTheme,
     );
-    view.mandalaActiveCell9x9 = restored.activeCell9x9;
-    view.mandalaActiveCellNx9 = restored.activeCellNx9;
 };

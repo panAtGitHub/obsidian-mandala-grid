@@ -396,6 +396,11 @@ const handlers: Record<string, ViewActionHandler> = {
             action.payload.date;
         state.ui.mandala = { ...state.ui.mandala };
     },
+    'view/mandala/focus-target/set': (state, action) => {
+        if (action.type !== 'view/mandala/focus-target/set') return;
+        setFocusTarget(state, action.payload.focusTarget);
+        state.ui.mandala = { ...state.ui.mandala };
+    },
     'view/mandala/swap/start': (state, action) => {
         if (action.type !== 'view/mandala/swap/start') return;
         state.ui.mandala.swap = {
