@@ -30,7 +30,6 @@
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
-    import NineByNineLayout from 'src/mandala-scenes/view-9x9/layout.svelte';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
     import ToolbarCenter from 'src/ui/toolbar/main/toolbar-center.svelte';
@@ -44,7 +43,6 @@
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { lang } from 'src/lang/lang';
     import { buildMandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
-    import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
     import {
         buildThreeByThreeCells,
         enterThreeByThreeSubgridFromButton,
@@ -56,8 +54,7 @@
         resolveThreeByThreeTheme,
         syncThreeByThreeSceneState,
     } from 'src/mandala-scenes/view-3x3/scene-state';
-    import Nx9Layout from 'src/mandala-scenes/view-nx9/layout.svelte';
-    import WeekPlanLayout from 'src/mandala-scenes/view-7x9/layout.svelte';
+    import SceneRuntimeHost from 'src/mandala-scenes/shared/scene-runtime-host.svelte';
     import { createMobileEditorViewportController } from 'src/mandala-scenes/shared/mobile-editor-viewport';
     import { createSceneStateSynchronizer } from 'src/mandala-scenes/shared/sync-scene-state';
 
@@ -280,7 +277,7 @@
 
     $: threeByThreeTheme = resolveThreeByThreeTheme($subgridTheme);
     $: threeByThreeCells =
-        $mode === '3x3'
+        sceneKey.viewKind === '3x3'
             ? buildThreeByThreeCells({
                   theme: threeByThreeTheme,
                   selectedLayoutId: $selectedLayoutId,
@@ -349,49 +346,38 @@
                 tabindex="0"
                 on:click={() => focusContainer(view)}
             >
-                {#if $mode === '3x3'}
-                    <Mandala3x3Layout
-                        cells={threeByThreeCells}
-                        theme={threeByThreeTheme}
-                        animateSwap={$swapState.animate}
-                        show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
-                        hasOpenOverlayModal={$hasOpenOverlayModal}
-                        dayPlanEnabled={$dayPlanEnabled}
-                        showDayPlanTodayButton={$showDayPlanTodayButton}
-                        {dayPlanTodayTargetSection}
-                        {activeCoreSection}
-                        todayButtonLabel={lang.day_plan_today_button_label}
-                        enterSubgridFromButton={(event, nodeId) =>
-                            enterThreeByThreeSubgridFromButton(
-                                view,
-                                event,
-                                nodeId,
-                            )}
-                        exitSubgridFromButton={(event) =>
-                            exitThreeByThreeSubgridFromButton(view, event)}
-                        focusDayPlanTodayFromButton={(event) =>
-                            focusThreeByThreeTodayFromButton(view, event)}
-                        onMobileCardDoubleClick={({
+                <SceneRuntimeHost
+                    sceneKey={sceneKey}
+                    cells={threeByThreeCells}
+                    theme={threeByThreeTheme}
+                    animateSwap={$swapState.animate}
+                    show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
+                    hasOpenOverlayModal={$hasOpenOverlayModal}
+                    dayPlanEnabled={$dayPlanEnabled}
+                    showDayPlanTodayButton={$showDayPlanTodayButton}
+                    {dayPlanTodayTargetSection}
+                    {activeCoreSection}
+                    todayButtonLabel={lang.day_plan_today_button_label}
+                    enterSubgridFromButton={(event, nodeId) =>
+                        enterThreeByThreeSubgridFromButton(view, event, nodeId)}
+                    exitSubgridFromButton={(event) =>
+                        exitThreeByThreeSubgridFromButton(view, event)}
+                    focusDayPlanTodayFromButton={(event) =>
+                        focusThreeByThreeTodayFromButton(view, event)}
+                    onMobileCardDoubleClick={({
+                        nodeId,
+                        displaySection,
+                        event,
+                    }) =>
+                        handleThreeByThreeMobileCardDoubleClick(
+                            view,
+                            event,
                             nodeId,
                             displaySection,
-                            event,
-                        }) =>
-                            handleThreeByThreeMobileCardDoubleClick(
-                                view,
-                                event,
-                                nodeId,
-                                displaySection,
-                            )}
-                        getUpButtonLabel={getThreeByThreeUpButtonLabel}
-                        getDownButtonLabel={getThreeByThreeDownButtonLabel}
-                    />
-                {:else if $mode === '9x9'}
-                    <NineByNineLayout />
-        {:else if $mode === 'nx9' && sceneKey.variant === 'week-7x9'}
-            <WeekPlanLayout />
-        {:else if $mode === 'nx9'}
-            <Nx9Layout />
-        {/if}
+                        )}
+                    getUpButtonLabel={getThreeByThreeUpButtonLabel}
+                    getDownButtonLabel={getThreeByThreeDownButtonLabel}
+                />
             </div>
 
             <MandalaDetailSidebar />
