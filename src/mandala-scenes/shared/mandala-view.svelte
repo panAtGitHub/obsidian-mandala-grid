@@ -61,6 +61,7 @@
     } from 'src/mandala-scenes/view-3x3/scene-state';
     import SceneRuntimeHost from 'src/mandala-scenes/shared/scene-runtime-host.svelte';
     import { createMobileEditorViewportController } from 'src/mandala-scenes/shared/mobile-editor-viewport';
+    import { ensureSceneCompatibility } from 'src/mandala-scenes/shared/scene-compatibility';
     import { createSceneStateSynchronizer } from 'src/mandala-scenes/shared/sync-scene-state';
 
     const view = getView();
@@ -223,6 +224,16 @@
         viewKind: $mode,
         weekPlanEnabled: view.plugin.settings.getValue().general.weekPlanEnabled,
     });
+
+    $: {
+        ensureSceneCompatibility(view, {
+            sceneKey,
+            dayPlanEnabled: $dayPlanEnabled,
+            subgridTheme: $subgridTheme,
+            sectionToNodeId: $sectionToNodeId,
+            documentState: $documentState,
+        });
+    }
 
     $: {
         syncSceneState({

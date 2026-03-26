@@ -1,14 +1,10 @@
-import { Platform } from 'obsidian';
 import {
     posOfSection9x9,
     sectionAtCell9x9,
 } from 'src/mandala-display/logic/mandala-grid';
 import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
-import {
-    resolveMandalaProfile,
-    type MandalaSceneKey,
-} from 'src/mandala-display/logic/mandala-profile';
+import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
@@ -44,64 +40,6 @@ type SyncSceneStateArgs = {
 
 export const createSceneStateSynchronizer = () => {
     let previousSceneKey: ReturnType<typeof getSceneKeyId> | null = null;
-
-    const syncModeCompatibility = ({
-        view,
-        sceneKey,
-        dayPlanEnabled,
-        subgridTheme,
-        sectionToNodeId,
-        documentState,
-    }: Pick<
-        SyncSceneStateArgs,
-        | 'view'
-        | 'sceneKey'
-        | 'dayPlanEnabled'
-        | 'subgridTheme'
-        | 'sectionToNodeId'
-        | 'documentState'
-    >) => {
-        const profile = resolveMandalaProfile(documentState.file.frontmatter);
-        const canUseWeekVariant =
-            dayPlanEnabled &&
-            view.plugin.settings.getValue().general.weekPlanEnabled &&
-            profile?.kind === 'day-plan';
-        const canUseNx9Mode =
-            !Platform.isMobile &&
-            documentState.meta.isMandala &&
-            (!profile?.dayPlan || canUseWeekVariant);
-
-        if (sceneKey.viewKind && !subgridTheme) {
-            view.viewStore.dispatch({
-                type: 'view/mandala/subgrid/enter',
-                payload: { theme: '1' },
-            });
-        }
-
-        if (
-            sceneKey.viewKind === 'nx9' &&
-            sceneKey.variant === 'week-7x9' &&
-            !canUseWeekVariant
-        ) {
-            view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
-        }
-
-        if (sceneKey.viewKind === 'nx9' && !canUseNx9Mode) {
-            view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
-        }
-
-        if (
-            sceneKey.viewKind === '3x3' &&
-            subgridTheme &&
-            subgridTheme !== '1' &&
-            !sectionToNodeId[subgridTheme]
-        ) {
-            view.viewStore.dispatch({
-                type: 'view/mandala/subgrid/enter',
-                payload: { theme: '1' },
-            });
-        }
-    };
 
     const clearInactiveModeState = (
         view: MandalaView,
@@ -284,7 +222,6 @@ export const createSceneStateSynchronizer = () => {
     };
 
     return (args: SyncSceneStateArgs) => {
-        syncModeCompatibility(args);
         const sceneKey = getSceneKeyId(args.sceneKey);
         const hasSceneChanged = previousSceneKey !== sceneKey;
         clearInactiveModeState(args.view, args.sceneKey, hasSceneChanged);
