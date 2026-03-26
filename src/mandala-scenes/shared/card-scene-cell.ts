@@ -27,7 +27,7 @@ export type SceneCardInteractionDescriptor = {
     showDetailSidebar: boolean;
 };
 
-export type SceneCardCell = {
+export type SceneCardCellOutput = {
     cardViewModel: MandalaCardViewModel | null;
     cardUiState: MandalaCardUiState;
 };
@@ -86,7 +86,7 @@ export const buildSceneCardCell = ({
 }: {
     descriptor: SceneCardCellDescriptor;
     interaction: SceneCardInteractionDescriptor;
-}): SceneCardCell => ({
+}): SceneCardCellOutput => ({
     cardViewModel: buildSceneCardViewModel(descriptor),
     cardUiState: descriptor.nodeId
         ? buildSceneCardUiState({

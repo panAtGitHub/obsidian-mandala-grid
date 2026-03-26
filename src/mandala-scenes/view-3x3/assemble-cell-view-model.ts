@@ -1,7 +1,3 @@
-import type {
-    MandalaCardUiState,
-    MandalaCardViewModel,
-} from 'src/mandala-cell/model/card-view-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
@@ -10,6 +6,7 @@ import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-ty
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
     buildSceneCardCell,
+    type SceneCardCellOutput,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
 
@@ -34,15 +31,13 @@ export type Assemble3x3CellViewModelsArgs = {
     whiteThemeMode: boolean;
 };
 
-export type ThreeByThreeCellViewModel = {
+export type ThreeByThreeCellViewModel = SceneCardCellOutput & {
     key: string;
     section: string;
     index: number;
     nodeId: string | null;
     isCenter: boolean;
     sectionBackground: string | null;
-    cardViewModel: MandalaCardViewModel | null;
-    cardUiState: MandalaCardUiState;
 };
 
 const isCrossPosition = (row: number, col: number) =>

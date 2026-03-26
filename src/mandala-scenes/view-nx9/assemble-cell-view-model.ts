@@ -1,12 +1,9 @@
-import type {
-    MandalaCardUiState,
-    MandalaCardViewModel,
-} from 'src/mandala-cell/model/card-view-model';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCell,
+    type SceneCardCellOutput,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
     Nx9CellWithPage,
@@ -48,7 +45,7 @@ type AssembleNx9RowsOptions = SharedStaticNx9RowsOptions &
         };
     };
 
-export type Nx9RealCellViewModel = {
+export type Nx9RealCellViewModel = SceneCardCellOutput & {
     kind: 'real-cell';
     key: string;
     row: number;
@@ -61,8 +58,6 @@ export type Nx9RealCellViewModel = {
     isBottomEdge: boolean;
     isLeftEdge: boolean;
     isRightEdge: boolean;
-    cardViewModel: MandalaCardViewModel | null;
-    cardUiState: MandalaCardUiState;
 };
 
 export type Nx9GhostRowViewModel = {
