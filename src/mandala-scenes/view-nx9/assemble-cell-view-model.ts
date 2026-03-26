@@ -5,9 +5,9 @@ import {
     buildSceneCardCell,
     buildSceneCardCellList,
     createSceneCardCellSeed,
+    type SceneCardCellDescriptorList,
     type SceneCardCellSeed,
     type SceneCardCellFrame,
-    type SceneCardCellListDescriptor,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
@@ -29,6 +29,10 @@ type SharedStaticNx9RowsOptions = {
     backgroundMode: string;
     whiteThemeMode: boolean;
     hydratedNodeIds: Set<string>;
+};
+
+type Nx9StaticCardCellDescriptorExtra = Nx9RealCellFrameViewModel & {
+    seed: SceneCardCellSeed;
 };
 
 type SharedInteractiveNx9RowsOptions = {
@@ -349,41 +353,13 @@ export const buildNx9PageStaticRows = ({
             return row;
         }
 
-        const descriptors: SceneCardCellListDescriptor<{
-            kind: Nx9RealCellFrameViewModel['kind'];
-            key: string;
-            row: number;
-            col: number;
-            section: string;
-            nodeId: string | null;
-            isTopEdge: boolean;
-            isBottomEdge: boolean;
-            isLeftEdge: boolean;
-            isRightEdge: boolean;
-            seed: SceneCardCellSeed;
-        }>[] = row.map((cell) => {
-            const seed = createSceneCardCellSeed({
-                key: cell.key,
-                section: cell.section,
-                nodeId: cell.nodeId,
-                sectionColor: resolveSectionBackgroundInput({
-                    section: cell.section,
-                    backgroundMode,
-                    sectionColorsBySection: sectionColors,
-                    sectionColorOpacity,
-                }),
-                metaAccentColor: sectionColors[cell.section] ?? null,
-                displayPolicy,
-                contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
-            });
-
-            return {
-                seed,
-                extra: {
-                    ...cell,
-                    seed,
-                },
-            };
+        const descriptors = buildNx9StaticCardCellDescriptors({
+            row,
+            backgroundMode,
+            sectionColors,
+            sectionColorOpacity,
+            displayPolicy,
+            hydratedNodeIds,
         });
 
         return buildSceneCardCellList({
@@ -398,6 +374,46 @@ export const buildNx9PageStaticRows = ({
         });
     });
 };
+
+export const buildNx9StaticCardCellDescriptors = ({
+    row,
+    backgroundMode,
+    sectionColors,
+    sectionColorOpacity,
+    displayPolicy,
+    hydratedNodeIds,
+}: {
+    row: Nx9RealCellFrameViewModel[];
+    backgroundMode: string;
+    sectionColors: Record<string, string>;
+    sectionColorOpacity: number;
+    displayPolicy: CellDisplayPolicy;
+    hydratedNodeIds: Set<string>;
+}): SceneCardCellDescriptorList<Nx9StaticCardCellDescriptorExtra> =>
+    row.map((cell) => {
+        const seed = createSceneCardCellSeed({
+            key: cell.key,
+            section: cell.section,
+            nodeId: cell.nodeId,
+            sectionColor: resolveSectionBackgroundInput({
+                section: cell.section,
+                backgroundMode,
+                sectionColorsBySection: sectionColors,
+                sectionColorOpacity,
+            }),
+            metaAccentColor: sectionColors[cell.section] ?? null,
+            displayPolicy,
+            contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
+        });
+
+        return {
+            seed,
+            extra: {
+                ...cell,
+                seed,
+            },
+        };
+    });
 
 export const applyNx9PageInteractionState = ({
     context,

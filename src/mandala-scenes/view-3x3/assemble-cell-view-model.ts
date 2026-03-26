@@ -7,8 +7,8 @@ import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
     buildSceneCardCellList,
     createSceneCardCellSeed,
+    type SceneCardCellDescriptorList,
     type SceneCardCellFrame,
-    type SceneCardCellListDescriptor,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
@@ -78,34 +78,30 @@ const getSectionBackground = ({
     return null;
 };
 
-export const assemble3x3CellViewModels = ({
+type ThreeByThreeCardCellDescriptorExtra = {
+    index: number;
+    isCenter: boolean;
+    sectionBackground: string | null;
+};
+
+export const build3x3CardCellDescriptors = ({
     theme,
-    selectedLayoutId,
-    customLayouts,
+    layout,
     topology,
-    activeNodeId,
-    editingState,
-    selectedNodes,
-    pinnedSections,
-    showDetailSidebar,
     backgroundMode,
     sectionColors,
     sectionColorOpacity,
-    whiteThemeMode,
-}: Assemble3x3CellViewModelsArgs): ThreeByThreeCellViewModel[] => {
-    const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
-    const displayPolicy = {
-        ...createDefaultCellDisplayPolicy(),
-        ...build3x3CellDisplayOverrides({
-            whiteThemeMode,
-        }),
-    };
-
-    const descriptors: SceneCardCellListDescriptor<{
-        index: number;
-        isCenter: boolean;
-        sectionBackground: string | null;
-    }>[] = layout.childSlots.map((slot, index) => {
+    displayPolicy,
+}: {
+    theme: string;
+    layout: ReturnType<typeof getMandalaLayoutById>;
+    topology: MandalaTopologyIndex;
+    backgroundMode: string;
+    sectionColors: Record<string, string>;
+    sectionColorOpacity: number;
+    displayPolicy: ReturnType<typeof createDefaultCellDisplayPolicy>;
+}): SceneCardCellDescriptorList<ThreeByThreeCardCellDescriptorExtra> =>
+    layout.childSlots.map((slot, index) => {
         const section = slot ? `${theme}.${slot}` : theme;
         const nodeId = getSectionNodeId(topology, section);
         const sectionBackground = getSectionBackground({
@@ -138,6 +134,39 @@ export const assemble3x3CellViewModels = ({
                 sectionBackground,
             },
         };
+    });
+
+export const assemble3x3CellViewModels = ({
+    theme,
+    selectedLayoutId,
+    customLayouts,
+    topology,
+    activeNodeId,
+    editingState,
+    selectedNodes,
+    pinnedSections,
+    showDetailSidebar,
+    backgroundMode,
+    sectionColors,
+    sectionColorOpacity,
+    whiteThemeMode,
+}: Assemble3x3CellViewModelsArgs): ThreeByThreeCellViewModel[] => {
+    const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
+    const displayPolicy = {
+        ...createDefaultCellDisplayPolicy(),
+        ...build3x3CellDisplayOverrides({
+            whiteThemeMode,
+        }),
+    };
+
+    const descriptors = build3x3CardCellDescriptors({
+        theme,
+        layout,
+        topology,
+        backgroundMode,
+        sectionColors,
+        sectionColorOpacity,
+        displayPolicy,
     });
 
     return buildSceneCardCellList({

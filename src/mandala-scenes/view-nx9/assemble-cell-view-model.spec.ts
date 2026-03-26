@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import {
     applyNx9PageInteractionState,
     assembleNx9PageFrame,
+    buildNx9StaticCardCellDescriptors,
     buildNx9PageIndex,
     buildNx9PageStaticRows,
     patchNx9ActiveInteractionState,
     type Nx9InteractionSnapshot,
+    type Nx9PageFrameRowViewModel,
     type Nx9RealCellViewModel,
 } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
@@ -185,5 +188,63 @@ describe('nx9/assemble-cell-view-model', () => {
         expect(firstRow[1].cardUiState.selected).toBe(true);
         expect(firstRow[0].cardUiState.selected).toBe(false);
         expect(secondRow[0].cardUiState.pinned).toBe(true);
+    });
+
+    it('builds reusable static card descriptors for a real nx9 row', () => {
+        const { context } = createFixture();
+        const pageFrame = assembleNx9PageFrame({
+            context,
+            documentState: {
+                sections: {
+                    section_id: {
+                        '1': 'node-1',
+                        '1.1': 'node-1-1',
+                        '1.2': 'node-1-2',
+                        '2': 'node-2',
+                        '2.1': 'node-2-1',
+                    },
+                },
+            },
+        });
+        const realRow = pageFrame[0] as Extract<Nx9PageFrameRowViewModel, unknown[]>;
+        const descriptors = buildNx9StaticCardCellDescriptors({
+            row: realRow,
+            backgroundMode: 'none',
+            sectionColors: { '1.1': 'red' },
+            sectionColorOpacity: 100,
+            displayPolicy: createDefaultCellDisplayPolicy(),
+            hydratedNodeIds: new Set(['node-1', 'node-1-1']),
+        });
+
+        expect(descriptors[0]).toMatchObject({
+            seed: {
+                frame: {
+                    section: '1',
+                    nodeId: 'node-1',
+                },
+                descriptor: {
+                    contentEnabled: true,
+                },
+            },
+        });
+        expect(descriptors[1]).toMatchObject({
+            seed: {
+                frame: {
+                    section: '1.1',
+                    nodeId: 'node-1-1',
+                },
+                descriptor: {
+                    metaAccentColor: 'red',
+                    contentEnabled: true,
+                },
+            },
+        });
+        expect(descriptors[2]).toMatchObject({
+            seed: {
+                descriptor: {
+                    contentEnabled: false,
+                },
+            },
+        });
     });
 });

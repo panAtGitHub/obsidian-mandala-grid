@@ -50,6 +50,10 @@ export type SceneCardCellListDescriptor<TExtra extends object> = {
     extra: TExtra;
 };
 
+export type SceneCardCellDescriptorList<TExtra extends object> = Array<
+    SceneCardCellListDescriptor<TExtra>
+>;
+
 export const buildSceneCardViewModel = (
     descriptor: SceneCardCellDescriptor,
 ): MandalaCardViewModel | null =>
@@ -132,7 +136,7 @@ export const buildSceneCardCellList = <TExtra extends object>({
     descriptors,
     interaction,
 }: {
-    descriptors: SceneCardCellListDescriptor<TExtra>[];
+    descriptors: SceneCardCellDescriptorList<TExtra>;
     interaction: SceneCardInteractionDescriptor;
 }): Array<TExtra & SceneCardCellViewModel> =>
     descriptors.map(({ seed, extra }) => ({
