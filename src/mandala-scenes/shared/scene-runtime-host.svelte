@@ -6,10 +6,12 @@
     import WeekPlanLayout from 'src/mandala-scenes/view-7x9/layout.svelte';
     import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
     import {
-        sceneKeyEquals,
         type SceneProjection,
-        type ThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/shared/scene-projection';
+    import {
+        createSceneCommitSnapshot,
+        hasPendingSceneSwitch,
+    } from 'src/mandala-scenes/shared/scene-switch';
 
     export let sceneKey: MandalaSceneKey = {
         viewKind: '3x3',
@@ -17,13 +19,19 @@
     };
     export let projection: SceneProjection;
     export let committedSceneKey: MandalaSceneKey = sceneKey;
+    export let onCommittedSceneChange:
+        | ((sceneKey: MandalaSceneKey) => void)
+        | null = null;
 
     let renderedProjection = projection;
     let pendingProjection = projection;
     let isSwitchingScene = false;
     let isDestroyed = false;
-    let renderedThreeByThreeProps: ThreeByThreeSceneProjectionProps | null =
-        projection?.rendererKind === '3x3-layout' ? projection.props : null;
+    let {
+        committedSceneKey: initialCommittedSceneKey,
+        renderedThreeByThreeProps,
+    } = createSceneCommitSnapshot(projection);
+    committedSceneKey = initialCommittedSceneKey;
 
     const waitForNextPaint = () =>
         new Promise<void>((resolve) => {
@@ -33,15 +41,13 @@
     const commitProjection = async () => {
         if (isDestroyed) return;
         const nextProjection = pendingProjection;
-        if (
-            sceneKeyEquals(renderedProjection.sceneKey, nextProjection.sceneKey)
-        ) {
+        if (!hasPendingSceneSwitch(renderedProjection, nextProjection)) {
             renderedProjection = nextProjection;
-            committedSceneKey = nextProjection.sceneKey;
-            renderedThreeByThreeProps =
-                nextProjection.rendererKind === '3x3-layout'
-                    ? nextProjection.props
-                    : null;
+            ({
+                committedSceneKey,
+                renderedThreeByThreeProps,
+            } = createSceneCommitSnapshot(nextProjection));
+            onCommittedSceneChange?.(committedSceneKey);
             return;
         }
         if (isSwitchingScene) return;
@@ -52,15 +58,13 @@
             return;
         }
         renderedProjection = pendingProjection;
-        committedSceneKey = renderedProjection.sceneKey;
-        renderedThreeByThreeProps =
-            renderedProjection.rendererKind === '3x3-layout'
-                ? renderedProjection.props
-                : null;
+        ({
+            committedSceneKey,
+            renderedThreeByThreeProps,
+        } = createSceneCommitSnapshot(renderedProjection));
+        onCommittedSceneChange?.(committedSceneKey);
         isSwitchingScene = false;
-        if (
-            !sceneKeyEquals(renderedProjection.sceneKey, pendingProjection.sceneKey)
-        ) {
+        if (hasPendingSceneSwitch(renderedProjection, pendingProjection)) {
             void commitProjection();
         }
     };
