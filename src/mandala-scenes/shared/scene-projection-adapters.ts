@@ -4,16 +4,13 @@ import {
     type SceneProjection,
     type ThreeByThreeSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
+import { buildNineByNineLegacySceneProjection } from 'src/mandala-scenes/view-9x9/build-legacy-scene-projection';
 
 export const buildLegacySceneProjection = (
     sceneKey: MandalaSceneKey,
 ): SceneProjection => {
     if (sceneKey.viewKind === '9x9') {
-        return {
-            sceneKey,
-            rendererKind: '9x9-layout',
-            props: {},
-        };
+        return buildNineByNineLegacySceneProjection(sceneKey);
     }
     if (sceneKey.variant === 'week-7x9') {
         return {
