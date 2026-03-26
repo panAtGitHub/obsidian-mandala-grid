@@ -13,6 +13,12 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                rowsPerPage: 5,
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: true,
+                whiteThemeMode: false,
             }),
         ).toEqual({
             themeSnapshot: {
@@ -20,6 +26,12 @@ describe('build-nx9-scene-projection', () => {
                 themeUnderlayColor: '#fff',
                 activeThemeUnderlayColor: '#eee',
             },
+            rowsPerPage: 5,
+            sectionColors: { '1': '#111' },
+            sectionColorOpacity: 60,
+            backgroundMode: 'custom',
+            showDetailSidebar: true,
+            whiteThemeMode: false,
         });
     });
 
@@ -34,6 +46,12 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                rowsPerPage: 5,
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: true,
+                whiteThemeMode: false,
             }),
         ).toEqual({
             sceneKey: {
@@ -47,6 +65,12 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                rowsPerPage: 5,
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: true,
+                whiteThemeMode: false,
             },
         });
     });

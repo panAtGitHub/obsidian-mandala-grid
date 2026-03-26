@@ -1,14 +1,6 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
     import { derived, derivedEq } from 'src/shared/store/derived';
-    import {
-        MandalaBackgroundModeStore,
-        MandalaSectionColorOpacityStore,
-        Nx9RowsPerPageStore,
-        ShowMandalaDetailSidebarStore,
-        WhiteThemeModeStore,
-    } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
@@ -40,7 +32,6 @@
     import { getMandalaActiveCellNx9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
-    const nx9RowsPerPage = Nx9RowsPerPageStore(view);
     const documentSnapshot = derivedEq(
         view.documentStore,
         (state) => ({
@@ -94,11 +85,6 @@
         },
         (a, b) => a.stamp === b.stamp,
     );
-    const sectionColors = SectionColorBySectionStore(view);
-    const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
-    const backgroundMode = MandalaBackgroundModeStore(view);
-    const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
-    const whiteThemeMode = WhiteThemeModeStore(view);
 
     let rows: Nx9RowViewModel[] = [];
     let staticRows: Nx9StaticRowViewModel[] = [];
@@ -123,6 +109,12 @@
         themeUnderlayColor: '',
         activeThemeUnderlayColor: '',
     };
+    export let rowsPerPage = 5;
+    export let sectionColors: Record<string, string> = {};
+    export let sectionColorOpacity = 0;
+    export let backgroundMode = 'none';
+    export let showDetailSidebar = false;
+    export let whiteThemeMode = false;
     let hydrationMarker = '';
     let hydrationRequestId = 0;
 
@@ -553,7 +545,7 @@
     $: structureContext = resolveCachedStructureContext({
         sectionIdMap: $documentSnapshot.sectionIdMap,
         documentContent: $documentSnapshot.documentContent,
-        rowsPerPage: $nx9RowsPerPage,
+        rowsPerPage,
         activeSection: activeCoreSection,
         revision: $documentSnapshot.revision,
         contentRevision: $documentSnapshot.contentRevision,
@@ -602,10 +594,10 @@
     $: staticRows = resolveCachedStaticRows({
         context: nx9Context,
         pageFrame,
-        sectionColors: $sectionColors,
-        sectionColorOpacity: $sectionColorOpacity,
-        backgroundMode: $backgroundMode,
-        whiteThemeMode: $whiteThemeMode,
+        sectionColors,
+        sectionColorOpacity,
+        backgroundMode,
+        whiteThemeMode,
         hydratedNodeIds,
     });
     $: rows = resolveRuntimeRows({
@@ -619,7 +611,7 @@
         selectedStamp: $selectedNodesSnapshot.stamp,
         pinnedSections: $pinnedSectionsSnapshot.value,
         pinnedStamp: $pinnedSectionsSnapshot.stamp,
-        showDetailSidebar: $showDetailSidebar,
+        showDetailSidebar,
     });
 
     const selectGhostCreateCell = (row: number) => {

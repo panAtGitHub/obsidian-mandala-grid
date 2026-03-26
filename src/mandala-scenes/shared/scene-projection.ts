@@ -46,6 +46,12 @@ export type Nx9SceneProjection = {
     rendererKind: 'nx9-layout';
     props: {
         themeSnapshot: MandalaThemeSnapshot;
+        rowsPerPage: number;
+        sectionColors: Record<string, string>;
+        sectionColorOpacity: number;
+        backgroundMode: string;
+        showDetailSidebar: boolean;
+        whiteThemeMode: boolean;
     };
 };
 

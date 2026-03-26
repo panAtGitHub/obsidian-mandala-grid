@@ -194,6 +194,12 @@
             };
             nx9ProjectionProps = buildNx9SceneProjectionProps({
                 themeSnapshot,
+                rowsPerPage: $nx9RowsPerPage,
+                sectionColors: $sectionColors,
+                sectionColorOpacity: $sectionColorOpacity,
+                backgroundMode: $backgroundMode,
+                showDetailSidebar: $showDetailSidebar,
+                whiteThemeMode: $whiteThemeMode,
             });
         };
 
@@ -272,6 +278,12 @@
             themeUnderlayColor: '',
             activeThemeUnderlayColor: '',
         },
+        rowsPerPage: $nx9RowsPerPage,
+        sectionColors: $sectionColors,
+        sectionColorOpacity: $sectionColorOpacity,
+        backgroundMode: $backgroundMode,
+        showDetailSidebar: $showDetailSidebar,
+        whiteThemeMode: $whiteThemeMode,
     });
 
     $: sceneKey = resolveMandalaSceneKey({
@@ -285,6 +297,15 @@
             anchorDate: $weekAnchorDate,
             weekStart: $weekStart,
         }).rows,
+    });
+    $: nx9ProjectionProps = buildNx9SceneProjectionProps({
+        themeSnapshot: nx9ProjectionProps.themeSnapshot,
+        rowsPerPage: $nx9RowsPerPage,
+        sectionColors: $sectionColors,
+        sectionColorOpacity: $sectionColorOpacity,
+        backgroundMode: $backgroundMode,
+        showDetailSidebar: $showDetailSidebar,
+        whiteThemeMode: $whiteThemeMode,
     });
 
     $: {

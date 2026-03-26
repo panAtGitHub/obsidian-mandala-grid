@@ -55,6 +55,12 @@ const defaultProjection = (
                           themeUnderlayColor: '#fff',
                           activeThemeUnderlayColor: '#eee',
                       },
+                      rowsPerPage: 5,
+                      sectionColors: {},
+                      sectionColorOpacity: 60,
+                      backgroundMode: 'custom',
+                      showDetailSidebar: false,
+                      whiteThemeMode: false,
                   },
               };
 

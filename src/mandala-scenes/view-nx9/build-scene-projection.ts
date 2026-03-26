@@ -6,10 +6,28 @@ import type {
 
 export const buildNx9SceneProjectionProps = ({
     themeSnapshot,
+    rowsPerPage,
+    sectionColors,
+    sectionColorOpacity,
+    backgroundMode,
+    showDetailSidebar,
+    whiteThemeMode,
 }: {
     themeSnapshot: MandalaThemeSnapshot;
+    rowsPerPage: number;
+    sectionColors: Record<string, string>;
+    sectionColorOpacity: number;
+    backgroundMode: string;
+    showDetailSidebar: boolean;
+    whiteThemeMode: boolean;
 }) => ({
     themeSnapshot,
+    rowsPerPage,
+    sectionColors,
+    sectionColorOpacity,
+    backgroundMode,
+    showDetailSidebar,
+    whiteThemeMode,
 });
 
 export const buildNx9SceneProjection = (
