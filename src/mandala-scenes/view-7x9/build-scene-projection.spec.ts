@@ -17,6 +17,12 @@ mandala_plan:
 ---`,
                 anchorDate: '2026-01-01',
                 weekStart: 'monday',
+                compactMode: true,
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: true,
             }),
         ).toEqual({
             rows: [
@@ -28,6 +34,12 @@ mandala_plan:
                 { date: '2026-01-03', coreSection: '3', inPlanYear: true },
                 { date: '2026-01-04', coreSection: '4', inPlanYear: true },
             ],
+            compactMode: true,
+            sectionColors: { '1': '#111' },
+            sectionColorOpacity: 60,
+            backgroundMode: 'custom',
+            showDetailSidebar: false,
+            whiteThemeMode: true,
         });
     });
 
@@ -36,14 +48,30 @@ mandala_plan:
             buildWeekSceneProjection({
                 viewKind: 'nx9',
                 variant: 'week-7x9',
-            }, { rows: [] }),
+            }, {
+                rows: [],
+                compactMode: false,
+                sectionColors: {},
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            }),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
                 variant: 'week-7x9',
             },
             rendererKind: 'week-layout',
-            props: { rows: [] },
+            props: {
+                rows: [],
+                compactMode: false,
+                sectionColors: {},
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
         });
     });
 });

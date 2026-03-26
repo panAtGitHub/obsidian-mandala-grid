@@ -44,6 +44,12 @@ const defaultProjection = (
                   rendererKind: 'week-layout',
                   props: {
                       rows: [],
+                      compactMode: false,
+                      sectionColors: {},
+                      sectionColorOpacity: 60,
+                      backgroundMode: 'custom',
+                      showDetailSidebar: false,
+                      whiteThemeMode: false,
                   },
               }
             : {

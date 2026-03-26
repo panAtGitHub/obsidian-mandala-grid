@@ -32,6 +32,7 @@
         ShowDayPlanTodayButtonStore,
         ShowMandalaDetailSidebarStore,
         SquareLayoutStore,
+        WeekPlanCompactModeStore,
         WhiteThemeModeStore,
         WeekStartStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
@@ -92,6 +93,7 @@
     const showDayPlanTodayButton = ShowDayPlanTodayButtonStore(view);
     const dayPlanEnabled = DayPlanEnabledStore(view);
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
+    const weekPlanCompactMode = WeekPlanCompactModeStore(view);
     const weekStart = WeekStartStore(view);
 
     const showDetailSidebar = ShowMandalaDetailSidebarStore(view);
@@ -269,7 +271,15 @@
     let threeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let weekProjectionProps = buildWeekSceneProjectionProps({
-        rows: [],
+        frontmatter: '',
+        anchorDate: null,
+        weekStart: 'monday',
+        compactMode: $weekPlanCompactMode,
+        sectionColors: $sectionColors,
+        sectionColorOpacity: $sectionColorOpacity,
+        backgroundMode: $backgroundMode,
+        showDetailSidebar: $showDetailSidebar,
+        whiteThemeMode: $whiteThemeMode,
     });
     let nx9ProjectionProps = buildNx9SceneProjectionProps({
         themeSnapshot: {
@@ -294,6 +304,12 @@
         frontmatter: $documentState.file.frontmatter,
         anchorDate: $weekAnchorDate,
         weekStart: $weekStart,
+        compactMode: $weekPlanCompactMode,
+        sectionColors: $sectionColors,
+        sectionColorOpacity: $sectionColorOpacity,
+        backgroundMode: $backgroundMode,
+        showDetailSidebar: $showDetailSidebar,
+        whiteThemeMode: $whiteThemeMode,
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
         themeSnapshot: nx9ProjectionProps.themeSnapshot,

@@ -57,6 +57,12 @@ export type Nx9SceneProjection = {
 
 export type WeekSceneProjectionProps = {
     rows: WeekPlanRow[];
+    compactMode: boolean;
+    sectionColors: Record<string, string>;
+    sectionColorOpacity: number;
+    backgroundMode: string;
+    showDetailSidebar: boolean;
+    whiteThemeMode: boolean;
 };
 
 export type WeekSceneProjection = {

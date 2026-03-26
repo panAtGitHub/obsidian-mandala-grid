@@ -12,16 +12,34 @@ export const buildWeekSceneProjectionProps = ({
     frontmatter,
     anchorDate,
     weekStart,
+    compactMode,
+    sectionColors,
+    sectionColorOpacity,
+    backgroundMode,
+    showDetailSidebar,
+    whiteThemeMode,
 }: {
     frontmatter: string;
     anchorDate: string | null | undefined;
     weekStart: WeekStart;
+    compactMode: boolean;
+    sectionColors: Record<string, string>;
+    sectionColorOpacity: number;
+    backgroundMode: string;
+    showDetailSidebar: boolean;
+    whiteThemeMode: boolean;
 }): WeekSceneProjectionProps => ({
     rows: resolveWeekPlanContext({
         frontmatter,
         anchorDate,
         weekStart,
     }).rows,
+    compactMode,
+    sectionColors,
+    sectionColorOpacity,
+    backgroundMode,
+    showDetailSidebar,
+    whiteThemeMode,
 });
 
 export const buildWeekSceneProjection = (
