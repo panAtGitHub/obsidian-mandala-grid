@@ -2,6 +2,7 @@ import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile'
 import {
     resolveSceneRendererKind,
     type SceneRendererKind,
+    type Nx9SceneProjection,
     type SceneProjection,
     type ThreeByThreeSceneProjectionProps,
     type WeekSceneProjectionProps,
@@ -13,6 +14,7 @@ import { buildNx9SceneProjection } from 'src/mandala-scenes/view-nx9/build-scene
 
 type NonThreeByThreeProjectionProps = {
     weekProps: WeekSceneProjectionProps;
+    nx9Props: Nx9SceneProjection['props'];
 };
 
 type SceneProjectionBuilder = (
@@ -22,7 +24,8 @@ type SceneProjectionBuilder = (
 
 const sceneProjectionBuilders: Record<Exclude<SceneRendererKind, '3x3-layout'>, SceneProjectionBuilder> = {
     '9x9-layout': buildNineByNineLegacySceneProjection,
-    'nx9-layout': buildNx9SceneProjection,
+    'nx9-layout': (sceneKey, props) =>
+        buildNx9SceneProjection(sceneKey, props.nx9Props),
     'week-layout': (sceneKey, props) =>
         buildWeekSceneProjection(sceneKey, props.weekProps),
 };
@@ -42,12 +45,14 @@ export const buildSceneProjection = ({
     preparedThreeByThreeProps,
     committedThreeByThreeProps,
     weekProps,
+    nx9Props,
 }: {
     sceneKey: MandalaSceneKey;
     committedSceneKey: MandalaSceneKey;
     preparedThreeByThreeProps: ThreeByThreeSceneProjectionProps;
     committedThreeByThreeProps: ThreeByThreeSceneProjectionProps;
     weekProps: WeekSceneProjectionProps;
+    nx9Props: Nx9SceneProjection['props'];
 }): SceneProjection =>
     sceneKey.viewKind === '3x3'
         ? buildThreeByThreeSceneProjection({
@@ -58,4 +63,5 @@ export const buildSceneProjection = ({
           })
         : buildLegacySceneProjection(sceneKey, {
               weekProps,
+              nx9Props,
           });

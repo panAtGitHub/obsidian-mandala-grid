@@ -49,7 +49,13 @@ const defaultProjection = (
             : {
                   sceneKey: { viewKind, variant },
                   rendererKind: 'nx9-layout',
-                  props: {},
+                  props: {
+                      themeSnapshot: {
+                          themeTone: 'light',
+                          themeUnderlayColor: '#fff',
+                          activeThemeUnderlayColor: '#eee',
+                      },
+                  },
               };
 
 describe('scene-switch', () => {

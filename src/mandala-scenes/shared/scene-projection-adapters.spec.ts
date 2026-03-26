@@ -40,7 +40,16 @@ describe('scene-projection-adapters', () => {
             buildLegacySceneProjection({
                 viewKind: '9x9',
                 variant: 'default',
-            }, { weekProps: { rows: [] } }),
+            }, {
+                weekProps: { rows: [] },
+                nx9Props: {
+                    themeSnapshot: {
+                        themeTone: 'light',
+                        themeUnderlayColor: '#fff',
+                        activeThemeUnderlayColor: '#eee',
+                    },
+                },
+            }),
         ).toEqual({
             sceneKey: {
                 viewKind: '9x9',
@@ -54,7 +63,16 @@ describe('scene-projection-adapters', () => {
             buildLegacySceneProjection({
                 viewKind: 'nx9',
                 variant: 'week-7x9',
-            }, { weekProps: { rows: [] } }),
+            }, {
+                weekProps: { rows: [] },
+                nx9Props: {
+                    themeSnapshot: {
+                        themeTone: 'light',
+                        themeUnderlayColor: '#fff',
+                        activeThemeUnderlayColor: '#eee',
+                    },
+                },
+            }),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
@@ -68,14 +86,29 @@ describe('scene-projection-adapters', () => {
             buildLegacySceneProjection({
                 viewKind: 'nx9',
                 variant: 'default',
-            }, { weekProps: { rows: [] } }),
+            }, {
+                weekProps: { rows: [] },
+                nx9Props: {
+                    themeSnapshot: {
+                        themeTone: 'light',
+                        themeUnderlayColor: '#fff',
+                        activeThemeUnderlayColor: '#eee',
+                    },
+                },
+            }),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
                 variant: 'default',
             },
             rendererKind: 'nx9-layout',
-            props: {},
+            props: {
+                themeSnapshot: {
+                    themeTone: 'light',
+                    themeUnderlayColor: '#fff',
+                    activeThemeUnderlayColor: '#eee',
+                },
+            },
         });
     });
 
@@ -113,6 +146,13 @@ describe('scene-projection-adapters', () => {
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
             weekProps: { rows: [] },
+            nx9Props: {
+                themeSnapshot: {
+                    themeTone: 'light',
+                    themeUnderlayColor: '#fff',
+                    activeThemeUnderlayColor: '#eee',
+                },
+            },
         });
 
         expect(projection.rendererKind).toBe('3x3-layout');
@@ -135,6 +175,13 @@ describe('scene-projection-adapters', () => {
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
             weekProps: { rows: [] },
+            nx9Props: {
+                themeSnapshot: {
+                    themeTone: 'light',
+                    themeUnderlayColor: '#fff',
+                    activeThemeUnderlayColor: '#eee',
+                },
+            },
         });
         const threeByThreeProjection = buildSceneProjection({
             sceneKey: {
@@ -148,6 +195,13 @@ describe('scene-projection-adapters', () => {
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
             weekProps: { rows: [] },
+            nx9Props: {
+                themeSnapshot: {
+                    themeTone: 'light',
+                    themeUnderlayColor: '#fff',
+                    activeThemeUnderlayColor: '#eee',
+                },
+            },
         });
         const nx9Projection = buildSceneProjection({
             sceneKey: {
@@ -161,6 +215,13 @@ describe('scene-projection-adapters', () => {
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
             weekProps: { rows: [] },
+            nx9Props: {
+                themeSnapshot: {
+                    themeTone: 'light',
+                    themeUnderlayColor: '#fff',
+                    activeThemeUnderlayColor: '#eee',
+                },
+            },
         });
         const nineByNineProjection = buildSceneProjection({
             sceneKey: {
@@ -174,6 +235,13 @@ describe('scene-projection-adapters', () => {
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
             weekProps: { rows: [] },
+            nx9Props: {
+                themeSnapshot: {
+                    themeTone: 'light',
+                    themeUnderlayColor: '#fff',
+                    activeThemeUnderlayColor: '#eee',
+                },
+            },
         });
 
         expect(hasPendingSceneSwitch(weekProjection, threeByThreeProjection)).toBe(
@@ -213,6 +281,13 @@ describe('scene-projection-adapters', () => {
                     preparedThreeByThreeProps: preparedProps,
                     committedThreeByThreeProps: committedProps,
                     weekProps: { rows: [] },
+                    nx9Props: {
+                        themeSnapshot: {
+                            themeTone: 'light',
+                            themeUnderlayColor: '#fff',
+                            activeThemeUnderlayColor: '#eee',
+                        },
+                    },
                 }),
             ),
         ).toBe(true);

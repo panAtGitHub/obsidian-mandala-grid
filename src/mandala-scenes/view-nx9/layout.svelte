@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy } from 'svelte';
     import { derived, derivedEq } from 'src/shared/store/derived';
     import {
         MandalaBackgroundModeStore,
@@ -118,14 +118,13 @@
         nodeIds: [],
     };
     let hydratedNodeIds = new Set<string>();
-    let hydrationMarker = '';
-    let hydrationRequestId = 0;
-    let bodyThemeObserver: MutationObserver | null = null;
-    let themeSnapshot: MandalaThemeSnapshot = {
+    export let themeSnapshot: MandalaThemeSnapshot = {
         themeTone: 'light',
         themeUnderlayColor: '',
         activeThemeUnderlayColor: '',
     };
+    let hydrationMarker = '';
+    let hydrationRequestId = 0;
 
     let cachedStructureKey = '';
     let cachedStructureContext: Nx9StructureContext | null = null;
@@ -544,37 +543,8 @@
         });
     };
 
-    const syncThemeSnapshot = () => {
-        const styles = window.getComputedStyle(document.body);
-        const inactiveThemeUnderlayColor =
-            styles.getPropertyValue('--background-active-parent').trim() ||
-            styles.getPropertyValue('--background-primary').trim();
-        const activeThemeUnderlayColor =
-            styles.getPropertyValue('--background-active-node').trim() ||
-            inactiveThemeUnderlayColor;
-
-        themeSnapshot = {
-            themeTone: document.body.classList.contains('theme-dark')
-                ? 'dark'
-                : 'light',
-            themeUnderlayColor: inactiveThemeUnderlayColor,
-            activeThemeUnderlayColor,
-        };
-    };
-
-    onMount(() => {
-        syncThemeSnapshot();
-        bodyThemeObserver = new MutationObserver(() => syncThemeSnapshot());
-        bodyThemeObserver.observe(document.body, {
-            attributes: true,
-            attributeFilter: ['class', 'style'],
-        });
-    });
-
     onDestroy(() => {
         hydrationRequestId += 1;
-        bodyThemeObserver?.disconnect();
-        bodyThemeObserver = null;
     });
 
     $: activeCell = $activeCellStore;

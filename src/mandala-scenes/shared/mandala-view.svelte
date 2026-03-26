@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import { onDestroy, onMount } from 'svelte';
+    import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import { derived } from 'src/shared/store/derived';
     import {
         resolveDayPlanTodayNavigation,
@@ -53,6 +54,7 @@
         buildThreeByThreeSceneProjection,
         buildThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/view-3x3/build-scene-projection';
+    import { buildNx9SceneProjectionProps } from 'src/mandala-scenes/view-nx9/build-scene-projection';
     import { buildWeekSceneProjectionProps } from 'src/mandala-scenes/view-7x9/build-scene-projection';
     import {
         buildThreeByThreeCells,
@@ -108,6 +110,7 @@
     let desktopSquareSize = 0;
     let contentWrapperRef: HTMLElement | null = null;
     let contentWrapperObserver: ResizeObserver | null = null;
+    let bodyThemeObserver: MutationObserver | null = null;
     let mobilePopupEditorBodyEl: HTMLDivElement | null = null;
     const mobileEditorViewport = createMobileEditorViewportController();
     const mobileViewportHeight = mobileEditorViewport.height;
@@ -174,9 +177,35 @@
 
     let containerRef: HTMLElement | null = null;
     onMount(() => {
+        const syncNx9ThemeSnapshot = () => {
+            const styles = window.getComputedStyle(document.body);
+            const inactiveThemeUnderlayColor =
+                styles.getPropertyValue('--background-active-parent').trim() ||
+                styles.getPropertyValue('--background-primary').trim();
+            const activeThemeUnderlayColor =
+                styles.getPropertyValue('--background-active-node').trim() ||
+                inactiveThemeUnderlayColor;
+            const themeSnapshot: MandalaThemeSnapshot = {
+                themeTone: document.body.classList.contains('theme-dark')
+                    ? 'dark'
+                    : 'light',
+                themeUnderlayColor: inactiveThemeUnderlayColor,
+                activeThemeUnderlayColor,
+            };
+            nx9ProjectionProps = buildNx9SceneProjectionProps({
+                themeSnapshot,
+            });
+        };
+
         view.container = containerRef;
         focusContainer(view);
         mobileEditorViewport.mount();
+        syncNx9ThemeSnapshot();
+        bodyThemeObserver = new MutationObserver(syncNx9ThemeSnapshot);
+        bodyThemeObserver.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class', 'style'],
+        });
 
         contentWrapperObserver = new ResizeObserver(() => {
             recomputeDesktopSquareSize();
@@ -191,6 +220,8 @@
         mobileEditorViewport.destroy();
         contentWrapperObserver?.disconnect();
         contentWrapperObserver = null;
+        bodyThemeObserver?.disconnect();
+        bodyThemeObserver = null;
     });
 
     $: {
@@ -234,6 +265,13 @@
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let weekProjectionProps = buildWeekSceneProjectionProps({
         rows: [],
+    });
+    let nx9ProjectionProps = buildNx9SceneProjectionProps({
+        themeSnapshot: {
+            themeTone: 'light',
+            themeUnderlayColor: '',
+            activeThemeUnderlayColor: '',
+        },
     });
 
     $: sceneKey = resolveMandalaSceneKey({
@@ -439,6 +477,7 @@
                   preparedThreeByThreeProps: threeByThreeProjectionProps,
                   committedThreeByThreeProps: committedThreeByThreeProjectionProps,
                   weekProps: weekProjectionProps,
+                  nx9Props: nx9ProjectionProps,
               });
 </script>
 
