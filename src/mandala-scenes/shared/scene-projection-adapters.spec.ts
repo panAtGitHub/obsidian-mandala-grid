@@ -63,6 +63,20 @@ describe('scene-projection-adapters', () => {
             rendererKind: 'week-layout',
             props: {},
         });
+
+        expect(
+            buildLegacySceneProjection({
+                viewKind: 'nx9',
+                variant: 'default',
+            }),
+        ).toEqual({
+            sceneKey: {
+                viewKind: 'nx9',
+                variant: 'default',
+            },
+            rendererKind: 'nx9-layout',
+            props: {},
+        });
     });
 
     it('prefers committed props for steady 3x3 scenes', () => {
