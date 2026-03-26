@@ -27,11 +27,24 @@
     let pendingProjection = projection;
     let isSwitchingScene = false;
     let isDestroyed = false;
+    const rendererComponentByKind = {
+        '3x3-layout': Mandala3x3Layout,
+        '9x9-layout': NineByNineLayout,
+        'nx9-layout': Nx9Layout,
+        'week-layout': WeekPlanLayout,
+    } as const;
     let {
         committedSceneKey: initialCommittedSceneKey,
         renderedThreeByThreeProps,
     } = createSceneCommitSnapshot(projection);
     committedSceneKey = initialCommittedSceneKey;
+    $: renderedComponent =
+        rendererComponentByKind[renderedProjection.rendererKind];
+    $: renderedComponentProps =
+        renderedProjection.rendererKind === '3x3-layout' &&
+        renderedThreeByThreeProps
+            ? renderedThreeByThreeProps
+            : renderedProjection.props;
 
     const waitForNextPaint = () =>
         new Promise<void>((resolve) => {
@@ -80,30 +93,5 @@
 </script>
 
 {#key `${renderedProjection.sceneKey.viewKind}:${renderedProjection.sceneKey.variant}`}
-    {#if renderedProjection.rendererKind === '3x3-layout' && renderedThreeByThreeProps}
-        <Mandala3x3Layout
-            cells={renderedThreeByThreeProps.cells}
-            theme={renderedThreeByThreeProps.theme}
-            animateSwap={renderedThreeByThreeProps.animateSwap}
-            show3x3SubgridNavButtons={renderedThreeByThreeProps.show3x3SubgridNavButtons}
-            hasOpenOverlayModal={renderedThreeByThreeProps.hasOpenOverlayModal}
-            dayPlanEnabled={renderedThreeByThreeProps.dayPlanEnabled}
-            showDayPlanTodayButton={renderedThreeByThreeProps.showDayPlanTodayButton}
-            dayPlanTodayTargetSection={renderedThreeByThreeProps.dayPlanTodayTargetSection}
-            activeCoreSection={renderedThreeByThreeProps.activeCoreSection}
-            todayButtonLabel={renderedThreeByThreeProps.todayButtonLabel}
-            enterSubgridFromButton={renderedThreeByThreeProps.enterSubgridFromButton}
-            exitSubgridFromButton={renderedThreeByThreeProps.exitSubgridFromButton}
-            focusDayPlanTodayFromButton={renderedThreeByThreeProps.focusDayPlanTodayFromButton}
-            onMobileCardDoubleClick={renderedThreeByThreeProps.onMobileCardDoubleClick}
-            getUpButtonLabel={renderedThreeByThreeProps.getUpButtonLabel}
-            getDownButtonLabel={renderedThreeByThreeProps.getDownButtonLabel}
-        />
-    {:else if renderedProjection.rendererKind === '9x9-layout'}
-        <NineByNineLayout />
-    {:else if renderedProjection.rendererKind === 'week-layout'}
-        <WeekPlanLayout rows={renderedProjection.props.rows} />
-    {:else}
-        <Nx9Layout />
-    {/if}
+    <svelte:component this={renderedComponent} {...renderedComponentProps} />
 {/key}
