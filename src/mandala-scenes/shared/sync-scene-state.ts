@@ -7,20 +7,20 @@ import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import {
     resolveMandalaProfile,
-    type MandalaSceneVariant,
+    type MandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
 import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
 import type {
     MandalaCustomLayout,
-    MandalaMode,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
 import {
     normalizeNx9VisibleSection,
     resolveNx9Context,
 } from 'src/mandala-scenes/view-nx9/context';
+import { getSceneKeyId } from 'src/mandala-scenes/shared/scene-projection';
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 import type { MandalaView } from 'src/view/view';
 
@@ -28,8 +28,7 @@ const getBaseTheme = (section: string | undefined) => getSectionCore(section) ??
 
 type SyncSceneStateArgs = {
     view: MandalaView;
-    mode: MandalaMode;
-    variant: MandalaSceneVariant;
+    sceneKey: MandalaSceneKey;
     dayPlanEnabled: boolean;
     subgridTheme: string | null | undefined;
     sectionToNodeId: Record<string, string | undefined>;
@@ -44,12 +43,11 @@ type SyncSceneStateArgs = {
 };
 
 export const createSceneStateSynchronizer = () => {
-    let previousSceneKey: `${MandalaMode}:${MandalaSceneVariant}` | null = null;
+    let previousSceneKey: ReturnType<typeof getSceneKeyId> | null = null;
 
     const syncModeCompatibility = ({
         view,
-        mode,
-        variant,
+        sceneKey,
         dayPlanEnabled,
         subgridTheme,
         sectionToNodeId,
@@ -57,8 +55,7 @@ export const createSceneStateSynchronizer = () => {
     }: Pick<
         SyncSceneStateArgs,
         | 'view'
-        | 'mode'
-        | 'variant'
+        | 'sceneKey'
         | 'dayPlanEnabled'
         | 'subgridTheme'
         | 'sectionToNodeId'
@@ -74,7 +71,7 @@ export const createSceneStateSynchronizer = () => {
             documentState.meta.isMandala &&
             (!profile?.dayPlan || canUseWeekVariant);
 
-        if (mode && !subgridTheme) {
+        if (sceneKey.viewKind && !subgridTheme) {
             view.viewStore.dispatch({
                 type: 'view/mandala/subgrid/enter',
                 payload: { theme: '1' },
@@ -82,19 +79,19 @@ export const createSceneStateSynchronizer = () => {
         }
 
         if (
-            mode === 'nx9' &&
-            variant === 'week-7x9' &&
+            sceneKey.viewKind === 'nx9' &&
+            sceneKey.variant === 'week-7x9' &&
             !canUseWeekVariant
         ) {
             view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
         }
 
-        if (mode === 'nx9' && !canUseNx9Mode) {
+        if (sceneKey.viewKind === 'nx9' && !canUseNx9Mode) {
             view.ensureCompatibleMandalaMode(documentState.file.frontmatter);
         }
 
         if (
-            mode === '3x3' &&
+            sceneKey.viewKind === '3x3' &&
             subgridTheme &&
             subgridTheme !== '1' &&
             !sectionToNodeId[subgridTheme]
@@ -108,18 +105,20 @@ export const createSceneStateSynchronizer = () => {
 
     const clearInactiveModeState = (
         view: MandalaView,
-        mode: MandalaMode,
-        variant: MandalaSceneVariant,
+        sceneKey: MandalaSceneKey,
         hasSceneChanged: boolean,
     ) => {
         if (!hasSceneChanged) return;
-        if (mode !== '9x9' && view.mandalaActiveCell9x9) {
+        if (sceneKey.viewKind !== '9x9' && view.mandalaActiveCell9x9) {
             setActiveCell9x9(view, null);
         }
-        if (mode !== 'nx9' && view.mandalaActiveCellNx9) {
+        if (sceneKey.viewKind !== 'nx9' && view.mandalaActiveCellNx9) {
             setActiveCellNx9(view, null);
         }
-        if (variant !== 'week-7x9' && view.mandalaActiveCellWeek7x9) {
+        if (
+            sceneKey.variant !== 'week-7x9' &&
+            view.mandalaActiveCellWeek7x9
+        ) {
             setActiveCellWeek7x9(view, null);
         }
     };
@@ -286,22 +285,23 @@ export const createSceneStateSynchronizer = () => {
 
     return (args: SyncSceneStateArgs) => {
         syncModeCompatibility(args);
-        const sceneKey = `${args.mode}:${args.variant}` as const;
+        const sceneKey = getSceneKeyId(args.sceneKey);
         const hasSceneChanged = previousSceneKey !== sceneKey;
-        clearInactiveModeState(
-            args.view,
-            args.mode,
-            args.variant,
-            hasSceneChanged,
-        );
+        clearInactiveModeState(args.view, args.sceneKey, hasSceneChanged);
 
-        if (args.mode === '9x9') {
+        if (args.sceneKey.viewKind === '9x9') {
             sync9x9State(args);
         }
-        if (args.mode === 'nx9' && args.variant !== 'week-7x9') {
+        if (
+            args.sceneKey.viewKind === 'nx9' &&
+            args.sceneKey.variant !== 'week-7x9'
+        ) {
             syncNx9State(args);
         }
-        if (args.mode === 'nx9' && args.variant === 'week-7x9') {
+        if (
+            args.sceneKey.viewKind === 'nx9' &&
+            args.sceneKey.variant === 'week-7x9'
+        ) {
             syncWeekState(args);
         }
 

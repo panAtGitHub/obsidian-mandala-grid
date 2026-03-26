@@ -8,6 +8,11 @@
     } from 'src/mandala-display/logic/mandala-profile';
     import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
     import {
+        resolveSceneRendererKind,
+        type SceneProjection,
+        type ThreeByThreeSceneProjectionProps,
+    } from 'src/mandala-scenes/shared/scene-projection';
+    import {
         DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
@@ -207,6 +212,11 @@
         viewKind: '3x3',
         variant: 'default',
     };
+    let committedSceneKey: MandalaSceneKey = {
+        viewKind: '3x3',
+        variant: 'default',
+    };
+    let sceneProjection: SceneProjection;
 
     $: sceneKey = resolveMandalaSceneKey({
         frontmatter: $documentState.file.frontmatter,
@@ -217,8 +227,7 @@
     $: {
         syncSceneState({
             view,
-            mode: $mode,
-            variant: sceneKey.variant,
+            sceneKey: committedSceneKey,
             dayPlanEnabled: $dayPlanEnabled,
             subgridTheme: $subgridTheme,
             sectionToNodeId: $sectionToNodeId,
@@ -232,15 +241,15 @@
             weekStart: $weekStart,
         });
         view.flushSceneSyncTrace({
-            mode: $mode,
+            mode: committedSceneKey.viewKind,
         });
     }
 
     $: dayPlanTodayTargetSection =
-        $mode === '3x3'
+        sceneKey.viewKind === '3x3'
             ? syncThreeByThreeSceneState({
                   view,
-                  mode: $mode,
+                  mode: sceneKey.viewKind,
                   subgridTheme: $subgridTheme,
                   documentState: $documentState,
                   sectionToNodeId: $sectionToNodeId,
@@ -294,14 +303,57 @@
                   whiteThemeMode: $whiteThemeMode,
               })
             : [];
+    $: threeByThreeProjectionProps = {
+        cells: threeByThreeCells,
+        theme: threeByThreeTheme,
+        animateSwap: $swapState.animate,
+        show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
+        hasOpenOverlayModal: $hasOpenOverlayModal,
+        dayPlanEnabled: $dayPlanEnabled,
+        showDayPlanTodayButton: $showDayPlanTodayButton,
+        dayPlanTodayTargetSection,
+        activeCoreSection,
+        todayButtonLabel: lang.day_plan_today_button_label,
+        enterSubgridFromButton: (event: MouseEvent, nodeId: string) =>
+            enterThreeByThreeSubgridFromButton(view, event, nodeId),
+        exitSubgridFromButton: (event: MouseEvent) =>
+            exitThreeByThreeSubgridFromButton(view, event),
+        focusDayPlanTodayFromButton: (event: MouseEvent) =>
+            focusThreeByThreeTodayFromButton(view, event),
+        onMobileCardDoubleClick: ({
+            nodeId,
+            displaySection,
+            event,
+        }) =>
+            handleThreeByThreeMobileCardDoubleClick(
+                view,
+                event,
+                nodeId,
+                displaySection,
+            ),
+        getUpButtonLabel: getThreeByThreeUpButtonLabel,
+        getDownButtonLabel: getThreeByThreeDownButtonLabel,
+    } satisfies ThreeByThreeSceneProjectionProps;
+    $: sceneProjection =
+        resolveSceneRendererKind(sceneKey) === '3x3-layout'
+            ? {
+                  sceneKey,
+                  rendererKind: '3x3-layout',
+                  props: threeByThreeProjectionProps,
+              }
+            : {
+                  sceneKey,
+                  rendererKind: resolveSceneRendererKind(sceneKey),
+                  props: {},
+              };
 </script>
 
 <div
     class="mandala-root"
-    class:mandala-root--3={$mode === '3x3'}
-    class:mandala-root--9={$mode === '9x9'}
-    class:mandala-root--nx9={$mode === 'nx9'}
-    class:mandala-root--week={sceneKey.variant === 'week-7x9'}
+    class:mandala-root--3={committedSceneKey.viewKind === '3x3'}
+    class:mandala-root--9={committedSceneKey.viewKind === '9x9'}
+    class:mandala-root--nx9={committedSceneKey.viewKind === 'nx9'}
+    class:mandala-root--week={committedSceneKey.variant === 'week-7x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && $showDetailSidebar}
     class:is-desktop-square-layout={!Platform.isMobile && $squareLayout}
@@ -348,35 +400,8 @@
             >
                 <SceneRuntimeHost
                     sceneKey={sceneKey}
-                    cells={threeByThreeCells}
-                    theme={threeByThreeTheme}
-                    animateSwap={$swapState.animate}
-                    show3x3SubgridNavButtons={$show3x3SubgridNavButtons}
-                    hasOpenOverlayModal={$hasOpenOverlayModal}
-                    dayPlanEnabled={$dayPlanEnabled}
-                    showDayPlanTodayButton={$showDayPlanTodayButton}
-                    {dayPlanTodayTargetSection}
-                    {activeCoreSection}
-                    todayButtonLabel={lang.day_plan_today_button_label}
-                    enterSubgridFromButton={(event, nodeId) =>
-                        enterThreeByThreeSubgridFromButton(view, event, nodeId)}
-                    exitSubgridFromButton={(event) =>
-                        exitThreeByThreeSubgridFromButton(view, event)}
-                    focusDayPlanTodayFromButton={(event) =>
-                        focusThreeByThreeTodayFromButton(view, event)}
-                    onMobileCardDoubleClick={({
-                        nodeId,
-                        displaySection,
-                        event,
-                    }) =>
-                        handleThreeByThreeMobileCardDoubleClick(
-                            view,
-                            event,
-                            nodeId,
-                            displaySection,
-                        )}
-                    getUpButtonLabel={getThreeByThreeUpButtonLabel}
-                    getDownButtonLabel={getThreeByThreeDownButtonLabel}
+                    projection={sceneProjection}
+                    bind:committedSceneKey
                 />
             </div>
 
