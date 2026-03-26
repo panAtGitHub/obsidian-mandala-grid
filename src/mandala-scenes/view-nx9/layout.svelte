@@ -6,7 +6,6 @@
         type Nx9StructureContext,
     } from 'src/mandala-scenes/view-nx9/context';
     import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
-    import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import {
         type Nx9PageFrameRowViewModel,
         type Nx9PageIndex,
@@ -26,6 +25,7 @@
         isPaddingNx9Row,
         isRealNx9Row,
     } from 'src/mandala-scenes/view-nx9/page-runtime';
+    import { createNx9SelectionRuntime } from 'src/mandala-scenes/view-nx9/selection-runtime';
 
     const view = getView();
     const contextRuntime = createNx9ContextRuntime({
@@ -36,6 +36,10 @@
     });
     const pageRuntime = createNx9PageRuntime({
         recordPerfEvent: view.recordPerfEvent.bind(view),
+    });
+    const selectionRuntime = createNx9SelectionRuntime({
+        view,
+        getCurrentPage: () => nx9Context.currentPage,
     });
     let rows: Nx9RowViewModel[] = [];
     let staticRows: Nx9StaticRowViewModel[] = [];
@@ -143,27 +147,6 @@
         showDetailSidebar,
     });
 
-    const selectGhostCreateCell = (row: number) => {
-        setActiveCellNx9(view, {
-            row,
-            col: 0,
-            page: nx9Context.currentPage,
-        });
-    };
-
-    const selectRealCell = (
-        row: number,
-        col: number,
-        nodeId: string | null,
-    ) => {
-        if (!nodeId) return;
-        setActiveCellNx9(view, {
-            row,
-            col,
-            page: nx9Context.currentPage,
-        });
-    };
-
 </script>
 
 <div
@@ -185,7 +168,11 @@
                     class:is-active-node={cell.isActiveNode}
                     style={`grid-row: ${cell.row + 1}; grid-column: ${cell.col + 1};`}
                     on:click|capture={() =>
-                        selectRealCell(cell.row, cell.col, cell.nodeId)}
+                        selectionRuntime.selectRealCell(
+                            cell.row,
+                            cell.col,
+                            cell.nodeId,
+                        )}
                 >
                     {#if cell.cardViewModel}
                         <MandalaCard
@@ -208,7 +195,8 @@
                 class:is-right-edge={true}
                 class:is-active-cell={rowModel.isActiveCell}
                 style={`grid-row: ${rowModel.row + 1}; grid-column: 1 / 10;`}
-                on:click={() => selectGhostCreateCell(rowModel.row)}
+                on:click={() =>
+                    selectionRuntime.selectGhostCreateCell(rowModel.row)}
             >
                 <div class="nx9-cell__future-stack">
                     <div class="nx9-cell__future-surface">
