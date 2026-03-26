@@ -60,6 +60,14 @@ export type SceneProjection =
 export const sceneKeyEquals = (a: MandalaSceneKey, b: MandalaSceneKey) =>
     a.viewKind === b.viewKind && a.variant === b.variant;
 
+export const shouldUseCommittedSceneProjection = (
+    sceneKey: MandalaSceneKey,
+    committedSceneKey: MandalaSceneKey,
+) =>
+    sceneKey.viewKind === '3x3' &&
+    committedSceneKey.viewKind === '3x3' &&
+    sceneKeyEquals(sceneKey, committedSceneKey);
+
 export const getSceneKeyId = (sceneKey: MandalaSceneKey) =>
     `${sceneKey.viewKind}:${sceneKey.variant}` as const;
 

@@ -10,6 +10,7 @@
     import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
     import {
         resolveSceneRendererKind,
+        shouldUseCommittedSceneProjection,
         type SceneProjection,
         type ThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/shared/scene-projection';
@@ -225,6 +226,7 @@
     let shouldRetainCommittedThreeByThreeState = false;
     let preparedThreeByThreeCells = [];
     let committedThreeByThreeCells = [];
+    let activeThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
 
     $: sceneKey = resolveMandalaSceneKey({
         frontmatter: $documentState.file.frontmatter,
@@ -386,12 +388,21 @@
         getUpButtonLabel: getThreeByThreeUpButtonLabel,
         getDownButtonLabel: getThreeByThreeDownButtonLabel,
     } satisfies ThreeByThreeSceneProjectionProps;
+    $: committedThreeByThreeProjectionProps = {
+        ...threeByThreeProjectionProps,
+        cells: committedThreeByThreeCells,
+        dayPlanTodayTargetSection: committedDayPlanTodayTargetSection,
+    } satisfies ThreeByThreeSceneProjectionProps;
+    $: activeThreeByThreeProjectionProps =
+        shouldUseCommittedSceneProjection(sceneKey, committedSceneKey)
+            ? committedThreeByThreeProjectionProps
+            : threeByThreeProjectionProps;
     $: sceneProjection =
         resolveSceneRendererKind(sceneKey) === '3x3-layout'
             ? {
                   sceneKey,
                   rendererKind: '3x3-layout',
-                  props: threeByThreeProjectionProps,
+                  props: activeThreeByThreeProjectionProps,
               }
             : {
                   sceneKey,
