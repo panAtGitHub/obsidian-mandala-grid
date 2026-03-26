@@ -3,7 +3,7 @@ import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-c
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCell,
-    type SceneCardCellOutput,
+    type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
     Nx9CellWithPage,
@@ -45,13 +45,11 @@ type AssembleNx9RowsOptions = SharedStaticNx9RowsOptions &
         };
     };
 
-export type Nx9RealCellViewModel = SceneCardCellOutput & {
+export type Nx9RealCellViewModel = SceneCardCellViewModel & {
     kind: 'real-cell';
     key: string;
     row: number;
     col: number;
-    section: string;
-    nodeId: string | null;
     isActiveCell: boolean;
     isActiveNode: boolean;
     isTopEdge: boolean;
@@ -341,7 +339,7 @@ export const buildNx9PageStaticRows = ({
 
         return row.map((cell) => ({
             ...cell,
-            cardViewModel: buildSceneCardCell({
+            ...buildSceneCardCell({
                 descriptor: {
                     nodeId: cell.nodeId,
                     section: cell.section,
@@ -362,7 +360,7 @@ export const buildNx9PageStaticRows = ({
                     pinnedSections: new Set(),
                     showDetailSidebar: false,
                 },
-            }).cardViewModel,
+            }),
         }));
     });
 };

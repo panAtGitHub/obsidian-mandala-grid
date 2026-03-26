@@ -81,6 +81,8 @@ describe('card-scene-cell', () => {
                 },
             }),
         ).toMatchObject({
+            section: '1.1',
+            nodeId: 'node-1',
             cardViewModel: {
                 nodeId: 'node-1',
                 section: '1.1',

@@ -32,6 +32,11 @@ export type SceneCardCellOutput = {
     cardUiState: MandalaCardUiState;
 };
 
+export type SceneCardCellViewModel = SceneCardCellOutput & {
+    section: string;
+    nodeId: string | null;
+};
+
 export const buildSceneCardViewModel = (
     descriptor: SceneCardCellDescriptor,
 ): MandalaCardViewModel | null =>
@@ -86,9 +91,9 @@ export const buildSceneCardCell = ({
 }: {
     descriptor: SceneCardCellDescriptor;
     interaction: SceneCardInteractionDescriptor;
-}): SceneCardCellOutput => ({
-    cardViewModel: buildSceneCardViewModel(descriptor),
-    cardUiState: descriptor.nodeId
+}): SceneCardCellViewModel => {
+    const cardViewModel = buildSceneCardViewModel(descriptor);
+    const cardUiState = descriptor.nodeId
         ? buildSceneCardUiState({
               nodeId: descriptor.nodeId,
               section: descriptor.section,
@@ -98,5 +103,12 @@ export const buildSceneCardCell = ({
               pinnedSections: interaction.pinnedSections,
               showDetailSidebar: interaction.showDetailSidebar,
           })
-        : createInactiveSceneCardUiState(),
-});
+        : createInactiveSceneCardUiState();
+
+    return {
+        section: descriptor.section,
+        nodeId: descriptor.nodeId,
+        cardViewModel,
+        cardUiState,
+    };
+};
