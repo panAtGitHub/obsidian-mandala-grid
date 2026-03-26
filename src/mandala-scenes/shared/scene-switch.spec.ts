@@ -70,13 +70,17 @@ const defaultProjection = (
                       showDetailSidebar: false,
                       whiteThemeMode: false,
                       activeNodeId: 'node-1',
+                      activeSection: '1.2',
+                      activeCoreSection: '1',
                       activeCell: { row: 1, col: 2, page: 0 },
                       editingState: {
                           activeNodeId: 'node-1',
                           isInSidebar: false,
                       },
                       selectedNodes: new Set(['node-1']),
+                      selectedStamp: 'node-1',
                       pinnedSections: new Set(['1']),
+                      pinnedStamp: '1',
                   },
               };
 

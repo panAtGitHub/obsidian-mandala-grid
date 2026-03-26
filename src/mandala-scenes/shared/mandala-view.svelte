@@ -214,10 +214,14 @@
                 showDetailSidebar: $showDetailSidebar,
                 whiteThemeMode: $whiteThemeMode,
                 activeNodeId: $activeNodeId,
+                activeSection,
+                activeCoreSection,
                 activeCell: $nx9ActiveCell,
                 editingState: $editingState,
                 selectedNodes: $selectedNodes,
+                selectedStamp: selectedNodesStamp,
                 pinnedSections: $pinnedSections,
+                pinnedStamp: pinnedSectionsStamp,
             });
         };
 
@@ -271,6 +275,8 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
+    let selectedNodesStamp = '';
+    let pinnedSectionsStamp = '';
     let preparedDayPlanTodayTargetSection: string | null = null;
     let committedDayPlanTodayTargetSection: string | null = null;
     let sceneKey: MandalaSceneKey = {
@@ -311,10 +317,14 @@
         showDetailSidebar: $showDetailSidebar,
         whiteThemeMode: $whiteThemeMode,
         activeNodeId: $activeNodeId,
+        activeSection,
+        activeCoreSection,
         activeCell: $nx9ActiveCell,
         editingState: $editingState,
         selectedNodes: $selectedNodes,
+        selectedStamp: selectedNodesStamp,
         pinnedSections: $pinnedSections,
+        pinnedStamp: pinnedSectionsStamp,
     });
 
     $: sceneKey = resolveMandalaSceneKey({
@@ -322,6 +332,8 @@
         viewKind: $mode,
         weekPlanEnabled: view.plugin.settings.getValue().general.weekPlanEnabled,
     });
+    $: selectedNodesStamp = Array.from($selectedNodes).sort().join('|');
+    $: pinnedSectionsStamp = Array.from($pinnedSections).sort().join('|');
     $: weekProjectionProps = buildWeekSceneProjectionProps({
         frontmatter: $documentState.file.frontmatter,
         anchorDate: $weekAnchorDate,
@@ -349,10 +361,14 @@
         showDetailSidebar: $showDetailSidebar,
         whiteThemeMode: $whiteThemeMode,
         activeNodeId: $activeNodeId,
+        activeSection,
+        activeCoreSection,
         activeCell: $nx9ActiveCell,
         editingState: $editingState,
         selectedNodes: $selectedNodes,
+        selectedStamp: selectedNodesStamp,
         pinnedSections: $pinnedSections,
+        pinnedStamp: pinnedSectionsStamp,
     });
 
     $: {

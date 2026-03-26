@@ -57,13 +57,17 @@ export type Nx9SceneProjection = {
         showDetailSidebar: boolean;
         whiteThemeMode: boolean;
         activeNodeId: string | null;
+        activeSection: string | null;
+        activeCoreSection: string | null;
         activeCell: { row: number; col: number; page?: number } | null;
         editingState: {
             activeNodeId: string | null;
             isInSidebar: boolean;
         };
         selectedNodes: Set<string>;
+        selectedStamp: string;
         pinnedSections: Set<string>;
+        pinnedStamp: string;
     };
 };
 

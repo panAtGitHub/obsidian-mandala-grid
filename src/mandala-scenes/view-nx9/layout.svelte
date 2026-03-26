@@ -36,7 +36,6 @@
             revision: state.meta.mandalaV2.revision,
             contentRevision: state.meta.mandalaV2.contentRevision,
             sectionIdMap: state.sections.section_id,
-            idToSection: state.sections.id_section,
             documentContent: state.document.content,
         }),
         (a, b) =>
@@ -48,8 +47,6 @@
     let currentPage = 0;
     let rowCount = 1;
     let futureScale = 1;
-    let activeSection: string | null = null;
-    let activeCoreSection: string | null = null;
     let structureContext: Nx9StructureContext;
     let nx9Context: Nx9PageContext;
     let pageFrame: Nx9PageFrameRowViewModel[] = [];
@@ -72,6 +69,8 @@
     export let showDetailSidebar = false;
     export let whiteThemeMode = false;
     export let activeNodeId: string | null = null;
+    export let activeSection: string | null = null;
+    export let activeCoreSection: string | null = null;
     export let activeCell: { row: number; col: number; page?: number } | null =
         null;
     export let editingState: {
@@ -82,11 +81,11 @@
         isInSidebar: false,
     };
     export let selectedNodes: Set<string> = new Set();
+    export let selectedStamp = '';
     export let pinnedSections: Set<string> = new Set();
     let hydrationMarker = '';
     let hydrationRequestId = 0;
-    let selectedStamp = '';
-    let pinnedStamp = '';
+    export let pinnedStamp = '';
 
     let cachedStructureKey = '';
     let cachedStructureContext: Nx9StructureContext | null = null;
@@ -509,12 +508,6 @@
         hydrationRequestId += 1;
     });
 
-    $: selectedStamp = Array.from(selectedNodes).sort().join('|');
-    $: pinnedStamp = Array.from(pinnedSections).sort().join('|');
-    $: activeSection = activeNodeId
-        ? $documentSnapshot.idToSection[activeNodeId] ?? null
-        : null;
-    $: activeCoreSection = activeSection?.split('.')[0] ?? null;
     $: structureContext = resolveCachedStructureContext({
         sectionIdMap: $documentSnapshot.sectionIdMap,
         documentContent: $documentSnapshot.documentContent,
