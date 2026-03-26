@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
-    import { derivedEq } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
         resolveNx9PageContext,
@@ -30,18 +29,6 @@
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
 
     const view = getView();
-    const documentSnapshot = derivedEq(
-        view.documentStore,
-        (state) => ({
-            revision: state.meta.mandalaV2.revision,
-            contentRevision: state.meta.mandalaV2.contentRevision,
-            sectionIdMap: state.sections.section_id,
-            documentContent: state.document.content,
-        }),
-        (a, b) =>
-            a.revision === b.revision &&
-            a.contentRevision === b.contentRevision,
-    );
     let rows: Nx9RowViewModel[] = [];
     let staticRows: Nx9StaticRowViewModel[] = [];
     let currentPage = 0;
@@ -61,6 +48,17 @@
         themeTone: 'light',
         themeUnderlayColor: '',
         activeThemeUnderlayColor: '',
+    };
+    export let documentSnapshot: {
+        revision: number;
+        contentRevision: number;
+        sectionIdMap: Record<string, string>;
+        documentContent: Record<string, { content?: string }>;
+    } = {
+        revision: 0,
+        contentRevision: 0,
+        sectionIdMap: {},
+        documentContent: {},
     };
     export let rowsPerPage = 5;
     export let sectionColors: Record<string, string> = {};
@@ -509,12 +507,12 @@
     });
 
     $: structureContext = resolveCachedStructureContext({
-        sectionIdMap: $documentSnapshot.sectionIdMap,
-        documentContent: $documentSnapshot.documentContent,
+        sectionIdMap: documentSnapshot.sectionIdMap,
+        documentContent: documentSnapshot.documentContent,
         rowsPerPage,
         activeSection: activeCoreSection,
-        revision: $documentSnapshot.revision,
-        contentRevision: $documentSnapshot.contentRevision,
+        revision: documentSnapshot.revision,
+        contentRevision: documentSnapshot.contentRevision,
     });
     $: nx9Context = resolveCachedPageContext({
         structureContext,
@@ -527,14 +525,14 @@
         rowCount <= 5 ? 1 : Math.max(0.58, Math.min(1, 5 / rowCount));
     $: pageFrame = resolveCachedPageFrame({
         context: nx9Context,
-        sectionIdMap: $documentSnapshot.sectionIdMap,
+        sectionIdMap: documentSnapshot.sectionIdMap,
     });
     $: pageIndex = resolveCachedPageIndex({ pageFrame });
     $: {
         const nodeIds = collectNx9HydratableNodeIds(pageFrame);
         const pageSignature = nodeIds.join('|');
         const marker = [
-            $documentSnapshot.revision,
+            documentSnapshot.revision,
             currentPage,
             rowCount,
             pageSignature,

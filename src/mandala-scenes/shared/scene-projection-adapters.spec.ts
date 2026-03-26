@@ -38,6 +38,12 @@ const committedProps: ThreeByThreeSceneProjectionProps = {
 };
 
 const nx9ProjectionProps = {
+    documentSnapshot: {
+        revision: 1,
+        contentRevision: 2,
+        sectionIdMap: { '1': 'node-1' },
+        documentContent: { 'node-1': { content: 'hello' } },
+    },
     themeSnapshot: {
         themeTone: 'light',
         themeUnderlayColor: '#fff',

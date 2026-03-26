@@ -206,6 +206,12 @@
                 activeThemeUnderlayColor,
             };
             nx9ProjectionProps = buildNx9SceneProjectionProps({
+                documentSnapshot: {
+                    revision: $documentState.meta.mandalaV2.revision,
+                    contentRevision: $documentState.meta.mandalaV2.contentRevision,
+                    sectionIdMap: $documentState.sections.section_id,
+                    documentContent: $documentState.document.content,
+                },
                 themeSnapshot,
                 rowsPerPage: $nx9RowsPerPage,
                 sectionColors: $sectionColors,
@@ -305,6 +311,12 @@
         whiteThemeMode: $whiteThemeMode,
     });
     let nx9ProjectionProps = buildNx9SceneProjectionProps({
+        documentSnapshot: {
+            revision: $documentState.meta.mandalaV2.revision,
+            contentRevision: $documentState.meta.mandalaV2.contentRevision,
+            sectionIdMap: $documentState.sections.section_id,
+            documentContent: $documentState.document.content,
+        },
         themeSnapshot: {
             themeTone: 'light',
             themeUnderlayColor: '',
@@ -353,6 +365,12 @@
         pinnedSections: $pinnedSections,
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
+        documentSnapshot: {
+            revision: $documentState.meta.mandalaV2.revision,
+            contentRevision: $documentState.meta.mandalaV2.contentRevision,
+            sectionIdMap: $documentState.sections.section_id,
+            documentContent: $documentState.document.content,
+        },
         themeSnapshot: nx9ProjectionProps.themeSnapshot,
         rowsPerPage: $nx9RowsPerPage,
         sectionColors: $sectionColors,

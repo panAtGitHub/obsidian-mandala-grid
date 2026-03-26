@@ -58,6 +58,14 @@ const defaultProjection = (
                   sceneKey: { viewKind, variant },
                   rendererKind: 'nx9-layout',
                   props: {
+                      documentSnapshot: {
+                          revision: 1,
+                          contentRevision: 2,
+                          sectionIdMap: { '1': 'node-1' },
+                          documentContent: {
+                              'node-1': { content: 'hello' },
+                          },
+                      },
                       themeSnapshot: {
                           themeTone: 'light',
                           themeUnderlayColor: '#fff',

@@ -5,6 +5,7 @@ import type {
 } from 'src/mandala-scenes/shared/scene-projection';
 
 export const buildNx9SceneProjectionProps = ({
+    documentSnapshot,
     themeSnapshot,
     rowsPerPage,
     sectionColors,
@@ -22,6 +23,12 @@ export const buildNx9SceneProjectionProps = ({
     pinnedSections,
     pinnedStamp,
 }: {
+    documentSnapshot: {
+        revision: number;
+        contentRevision: number;
+        sectionIdMap: Record<string, string>;
+        documentContent: Record<string, { content?: string }>;
+    };
     themeSnapshot: MandalaThemeSnapshot;
     rowsPerPage: number;
     sectionColors: Record<string, string>;
@@ -42,6 +49,7 @@ export const buildNx9SceneProjectionProps = ({
     pinnedSections: Set<string>;
     pinnedStamp: string;
 }) => ({
+    documentSnapshot,
     themeSnapshot,
     rowsPerPage,
     sectionColors,

@@ -8,6 +8,12 @@ describe('build-nx9-scene-projection', () => {
     it('builds nx9 scene projection props from a theme snapshot', () => {
         expect(
             buildNx9SceneProjectionProps({
+                documentSnapshot: {
+                    revision: 1,
+                    contentRevision: 2,
+                    sectionIdMap: { '1': 'node-1' },
+                    documentContent: { 'node-1': { content: 'hello' } },
+                },
                 themeSnapshot: {
                     themeTone: 'light',
                     themeUnderlayColor: '#fff',
@@ -33,6 +39,12 @@ describe('build-nx9-scene-projection', () => {
                 pinnedStamp: '1',
             }),
         ).toEqual({
+            documentSnapshot: {
+                revision: 1,
+                contentRevision: 2,
+                sectionIdMap: { '1': 'node-1' },
+                documentContent: { 'node-1': { content: 'hello' } },
+            },
             themeSnapshot: {
                 themeTone: 'light',
                 themeUnderlayColor: '#fff',
@@ -65,6 +77,12 @@ describe('build-nx9-scene-projection', () => {
                 viewKind: 'nx9',
                 variant: 'default',
             }, {
+                documentSnapshot: {
+                    revision: 1,
+                    contentRevision: 2,
+                    sectionIdMap: { '1': 'node-1' },
+                    documentContent: { 'node-1': { content: 'hello' } },
+                },
                 themeSnapshot: {
                     themeTone: 'light',
                     themeUnderlayColor: '#fff',
@@ -96,6 +114,12 @@ describe('build-nx9-scene-projection', () => {
             },
             rendererKind: 'nx9-layout',
             props: {
+                documentSnapshot: {
+                    revision: 1,
+                    contentRevision: 2,
+                    sectionIdMap: { '1': 'node-1' },
+                    documentContent: { 'node-1': { content: 'hello' } },
+                },
                 themeSnapshot: {
                     themeTone: 'light',
                     themeUnderlayColor: '#fff',
