@@ -1,4 +1,3 @@
-import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
 import type {
     MandalaCardUiState,
     MandalaCardViewModel,
@@ -6,6 +5,11 @@ import type {
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
+import {
+    buildSceneCardUiState,
+    buildSceneCardViewModel,
+    createInactiveSceneCardUiState,
+} from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
     Nx9CellWithPage,
     Nx9PageContext,
@@ -180,39 +184,6 @@ const createDisplayPolicy = (whiteThemeMode: boolean): CellDisplayPolicy => ({
     }),
 });
 
-const buildCardUiState = ({
-    nodeId,
-    section,
-    activeNodeId,
-    editingState,
-    selectedNodes,
-    pinnedSections,
-    showDetailSidebar,
-}: {
-    nodeId: string;
-    section: string;
-    activeNodeId: string | null;
-    editingState: Nx9EditingState;
-    selectedNodes: Set<string>;
-    pinnedSections: Set<string>;
-    showDetailSidebar: boolean;
-}): MandalaCardUiState => ({
-    active: nodeId === activeNodeId,
-    editing:
-        editingState.activeNodeId === nodeId &&
-        !editingState.isInSidebar &&
-        !showDetailSidebar,
-    selected: selectedNodes.has(nodeId),
-    pinned: pinnedSections.has(section),
-});
-
-const createInactiveCardUiState = (): MandalaCardUiState => ({
-    active: false,
-    editing: false,
-    selected: false,
-    pinned: false,
-});
-
 const createRealCellFrameViewModel = ({
     context,
     documentState,
@@ -378,10 +349,9 @@ export const buildNx9PageStaticRows = ({
         return row.map((cell) => ({
             ...cell,
             cardViewModel: cell.nodeId
-                ? buildMandalaCardViewModel({
+                ? buildSceneCardViewModel({
                       nodeId: cell.nodeId,
                       section: cell.section,
-                      style: undefined,
                       sectionColor: resolveSectionBackgroundInput({
                           section: cell.section,
                           backgroundMode,
@@ -432,7 +402,7 @@ export const applyNx9PageInteractionState = ({
 
         return row.map((cell) => {
             const nextCardUiState = cell.nodeId
-                ? buildCardUiState({
+                ? buildSceneCardUiState({
                       nodeId: cell.nodeId,
                       section: cell.section,
                       activeNodeId,
@@ -441,7 +411,7 @@ export const applyNx9PageInteractionState = ({
                       pinnedSections,
                       showDetailSidebar,
                   })
-                : createInactiveCardUiState();
+                : createInactiveSceneCardUiState();
 
             return {
                 ...cell,

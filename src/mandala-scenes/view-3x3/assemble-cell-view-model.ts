@@ -1,4 +1,3 @@
-import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
 import type {
     MandalaCardUiState,
     MandalaCardViewModel,
@@ -9,6 +8,10 @@ import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
+import {
+    buildSceneCardUiState,
+    buildSceneCardViewModel,
+} from 'src/mandala-scenes/shared/card-scene-cell';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
 
 type ThreeByThreeEditingState = {
@@ -123,26 +126,31 @@ export const assemble3x3CellViewModels = ({
             isCenter: section === theme,
             sectionBackground,
             cardViewModel: nodeId
-                ? buildMandalaCardViewModel({
+                ? buildSceneCardViewModel({
                       nodeId,
                       section,
                       contentEnabled: true,
-                      style: undefined,
                       sectionColor: sectionBackground,
                       metaAccentColor: sectionColors[section] ?? null,
                       displayPolicy,
                   })
                 : null,
-            cardUiState: {
-                active: nodeId === activeNodeId,
-                editing:
-                    !!nodeId &&
-                    editingState.activeNodeId === nodeId &&
-                    !editingState.isInSidebar &&
-                    !showDetailSidebar,
-                selected: !!nodeId && selectedNodes.has(nodeId),
-                pinned: pinnedSections.has(section),
-            },
+            cardUiState: nodeId
+                ? buildSceneCardUiState({
+                      nodeId,
+                      section,
+                      activeNodeId,
+                      editingState,
+                      selectedNodes,
+                      pinnedSections,
+                      showDetailSidebar,
+                  })
+                : {
+                      active: false,
+                      editing: false,
+                      selected: false,
+                      pinned: false,
+                  },
         };
     });
 };
