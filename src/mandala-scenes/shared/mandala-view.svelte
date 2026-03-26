@@ -9,6 +9,7 @@
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
     import {
+        getMandalaActiveCellNx9,
         getMandalaActiveCellWeek7x9,
         getMandalaWeekAnchorDate,
     } from 'src/mandala-scenes/shared/scene-runtime';
@@ -173,6 +174,10 @@
         view.viewStore,
         (state) => getMandalaWeekAnchorDate(state),
     );
+    const nx9ActiveCell = derived(
+        view.viewStore,
+        (state) => getMandalaActiveCellNx9(state),
+    );
     const weekActiveCell = derived(
         view.viewStore,
         (state) => getMandalaActiveCellWeek7x9(state),
@@ -208,6 +213,11 @@
                 backgroundMode: $backgroundMode,
                 showDetailSidebar: $showDetailSidebar,
                 whiteThemeMode: $whiteThemeMode,
+                activeNodeId: $activeNodeId,
+                activeCell: $nx9ActiveCell,
+                editingState: $editingState,
+                selectedNodes: $selectedNodes,
+                pinnedSections: $pinnedSections,
             });
         };
 
@@ -300,6 +310,11 @@
         backgroundMode: $backgroundMode,
         showDetailSidebar: $showDetailSidebar,
         whiteThemeMode: $whiteThemeMode,
+        activeNodeId: $activeNodeId,
+        activeCell: $nx9ActiveCell,
+        editingState: $editingState,
+        selectedNodes: $selectedNodes,
+        pinnedSections: $pinnedSections,
     });
 
     $: sceneKey = resolveMandalaSceneKey({
@@ -333,6 +348,11 @@
         backgroundMode: $backgroundMode,
         showDetailSidebar: $showDetailSidebar,
         whiteThemeMode: $whiteThemeMode,
+        activeNodeId: $activeNodeId,
+        activeCell: $nx9ActiveCell,
+        editingState: $editingState,
+        selectedNodes: $selectedNodes,
+        pinnedSections: $pinnedSections,
     });
 
     $: {

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onDestroy } from 'svelte';
-    import { derived, derivedEq } from 'src/shared/store/derived';
-    import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
+    import { derivedEq } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
         resolveNx9PageContext,
@@ -29,7 +28,6 @@
     import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
-    import { getMandalaActiveCellNx9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     const view = getView();
     const documentSnapshot = derivedEq(
@@ -45,47 +43,6 @@
             a.revision === b.revision &&
             a.contentRevision === b.contentRevision,
     );
-    const activeCellStore = derived(
-        view.viewStore,
-        (state) => getMandalaActiveCellNx9(state),
-    );
-    const activeNodeId = derived(
-        view.viewStore,
-        (state) => state.document.activeNode,
-    );
-    const editingState = derivedEq(
-        view.viewStore,
-        (state) => ({
-            activeNodeId: state.document.editing.activeNodeId,
-            isInSidebar: state.document.editing.isInSidebar,
-        }),
-        (a, b) =>
-            a.activeNodeId === b.activeNodeId &&
-            a.isInSidebar === b.isInSidebar,
-    );
-    const selectedNodesSnapshot = derivedEq(
-        view.viewStore,
-        (state) => {
-            const ids = Array.from(state.document.selectedNodes).sort();
-            return {
-                value: state.document.selectedNodes,
-                stamp: ids.join('|'),
-            };
-        },
-        (a, b) => a.stamp === b.stamp,
-    );
-    const pinnedSectionsSnapshot = derivedEq(
-        PinnedSectionsStore(view),
-        (sections) => {
-            const values = Array.from(sections).sort();
-            return {
-                value: sections,
-                stamp: values.join('|'),
-            };
-        },
-        (a, b) => a.stamp === b.stamp,
-    );
-
     let rows: Nx9RowViewModel[] = [];
     let staticRows: Nx9StaticRowViewModel[] = [];
     let currentPage = 0;
@@ -93,7 +50,6 @@
     let futureScale = 1;
     let activeSection: string | null = null;
     let activeCoreSection: string | null = null;
-    let activeCell: { row: number; col: number; page?: number } | null = null;
     let structureContext: Nx9StructureContext;
     let nx9Context: Nx9PageContext;
     let pageFrame: Nx9PageFrameRowViewModel[] = [];
@@ -115,8 +71,22 @@
     export let backgroundMode = 'none';
     export let showDetailSidebar = false;
     export let whiteThemeMode = false;
+    export let activeNodeId: string | null = null;
+    export let activeCell: { row: number; col: number; page?: number } | null =
+        null;
+    export let editingState: {
+        activeNodeId: string | null;
+        isInSidebar: boolean;
+    } = {
+        activeNodeId: null,
+        isInSidebar: false,
+    };
+    export let selectedNodes: Set<string> = new Set();
+    export let pinnedSections: Set<string> = new Set();
     let hydrationMarker = '';
     let hydrationRequestId = 0;
+    let selectedStamp = '';
+    let pinnedStamp = '';
 
     let cachedStructureKey = '';
     let cachedStructureContext: Nx9StructureContext | null = null;
@@ -539,8 +509,11 @@
         hydrationRequestId += 1;
     });
 
-    $: activeCell = $activeCellStore;
-    $: activeSection = $documentSnapshot.idToSection[$activeNodeId] ?? null;
+    $: selectedStamp = Array.from(selectedNodes).sort().join('|');
+    $: pinnedStamp = Array.from(pinnedSections).sort().join('|');
+    $: activeSection = activeNodeId
+        ? $documentSnapshot.idToSection[activeNodeId] ?? null
+        : null;
     $: activeCoreSection = activeSection?.split('.')[0] ?? null;
     $: structureContext = resolveCachedStructureContext({
         sectionIdMap: $documentSnapshot.sectionIdMap,
@@ -576,7 +549,7 @@
         if (hydrationMarker !== marker) {
             hydrationMarker = marker;
             const initialNodeId =
-                nodeIds.find((nodeId) => nodeId === $activeNodeId) ??
+                nodeIds.find((nodeId) => nodeId === activeNodeId) ??
                 nodeIds[0] ??
                 null;
             hydratedNodeIds = initialNodeId
@@ -584,11 +557,11 @@
                 : new Set();
             schedulePageHydration(marker, currentPage, nodeIds);
         } else if (
-            $activeNodeId &&
-            nodeIds.includes($activeNodeId) &&
-            !hydratedNodeIds.has($activeNodeId)
+            activeNodeId &&
+            nodeIds.includes(activeNodeId) &&
+            !hydratedNodeIds.has(activeNodeId)
         ) {
-            hydratedNodeIds = new Set(hydratedNodeIds).add($activeNodeId);
+            hydratedNodeIds = new Set(hydratedNodeIds).add(activeNodeId);
         }
     }
     $: staticRows = resolveCachedStaticRows({
@@ -604,13 +577,13 @@
         staticRows,
         pageIndex,
         context: nx9Context,
-        activeNodeId: $activeNodeId,
+        activeNodeId,
         activeCell,
-        editingState: $editingState,
-        selectedNodes: $selectedNodesSnapshot.value,
-        selectedStamp: $selectedNodesSnapshot.stamp,
-        pinnedSections: $pinnedSectionsSnapshot.value,
-        pinnedStamp: $pinnedSectionsSnapshot.stamp,
+        editingState,
+        selectedNodes,
+        selectedStamp,
+        pinnedSections,
+        pinnedStamp,
         showDetailSidebar,
     });
 

@@ -12,6 +12,11 @@ export const buildNx9SceneProjectionProps = ({
     backgroundMode,
     showDetailSidebar,
     whiteThemeMode,
+    activeNodeId,
+    activeCell,
+    editingState,
+    selectedNodes,
+    pinnedSections,
 }: {
     themeSnapshot: MandalaThemeSnapshot;
     rowsPerPage: number;
@@ -20,6 +25,14 @@ export const buildNx9SceneProjectionProps = ({
     backgroundMode: string;
     showDetailSidebar: boolean;
     whiteThemeMode: boolean;
+    activeNodeId: string | null;
+    activeCell: { row: number; col: number; page?: number } | null;
+    editingState: {
+        activeNodeId: string | null;
+        isInSidebar: boolean;
+    };
+    selectedNodes: Set<string>;
+    pinnedSections: Set<string>;
 }) => ({
     themeSnapshot,
     rowsPerPage,
@@ -28,6 +41,11 @@ export const buildNx9SceneProjectionProps = ({
     backgroundMode,
     showDetailSidebar,
     whiteThemeMode,
+    activeNodeId,
+    activeCell,
+    editingState,
+    selectedNodes,
+    pinnedSections,
 });
 
 export const buildNx9SceneProjection = (

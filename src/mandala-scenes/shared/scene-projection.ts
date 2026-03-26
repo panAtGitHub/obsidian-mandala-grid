@@ -56,6 +56,14 @@ export type Nx9SceneProjection = {
         backgroundMode: string;
         showDetailSidebar: boolean;
         whiteThemeMode: boolean;
+        activeNodeId: string | null;
+        activeCell: { row: number; col: number; page?: number } | null;
+        editingState: {
+            activeNodeId: string | null;
+            isInSidebar: boolean;
+        };
+        selectedNodes: Set<string>;
+        pinnedSections: Set<string>;
     };
 };
 
