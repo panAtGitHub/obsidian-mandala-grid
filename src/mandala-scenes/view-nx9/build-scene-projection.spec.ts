@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildNx9LegacySceneProjection } from 'src/mandala-scenes/view-nx9/build-legacy-scene-projection';
+import { buildNx9SceneProjection } from 'src/mandala-scenes/view-nx9/build-scene-projection';
 
-describe('build-nx9-legacy-scene-projection', () => {
-    it('wraps nx9 default scenes as a dedicated legacy projection', () => {
+describe('build-nx9-scene-projection', () => {
+    it('wraps nx9 default scenes as a dedicated projection', () => {
         expect(
-            buildNx9LegacySceneProjection({
+            buildNx9SceneProjection({
                 viewKind: 'nx9',
                 variant: 'default',
             }),

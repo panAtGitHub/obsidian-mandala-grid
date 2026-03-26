@@ -4,9 +4,9 @@ import {
     type ThreeByThreeSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
 import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/build-scene-projection';
-import { buildWeekLegacySceneProjection } from 'src/mandala-scenes/view-7x9/build-legacy-scene-projection';
 import { buildNineByNineLegacySceneProjection } from 'src/mandala-scenes/view-9x9/build-legacy-scene-projection';
-import { buildNx9LegacySceneProjection } from 'src/mandala-scenes/view-nx9/build-legacy-scene-projection';
+import { buildWeekSceneProjection } from 'src/mandala-scenes/view-7x9/build-scene-projection';
+import { buildNx9SceneProjection } from 'src/mandala-scenes/view-nx9/build-scene-projection';
 
 export const buildLegacySceneProjection = (
     sceneKey: MandalaSceneKey,
@@ -15,9 +15,9 @@ export const buildLegacySceneProjection = (
         return buildNineByNineLegacySceneProjection(sceneKey);
     }
     if (sceneKey.variant === 'week-7x9') {
-        return buildWeekLegacySceneProjection(sceneKey);
+        return buildWeekSceneProjection(sceneKey);
     }
-    return buildNx9LegacySceneProjection(sceneKey);
+    return buildNx9SceneProjection(sceneKey);
 };
 
 export const buildSceneProjection = ({
