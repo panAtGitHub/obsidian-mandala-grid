@@ -3,6 +3,7 @@ import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-c
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCell,
+    type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
@@ -196,14 +197,19 @@ const createRealCellFrameViewModel = ({
 }): Nx9RealCellFrameViewModel => {
     const section = col === 0 ? coreSection : `${coreSection}.${col}`;
     const nodeId = documentState.sections.section_id[section] ?? null;
+    const frame: SceneCardCellFrame = {
+        key: `${context.currentPage}-${row}-${col}`,
+        section,
+        nodeId,
+    };
 
     return {
         kind: 'real-cell',
-        key: `${context.currentPage}-${row}-${col}`,
+        key: frame.key,
         row,
         col,
-        section,
-        nodeId,
+        section: frame.section,
+        nodeId: frame.nodeId,
         isTopEdge: row === 0,
         isBottomEdge: row === rowCount - 1,
         isLeftEdge: col === 0,
@@ -340,6 +346,11 @@ export const buildNx9PageStaticRows = ({
         return row.map((cell) => ({
             ...cell,
             ...buildSceneCardCell({
+                frame: {
+                    key: cell.key,
+                    section: cell.section,
+                    nodeId: cell.nodeId,
+                },
                 descriptor: {
                     nodeId: cell.nodeId,
                     section: cell.section,
@@ -400,6 +411,11 @@ export const applyNx9PageInteractionState = ({
 
         return row.map((cell) => {
             const nextCardUiState = buildSceneCardCell({
+                frame: {
+                    key: cell.key,
+                    section: cell.section,
+                    nodeId: cell.nodeId,
+                },
                 descriptor: {
                     nodeId: cell.nodeId,
                     section: cell.section,

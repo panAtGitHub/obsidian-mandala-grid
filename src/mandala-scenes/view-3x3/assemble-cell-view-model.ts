@@ -6,6 +6,7 @@ import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-ty
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
     buildSceneCardCell,
+    type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
@@ -32,7 +33,6 @@ export type Assemble3x3CellViewModelsArgs = {
 };
 
 export type ThreeByThreeCellViewModel = SceneCardCellViewModel & {
-    key: string;
     index: number;
     isCenter: boolean;
     sectionBackground: string | null;
@@ -117,7 +117,13 @@ export const assemble3x3CellViewModels = ({
             metaAccentColor: sectionColors[section] ?? null,
             displayPolicy,
         };
+        const frame: SceneCardCellFrame = {
+            key: section,
+            section,
+            nodeId,
+        };
         const cardCell = buildSceneCardCell({
+            frame,
             descriptor,
             interaction: {
                 activeNodeId,
@@ -129,7 +135,6 @@ export const assemble3x3CellViewModels = ({
         });
 
         return {
-            key: section,
             index,
             isCenter: section === theme,
             sectionBackground,

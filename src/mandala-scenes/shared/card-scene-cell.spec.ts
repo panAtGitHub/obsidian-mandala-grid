@@ -61,6 +61,11 @@ describe('card-scene-cell', () => {
     it('builds a complete shared card cell from descriptor and interaction', () => {
         expect(
             buildSceneCardCell({
+                frame: {
+                    key: '1.1',
+                    section: '1.1',
+                    nodeId: 'node-1',
+                },
                 descriptor: {
                     nodeId: 'node-1',
                     section: '1.1',
@@ -81,6 +86,7 @@ describe('card-scene-cell', () => {
                 },
             }),
         ).toMatchObject({
+            key: '1.1',
             section: '1.1',
             nodeId: 'node-1',
             cardViewModel: {
