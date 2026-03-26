@@ -67,6 +67,9 @@ describe('build-three-by-three-scene-projection', () => {
         });
 
         expect(projection.rendererKind).toBe('3x3-layout');
+        if (projection.rendererKind !== '3x3-layout') {
+            throw new Error('expected 3x3 projection');
+        }
         expect(projection.props.dayPlanTodayTargetSection).toBe('2');
     });
 
@@ -85,6 +88,9 @@ describe('build-three-by-three-scene-projection', () => {
         });
 
         expect(projection.rendererKind).toBe('3x3-layout');
+        if (projection.rendererKind !== '3x3-layout') {
+            throw new Error('expected 3x3 projection');
+        }
         expect(projection.props.dayPlanTodayTargetSection).toBe('1');
     });
 });

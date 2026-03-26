@@ -94,6 +94,9 @@ describe('scene-projection-adapters', () => {
         });
 
         expect(projection.rendererKind).toBe('3x3-layout');
+        if (projection.rendererKind !== '3x3-layout') {
+            throw new Error('expected 3x3 projection');
+        }
         expect(projection.props.dayPlanTodayTargetSection).toBe('2');
     });
 
@@ -113,6 +116,9 @@ describe('scene-projection-adapters', () => {
         });
 
         expect(projection.rendererKind).toBe('3x3-layout');
+        if (projection.rendererKind !== '3x3-layout') {
+            throw new Error('expected 3x3 projection');
+        }
         expect(projection.props.dayPlanTodayTargetSection).toBe('1');
     });
 
@@ -141,6 +147,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            weekProps: { rows: [] },
         });
         const nx9Projection = buildSceneProjection({
             sceneKey: {
@@ -183,6 +190,9 @@ describe('scene-projection-adapters', () => {
             hasPendingSceneSwitch(threeByThreeProjection, nx9Projection),
         ).toBe(true);
         expect(threeByThreeProjection.rendererKind).toBe('3x3-layout');
+        if (threeByThreeProjection.rendererKind !== '3x3-layout') {
+            throw new Error('expected 3x3 projection');
+        }
         expect(threeByThreeProjection.props.cells).toBe(preparedProps.cells);
 
         expect(hasPendingSceneSwitch(nx9Projection, nineByNineProjection)).toBe(

@@ -42,7 +42,9 @@ const defaultProjection = (
             ? {
                   sceneKey: { viewKind, variant },
                   rendererKind: 'week-layout',
-                  props: {},
+                  props: {
+                      rows: [],
+                  },
               }
             : {
                   sceneKey: { viewKind, variant },
