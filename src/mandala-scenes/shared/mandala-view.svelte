@@ -7,6 +7,7 @@
         resolveMandalaSceneKey,
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
+    import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
     import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
     import {
         type SceneProjection,
@@ -52,6 +53,7 @@
         buildThreeByThreeSceneProjection,
         buildThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/view-3x3/build-scene-projection';
+    import { buildWeekSceneProjectionProps } from 'src/mandala-scenes/view-7x9/build-scene-projection';
     import {
         buildThreeByThreeCells,
         enterThreeByThreeSubgridFromButton,
@@ -230,11 +232,21 @@
     let committedThreeByThreeCells = [];
     let threeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
+    let weekProjectionProps = buildWeekSceneProjectionProps({
+        rows: [],
+    });
 
     $: sceneKey = resolveMandalaSceneKey({
         frontmatter: $documentState.file.frontmatter,
         viewKind: $mode,
         weekPlanEnabled: view.plugin.settings.getValue().general.weekPlanEnabled,
+    });
+    $: weekProjectionProps = buildWeekSceneProjectionProps({
+        rows: resolveWeekPlanContext({
+            frontmatter: $documentState.file.frontmatter,
+            anchorDate: $weekAnchorDate,
+            weekStart: $weekStart,
+        }).rows,
     });
 
     $: {
@@ -426,6 +438,7 @@
                   committedSceneKey,
                   preparedThreeByThreeProps: threeByThreeProjectionProps,
                   committedThreeByThreeProps: committedThreeByThreeProjectionProps,
+                  weekProps: weekProjectionProps,
               });
 </script>
 

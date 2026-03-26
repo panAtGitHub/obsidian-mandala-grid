@@ -102,7 +102,7 @@
     {:else if renderedProjection.rendererKind === '9x9-layout'}
         <NineByNineLayout />
     {:else if renderedProjection.rendererKind === 'week-layout'}
-        <WeekPlanLayout />
+        <WeekPlanLayout rows={renderedProjection.props.rows} />
     {:else}
         <Nx9Layout />
     {/if}

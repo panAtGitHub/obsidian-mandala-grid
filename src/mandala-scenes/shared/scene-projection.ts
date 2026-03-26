@@ -1,5 +1,6 @@
 import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
+import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 
 export type SceneRendererKind =
@@ -45,10 +46,14 @@ export type Nx9SceneProjection = {
     props: Record<string, never>;
 };
 
+export type WeekSceneProjectionProps = {
+    rows: WeekPlanRow[];
+};
+
 export type WeekSceneProjection = {
     sceneKey: MandalaSceneKey;
     rendererKind: 'week-layout';
-    props: Record<string, never>;
+    props: WeekSceneProjectionProps;
 };
 
 export type SceneProjection =

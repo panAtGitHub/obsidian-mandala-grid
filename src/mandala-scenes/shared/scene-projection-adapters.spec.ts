@@ -40,7 +40,7 @@ describe('scene-projection-adapters', () => {
             buildLegacySceneProjection({
                 viewKind: '9x9',
                 variant: 'default',
-            }),
+            }, { weekProps: { rows: [] } }),
         ).toEqual({
             sceneKey: {
                 viewKind: '9x9',
@@ -54,21 +54,21 @@ describe('scene-projection-adapters', () => {
             buildLegacySceneProjection({
                 viewKind: 'nx9',
                 variant: 'week-7x9',
-            }),
+            }, { weekProps: { rows: [] } }),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
                 variant: 'week-7x9',
             },
             rendererKind: 'week-layout',
-            props: {},
+            props: { rows: [] },
         });
 
         expect(
             buildLegacySceneProjection({
                 viewKind: 'nx9',
                 variant: 'default',
-            }),
+            }, { weekProps: { rows: [] } }),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
@@ -109,6 +109,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            weekProps: { rows: [] },
         });
 
         expect(projection.rendererKind).toBe('3x3-layout');
@@ -127,6 +128,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            weekProps: { rows: [] },
         });
         const threeByThreeProjection = buildSceneProjection({
             sceneKey: {
@@ -151,6 +153,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            weekProps: { rows: [] },
         });
         const nineByNineProjection = buildSceneProjection({
             sceneKey: {
@@ -163,6 +166,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            weekProps: { rows: [] },
         });
 
         expect(hasPendingSceneSwitch(weekProjection, threeByThreeProjection)).toBe(
@@ -198,6 +202,7 @@ describe('scene-projection-adapters', () => {
                     },
                     preparedThreeByThreeProps: preparedProps,
                     committedThreeByThreeProps: committedProps,
+                    weekProps: { rows: [] },
                 }),
             ),
         ).toBe(true);
