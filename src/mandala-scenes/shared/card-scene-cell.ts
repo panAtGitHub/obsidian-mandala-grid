@@ -19,6 +19,19 @@ export type SceneCardCellDescriptor = {
     displayPolicy: CellDisplayPolicy;
 };
 
+export type SceneCardInteractionDescriptor = {
+    activeNodeId: string | null;
+    editingState: SceneCardEditingState;
+    selectedNodes: Set<string>;
+    pinnedSections: Set<string>;
+    showDetailSidebar: boolean;
+};
+
+export type SceneCardCell = {
+    cardViewModel: MandalaCardViewModel | null;
+    cardUiState: MandalaCardUiState;
+};
+
 export const buildSceneCardViewModel = (
     descriptor: SceneCardCellDescriptor,
 ): MandalaCardViewModel | null =>
@@ -65,4 +78,25 @@ export const buildSceneCardUiState = ({
         !showDetailSidebar,
     selected: selectedNodes.has(nodeId),
     pinned: pinnedSections.has(section),
+});
+
+export const buildSceneCardCell = ({
+    descriptor,
+    interaction,
+}: {
+    descriptor: SceneCardCellDescriptor;
+    interaction: SceneCardInteractionDescriptor;
+}): SceneCardCell => ({
+    cardViewModel: buildSceneCardViewModel(descriptor),
+    cardUiState: descriptor.nodeId
+        ? buildSceneCardUiState({
+              nodeId: descriptor.nodeId,
+              section: descriptor.section,
+              activeNodeId: interaction.activeNodeId,
+              editingState: interaction.editingState,
+              selectedNodes: interaction.selectedNodes,
+              pinnedSections: interaction.pinnedSections,
+              showDetailSidebar: interaction.showDetailSidebar,
+          })
+        : createInactiveSceneCardUiState(),
 });

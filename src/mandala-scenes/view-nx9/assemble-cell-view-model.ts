@@ -6,9 +6,7 @@ import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-poli
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
-    buildSceneCardUiState,
-    buildSceneCardViewModel,
-    createInactiveSceneCardUiState,
+    buildSceneCardCell,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
     Nx9CellWithPage,
@@ -348,21 +346,28 @@ export const buildNx9PageStaticRows = ({
 
         return row.map((cell) => ({
             ...cell,
-            cardViewModel: cell.nodeId
-                ? buildSceneCardViewModel({
-                      nodeId: cell.nodeId,
-                      section: cell.section,
-                      sectionColor: resolveSectionBackgroundInput({
-                          section: cell.section,
-                          backgroundMode,
-                          sectionColorsBySection: sectionColors,
-                          sectionColorOpacity,
-                      }),
-                      metaAccentColor: sectionColors[cell.section] ?? null,
-                      displayPolicy,
-                      contentEnabled: hydratedNodeIds.has(cell.nodeId),
-                  })
-                : null,
+            cardViewModel: buildSceneCardCell({
+                descriptor: {
+                    nodeId: cell.nodeId,
+                    section: cell.section,
+                    sectionColor: resolveSectionBackgroundInput({
+                        section: cell.section,
+                        backgroundMode,
+                        sectionColorsBySection: sectionColors,
+                        sectionColorOpacity,
+                    }),
+                    metaAccentColor: sectionColors[cell.section] ?? null,
+                    displayPolicy,
+                    contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
+                },
+                interaction: {
+                    activeNodeId: null,
+                    editingState: { activeNodeId: null, isInSidebar: false },
+                    selectedNodes: new Set(),
+                    pinnedSections: new Set(),
+                    showDetailSidebar: false,
+                },
+            }).cardViewModel,
         }));
     });
 };
@@ -401,17 +406,23 @@ export const applyNx9PageInteractionState = ({
         }
 
         return row.map((cell) => {
-            const nextCardUiState = cell.nodeId
-                ? buildSceneCardUiState({
-                      nodeId: cell.nodeId,
-                      section: cell.section,
-                      activeNodeId,
-                      editingState,
-                      selectedNodes,
-                      pinnedSections,
-                      showDetailSidebar,
-                  })
-                : createInactiveSceneCardUiState();
+            const nextCardUiState = buildSceneCardCell({
+                descriptor: {
+                    nodeId: cell.nodeId,
+                    section: cell.section,
+                    contentEnabled: !!cell.cardViewModel?.contentEnabled,
+                    sectionColor: cell.cardViewModel?.sectionColor ?? null,
+                    metaAccentColor: cell.cardViewModel?.metaAccentColor ?? null,
+                    displayPolicy: cell.cardViewModel?.displayPolicy ?? createDisplayPolicy(false),
+                },
+                interaction: {
+                    activeNodeId,
+                    editingState,
+                    selectedNodes,
+                    pinnedSections,
+                    showDetailSidebar,
+                },
+            }).cardUiState;
 
             return {
                 ...cell,

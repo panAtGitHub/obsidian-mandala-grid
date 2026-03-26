@@ -9,8 +9,7 @@ import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
-    buildSceneCardUiState,
-    buildSceneCardViewModel,
+    buildSceneCardCell,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
 
@@ -117,6 +116,24 @@ export const assemble3x3CellViewModels = ({
             sectionColors,
             sectionColorOpacity,
         });
+        const descriptor = {
+            nodeId,
+            section,
+            contentEnabled: true,
+            sectionColor: sectionBackground,
+            metaAccentColor: sectionColors[section] ?? null,
+            displayPolicy,
+        };
+        const cardCell = buildSceneCardCell({
+            descriptor,
+            interaction: {
+                activeNodeId,
+                editingState,
+                selectedNodes,
+                pinnedSections,
+                showDetailSidebar,
+            },
+        });
 
         return {
             key: section,
@@ -125,32 +142,8 @@ export const assemble3x3CellViewModels = ({
             nodeId,
             isCenter: section === theme,
             sectionBackground,
-            cardViewModel: nodeId
-                ? buildSceneCardViewModel({
-                      nodeId,
-                      section,
-                      contentEnabled: true,
-                      sectionColor: sectionBackground,
-                      metaAccentColor: sectionColors[section] ?? null,
-                      displayPolicy,
-                  })
-                : null,
-            cardUiState: nodeId
-                ? buildSceneCardUiState({
-                      nodeId,
-                      section,
-                      activeNodeId,
-                      editingState,
-                      selectedNodes,
-                      pinnedSections,
-                      showDetailSidebar,
-                  })
-                : {
-                      active: false,
-                      editing: false,
-                      selected: false,
-                      pinned: false,
-                  },
+            cardViewModel: cardCell.cardViewModel,
+            cardUiState: cardCell.cardUiState,
         };
     });
 };

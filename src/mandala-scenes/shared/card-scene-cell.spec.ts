@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import {
+    buildSceneCardCell,
     buildSceneCardUiState,
     buildSceneCardViewModel,
     createInactiveSceneCardUiState,
@@ -54,6 +55,42 @@ describe('card-scene-cell', () => {
             editing: false,
             selected: false,
             pinned: false,
+        });
+    });
+
+    it('builds a complete shared card cell from descriptor and interaction', () => {
+        expect(
+            buildSceneCardCell({
+                descriptor: {
+                    nodeId: 'node-1',
+                    section: '1.1',
+                    contentEnabled: true,
+                    sectionColor: null,
+                    metaAccentColor: null,
+                    displayPolicy: createDefaultCellDisplayPolicy(),
+                },
+                interaction: {
+                    activeNodeId: 'node-1',
+                    editingState: {
+                        activeNodeId: null,
+                        isInSidebar: false,
+                    },
+                    selectedNodes: new Set(['node-1']),
+                    pinnedSections: new Set(['1.1']),
+                    showDetailSidebar: false,
+                },
+            }),
+        ).toMatchObject({
+            cardViewModel: {
+                nodeId: 'node-1',
+                section: '1.1',
+            },
+            cardUiState: {
+                active: true,
+                editing: false,
+                selected: true,
+                pinned: true,
+            },
         });
     });
 });
