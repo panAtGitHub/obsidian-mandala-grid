@@ -5,13 +5,29 @@ import {
 } from 'src/mandala-scenes/view-7x9/build-scene-projection';
 
 describe('build-week-scene-projection', () => {
-    it('builds week projection props from resolved rows', () => {
+    it('builds week projection props from frontmatter and anchor state', () => {
         expect(
             buildWeekSceneProjectionProps({
-                rows: [{ date: '2026-01-01', coreSection: '1', inPlanYear: true }],
+                frontmatter: `---
+mandala: true
+mandala_plan:
+  enabled: true
+  year: 2026
+  daily_only_3x3: true
+---`,
+                anchorDate: '2026-01-01',
+                weekStart: 'monday',
             }),
         ).toEqual({
-            rows: [{ date: '2026-01-01', coreSection: '1', inPlanYear: true }],
+            rows: [
+                { date: '2025-12-29', coreSection: null, inPlanYear: false },
+                { date: '2025-12-30', coreSection: null, inPlanYear: false },
+                { date: '2025-12-31', coreSection: null, inPlanYear: false },
+                { date: '2026-01-01', coreSection: '1', inPlanYear: true },
+                { date: '2026-01-02', coreSection: '2', inPlanYear: true },
+                { date: '2026-01-03', coreSection: '3', inPlanYear: true },
+                { date: '2026-01-04', coreSection: '4', inPlanYear: true },
+            ],
         });
     });
 

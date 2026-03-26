@@ -8,7 +8,6 @@
         resolveMandalaSceneKey,
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
-    import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
     import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
     import {
         type SceneProjection,
@@ -292,11 +291,9 @@
         weekPlanEnabled: view.plugin.settings.getValue().general.weekPlanEnabled,
     });
     $: weekProjectionProps = buildWeekSceneProjectionProps({
-        rows: resolveWeekPlanContext({
-            frontmatter: $documentState.file.frontmatter,
-            anchorDate: $weekAnchorDate,
-            weekStart: $weekStart,
-        }).rows,
+        frontmatter: $documentState.file.frontmatter,
+        anchorDate: $weekAnchorDate,
+        weekStart: $weekStart,
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
         themeSnapshot: nx9ProjectionProps.themeSnapshot,
