@@ -6,7 +6,6 @@
     import type { WeekPlanDesktopCellViewModel } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
 
     export let cells: WeekPlanDesktopCellViewModel[] = [];
-    export let compactMode = false;
     export let fontVariable = '--mandala-font-7x9';
 
     const view = getView();
