@@ -5,9 +5,10 @@ import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
-    buildSceneCardCell,
+    buildSceneCardCellList,
     createSceneCardCellSeed,
     type SceneCardCellFrame,
+    type SceneCardCellListDescriptor,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
@@ -100,7 +101,11 @@ export const assemble3x3CellViewModels = ({
         }),
     };
 
-    return layout.childSlots.map((slot, index) => {
+    const descriptors: SceneCardCellListDescriptor<{
+        index: number;
+        isCenter: boolean;
+        sectionBackground: string | null;
+    }>[] = layout.childSlots.map((slot, index) => {
         const section = slot ? `${theme}.${slot}` : theme;
         const nodeId = getSectionNodeId(topology, section);
         const sectionBackground = getSectionBackground({
@@ -124,22 +129,25 @@ export const assemble3x3CellViewModels = ({
             metaAccentColor: sectionColors[section] ?? null,
             displayPolicy,
         });
-        const cardCell = buildSceneCardCell({
-            seed,
-            interaction: {
-                activeNodeId,
-                editingState,
-                selectedNodes,
-                pinnedSections,
-                showDetailSidebar,
-            },
-        });
 
         return {
-            index,
-            isCenter: section === theme,
-            sectionBackground,
-            ...cardCell,
+            seed,
+            extra: {
+                index,
+                isCenter: section === theme,
+                sectionBackground,
+            },
         };
+    });
+
+    return buildSceneCardCellList({
+        descriptors,
+        interaction: {
+            activeNodeId,
+            editingState,
+            selectedNodes,
+            pinnedSections,
+            showDetailSidebar,
+        },
     });
 };

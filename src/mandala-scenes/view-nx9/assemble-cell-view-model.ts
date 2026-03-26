@@ -3,8 +3,11 @@ import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-c
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCell,
+    buildSceneCardCellList,
     createSceneCardCellSeed,
+    type SceneCardCellSeed,
     type SceneCardCellFrame,
+    type SceneCardCellListDescriptor,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type {
@@ -97,7 +100,9 @@ export type Nx9PageFrameRowViewModel =
 export type Nx9RealCellStaticViewModel = Omit<
     Nx9RealCellViewModel,
     'isActiveCell' | 'isActiveNode' | 'cardUiState'
->;
+> & {
+    seed: SceneCardCellSeed;
+};
 
 export type Nx9StaticRowViewModel =
     | Nx9RealCellStaticViewModel[]
@@ -344,32 +349,53 @@ export const buildNx9PageStaticRows = ({
             return row;
         }
 
-        return row.map((cell) => ({
-            ...cell,
-            ...buildSceneCardCell({
-                seed: createSceneCardCellSeed({
-                    key: cell.key,
+        const descriptors: SceneCardCellListDescriptor<{
+            kind: Nx9RealCellFrameViewModel['kind'];
+            key: string;
+            row: number;
+            col: number;
+            section: string;
+            nodeId: string | null;
+            isTopEdge: boolean;
+            isBottomEdge: boolean;
+            isLeftEdge: boolean;
+            isRightEdge: boolean;
+            seed: SceneCardCellSeed;
+        }>[] = row.map((cell) => {
+            const seed = createSceneCardCellSeed({
+                key: cell.key,
+                section: cell.section,
+                nodeId: cell.nodeId,
+                sectionColor: resolveSectionBackgroundInput({
                     section: cell.section,
-                    nodeId: cell.nodeId,
-                    sectionColor: resolveSectionBackgroundInput({
-                        section: cell.section,
-                        backgroundMode,
-                        sectionColorsBySection: sectionColors,
-                        sectionColorOpacity,
-                    }),
-                    metaAccentColor: sectionColors[cell.section] ?? null,
-                    displayPolicy,
-                    contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
+                    backgroundMode,
+                    sectionColorsBySection: sectionColors,
+                    sectionColorOpacity,
                 }),
-                interaction: {
-                    activeNodeId: null,
-                    editingState: { activeNodeId: null, isInSidebar: false },
-                    selectedNodes: new Set(),
-                    pinnedSections: new Set(),
-                    showDetailSidebar: false,
+                metaAccentColor: sectionColors[cell.section] ?? null,
+                displayPolicy,
+                contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
+            });
+
+            return {
+                seed,
+                extra: {
+                    ...cell,
+                    seed,
                 },
-            }),
-        }));
+            };
+        });
+
+        return buildSceneCardCellList({
+            descriptors,
+            interaction: {
+                activeNodeId: null,
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                pinnedSections: new Set(),
+                showDetailSidebar: false,
+            },
+        });
     });
 };
 
@@ -408,15 +434,7 @@ export const applyNx9PageInteractionState = ({
 
         return row.map((cell) => {
             const nextCardUiState = buildSceneCardCell({
-                seed: createSceneCardCellSeed({
-                    key: cell.key,
-                    section: cell.section,
-                    nodeId: cell.nodeId,
-                    contentEnabled: !!cell.cardViewModel?.contentEnabled,
-                    sectionColor: cell.cardViewModel?.sectionColor ?? null,
-                    metaAccentColor: cell.cardViewModel?.metaAccentColor ?? null,
-                    displayPolicy: cell.cardViewModel?.displayPolicy ?? createDisplayPolicy(false),
-                }),
+                seed: cell.seed,
                 interaction: {
                     activeNodeId,
                     editingState,

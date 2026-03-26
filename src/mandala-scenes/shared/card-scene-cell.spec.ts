@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import {
     buildSceneCardCell,
+    buildSceneCardCellList,
     buildSceneCardUiState,
     buildSceneCardViewModel,
     createSceneCardCellSeed,
@@ -126,5 +127,68 @@ describe('card-scene-cell', () => {
                 metaAccentColor: 'blue',
             },
         });
+    });
+
+    it('builds a shared card cell list from reusable descriptors', () => {
+        const displayPolicy = createDefaultCellDisplayPolicy();
+
+        expect(
+            buildSceneCardCellList({
+                descriptors: [
+                    {
+                        seed: createSceneCardCellSeed({
+                            key: '1.1',
+                            section: '1.1',
+                            nodeId: 'node-1',
+                            contentEnabled: true,
+                            sectionColor: null,
+                            metaAccentColor: null,
+                            displayPolicy,
+                        }),
+                        extra: { index: 0 },
+                    },
+                    {
+                        seed: createSceneCardCellSeed({
+                            key: '1.2',
+                            section: '1.2',
+                            nodeId: 'node-2',
+                            contentEnabled: false,
+                            sectionColor: null,
+                            metaAccentColor: null,
+                            displayPolicy,
+                        }),
+                        extra: { index: 1 },
+                    },
+                ],
+                interaction: {
+                    activeNodeId: 'node-1',
+                    editingState: { activeNodeId: null, isInSidebar: false },
+                    selectedNodes: new Set(['node-2']),
+                    pinnedSections: new Set(['1.2']),
+                    showDetailSidebar: false,
+                },
+            }),
+        ).toMatchObject([
+            {
+                index: 0,
+                key: '1.1',
+                cardUiState: {
+                    active: true,
+                    selected: false,
+                },
+            },
+            {
+                index: 1,
+                key: '1.2',
+                cardViewModel: {
+                    contentEnabled: false,
+                },
+                cardUiState: {
+                    active: false,
+                    selected: true,
+                    pinned: true,
+                },
+            },
+        ]);
     });
 });
