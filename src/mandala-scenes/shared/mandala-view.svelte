@@ -60,6 +60,7 @@
         syncThreeByThreeSceneState,
     } from 'src/mandala-scenes/view-3x3/scene-state';
     import SceneRuntimeHost from 'src/mandala-scenes/shared/scene-runtime-host.svelte';
+    import { createSceneCacheCleaner } from 'src/mandala-scenes/shared/scene-cache-cleanup';
     import { createMobileEditorViewportController } from 'src/mandala-scenes/shared/mobile-editor-viewport';
     import { ensureSceneCompatibility } from 'src/mandala-scenes/shared/scene-compatibility';
     import { createSceneStateSynchronizer } from 'src/mandala-scenes/shared/sync-scene-state';
@@ -93,6 +94,7 @@
     const sectionColors = SectionColorBySectionStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
+    const cleanSceneCaches = createSceneCacheCleaner();
     const syncSceneState = createSceneStateSynchronizer();
 
     const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
@@ -236,6 +238,7 @@
     }
 
     $: {
+        cleanSceneCaches(view, committedSceneKey);
         syncSceneState({
             view,
             sceneKey: committedSceneKey,

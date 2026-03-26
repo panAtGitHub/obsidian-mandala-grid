@@ -60,7 +60,7 @@ const createView = () => {
 };
 
 describe('sync-scene-state', () => {
-    it('clears inactive scene caches only when committed scene changes', () => {
+    it('does not clear unrelated scene caches while projecting current scene state', () => {
         const view = createView();
         const syncSceneState = createSceneStateSynchronizer();
         const baseArgs = {
@@ -84,21 +84,8 @@ describe('sync-scene-state', () => {
 
         syncSceneState(baseArgs);
 
-        expect(view.mandalaActiveCell9x9).toBe(null);
-        expect(view.mandalaActiveCellNx9).toBe(null);
-        expect(view.mandalaActiveCellWeek7x9).toBe(null);
-
-        view.mandalaActiveCell9x9 = { row: 4, col: 4 };
-        view.mandalaActiveCellNx9 = { row: 5, col: 5, page: 0 };
-        view.viewStore.dispatch({
-            type: 'view/mandala/week-active-cell/set',
-            payload: { cell: { row: 6, col: 6 } },
-        });
-
-        syncSceneState(baseArgs);
-
-        expect(view.mandalaActiveCell9x9).toEqual({ row: 4, col: 4 });
-        expect(view.mandalaActiveCellNx9).toEqual({ row: 5, col: 5, page: 0 });
-        expect(view.mandalaActiveCellWeek7x9).toEqual({ row: 6, col: 6 });
+        expect(view.mandalaActiveCell9x9).toEqual({ row: 0, col: 0 });
+        expect(view.mandalaActiveCellNx9).toEqual({ row: 1, col: 1, page: 0 });
+        expect(view.mandalaActiveCellWeek7x9).toEqual({ row: 2, col: 2 });
     });
 });

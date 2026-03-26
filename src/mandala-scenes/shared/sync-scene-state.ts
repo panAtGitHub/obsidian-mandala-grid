@@ -16,7 +16,6 @@ import {
     normalizeNx9VisibleSection,
     resolveNx9Context,
 } from 'src/mandala-scenes/view-nx9/context';
-import { getSceneKeyId } from 'src/mandala-scenes/shared/scene-projection';
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 import type { MandalaView } from 'src/view/view';
 
@@ -39,28 +38,6 @@ type SyncSceneStateArgs = {
 };
 
 export const createSceneStateSynchronizer = () => {
-    let previousSceneKey: ReturnType<typeof getSceneKeyId> | null = null;
-
-    const clearInactiveModeState = (
-        view: MandalaView,
-        sceneKey: MandalaSceneKey,
-        hasSceneChanged: boolean,
-    ) => {
-        if (!hasSceneChanged) return;
-        if (sceneKey.viewKind !== '9x9' && view.mandalaActiveCell9x9) {
-            setActiveCell9x9(view, null);
-        }
-        if (sceneKey.viewKind !== 'nx9' && view.mandalaActiveCellNx9) {
-            setActiveCellNx9(view, null);
-        }
-        if (
-            sceneKey.variant !== 'week-7x9' &&
-            view.mandalaActiveCellWeek7x9
-        ) {
-            setActiveCellWeek7x9(view, null);
-        }
-    };
-
     const sync9x9State = ({
         view,
         idToSection,
@@ -222,10 +199,6 @@ export const createSceneStateSynchronizer = () => {
     };
 
     return (args: SyncSceneStateArgs) => {
-        const sceneKey = getSceneKeyId(args.sceneKey);
-        const hasSceneChanged = previousSceneKey !== sceneKey;
-        clearInactiveModeState(args.view, args.sceneKey, hasSceneChanged);
-
         if (args.sceneKey.viewKind === '9x9') {
             sync9x9State(args);
         }
@@ -241,7 +214,5 @@ export const createSceneStateSynchronizer = () => {
         ) {
             syncWeekState(args);
         }
-
-        previousSceneKey = sceneKey;
     };
 };
