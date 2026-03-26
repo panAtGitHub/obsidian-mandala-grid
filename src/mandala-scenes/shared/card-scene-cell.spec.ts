@@ -4,6 +4,7 @@ import {
     buildSceneCardCell,
     buildSceneCardUiState,
     buildSceneCardViewModel,
+    createSceneCardCellSeed,
     createInactiveSceneCardUiState,
 } from 'src/mandala-scenes/shared/card-scene-cell';
 
@@ -59,21 +60,19 @@ describe('card-scene-cell', () => {
     });
 
     it('builds a complete shared card cell from descriptor and interaction', () => {
+        const seed = createSceneCardCellSeed({
+            key: '1.1',
+            section: '1.1',
+            nodeId: 'node-1',
+            contentEnabled: true,
+            sectionColor: null,
+            metaAccentColor: null,
+            displayPolicy: createDefaultCellDisplayPolicy(),
+        });
+
         expect(
             buildSceneCardCell({
-                frame: {
-                    key: '1.1',
-                    section: '1.1',
-                    nodeId: 'node-1',
-                },
-                descriptor: {
-                    nodeId: 'node-1',
-                    section: '1.1',
-                    contentEnabled: true,
-                    sectionColor: null,
-                    metaAccentColor: null,
-                    displayPolicy: createDefaultCellDisplayPolicy(),
-                },
+                seed,
                 interaction: {
                     activeNodeId: 'node-1',
                     editingState: {
@@ -98,6 +97,33 @@ describe('card-scene-cell', () => {
                 editing: false,
                 selected: true,
                 pinned: true,
+            },
+        });
+    });
+
+    it('creates a reusable shared card cell seed', () => {
+        expect(
+            createSceneCardCellSeed({
+                key: '1.2',
+                section: '1.2',
+                nodeId: 'node-2',
+                contentEnabled: false,
+                sectionColor: 'red',
+                metaAccentColor: 'blue',
+                displayPolicy: createDefaultCellDisplayPolicy(),
+            }),
+        ).toMatchObject({
+            frame: {
+                key: '1.2',
+                section: '1.2',
+                nodeId: 'node-2',
+            },
+            descriptor: {
+                nodeId: 'node-2',
+                section: '1.2',
+                contentEnabled: false,
+                sectionColor: 'red',
+                metaAccentColor: 'blue',
             },
         });
     });

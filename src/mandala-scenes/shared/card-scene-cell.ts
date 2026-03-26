@@ -25,6 +25,11 @@ export type SceneCardCellDescriptor = {
     displayPolicy: CellDisplayPolicy;
 };
 
+export type SceneCardCellSeed = {
+    frame: SceneCardCellFrame;
+    descriptor: SceneCardCellDescriptor;
+};
+
 export type SceneCardInteractionDescriptor = {
     activeNodeId: string | null;
     editingState: SceneCardEditingState;
@@ -89,14 +94,13 @@ export const buildSceneCardUiState = ({
 });
 
 export const buildSceneCardCell = ({
-    frame,
-    descriptor,
+    seed,
     interaction,
 }: {
-    frame: SceneCardCellFrame;
-    descriptor: SceneCardCellDescriptor;
+    seed: SceneCardCellSeed;
     interaction: SceneCardInteractionDescriptor;
 }): SceneCardCellViewModel => {
+    const { frame, descriptor } = seed;
     const cardViewModel = buildSceneCardViewModel(descriptor);
     const cardUiState = descriptor.nodeId
         ? buildSceneCardUiState({
@@ -118,3 +122,35 @@ export const buildSceneCardCell = ({
         cardUiState,
     };
 };
+
+export const createSceneCardCellSeed = ({
+    key,
+    section,
+    nodeId,
+    contentEnabled,
+    sectionColor,
+    metaAccentColor,
+    displayPolicy,
+}: {
+    key: string;
+    section: string;
+    nodeId: string | null;
+    contentEnabled: boolean;
+    sectionColor: string | null;
+    metaAccentColor: string | null;
+    displayPolicy: CellDisplayPolicy;
+}): SceneCardCellSeed => ({
+    frame: {
+        key,
+        section,
+        nodeId,
+    },
+    descriptor: {
+        nodeId,
+        section,
+        contentEnabled,
+        sectionColor,
+        metaAccentColor,
+        displayPolicy,
+    },
+});

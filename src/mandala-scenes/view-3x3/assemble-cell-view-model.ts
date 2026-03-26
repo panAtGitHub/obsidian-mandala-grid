@@ -6,6 +6,7 @@ import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-ty
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
     buildSceneCardCell,
+    createSceneCardCellSeed,
     type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
@@ -109,22 +110,22 @@ export const assemble3x3CellViewModels = ({
             sectionColors,
             sectionColorOpacity,
         });
-        const descriptor = {
-            nodeId,
-            section,
-            contentEnabled: true,
-            sectionColor: sectionBackground,
-            metaAccentColor: sectionColors[section] ?? null,
-            displayPolicy,
-        };
         const frame: SceneCardCellFrame = {
             key: section,
             section,
             nodeId,
         };
+        const seed = createSceneCardCellSeed({
+            key: frame.key,
+            section: frame.section,
+            nodeId: frame.nodeId,
+            contentEnabled: true,
+            sectionColor: sectionBackground,
+            metaAccentColor: sectionColors[section] ?? null,
+            displayPolicy,
+        });
         const cardCell = buildSceneCardCell({
-            frame,
-            descriptor,
+            seed,
             interaction: {
                 activeNodeId,
                 editingState,

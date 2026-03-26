@@ -3,6 +3,7 @@ import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-c
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCell,
+    createSceneCardCellSeed,
     type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
@@ -346,14 +347,10 @@ export const buildNx9PageStaticRows = ({
         return row.map((cell) => ({
             ...cell,
             ...buildSceneCardCell({
-                frame: {
+                seed: createSceneCardCellSeed({
                     key: cell.key,
                     section: cell.section,
                     nodeId: cell.nodeId,
-                },
-                descriptor: {
-                    nodeId: cell.nodeId,
-                    section: cell.section,
                     sectionColor: resolveSectionBackgroundInput({
                         section: cell.section,
                         backgroundMode,
@@ -363,7 +360,7 @@ export const buildNx9PageStaticRows = ({
                     metaAccentColor: sectionColors[cell.section] ?? null,
                     displayPolicy,
                     contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
-                },
+                }),
                 interaction: {
                     activeNodeId: null,
                     editingState: { activeNodeId: null, isInSidebar: false },
@@ -411,19 +408,15 @@ export const applyNx9PageInteractionState = ({
 
         return row.map((cell) => {
             const nextCardUiState = buildSceneCardCell({
-                frame: {
+                seed: createSceneCardCellSeed({
                     key: cell.key,
                     section: cell.section,
                     nodeId: cell.nodeId,
-                },
-                descriptor: {
-                    nodeId: cell.nodeId,
-                    section: cell.section,
                     contentEnabled: !!cell.cardViewModel?.contentEnabled,
                     sectionColor: cell.cardViewModel?.sectionColor ?? null,
                     metaAccentColor: cell.cardViewModel?.metaAccentColor ?? null,
                     displayPolicy: cell.cardViewModel?.displayPolicy ?? createDisplayPolicy(false),
-                },
+                }),
                 interaction: {
                     activeNodeId,
                     editingState,
