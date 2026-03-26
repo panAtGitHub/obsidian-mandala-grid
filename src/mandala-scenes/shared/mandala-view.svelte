@@ -9,11 +9,10 @@
     } from 'src/mandala-display/logic/mandala-profile';
     import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
     import {
-        resolveSceneRendererKind,
-        shouldUseCommittedSceneProjection,
         type SceneProjection,
         type ThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/shared/scene-projection';
+    import { buildSceneProjection } from 'src/mandala-scenes/shared/scene-projection-adapters';
     import {
         DayPlanEnabledStore,
         MandalaA4ModeStore,
@@ -226,7 +225,8 @@
     let shouldRetainCommittedThreeByThreeState = false;
     let preparedThreeByThreeCells = [];
     let committedThreeByThreeCells = [];
-    let activeThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
+    let threeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
+    let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
 
     $: sceneKey = resolveMandalaSceneKey({
         frontmatter: $documentState.file.frontmatter,
@@ -374,11 +374,7 @@
             exitThreeByThreeSubgridFromButton(view, event),
         focusDayPlanTodayFromButton: (event: MouseEvent) =>
             focusThreeByThreeTodayFromButton(view, event),
-        onMobileCardDoubleClick: ({
-            nodeId,
-            displaySection,
-            event,
-        }) =>
+        onMobileCardDoubleClick: ({ nodeId, displaySection, event }) =>
             handleThreeByThreeMobileCardDoubleClick(
                 view,
                 event,
@@ -387,28 +383,18 @@
             ),
         getUpButtonLabel: getThreeByThreeUpButtonLabel,
         getDownButtonLabel: getThreeByThreeDownButtonLabel,
-    } satisfies ThreeByThreeSceneProjectionProps;
+    };
     $: committedThreeByThreeProjectionProps = {
         ...threeByThreeProjectionProps,
         cells: committedThreeByThreeCells,
         dayPlanTodayTargetSection: committedDayPlanTodayTargetSection,
-    } satisfies ThreeByThreeSceneProjectionProps;
-    $: activeThreeByThreeProjectionProps =
-        shouldUseCommittedSceneProjection(sceneKey, committedSceneKey)
-            ? committedThreeByThreeProjectionProps
-            : threeByThreeProjectionProps;
-    $: sceneProjection =
-        resolveSceneRendererKind(sceneKey) === '3x3-layout'
-            ? {
-                  sceneKey,
-                  rendererKind: '3x3-layout',
-                  props: activeThreeByThreeProjectionProps,
-              }
-            : {
-                  sceneKey,
-                  rendererKind: resolveSceneRendererKind(sceneKey),
-                  props: {},
-              };
+    };
+    $: sceneProjection = buildSceneProjection({
+        sceneKey,
+        committedSceneKey,
+        preparedThreeByThreeProps: threeByThreeProjectionProps,
+        committedThreeByThreeProps: committedThreeByThreeProjectionProps,
+    });
 </script>
 
 <div
