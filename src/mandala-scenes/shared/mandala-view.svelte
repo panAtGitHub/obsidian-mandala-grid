@@ -47,8 +47,11 @@
     import { mobilePopupFontSizeStore } from 'src/stores/ui/mobile-popup-font-store';
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsStore } from 'src/mandala-display/stores/document-derived-stores';
-    import { lang } from 'src/lang/lang';
     import { buildMandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
+    import {
+        buildThreeByThreeSceneProjection,
+        buildThreeByThreeSceneProjectionProps,
+    } from 'src/mandala-scenes/view-3x3/build-scene-projection';
     import {
         buildThreeByThreeCells,
         enterThreeByThreeSubgridFromButton,
@@ -357,7 +360,7 @@
     ) {
         committedDayPlanTodayTargetSection = null;
     }
-    $: threeByThreeProjectionProps = {
+    $: threeByThreeProjectionProps = buildThreeByThreeSceneProjectionProps({
         cells: preparedThreeByThreeCells,
         theme: threeByThreeTheme,
         animateSwap: $swapState.animate,
@@ -367,7 +370,6 @@
         showDayPlanTodayButton: $showDayPlanTodayButton,
         dayPlanTodayTargetSection: preparedDayPlanTodayTargetSection,
         activeCoreSection,
-        todayButtonLabel: lang.day_plan_today_button_label,
         enterSubgridFromButton: (event: MouseEvent, nodeId: string) =>
             enterThreeByThreeSubgridFromButton(view, event, nodeId),
         exitSubgridFromButton: (event: MouseEvent) =>
@@ -383,18 +385,48 @@
             ),
         getUpButtonLabel: getThreeByThreeUpButtonLabel,
         getDownButtonLabel: getThreeByThreeDownButtonLabel,
-    };
-    $: committedThreeByThreeProjectionProps = {
-        ...threeByThreeProjectionProps,
-        cells: committedThreeByThreeCells,
-        dayPlanTodayTargetSection: committedDayPlanTodayTargetSection,
-    };
-    $: sceneProjection = buildSceneProjection({
-        sceneKey,
-        committedSceneKey,
-        preparedThreeByThreeProps: threeByThreeProjectionProps,
-        committedThreeByThreeProps: committedThreeByThreeProjectionProps,
     });
+    $: committedThreeByThreeProjectionProps =
+        buildThreeByThreeSceneProjectionProps({
+        cells: committedThreeByThreeCells,
+        theme: threeByThreeTheme,
+        animateSwap: $swapState.animate,
+        show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
+        hasOpenOverlayModal: $hasOpenOverlayModal,
+        dayPlanEnabled: $dayPlanEnabled,
+        showDayPlanTodayButton: $showDayPlanTodayButton,
+        dayPlanTodayTargetSection: committedDayPlanTodayTargetSection,
+        activeCoreSection,
+        enterSubgridFromButton: (event: MouseEvent, nodeId: string) =>
+            enterThreeByThreeSubgridFromButton(view, event, nodeId),
+        exitSubgridFromButton: (event: MouseEvent) =>
+            exitThreeByThreeSubgridFromButton(view, event),
+        focusDayPlanTodayFromButton: (event: MouseEvent) =>
+            focusThreeByThreeTodayFromButton(view, event),
+        onMobileCardDoubleClick: ({ nodeId, displaySection, event }) =>
+            handleThreeByThreeMobileCardDoubleClick(
+                view,
+                event,
+                nodeId,
+                displaySection,
+            ),
+        getUpButtonLabel: getThreeByThreeUpButtonLabel,
+        getDownButtonLabel: getThreeByThreeDownButtonLabel,
+    });
+    $: sceneProjection =
+        sceneKey.viewKind === '3x3'
+            ? buildThreeByThreeSceneProjection({
+                  sceneKey,
+                  committedSceneKey,
+                  preparedProps: threeByThreeProjectionProps,
+                  committedProps: committedThreeByThreeProjectionProps,
+              })
+            : buildSceneProjection({
+                  sceneKey,
+                  committedSceneKey,
+                  preparedThreeByThreeProps: threeByThreeProjectionProps,
+                  committedThreeByThreeProps: committedThreeByThreeProjectionProps,
+              });
 </script>
 
 <div

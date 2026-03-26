@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/build-scene-projection';
+import {
+    buildThreeByThreeSceneProjection,
+    buildThreeByThreeSceneProjectionProps,
+} from 'src/mandala-scenes/view-3x3/build-scene-projection';
 import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared/scene-projection';
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
@@ -27,6 +30,28 @@ const committedProps: ThreeByThreeSceneProjectionProps = {
 };
 
 describe('build-three-by-three-scene-projection', () => {
+    it('builds three-by-three projection props with the standard today label', () => {
+        const props = buildThreeByThreeSceneProjectionProps({
+            cells: [],
+            theme: '1',
+            animateSwap: false,
+            show3x3SubgridNavButtons: false,
+            hasOpenOverlayModal: false,
+            dayPlanEnabled: false,
+            showDayPlanTodayButton: false,
+            dayPlanTodayTargetSection: null,
+            activeCoreSection: null,
+            enterSubgridFromButton: () => undefined,
+            exitSubgridFromButton: () => undefined,
+            focusDayPlanTodayFromButton: () => undefined,
+            onMobileCardDoubleClick: null,
+            getUpButtonLabel: () => '',
+            getDownButtonLabel: () => '',
+        });
+
+        expect(props.todayButtonLabel).toBe('回到今天');
+    });
+
     it('prefers committed props for steady 3x3 scenes', () => {
         const projection = buildThreeByThreeSceneProjection({
             sceneKey: {
