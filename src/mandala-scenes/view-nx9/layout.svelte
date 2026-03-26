@@ -8,7 +8,6 @@
     import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
     import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import {
-        collectNx9HydratableNodeIds,
         type Nx9PageFrameRowViewModel,
         type Nx9PageIndex,
         type Nx9RowViewModel,
@@ -18,6 +17,10 @@
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
     import {
+        createNx9HydrationRuntime,
+        resolveNx9FutureScale,
+    } from 'src/mandala-scenes/view-nx9/hydration-runtime';
+    import {
         createNx9PageRuntime,
         isGhostNx9Row,
         isPaddingNx9Row,
@@ -26,6 +29,9 @@
 
     const view = getView();
     const contextRuntime = createNx9ContextRuntime({
+        recordPerfEvent: view.recordPerfEvent.bind(view),
+    });
+    const hydrationRuntime = createNx9HydrationRuntime({
         recordPerfEvent: view.recordPerfEvent.bind(view),
     });
     const pageRuntime = createNx9PageRuntime({
@@ -83,40 +89,10 @@
     export let selectedNodes: Set<string> = new Set();
     export let selectedStamp = '';
     export let pinnedSections: Set<string> = new Set();
-    let hydrationMarker = '';
-    let hydrationRequestId = 0;
     export let pinnedStamp = '';
 
-    const schedulePageHydration = (
-        marker: string,
-        page: number,
-        nodeIds: string[],
-    ) => {
-        if (nodeIds.length <= hydratedNodeIds.size) return;
-        const requestId = ++hydrationRequestId;
-        const startedAt = performance.now();
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                if (
-                    requestId !== hydrationRequestId ||
-                    hydrationMarker !== marker
-                ) {
-                    return;
-                }
-                hydratedNodeIds = new Set(nodeIds);
-                view.recordPerfEvent('trace.nx9.hydrate-page', {
-                    total_ms: Number(
-                        (performance.now() - startedAt).toFixed(2),
-                    ),
-                    page,
-                    node_count: nodeIds.length,
-                });
-            });
-        });
-    };
-
     onDestroy(() => {
-        hydrationRequestId += 1;
+        hydrationRuntime.dispose();
     });
 
     $: structureContext = contextRuntime.resolveStructureContext({
@@ -131,40 +107,19 @@
     });
     $: currentPage = nx9Context.currentPage;
     $: rowCount = nx9Context.rowsPerPage;
-    $: futureScale =
-        rowCount <= 5 ? 1 : Math.max(0.58, Math.min(1, 5 / rowCount));
+    $: futureScale = resolveNx9FutureScale(rowCount);
     $: pageFrame = pageRuntime.resolvePageFrame({
         context: nx9Context,
         sectionIdMap: documentSnapshot.sectionIdMap,
     });
     $: pageIndex = pageRuntime.resolvePageIndex({ pageFrame });
-    $: {
-        const nodeIds = collectNx9HydratableNodeIds(pageFrame);
-        const pageSignature = nodeIds.join('|');
-        const marker = [
-            documentSnapshot.revision,
-            currentPage,
-            rowCount,
-            pageSignature,
-        ].join('|');
-        if (hydrationMarker !== marker) {
-            hydrationMarker = marker;
-            const initialNodeId =
-                nodeIds.find((nodeId) => nodeId === activeNodeId) ??
-                nodeIds[0] ??
-                null;
-            hydratedNodeIds = initialNodeId
-                ? new Set([initialNodeId])
-                : new Set();
-            schedulePageHydration(marker, currentPage, nodeIds);
-        } else if (
-            activeNodeId &&
-            nodeIds.includes(activeNodeId) &&
-            !hydratedNodeIds.has(activeNodeId)
-        ) {
-            hydratedNodeIds = new Set(hydratedNodeIds).add(activeNodeId);
-        }
-    }
+    $: hydratedNodeIds = hydrationRuntime.sync({
+        revision: documentSnapshot.revision,
+        currentPage,
+        rowCount,
+        pageFrame,
+        activeNodeId,
+    });
     $: staticRows = pageRuntime.resolveStaticRows({
         context: nx9Context,
         pageFrame,
