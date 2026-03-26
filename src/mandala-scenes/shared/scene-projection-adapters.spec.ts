@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
     buildLegacySceneProjection,
     buildSceneProjection,
-    buildThreeByThreeSceneProjection,
 } from 'src/mandala-scenes/shared/scene-projection-adapters';
 import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared/scene-projection';
 import {
     createSceneCommitSnapshot,
     hasPendingSceneSwitch,
 } from 'src/mandala-scenes/shared/scene-switch';
+import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/build-scene-projection';
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
     cells: [],
