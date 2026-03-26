@@ -37,6 +37,8 @@ type AssembleMobileWeekPlanCellsOptions = {
     rows: WeekPlanRow[];
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Record<string, { content?: string }>;
+    activeNodeId: string | null;
+    activeCell: { row: number; col: number } | null;
 };
 
 export type WeekPlanDesktopCellViewModel = WeekPlanBaseCell & {
@@ -49,6 +51,8 @@ export type WeekPlanDesktopCellViewModel = WeekPlanBaseCell & {
 export type WeekPlanMobileCellViewModel = WeekPlanBaseCell & {
     title: string;
     body: string;
+    isActiveCell: boolean;
+    isActiveNode: boolean;
 };
 
 const normalizeCellPreviewText = (raw: string) =>
@@ -148,6 +152,8 @@ export const assembleMobileWeekPlanCells = ({
     rows,
     sectionIdMap,
     documentContent,
+    activeNodeId,
+    activeCell,
 }: AssembleMobileWeekPlanCellsOptions): WeekPlanMobileCellViewModel[] =>
     buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => {
         const content = cell.nodeId
@@ -161,5 +167,11 @@ export const assembleMobileWeekPlanCells = ({
             ...cell,
             title: summary.title,
             body: summary.body,
+            isActiveCell:
+                !!activeCell &&
+                activeCell.row === cell.row &&
+                activeCell.col === cell.col,
+            isActiveNode:
+                !activeCell && !!cell.nodeId && cell.nodeId === activeNodeId,
         };
     });

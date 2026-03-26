@@ -77,6 +77,8 @@ export const buildWeekSceneProjectionProps = ({
             rows,
             sectionIdMap,
             documentContent,
+            activeNodeId,
+            activeCell,
         }),
         compactMode,
         sectionColors,

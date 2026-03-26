@@ -65,6 +65,8 @@ mandala_plan:
             nodeId: 'node-1',
             title: '标题',
             body: '正文内容',
+            isActiveCell: true,
+            isActiveNode: false,
         });
         expect(props.desktopCells[27]).toMatchObject({
             row: 3,

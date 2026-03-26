@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { derived } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import type { WeekPlanMobileCellViewModel } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
     import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
@@ -7,19 +6,10 @@
         openSidebarAndEditMandalaNode,
         setActiveMandalaNode,
     } from 'src/mandala-interaction/helpers/node-editing';
-    import { getMandalaActiveCellWeek7x9 } from 'src/mandala-scenes/shared/scene-runtime';
 
     export let cells: WeekPlanMobileCellViewModel[] = [];
 
     const view = getView();
-    const activeNodeId = derived(
-        view.viewStore,
-        (state) => state.document.activeNode,
-    );
-    const activeCell = derived(
-        view.viewStore,
-        (state) => getMandalaActiveCellWeek7x9(state),
-    );
 
     const renderText = (element: HTMLElement, content: string) => {
         const render = () => {
@@ -48,12 +38,8 @@
             class="week-plan-cell week-plan-cell--mobile"
             class:is-placeholder={cell.isPlaceholder}
             class:is-center-column={cell.isCenterColumn}
-            class:is-active-cell={$activeCell &&
-                $activeCell.row === cell.row &&
-                $activeCell.col === cell.col}
-            class:is-active-node={!$activeCell &&
-                !!cell.nodeId &&
-                cell.nodeId === $activeNodeId}
+            class:is-active-cell={cell.isActiveCell}
+            class:is-active-node={cell.isActiveNode}
             on:click|capture={() =>
                 setActiveCellWeek7x9(view, {
                     row: cell.row,
