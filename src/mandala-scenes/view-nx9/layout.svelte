@@ -2,11 +2,10 @@
     import { onDestroy } from 'svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
-        resolveNx9PageContext,
-        resolveNx9StructureContext,
         type Nx9PageContext,
         type Nx9StructureContext,
     } from 'src/mandala-scenes/view-nx9/context';
+    import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
     import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
     import {
         applyNx9PageInteractionState,
@@ -29,6 +28,9 @@
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
 
     const view = getView();
+    const contextRuntime = createNx9ContextRuntime({
+        recordPerfEvent: view.recordPerfEvent.bind(view),
+    });
     let rows: Nx9RowViewModel[] = [];
     let staticRows: Nx9StaticRowViewModel[] = [];
     let currentPage = 0;
@@ -85,13 +87,6 @@
     let hydrationRequestId = 0;
     export let pinnedStamp = '';
 
-    let cachedStructureKey = '';
-    let cachedStructureContext: Nx9StructureContext | null = null;
-    let cachedPageContext: {
-        structureContext: Nx9StructureContext;
-        requestedPage: number;
-        value: Nx9PageContext;
-    } | null = null;
     let cachedPageFrame: {
         context: Nx9PageContext;
         sectionIdMap: Record<string, string>;
@@ -115,80 +110,6 @@
         interaction: Nx9InteractionSnapshot;
         value: Nx9RowViewModel[];
     } | null = null;
-
-    const resolveCachedStructureContext = ({
-        sectionIdMap,
-        documentContent,
-        rowsPerPage,
-        activeSection,
-        revision,
-        contentRevision,
-    }: {
-        sectionIdMap: Record<string, string>;
-        documentContent: Record<string, { content?: string }>;
-        rowsPerPage: number;
-        activeSection: string | null;
-        revision: number;
-        contentRevision: number;
-    }) => {
-        const key = [
-            revision,
-            contentRevision,
-            rowsPerPage,
-            activeSection?.split('.')[0] ?? '',
-        ].join('|');
-        if (key === cachedStructureKey && cachedStructureContext) {
-            return cachedStructureContext;
-        }
-        const startedAt = performance.now();
-        cachedStructureContext = resolveNx9StructureContext({
-            sectionIdMap,
-            documentContent,
-            rowsPerPage,
-            activeSection,
-        });
-        cachedStructureKey = key;
-        view.recordPerfEvent('trace.nx9.resolve-context', {
-            total_ms: Number((performance.now() - startedAt).toFixed(2)),
-            rows_per_page: rowsPerPage,
-            total_pages: cachedStructureContext.totalPages,
-            root_section: activeSection?.split('.')[0] ?? null,
-        });
-        return cachedStructureContext;
-    };
-
-    const resolveCachedPageContext = ({
-        structureContext,
-        activeSection,
-        activeCell,
-    }: {
-        structureContext: Nx9StructureContext;
-        activeSection: string | null;
-        activeCell: { row: number; col: number; page?: number } | null;
-    }) => {
-        const requestedPage =
-            activeCell?.page ??
-            structureContext.posForSection(activeSection)?.page ??
-            0;
-        if (
-            cachedPageContext &&
-            cachedPageContext.structureContext === structureContext &&
-            cachedPageContext.requestedPage === requestedPage
-        ) {
-            return cachedPageContext.value;
-        }
-        const value = resolveNx9PageContext({
-            structureContext,
-            activeSection,
-            activeCell,
-        });
-        cachedPageContext = {
-            structureContext,
-            requestedPage,
-            value,
-        };
-        return value;
-    };
 
     const resolveCachedPageFrame = ({
         context,
@@ -506,15 +427,12 @@
         hydrationRequestId += 1;
     });
 
-    $: structureContext = resolveCachedStructureContext({
-        sectionIdMap: documentSnapshot.sectionIdMap,
-        documentContent: documentSnapshot.documentContent,
+    $: structureContext = contextRuntime.resolveStructureContext({
+        documentSnapshot,
         rowsPerPage,
         activeSection: activeCoreSection,
-        revision: documentSnapshot.revision,
-        contentRevision: documentSnapshot.contentRevision,
     });
-    $: nx9Context = resolveCachedPageContext({
+    $: nx9Context = contextRuntime.resolvePageContext({
         structureContext,
         activeSection,
         activeCell,

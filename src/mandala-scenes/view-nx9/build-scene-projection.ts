@@ -1,4 +1,5 @@
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
+import type { Content } from 'src/mandala-document/state/document-state-type';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type {
     Nx9SceneProjection,
@@ -27,7 +28,7 @@ export const buildNx9SceneProjectionProps = ({
         revision: number;
         contentRevision: number;
         sectionIdMap: Record<string, string>;
-        documentContent: Record<string, { content?: string }>;
+        documentContent: Content;
     };
     themeSnapshot: MandalaThemeSnapshot;
     rowsPerPage: number;

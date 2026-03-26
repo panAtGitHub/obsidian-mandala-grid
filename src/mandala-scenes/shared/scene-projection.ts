@@ -1,6 +1,7 @@
 import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
+import type { Content } from 'src/mandala-document/state/document-state-type';
 import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 import type {
@@ -53,7 +54,7 @@ export type Nx9SceneProjection = {
             revision: number;
             contentRevision: number;
             sectionIdMap: Record<string, string>;
-            documentContent: Record<string, { content?: string }>;
+            documentContent: Content;
         };
         themeSnapshot: MandalaThemeSnapshot;
         rowsPerPage: number;
