@@ -8,7 +8,10 @@
         resolveMandalaSceneKey,
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
-    import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
+    import {
+        getMandalaActiveCellWeek7x9,
+        getMandalaWeekAnchorDate,
+    } from 'src/mandala-scenes/shared/scene-runtime';
     import {
         type SceneProjection,
         type ThreeByThreeSceneProjectionProps,
@@ -170,6 +173,10 @@
         view.viewStore,
         (state) => getMandalaWeekAnchorDate(state),
     );
+    const weekActiveCell = derived(
+        view.viewStore,
+        (state) => getMandalaActiveCellWeek7x9(state),
+    );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
         const controls = state.ui.controls;
@@ -312,6 +319,11 @@
         whiteThemeMode: $whiteThemeMode,
         sectionIdMap: $documentState.sections.section_id,
         documentContent: $documentState.document.content,
+        activeNodeId: $activeNodeId,
+        activeCell: $weekActiveCell,
+        editingState: $editingState,
+        selectedNodes: $selectedNodes,
+        pinnedSections: $pinnedSections,
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
         themeSnapshot: nx9ProjectionProps.themeSnapshot,

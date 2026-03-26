@@ -3,7 +3,10 @@ import {
 } from 'src/mandala-display/logic/week-plan-context';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { WeekStart } from 'src/mandala-settings/state/settings-type';
-import { assembleMobileWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
+import {
+    assembleDesktopWeekPlanCells,
+    assembleMobileWeekPlanCells,
+} from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
 import type {
     WeekSceneProjection,
     WeekSceneProjectionProps,
@@ -21,6 +24,11 @@ export const buildWeekSceneProjectionProps = ({
     whiteThemeMode,
     sectionIdMap,
     documentContent,
+    activeNodeId,
+    activeCell,
+    editingState,
+    selectedNodes,
+    pinnedSections,
 }: {
     frontmatter: string;
     anchorDate: string | null | undefined;
@@ -33,6 +41,14 @@ export const buildWeekSceneProjectionProps = ({
     whiteThemeMode: boolean;
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Record<string, { content?: string }>;
+    activeNodeId: string | null;
+    activeCell: { row: number; col: number } | null;
+    editingState: {
+        activeNodeId: string | null;
+        isInSidebar: boolean;
+    };
+    selectedNodes: Set<string>;
+    pinnedSections: Set<string>;
 }): WeekSceneProjectionProps => {
     const rows = resolveWeekPlanContext({
         frontmatter,
@@ -42,6 +58,21 @@ export const buildWeekSceneProjectionProps = ({
 
     return {
         rows,
+        desktopCells: assembleDesktopWeekPlanCells({
+            rows,
+            sectionIdMap,
+            activeNodeId,
+            activeCell,
+            compactMode,
+            editingState,
+            selectedNodes,
+            pinnedSections,
+            sectionColors,
+            sectionColorOpacity,
+            backgroundMode,
+            showDetailSidebar,
+            whiteThemeMode,
+        }),
         mobileCells: assembleMobileWeekPlanCells({
             rows,
             sectionIdMap,

@@ -44,6 +44,7 @@ const defaultProjection = (
                   rendererKind: 'week-layout',
                   props: {
                       rows: [],
+                      desktopCells: [],
                       mobileCells: [],
                       compactMode: false,
                       sectionColors: {},

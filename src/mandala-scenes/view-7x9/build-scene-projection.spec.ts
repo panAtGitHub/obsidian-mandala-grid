@@ -30,6 +30,14 @@ mandala_plan:
                     content: '# 标题\n正文内容',
                 },
             },
+            activeNodeId: 'node-1',
+            activeCell: { row: 3, col: 0 },
+            editingState: {
+                activeNodeId: null,
+                isInSidebar: false,
+            },
+            selectedNodes: new Set<string>(),
+            pinnedSections: new Set<string>(),
         });
 
         expect(props).toMatchObject({
@@ -49,6 +57,7 @@ mandala_plan:
             showDetailSidebar: false,
             whiteThemeMode: true,
         });
+        expect(props.desktopCells).toHaveLength(63);
         expect(props.mobileCells[27]).toMatchObject({
             row: 3,
             col: 0,
@@ -56,6 +65,12 @@ mandala_plan:
             nodeId: 'node-1',
             title: '标题',
             body: '正文内容',
+        });
+        expect(props.desktopCells[27]).toMatchObject({
+            row: 3,
+            col: 0,
+            section: '1',
+            nodeId: 'node-1',
         });
     });
 
@@ -66,6 +81,7 @@ mandala_plan:
                 variant: 'week-7x9',
             }, {
                 rows: [],
+                desktopCells: [],
                 mobileCells: [],
                 compactMode: false,
                 sectionColors: {},
@@ -82,6 +98,7 @@ mandala_plan:
             rendererKind: 'week-layout',
             props: {
                 rows: [],
+                desktopCells: [],
                 mobileCells: [],
                 compactMode: false,
                 sectionColors: {},
