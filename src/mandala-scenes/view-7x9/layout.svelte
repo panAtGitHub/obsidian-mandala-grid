@@ -1,10 +1,12 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
     import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
+    import type { WeekPlanMobileCellViewModel } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
     import WeekPlanGridDesktop from 'src/mandala-scenes/view-7x9/week-plan-grid-desktop.svelte';
     import WeekPlanGridMobile from 'src/mandala-scenes/view-7x9/week-plan-grid-mobile.svelte';
 
     export let rows: WeekPlanRow[] = [];
+    export let mobileCells: WeekPlanMobileCellViewModel[] = [];
     export let compactMode = false;
     export let sectionColors: Record<string, string> = {};
     export let sectionColorOpacity = 0;
@@ -15,7 +17,7 @@
 
 <div class="week-plan-shell">
     {#if Platform.isMobile}
-        <WeekPlanGridMobile {rows} />
+        <WeekPlanGridMobile {rows} cells={mobileCells} />
     {:else}
         <WeekPlanGridDesktop
             {rows}

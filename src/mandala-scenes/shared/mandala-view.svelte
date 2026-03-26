@@ -310,6 +310,8 @@
         backgroundMode: $backgroundMode,
         showDetailSidebar: $showDetailSidebar,
         whiteThemeMode: $whiteThemeMode,
+        sectionIdMap: $documentState.sections.section_id,
+        documentContent: $documentState.document.content,
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
         themeSnapshot: nx9ProjectionProps.themeSnapshot,

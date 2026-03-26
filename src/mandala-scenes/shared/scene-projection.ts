@@ -3,6 +3,7 @@ import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-mode
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
+import type { WeekPlanMobileCellViewModel } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
 
 export type SceneRendererKind =
     | '3x3-layout'
@@ -57,6 +58,7 @@ export type Nx9SceneProjection = {
 
 export type WeekSceneProjectionProps = {
     rows: WeekPlanRow[];
+    mobileCells: WeekPlanMobileCellViewModel[];
     compactMode: boolean;
     sectionColors: Record<string, string>;
     sectionColorOpacity: number;

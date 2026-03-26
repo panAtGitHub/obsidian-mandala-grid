@@ -1,9 +1,7 @@
 <script lang="ts">
-    import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
     import { derived } from 'src/shared/store/derived';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import type { WeekPlanBaseCell } from 'src/mandala-display/logic/week-plan-context';
-    import { assembleMobileWeekPlanCells } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
+    import type { WeekPlanMobileCellViewModel } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
     import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
     import {
         openSidebarAndEditMandalaNode,
@@ -11,11 +9,9 @@
     } from 'src/mandala-interaction/helpers/node-editing';
     import { getMandalaActiveCellWeek7x9 } from 'src/mandala-scenes/shared/scene-runtime';
 
-    export let rows: WeekPlanRow[] = [];
+    export let cells: WeekPlanMobileCellViewModel[] = [];
 
     const view = getView();
-
-    const documentState = derived(view.documentStore, (state) => state);
     const activeNodeId = derived(
         view.viewStore,
         (state) => state.document.activeNode,
@@ -40,22 +36,7 @@
         };
     };
 
-    type MobileCell = WeekPlanBaseCell & {
-        title: string;
-        body: string;
-    };
-
-    let cells: MobileCell[] = [];
-
-    $: {
-        cells = assembleMobileWeekPlanCells({
-            rows,
-            sectionIdMap: $documentState.sections.section_id,
-            documentContent: $documentState.document.content,
-        });
-    }
-
-    const onCellClick = (cell: MobileCell) => {
+    const onCellClick = (cell: WeekPlanMobileCellViewModel) => {
         if (!cell.nodeId) return;
         setActiveMandalaNode(view, cell.nodeId);
     };

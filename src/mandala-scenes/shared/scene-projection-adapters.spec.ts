@@ -53,6 +53,7 @@ const nx9ProjectionProps = {
 
 const weekProjectionProps: WeekSceneProjectionProps = {
     rows: [],
+    mobileCells: [],
     compactMode: false,
     sectionColors: {},
     sectionColorOpacity: 60,

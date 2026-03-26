@@ -6,25 +6,33 @@ import {
 
 describe('build-week-scene-projection', () => {
     it('builds week projection props from frontmatter and anchor state', () => {
-        expect(
-            buildWeekSceneProjectionProps({
-                frontmatter: `---
+        const props = buildWeekSceneProjectionProps({
+            frontmatter: `---
 mandala: true
 mandala_plan:
   enabled: true
   year: 2026
   daily_only_3x3: true
 ---`,
-                anchorDate: '2026-01-01',
-                weekStart: 'monday',
-                compactMode: true,
-                sectionColors: { '1': '#111' },
-                sectionColorOpacity: 60,
-                backgroundMode: 'custom',
-                showDetailSidebar: false,
-                whiteThemeMode: true,
-            }),
-        ).toEqual({
+            anchorDate: '2026-01-01',
+            weekStart: 'monday',
+            compactMode: true,
+            sectionColors: { '1': '#111' },
+            sectionColorOpacity: 60,
+            backgroundMode: 'custom',
+            showDetailSidebar: false,
+            whiteThemeMode: true,
+            sectionIdMap: {
+                '1': 'node-1',
+            },
+            documentContent: {
+                'node-1': {
+                    content: '# 标题\n正文内容',
+                },
+            },
+        });
+
+        expect(props).toMatchObject({
             rows: [
                 { date: '2025-12-29', coreSection: null, inPlanYear: false },
                 { date: '2025-12-30', coreSection: null, inPlanYear: false },
@@ -41,6 +49,14 @@ mandala_plan:
             showDetailSidebar: false,
             whiteThemeMode: true,
         });
+        expect(props.mobileCells[27]).toMatchObject({
+            row: 3,
+            col: 0,
+            section: '1',
+            nodeId: 'node-1',
+            title: '标题',
+            body: '正文内容',
+        });
     });
 
     it('wraps week variants as a dedicated projection', () => {
@@ -50,6 +66,7 @@ mandala_plan:
                 variant: 'week-7x9',
             }, {
                 rows: [],
+                mobileCells: [],
                 compactMode: false,
                 sectionColors: {},
                 sectionColorOpacity: 60,
@@ -65,6 +82,7 @@ mandala_plan:
             rendererKind: 'week-layout',
             props: {
                 rows: [],
+                mobileCells: [],
                 compactMode: false,
                 sectionColors: {},
                 sectionColorOpacity: 60,
