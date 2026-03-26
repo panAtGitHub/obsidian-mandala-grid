@@ -3,6 +3,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { derived } from 'src/shared/store/derived';
     import {
+        resolveDayPlanTodayNavigation,
         resolveMandalaSceneKey,
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
@@ -210,7 +211,8 @@
         view.viewStore,
         (state) => state.document.selectedNodes,
     );
-    let dayPlanTodayTargetSection: string | null = null;
+    let preparedDayPlanTodayTargetSection: string | null = null;
+    let committedDayPlanTodayTargetSection: string | null = null;
     let sceneKey: MandalaSceneKey = {
         viewKind: '3x3',
         variant: 'default',
@@ -220,6 +222,9 @@
         variant: 'default',
     };
     let sceneProjection: SceneProjection;
+    let shouldRetainCommittedThreeByThreeState = false;
+    let preparedThreeByThreeCells = [];
+    let committedThreeByThreeCells = [];
 
     $: sceneKey = resolveMandalaSceneKey({
         frontmatter: $documentState.file.frontmatter,
@@ -259,15 +264,10 @@
         });
     }
 
-    $: dayPlanTodayTargetSection =
+    $: preparedDayPlanTodayTargetSection =
         sceneKey.viewKind === '3x3'
-            ? syncThreeByThreeSceneState({
-                  view,
-                  mode: sceneKey.viewKind,
-                  subgridTheme: $subgridTheme,
-                  documentState: $documentState,
-                  sectionToNodeId: $sectionToNodeId,
-              })
+            ? resolveDayPlanTodayNavigation($documentState.file.frontmatter)
+                  .targetSection
             : null;
     // 手机端编辑统一走原生 section 会话，不再走 InlineEditor 弹层路径。
     let isMobilePopupEditing = false;
@@ -299,7 +299,7 @@
     };
 
     $: threeByThreeTheme = resolveThreeByThreeTheme($subgridTheme);
-    $: threeByThreeCells =
+    $: preparedThreeByThreeCells =
         sceneKey.viewKind === '3x3'
             ? buildThreeByThreeCells({
                   theme: threeByThreeTheme,
@@ -317,15 +317,53 @@
                   whiteThemeMode: $whiteThemeMode,
               })
             : [];
+    $: if (committedSceneKey.viewKind === '3x3') {
+        committedDayPlanTodayTargetSection = syncThreeByThreeSceneState({
+            view,
+            mode: committedSceneKey.viewKind,
+            subgridTheme: $subgridTheme,
+            documentState: $documentState,
+            sectionToNodeId: $sectionToNodeId,
+        });
+        committedThreeByThreeCells = buildThreeByThreeCells({
+            theme: threeByThreeTheme,
+            selectedLayoutId: $selectedLayoutId,
+            customLayouts: $customLayouts,
+            topology: $topology,
+            activeNodeId: $activeNodeId,
+            editingState: $editingState,
+            selectedNodes: $selectedNodes,
+            pinnedSections: $pinnedSections,
+            showDetailSidebar: $showDetailSidebar,
+            backgroundMode: $backgroundMode,
+            sectionColors: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+            whiteThemeMode: $whiteThemeMode,
+        });
+    }
+    $: shouldRetainCommittedThreeByThreeState =
+        committedSceneKey.viewKind === '3x3' || sceneKey.viewKind === '3x3';
+    $: if (
+        !shouldRetainCommittedThreeByThreeState &&
+        committedThreeByThreeCells.length
+    ) {
+        committedThreeByThreeCells = [];
+    }
+    $: if (
+        !shouldRetainCommittedThreeByThreeState &&
+        committedDayPlanTodayTargetSection
+    ) {
+        committedDayPlanTodayTargetSection = null;
+    }
     $: threeByThreeProjectionProps = {
-        cells: threeByThreeCells,
+        cells: preparedThreeByThreeCells,
         theme: threeByThreeTheme,
         animateSwap: $swapState.animate,
         show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
         hasOpenOverlayModal: $hasOpenOverlayModal,
         dayPlanEnabled: $dayPlanEnabled,
         showDayPlanTodayButton: $showDayPlanTodayButton,
-        dayPlanTodayTargetSection,
+        dayPlanTodayTargetSection: preparedDayPlanTodayTargetSection,
         activeCoreSection,
         todayButtonLabel: lang.day_plan_today_button_label,
         enterSubgridFromButton: (event: MouseEvent, nodeId: string) =>
