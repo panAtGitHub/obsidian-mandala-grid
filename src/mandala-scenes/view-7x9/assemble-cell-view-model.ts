@@ -1,8 +1,3 @@
-import { buildMandalaCardViewModel } from 'src/mandala-cell/model/build-mandala-card-view-model';
-import type {
-    MandalaCardUiState,
-    MandalaCardViewModel,
-} from 'src/mandala-cell/model/card-view-model';
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
@@ -10,6 +5,12 @@ import {
     type WeekPlanBaseCell,
 } from 'src/mandala-display/logic/week-plan-context';
 import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
+import {
+    buildSceneCardCellList,
+    createSceneCardCellSeed,
+    type SceneCardCellDescriptorList,
+    type SceneCardCellViewModel,
+} from 'src/mandala-scenes/shared/card-scene-cell';
 import { build7x9CellDisplayOverrides } from 'src/mandala-scenes/view-7x9/build-cell-display-overrides';
 
 type EditingState = {
@@ -41,9 +42,8 @@ type AssembleMobileWeekPlanCellsOptions = {
     activeCell: { row: number; col: number } | null;
 };
 
-export type WeekPlanDesktopCellViewModel = WeekPlanBaseCell & {
-    cardViewModel: MandalaCardViewModel | null;
-    cardUiState: MandalaCardUiState;
+export type WeekPlanDesktopCellViewModel = WeekPlanBaseCell &
+    SceneCardCellViewModel & {
     isActiveCell: boolean;
     isActiveNode: boolean;
 };
@@ -109,43 +109,52 @@ export const assembleDesktopWeekPlanCells = ({
             compactMode,
         }),
     };
-    return buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => ({
-        ...cell,
-        isActiveCell:
-            !!activeCell &&
-            activeCell.row === cell.row &&
-            activeCell.col === cell.col,
-        isActiveNode:
-            !activeCell && !!cell.nodeId && cell.nodeId === activeNodeId,
-        cardViewModel: cell.nodeId
-            ? buildMandalaCardViewModel({
-                  nodeId: cell.nodeId,
-                  section: cell.section ?? '',
-                  contentEnabled: true,
-                  style: undefined,
-                  sectionColor: resolveSectionBackgroundInput({
+    const descriptors: SceneCardCellDescriptorList<
+        Omit<WeekPlanDesktopCellViewModel, keyof SceneCardCellViewModel>
+    > = buildWeekPlanBaseCells({ rows, sectionIdMap }).map((cell) => ({
+        seed: createSceneCardCellSeed({
+            key: `${cell.row}:${cell.col}`,
+            section: cell.section ?? `${cell.row}:${cell.col}`,
+            nodeId: cell.nodeId,
+            contentEnabled: true,
+            sectionColor: cell.section
+                ? resolveSectionBackgroundInput({
                       section: cell.section,
                       backgroundMode,
                       sectionColorsBySection: sectionColors,
                       sectionColorOpacity,
-                  }),
-                  metaAccentColor: cell.section
-                      ? sectionColors[cell.section] ?? null
-                      : null,
-                  displayPolicy,
-              })
-            : null,
-        cardUiState: {
-            active: cell.nodeId === activeNodeId,
-            editing:
-                !!cell.nodeId &&
-                editingState.activeNodeId === cell.nodeId &&
-                !editingState.isInSidebar &&
-                !showDetailSidebar,
-            selected: !!cell.nodeId && selectedNodes.has(cell.nodeId),
-            pinned: cell.section ? pinnedSections.has(cell.section) : false,
+                  })
+                : null,
+            metaAccentColor: cell.section
+                ? sectionColors[cell.section] ?? null
+                : null,
+            displayPolicy,
+        }),
+        extra: {
+            row: cell.row,
+            col: cell.col,
+            isPlaceholder: cell.isPlaceholder,
+            isCenterColumn: cell.isCenterColumn,
+            emptyLabel: cell.emptyLabel,
+            isActiveCell:
+                !!activeCell &&
+                activeCell.row === cell.row &&
+                activeCell.col === cell.col,
+            isActiveNode:
+                !activeCell && !!cell.nodeId && cell.nodeId === activeNodeId,
         },
     }));
+
+    return buildSceneCardCellList({
+        descriptors,
+        interaction: {
+            activeNodeId,
+            editingState,
+            selectedNodes,
+            pinnedSections,
+            showDetailSidebar,
+        },
+    });
 };
 
 export const assembleMobileWeekPlanCells = ({
