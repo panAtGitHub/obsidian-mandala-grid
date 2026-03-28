@@ -17,6 +17,7 @@
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
     import {
         createNx9HydrationRuntime,
+        type Nx9HydrationSnapshot,
         resolveNx9FutureScale,
     } from 'src/mandala-scenes/view-nx9/hydration-runtime';
     import {
@@ -33,6 +34,9 @@
     });
     const hydrationRuntime = createNx9HydrationRuntime({
         recordPerfEvent: view.recordPerfEvent.bind(view),
+        onHydrationChange: () => {
+            hydrationVersion += 1;
+        },
     });
     const pageRuntime = createNx9PageRuntime({
         recordPerfEvent: view.recordPerfEvent.bind(view),
@@ -44,16 +48,25 @@
     let rows: Nx9RowViewModel[] = [];
     let staticRows: Nx9StaticRowViewModel[] = [];
     let currentPage = 0;
+    let hotPages: number[] = [];
     let rowCount = 1;
     let futureScale = 1;
     let structureContext: Nx9StructureContext;
     let nx9Context: Nx9PageContext;
+    let currentPageContext: Nx9PageContext;
+    let pageContextsByPage = new Map<number, Nx9PageContext>();
+    let pageFramesByPage = new Map<number, Nx9PageFrameRowViewModel[]>();
     let pageFrame: Nx9PageFrameRowViewModel[] = [];
     let pageIndex: Nx9PageIndex = {
         cellByKey: {},
         cellByPosition: {},
         positionByNodeId: {},
         nodeIds: [],
+    };
+    let hydrationVersion = 0;
+    let hydrationSnapshot: Nx9HydrationSnapshot = {
+        hydratedNodeIdsByPage: new Map(),
+        hotPages: new Set(),
     };
     let hydratedNodeIds = new Set<string>();
     export let themeSnapshot: MandalaThemeSnapshot = {
@@ -96,6 +109,14 @@
     export let activeCell: { row: number; col: number; page?: number } | null =
         null;
 
+    const resolveHotPages = (page: number, totalPages: number) =>
+        [page - 1, page, page + 1].filter(
+            (candidate, index, all) =>
+                candidate >= 0 &&
+                candidate < totalPages &&
+                all.indexOf(candidate) === index,
+        );
+
     onDestroy(() => {
         hydrationRuntime.dispose();
     });
@@ -111,30 +132,74 @@
         activeCell,
     });
     $: currentPage = nx9Context.currentPage;
+    $: hotPages = resolveHotPages(currentPage, nx9Context.totalPages);
+    $: pageContextsByPage = new Map(
+        hotPages.map((page) => [
+            page,
+            contextRuntime.resolvePageContext({
+                structureContext,
+                activeSection,
+                activeCell,
+                requestedPage: page,
+            }),
+        ]),
+    );
+    $: currentPageContext = pageContextsByPage.get(currentPage) ?? nx9Context;
     $: rowCount = nx9Context.rowsPerPage;
     $: futureScale = resolveNx9FutureScale(rowCount);
-    $: pageFrame = pageRuntime.resolvePageFrame({
-        context: nx9Context,
-        sectionIdMap: documentSnapshot.sectionIdMap,
-    });
-    $: pageIndex = pageRuntime.resolvePageIndex({ pageFrame });
-    $: hydratedNodeIds = hydrationRuntime.sync({
-        revision: documentSnapshot.revision,
-        currentPage,
-        rowCount,
+    $: pageFramesByPage = new Map(
+        hotPages.map((page) => [
+            page,
+            pageRuntime.resolvePageFrame({
+                page,
+                context: pageContextsByPage.get(page) ?? nx9Context,
+                sectionIdMap: documentSnapshot.sectionIdMap,
+            }),
+        ]),
+    );
+    $: pageFrame = pageFramesByPage.get(currentPage) ?? [];
+    $: pageIndex = pageRuntime.resolvePageIndex({
+        page: currentPage,
         pageFrame,
-        activeNodeId: interactionSnapshot.activeNodeId,
+    });
+    $: hydrationSnapshot = (() => {
+        hydrationVersion;
+        return hydrationRuntime.sync({
+            revision: documentSnapshot.revision,
+            currentPage,
+            rowCount,
+            hotPages,
+            pageFramesByPage,
+        });
+    })();
+    $: hydratedNodeIds =
+        hydrationSnapshot.hydratedNodeIdsByPage.get(currentPage) ??
+        new Set<string>();
+    $: pageRuntime.prewarmPages({
+        pages: hotPages.map((page) => ({
+            page,
+            context: pageContextsByPage.get(page) ?? nx9Context,
+            sectionIdMap: documentSnapshot.sectionIdMap,
+            hydratedNodeIds:
+                hydrationSnapshot.hydratedNodeIdsByPage.get(page) ??
+                new Set<string>(),
+        })),
+        displaySnapshot,
+        interactionSnapshot,
+        activeCell,
     });
     $: staticRows = pageRuntime.resolveStaticRows({
-        context: nx9Context,
+        page: currentPage,
+        context: currentPageContext,
         pageFrame,
         displaySnapshot,
         hydratedNodeIds,
     });
     $: rows = pageRuntime.resolveRuntimeRows({
+        page: currentPage,
         staticRows,
         pageIndex,
-        context: nx9Context,
+        context: currentPageContext,
         interactionSnapshot,
         activeCell,
         displaySnapshot,

@@ -57,4 +57,35 @@ describe('nx9-context-runtime', () => {
 
         expect(second).toBe(first);
     });
+
+    it('caches adjacent page contexts independently for the same structure context', () => {
+        const runtime = createNx9ContextRuntime();
+        const structureContext = runtime.resolveStructureContext({
+            documentSnapshot,
+            rowsPerPage: 1,
+            activeSection: '1',
+        });
+
+        const firstPage0 = runtime.resolvePageContext({
+            structureContext,
+            activeSection: '1',
+            activeCell: { row: 0, col: 0, page: 0 },
+            requestedPage: 0,
+        });
+        const firstPage1 = runtime.resolvePageContext({
+            structureContext,
+            activeSection: '1',
+            activeCell: { row: 0, col: 0, page: 0 },
+            requestedPage: 1,
+        });
+        const secondPage1 = runtime.resolvePageContext({
+            structureContext,
+            activeSection: '1.1',
+            activeCell: { row: 0, col: 1, page: 0 },
+            requestedPage: 1,
+        });
+
+        expect(firstPage1).toBe(secondPage1);
+        expect(firstPage0).not.toBe(firstPage1);
+    });
 });

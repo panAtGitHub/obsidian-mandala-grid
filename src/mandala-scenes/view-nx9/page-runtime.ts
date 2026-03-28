@@ -29,16 +29,7 @@ export const createNx9PageRuntime = ({
 }: {
     recordPerfEvent?: PerfLogger;
 } = {}) => {
-    let cachedPageFrame: {
-        context: Nx9PageContext;
-        sectionIdMap: Record<string, string>;
-        value: Nx9PageFrameRowViewModel[];
-    } | null = null;
-    let cachedPageIndex: {
-        pageFrame: Nx9PageFrameRowViewModel[];
-        value: Nx9PageIndex;
-    } | null = null;
-    let cachedStaticRows: {
+    type StaticRowsCacheEntry = {
         pageFrame: Nx9PageFrameRowViewModel[];
         backgroundMode: string;
         sectionColors: Record<string, string>;
@@ -46,26 +37,63 @@ export const createNx9PageRuntime = ({
         whiteThemeMode: boolean;
         hydratedNodeIds: Set<string>;
         value: Nx9StaticRowViewModel[];
-    } | null = null;
-    let cachedRuntimeRows: {
+    };
+
+    type RuntimeRowsCacheEntry = {
         staticRows: Nx9StaticRowViewModel[];
         interaction: Nx9InteractionSnapshot;
         value: Nx9RowViewModel[];
-    } | null = null;
+    };
+
+    type Nx9PageCacheEntry = {
+        context: Nx9PageContext | null;
+        sectionIdMap: Record<string, string> | null;
+        pageFrame: Nx9PageFrameRowViewModel[] | null;
+        pageIndexFrame: Nx9PageFrameRowViewModel[] | null;
+        pageIndex: Nx9PageIndex | null;
+        staticRowsCache: StaticRowsCacheEntry[];
+        runtimeRowsCache: RuntimeRowsCacheEntry[];
+    };
+
+    const pageCache = new Map<number, Nx9PageCacheEntry>();
+
+    const getPageCacheEntry = (page: number): Nx9PageCacheEntry => {
+        const cached = pageCache.get(page);
+        if (cached) {
+            return cached;
+        }
+        const entry: Nx9PageCacheEntry = {
+            context: null,
+            sectionIdMap: null,
+            pageFrame: null,
+            pageIndexFrame: null,
+            pageIndex: null,
+            staticRowsCache: [],
+            runtimeRowsCache: [],
+        };
+        pageCache.set(page, entry);
+        return entry;
+    };
+
+    const trimCache = (pagesToKeep: Set<number>) => {
+        for (const page of Array.from(pageCache.keys())) {
+            if (pagesToKeep.has(page)) continue;
+            pageCache.delete(page);
+        }
+    };
 
     const resolvePageFrame = ({
+        page,
         context,
         sectionIdMap,
     }: {
+        page: number;
         context: Nx9PageContext;
         sectionIdMap: Record<string, string>;
     }) => {
-        if (
-            cachedPageFrame &&
-            cachedPageFrame.context === context &&
-            cachedPageFrame.sectionIdMap === sectionIdMap
-        ) {
-            return cachedPageFrame.value;
+        const entry = getPageCacheEntry(page);
+        if (entry.context === context && entry.sectionIdMap === sectionIdMap && entry.pageFrame) {
+            return entry.pageFrame;
         }
         const startedAt = performance.now();
         const value = assembleNx9PageFrame({
@@ -76,56 +104,64 @@ export const createNx9PageRuntime = ({
                 },
             },
         });
-        cachedPageFrame = {
-            context,
-            sectionIdMap,
-            value,
-        };
+        entry.context = context;
+        entry.sectionIdMap = sectionIdMap;
+        entry.pageFrame = value;
+        entry.pageIndexFrame = null;
+        entry.pageIndex = null;
+        entry.staticRowsCache = [];
+        entry.runtimeRowsCache = [];
         recordPerfEvent?.('trace.nx9.assemble-rows', {
             total_ms: Number((performance.now() - startedAt).toFixed(2)),
             row_count: value.length,
-            page: context.currentPage,
+            page,
         });
         return value;
     };
 
     const resolvePageIndex = ({
+        page,
         pageFrame,
     }: {
+        page: number;
         pageFrame: Nx9PageFrameRowViewModel[];
     }) => {
-        if (cachedPageIndex?.pageFrame === pageFrame) {
-            return cachedPageIndex.value;
+        const entry = getPageCacheEntry(page);
+        if (entry.pageIndexFrame === pageFrame && entry.pageIndex) {
+            return entry.pageIndex;
         }
         const value = buildNx9PageIndex(pageFrame);
-        cachedPageIndex = {
-            pageFrame,
-            value,
-        };
+        entry.pageIndexFrame = pageFrame;
+        entry.pageIndex = value;
         return value;
     };
 
     const resolveStaticRows = ({
+        page,
         context,
         pageFrame,
         displaySnapshot,
         hydratedNodeIds,
     }: {
+        page: number;
         context: Nx9PageContext;
         pageFrame: Nx9PageFrameRowViewModel[];
         displaySnapshot: SceneDisplaySnapshot;
         hydratedNodeIds: Set<string>;
     }) => {
-        if (
-            cachedStaticRows &&
-            cachedStaticRows.pageFrame === pageFrame &&
-            cachedStaticRows.backgroundMode === displaySnapshot.backgroundMode &&
-            cachedStaticRows.sectionColors === displaySnapshot.sectionColors &&
-            cachedStaticRows.sectionColorOpacity === displaySnapshot.sectionColorOpacity &&
-            cachedStaticRows.whiteThemeMode === displaySnapshot.whiteThemeMode &&
-            cachedStaticRows.hydratedNodeIds === hydratedNodeIds
-        ) {
-            return cachedStaticRows.value;
+        const entry = getPageCacheEntry(page);
+        const cached = entry.staticRowsCache.find(
+            (candidate) =>
+                candidate.pageFrame === pageFrame &&
+                candidate.backgroundMode === displaySnapshot.backgroundMode &&
+                candidate.sectionColors === displaySnapshot.sectionColors &&
+                candidate.sectionColorOpacity ===
+                    displaySnapshot.sectionColorOpacity &&
+                candidate.whiteThemeMode === displaySnapshot.whiteThemeMode &&
+                candidate.hydratedNodeIds === hydratedNodeIds,
+        );
+        if (cached) {
+            return cached.value;
         }
 
         const startedAt = performance.now();
@@ -135,7 +171,7 @@ export const createNx9PageRuntime = ({
             displaySnapshot,
             hydratedNodeIds,
         });
-        cachedStaticRows = {
+        entry.staticRowsCache.push({
             pageFrame,
             backgroundMode: displaySnapshot.backgroundMode,
             sectionColors: displaySnapshot.sectionColors,
@@ -143,7 +179,7 @@ export const createNx9PageRuntime = ({
             whiteThemeMode: displaySnapshot.whiteThemeMode,
             hydratedNodeIds,
             value,
-        };
+        });
         recordPerfEvent?.('trace.nx9.build-static-rows', {
             total_ms: Number((performance.now() - startedAt).toFixed(2)),
             row_count: value.length,
@@ -151,7 +187,7 @@ export const createNx9PageRuntime = ({
                 (count, row) => count + (Array.isArray(row) ? row.length : 0),
                 0,
             ),
-            page: context.currentPage,
+            page,
         });
         return value;
     };
@@ -224,6 +260,7 @@ export const createNx9PageRuntime = ({
     };
 
     const resolveRuntimeRows = ({
+        page,
         staticRows,
         pageIndex,
         context,
@@ -231,6 +268,7 @@ export const createNx9PageRuntime = ({
         activeCell,
         displaySnapshot,
     }: {
+        page: number;
         staticRows: Nx9StaticRowViewModel[];
         pageIndex: Nx9PageIndex;
         context: Nx9PageContext;
@@ -238,48 +276,47 @@ export const createNx9PageRuntime = ({
         activeCell: { row: number; col: number; page?: number } | null;
         displaySnapshot: SceneDisplaySnapshot;
     }) => {
+        const entry = getPageCacheEntry(page);
         const interaction = buildInteractionSnapshot({
             context,
             interactionSnapshot,
             activeCell,
             displaySnapshot,
         });
+        const runtimeCache = entry.runtimeRowsCache.find(
+            (candidate) => candidate.staticRows === staticRows,
+        );
 
         if (
-            cachedRuntimeRows &&
-            cachedRuntimeRows.staticRows === staticRows &&
-            sameInteractionSnapshot(cachedRuntimeRows.interaction, interaction)
+            runtimeCache &&
+            sameInteractionSnapshot(runtimeCache.interaction, interaction)
         ) {
-            return cachedRuntimeRows.value;
+            return runtimeCache.value;
         }
 
         if (
-            cachedRuntimeRows &&
-            cachedRuntimeRows.staticRows === staticRows &&
+            runtimeCache &&
             canPatchActiveInteractionState(
-                cachedRuntimeRows.interaction,
+                runtimeCache.interaction,
                 interaction,
             )
         ) {
             const startedAt = performance.now();
             const patched = patchNx9ActiveInteractionState({
-                rows: cachedRuntimeRows.value,
+                rows: runtimeCache.value,
                 staticRows,
                 pageIndex,
                 context,
-                previousInteraction: cachedRuntimeRows.interaction,
+                previousInteraction: runtimeCache.interaction,
                 nextInteraction: interaction,
             });
-            cachedRuntimeRows = {
-                staticRows,
-                interaction,
-                value: patched.rows,
-            };
+            runtimeCache.interaction = interaction;
+            runtimeCache.value = patched.rows;
             recordPerfEvent?.('trace.nx9.patch-active-state', {
                 total_ms: Number((performance.now() - startedAt).toFixed(2)),
                 changed_row_count: patched.changedRowCount,
                 changed_cell_count: patched.changedCellCount,
-                page: context.currentPage,
+                page,
             });
             return patched.rows;
         }
@@ -292,18 +329,73 @@ export const createNx9PageRuntime = ({
             interactionSnapshot,
             activeCell,
         });
-        cachedRuntimeRows = {
-            staticRows,
-            interaction,
-            value,
-        };
+        if (runtimeCache) {
+            runtimeCache.interaction = interaction;
+            runtimeCache.value = value;
+        } else {
+            entry.runtimeRowsCache.push({
+                staticRows,
+                interaction,
+                value,
+            });
+        }
         recordPerfEvent?.('trace.nx9.apply-ui-full', {
             total_ms: Number((performance.now() - startedAt).toFixed(2)),
             row_count: value.length,
             cell_count: pageIndex.nodeIds.length,
-            page: context.currentPage,
+            page,
         });
         return value;
+    };
+
+    const prewarmPages = ({
+        pages,
+        displaySnapshot,
+        interactionSnapshot,
+        activeCell,
+    }: {
+        pages: Array<{
+            page: number;
+            context: Nx9PageContext;
+            sectionIdMap: Record<string, string>;
+            hydratedNodeIds: Set<string>;
+        }>;
+        displaySnapshot: SceneDisplaySnapshot;
+        interactionSnapshot: SceneCardInteractionSnapshot;
+        activeCell: { row: number; col: number; page?: number } | null;
+    }) => {
+        const hotPages = new Set<number>();
+
+        for (const pageEntry of pages) {
+            hotPages.add(pageEntry.page);
+            const pageFrame = resolvePageFrame({
+                page: pageEntry.page,
+                context: pageEntry.context,
+                sectionIdMap: pageEntry.sectionIdMap,
+            });
+            const pageIndex = resolvePageIndex({
+                page: pageEntry.page,
+                pageFrame,
+            });
+            const staticRows = resolveStaticRows({
+                page: pageEntry.page,
+                context: pageEntry.context,
+                pageFrame,
+                displaySnapshot,
+                hydratedNodeIds: pageEntry.hydratedNodeIds,
+            });
+            resolveRuntimeRows({
+                page: pageEntry.page,
+                staticRows,
+                pageIndex,
+                context: pageEntry.context,
+                interactionSnapshot,
+                activeCell,
+                displaySnapshot,
+            });
+        }
+
+        trimCache(hotPages);
     };
 
     return {
@@ -311,6 +403,7 @@ export const createNx9PageRuntime = ({
         resolvePageIndex,
         resolveStaticRows,
         resolveRuntimeRows,
+        prewarmPages,
     };
 };
 

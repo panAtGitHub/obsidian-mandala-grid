@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
     createNx9HydrationRuntime,
     resolveNx9FutureScale,
@@ -21,21 +21,23 @@ const pageFrame: Nx9PageFrameRowViewModel[] = [
 ];
 
 describe('nx9-hydration-runtime', () => {
-    it('seeds hydration with the active node and expands on scheduled frames', () => {
+    it('keeps the current page cold first and promotes hot pages sequentially', () => {
         const queue: Array<() => void> = [];
+        const onHydrationChange = vi.fn();
         const runtime = createNx9HydrationRuntime({
             scheduleFrame: (callback) => queue.push(callback),
+            onHydrationChange,
         });
 
         const initial = runtime.sync({
             revision: 1,
             currentPage: 0,
             rowCount: 5,
-            pageFrame,
-            activeNodeId: 'node-1-1',
+            hotPages: [0],
+            pageFramesByPage: new Map([[0, pageFrame]]),
         });
 
-        expect(initial).toEqual(new Set(['node-1-1']));
+        expect(initial.hydratedNodeIdsByPage.get(0)).toEqual(new Set());
         expect(queue).toHaveLength(1);
 
         queue.shift()?.();
@@ -46,10 +48,47 @@ describe('nx9-hydration-runtime', () => {
             revision: 1,
             currentPage: 0,
             rowCount: 5,
-            pageFrame,
-            activeNodeId: 'node-1-1',
+            hotPages: [0],
+            pageFramesByPage: new Map([[0, pageFrame]]),
         });
-        expect(expanded).toEqual(new Set(['node-1', 'node-1-1']));
+        expect(expanded.hydratedNodeIdsByPage.get(0)).toEqual(
+            new Set(['node-1', 'node-1-1']),
+        );
+        expect(expanded.hotPages.has(0)).toBe(true);
+        expect(onHydrationChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops pages outside the current hot window', () => {
+        const queue: Array<() => void> = [];
+        const runtime = createNx9HydrationRuntime({
+            scheduleFrame: (callback) => queue.push(callback),
+        });
+
+        runtime.sync({
+            revision: 1,
+            currentPage: 0,
+            rowCount: 5,
+            hotPages: [0, 1],
+            pageFramesByPage: new Map([
+                [0, pageFrame],
+                [1, pageFrame],
+            ]),
+        });
+
+        while (queue.length > 0) {
+            queue.shift()?.();
+        }
+
+        const next = runtime.sync({
+            revision: 1,
+            currentPage: 1,
+            rowCount: 5,
+            hotPages: [1],
+            pageFramesByPage: new Map([[1, pageFrame]]),
+        });
+
+        expect(next.hydratedNodeIdsByPage.has(0)).toBe(false);
+        expect(next.hydratedNodeIdsByPage.has(1)).toBe(true);
     });
 
     it('computes future row scale from visible row count', () => {
