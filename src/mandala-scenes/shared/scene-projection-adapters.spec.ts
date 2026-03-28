@@ -16,12 +16,10 @@ import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/bu
 
 const threeByThreeGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'node-active',
 });
 
 const nx9GridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'cell-outline',
 });
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {

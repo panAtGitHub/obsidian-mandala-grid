@@ -80,7 +80,6 @@
     };
     export let gridStyle: ResolvedGridStyle = resolveCardGridStyle({
         whiteThemeMode: false,
-        selectionStyle: 'cell-outline',
     });
     export let documentSnapshot: {
         revision: number;

@@ -5,7 +5,6 @@ import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 
 const nx9GridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'cell-outline',
 });
 
 const createContext = (page: number): Nx9PageContext => ({

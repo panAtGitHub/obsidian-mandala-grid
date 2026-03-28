@@ -319,7 +319,6 @@
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let threeByThreeGridStyle: ResolvedGridStyle = resolveCardGridStyle({
         whiteThemeMode: false,
-        selectionStyle: 'node-active',
     });
     let nx9WeekProjectionProps: ReturnType<
         typeof buildNx9WeekSceneProjectionProps
@@ -333,7 +332,6 @@
             gridStyle: resolveCardGridStyle({
                 whiteThemeMode: false,
                 compactMode: $weekPlanCompactMode,
-                selectionStyle: 'cell-outline',
             }),
             themeSnapshot: {
                 themeTone: 'light',
@@ -354,7 +352,6 @@
             },
             gridStyle: resolveCardGridStyle({
                 whiteThemeMode: false,
-                selectionStyle: 'cell-outline',
             }),
             rowsPerPage: $nx9RowsPerPage,
             displaySnapshot: DEFAULT_DISPLAY_SNAPSHOT,
@@ -388,7 +385,6 @@
     });
     $: threeByThreeGridStyle = resolveCardGridStyle({
         whiteThemeMode: sceneInputSnapshots.displaySnapshot.whiteThemeMode,
-        selectionStyle: 'node-active',
     });
     $: if (
         sceneKey.variant === 'week-7x9' ||

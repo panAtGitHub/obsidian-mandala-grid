@@ -34,7 +34,6 @@ export const buildNx9SceneProjectionProps = ({
         themeSnapshot,
         gridStyle: resolveCardGridStyle({
             whiteThemeMode: displaySnapshot.whiteThemeMode,
-            selectionStyle: 'cell-outline',
         }),
         rowsPerPage,
         displaySnapshot,
@@ -71,7 +70,6 @@ export const buildNx9SceneProjection = (
                       themeSnapshot: props.themeSnapshot,
                       gridStyle: resolveCardGridStyle({
                           whiteThemeMode: props.displaySnapshot.whiteThemeMode,
-                          selectionStyle: 'cell-outline',
                       }),
                       rowsPerPage: props.rowsPerPage,
                       displaySnapshot: props.displaySnapshot,

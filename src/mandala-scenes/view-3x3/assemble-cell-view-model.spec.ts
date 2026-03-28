@@ -24,7 +24,6 @@ describe('3x3/assemble-cell-view-model', () => {
             },
             displayPolicy: resolveCardGridStyle({
                 whiteThemeMode: false,
-                selectionStyle: 'node-active',
             }).cellDisplayPolicy,
         });
 

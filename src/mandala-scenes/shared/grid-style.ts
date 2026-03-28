@@ -6,7 +6,6 @@ export type GridSelectionStyle = 'node-active' | 'cell-outline';
 export type GridStyleOptions = {
     whiteThemeMode: boolean;
     compactMode?: boolean;
-    selectionStyle: GridSelectionStyle;
 };
 
 export type ResolvedGridStyle = {
@@ -19,11 +18,12 @@ export type ResolvedGridStyle = {
 export const resolveCardGridStyle = ({
     whiteThemeMode,
     compactMode = false,
-    selectionStyle,
 }: GridStyleOptions): ResolvedGridStyle => {
     const defaultPolicy = createDefaultCellDisplayPolicy();
-    const preserveActiveBackground =
-        whiteThemeMode || selectionStyle === 'cell-outline';
+    const selectionStyle: GridSelectionStyle = whiteThemeMode
+        ? 'cell-outline'
+        : 'node-active';
+    const preserveActiveBackground = selectionStyle === 'cell-outline';
 
     return {
         cacheKey: [

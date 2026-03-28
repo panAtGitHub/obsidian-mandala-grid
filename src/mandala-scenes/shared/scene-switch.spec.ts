@@ -8,12 +8,10 @@ import type { SceneProjection } from 'src/mandala-scenes/shared/scene-projection
 
 const threeByThreeGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'node-active',
 });
 
 const nx9GridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'cell-outline',
 });
 
 const defaultProjection = (

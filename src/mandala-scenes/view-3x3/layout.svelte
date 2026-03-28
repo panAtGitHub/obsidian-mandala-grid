@@ -14,7 +14,6 @@
     export let cells: ThreeByThreeCellViewModel[] = [];
     export let gridStyle: ResolvedGridStyle = resolveCardGridStyle({
         whiteThemeMode: false,
-        selectionStyle: 'node-active',
     });
     export let theme = '1';
     export let animateSwap = false;

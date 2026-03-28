@@ -115,16 +115,13 @@ describe('buildMandalaCardStyle', () => {
         const styles = [
             resolveCardGridStyle({
                 whiteThemeMode: false,
-                selectionStyle: 'node-active',
             }),
             resolveCardGridStyle({
                 whiteThemeMode: false,
-                selectionStyle: 'cell-outline',
             }),
             resolveCardGridStyle({
                 whiteThemeMode: false,
                 compactMode: true,
-                selectionStyle: 'cell-outline',
             }),
         ];
 

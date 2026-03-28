@@ -8,15 +8,83 @@ import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 const compactWeekGridStyle = resolveCardGridStyle({
     whiteThemeMode: true,
     compactMode: true,
-    selectionStyle: 'cell-outline',
 });
 
 const regularWeekGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'cell-outline',
 });
 
 describe('build-nx9-week-scene-projection', () => {
+    it('derives grid selection visuals from shared view settings', () => {
+        const immersive = buildNx9WeekSceneProjectionProps({
+            frontmatter: '---\nmandala: true\n---',
+            anchorDate: '2026-01-01',
+            weekStart: 'monday',
+            compactMode: false,
+            themeSnapshot: {
+                themeTone: 'light',
+                themeUnderlayColor: '#fff',
+                activeThemeUnderlayColor: '#eee',
+            },
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            sectionIdMap: {},
+            activeNodeId: null,
+            activeCell: null,
+            editingState: {
+                activeNodeId: null,
+                isInSidebar: false,
+            },
+            selectedNodes: new Set<string>(),
+            pinnedSections: new Set<string>(),
+        });
+        const panorama = buildNx9WeekSceneProjectionProps({
+            frontmatter: '---\nmandala: true\n---',
+            anchorDate: '2026-01-01',
+            weekStart: 'monday',
+            compactMode: false,
+            themeSnapshot: {
+                themeTone: 'light',
+                themeUnderlayColor: '#fff',
+                activeThemeUnderlayColor: '#eee',
+            },
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: true,
+            },
+            sectionIdMap: {},
+            activeNodeId: null,
+            activeCell: null,
+            editingState: {
+                activeNodeId: null,
+                isInSidebar: false,
+            },
+            selectedNodes: new Set<string>(),
+            pinnedSections: new Set<string>(),
+        });
+
+        expect(immersive.layoutMeta.gridStyle).toMatchObject({
+            selectionStyle: 'node-active',
+            cellDisplayPolicy: {
+                preserveActiveBackground: false,
+            },
+        });
+        expect(panorama.layoutMeta.gridStyle).toMatchObject({
+            selectionStyle: 'cell-outline',
+            cellDisplayPolicy: {
+                preserveActiveBackground: true,
+            },
+        });
+    });
+
     it('builds nx9-week projection props from frontmatter and canonical active cell', () => {
         const props = buildNx9WeekSceneProjectionProps({
             frontmatter: `---

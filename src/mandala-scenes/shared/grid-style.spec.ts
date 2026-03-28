@@ -2,11 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 
 describe('shared/grid-style', () => {
-    it('builds a shared detached card policy for node-active grids', () => {
+    it('builds a shared detached card policy for immersive card mode', () => {
         expect(
             resolveCardGridStyle({
                 whiteThemeMode: false,
-                selectionStyle: 'node-active',
             }),
         ).toMatchObject({
             compactMode: false,
@@ -25,9 +24,9 @@ describe('shared/grid-style', () => {
         expect(
             resolveCardGridStyle({
                 whiteThemeMode: true,
-                selectionStyle: 'cell-outline',
             }),
         ).toMatchObject({
+            selectionStyle: 'cell-outline',
             cellDisplayPolicy: {
                 sectionIndicatorVariant: 'plain-with-pin',
                 preserveActiveBackground: true,
@@ -41,10 +40,10 @@ describe('shared/grid-style', () => {
             resolveCardGridStyle({
                 whiteThemeMode: false,
                 compactMode: true,
-                selectionStyle: 'cell-outline',
             }),
         ).toMatchObject({
             compactMode: true,
+            selectionStyle: 'node-active',
             cellDisplayPolicy: {
                 density: 'compact',
                 scrollbarMode: 'hidden',
@@ -54,16 +53,20 @@ describe('shared/grid-style', () => {
         });
     });
 
-    it('keeps the inactive surface strategy aligned between 3x3 and nx9-style grids', () => {
+    it('keeps card-mode active highlighting aligned across scenes', () => {
         const threeByThree = resolveCardGridStyle({
             whiteThemeMode: false,
-            selectionStyle: 'node-active',
         });
         const nx9 = resolveCardGridStyle({
             whiteThemeMode: false,
-            selectionStyle: 'cell-outline',
         });
 
+        expect(threeByThree.selectionStyle).toBe('node-active');
+        expect(nx9.selectionStyle).toBe('node-active');
+        expect(threeByThree.cellDisplayPolicy.preserveActiveBackground).toBe(
+            false,
+        );
+        expect(nx9.cellDisplayPolicy.preserveActiveBackground).toBe(false);
         expect(threeByThree.cellDisplayPolicy.inactiveSurfaceMode).toBe(
             'detached',
         );

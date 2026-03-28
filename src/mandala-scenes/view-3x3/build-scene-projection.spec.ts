@@ -8,7 +8,6 @@ import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared
 
 const threeByThreeGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
-    selectionStyle: 'node-active',
 });
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {

@@ -52,7 +52,6 @@ export const buildNx9WeekSceneProjectionProps = ({
     const gridStyle = resolveCardGridStyle({
         whiteThemeMode: displaySnapshot.whiteThemeMode,
         compactMode,
-        selectionStyle: 'cell-outline',
     });
 
     return {

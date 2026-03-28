@@ -14,7 +14,6 @@
     export let cells: Nx9WeekCellViewModel[] = [];
     export let gridStyle: ResolvedGridStyle = resolveCardGridStyle({
         whiteThemeMode: false,
-        selectionStyle: 'cell-outline',
     });
     export let themeSnapshot: MandalaThemeSnapshot = {
         themeTone: 'light',
