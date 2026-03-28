@@ -14,20 +14,17 @@ import type {
     Nx9CellWithPage,
     Nx9PageContext,
 } from 'src/mandala-scenes/view-nx9/context';
+import type {
+    SceneCardInteractionSnapshot,
+    SceneDisplaySnapshot,
+    SceneEditingSnapshot,
+} from 'src/mandala-scenes/shared/scene-projection';
 import { buildNx9CellDisplayOverrides } from 'src/mandala-scenes/view-nx9/build-cell-display-overrides';
-
-type Nx9EditingState = {
-    activeNodeId: string | null;
-    isInSidebar: boolean;
-};
 
 type SharedStaticNx9RowsOptions = {
     context: Nx9PageContext;
     pageFrame: Nx9PageFrameRowViewModel[];
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
-    backgroundMode: string;
-    whiteThemeMode: boolean;
+    displaySnapshot: SceneDisplaySnapshot;
     hydratedNodeIds: Set<string>;
 };
 
@@ -37,12 +34,9 @@ type Nx9StaticCardCellDescriptorExtra = Nx9RealCellFrameViewModel & {
 
 type SharedInteractiveNx9RowsOptions = {
     context: Nx9PageContext;
-    activeNodeId: string | null;
+    displaySnapshot: SceneDisplaySnapshot;
+    interactionSnapshot: SceneCardInteractionSnapshot;
     activeCell: { row: number; col: number; page?: number } | null;
-    editingState: Nx9EditingState;
-    selectedNodes: Set<string>;
-    pinnedSections: Set<string>;
-    showDetailSidebar: boolean;
 };
 
 type AssembleNx9RowsOptions = SharedStaticNx9RowsOptions &
@@ -132,8 +126,8 @@ export type Nx9InteractionSnapshot = {
     activeNodeId: string | null;
     activeCell: Nx9CellWithPage | null;
     activeCellKey: string | null;
-    editingNodeId: string | null;
-    editingInSidebar: boolean;
+    editingNodeId: SceneEditingSnapshot['activeNodeId'];
+    editingInSidebar: SceneEditingSnapshot['isInSidebar'];
     selectedStamp: string;
     pinnedStamp: string;
     showDetailSidebar: boolean;
@@ -340,13 +334,10 @@ export const buildNx9PageIndex = (
 
 export const buildNx9PageStaticRows = ({
     pageFrame,
-    sectionColors,
-    sectionColorOpacity,
-    backgroundMode,
-    whiteThemeMode,
+    displaySnapshot,
     hydratedNodeIds,
 }: SharedStaticNx9RowsOptions): Nx9StaticRowViewModel[] => {
-    const displayPolicy = createDisplayPolicy(whiteThemeMode);
+    const displayPolicy = createDisplayPolicy(displaySnapshot.whiteThemeMode);
 
     return pageFrame.map((row) => {
         if (!Array.isArray(row)) {
@@ -355,9 +346,9 @@ export const buildNx9PageStaticRows = ({
 
         const descriptors = buildNx9StaticCardCellDescriptors({
             row,
-            backgroundMode,
-            sectionColors,
-            sectionColorOpacity,
+            backgroundMode: displaySnapshot.backgroundMode,
+            sectionColors: displaySnapshot.sectionColors,
+            sectionColorOpacity: displaySnapshot.sectionColorOpacity,
             displayPolicy,
             hydratedNodeIds,
         });
@@ -418,12 +409,9 @@ export const buildNx9StaticCardCellDescriptors = ({
 export const applyNx9PageInteractionState = ({
     context,
     staticRows,
-    activeNodeId,
+    displaySnapshot,
+    interactionSnapshot,
     activeCell,
-    editingState,
-    selectedNodes,
-    pinnedSections,
-    showDetailSidebar,
 }: SharedInteractiveNx9RowsOptions & {
     staticRows: Nx9StaticRowViewModel[];
 }): Nx9RowViewModel[] => {
@@ -452,11 +440,11 @@ export const applyNx9PageInteractionState = ({
             const nextCardUiState = buildSceneCardCell({
                 seed: cell.seed,
                 interaction: {
-                    activeNodeId,
-                    editingState,
-                    selectedNodes,
-                    pinnedSections,
-                    showDetailSidebar,
+                    activeNodeId: interactionSnapshot.activeNodeId,
+                    editingState: interactionSnapshot.editingState,
+                    selectedNodes: interactionSnapshot.selectedNodes,
+                    pinnedSections: interactionSnapshot.pinnedSections,
+                    showDetailSidebar: displaySnapshot.showDetailSidebar,
                 },
             }).cardUiState;
 
@@ -471,7 +459,7 @@ export const applyNx9PageInteractionState = ({
                 isActiveNode:
                     !normalizedActiveCell &&
                     !!cell.nodeId &&
-                    cell.nodeId === activeNodeId,
+                    cell.nodeId === interactionSnapshot.activeNodeId,
                 cardUiState: nextCardUiState,
             };
         });
@@ -676,21 +664,15 @@ export const assembleNx9Rows = (
     const staticRows = buildNx9PageStaticRows({
         context: options.context,
         pageFrame,
-        sectionColors: options.sectionColors,
-        sectionColorOpacity: options.sectionColorOpacity,
-        backgroundMode: options.backgroundMode,
-        whiteThemeMode: options.whiteThemeMode,
+        displaySnapshot: options.displaySnapshot,
         hydratedNodeIds: new Set(collectNx9HydratableNodeIds(pageFrame)),
     });
 
     return applyNx9PageInteractionState({
         context: options.context,
         staticRows,
-        activeNodeId: options.activeNodeId,
+        displaySnapshot: options.displaySnapshot,
+        interactionSnapshot: options.interactionSnapshot,
         activeCell: options.activeCell,
-        editingState: options.editingState,
-        selectedNodes: options.selectedNodes,
-        pinnedSections: options.pinnedSections,
-        showDetailSidebar: options.showDetailSidebar,
     });
 };

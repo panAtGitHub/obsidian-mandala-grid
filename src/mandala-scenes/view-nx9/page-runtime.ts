@@ -14,6 +14,10 @@ import {
     type Nx9StaticRowViewModel,
 } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 import type { Nx9PageContext } from 'src/mandala-scenes/view-nx9/context';
+import type {
+    SceneCardInteractionSnapshot,
+    SceneDisplaySnapshot,
+} from 'src/mandala-scenes/shared/scene-projection';
 
 type PerfLogger = (
     eventName: string,
@@ -104,27 +108,21 @@ export const createNx9PageRuntime = ({
     const resolveStaticRows = ({
         context,
         pageFrame,
-        sectionColors,
-        sectionColorOpacity,
-        backgroundMode,
-        whiteThemeMode,
+        displaySnapshot,
         hydratedNodeIds,
     }: {
         context: Nx9PageContext;
         pageFrame: Nx9PageFrameRowViewModel[];
-        sectionColors: Record<string, string>;
-        sectionColorOpacity: number;
-        backgroundMode: string;
-        whiteThemeMode: boolean;
+        displaySnapshot: SceneDisplaySnapshot;
         hydratedNodeIds: Set<string>;
     }) => {
         if (
             cachedStaticRows &&
             cachedStaticRows.pageFrame === pageFrame &&
-            cachedStaticRows.backgroundMode === backgroundMode &&
-            cachedStaticRows.sectionColors === sectionColors &&
-            cachedStaticRows.sectionColorOpacity === sectionColorOpacity &&
-            cachedStaticRows.whiteThemeMode === whiteThemeMode &&
+            cachedStaticRows.backgroundMode === displaySnapshot.backgroundMode &&
+            cachedStaticRows.sectionColors === displaySnapshot.sectionColors &&
+            cachedStaticRows.sectionColorOpacity === displaySnapshot.sectionColorOpacity &&
+            cachedStaticRows.whiteThemeMode === displaySnapshot.whiteThemeMode &&
             cachedStaticRows.hydratedNodeIds === hydratedNodeIds
         ) {
             return cachedStaticRows.value;
@@ -134,18 +132,15 @@ export const createNx9PageRuntime = ({
         const value = buildNx9PageStaticRows({
             context,
             pageFrame,
-            sectionColors,
-            sectionColorOpacity,
-            backgroundMode,
-            whiteThemeMode,
+            displaySnapshot,
             hydratedNodeIds,
         });
         cachedStaticRows = {
             pageFrame,
-            backgroundMode,
-            sectionColors,
-            sectionColorOpacity,
-            whiteThemeMode,
+            backgroundMode: displaySnapshot.backgroundMode,
+            sectionColors: displaySnapshot.sectionColors,
+            sectionColorOpacity: displaySnapshot.sectionColorOpacity,
+            whiteThemeMode: displaySnapshot.whiteThemeMode,
             hydratedNodeIds,
             value,
         };
@@ -163,20 +158,14 @@ export const createNx9PageRuntime = ({
 
     const buildInteractionSnapshot = ({
         context,
-        activeNodeId,
+        interactionSnapshot,
         activeCell,
-        editingState,
-        selectedStamp,
-        pinnedStamp,
-        showDetailSidebar,
+        displaySnapshot,
     }: {
         context: Nx9PageContext;
-        activeNodeId: string | null;
+        interactionSnapshot: SceneCardInteractionSnapshot;
         activeCell: { row: number; col: number; page?: number } | null;
-        editingState: { activeNodeId: string | null; isInSidebar: boolean };
-        selectedStamp: string;
-        pinnedStamp: string;
-        showDetailSidebar: boolean;
+        displaySnapshot: SceneDisplaySnapshot;
     }): Nx9InteractionSnapshot => {
         const normalizedActiveCell = activeCell
             ? {
@@ -187,16 +176,16 @@ export const createNx9PageRuntime = ({
             : null;
 
         return {
-            activeNodeId,
+            activeNodeId: interactionSnapshot.activeNodeId,
             activeCell: normalizedActiveCell,
             activeCellKey: normalizedActiveCell
                 ? `${normalizedActiveCell.page}:${normalizedActiveCell.row}:${normalizedActiveCell.col}`
                 : null,
-            editingNodeId: editingState.activeNodeId,
-            editingInSidebar: editingState.isInSidebar,
-            selectedStamp,
-            pinnedStamp,
-            showDetailSidebar,
+            editingNodeId: interactionSnapshot.editingState.activeNodeId,
+            editingInSidebar: interactionSnapshot.editingState.isInSidebar,
+            selectedStamp: interactionSnapshot.selectedStamp,
+            pinnedStamp: interactionSnapshot.pinnedStamp,
+            showDetailSidebar: displaySnapshot.showDetailSidebar,
         };
     };
 
@@ -238,35 +227,22 @@ export const createNx9PageRuntime = ({
         staticRows,
         pageIndex,
         context,
-        activeNodeId,
+        interactionSnapshot,
         activeCell,
-        editingState,
-        selectedNodes,
-        selectedStamp,
-        pinnedSections,
-        pinnedStamp,
-        showDetailSidebar,
+        displaySnapshot,
     }: {
         staticRows: Nx9StaticRowViewModel[];
         pageIndex: Nx9PageIndex;
         context: Nx9PageContext;
-        activeNodeId: string | null;
+        interactionSnapshot: SceneCardInteractionSnapshot;
         activeCell: { row: number; col: number; page?: number } | null;
-        editingState: { activeNodeId: string | null; isInSidebar: boolean };
-        selectedNodes: Set<string>;
-        selectedStamp: string;
-        pinnedSections: Set<string>;
-        pinnedStamp: string;
-        showDetailSidebar: boolean;
+        displaySnapshot: SceneDisplaySnapshot;
     }) => {
         const interaction = buildInteractionSnapshot({
             context,
-            activeNodeId,
+            interactionSnapshot,
             activeCell,
-            editingState,
-            selectedStamp,
-            pinnedStamp,
-            showDetailSidebar,
+            displaySnapshot,
         });
 
         if (
@@ -312,12 +288,9 @@ export const createNx9PageRuntime = ({
         const value = applyNx9PageInteractionState({
             context,
             staticRows,
-            activeNodeId,
+            displaySnapshot,
+            interactionSnapshot,
             activeCell,
-            editingState,
-            selectedNodes,
-            pinnedSections,
-            showDetailSidebar,
         });
         cachedRuntimeRows = {
             staticRows,

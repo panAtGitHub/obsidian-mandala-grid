@@ -46,10 +46,13 @@ describe('nx9-page-runtime', () => {
         const staticRows = runtime.resolveStaticRows({
             context,
             pageFrame,
-            sectionColors: {},
-            sectionColorOpacity: 0,
-            backgroundMode: 'none',
-            whiteThemeMode: false,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 0,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
             hydratedNodeIds: new Set(['node-1', 'node-1-1']),
         });
 
@@ -57,28 +60,44 @@ describe('nx9-page-runtime', () => {
             staticRows,
             pageIndex,
             context,
-            activeNodeId: 'node-1',
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                selectedStamp: '',
+                pinnedSections: new Set(),
+                pinnedStamp: '',
+            },
             activeCell: { row: 0, col: 0, page: 0 },
-            editingState: { activeNodeId: null, isInSidebar: false },
-            selectedNodes: new Set(),
-            selectedStamp: '',
-            pinnedSections: new Set(),
-            pinnedStamp: '',
-            showDetailSidebar: false,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 0,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
         });
 
         runtime.resolveRuntimeRows({
             staticRows,
             pageIndex,
             context,
-            activeNodeId: 'node-1-1',
+            interactionSnapshot: {
+                activeNodeId: 'node-1-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                selectedStamp: '',
+                pinnedSections: new Set(),
+                pinnedStamp: '',
+            },
             activeCell: { row: 0, col: 1, page: 0 },
-            editingState: { activeNodeId: null, isInSidebar: false },
-            selectedNodes: new Set(),
-            selectedStamp: '',
-            pinnedSections: new Set(),
-            pinnedStamp: '',
-            showDetailSidebar: false,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 0,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
         });
 
         expect(

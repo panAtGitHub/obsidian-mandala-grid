@@ -44,10 +44,13 @@ const createFixture = () => {
     const staticRows = buildNx9PageStaticRows({
         context,
         pageFrame,
-        sectionColors: {},
-        sectionColorOpacity: 100,
-        backgroundMode: 'none',
-        whiteThemeMode: false,
+        displaySnapshot: {
+            sectionColors: {},
+            sectionColorOpacity: 100,
+            backgroundMode: 'none',
+            showDetailSidebar: false,
+            whiteThemeMode: false,
+        },
         hydratedNodeIds: new Set([
             'node-1',
             'node-1-1',
@@ -90,12 +93,22 @@ describe('nx9/assemble-cell-view-model', () => {
         const rows = applyNx9PageInteractionState({
             context,
             staticRows,
-            activeNodeId: 'node-1',
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 100,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                selectedStamp: '',
+                pinnedSections: new Set(),
+                pinnedStamp: '',
+            },
             activeCell: { row: 0, col: 0, page: 0 },
-            editingState: { activeNodeId: null, isInSidebar: false },
-            selectedNodes: new Set(),
-            pinnedSections: new Set(),
-            showDetailSidebar: false,
         });
 
         const previousRow0 = rows[0] as Nx9RealCellViewModel[];
@@ -136,12 +149,22 @@ describe('nx9/assemble-cell-view-model', () => {
         const rows = applyNx9PageInteractionState({
             context,
             staticRows,
-            activeNodeId: 'node-1',
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 100,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                selectedStamp: '',
+                pinnedSections: new Set(),
+                pinnedStamp: '',
+            },
             activeCell: { row: 0, col: 0, page: 0 },
-            editingState: { activeNodeId: null, isInSidebar: false },
-            selectedNodes: new Set(),
-            pinnedSections: new Set(),
-            showDetailSidebar: false,
         });
 
         const previousRow0 = rows[0] as Nx9RealCellViewModel[];
@@ -175,12 +198,22 @@ describe('nx9/assemble-cell-view-model', () => {
         const rows = applyNx9PageInteractionState({
             context,
             staticRows,
-            activeNodeId: 'node-1',
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 100,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(['node-1-1']),
+                selectedStamp: '',
+                pinnedSections: new Set(['2']),
+                pinnedStamp: '',
+            },
             activeCell: { row: 0, col: 0, page: 0 },
-            editingState: { activeNodeId: null, isInSidebar: false },
-            selectedNodes: new Set(['node-1-1']),
-            pinnedSections: new Set(['2']),
-            showDetailSidebar: false,
         });
         const firstRow = rows[0] as Nx9RealCellViewModel[];
         const secondRow = rows[1] as Nx9RealCellViewModel[];

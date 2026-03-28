@@ -128,24 +128,16 @@
     $: staticRows = pageRuntime.resolveStaticRows({
         context: nx9Context,
         pageFrame,
-        sectionColors: displaySnapshot.sectionColors,
-        sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-        backgroundMode: displaySnapshot.backgroundMode,
-        whiteThemeMode: displaySnapshot.whiteThemeMode,
+        displaySnapshot,
         hydratedNodeIds,
     });
     $: rows = pageRuntime.resolveRuntimeRows({
         staticRows,
         pageIndex,
         context: nx9Context,
-        activeNodeId: interactionSnapshot.activeNodeId,
+        interactionSnapshot,
         activeCell,
-        editingState: interactionSnapshot.editingState,
-        selectedNodes: interactionSnapshot.selectedNodes,
-        selectedStamp: interactionSnapshot.selectedStamp,
-        pinnedSections: interactionSnapshot.pinnedSections,
-        pinnedStamp: interactionSnapshot.pinnedStamp,
-        showDetailSidebar: displaySnapshot.showDetailSidebar,
+        displaySnapshot,
     });
 
 </script>
