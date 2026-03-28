@@ -59,7 +59,7 @@ describe('buildMandalaCardRenderModel', () => {
         });
 
         expect(model.surfaceStyle).toContain(
-            'background-color: var(--background-active-parent)',
+            'background-color: var(--background-primary)',
         );
         expect(model.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
     });

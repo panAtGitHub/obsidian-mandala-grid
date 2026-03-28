@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import { buildMandalaCardStyle } from './mandala-card-style';
 
 describe('buildMandalaCardStyle', () => {
@@ -87,7 +88,7 @@ describe('buildMandalaCardStyle', () => {
         });
 
         expect(state.surfaceStyle).toContain(
-            'background-color: var(--background-active-parent)',
+            'background-color: var(--background-primary)',
         );
         expect(state.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
         expect(state.bodyStyle).toContain(
@@ -108,5 +109,38 @@ describe('buildMandalaCardStyle', () => {
         );
         expect(state.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
         expect(state.bodyStyle).toContain('--text-normal: #0f131a');
+    });
+
+    it('keeps plain inactive cards aligned across shared card-grid styles', () => {
+        const styles = [
+            resolveCardGridStyle({
+                whiteThemeMode: false,
+                selectionStyle: 'node-active',
+            }),
+            resolveCardGridStyle({
+                whiteThemeMode: false,
+                selectionStyle: 'cell-outline',
+            }),
+            resolveCardGridStyle({
+                whiteThemeMode: false,
+                compactMode: true,
+                selectionStyle: 'cell-outline',
+            }),
+        ];
+
+        for (const gridStyle of styles) {
+            const state = buildMandalaCardStyle({
+                active: false,
+                sectionColor: null,
+                style: undefined,
+                preserveActiveBackground:
+                    gridStyle.cellDisplayPolicy.preserveActiveBackground,
+                themeTone: 'light',
+            });
+
+            expect(state.surfaceStyle).toContain(
+                'background-color: var(--background-primary)',
+            );
+        }
     });
 });

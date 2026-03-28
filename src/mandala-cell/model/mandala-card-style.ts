@@ -76,7 +76,7 @@ export const buildMandalaCardStyle = ({
             : sectionColor
               ? `background-color: ${sectionColor}`
               : !active && style?.styleVariant !== 'background-color'
-                ? 'background-color: var(--background-active-parent)'
+                ? 'background-color: var(--background-primary)'
                 : '',
     ]
         .filter((chunk) => chunk.length > 0)
