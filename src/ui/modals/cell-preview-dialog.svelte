@@ -60,7 +60,7 @@
                   ).variant,
                   activeNodeId: $viewState.document.activeNode,
                   activeNodeSection:
-                      $idToSection[$viewState.document.activeNode] ?? null,
+                      $idToSection?.[$viewState.document.activeNode] ?? null,
                   activeCell9x9: getMandalaActiveCell9x9($viewState),
                   activeCellNx9: getMandalaActiveCellNx9($viewState),
                   activeCellWeek7x9: getMandalaActiveCellWeek7x9($viewState),
@@ -88,7 +88,7 @@
         openCellPreviewDialog(view, resolvedReadonlyNodeId);
     }
     $: previewNodeId = resolvedReadonlyNodeId ?? $previewDialog.nodeId;
-    $: sectionLabel = previewNodeId ? $idToSection[previewNodeId] ?? '' : '';
+    $: sectionLabel = previewNodeId ? $idToSection?.[previewNodeId] ?? '' : '';
     $: if (
         !$cellQuickPreviewEnabled &&
         $previewDialog.open &&

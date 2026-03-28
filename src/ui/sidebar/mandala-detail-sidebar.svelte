@@ -79,7 +79,7 @@
     let dayPlanTodayNavigation = resolveDayPlanTodayNavigation('');
     let activeSection: string | null = null;
     $: activeSection = $activeNodeId
-        ? $idToSection[$activeNodeId] ?? null
+        ? $idToSection?.[$activeNodeId] ?? null
         : null;
     $: activeCoreNumber = Number(activeSection?.split('.')[0] ?? '1') || 1;
     $: canExitSubgrid = Boolean($subgridTheme && $subgridTheme !== '1');

@@ -81,7 +81,7 @@
     $: renderModel = buildMandalaCardRenderModel({
         viewModel,
         uiState,
-        fallbackSection: $idToSection[nodeId],
+        fallbackSection: $idToSection?.[nodeId],
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,
         showDetailSidebar: $showDetailSidebar,
