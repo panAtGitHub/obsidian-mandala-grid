@@ -20,6 +20,7 @@ export const buildWeekSceneProjectionProps = ({
     anchorDate,
     weekStart,
     compactMode,
+    includeMobileDescriptors = true,
     displaySnapshot,
     sectionIdMap,
     documentContent,
@@ -33,6 +34,7 @@ export const buildWeekSceneProjectionProps = ({
     anchorDate: string | null | undefined;
     weekStart: WeekStart;
     compactMode: boolean;
+    includeMobileDescriptors?: boolean;
     displaySnapshot: SceneDisplaySnapshot;
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Record<string, { content?: string }>;
@@ -69,13 +71,15 @@ export const buildWeekSceneProjectionProps = ({
                 showDetailSidebar: displaySnapshot.showDetailSidebar,
                 whiteThemeMode: displaySnapshot.whiteThemeMode,
             }),
-            mobileDescriptors: assembleMobileWeekPlanCells({
-                rows,
-                sectionIdMap,
-                documentContent,
-                activeNodeId,
-                activeCell,
-            }),
+            mobileDescriptors: includeMobileDescriptors
+                ? assembleMobileWeekPlanCells({
+                      rows,
+                      sectionIdMap,
+                      documentContent,
+                      activeNodeId,
+                      activeCell,
+                  })
+                : [],
         },
         layoutMeta: {
             rows,

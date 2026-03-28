@@ -188,10 +188,41 @@
         const controls = state.ui.controls;
         return controls.showHelpSidebar || controls.showSettingsSidebar;
     });
+    const DEFAULT_DISPLAY_SNAPSHOT = {
+        sectionColors: {} as Record<string, string>,
+        sectionColorOpacity: 0,
+        backgroundMode: 'none',
+        showDetailSidebar: false,
+        whiteThemeMode: false,
+    };
+    const DEFAULT_INTERACTION_SNAPSHOT = {
+        activeNodeId: null as string | null,
+        editingState: {
+            activeNodeId: null as string | null,
+            isInSidebar: false,
+        },
+        selectedNodes: new Set<string>(),
+        selectedStamp: '',
+        pinnedSections: new Set<string>(),
+        pinnedStamp: '',
+        showDetailSidebar: false,
+    };
+    const DEFAULT_DOCUMENT_SNAPSHOT = {
+        revision: 0,
+        contentRevision: 0,
+        sectionIdMap: {} as Record<string, string>,
+        documentContent: {},
+    };
 
     let containerRef: HTMLElement | null = null;
     onMount(() => {
         const syncNx9ThemeSnapshot = () => {
+            if (
+                sceneKey.viewKind !== 'nx9' &&
+                committedSceneKey.viewKind !== 'nx9'
+            ) {
+                return;
+            }
             const styles = window.getComputedStyle(document.body);
             const inactiveThemeUnderlayColor =
                 styles.getPropertyValue('--background-active-parent').trim() ||
@@ -287,79 +318,36 @@
     let committedThreeByThreeCells = [];
     let threeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
-    let weekProjectionProps = buildWeekSceneProjectionProps({
-        frontmatter: '',
-        anchorDate: null,
-        weekStart: 'monday',
-        compactMode: $weekPlanCompactMode,
-        displaySnapshot: buildSceneInputSnapshots({
-            documentState: $documentState,
-            sectionColors: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
-            backgroundMode: $backgroundMode,
-            showDetailSidebar: $showDetailSidebar,
-            whiteThemeMode: $whiteThemeMode,
-            activeNodeId: $activeNodeId,
-            editingState: $editingState,
-            selectedNodes: $selectedNodes,
-            selectedStamp: selectedNodesStamp,
-            pinnedSections: $pinnedSections,
-            pinnedStamp: pinnedSectionsStamp,
-        }).displaySnapshot,
-    });
-    let nx9ProjectionProps = buildNx9SceneProjectionProps({
-        documentSnapshot: buildSceneInputSnapshots({
-            documentState: $documentState,
-            sectionColors: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
-            backgroundMode: $backgroundMode,
-            showDetailSidebar: $showDetailSidebar,
-            whiteThemeMode: $whiteThemeMode,
-            activeNodeId: $activeNodeId,
-            editingState: $editingState,
-            selectedNodes: $selectedNodes,
-            selectedStamp: selectedNodesStamp,
-            pinnedSections: $pinnedSections,
-            pinnedStamp: pinnedSectionsStamp,
-        }).documentSnapshot,
-        themeSnapshot: {
-            themeTone: 'light',
-            themeUnderlayColor: '',
-            activeThemeUnderlayColor: '',
+    let weekProjectionProps: ReturnType<typeof buildWeekSceneProjectionProps> = {
+        layoutKind: 'week',
+        output: {
+            desktopDescriptors: [],
+            mobileDescriptors: [],
         },
-        rowsPerPage: $nx9RowsPerPage,
-        displaySnapshot: buildSceneInputSnapshots({
-            documentState: $documentState,
-            sectionColors: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
-            backgroundMode: $backgroundMode,
-            showDetailSidebar: $showDetailSidebar,
-            whiteThemeMode: $whiteThemeMode,
-            activeNodeId: $activeNodeId,
-            editingState: $editingState,
-            selectedNodes: $selectedNodes,
-            selectedStamp: selectedNodesStamp,
-            pinnedSections: $pinnedSections,
-            pinnedStamp: pinnedSectionsStamp,
-        }).displaySnapshot,
-        interactionSnapshot: buildSceneInputSnapshots({
-            documentState: $documentState,
-            sectionColors: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
-            backgroundMode: $backgroundMode,
-            showDetailSidebar: $showDetailSidebar,
-            whiteThemeMode: $whiteThemeMode,
-            activeNodeId: $activeNodeId,
-            editingState: $editingState,
-            selectedNodes: $selectedNodes,
-            selectedStamp: selectedNodesStamp,
-            pinnedSections: $pinnedSections,
-            pinnedStamp: pinnedSectionsStamp,
-        }).interactionSnapshot,
-        activeSection,
-        activeCoreSection,
-        activeCell: $nx9ActiveCell,
-    });
+        layoutMeta: {
+            rows: [],
+            compactMode: $weekPlanCompactMode,
+            displaySnapshot: DEFAULT_DISPLAY_SNAPSHOT,
+        },
+    };
+    let nx9ProjectionProps: ReturnType<typeof buildNx9SceneProjectionProps> = {
+        layoutKind: 'nx9',
+        output: {},
+        layoutMeta: {
+            documentSnapshot: DEFAULT_DOCUMENT_SNAPSHOT,
+            themeSnapshot: {
+                themeTone: 'light',
+                themeUnderlayColor: '',
+                activeThemeUnderlayColor: '',
+            },
+            rowsPerPage: $nx9RowsPerPage,
+            displaySnapshot: DEFAULT_DISPLAY_SNAPSHOT,
+            interactionSnapshot: DEFAULT_INTERACTION_SNAPSHOT,
+            activeSection: null,
+            activeCoreSection: null,
+            activeCell: null,
+        },
+    };
 
     $: sceneKey = resolveMandalaSceneKey({
         frontmatter: $documentState.file.frontmatter,
@@ -382,30 +370,41 @@
         pinnedSections: $pinnedSections,
         pinnedStamp: pinnedSectionsStamp,
     });
-    $: weekProjectionProps = buildWeekSceneProjectionProps({
-        frontmatter: $documentState.file.frontmatter,
-        anchorDate: $weekAnchorDate,
-        weekStart: $weekStart,
-        compactMode: $weekPlanCompactMode,
-        displaySnapshot: sceneInputSnapshots.displaySnapshot,
-        sectionIdMap: $documentState.sections.section_id,
-        documentContent: $documentState.document.content,
-        activeNodeId: $activeNodeId,
-        activeCell: $weekActiveCell,
-        editingState: $editingState,
-        selectedNodes: $selectedNodes,
-        pinnedSections: $pinnedSections,
-    });
-    $: nx9ProjectionProps = buildNx9SceneProjectionProps({
-        documentSnapshot: sceneInputSnapshots.documentSnapshot,
-        themeSnapshot: nx9ProjectionProps.layoutMeta.themeSnapshot,
-        rowsPerPage: $nx9RowsPerPage,
-        displaySnapshot: sceneInputSnapshots.displaySnapshot,
-        interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
-        activeSection,
-        activeCoreSection,
-        activeCell: $nx9ActiveCell,
-    });
+    $: if (
+        sceneKey.variant === 'week-7x9' ||
+        committedSceneKey.variant === 'week-7x9'
+    ) {
+        weekProjectionProps = buildWeekSceneProjectionProps({
+            frontmatter: $documentState.file.frontmatter,
+            anchorDate: $weekAnchorDate,
+            weekStart: $weekStart,
+            compactMode: $weekPlanCompactMode,
+            includeMobileDescriptors: Platform.isMobile,
+            displaySnapshot: sceneInputSnapshots.displaySnapshot,
+            sectionIdMap: $documentState.sections.section_id,
+            documentContent: $documentState.document.content,
+            activeNodeId: $activeNodeId,
+            activeCell: $weekActiveCell,
+            editingState: $editingState,
+            selectedNodes: $selectedNodes,
+            pinnedSections: $pinnedSections,
+        });
+    }
+    $: if (
+        sceneKey.viewKind === 'nx9' ||
+        committedSceneKey.viewKind === 'nx9'
+    ) {
+        nx9ProjectionProps = buildNx9SceneProjectionProps({
+            documentSnapshot: sceneInputSnapshots.documentSnapshot,
+            themeSnapshot: nx9ProjectionProps.layoutMeta.themeSnapshot,
+            rowsPerPage: $nx9RowsPerPage,
+            displaySnapshot: sceneInputSnapshots.displaySnapshot,
+            interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
+            activeSection,
+            activeCoreSection,
+            activeCell: $nx9ActiveCell,
+        });
+    }
 
     $: {
         ensureSceneCompatibility(view, {
