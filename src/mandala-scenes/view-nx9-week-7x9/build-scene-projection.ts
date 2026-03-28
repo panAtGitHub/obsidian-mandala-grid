@@ -1,54 +1,34 @@
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
-import {
-    resolveWeekPlanContext,
-} from 'src/mandala-display/logic/week-plan-context';
-import type { WeekStart } from 'src/mandala-settings/state/settings-type';
+import type { WeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
-import {
-    assembleNx9WeekCells,
-} from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
+import type { SceneCardInteractionSnapshot } from 'src/mandala-scenes/shared/scene-projection';
 import type {
     Nx9WeekSceneProjection,
     Nx9WeekSceneProjectionProps,
     SceneDisplaySnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
+import { createNx9WeekRuntime } from 'src/mandala-scenes/view-nx9-week-7x9/runtime';
 
 export const buildNx9WeekSceneProjectionProps = ({
-    frontmatter,
-    anchorDate,
-    weekStart,
+    weekContext,
     compactMode,
     themeSnapshot,
     displaySnapshot,
     sectionIdMap,
-    activeNodeId,
+    interactionSnapshot,
     activeCell,
-    editingState,
-    selectedNodes,
-    pinnedSections,
+    runtime,
 }: {
-    frontmatter: string;
-    anchorDate: string | null | undefined;
-    weekStart: WeekStart;
+    weekContext: WeekPlanContext;
     compactMode: boolean;
     themeSnapshot: MandalaThemeSnapshot;
     displaySnapshot: SceneDisplaySnapshot;
     sectionIdMap: Record<string, string | undefined>;
-    activeNodeId: string | null;
+    interactionSnapshot: SceneCardInteractionSnapshot;
     activeCell: { row: number; col: number; page?: number } | null;
-    editingState: {
-        activeNodeId: string | null;
-        isInSidebar: boolean;
-    };
-    selectedNodes: Set<string>;
-    pinnedSections: Set<string>;
+    runtime: ReturnType<typeof createNx9WeekRuntime>;
 }): Nx9WeekSceneProjectionProps => {
-    const rows = resolveWeekPlanContext({
-        frontmatter,
-        anchorDate,
-        weekStart,
-    }).rows;
     const gridStyle = resolveCardGridStyle({
         whiteThemeMode: displaySnapshot.whiteThemeMode,
         compactMode,
@@ -57,19 +37,13 @@ export const buildNx9WeekSceneProjectionProps = ({
     return {
         layoutKind: 'nx9-week-7x9',
         output: {
-            descriptors: assembleNx9WeekCells({
-                rows,
+            descriptors: runtime.resolveCells({
+                weekContext,
                 sectionIdMap,
-                activeNodeId,
-                activeCell,
-                editingState,
-                selectedNodes,
-                pinnedSections,
                 gridStyle,
-                sectionColors: displaySnapshot.sectionColors,
-                sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-                backgroundMode: displaySnapshot.backgroundMode,
-                showDetailSidebar: displaySnapshot.showDetailSidebar,
+                displaySnapshot,
+                interactionSnapshot,
+                activeCell,
             }),
         },
         layoutMeta: {

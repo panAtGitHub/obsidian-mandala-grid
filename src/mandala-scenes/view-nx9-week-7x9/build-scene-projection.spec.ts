@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import {
     buildNx9WeekSceneProjection,
     buildNx9WeekSceneProjectionProps,
 } from 'src/mandala-scenes/view-nx9-week-7x9/build-scene-projection';
 import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
+import { createNx9WeekRuntime } from 'src/mandala-scenes/view-nx9-week-7x9/runtime';
 
 const compactWeekGridStyle = resolveCardGridStyle({
     whiteThemeMode: true,
@@ -14,12 +16,27 @@ const regularWeekGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
 });
 
+const createInteractionSnapshot = () => ({
+    activeNodeId: null,
+    editingState: {
+        activeNodeId: null,
+        isInSidebar: false,
+    },
+    selectedNodes: new Set<string>(),
+    showDetailSidebar: false,
+    selectedStamp: '',
+    pinnedSections: new Set<string>(),
+    pinnedStamp: '',
+});
+
 describe('build-nx9-week-scene-projection', () => {
     it('derives grid selection visuals from shared view settings', () => {
         const immersive = buildNx9WeekSceneProjectionProps({
-            frontmatter: '---\nmandala: true\n---',
-            anchorDate: '2026-01-01',
-            weekStart: 'monday',
+            weekContext: resolveWeekPlanContext({
+                frontmatter: '---\nmandala: true\n---',
+                anchorDate: '2026-01-01',
+                weekStart: 'monday',
+            }),
             compactMode: false,
             themeSnapshot: {
                 themeTone: 'light',
@@ -34,19 +51,16 @@ describe('build-nx9-week-scene-projection', () => {
                 whiteThemeMode: false,
             },
             sectionIdMap: {},
-            activeNodeId: null,
+            interactionSnapshot: createInteractionSnapshot(),
             activeCell: null,
-            editingState: {
-                activeNodeId: null,
-                isInSidebar: false,
-            },
-            selectedNodes: new Set<string>(),
-            pinnedSections: new Set<string>(),
+            runtime: createNx9WeekRuntime(),
         });
         const panorama = buildNx9WeekSceneProjectionProps({
-            frontmatter: '---\nmandala: true\n---',
-            anchorDate: '2026-01-01',
-            weekStart: 'monday',
+            weekContext: resolveWeekPlanContext({
+                frontmatter: '---\nmandala: true\n---',
+                anchorDate: '2026-01-01',
+                weekStart: 'monday',
+            }),
             compactMode: false,
             themeSnapshot: {
                 themeTone: 'light',
@@ -61,14 +75,9 @@ describe('build-nx9-week-scene-projection', () => {
                 whiteThemeMode: true,
             },
             sectionIdMap: {},
-            activeNodeId: null,
+            interactionSnapshot: createInteractionSnapshot(),
             activeCell: null,
-            editingState: {
-                activeNodeId: null,
-                isInSidebar: false,
-            },
-            selectedNodes: new Set<string>(),
-            pinnedSections: new Set<string>(),
+            runtime: createNx9WeekRuntime(),
         });
 
         expect(immersive.layoutMeta.gridStyle).toMatchObject({
@@ -87,15 +96,17 @@ describe('build-nx9-week-scene-projection', () => {
 
     it('builds nx9-week projection props from frontmatter and canonical active cell', () => {
         const props = buildNx9WeekSceneProjectionProps({
-            frontmatter: `---
+            weekContext: resolveWeekPlanContext({
+                frontmatter: `---
 mandala: true
 mandala_plan:
   enabled: true
   year: 2026
   daily_only_3x3: true
 ---`,
-            anchorDate: '2026-01-01',
-            weekStart: 'monday',
+                anchorDate: '2026-01-01',
+                weekStart: 'monday',
+            }),
             compactMode: true,
             themeSnapshot: {
                 themeTone: 'light',
@@ -112,14 +123,12 @@ mandala_plan:
             sectionIdMap: {
                 '1': 'node-1',
             },
-            activeNodeId: 'node-1',
-            activeCell: { row: 3, col: 0, page: 0 },
-            editingState: {
-                activeNodeId: null,
-                isInSidebar: false,
+            interactionSnapshot: {
+                ...createInteractionSnapshot(),
+                activeNodeId: 'node-1',
             },
-            selectedNodes: new Set<string>(),
-            pinnedSections: new Set<string>(),
+            activeCell: { row: 3, col: 0, page: 0 },
+            runtime: createNx9WeekRuntime(),
         });
 
         expect(props).toMatchObject({

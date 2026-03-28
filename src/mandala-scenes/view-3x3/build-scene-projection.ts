@@ -6,11 +6,13 @@ import {
 } from 'src/mandala-scenes/shared/scene-projection';
 import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
 import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
+import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 
 export const buildThreeByThreeSceneProjectionProps = ({
     cells,
     gridStyle,
+    themeSnapshot,
     theme,
     animateSwap,
     show3x3SubgridNavButtons,
@@ -23,6 +25,7 @@ export const buildThreeByThreeSceneProjectionProps = ({
 }: {
     cells: ThreeByThreeCellViewModel[];
     gridStyle: ResolvedGridStyle;
+    themeSnapshot: MandalaThemeSnapshot;
     theme: string;
     animateSwap: boolean;
     show3x3SubgridNavButtons: boolean;
@@ -39,6 +42,7 @@ export const buildThreeByThreeSceneProjectionProps = ({
     },
     layoutMeta: {
         gridStyle,
+        themeSnapshot,
         theme,
         animateSwap,
         show3x3SubgridNavButtons,

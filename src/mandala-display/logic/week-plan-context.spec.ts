@@ -119,4 +119,25 @@ describe('week-plan-context', () => {
             isCenterColumn: false,
         });
     });
+
+    it('reuses cached context for identical inputs and invalidates on key changes', () => {
+        const first = resolveWeekPlanContext({
+            frontmatter,
+            anchorDate: '2026-03-18',
+            weekStart: 'monday',
+        });
+        const second = resolveWeekPlanContext({
+            frontmatter,
+            anchorDate: '2026-03-18',
+            weekStart: 'monday',
+        });
+        const shifted = resolveWeekPlanContext({
+            frontmatter,
+            anchorDate: '2026-03-19',
+            weekStart: 'monday',
+        });
+
+        expect(second).toBe(first);
+        expect(shifted).not.toBe(first);
+    });
 });

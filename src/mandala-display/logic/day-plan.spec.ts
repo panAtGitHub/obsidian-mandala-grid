@@ -23,6 +23,7 @@ import {
     mapWeekPlanRows,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
+    parseDayPlanFrontmatterWithMandala,
     posOfSectionWeek7x9,
     sectionFromDateInPlanYear,
     sectionAtCellWeek7x9,
@@ -280,6 +281,25 @@ describe('day-plan helpers', () => {
         const parsed = parseDayPlanFrontmatter(frontmatter);
         expect(parsed).not.toBeNull();
         expect(parsed?.year).toBe(2026);
+    });
+
+    it('reuses cached frontmatter parsing for identical inputs', () => {
+        const frontmatter =
+            '---\n' +
+            'mandala: true\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '---\n';
+
+        const first = parseDayPlanFrontmatterWithMandala(frontmatter);
+        const second = parseDayPlanFrontmatterWithMandala(frontmatter);
+        const changed = parseDayPlanFrontmatterWithMandala(
+            frontmatter.replace('2026', '2027'),
+        );
+
+        expect(second).toBe(first);
+        expect(changed).not.toBe(first);
     });
 
     it('builds hot core sections from week window', () => {

@@ -73,7 +73,7 @@ const getSectionBackground = ({
     return null;
 };
 
-type ThreeByThreeCardCellDescriptorExtra = {
+export type ThreeByThreeCardCellDescriptorExtra = {
     index: number;
     isCenter: boolean;
     isTopEdge: boolean;

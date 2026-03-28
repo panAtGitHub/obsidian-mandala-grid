@@ -72,6 +72,23 @@ const syncNodeFocusTarget = (state: ViewState) => {
     syncSceneCellCachesFromFocusTarget(state);
 };
 
+const sameGridCell = (
+    current: { row: number; col: number } | null,
+    next: { row: number; col: number } | null,
+) =>
+    current?.row === next?.row &&
+    current?.col === next?.col &&
+    (current === null) === (next === null);
+
+const sameNx9GridCell = (
+    current: { row: number; col: number; page?: number } | null,
+    next: { row: number; col: number; page?: number } | null,
+) =>
+    current?.row === next?.row &&
+    current?.col === next?.col &&
+    (current?.page ?? 0) === (next?.page ?? 0) &&
+    (current === null) === (next === null);
+
 const handlers: Record<string, ViewActionHandler> = {
     'view/set-active-node/mouse': (state, action, context) => {
         if (action.type !== 'view/set-active-node/mouse') return;
@@ -370,6 +387,14 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/mandala/active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/active-cell/set') return;
+        if (
+            sameGridCell(
+                state.ui.mandala.sceneState.nineByNine.activeCell,
+                action.payload.cell,
+            )
+        ) {
+            return;
+        }
         setFocusTarget(
             state,
             action.payload.cell
@@ -387,6 +412,14 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/mandala/week-active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/week-active-cell/set') return;
+        if (
+            sameGridCell(
+                state.ui.mandala.sceneState.nx9.weekPlan.activeCell,
+                action.payload.cell,
+            )
+        ) {
+            return;
+        }
         setFocusTarget(
             state,
             action.payload.cell
@@ -405,6 +438,14 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/mandala/nx9-active-cell/set': (state, action) => {
         if (action.type !== 'view/mandala/nx9-active-cell/set') return;
+        if (
+            sameNx9GridCell(
+                state.ui.mandala.sceneState.nx9.activeCell,
+                action.payload.cell,
+            )
+        ) {
+            return;
+        }
         setFocusTarget(
             state,
             action.payload.cell

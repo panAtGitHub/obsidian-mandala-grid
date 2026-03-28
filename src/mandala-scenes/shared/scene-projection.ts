@@ -42,6 +42,7 @@ export type SceneCardInteractionSnapshot = SceneCardInteractionDescriptor & {
 
 type ThreeByThreeLayoutMeta = {
     gridStyle: ResolvedGridStyle;
+    themeSnapshot: MandalaThemeSnapshot;
     theme: string;
     animateSwap: boolean;
     show3x3SubgridNavButtons: boolean;

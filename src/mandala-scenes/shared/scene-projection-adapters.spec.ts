@@ -18,6 +18,11 @@ import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/bu
 const threeByThreeGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
 });
+const threeByThreeThemeSnapshot = {
+    themeTone: 'light' as const,
+    themeUnderlayColor: '#fff',
+    activeThemeUnderlayColor: '#eee',
+};
 
 const nx9GridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
@@ -30,6 +35,7 @@ const preparedProps: ThreeByThreeSceneProjectionProps = {
     },
     layoutMeta: {
         gridStyle: threeByThreeGridStyle,
+        themeSnapshot: threeByThreeThemeSnapshot,
         theme: '1',
         animateSwap: false,
         show3x3SubgridNavButtons: false,

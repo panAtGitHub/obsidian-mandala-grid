@@ -28,6 +28,16 @@ export type WeekPlanContext = {
     ) => WeekPlanCellPosition | null;
 };
 
+type WeekPlanContextCacheEntry = {
+    frontmatter: string;
+    anchorDate: string | null | undefined;
+    weekStart: WeekStart;
+    todayKey: string | null;
+    value: WeekPlanContext;
+};
+
+let cachedWeekPlanContext: WeekPlanContextCacheEntry | null = null;
+
 export const getDefaultWeekAnchorDate = (today: Date = new Date()) =>
     today.toISOString().slice(0, 10);
 
@@ -42,20 +52,40 @@ export const resolveWeekPlanContext = ({
     weekStart: WeekStart;
     today?: Date;
 }): WeekPlanContext => {
+    const todayKey = !anchorDate && today ? today.toISOString().slice(0, 10) : null;
+    if (
+        cachedWeekPlanContext &&
+        cachedWeekPlanContext.frontmatter === frontmatter &&
+        cachedWeekPlanContext.anchorDate === anchorDate &&
+        cachedWeekPlanContext.weekStart === weekStart &&
+        cachedWeekPlanContext.todayKey === todayKey
+    ) {
+        return cachedWeekPlanContext.value;
+    }
+
     const dayPlan = parseDayPlanFrontmatter(frontmatter);
     const resolvedAnchorDate = anchorDate ?? getDefaultWeekAnchorDate(today);
     const rows = dayPlan
         ? mapWeekPlanRows(dayPlan.year, resolvedAnchorDate, weekStart)
         : [];
 
-    return {
+    const value: WeekPlanContext = {
         dayPlan,
         anchorDate: resolvedAnchorDate,
         rows,
-        sectionForCell: (row, col) => sectionAtCellWeek7x9(row, col, rows),
-        posForSection: (section) =>
+        sectionForCell: (row: number, col: number) =>
+            sectionAtCellWeek7x9(row, col, rows),
+        posForSection: (section: string | null | undefined) =>
             section ? posOfSectionWeek7x9(section, rows) : null,
     };
+    cachedWeekPlanContext = {
+        frontmatter,
+        anchorDate,
+        weekStart,
+        todayKey,
+        value,
+    };
+    return value;
 };
 
 export const resolveWeekPlanCurrentCell = ({

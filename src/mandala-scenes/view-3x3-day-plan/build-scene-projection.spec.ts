@@ -9,6 +9,11 @@ import type { ThreeByThreeDayPlanSceneProjectionProps } from 'src/mandala-scenes
 const threeByThreeGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
 });
+const themeSnapshot = {
+    themeTone: 'light' as const,
+    themeUnderlayColor: '#fff',
+    activeThemeUnderlayColor: '#eee',
+};
 
 const preparedProps: ThreeByThreeDayPlanSceneProjectionProps = {
     layoutKind: '3x3-day-plan',
@@ -17,6 +22,7 @@ const preparedProps: ThreeByThreeDayPlanSceneProjectionProps = {
     },
     layoutMeta: {
         gridStyle: threeByThreeGridStyle,
+        themeSnapshot,
         theme: '1',
         animateSwap: false,
         show3x3SubgridNavButtons: false,
@@ -48,6 +54,7 @@ describe('build-three-by-three-day-plan-scene-projection', () => {
         const props = buildThreeByThreeDayPlanSceneProjectionProps({
             cells: [],
             gridStyle: threeByThreeGridStyle,
+            themeSnapshot,
             theme: '1',
             animateSwap: false,
             show3x3SubgridNavButtons: false,

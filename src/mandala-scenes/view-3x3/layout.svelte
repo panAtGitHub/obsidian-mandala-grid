@@ -2,6 +2,7 @@
     import { Platform } from 'obsidian';
     import { flip } from 'svelte/animate';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
+    import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
     import {
         resolveCardGridStyle,
@@ -14,6 +15,11 @@
     export let gridStyle: ResolvedGridStyle = resolveCardGridStyle({
         whiteThemeMode: false,
     });
+    export let themeSnapshot: MandalaThemeSnapshot = {
+        themeTone: 'light',
+        themeUnderlayColor: '',
+        activeThemeUnderlayColor: '',
+    };
     export let theme = '1';
     export let animateSwap = false;
     export let show3x3SubgridNavButtons = false;
@@ -27,6 +33,14 @@
     export let getDownButtonLabel: (theme: string) => string;
     export let onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null =
         null;
+
+    $: isNestedTheme = theme.includes('.');
+    $: showUpButton = theme !== '1';
+    $: showDownButton = !isNestedTheme;
+    $: upButtonLabel = getUpButtonLabel(theme);
+    $: downButtonLabel = getDownButtonLabel(theme);
+    $: upButtonDirection = isNestedTheme ? 'up' : 'left';
+    $: downButtonDirection = isNestedTheme ? 'down' : 'right';
 </script>
 
 <div
@@ -53,6 +67,7 @@
                 <MandalaCard
                     viewModel={cell.cardViewModel}
                     uiState={cell.cardUiState}
+                    {themeSnapshot}
                     onMobileDoubleClick={onMobileCardDoubleClick}
                 />
                 {#if !Platform.isMobile && show3x3SubgridNavButtons && !hasOpenOverlayModal}
@@ -64,38 +79,30 @@
                         on:pointerdown|stopPropagation|preventDefault
                     >
                         {#if cell.isCenter}
-                            {#if theme !== '1'}
+                            {#if showUpButton}
                                 <button
                                     class="mandala-subgrid-btn mandala-subgrid-btn--up"
                                     type="button"
-                                    aria-label={getUpButtonLabel(theme)}
-                                    title={getUpButtonLabel(theme)}
+                                    aria-label={upButtonLabel}
+                                    title={upButtonLabel}
                                     on:click={(event) =>
                                         exitSubgridFromButton(event)}
                                 >
                                     <span class="mandala-subgrid-btn__icon">
-                                        {#if theme.includes('.')}
-                                            <MandalaNavIcon
-                                                direction="up"
-                                                size={14}
-                                                strokeWidth={2.2}
-                                            />
-                                        {:else}
-                                            <MandalaNavIcon
-                                                direction="left"
-                                                size={14}
-                                                strokeWidth={2.2}
-                                            />
-                                        {/if}
+                                        <MandalaNavIcon
+                                            direction={upButtonDirection}
+                                            size={14}
+                                            strokeWidth={2.2}
+                                        />
                                     </span>
                                 </button>
                             {/if}
-                            {#if !theme.includes('.')}
+                            {#if showDownButton}
                                 <button
                                     class="mandala-subgrid-btn mandala-subgrid-btn--down"
                                     type="button"
-                                    aria-label={getDownButtonLabel(theme)}
-                                    title={getDownButtonLabel(theme)}
+                                    aria-label={downButtonLabel}
+                                    title={downButtonLabel}
                                     on:click={(event) =>
                                         enterSubgridFromButton(
                                             event,
@@ -103,19 +110,11 @@
                                         )}
                                 >
                                     <span class="mandala-subgrid-btn__icon">
-                                        {#if theme.includes('.')}
-                                            <MandalaNavIcon
-                                                direction="down"
-                                                size={14}
-                                                strokeWidth={2.2}
-                                            />
-                                        {:else}
-                                            <MandalaNavIcon
-                                                direction="right"
-                                                size={14}
-                                                strokeWidth={2.2}
-                                            />
-                                        {/if}
+                                        <MandalaNavIcon
+                                            direction={downButtonDirection}
+                                            size={14}
+                                            strokeWidth={2.2}
+                                        />
                                     </span>
                                 </button>
                             {/if}

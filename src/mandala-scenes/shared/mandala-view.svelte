@@ -4,9 +4,19 @@
     import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import { derived } from 'src/shared/store/derived';
     import {
+        parseDayPlanFrontmatter,
+        type DayPlanFrontmatter,
+    } from 'src/mandala-display/logic/day-plan';
+    import {
+        resolveDayPlanTodayNavigation,
         resolveMandalaSceneKey,
+        type DayPlanTodayNavigation,
         type MandalaSceneKey,
     } from 'src/mandala-display/logic/mandala-profile';
+    import {
+        resolveWeekPlanContext,
+        type WeekPlanContext,
+    } from 'src/mandala-display/logic/week-plan-context';
     import {
         getMandalaActiveCellNx9,
         getMandalaWeekAnchorDate,
@@ -63,7 +73,6 @@
     import { buildNx9SceneProjectionProps } from 'src/mandala-scenes/view-nx9/build-scene-projection';
     import { buildNx9WeekSceneProjectionProps } from 'src/mandala-scenes/view-nx9-week-7x9/build-scene-projection';
     import {
-        buildThreeByThreeCells,
         enterThreeByThreeSubgridFromButton,
         exitThreeByThreeSubgridFromButton,
         getThreeByThreeDownButtonLabel,
@@ -82,6 +91,8 @@
     import { createMobileEditorViewportController } from 'src/mandala-scenes/shared/mobile-editor-viewport';
     import { ensureSceneCompatibility } from 'src/mandala-scenes/shared/scene-compatibility';
     import { createSceneStateSynchronizer } from 'src/mandala-scenes/shared/sync-scene-state';
+    import { createThreeByThreeRuntime } from 'src/mandala-scenes/view-3x3/runtime';
+    import { createNx9WeekRuntime } from 'src/mandala-scenes/view-nx9-week-7x9/runtime';
 
     const view = getView();
     const layout = createLayoutStore();
@@ -115,6 +126,8 @@
     const backgroundMode = MandalaBackgroundModeStore(view);
     const cleanSceneCaches = createSceneCacheCleaner();
     const syncSceneState = createSceneStateSynchronizer();
+    const threeByThreeRuntime = createThreeByThreeRuntime();
+    const nx9WeekRuntime = createNx9WeekRuntime();
 
     const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
 
@@ -128,6 +141,29 @@
     const mobileViewportOffsetTop = mobileEditorViewport.offsetTop;
     const mobileViewportBottomInset = mobileEditorViewport.bottomInset;
     const mobileKeyboardOverlayFallback = mobileEditorViewport.keyboardFallback;
+    const DEFAULT_THEME_SNAPSHOT: MandalaThemeSnapshot = {
+        themeTone: 'light',
+        themeUnderlayColor: '',
+        activeThemeUnderlayColor: '',
+    };
+
+    const readSceneThemeSnapshot = (): MandalaThemeSnapshot => {
+        const styles = window.getComputedStyle(document.body);
+        const inactiveThemeUnderlayColor =
+            styles.getPropertyValue('--background-active-parent').trim() ||
+            styles.getPropertyValue('--background-primary').trim();
+        const activeThemeUnderlayColor =
+            styles.getPropertyValue('--background-active-node').trim() ||
+            inactiveThemeUnderlayColor;
+
+        return {
+            themeTone: document.body.classList.contains('theme-dark')
+                ? 'dark'
+                : 'light',
+            themeUnderlayColor: inactiveThemeUnderlayColor,
+            activeThemeUnderlayColor,
+        };
+    };
 
     const recomputeDesktopSquareSize = () => {
         if (Platform.isMobile || !$squareLayout || !contentWrapperRef) {
@@ -214,44 +250,13 @@
 
     let containerRef: HTMLElement | null = null;
     onMount(() => {
-        const syncNx9ThemeSnapshot = () => {
-            if (
-                sceneKey.viewKind !== 'nx9' &&
-                committedSceneKey.viewKind !== 'nx9'
-            ) {
-                return;
-            }
-            const styles = window.getComputedStyle(document.body);
-            const inactiveThemeUnderlayColor =
-                styles.getPropertyValue('--background-active-parent').trim() ||
-                styles.getPropertyValue('--background-primary').trim();
-            const activeThemeUnderlayColor =
-                styles.getPropertyValue('--background-active-node').trim() ||
-                inactiveThemeUnderlayColor;
-            const themeSnapshot: MandalaThemeSnapshot = {
-                themeTone: document.body.classList.contains('theme-dark')
-                    ? 'dark'
-                    : 'light',
-                themeUnderlayColor: inactiveThemeUnderlayColor,
-                activeThemeUnderlayColor,
-            };
-            nx9ProjectionProps = buildNx9SceneProjectionProps({
-                documentSnapshot: sceneInputSnapshots.documentSnapshot,
-                themeSnapshot,
-                rowsPerPage: $nx9RowsPerPage,
-                displaySnapshot: sceneInputSnapshots.displaySnapshot,
-                interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
-                activeSection,
-                activeCoreSection,
-                activeCell: $nx9ActiveCell,
-            });
-        };
-
         view.container = containerRef;
         focusContainer(view);
         mobileEditorViewport.mount();
-        syncNx9ThemeSnapshot();
-        bodyThemeObserver = new MutationObserver(syncNx9ThemeSnapshot);
+        sceneThemeSnapshot = readSceneThemeSnapshot();
+        bodyThemeObserver = new MutationObserver(() => {
+            sceneThemeSnapshot = readSceneThemeSnapshot();
+        });
         bodyThemeObserver.observe(document.body, {
             attributes: true,
             attributeFilter: ['class', 'style'],
@@ -299,6 +304,10 @@
     );
     let selectedNodesStamp = '';
     let pinnedSectionsStamp = '';
+    let dayPlan: DayPlanFrontmatter | null = null;
+    let dayPlanTodayNavigation: DayPlanTodayNavigation =
+        resolveDayPlanTodayNavigation('');
+    let weekContext: WeekPlanContext | null = null;
     let preparedDayPlanTodayTargetSection: string | null = null;
     let committedDayPlanTodayTargetSection: string | null = null;
     let sceneKey: MandalaSceneKey = {
@@ -321,6 +330,7 @@
     let threeByThreeGridStyle: ResolvedGridStyle = resolveCardGridStyle({
         whiteThemeMode: false,
     });
+    let sceneThemeSnapshot: MandalaThemeSnapshot = DEFAULT_THEME_SNAPSHOT;
     let nx9WeekProjectionProps: ReturnType<
         typeof buildNx9WeekSceneProjectionProps
     > = {
@@ -334,11 +344,7 @@
                 whiteThemeMode: false,
                 compactMode: $weekPlanCompactMode,
             }),
-            themeSnapshot: {
-                themeTone: 'light',
-                themeUnderlayColor: '',
-                activeThemeUnderlayColor: '',
-            },
+            themeSnapshot: DEFAULT_THEME_SNAPSHOT,
         },
     };
     let nx9ProjectionProps: ReturnType<typeof buildNx9SceneProjectionProps> = {
@@ -346,11 +352,7 @@
         output: {},
         layoutMeta: {
             documentSnapshot: DEFAULT_DOCUMENT_SNAPSHOT,
-            themeSnapshot: {
-                themeTone: 'light',
-                themeUnderlayColor: '',
-                activeThemeUnderlayColor: '',
-            },
+            themeSnapshot: DEFAULT_THEME_SNAPSHOT,
             gridStyle: resolveCardGridStyle({
                 whiteThemeMode: false,
             }),
@@ -369,6 +371,7 @@
         },
         layoutMeta: {
             gridStyle: threeByThreeGridStyle,
+            themeSnapshot: DEFAULT_THEME_SNAPSHOT,
             theme: '1',
             animateSwap: false,
             show3x3SubgridNavButtons: false,
@@ -404,6 +407,19 @@
         weekPlanEnabled:
             view.plugin.settings.getValue().general.weekPlanEnabled,
     });
+    $: dayPlan = parseDayPlanFrontmatter($documentState.file.frontmatter);
+    $: dayPlanTodayNavigation = resolveDayPlanTodayNavigation(
+        $documentState.file.frontmatter,
+    );
+    $: weekContext =
+        sceneKey.variant === 'week-7x9' ||
+        committedSceneKey.variant === 'week-7x9'
+            ? resolveWeekPlanContext({
+                  frontmatter: $documentState.file.frontmatter,
+                  anchorDate: $weekAnchorDate,
+                  weekStart: $weekStart,
+              })
+            : null;
     $: selectedNodesStamp = Array.from($selectedNodes).sort().join('|');
     $: pinnedSectionsStamp = Array.from($pinnedSections).sort().join('|');
     $: sceneInputSnapshots = buildSceneInputSnapshots({
@@ -428,18 +444,19 @@
         committedSceneKey.variant === 'week-7x9'
     ) {
         nx9WeekProjectionProps = buildNx9WeekSceneProjectionProps({
-            frontmatter: $documentState.file.frontmatter,
-            anchorDate: $weekAnchorDate,
-            weekStart: $weekStart,
+            weekContext: weekContext ??
+                resolveWeekPlanContext({
+                    frontmatter: $documentState.file.frontmatter,
+                    anchorDate: $weekAnchorDate,
+                    weekStart: $weekStart,
+                }),
             compactMode: $weekPlanCompactMode,
-            themeSnapshot: nx9ProjectionProps.layoutMeta.themeSnapshot,
+            themeSnapshot: sceneThemeSnapshot,
             displaySnapshot: sceneInputSnapshots.displaySnapshot,
             sectionIdMap: $documentState.sections.section_id,
-            activeNodeId: $activeNodeId,
+            interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
             activeCell: $nx9ActiveCell,
-            editingState: $editingState,
-            selectedNodes: $selectedNodes,
-            pinnedSections: $pinnedSections,
+            runtime: nx9WeekRuntime,
         });
     }
     $: if (
@@ -448,7 +465,7 @@
     ) {
         nx9ProjectionProps = buildNx9SceneProjectionProps({
             documentSnapshot: sceneInputSnapshots.documentSnapshot,
-            themeSnapshot: nx9ProjectionProps.layoutMeta.themeSnapshot,
+            themeSnapshot: sceneThemeSnapshot,
             rowsPerPage: $nx9RowsPerPage,
             displaySnapshot: sceneInputSnapshots.displaySnapshot,
             interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
@@ -484,6 +501,7 @@
             nx9RowsPerPage: $nx9RowsPerPage,
             weekAnchorDate: $weekAnchorDate,
             weekStart: $weekStart,
+            weekContext,
         });
         view.flushSceneSyncTrace({
             mode: committedSceneKey.viewKind,
@@ -492,9 +510,7 @@
 
     $: preparedDayPlanTodayTargetSection =
         sceneKey.viewKind === '3x3' && sceneKey.variant === 'day-plan'
-            ? resolveThreeByThreeDayPlanTodayTargetSection(
-                  $documentState.file.frontmatter,
-              )
+            ? resolveThreeByThreeDayPlanTodayTargetSection(dayPlanTodayNavigation)
             : null;
     // 手机端编辑统一走原生 section 会话，不再走 InlineEditor 弹层路径。
     let isMobilePopupEditing = false;
@@ -528,7 +544,7 @@
     $: threeByThreeTheme = resolveThreeByThreeTheme($subgridTheme);
     $: preparedThreeByThreeCells =
         sceneKey.viewKind === '3x3'
-            ? buildThreeByThreeCells({
+            ? threeByThreeRuntime.resolveCells({
                   theme: threeByThreeTheme,
                   selectedLayoutId: $selectedLayoutId,
                   customLayouts: $customLayouts,
@@ -547,6 +563,8 @@
                     subgridTheme: $subgridTheme,
                     documentState: $documentState,
                     sectionToNodeId: $sectionToNodeId,
+                    dayPlan,
+                    dayPlanTodayNavigation,
                 });
         } else {
             syncThreeByThreeSceneState({
@@ -558,7 +576,7 @@
             });
             committedDayPlanTodayTargetSection = null;
         }
-        committedThreeByThreeCells = buildThreeByThreeCells({
+        committedThreeByThreeCells = threeByThreeRuntime.resolveCells({
             theme: threeByThreeTheme,
             selectedLayoutId: $selectedLayoutId,
             customLayouts: $customLayouts,
@@ -585,6 +603,7 @@
     $: threeByThreeProjectionProps = buildThreeByThreeSceneProjectionProps({
         cells: preparedThreeByThreeCells,
         gridStyle: threeByThreeGridStyle,
+        themeSnapshot: sceneThemeSnapshot,
         theme: threeByThreeTheme,
         animateSwap: $swapState.animate,
         show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
@@ -607,6 +626,7 @@
         buildThreeByThreeSceneProjectionProps({
             cells: committedThreeByThreeCells,
             gridStyle: threeByThreeGridStyle,
+            themeSnapshot: sceneThemeSnapshot,
             theme: threeByThreeTheme,
             animateSwap: $swapState.animate,
             show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
@@ -629,6 +649,7 @@
         buildThreeByThreeDayPlanSceneProjectionProps({
             cells: preparedThreeByThreeCells,
             gridStyle: threeByThreeGridStyle,
+            themeSnapshot: sceneThemeSnapshot,
             theme: threeByThreeTheme,
             animateSwap: $swapState.animate,
             show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
@@ -657,6 +678,7 @@
         buildThreeByThreeDayPlanSceneProjectionProps({
             cells: committedThreeByThreeCells,
             gridStyle: threeByThreeGridStyle,
+            themeSnapshot: sceneThemeSnapshot,
             theme: threeByThreeTheme,
             animateSwap: $swapState.animate,
             show3x3SubgridNavButtons: $show3x3SubgridNavButtons,

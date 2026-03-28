@@ -3,7 +3,10 @@ import {
     sectionAtCell9x9,
 } from 'src/mandala-display/logic/mandala-grid';
 import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
-import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
+import {
+    resolveWeekPlanContext,
+    type WeekPlanContext,
+} from 'src/mandala-display/logic/week-plan-context';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
@@ -35,6 +38,7 @@ type SyncSceneStateArgs = {
     nx9RowsPerPage: number | null | undefined;
     weekAnchorDate: string | null | undefined;
     weekStart: WeekStart;
+    weekContext?: WeekPlanContext | null;
 };
 
 export const createSceneStateSynchronizer = () => {
@@ -162,6 +166,7 @@ export const createSceneStateSynchronizer = () => {
         weekStart,
         idToSection,
         activeNodeId,
+        weekContext: providedWeekContext,
     }: Pick<
         SyncSceneStateArgs,
         | 'view'
@@ -170,12 +175,15 @@ export const createSceneStateSynchronizer = () => {
         | 'weekStart'
         | 'idToSection'
         | 'activeNodeId'
+        | 'weekContext'
     >) => {
-        const weekContext = resolveWeekPlanContext({
-            frontmatter: documentState.file.frontmatter,
-            anchorDate: weekAnchorDate,
-            weekStart,
-        });
+        const weekContext =
+            providedWeekContext ??
+            resolveWeekPlanContext({
+                frontmatter: documentState.file.frontmatter,
+                anchorDate: weekAnchorDate,
+                weekStart,
+            });
         const anchorDate = weekContext.anchorDate;
         if (!weekAnchorDate) {
             view.viewStore.dispatch({

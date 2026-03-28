@@ -48,6 +48,9 @@ export type DayPlanFrontmatterParseResult = {
     dayPlan: DayPlanFrontmatter | null;
 };
 
+let cachedDayPlanFrontmatter = '';
+let cachedDayPlanFrontmatterResult: DayPlanFrontmatterParseResult | null = null;
+
 const normalizeLineEndings = (content: string) => content.replace(/\r\n/g, '\n');
 
 const splitLines = (content: string) => normalizeLineEndings(content).split('\n');
@@ -466,7 +469,7 @@ export const slotsRecordToArray = (slots: Record<string, unknown> | null | undef
 export const allSlotsFilled = (slots: string[]) =>
     slots.length === 8 && slots.every((slot) => normalizeSlotTitle(slot).length > 0);
 
-export const parseDayPlanFrontmatterWithMandala = (
+const parseDayPlanFrontmatterWithMandalaUncached = (
     frontmatter: string,
 ): DayPlanFrontmatterParseResult => {
     const stripped = stripFrontmatterMarkers(frontmatter);
@@ -560,6 +563,22 @@ export const parseDayPlanFrontmatterWithMandala = (
             slots: toSlotsRecord(slotsRecordToArray(slots)),
         },
     };
+};
+
+export const parseDayPlanFrontmatterWithMandala = (
+    frontmatter: string,
+): DayPlanFrontmatterParseResult => {
+    if (
+        cachedDayPlanFrontmatterResult &&
+        cachedDayPlanFrontmatter === frontmatter
+    ) {
+        return cachedDayPlanFrontmatterResult;
+    }
+
+    const result = parseDayPlanFrontmatterWithMandalaUncached(frontmatter);
+    cachedDayPlanFrontmatter = frontmatter;
+    cachedDayPlanFrontmatterResult = result;
+    return result;
 };
 
 export const parseDayPlanFrontmatter = (
