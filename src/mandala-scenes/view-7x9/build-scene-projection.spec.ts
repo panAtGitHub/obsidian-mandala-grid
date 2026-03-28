@@ -17,11 +17,13 @@ mandala_plan:
             anchorDate: '2026-01-01',
             weekStart: 'monday',
             compactMode: true,
-            sectionColors: { '1': '#111' },
-            sectionColorOpacity: 60,
-            backgroundMode: 'custom',
-            showDetailSidebar: false,
-            whiteThemeMode: true,
+            displaySnapshot: {
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: true,
+            },
             sectionIdMap: {
                 '1': 'node-1',
             },
@@ -51,11 +53,13 @@ mandala_plan:
                 { date: '2026-01-04', coreSection: '4', inPlanYear: true },
             ],
             compactMode: true,
-            sectionColors: { '1': '#111' },
-            sectionColorOpacity: 60,
-            backgroundMode: 'custom',
-            showDetailSidebar: false,
-            whiteThemeMode: true,
+            displaySnapshot: {
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: false,
+                whiteThemeMode: true,
+            },
         });
         expect(props.desktopCells).toHaveLength(63);
         expect(props.mobileCells[27]).toMatchObject({
@@ -86,11 +90,13 @@ mandala_plan:
                 desktopCells: [],
                 mobileCells: [],
                 compactMode: false,
-                sectionColors: {},
-                sectionColorOpacity: 60,
-                backgroundMode: 'custom',
-                showDetailSidebar: false,
-                whiteThemeMode: false,
+                displaySnapshot: {
+                    sectionColors: {},
+                    sectionColorOpacity: 60,
+                    backgroundMode: 'custom',
+                    showDetailSidebar: false,
+                    whiteThemeMode: false,
+                },
             }),
         ).toEqual({
             sceneKey: {
@@ -103,11 +109,13 @@ mandala_plan:
                 desktopCells: [],
                 mobileCells: [],
                 compactMode: false,
-                sectionColors: {},
-                sectionColorOpacity: 60,
-                backgroundMode: 'custom',
-                showDetailSidebar: false,
-                whiteThemeMode: false,
+                displaySnapshot: {
+                    sectionColors: {},
+                    sectionColorOpacity: 60,
+                    backgroundMode: 'custom',
+                    showDetailSidebar: false,
+                    whiteThemeMode: false,
+                },
             },
         });
     });

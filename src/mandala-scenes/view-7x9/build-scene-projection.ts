@@ -8,6 +8,7 @@ import {
     assembleMobileWeekPlanCells,
 } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
 import type {
+    SceneDisplaySnapshot,
     WeekSceneProjection,
     WeekSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
@@ -17,11 +18,7 @@ export const buildWeekSceneProjectionProps = ({
     anchorDate,
     weekStart,
     compactMode,
-    sectionColors,
-    sectionColorOpacity,
-    backgroundMode,
-    showDetailSidebar,
-    whiteThemeMode,
+    displaySnapshot,
     sectionIdMap,
     documentContent,
     activeNodeId,
@@ -34,11 +31,7 @@ export const buildWeekSceneProjectionProps = ({
     anchorDate: string | null | undefined;
     weekStart: WeekStart;
     compactMode: boolean;
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
-    backgroundMode: string;
-    showDetailSidebar: boolean;
-    whiteThemeMode: boolean;
+    displaySnapshot: SceneDisplaySnapshot;
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Record<string, { content?: string }>;
     activeNodeId: string | null;
@@ -67,11 +60,11 @@ export const buildWeekSceneProjectionProps = ({
             editingState,
             selectedNodes,
             pinnedSections,
-            sectionColors,
-            sectionColorOpacity,
-            backgroundMode,
-            showDetailSidebar,
-            whiteThemeMode,
+            sectionColors: displaySnapshot.sectionColors,
+            sectionColorOpacity: displaySnapshot.sectionColorOpacity,
+            backgroundMode: displaySnapshot.backgroundMode,
+            showDetailSidebar: displaySnapshot.showDetailSidebar,
+            whiteThemeMode: displaySnapshot.whiteThemeMode,
         }),
         mobileCells: assembleMobileWeekPlanCells({
             rows,
@@ -81,11 +74,7 @@ export const buildWeekSceneProjectionProps = ({
             activeCell,
         }),
         compactMode,
-        sectionColors,
-        sectionColorOpacity,
-        backgroundMode,
-        showDetailSidebar,
-        whiteThemeMode,
+        displaySnapshot,
     };
 };
 

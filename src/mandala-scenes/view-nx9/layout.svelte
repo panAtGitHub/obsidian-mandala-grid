@@ -73,27 +73,28 @@
         documentContent: {},
     };
     export let rowsPerPage = 5;
-    export let sectionColors: Record<string, string> = {};
-    export let sectionColorOpacity = 0;
-    export let backgroundMode = 'none';
-    export let showDetailSidebar = false;
-    export let whiteThemeMode = false;
-    export let activeNodeId: string | null = null;
+    export let displaySnapshot = {
+        sectionColors: {} as Record<string, string>,
+        sectionColorOpacity: 0,
+        backgroundMode: 'none',
+        showDetailSidebar: false,
+        whiteThemeMode: false,
+    };
+    export let interactionSnapshot = {
+        activeNodeId: null as string | null,
+        editingState: {
+            activeNodeId: null as string | null,
+            isInSidebar: false,
+        },
+        selectedNodes: new Set<string>(),
+        selectedStamp: '',
+        pinnedSections: new Set<string>(),
+        pinnedStamp: '',
+    };
     export let activeSection: string | null = null;
     export let activeCoreSection: string | null = null;
     export let activeCell: { row: number; col: number; page?: number } | null =
         null;
-    export let editingState: {
-        activeNodeId: string | null;
-        isInSidebar: boolean;
-    } = {
-        activeNodeId: null,
-        isInSidebar: false,
-    };
-    export let selectedNodes: Set<string> = new Set();
-    export let selectedStamp = '';
-    export let pinnedSections: Set<string> = new Set();
-    export let pinnedStamp = '';
 
     onDestroy(() => {
         hydrationRuntime.dispose();
@@ -122,29 +123,29 @@
         currentPage,
         rowCount,
         pageFrame,
-        activeNodeId,
+        activeNodeId: interactionSnapshot.activeNodeId,
     });
     $: staticRows = pageRuntime.resolveStaticRows({
         context: nx9Context,
         pageFrame,
-        sectionColors,
-        sectionColorOpacity,
-        backgroundMode,
-        whiteThemeMode,
+        sectionColors: displaySnapshot.sectionColors,
+        sectionColorOpacity: displaySnapshot.sectionColorOpacity,
+        backgroundMode: displaySnapshot.backgroundMode,
+        whiteThemeMode: displaySnapshot.whiteThemeMode,
         hydratedNodeIds,
     });
     $: rows = pageRuntime.resolveRuntimeRows({
         staticRows,
         pageIndex,
         context: nx9Context,
-        activeNodeId,
+        activeNodeId: interactionSnapshot.activeNodeId,
         activeCell,
-        editingState,
-        selectedNodes,
-        selectedStamp,
-        pinnedSections,
-        pinnedStamp,
-        showDetailSidebar,
+        editingState: interactionSnapshot.editingState,
+        selectedNodes: interactionSnapshot.selectedNodes,
+        selectedStamp: interactionSnapshot.selectedStamp,
+        pinnedSections: interactionSnapshot.pinnedSections,
+        pinnedStamp: interactionSnapshot.pinnedStamp,
+        showDetailSidebar: displaySnapshot.showDetailSidebar,
     });
 
 </script>

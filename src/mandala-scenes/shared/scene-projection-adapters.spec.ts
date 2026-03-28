@@ -50,23 +50,27 @@ const nx9ProjectionProps = {
         activeThemeUnderlayColor: '#eee',
     },
     rowsPerPage: 5,
-    sectionColors: { '1': '#111' },
-    sectionColorOpacity: 60,
-    backgroundMode: 'custom',
-    showDetailSidebar: false,
-    whiteThemeMode: false,
-    activeNodeId: 'node-1',
+    displaySnapshot: {
+        sectionColors: { '1': '#111' },
+        sectionColorOpacity: 60,
+        backgroundMode: 'custom',
+        showDetailSidebar: false,
+        whiteThemeMode: false,
+    },
+    interactionSnapshot: {
+        activeNodeId: 'node-1',
+        editingState: {
+            activeNodeId: 'node-1',
+            isInSidebar: false,
+        },
+        selectedNodes: new Set(['node-1']),
+        selectedStamp: 'node-1',
+        pinnedSections: new Set(['1']),
+        pinnedStamp: '1',
+    },
     activeSection: '1.2',
     activeCoreSection: '1',
     activeCell: { row: 1, col: 2, page: 0 },
-    editingState: {
-        activeNodeId: 'node-1',
-        isInSidebar: false,
-    },
-    selectedNodes: new Set(['node-1']),
-    selectedStamp: 'node-1',
-    pinnedSections: new Set(['1']),
-    pinnedStamp: '1',
 } as const;
 
 const weekProjectionProps: WeekSceneProjectionProps = {
@@ -74,11 +78,13 @@ const weekProjectionProps: WeekSceneProjectionProps = {
     desktopCells: [],
     mobileCells: [],
     compactMode: false,
-    sectionColors: {},
-    sectionColorOpacity: 60,
-    backgroundMode: 'custom',
-    showDetailSidebar: false,
-    whiteThemeMode: false,
+    displaySnapshot: {
+        sectionColors: {},
+        sectionColorOpacity: 60,
+        backgroundMode: 'custom',
+        showDetailSidebar: false,
+        whiteThemeMode: false,
+    },
 };
 
 describe('scene-projection-adapters', () => {

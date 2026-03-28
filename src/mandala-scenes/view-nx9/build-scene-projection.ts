@@ -1,72 +1,39 @@
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
-import type { Content } from 'src/mandala-document/state/document-state-type';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type {
     Nx9SceneProjection,
+    SceneCardInteractionSnapshot,
+    SceneDisplaySnapshot,
+    SceneDocumentSnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
 
 export const buildNx9SceneProjectionProps = ({
     documentSnapshot,
     themeSnapshot,
     rowsPerPage,
-    sectionColors,
-    sectionColorOpacity,
-    backgroundMode,
-    showDetailSidebar,
-    whiteThemeMode,
-    activeNodeId,
+    displaySnapshot,
+    interactionSnapshot,
     activeSection,
     activeCoreSection,
     activeCell,
-    editingState,
-    selectedNodes,
-    selectedStamp,
-    pinnedSections,
-    pinnedStamp,
 }: {
-    documentSnapshot: {
-        revision: number;
-        contentRevision: number;
-        sectionIdMap: Record<string, string>;
-        documentContent: Content;
-    };
+    documentSnapshot: SceneDocumentSnapshot;
     themeSnapshot: MandalaThemeSnapshot;
     rowsPerPage: number;
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
-    backgroundMode: string;
-    showDetailSidebar: boolean;
-    whiteThemeMode: boolean;
-    activeNodeId: string | null;
+    displaySnapshot: SceneDisplaySnapshot;
+    interactionSnapshot: SceneCardInteractionSnapshot;
     activeSection: string | null;
     activeCoreSection: string | null;
     activeCell: { row: number; col: number; page?: number } | null;
-    editingState: {
-        activeNodeId: string | null;
-        isInSidebar: boolean;
-    };
-    selectedNodes: Set<string>;
-    selectedStamp: string;
-    pinnedSections: Set<string>;
-    pinnedStamp: string;
 }) => ({
     documentSnapshot,
     themeSnapshot,
     rowsPerPage,
-    sectionColors,
-    sectionColorOpacity,
-    backgroundMode,
-    showDetailSidebar,
-    whiteThemeMode,
-    activeNodeId,
+    displaySnapshot,
+    interactionSnapshot,
     activeSection,
     activeCoreSection,
     activeCell,
-    editingState,
-    selectedNodes,
-    selectedStamp,
-    pinnedSections,
-    pinnedStamp,
 });
 
 export const buildNx9SceneProjection = (

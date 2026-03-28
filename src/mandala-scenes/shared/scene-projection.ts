@@ -15,6 +15,35 @@ export type SceneRendererKind =
     | 'nx9-layout'
     | 'week-layout';
 
+export type SceneDocumentSnapshot = {
+    revision: number;
+    contentRevision: number;
+    sectionIdMap: Record<string, string>;
+    documentContent: Content;
+};
+
+export type SceneDisplaySnapshot = {
+    sectionColors: Record<string, string>;
+    sectionColorOpacity: number;
+    backgroundMode: string;
+    showDetailSidebar: boolean;
+    whiteThemeMode: boolean;
+};
+
+export type SceneEditingSnapshot = {
+    activeNodeId: string | null;
+    isInSidebar: boolean;
+};
+
+export type SceneCardInteractionSnapshot = {
+    activeNodeId: string | null;
+    editingState: SceneEditingSnapshot;
+    selectedNodes: Set<string>;
+    selectedStamp: string;
+    pinnedSections: Set<string>;
+    pinnedStamp: string;
+};
+
 export type ThreeByThreeSceneProjectionProps = {
     cells: ThreeByThreeCellViewModel[];
     theme: string;
@@ -50,31 +79,14 @@ export type Nx9SceneProjection = {
     sceneKey: MandalaSceneKey;
     rendererKind: 'nx9-layout';
     props: {
-        documentSnapshot: {
-            revision: number;
-            contentRevision: number;
-            sectionIdMap: Record<string, string>;
-            documentContent: Content;
-        };
+        documentSnapshot: SceneDocumentSnapshot;
         themeSnapshot: MandalaThemeSnapshot;
         rowsPerPage: number;
-        sectionColors: Record<string, string>;
-        sectionColorOpacity: number;
-        backgroundMode: string;
-        showDetailSidebar: boolean;
-        whiteThemeMode: boolean;
-        activeNodeId: string | null;
+        displaySnapshot: SceneDisplaySnapshot;
+        interactionSnapshot: SceneCardInteractionSnapshot;
         activeSection: string | null;
         activeCoreSection: string | null;
         activeCell: { row: number; col: number; page?: number } | null;
-        editingState: {
-            activeNodeId: string | null;
-            isInSidebar: boolean;
-        };
-        selectedNodes: Set<string>;
-        selectedStamp: string;
-        pinnedSections: Set<string>;
-        pinnedStamp: string;
     };
 };
 
@@ -83,11 +95,7 @@ export type WeekSceneProjectionProps = {
     desktopCells: WeekPlanDesktopCellViewModel[];
     mobileCells: WeekPlanMobileCellViewModel[];
     compactMode: boolean;
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
-    backgroundMode: string;
-    showDetailSidebar: boolean;
-    whiteThemeMode: boolean;
+    displaySnapshot: SceneDisplaySnapshot;
 };
 
 export type WeekSceneProjection = {
