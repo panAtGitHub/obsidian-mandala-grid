@@ -2,9 +2,10 @@ import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-poli
 import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
-    buildSceneCardCell,
     buildSceneCardCellList,
+    buildSceneCardUiState,
     createSceneCardCellSeed,
+    createInactiveSceneCardUiState,
     type SceneCardCellDescriptorList,
     type SceneCardCellSeed,
     type SceneCardCellFrame,
@@ -416,6 +417,13 @@ export const applyNx9PageInteractionState = ({
     staticRows: Nx9StaticRowViewModel[];
 }): Nx9RowViewModel[] => {
     const normalizedActiveCell = normalizeActiveCell(activeCell, context.currentPage);
+    const interaction = {
+        activeNodeId: interactionSnapshot.activeNodeId,
+        editingState: interactionSnapshot.editingState,
+        selectedNodes: interactionSnapshot.selectedNodes,
+        pinnedSections: interactionSnapshot.pinnedSections,
+        showDetailSidebar: displaySnapshot.showDetailSidebar,
+    };
 
     return staticRows.map((row) => {
         if (!Array.isArray(row)) {
@@ -437,16 +445,13 @@ export const applyNx9PageInteractionState = ({
         }
 
         return row.map((cell) => {
-            const nextCardUiState = buildSceneCardCell({
-                seed: cell.seed,
-                interaction: {
-                    activeNodeId: interactionSnapshot.activeNodeId,
-                    editingState: interactionSnapshot.editingState,
-                    selectedNodes: interactionSnapshot.selectedNodes,
-                    pinnedSections: interactionSnapshot.pinnedSections,
-                    showDetailSidebar: displaySnapshot.showDetailSidebar,
-                },
-            }).cardUiState;
+            const nextCardUiState = cell.nodeId
+                ? buildSceneCardUiState({
+                      nodeId: cell.nodeId,
+                      section: cell.section,
+                      ...interaction,
+                  })
+                : createInactiveSceneCardUiState();
 
             return {
                 ...cell,

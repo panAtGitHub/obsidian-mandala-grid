@@ -9,6 +9,7 @@ import {
     patchNx9ActiveInteractionState,
     type Nx9InteractionSnapshot,
     type Nx9PageFrameRowViewModel,
+    type Nx9RealCellStaticViewModel,
     type Nx9RealCellViewModel,
 } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
@@ -220,10 +221,13 @@ describe('nx9/assemble-cell-view-model', () => {
         });
         const firstRow = rows[0] as Nx9RealCellViewModel[];
         const secondRow = rows[1] as Nx9RealCellViewModel[];
+        const firstStaticRow = staticRows[0] as Nx9RealCellStaticViewModel[];
 
         expect(firstRow[1].cardUiState.selected).toBe(true);
         expect(firstRow[0].cardUiState.selected).toBe(false);
         expect(secondRow[0].cardUiState.pinned).toBe(true);
+        expect(firstRow[0].cardViewModel).toBe(firstStaticRow[0].cardViewModel);
+        expect(firstRow[1].cardViewModel).toBe(firstStaticRow[1].cardViewModel);
     });
 
     it('builds reusable static card descriptors for a real nx9 row', () => {

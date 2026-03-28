@@ -290,17 +290,22 @@ export const resolveNx9PageContext = ({
         activeCell?.page ?? activePos?.page ?? 0,
         totalPages,
     );
-    const pageRows = buildNx9PageRows({
-        rows,
-        rowsPerPage,
-        page: currentPage,
-    });
-    const getPageRows = (page: number) =>
-        buildNx9PageRows({
+    const pageRowsCache = new Map<number, Nx9RowModel[]>();
+    const getPageRows = (page: number) => {
+        const normalizedPage = clampPage(page, totalPages);
+        const cached = pageRowsCache.get(normalizedPage);
+        if (cached) {
+            return cached;
+        }
+        const nextRows = buildNx9PageRows({
             rows,
             rowsPerPage,
-            page: clampPage(page, totalPages),
+            page: normalizedPage,
         });
+        pageRowsCache.set(normalizedPage, nextRows);
+        return nextRows;
+    };
+    const pageRows = getPageRows(currentPage);
 
     return {
         coreSections,
