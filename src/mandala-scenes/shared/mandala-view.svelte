@@ -19,6 +19,11 @@
     } from 'src/mandala-scenes/shared/scene-projection';
     import { buildSceneProjection } from 'src/mandala-scenes/shared/scene-projection-adapters';
     import {
+        buildSceneCardInteractionSnapshot,
+        buildSceneDisplaySnapshot,
+        buildSceneDocumentSnapshot,
+    } from 'src/mandala-scenes/shared/scene-snapshot-builders';
+    import {
         DayPlanEnabledStore,
         MandalaA4ModeStore,
         MandalaA4OrientationStore,
@@ -206,29 +211,30 @@
                 activeThemeUnderlayColor,
             };
             nx9ProjectionProps = buildNx9SceneProjectionProps({
-                documentSnapshot: {
+                documentSnapshot: buildSceneDocumentSnapshot({
                     revision: $documentState.meta.mandalaV2.revision,
                     contentRevision: $documentState.meta.mandalaV2.contentRevision,
                     sectionIdMap: $documentState.sections.section_id,
                     documentContent: $documentState.document.content,
-                },
+                }),
                 themeSnapshot,
                 rowsPerPage: $nx9RowsPerPage,
-                displaySnapshot: {
+                displaySnapshot: buildSceneDisplaySnapshot({
                     sectionColors: $sectionColors,
                     sectionColorOpacity: $sectionColorOpacity,
                     backgroundMode: $backgroundMode,
                     showDetailSidebar: $showDetailSidebar,
                     whiteThemeMode: $whiteThemeMode,
-                },
-                interactionSnapshot: {
+                }),
+                interactionSnapshot: buildSceneCardInteractionSnapshot({
                     activeNodeId: $activeNodeId,
                     editingState: $editingState,
                     selectedNodes: $selectedNodes,
+                    showDetailSidebar: $showDetailSidebar,
                     selectedStamp: selectedNodesStamp,
                     pinnedSections: $pinnedSections,
                     pinnedStamp: pinnedSectionsStamp,
-                },
+                }),
                 activeSection,
                 activeCoreSection,
                 activeCell: $nx9ActiveCell,
@@ -308,42 +314,43 @@
         anchorDate: null,
         weekStart: 'monday',
         compactMode: $weekPlanCompactMode,
-        displaySnapshot: {
+        displaySnapshot: buildSceneDisplaySnapshot({
             sectionColors: $sectionColors,
             sectionColorOpacity: $sectionColorOpacity,
             backgroundMode: $backgroundMode,
             showDetailSidebar: $showDetailSidebar,
             whiteThemeMode: $whiteThemeMode,
-        },
+        }),
     });
     let nx9ProjectionProps = buildNx9SceneProjectionProps({
-        documentSnapshot: {
+        documentSnapshot: buildSceneDocumentSnapshot({
             revision: $documentState.meta.mandalaV2.revision,
             contentRevision: $documentState.meta.mandalaV2.contentRevision,
             sectionIdMap: $documentState.sections.section_id,
             documentContent: $documentState.document.content,
-        },
+        }),
         themeSnapshot: {
             themeTone: 'light',
             themeUnderlayColor: '',
             activeThemeUnderlayColor: '',
         },
         rowsPerPage: $nx9RowsPerPage,
-        displaySnapshot: {
+        displaySnapshot: buildSceneDisplaySnapshot({
             sectionColors: $sectionColors,
             sectionColorOpacity: $sectionColorOpacity,
             backgroundMode: $backgroundMode,
             showDetailSidebar: $showDetailSidebar,
             whiteThemeMode: $whiteThemeMode,
-        },
-        interactionSnapshot: {
+        }),
+        interactionSnapshot: buildSceneCardInteractionSnapshot({
             activeNodeId: $activeNodeId,
             editingState: $editingState,
             selectedNodes: $selectedNodes,
+            showDetailSidebar: $showDetailSidebar,
             selectedStamp: selectedNodesStamp,
             pinnedSections: $pinnedSections,
             pinnedStamp: pinnedSectionsStamp,
-        },
+        }),
         activeSection,
         activeCoreSection,
         activeCell: $nx9ActiveCell,
@@ -361,13 +368,13 @@
         anchorDate: $weekAnchorDate,
         weekStart: $weekStart,
         compactMode: $weekPlanCompactMode,
-        displaySnapshot: {
+        displaySnapshot: buildSceneDisplaySnapshot({
             sectionColors: $sectionColors,
             sectionColorOpacity: $sectionColorOpacity,
             backgroundMode: $backgroundMode,
             showDetailSidebar: $showDetailSidebar,
             whiteThemeMode: $whiteThemeMode,
-        },
+        }),
         sectionIdMap: $documentState.sections.section_id,
         documentContent: $documentState.document.content,
         activeNodeId: $activeNodeId,
@@ -377,29 +384,30 @@
         pinnedSections: $pinnedSections,
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
-        documentSnapshot: {
+        documentSnapshot: buildSceneDocumentSnapshot({
             revision: $documentState.meta.mandalaV2.revision,
             contentRevision: $documentState.meta.mandalaV2.contentRevision,
             sectionIdMap: $documentState.sections.section_id,
             documentContent: $documentState.document.content,
-        },
+        }),
         themeSnapshot: nx9ProjectionProps.themeSnapshot,
         rowsPerPage: $nx9RowsPerPage,
-        displaySnapshot: {
+        displaySnapshot: buildSceneDisplaySnapshot({
             sectionColors: $sectionColors,
             sectionColorOpacity: $sectionColorOpacity,
             backgroundMode: $backgroundMode,
             showDetailSidebar: $showDetailSidebar,
             whiteThemeMode: $whiteThemeMode,
-        },
-        interactionSnapshot: {
+        }),
+        interactionSnapshot: buildSceneCardInteractionSnapshot({
             activeNodeId: $activeNodeId,
             editingState: $editingState,
             selectedNodes: $selectedNodes,
+            showDetailSidebar: $showDetailSidebar,
             selectedStamp: selectedNodesStamp,
             pinnedSections: $pinnedSections,
             pinnedStamp: pinnedSectionsStamp,
-        },
+        }),
         activeSection,
         activeCoreSection,
         activeCell: $nx9ActiveCell,
@@ -479,20 +487,22 @@
                   selectedLayoutId: $selectedLayoutId,
                   customLayouts: $customLayouts,
                   topology: $topology,
-                  interaction: {
+                  interaction: buildSceneCardInteractionSnapshot({
                       activeNodeId: $activeNodeId,
                       editingState: $editingState,
                       selectedNodes: $selectedNodes,
-                      pinnedSections: $pinnedSections,
                       showDetailSidebar: $showDetailSidebar,
-                  },
-                  displaySnapshot: {
+                      pinnedSections: $pinnedSections,
+                      selectedStamp: selectedNodesStamp,
+                      pinnedStamp: pinnedSectionsStamp,
+                  }),
+                  displaySnapshot: buildSceneDisplaySnapshot({
                       sectionColors: $sectionColors,
                       sectionColorOpacity: $sectionColorOpacity,
                       backgroundMode: $backgroundMode,
                       showDetailSidebar: $showDetailSidebar,
                       whiteThemeMode: $whiteThemeMode,
-                  },
+                  }),
               })
             : [];
     $: if (committedSceneKey.viewKind === '3x3') {
@@ -508,20 +518,22 @@
             selectedLayoutId: $selectedLayoutId,
             customLayouts: $customLayouts,
             topology: $topology,
-            interaction: {
+            interaction: buildSceneCardInteractionSnapshot({
                 activeNodeId: $activeNodeId,
                 editingState: $editingState,
                 selectedNodes: $selectedNodes,
-                pinnedSections: $pinnedSections,
                 showDetailSidebar: $showDetailSidebar,
-            },
-            displaySnapshot: {
+                pinnedSections: $pinnedSections,
+                selectedStamp: selectedNodesStamp,
+                pinnedStamp: pinnedSectionsStamp,
+            }),
+            displaySnapshot: buildSceneDisplaySnapshot({
                 sectionColors: $sectionColors,
                 sectionColorOpacity: $sectionColorOpacity,
                 backgroundMode: $backgroundMode,
                 showDetailSidebar: $showDetailSidebar,
                 whiteThemeMode: $whiteThemeMode,
-            },
+            }),
         });
     }
     $: shouldRetainCommittedThreeByThreeState =

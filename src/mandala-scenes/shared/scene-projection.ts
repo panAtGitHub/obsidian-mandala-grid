@@ -3,6 +3,7 @@ import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-mode
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { Content } from 'src/mandala-document/state/document-state-type';
 import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
+import type { SceneCardInteractionDescriptor } from 'src/mandala-scenes/shared/card-scene-cell';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 import type {
     WeekPlanDesktopCellViewModel,
@@ -35,12 +36,8 @@ export type SceneEditingSnapshot = {
     isInSidebar: boolean;
 };
 
-export type SceneCardInteractionSnapshot = {
-    activeNodeId: string | null;
-    editingState: SceneEditingSnapshot;
-    selectedNodes: Set<string>;
+export type SceneCardInteractionSnapshot = SceneCardInteractionDescriptor & {
     selectedStamp: string;
-    pinnedSections: Set<string>;
     pinnedStamp: string;
 };
 
