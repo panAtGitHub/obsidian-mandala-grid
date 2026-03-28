@@ -1,10 +1,10 @@
 import { MandalaView } from 'src/view/view';
 import { AllDirections } from 'src/mandala-document/state/document-store-actions';
-import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
 import {
     resolveWeekPlanContext,
     resolveWeekPlanCurrentCell,
 } from 'src/mandala-display/logic/week-plan-context';
+import { setActiveCellNx9Week7x9 } from 'src/mandala-scenes/view-nx9-week-7x9/set-active-cell';
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
@@ -32,13 +32,23 @@ export const tryMandalaWeek7x9Navigation = (
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSection = documentState.sections.id_section[activeNodeId];
     const current = resolveWeekPlanCurrentCell({
-        activeCell: view.mandalaActiveCellWeek7x9,
+        activeCell:
+            view.mandalaActiveCellNx9?.page === 0
+                ? {
+                      row: view.mandalaActiveCellNx9.row,
+                      col: view.mandalaActiveCellNx9.col,
+                  }
+                : null,
         activeSection,
         rows,
     });
 
-    if (!view.mandalaActiveCellWeek7x9) {
-        setActiveCellWeek7x9(view, current);
+    if (!view.mandalaActiveCellNx9 || view.mandalaActiveCellNx9.page !== 0) {
+        setActiveCellNx9Week7x9(view, {
+            row: current.row,
+            col: current.col,
+            page: 0,
+        });
     }
 
     const { dr, dc } = deltas[direction];
@@ -47,7 +57,11 @@ export const tryMandalaWeek7x9Navigation = (
     if (nextRow < 0 || nextCol < 0 || nextRow > 6 || nextCol > 8) return true;
 
     const nextSection = weekContext.sectionForCell(nextRow, nextCol);
-    setActiveCellWeek7x9(view, { row: nextRow, col: nextCol });
+    setActiveCellNx9Week7x9(view, {
+        row: nextRow,
+        col: nextCol,
+        page: 0,
+    });
     if (!nextSection) return true;
 
     const nextNodeId = documentState.sections.section_id[nextSection];

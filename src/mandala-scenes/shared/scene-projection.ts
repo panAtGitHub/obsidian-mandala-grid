@@ -2,19 +2,17 @@ import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewm
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { Content } from 'src/mandala-document/state/document-state-type';
-import type { WeekPlanRow } from 'src/mandala-display/logic/day-plan';
 import type { SceneCardInteractionDescriptor } from 'src/mandala-scenes/shared/card-scene-cell';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 import type {
-    WeekPlanDesktopCellViewModel,
-    WeekPlanMobileCellViewModel,
-} from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
+    Nx9WeekCellViewModel,
+} from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
 
 export type SceneRendererKind =
     | 'card-scene'
     | '9x9-layout';
 
-export type CardSceneLayoutKind = '3x3' | 'week' | 'nx9';
+export type CardSceneLayoutKind = '3x3' | 'nx9' | 'nx9-week-7x9';
 
 export type SceneDocumentSnapshot = {
     revision: number;
@@ -90,23 +88,22 @@ export type Nx9SceneProjection = {
     };
 };
 
-export type WeekSceneProjectionProps = {
-    layoutKind: 'week';
+export type Nx9WeekSceneProjectionProps = {
+    layoutKind: 'nx9-week-7x9';
     output: {
-        desktopDescriptors: WeekPlanDesktopCellViewModel[];
-        mobileDescriptors: WeekPlanMobileCellViewModel[];
+        descriptors: Nx9WeekCellViewModel[];
     };
     layoutMeta: {
-        rows: WeekPlanRow[];
         compactMode: boolean;
         displaySnapshot: SceneDisplaySnapshot;
+        themeSnapshot: MandalaThemeSnapshot;
     };
 };
 
-export type WeekSceneProjection = {
+export type Nx9WeekSceneProjection = {
     sceneKey: MandalaSceneKey;
     rendererKind: 'card-scene';
-    props: WeekSceneProjectionProps;
+    props: Nx9WeekSceneProjectionProps;
 };
 
 export type ThreeByThreeSceneProjection = {
@@ -118,7 +115,7 @@ export type ThreeByThreeSceneProjection = {
 export type CardSceneProjection =
     | ThreeByThreeSceneProjection
     | Nx9SceneProjection
-    | WeekSceneProjection;
+    | Nx9WeekSceneProjection;
 
 export type SceneProjection =
     | CardSceneProjection

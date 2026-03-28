@@ -48,13 +48,11 @@ const defaultProjection = (
                   sceneKey: { viewKind, variant },
                   rendererKind: 'card-scene',
                   props: {
-                      layoutKind: 'week',
+                      layoutKind: 'nx9-week-7x9',
                       output: {
-                          desktopDescriptors: [],
-                          mobileDescriptors: [],
+                          descriptors: [],
                       },
                       layoutMeta: {
-                          rows: [],
                           compactMode: false,
                           displaySnapshot: {
                               sectionColors: {},
@@ -62,6 +60,11 @@ const defaultProjection = (
                               backgroundMode: 'custom',
                               showDetailSidebar: false,
                               whiteThemeMode: false,
+                          },
+                          themeSnapshot: {
+                              themeTone: 'light',
+                              themeUnderlayColor: '#fff',
+                              activeThemeUnderlayColor: '#eee',
                           },
                       },
                   },

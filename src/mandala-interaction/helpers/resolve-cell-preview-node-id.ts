@@ -84,6 +84,20 @@ export const resolveCellPreviewNodeId = (
         return nodeId || activeNodeId || null;
     }
 
+    if (mode === 'nx9' && variant === 'week-7x9' && activeCellNx9) {
+        const weekContext = resolveWeekPlanContext({
+            frontmatter,
+            anchorDate: weekAnchorDate,
+            weekStart,
+        });
+        const section = weekContext.sectionForCell(
+            activeCellNx9.row,
+            activeCellNx9.col,
+        );
+        const nodeId = section ? sectionIdMap[section] : null;
+        return nodeId || activeNodeId || null;
+    }
+
     if (mode === 'nx9' && variant === 'week-7x9' && activeCellWeek7x9) {
         const weekContext = resolveWeekPlanContext({
             frontmatter,

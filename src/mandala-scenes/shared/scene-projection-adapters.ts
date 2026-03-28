@@ -2,18 +2,18 @@ import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile'
 import {
     resolveSceneRendererKind,
     type SceneRendererKind,
+    type Nx9WeekSceneProjectionProps,
     type Nx9SceneProjection,
     type SceneProjection,
     type ThreeByThreeSceneProjectionProps,
-    type WeekSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
 import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/build-scene-projection';
 import { buildNineByNineLegacySceneProjection } from 'src/mandala-scenes/view-9x9/build-legacy-scene-projection';
-import { buildWeekSceneProjection } from 'src/mandala-scenes/view-7x9/build-scene-projection';
+import { buildNx9WeekSceneProjection } from 'src/mandala-scenes/view-nx9-week-7x9/build-scene-projection';
 import { buildNx9SceneProjection } from 'src/mandala-scenes/view-nx9/build-scene-projection';
 
 type NonThreeByThreeProjectionProps = {
-    weekProps: WeekSceneProjectionProps;
+    nx9WeekProps: Nx9WeekSceneProjectionProps;
     nx9Props: Nx9SceneProjection['props'];
 };
 
@@ -31,7 +31,7 @@ export const buildLegacySceneProjection = (
     props: NonThreeByThreeProjectionProps,
 ): SceneProjection =>
     sceneKey.variant === 'week-7x9'
-        ? buildWeekSceneProjection(sceneKey, props.weekProps)
+        ? buildNx9WeekSceneProjection(sceneKey, props.nx9WeekProps)
         : sceneKey.viewKind === 'nx9'
           ? buildNx9SceneProjection(sceneKey, props.nx9Props)
           : sceneProjectionBuilders[resolveSceneRendererKind(sceneKey) as Exclude<
@@ -44,14 +44,14 @@ export const buildSceneProjection = ({
     committedSceneKey,
     preparedThreeByThreeProps,
     committedThreeByThreeProps,
-    weekProps,
+    nx9WeekProps,
     nx9Props,
 }: {
     sceneKey: MandalaSceneKey;
     committedSceneKey: MandalaSceneKey;
     preparedThreeByThreeProps: ThreeByThreeSceneProjectionProps;
     committedThreeByThreeProps: ThreeByThreeSceneProjectionProps;
-    weekProps: WeekSceneProjectionProps;
+    nx9WeekProps: Nx9WeekSceneProjectionProps;
     nx9Props: Nx9SceneProjection['props'];
 }): SceneProjection =>
     sceneKey.viewKind === '3x3'
@@ -62,6 +62,6 @@ export const buildSceneProjection = ({
               committedProps: committedThreeByThreeProps,
           })
         : buildLegacySceneProjection(sceneKey, {
-              weekProps,
+              nx9WeekProps,
               nx9Props,
           });

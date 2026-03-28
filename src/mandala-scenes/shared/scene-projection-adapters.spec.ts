@@ -4,8 +4,8 @@ import {
     buildSceneProjection,
 } from 'src/mandala-scenes/shared/scene-projection-adapters';
 import type {
+    Nx9WeekSceneProjectionProps,
     ThreeByThreeSceneProjectionProps,
-    WeekSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
 import {
     createSceneCommitSnapshot,
@@ -86,14 +86,12 @@ const nx9ProjectionProps = {
     },
 } as const;
 
-const weekProjectionProps: WeekSceneProjectionProps = {
-    layoutKind: 'week',
+const nx9WeekProjectionProps: Nx9WeekSceneProjectionProps = {
+    layoutKind: 'nx9-week-7x9',
     output: {
-        desktopDescriptors: [],
-        mobileDescriptors: [],
+        descriptors: [],
     },
     layoutMeta: {
-        rows: [],
         compactMode: false,
         displaySnapshot: {
             sectionColors: {},
@@ -101,6 +99,11 @@ const weekProjectionProps: WeekSceneProjectionProps = {
             backgroundMode: 'custom',
             showDetailSidebar: false,
             whiteThemeMode: false,
+        },
+        themeSnapshot: {
+            themeTone: 'light',
+            themeUnderlayColor: '#fff',
+            activeThemeUnderlayColor: '#eee',
         },
     },
 };
@@ -112,7 +115,7 @@ describe('scene-projection-adapters', () => {
                 viewKind: '9x9',
                 variant: 'default',
             }, {
-                weekProps: weekProjectionProps,
+                nx9WeekProps: nx9WeekProjectionProps,
                 nx9Props: nx9ProjectionProps,
             }),
         ).toEqual({
@@ -129,7 +132,7 @@ describe('scene-projection-adapters', () => {
                 viewKind: 'nx9',
                 variant: 'week-7x9',
             }, {
-                weekProps: weekProjectionProps,
+                nx9WeekProps: nx9WeekProjectionProps,
                 nx9Props: nx9ProjectionProps,
             }),
         ).toEqual({
@@ -138,7 +141,7 @@ describe('scene-projection-adapters', () => {
                 variant: 'week-7x9',
             },
             rendererKind: 'card-scene',
-            props: weekProjectionProps,
+            props: nx9WeekProjectionProps,
         });
 
         expect(
@@ -146,7 +149,7 @@ describe('scene-projection-adapters', () => {
                 viewKind: 'nx9',
                 variant: 'default',
             }, {
-                weekProps: weekProjectionProps,
+                nx9WeekProps: nx9WeekProjectionProps,
                 nx9Props: nx9ProjectionProps,
             }),
         ).toEqual({
@@ -197,7 +200,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
-            weekProps: weekProjectionProps,
+            nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
 
@@ -223,7 +226,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
-            weekProps: weekProjectionProps,
+            nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
         const threeByThreeProjection = buildSceneProjection({
@@ -237,7 +240,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
-            weekProps: weekProjectionProps,
+            nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
         const nx9Projection = buildSceneProjection({
@@ -251,7 +254,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
-            weekProps: weekProjectionProps,
+            nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
         const nineByNineProjection = buildSceneProjection({
@@ -265,7 +268,7 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
-            weekProps: weekProjectionProps,
+            nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
 
@@ -310,7 +313,7 @@ describe('scene-projection-adapters', () => {
                     },
                     preparedThreeByThreeProps: preparedProps,
                     committedThreeByThreeProps: committedProps,
-                    weekProps: weekProjectionProps,
+                    nx9WeekProps: nx9WeekProjectionProps,
                     nx9Props: nx9ProjectionProps,
                 }),
             ),

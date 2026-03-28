@@ -99,6 +99,33 @@ export const editCommands = () => {
                     }
                 } else if (
                     view.mandalaMode === 'nx9' &&
+                    view.isWeekPlanVariant() &&
+                    view.mandalaActiveCellNx9
+                ) {
+                    const weekContext = resolveWeekPlanContext({
+                        frontmatter:
+                            view.documentStore.getValue().file.frontmatter,
+                        anchorDate: view.mandalaWeekAnchorDate,
+                        weekStart:
+                            view.plugin.settings.getValue().general.weekStart,
+                    });
+                    const section = weekContext.sectionForCell(
+                        view.mandalaActiveCellNx9.row,
+                        view.mandalaActiveCellNx9.col,
+                    );
+                    if (section) {
+                        const existing =
+                            view.documentStore.getValue().sections.section_id[
+                                section
+                            ];
+                        nodeId =
+                            existing ??
+                            ensureNodeForSection(view, section) ??
+                            nodeId;
+                    }
+                } else if (
+                    view.mandalaMode === 'nx9' &&
+                    !view.isWeekPlanVariant() &&
                     view.mandalaActiveCellNx9
                 ) {
                     const context = resolveNx9Context({
@@ -117,32 +144,6 @@ export const editCommands = () => {
                         view.mandalaActiveCellNx9.row,
                         view.mandalaActiveCellNx9.col,
                         view.mandalaActiveCellNx9.page,
-                    );
-                    if (section) {
-                        const existing =
-                            view.documentStore.getValue().sections.section_id[
-                                section
-                            ];
-                        nodeId =
-                            existing ??
-                            ensureNodeForSection(view, section) ??
-                            nodeId;
-                    }
-                } else if (
-                    view.mandalaMode === 'nx9' &&
-                    view.isWeekPlanVariant() &&
-                    view.mandalaActiveCellWeek7x9
-                ) {
-                    const weekContext = resolveWeekPlanContext({
-                        frontmatter:
-                            view.documentStore.getValue().file.frontmatter,
-                        anchorDate: view.mandalaWeekAnchorDate,
-                        weekStart:
-                            view.plugin.settings.getValue().general.weekStart,
-                    });
-                    const section = weekContext.sectionForCell(
-                        view.mandalaActiveCellWeek7x9.row,
-                        view.mandalaActiveCellWeek7x9.col,
                     );
                     if (section) {
                         const existing =

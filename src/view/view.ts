@@ -344,7 +344,7 @@ export class MandalaView extends TextFileView {
     }
 
     focusNx9Page(direction: 'prev' | 'next') {
-        if (this.mandalaMode !== 'nx9') return;
+        if (this.mandalaMode !== 'nx9' || this.isWeekPlanVariant()) return;
 
         const documentState = this.documentStore.getValue();
         const activeNodeId = this.viewStore.getValue().document.activeNode;

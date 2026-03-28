@@ -37,6 +37,13 @@ const createView = () => {
             dispatch: ({ type, payload }: { type: string; payload: { cell?: ActiveCellWeek } }) => {
                 if (type === 'view/mandala/week-active-cell/set') {
                     activeCellWeek = payload.cell ?? null;
+                    activeCellNx9 = payload.cell
+                        ? {
+                              row: payload.cell.row,
+                              col: payload.cell.col,
+                              page: 0,
+                          }
+                        : null;
                 }
             },
         },

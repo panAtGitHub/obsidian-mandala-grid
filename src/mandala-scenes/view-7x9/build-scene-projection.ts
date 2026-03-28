@@ -9,11 +9,26 @@ import {
     type WeekPlanDesktopCellViewModel,
     type WeekPlanMobileCellViewModel,
 } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
-import type {
-    SceneDisplaySnapshot,
-    WeekSceneProjection,
-    WeekSceneProjectionProps,
-} from 'src/mandala-scenes/shared/scene-projection';
+import type { SceneDisplaySnapshot } from 'src/mandala-scenes/shared/scene-projection';
+
+type LegacyWeekSceneProjectionProps = {
+    layoutKind: 'week';
+    output: {
+        desktopDescriptors: WeekPlanDesktopCellViewModel[];
+        mobileDescriptors: WeekPlanMobileCellViewModel[];
+    };
+    layoutMeta: {
+        rows: ReturnType<typeof resolveWeekPlanContext>['rows'];
+        compactMode: boolean;
+        displaySnapshot: SceneDisplaySnapshot;
+    };
+};
+
+type LegacyWeekSceneProjection = {
+    sceneKey: MandalaSceneKey;
+    rendererKind: 'card-scene';
+    props: LegacyWeekSceneProjectionProps;
+};
 
 export const buildWeekSceneProjectionProps = ({
     frontmatter,
@@ -46,7 +61,7 @@ export const buildWeekSceneProjectionProps = ({
     };
     selectedNodes: Set<string>;
     pinnedSections: Set<string>;
-}): WeekSceneProjectionProps => {
+}): LegacyWeekSceneProjectionProps => {
     const rows = resolveWeekPlanContext({
         frontmatter,
         anchorDate,
@@ -92,16 +107,16 @@ export const buildWeekSceneProjectionProps = ({
 export const buildWeekSceneProjection = (
     sceneKey: MandalaSceneKey,
     props:
-        | WeekSceneProjectionProps
+        | LegacyWeekSceneProjectionProps
         | {
-              rows: WeekSceneProjectionProps['layoutMeta']['rows'];
+              rows: LegacyWeekSceneProjectionProps['layoutMeta']['rows'];
               desktopCells: WeekPlanDesktopCellViewModel[];
               mobileCells: WeekPlanMobileCellViewModel[];
               compactMode: boolean;
               displaySnapshot: SceneDisplaySnapshot;
           },
-): WeekSceneProjection => {
-    const normalizedProps: WeekSceneProjectionProps =
+): LegacyWeekSceneProjection => {
+    const normalizedProps: LegacyWeekSceneProjectionProps =
         'output' in props && 'layoutMeta' in props
             ? props
             : {
@@ -114,7 +129,7 @@ export const buildWeekSceneProjection = (
                       rows: props.rows,
                       compactMode: props.compactMode,
                       displaySnapshot: props.displaySnapshot,
-                  } satisfies WeekSceneProjectionProps['layoutMeta'],
+                  } satisfies LegacyWeekSceneProjectionProps['layoutMeta'],
               };
 
     return {

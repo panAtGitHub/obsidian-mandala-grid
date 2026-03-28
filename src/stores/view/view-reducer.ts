@@ -41,12 +41,11 @@ const syncSceneCellCachesFromFocusTarget = (state: ViewState) => {
             : null;
     state.ui.mandala.sceneState.nx9.activeCell =
         focusTarget?.kind === 'cell' &&
-        focusTarget.viewKind === 'nx9' &&
-        focusTarget.variant !== 'week-7x9'
+        focusTarget.viewKind === 'nx9'
             ? {
                   row: focusTarget.row,
                   col: focusTarget.col,
-                  page: focusTarget.page,
+                  page: focusTarget.page ?? 0,
               }
             : null;
     state.ui.mandala.sceneState.nx9.weekPlan.activeCell =
@@ -397,6 +396,7 @@ const handlers: Record<string, ViewActionHandler> = {
                       variant: 'week-7x9',
                       row: action.payload.cell.row,
                       col: action.payload.cell.col,
+                      page: 0,
                   }
                 : null,
         );

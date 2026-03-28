@@ -10,7 +10,6 @@
     } from 'src/mandala-display/logic/mandala-profile';
     import {
         getMandalaActiveCellNx9,
-        getMandalaActiveCellWeek7x9,
         getMandalaWeekAnchorDate,
     } from 'src/mandala-scenes/shared/scene-runtime';
     import {
@@ -60,7 +59,7 @@
         buildThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/view-3x3/build-scene-projection';
     import { buildNx9SceneProjectionProps } from 'src/mandala-scenes/view-nx9/build-scene-projection';
-    import { buildWeekSceneProjectionProps } from 'src/mandala-scenes/view-7x9/build-scene-projection';
+    import { buildNx9WeekSceneProjectionProps } from 'src/mandala-scenes/view-nx9-week-7x9/build-scene-projection';
     import {
         buildThreeByThreeCells,
         enterThreeByThreeSubgridFromButton,
@@ -178,10 +177,6 @@
     const nx9ActiveCell = derived(
         view.viewStore,
         (state) => getMandalaActiveCellNx9(state),
-    );
-    const weekActiveCell = derived(
-        view.viewStore,
-        (state) => getMandalaActiveCellWeek7x9(state),
     );
     const swapState = derived(view.viewStore, (state) => state.ui.mandala.swap);
     const hasOpenOverlayModal = derived(view.viewStore, (state) => {
@@ -318,16 +313,21 @@
     let committedThreeByThreeCells = [];
     let threeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
-    let weekProjectionProps: ReturnType<typeof buildWeekSceneProjectionProps> = {
-        layoutKind: 'week',
+    let nx9WeekProjectionProps: ReturnType<
+        typeof buildNx9WeekSceneProjectionProps
+    > = {
+        layoutKind: 'nx9-week-7x9',
         output: {
-            desktopDescriptors: [],
-            mobileDescriptors: [],
+            descriptors: [],
         },
         layoutMeta: {
-            rows: [],
             compactMode: $weekPlanCompactMode,
             displaySnapshot: DEFAULT_DISPLAY_SNAPSHOT,
+            themeSnapshot: {
+                themeTone: 'light',
+                themeUnderlayColor: '',
+                activeThemeUnderlayColor: '',
+            },
         },
     };
     let nx9ProjectionProps: ReturnType<typeof buildNx9SceneProjectionProps> = {
@@ -374,17 +374,16 @@
         sceneKey.variant === 'week-7x9' ||
         committedSceneKey.variant === 'week-7x9'
     ) {
-        weekProjectionProps = buildWeekSceneProjectionProps({
+        nx9WeekProjectionProps = buildNx9WeekSceneProjectionProps({
             frontmatter: $documentState.file.frontmatter,
             anchorDate: $weekAnchorDate,
             weekStart: $weekStart,
             compactMode: $weekPlanCompactMode,
-            includeMobileDescriptors: Platform.isMobile,
+            themeSnapshot: nx9ProjectionProps.layoutMeta.themeSnapshot,
             displaySnapshot: sceneInputSnapshots.displaySnapshot,
             sectionIdMap: $documentState.sections.section_id,
-            documentContent: $documentState.document.content,
             activeNodeId: $activeNodeId,
-            activeCell: $weekActiveCell,
+            activeCell: $nx9ActiveCell,
             editingState: $editingState,
             selectedNodes: $selectedNodes,
             pinnedSections: $pinnedSections,
@@ -577,13 +576,13 @@
                   committedProps: committedThreeByThreeProjectionProps,
               })
             : buildSceneProjection({
-                  sceneKey,
-                  committedSceneKey,
-                  preparedThreeByThreeProps: threeByThreeProjectionProps,
-                  committedThreeByThreeProps: committedThreeByThreeProjectionProps,
-                  weekProps: weekProjectionProps,
-                  nx9Props: nx9ProjectionProps,
-              });
+              sceneKey,
+              committedSceneKey,
+              preparedThreeByThreeProps: threeByThreeProjectionProps,
+              committedThreeByThreeProps: committedThreeByThreeProjectionProps,
+              nx9WeekProps: nx9WeekProjectionProps,
+              nx9Props: nx9ProjectionProps,
+          });
 </script>
 
 <div

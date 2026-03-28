@@ -7,7 +7,7 @@ import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-cont
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
-import { setActiveCellWeek7x9 } from 'src/mandala-interaction/helpers/set-active-cell-week-7x9';
+import { setActiveCellNx9Week7x9 } from 'src/mandala-scenes/view-nx9-week-7x9/set-active-cell';
 import type {
     MandalaCustomLayout,
     WeekStart,
@@ -185,16 +185,34 @@ export const createSceneStateSynchronizer = () => {
         }
         const section = idToSection[activeNodeId ?? ''];
         const pos = weekContext.posForSection(section);
-        const cell = view.mandalaActiveCellWeek7x9;
+        const cell =
+            view.mandalaActiveCellNx9?.page === 0
+                ? view.mandalaActiveCellNx9
+                : null;
         if (!section) {
             if (cell) {
-                setActiveCellWeek7x9(view, null);
+                setActiveCellNx9Week7x9(view, null);
             }
         } else if (cell) {
             const mapped = weekContext.sectionForCell(cell.row, cell.col);
             if (!mapped || mapped !== section) {
-                setActiveCellWeek7x9(view, pos ?? null);
+                setActiveCellNx9Week7x9(
+                    view,
+                    pos
+                        ? {
+                              row: pos.row,
+                              col: pos.col,
+                              page: 0,
+                          }
+                        : null,
+                );
             }
+        } else if (pos) {
+            setActiveCellNx9Week7x9(view, {
+                row: pos.row,
+                col: pos.col,
+                page: 0,
+            });
         }
     };
 

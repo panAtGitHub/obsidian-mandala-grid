@@ -1,7 +1,7 @@
 <script lang="ts">
     import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
     import Nx9Layout from 'src/mandala-scenes/view-nx9/layout.svelte';
-    import WeekPlanLayout from 'src/mandala-scenes/view-7x9/layout.svelte';
+    import Nx9WeekLayout from 'src/mandala-scenes/view-nx9-week-7x9/layout.svelte';
     import type { CardSceneProjection } from 'src/mandala-scenes/shared/scene-projection';
 
     export let projection: CardSceneProjection;
@@ -9,7 +9,7 @@
     const cardSceneComponents = {
         '3x3': Mandala3x3Layout,
         nx9: Nx9Layout,
-        week: WeekPlanLayout,
+        'nx9-week-7x9': Nx9WeekLayout,
     } as const;
 
     $: renderedComponent = cardSceneComponents[projection.props.layoutKind];
@@ -19,12 +19,11 @@
                   cells: projection.props.output.descriptors,
                   ...projection.props.layoutMeta,
               }
-            : projection.props.layoutKind === 'week'
+            : projection.props.layoutKind === 'nx9-week-7x9'
               ? {
-                    rows: projection.props.layoutMeta.rows,
-                    desktopCells: projection.props.output.desktopDescriptors,
-                    mobileCells: projection.props.output.mobileDescriptors,
+                    cells: projection.props.output.descriptors,
                     compactMode: projection.props.layoutMeta.compactMode,
+                    themeSnapshot: projection.props.layoutMeta.themeSnapshot,
                 }
               : {
                     ...projection.props.layoutMeta,

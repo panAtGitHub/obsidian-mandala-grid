@@ -21,6 +21,13 @@ const createView = () => {
             }) => {
                 if (type === 'view/mandala/week-active-cell/set') {
                     activeCellWeek = payload.cell ?? null;
+                    activeCellNx9 = payload.cell
+                        ? {
+                              row: payload.cell.row,
+                              col: payload.cell.col,
+                              page: 0,
+                          }
+                        : null;
                 }
             },
         },
@@ -69,7 +76,7 @@ describe('scene-cache-cleanup', () => {
         });
 
         expect(view.mandalaActiveCell9x9).toEqual({ row: 4, col: 4 });
-        expect(view.mandalaActiveCellNx9).toEqual({ row: 5, col: 5, page: 0 });
+        expect(view.mandalaActiveCellNx9).toEqual({ row: 6, col: 6, page: 0 });
         expect(view.mandalaActiveCellWeek7x9).toEqual({ row: 6, col: 6 });
     });
 });

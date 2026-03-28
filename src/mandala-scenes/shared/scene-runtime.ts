@@ -40,7 +40,29 @@ export const getMandalaActiveCellNx9 = (
 
 export const getMandalaActiveCellWeek7x9 = (
     viewState: ViewState,
-): ActiveCellWeek7x9 => getMandalaWeekPlanState(viewState).activeCell;
+): ActiveCellWeek7x9 => {
+    const weekCell = getMandalaWeekPlanState(viewState).activeCell;
+    if (weekCell) {
+        return weekCell;
+    }
+
+    const focusTarget = viewState.ui.mandala.focusTarget;
+    if (
+        focusTarget?.kind !== 'cell' ||
+        focusTarget.viewKind !== 'nx9' ||
+        focusTarget.variant !== 'week-7x9'
+    ) {
+        return null;
+    }
+
+    const nx9Cell = getMandalaActiveCellNx9(viewState);
+    return nx9Cell
+        ? {
+              row: nx9Cell.row,
+              col: nx9Cell.col,
+          }
+        : null;
+};
 
 export const getMandalaWeekAnchorDate = (
     viewState: ViewState,
@@ -82,10 +104,6 @@ export const resolveSceneActiveCell = (
 
     if (sceneKey.viewKind === '9x9') {
         return getMandalaActiveCell9x9(viewState);
-    }
-
-    if (sceneKey.viewKind === 'nx9' && sceneKey.variant === 'week-7x9') {
-        return getMandalaActiveCellWeek7x9(viewState);
     }
 
     if (sceneKey.viewKind === 'nx9') {
