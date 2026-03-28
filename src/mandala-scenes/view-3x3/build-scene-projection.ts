@@ -42,22 +42,26 @@ export const buildThreeByThreeSceneProjectionProps = ({
     getDownButtonLabel: (theme: string) => string;
 }): ThreeByThreeSceneProjectionProps => ({
     layoutKind: '3x3',
-    cells,
-    theme,
-    animateSwap,
-    show3x3SubgridNavButtons,
-    hasOpenOverlayModal,
-    dayPlanEnabled,
-    showDayPlanTodayButton,
-    dayPlanTodayTargetSection,
-    activeCoreSection,
-    todayButtonLabel: lang.day_plan_today_button_label,
-    enterSubgridFromButton,
-    exitSubgridFromButton,
-    focusDayPlanTodayFromButton,
-    onMobileCardDoubleClick,
-    getUpButtonLabel,
-    getDownButtonLabel,
+    output: {
+        descriptors: cells,
+    },
+    layoutMeta: {
+        theme,
+        animateSwap,
+        show3x3SubgridNavButtons,
+        hasOpenOverlayModal,
+        dayPlanEnabled,
+        showDayPlanTodayButton,
+        dayPlanTodayTargetSection,
+        activeCoreSection,
+        todayButtonLabel: lang.day_plan_today_button_label,
+        enterSubgridFromButton,
+        exitSubgridFromButton,
+        focusDayPlanTodayFromButton,
+        onMobileCardDoubleClick,
+        getUpButtonLabel,
+        getDownButtonLabel,
+    },
 });
 
 export const buildThreeByThreeSceneProjection = ({

@@ -43,22 +43,26 @@ export type SceneCardInteractionSnapshot = SceneCardInteractionDescriptor & {
 
 export type ThreeByThreeSceneProjectionProps = {
     layoutKind: '3x3';
-    cells: ThreeByThreeCellViewModel[];
-    theme: string;
-    animateSwap: boolean;
-    show3x3SubgridNavButtons: boolean;
-    hasOpenOverlayModal: boolean;
-    dayPlanEnabled: boolean;
-    showDayPlanTodayButton: boolean;
-    dayPlanTodayTargetSection: string | null;
-    activeCoreSection: string | null;
-    todayButtonLabel: string;
-    enterSubgridFromButton: (event: MouseEvent, nodeId: string) => void;
-    exitSubgridFromButton: (event: MouseEvent) => void;
-    focusDayPlanTodayFromButton: (event: MouseEvent) => void;
-    getUpButtonLabel: (theme: string) => string;
-    getDownButtonLabel: (theme: string) => string;
-    onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null;
+    output: {
+        descriptors: ThreeByThreeCellViewModel[];
+    };
+    layoutMeta: {
+        theme: string;
+        animateSwap: boolean;
+        show3x3SubgridNavButtons: boolean;
+        hasOpenOverlayModal: boolean;
+        dayPlanEnabled: boolean;
+        showDayPlanTodayButton: boolean;
+        dayPlanTodayTargetSection: string | null;
+        activeCoreSection: string | null;
+        todayButtonLabel: string;
+        enterSubgridFromButton: (event: MouseEvent, nodeId: string) => void;
+        exitSubgridFromButton: (event: MouseEvent) => void;
+        focusDayPlanTodayFromButton: (event: MouseEvent) => void;
+        getUpButtonLabel: (theme: string) => string;
+        getDownButtonLabel: (theme: string) => string;
+        onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null;
+    };
 };
 
 export type NineByNineSceneProjection = {
@@ -72,24 +76,31 @@ export type Nx9SceneProjection = {
     rendererKind: 'card-scene';
     props: {
         layoutKind: 'nx9';
-        documentSnapshot: SceneDocumentSnapshot;
-        themeSnapshot: MandalaThemeSnapshot;
-        rowsPerPage: number;
-        displaySnapshot: SceneDisplaySnapshot;
-        interactionSnapshot: SceneCardInteractionSnapshot;
-        activeSection: string | null;
-        activeCoreSection: string | null;
-        activeCell: { row: number; col: number; page?: number } | null;
+        output: Record<string, never>;
+        layoutMeta: {
+            documentSnapshot: SceneDocumentSnapshot;
+            themeSnapshot: MandalaThemeSnapshot;
+            rowsPerPage: number;
+            displaySnapshot: SceneDisplaySnapshot;
+            interactionSnapshot: SceneCardInteractionSnapshot;
+            activeSection: string | null;
+            activeCoreSection: string | null;
+            activeCell: { row: number; col: number; page?: number } | null;
+        };
     };
 };
 
 export type WeekSceneProjectionProps = {
     layoutKind: 'week';
-    rows: WeekPlanRow[];
-    desktopCells: WeekPlanDesktopCellViewModel[];
-    mobileCells: WeekPlanMobileCellViewModel[];
-    compactMode: boolean;
-    displaySnapshot: SceneDisplaySnapshot;
+    output: {
+        desktopDescriptors: WeekPlanDesktopCellViewModel[];
+        mobileDescriptors: WeekPlanMobileCellViewModel[];
+    };
+    layoutMeta: {
+        rows: WeekPlanRow[];
+        compactMode: boolean;
+        displaySnapshot: SceneDisplaySnapshot;
+    };
 };
 
 export type WeekSceneProjection = {

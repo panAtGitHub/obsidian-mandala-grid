@@ -13,6 +13,22 @@
     } as const;
 
     $: renderedComponent = cardSceneComponents[projection.props.layoutKind];
+    $: renderedComponentProps =
+        projection.props.layoutKind === '3x3'
+            ? {
+                  cells: projection.props.output.descriptors,
+                  ...projection.props.layoutMeta,
+              }
+            : projection.props.layoutKind === 'week'
+              ? {
+                    rows: projection.props.layoutMeta.rows,
+                    desktopCells: projection.props.output.desktopDescriptors,
+                    mobileCells: projection.props.output.mobileDescriptors,
+                    compactMode: projection.props.layoutMeta.compactMode,
+                }
+              : {
+                    ...projection.props.layoutMeta,
+                };
 </script>
 
-<svelte:component this={renderedComponent} {...projection.props} />
+<svelte:component this={renderedComponent} {...renderedComponentProps} />

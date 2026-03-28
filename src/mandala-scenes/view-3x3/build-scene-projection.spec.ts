@@ -7,27 +7,34 @@ import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
     layoutKind: '3x3',
-    cells: [],
-    theme: '1',
-    animateSwap: false,
-    show3x3SubgridNavButtons: false,
-    hasOpenOverlayModal: false,
-    dayPlanEnabled: false,
-    showDayPlanTodayButton: false,
-    dayPlanTodayTargetSection: '1',
-    activeCoreSection: null,
-    todayButtonLabel: '',
-    enterSubgridFromButton: () => undefined,
-    exitSubgridFromButton: () => undefined,
-    focusDayPlanTodayFromButton: () => undefined,
-    getUpButtonLabel: () => '',
-    getDownButtonLabel: () => '',
-    onMobileCardDoubleClick: null,
+    output: {
+        descriptors: [],
+    },
+    layoutMeta: {
+        theme: '1',
+        animateSwap: false,
+        show3x3SubgridNavButtons: false,
+        hasOpenOverlayModal: false,
+        dayPlanEnabled: false,
+        showDayPlanTodayButton: false,
+        dayPlanTodayTargetSection: '1',
+        activeCoreSection: null,
+        todayButtonLabel: '',
+        enterSubgridFromButton: () => undefined,
+        exitSubgridFromButton: () => undefined,
+        focusDayPlanTodayFromButton: () => undefined,
+        getUpButtonLabel: () => '',
+        getDownButtonLabel: () => '',
+        onMobileCardDoubleClick: null,
+    },
 };
 
 const committedProps: ThreeByThreeSceneProjectionProps = {
     ...preparedProps,
-    dayPlanTodayTargetSection: '2',
+    layoutMeta: {
+        ...preparedProps.layoutMeta,
+        dayPlanTodayTargetSection: '2',
+    },
 };
 
 describe('build-three-by-three-scene-projection', () => {
@@ -50,7 +57,7 @@ describe('build-three-by-three-scene-projection', () => {
             getDownButtonLabel: () => '',
         });
 
-        expect(props.todayButtonLabel).toBe('回到今天');
+        expect(props.layoutMeta.todayButtonLabel).toBe('回到今天');
     });
 
     it('prefers committed props for steady 3x3 scenes', () => {
@@ -74,7 +81,7 @@ describe('build-three-by-three-scene-projection', () => {
         ) {
             throw new Error('expected 3x3 projection');
         }
-        expect(projection.props.dayPlanTodayTargetSection).toBe('2');
+        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('2');
     });
 
     it('uses prepared props while prewarming a different 3x3 variant', () => {
@@ -98,6 +105,6 @@ describe('build-three-by-three-scene-projection', () => {
         ) {
             throw new Error('expected 3x3 projection');
         }
-        expect(projection.props.dayPlanTodayTargetSection).toBe('1');
+        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('1');
     });
 });

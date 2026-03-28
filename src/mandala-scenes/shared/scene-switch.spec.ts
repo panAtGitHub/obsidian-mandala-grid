@@ -15,22 +15,26 @@ const defaultProjection = (
               rendererKind: 'card-scene',
               props: {
                   layoutKind: '3x3',
-                  cells: [],
-                  theme: '1',
-                  animateSwap: false,
-                  show3x3SubgridNavButtons: false,
-                  hasOpenOverlayModal: false,
-                  dayPlanEnabled: false,
-                  showDayPlanTodayButton: false,
-                  dayPlanTodayTargetSection: null,
-                  activeCoreSection: null,
-                  todayButtonLabel: '',
-                  enterSubgridFromButton: () => undefined,
-                  exitSubgridFromButton: () => undefined,
-                  focusDayPlanTodayFromButton: () => undefined,
-                  getUpButtonLabel: () => '',
-                  getDownButtonLabel: () => '',
-                  onMobileCardDoubleClick: null,
+                  output: {
+                      descriptors: [],
+                  },
+                  layoutMeta: {
+                      theme: '1',
+                      animateSwap: false,
+                      show3x3SubgridNavButtons: false,
+                      hasOpenOverlayModal: false,
+                      dayPlanEnabled: false,
+                      showDayPlanTodayButton: false,
+                      dayPlanTodayTargetSection: null,
+                      activeCoreSection: null,
+                      todayButtonLabel: '',
+                      enterSubgridFromButton: () => undefined,
+                      exitSubgridFromButton: () => undefined,
+                      focusDayPlanTodayFromButton: () => undefined,
+                      getUpButtonLabel: () => '',
+                      getDownButtonLabel: () => '',
+                      onMobileCardDoubleClick: null,
+                  },
               },
           }
         : viewKind === '9x9'
@@ -45,16 +49,20 @@ const defaultProjection = (
                   rendererKind: 'card-scene',
                   props: {
                       layoutKind: 'week',
-                      rows: [],
-                      desktopCells: [],
-                      mobileCells: [],
-                      compactMode: false,
-                      displaySnapshot: {
-                          sectionColors: {},
-                          sectionColorOpacity: 60,
-                          backgroundMode: 'custom',
-                          showDetailSidebar: false,
-                          whiteThemeMode: false,
+                      output: {
+                          desktopDescriptors: [],
+                          mobileDescriptors: [],
+                      },
+                      layoutMeta: {
+                          rows: [],
+                          compactMode: false,
+                          displaySnapshot: {
+                              sectionColors: {},
+                              sectionColorOpacity: 60,
+                              backgroundMode: 'custom',
+                              showDetailSidebar: false,
+                              whiteThemeMode: false,
+                          },
                       },
                   },
               }
@@ -63,42 +71,45 @@ const defaultProjection = (
                   rendererKind: 'card-scene',
                   props: {
                       layoutKind: 'nx9',
-                      documentSnapshot: {
-                          revision: 1,
-                          contentRevision: 2,
-                          sectionIdMap: { '1': 'node-1' },
-                          documentContent: {
-                              'node-1': { content: 'hello' },
+                      output: {},
+                      layoutMeta: {
+                          documentSnapshot: {
+                              revision: 1,
+                              contentRevision: 2,
+                              sectionIdMap: { '1': 'node-1' },
+                              documentContent: {
+                                  'node-1': { content: 'hello' },
+                              },
                           },
-                      },
-                      themeSnapshot: {
-                          themeTone: 'light',
-                          themeUnderlayColor: '#fff',
-                          activeThemeUnderlayColor: '#eee',
-                      },
-                      rowsPerPage: 5,
-                      displaySnapshot: {
-                          sectionColors: {},
-                          sectionColorOpacity: 60,
-                          backgroundMode: 'custom',
-                          showDetailSidebar: false,
-                          whiteThemeMode: false,
-                      },
-                      interactionSnapshot: {
-                          activeNodeId: 'node-1',
-                          editingState: {
+                          themeSnapshot: {
+                              themeTone: 'light',
+                              themeUnderlayColor: '#fff',
+                              activeThemeUnderlayColor: '#eee',
+                          },
+                          rowsPerPage: 5,
+                          displaySnapshot: {
+                              sectionColors: {},
+                              sectionColorOpacity: 60,
+                              backgroundMode: 'custom',
+                              showDetailSidebar: false,
+                              whiteThemeMode: false,
+                          },
+                          interactionSnapshot: {
                               activeNodeId: 'node-1',
-                              isInSidebar: false,
+                              editingState: {
+                                  activeNodeId: 'node-1',
+                                  isInSidebar: false,
+                              },
+                              selectedNodes: new Set(['node-1']),
+                              showDetailSidebar: false,
+                              selectedStamp: 'node-1',
+                              pinnedSections: new Set(['1']),
+                              pinnedStamp: '1',
                           },
-                          selectedNodes: new Set(['node-1']),
-                          showDetailSidebar: false,
-                          selectedStamp: 'node-1',
-                          pinnedSections: new Set(['1']),
-                          pinnedStamp: '1',
+                          activeSection: '1.2',
+                          activeCoreSection: '1',
+                          activeCell: { row: 1, col: 2, page: 0 },
                       },
-                      activeSection: '1.2',
-                      activeCoreSection: '1',
-                      activeCell: { row: 1, col: 2, page: 0 },
                   },
               };
 
@@ -124,7 +135,6 @@ describe('scene-switch', () => {
                 viewKind: '9x9',
                 variant: 'default',
             },
-            renderedThreeByThreeProps: null,
         });
 
         const snapshot = createSceneCommitSnapshot(defaultProjection('3x3'));
@@ -132,6 +142,9 @@ describe('scene-switch', () => {
             viewKind: '3x3',
             variant: 'default',
         });
-        expect(snapshot.renderedThreeByThreeProps?.theme).toBe('1');
+        expect(snapshot.committedSceneKey).toEqual({
+            viewKind: '3x3',
+            variant: 'default',
+        });
     });
 });

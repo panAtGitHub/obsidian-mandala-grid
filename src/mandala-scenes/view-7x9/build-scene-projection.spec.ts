@@ -44,26 +44,28 @@ mandala_plan:
 
         expect(props).toMatchObject({
             layoutKind: 'week',
-            rows: [
-                { date: '2025-12-29', coreSection: null, inPlanYear: false },
-                { date: '2025-12-30', coreSection: null, inPlanYear: false },
-                { date: '2025-12-31', coreSection: null, inPlanYear: false },
-                { date: '2026-01-01', coreSection: '1', inPlanYear: true },
-                { date: '2026-01-02', coreSection: '2', inPlanYear: true },
-                { date: '2026-01-03', coreSection: '3', inPlanYear: true },
-                { date: '2026-01-04', coreSection: '4', inPlanYear: true },
-            ],
-            compactMode: true,
-            displaySnapshot: {
-                sectionColors: { '1': '#111' },
-                sectionColorOpacity: 60,
-                backgroundMode: 'custom',
-                showDetailSidebar: false,
-                whiteThemeMode: true,
+            layoutMeta: {
+                rows: [
+                    { date: '2025-12-29', coreSection: null, inPlanYear: false },
+                    { date: '2025-12-30', coreSection: null, inPlanYear: false },
+                    { date: '2025-12-31', coreSection: null, inPlanYear: false },
+                    { date: '2026-01-01', coreSection: '1', inPlanYear: true },
+                    { date: '2026-01-02', coreSection: '2', inPlanYear: true },
+                    { date: '2026-01-03', coreSection: '3', inPlanYear: true },
+                    { date: '2026-01-04', coreSection: '4', inPlanYear: true },
+                ],
+                compactMode: true,
+                displaySnapshot: {
+                    sectionColors: { '1': '#111' },
+                    sectionColorOpacity: 60,
+                    backgroundMode: 'custom',
+                    showDetailSidebar: false,
+                    whiteThemeMode: true,
+                },
             },
         });
-        expect(props.desktopCells).toHaveLength(63);
-        expect(props.mobileCells[27]).toMatchObject({
+        expect(props.output.desktopDescriptors).toHaveLength(63);
+        expect(props.output.mobileDescriptors[27]).toMatchObject({
             row: 3,
             col: 0,
             section: '1',
@@ -73,7 +75,7 @@ mandala_plan:
             isActiveCell: true,
             isActiveNode: false,
         });
-        expect(props.desktopCells[27]).toMatchObject({
+        expect(props.output.desktopDescriptors[27]).toMatchObject({
             row: 3,
             col: 0,
             section: '1',
@@ -107,16 +109,20 @@ mandala_plan:
             rendererKind: 'card-scene',
             props: {
                 layoutKind: 'week',
-                rows: [],
-                desktopCells: [],
-                mobileCells: [],
-                compactMode: false,
-                displaySnapshot: {
-                    sectionColors: {},
-                    sectionColorOpacity: 60,
-                    backgroundMode: 'custom',
-                    showDetailSidebar: false,
-                    whiteThemeMode: false,
+                output: {
+                    desktopDescriptors: [],
+                    mobileDescriptors: [],
+                },
+                layoutMeta: {
+                    rows: [],
+                    compactMode: false,
+                    displaySnapshot: {
+                        sectionColors: {},
+                        sectionColorOpacity: 60,
+                        backgroundMode: 'custom',
+                        showDetailSidebar: false,
+                        whiteThemeMode: false,
+                    },
                 },
             },
         });

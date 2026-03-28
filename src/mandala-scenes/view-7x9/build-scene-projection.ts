@@ -6,6 +6,8 @@ import type { WeekStart } from 'src/mandala-settings/state/settings-type';
 import {
     assembleDesktopWeekPlanCells,
     assembleMobileWeekPlanCells,
+    type WeekPlanDesktopCellViewModel,
+    type WeekPlanMobileCellViewModel,
 } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
 import type {
     SceneDisplaySnapshot,
@@ -51,42 +53,68 @@ export const buildWeekSceneProjectionProps = ({
 
     return {
         layoutKind: 'week',
-        rows,
-        desktopCells: assembleDesktopWeekPlanCells({
+        output: {
+            desktopDescriptors: assembleDesktopWeekPlanCells({
+                rows,
+                sectionIdMap,
+                activeNodeId,
+                activeCell,
+                compactMode,
+                editingState,
+                selectedNodes,
+                pinnedSections,
+                sectionColors: displaySnapshot.sectionColors,
+                sectionColorOpacity: displaySnapshot.sectionColorOpacity,
+                backgroundMode: displaySnapshot.backgroundMode,
+                showDetailSidebar: displaySnapshot.showDetailSidebar,
+                whiteThemeMode: displaySnapshot.whiteThemeMode,
+            }),
+            mobileDescriptors: assembleMobileWeekPlanCells({
+                rows,
+                sectionIdMap,
+                documentContent,
+                activeNodeId,
+                activeCell,
+            }),
+        },
+        layoutMeta: {
             rows,
-            sectionIdMap,
-            activeNodeId,
-            activeCell,
             compactMode,
-            editingState,
-            selectedNodes,
-            pinnedSections,
-            sectionColors: displaySnapshot.sectionColors,
-            sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-            backgroundMode: displaySnapshot.backgroundMode,
-            showDetailSidebar: displaySnapshot.showDetailSidebar,
-            whiteThemeMode: displaySnapshot.whiteThemeMode,
-        }),
-        mobileCells: assembleMobileWeekPlanCells({
-            rows,
-            sectionIdMap,
-            documentContent,
-            activeNodeId,
-            activeCell,
-        }),
-        compactMode,
-        displaySnapshot,
+            displaySnapshot,
+        },
     };
 };
 
 export const buildWeekSceneProjection = (
     sceneKey: MandalaSceneKey,
-    props: WeekSceneProjectionProps,
+    props:
+        | WeekSceneProjectionProps
+        | {
+              rows: WeekPlanRow[];
+              desktopCells: WeekPlanDesktopCellViewModel[];
+              mobileCells: WeekPlanMobileCellViewModel[];
+              compactMode: boolean;
+              displaySnapshot: SceneDisplaySnapshot;
+          },
 ): WeekSceneProjection => ({
     sceneKey,
     rendererKind: 'card-scene',
-    props: {
-        layoutKind: 'week',
-        ...props,
-    },
+    props:
+        'output' in props && 'layoutMeta' in props
+            ? {
+                  layoutKind: 'week',
+                  ...props,
+              }
+            : {
+                  layoutKind: 'week',
+                  output: {
+                      desktopDescriptors: props.desktopCells,
+                      mobileDescriptors: props.mobileCells,
+                  },
+                  layoutMeta: {
+                      rows: props.rows,
+                      compactMode: props.compactMode,
+                      displaySnapshot: props.displaySnapshot,
+                  },
+              },
 });

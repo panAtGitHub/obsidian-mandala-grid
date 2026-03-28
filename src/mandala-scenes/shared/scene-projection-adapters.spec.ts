@@ -15,79 +15,93 @@ import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/bu
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
     layoutKind: '3x3',
-    cells: [],
-    theme: '1',
-    animateSwap: false,
-    show3x3SubgridNavButtons: false,
-    hasOpenOverlayModal: false,
-    dayPlanEnabled: false,
-    showDayPlanTodayButton: false,
-    dayPlanTodayTargetSection: '1',
-    activeCoreSection: null,
-    todayButtonLabel: '',
-    enterSubgridFromButton: () => undefined,
-    exitSubgridFromButton: () => undefined,
-    focusDayPlanTodayFromButton: () => undefined,
-    getUpButtonLabel: () => '',
-    getDownButtonLabel: () => '',
-    onMobileCardDoubleClick: null,
+    output: {
+        descriptors: [],
+    },
+    layoutMeta: {
+        theme: '1',
+        animateSwap: false,
+        show3x3SubgridNavButtons: false,
+        hasOpenOverlayModal: false,
+        dayPlanEnabled: false,
+        showDayPlanTodayButton: false,
+        dayPlanTodayTargetSection: '1',
+        activeCoreSection: null,
+        todayButtonLabel: '',
+        enterSubgridFromButton: () => undefined,
+        exitSubgridFromButton: () => undefined,
+        focusDayPlanTodayFromButton: () => undefined,
+        getUpButtonLabel: () => '',
+        getDownButtonLabel: () => '',
+        onMobileCardDoubleClick: null,
+    },
 };
 
 const committedProps: ThreeByThreeSceneProjectionProps = {
     ...preparedProps,
-    dayPlanTodayTargetSection: '2',
+    layoutMeta: {
+        ...preparedProps.layoutMeta,
+        dayPlanTodayTargetSection: '2',
+    },
 };
 
 const nx9ProjectionProps = {
     layoutKind: 'nx9',
-    documentSnapshot: {
-        revision: 1,
-        contentRevision: 2,
-        sectionIdMap: { '1': 'node-1' },
-        documentContent: { 'node-1': { content: 'hello' } },
-    },
-    themeSnapshot: {
-        themeTone: 'light',
-        themeUnderlayColor: '#fff',
-        activeThemeUnderlayColor: '#eee',
-    },
-    rowsPerPage: 5,
-    displaySnapshot: {
-        sectionColors: { '1': '#111' },
-        sectionColorOpacity: 60,
-        backgroundMode: 'custom',
-        showDetailSidebar: false,
-        whiteThemeMode: false,
-    },
-    interactionSnapshot: {
-        activeNodeId: 'node-1',
-        editingState: {
-            activeNodeId: 'node-1',
-            isInSidebar: false,
+    output: {},
+    layoutMeta: {
+        documentSnapshot: {
+            revision: 1,
+            contentRevision: 2,
+            sectionIdMap: { '1': 'node-1' },
+            documentContent: { 'node-1': { content: 'hello' } },
         },
-        selectedNodes: new Set(['node-1']),
-        showDetailSidebar: false,
-        selectedStamp: 'node-1',
-        pinnedSections: new Set(['1']),
-        pinnedStamp: '1',
+        themeSnapshot: {
+            themeTone: 'light',
+            themeUnderlayColor: '#fff',
+            activeThemeUnderlayColor: '#eee',
+        },
+        rowsPerPage: 5,
+        displaySnapshot: {
+            sectionColors: { '1': '#111' },
+            sectionColorOpacity: 60,
+            backgroundMode: 'custom',
+            showDetailSidebar: false,
+            whiteThemeMode: false,
+        },
+        interactionSnapshot: {
+            activeNodeId: 'node-1',
+            editingState: {
+                activeNodeId: 'node-1',
+                isInSidebar: false,
+            },
+            selectedNodes: new Set(['node-1']),
+            showDetailSidebar: false,
+            selectedStamp: 'node-1',
+            pinnedSections: new Set(['1']),
+            pinnedStamp: '1',
+        },
+        activeSection: '1.2',
+        activeCoreSection: '1',
+        activeCell: { row: 1, col: 2, page: 0 },
     },
-    activeSection: '1.2',
-    activeCoreSection: '1',
-    activeCell: { row: 1, col: 2, page: 0 },
 } as const;
 
 const weekProjectionProps: WeekSceneProjectionProps = {
     layoutKind: 'week',
-    rows: [],
-    desktopCells: [],
-    mobileCells: [],
-    compactMode: false,
-    displaySnapshot: {
-        sectionColors: {},
-        sectionColorOpacity: 60,
-        backgroundMode: 'custom',
-        showDetailSidebar: false,
-        whiteThemeMode: false,
+    output: {
+        desktopDescriptors: [],
+        mobileDescriptors: [],
+    },
+    layoutMeta: {
+        rows: [],
+        compactMode: false,
+        displaySnapshot: {
+            sectionColors: {},
+            sectionColorOpacity: 60,
+            backgroundMode: 'custom',
+            showDetailSidebar: false,
+            whiteThemeMode: false,
+        },
     },
 };
 
@@ -168,7 +182,7 @@ describe('scene-projection-adapters', () => {
         ) {
             throw new Error('expected 3x3 projection');
         }
-        expect(projection.props.dayPlanTodayTargetSection).toBe('2');
+        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('2');
     });
 
     it('falls back to prepared props while prewarming the next 3x3 scene', () => {
@@ -194,7 +208,7 @@ describe('scene-projection-adapters', () => {
         ) {
             throw new Error('expected 3x3 projection');
         }
-        expect(projection.props.dayPlanTodayTargetSection).toBe('1');
+        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('1');
     });
 
     it('covers the main cross-view switch paths with staged projections', () => {
@@ -275,7 +289,9 @@ describe('scene-projection-adapters', () => {
         ) {
             throw new Error('expected 3x3 projection');
         }
-        expect(threeByThreeProjection.props.cells).toBe(preparedProps.cells);
+        expect(threeByThreeProjection.props.output.descriptors).toBe(
+            preparedProps.output.descriptors,
+        );
 
         expect(hasPendingSceneSwitch(nx9Projection, nineByNineProjection)).toBe(
             true,

@@ -31,21 +31,16 @@
     } as const;
     let {
         committedSceneKey: initialCommittedSceneKey,
-        renderedThreeByThreeProps,
     } = createSceneCommitSnapshot(projection);
     committedSceneKey = initialCommittedSceneKey;
     $: renderedComponent =
         rendererComponentByKind[renderedProjection.rendererKind];
     $: renderedComponentProps =
-        renderedProjection.rendererKind === 'card-scene' &&
-        renderedProjection.props.layoutKind === '3x3' &&
-        renderedThreeByThreeProps
-            ? renderedThreeByThreeProps
-            : renderedProjection.rendererKind === 'card-scene'
-              ? {
-                    projection: renderedProjection,
-                }
-              : renderedProjection.props;
+        renderedProjection.rendererKind === 'card-scene'
+            ? {
+                  projection: renderedProjection,
+              }
+            : renderedProjection.props;
 
     const waitForNextPaint = () =>
         new Promise<void>((resolve) => {
@@ -57,10 +52,7 @@
         const nextProjection = pendingProjection;
         if (!hasPendingSceneSwitch(renderedProjection, nextProjection)) {
             renderedProjection = nextProjection;
-            ({
-                committedSceneKey,
-                renderedThreeByThreeProps,
-            } = createSceneCommitSnapshot(nextProjection));
+            ({ committedSceneKey } = createSceneCommitSnapshot(nextProjection));
             onCommittedSceneChange?.(committedSceneKey);
             return;
         }
@@ -72,10 +64,7 @@
             return;
         }
         renderedProjection = pendingProjection;
-        ({
-            committedSceneKey,
-            renderedThreeByThreeProps,
-        } = createSceneCommitSnapshot(renderedProjection));
+        ({ committedSceneKey } = createSceneCommitSnapshot(renderedProjection));
         onCommittedSceneChange?.(committedSceneKey);
         isSwitchingScene = false;
         if (hasPendingSceneSwitch(renderedProjection, pendingProjection)) {
