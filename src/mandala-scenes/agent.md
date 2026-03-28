@@ -29,8 +29,8 @@
 - `view-nx9/`
   nx9 场景目录；当前由 `layout.svelte` 直接承担场景入口与布局渲染，并配套 `assemble-cell-view-model.ts`、`context.ts`、`set-active-cell.ts` 等场景专属辅助。
 
-- `view-7x9/`
-  7x9 场景目录；当前由 `layout.svelte` 直接承担场景入口，并保留桌面/移动子布局组件与统一 assembler。
+- `view-nx9-week-7x9/`
+  nx9 周视图场景目录；当前周视图已经并入 nx9 渲染管线，由 `layout.svelte`、`assemble-cell-view-model.ts`、`build-scene-projection.ts` 与 `set-active-cell.ts` 共同承接周模式布局、投影与激活态同步。
 
 ### 关于 3x3 场景
 
@@ -50,8 +50,8 @@
 - `view-nx9/build-cell-display-overrides.ts`
   负责定义 nx9 相对于标准格子默认展示配置的差异，例如内容铺满，以及白色主题下的 section / active 背景策略。
 
-- `view-7x9/build-cell-display-overrides.ts`
-  负责定义 7x9 相对于标准格子默认展示配置的差异，例如内容铺满、紧凑密度、滚动策略与 active 背景保留策略。
+- `view-nx9-week-7x9/assemble-cell-view-model.ts`
+  负责把 nx9 周视图场景状态翻译成卡片列表，包括 section 背景、边缘标记、active cell / active node 状态，以及共享 card scene 所需的显示输入。
 
 - `shared/mandala-view.svelte`
   仍然负责模式切换、subgrid theme、today 跳转、外层容器和共享壳层逻辑。
@@ -230,7 +230,7 @@ src/mandala-scenes/view-xxx/
 
 ## 当前落地状态
 
-当前 `view-3x3`、`view-9x9`、`view-nx9`、`view-7x9` 都已经开始按“场景 layout + assembler”分层。
+当前 `view-3x3`、`view-9x9`、`view-nx9`、`view-nx9-week-7x9` 都已经开始按“场景 layout + assembler”分层。
 
 目前可以按下面规则理解：
 
