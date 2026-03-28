@@ -5,15 +5,15 @@ import type { Content } from 'src/mandala-document/state/document-state-type';
 import type { SceneCardInteractionDescriptor } from 'src/mandala-scenes/shared/card-scene-cell';
 import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
-import type {
-    Nx9WeekCellViewModel,
-} from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
+import type { Nx9WeekCellViewModel } from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
 
-export type SceneRendererKind =
-    | 'card-scene'
-    | '9x9-layout';
+export type SceneRendererKind = 'card-scene' | '9x9-layout';
 
-export type CardSceneLayoutKind = '3x3' | 'nx9' | 'nx9-week-7x9';
+export type CardSceneLayoutKind =
+    | '3x3'
+    | '3x3-day-plan'
+    | 'nx9'
+    | 'nx9-week-7x9';
 
 export type SceneDocumentSnapshot = {
     revision: number;
@@ -40,28 +40,39 @@ export type SceneCardInteractionSnapshot = SceneCardInteractionDescriptor & {
     pinnedStamp: string;
 };
 
+type ThreeByThreeLayoutMeta = {
+    gridStyle: ResolvedGridStyle;
+    theme: string;
+    animateSwap: boolean;
+    show3x3SubgridNavButtons: boolean;
+    hasOpenOverlayModal: boolean;
+    enterSubgridFromButton: (event: MouseEvent, nodeId: string) => void;
+    exitSubgridFromButton: (event: MouseEvent) => void;
+    getUpButtonLabel: (theme: string) => string;
+    getDownButtonLabel: (theme: string) => string;
+    onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null;
+};
+
 export type ThreeByThreeSceneProjectionProps = {
     layoutKind: '3x3';
     output: {
         descriptors: ThreeByThreeCellViewModel[];
     };
-    layoutMeta: {
-        gridStyle: ResolvedGridStyle;
-        theme: string;
-        animateSwap: boolean;
-        show3x3SubgridNavButtons: boolean;
-        hasOpenOverlayModal: boolean;
+    layoutMeta: ThreeByThreeLayoutMeta;
+};
+
+export type ThreeByThreeDayPlanSceneProjectionProps = {
+    layoutKind: '3x3-day-plan';
+    output: {
+        descriptors: ThreeByThreeCellViewModel[];
+    };
+    layoutMeta: ThreeByThreeLayoutMeta & {
         dayPlanEnabled: boolean;
         showDayPlanTodayButton: boolean;
         dayPlanTodayTargetSection: string | null;
         activeCoreSection: string | null;
         todayButtonLabel: string;
-        enterSubgridFromButton: (event: MouseEvent, nodeId: string) => void;
-        exitSubgridFromButton: (event: MouseEvent) => void;
         focusDayPlanTodayFromButton: (event: MouseEvent) => void;
-        getUpButtonLabel: (theme: string) => string;
-        getDownButtonLabel: (theme: string) => string;
-        onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null;
     };
 };
 
@@ -115,15 +126,19 @@ export type ThreeByThreeSceneProjection = {
     props: ThreeByThreeSceneProjectionProps;
 };
 
+export type ThreeByThreeDayPlanSceneProjection = {
+    sceneKey: MandalaSceneKey;
+    rendererKind: 'card-scene';
+    props: ThreeByThreeDayPlanSceneProjectionProps;
+};
+
 export type CardSceneProjection =
     | ThreeByThreeSceneProjection
+    | ThreeByThreeDayPlanSceneProjection
     | Nx9SceneProjection
     | Nx9WeekSceneProjection;
 
-export type SceneProjection =
-    | CardSceneProjection
-    | NineByNineSceneProjection
-;
+export type SceneProjection = CardSceneProjection | NineByNineSceneProjection;
 
 export const sceneKeyEquals = (a: MandalaSceneKey, b: MandalaSceneKey) =>
     a.viewKind === b.viewKind && a.variant === b.variant;

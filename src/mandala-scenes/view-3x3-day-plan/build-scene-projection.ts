@@ -1,22 +1,28 @@
+import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
+import { lang } from 'src/lang/lang';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import {
     shouldUseCommittedSceneProjection,
-    type ThreeByThreeSceneProjection,
-    type ThreeByThreeSceneProjectionProps,
+    type ThreeByThreeDayPlanSceneProjection,
+    type ThreeByThreeDayPlanSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
-import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
-import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 
-export const buildThreeByThreeSceneProjectionProps = ({
+export const buildThreeByThreeDayPlanSceneProjectionProps = ({
     cells,
     gridStyle,
     theme,
     animateSwap,
     show3x3SubgridNavButtons,
     hasOpenOverlayModal,
+    dayPlanEnabled,
+    showDayPlanTodayButton,
+    dayPlanTodayTargetSection,
+    activeCoreSection,
     enterSubgridFromButton,
     exitSubgridFromButton,
+    focusDayPlanTodayFromButton,
     onMobileCardDoubleClick,
     getUpButtonLabel,
     getDownButtonLabel,
@@ -27,13 +33,18 @@ export const buildThreeByThreeSceneProjectionProps = ({
     animateSwap: boolean;
     show3x3SubgridNavButtons: boolean;
     hasOpenOverlayModal: boolean;
+    dayPlanEnabled: boolean;
+    showDayPlanTodayButton: boolean;
+    dayPlanTodayTargetSection: string | null;
+    activeCoreSection: string | null;
     enterSubgridFromButton: (event: MouseEvent, nodeId: string) => void;
     exitSubgridFromButton: (event: MouseEvent) => void;
+    focusDayPlanTodayFromButton: (event: MouseEvent) => void;
     onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null;
     getUpButtonLabel: (theme: string) => string;
     getDownButtonLabel: (theme: string) => string;
-}): ThreeByThreeSceneProjectionProps => ({
-    layoutKind: '3x3',
+}): ThreeByThreeDayPlanSceneProjectionProps => ({
+    layoutKind: '3x3-day-plan',
     output: {
         descriptors: cells,
     },
@@ -43,15 +54,21 @@ export const buildThreeByThreeSceneProjectionProps = ({
         animateSwap,
         show3x3SubgridNavButtons,
         hasOpenOverlayModal,
+        dayPlanEnabled,
+        showDayPlanTodayButton,
+        dayPlanTodayTargetSection,
+        activeCoreSection,
+        todayButtonLabel: lang.day_plan_today_button_label,
         enterSubgridFromButton,
         exitSubgridFromButton,
+        focusDayPlanTodayFromButton,
         onMobileCardDoubleClick,
         getUpButtonLabel,
         getDownButtonLabel,
     },
 });
 
-export const buildThreeByThreeSceneProjection = ({
+export const buildThreeByThreeDayPlanSceneProjection = ({
     sceneKey,
     committedSceneKey,
     preparedProps,
@@ -59,9 +76,9 @@ export const buildThreeByThreeSceneProjection = ({
 }: {
     sceneKey: MandalaSceneKey;
     committedSceneKey: MandalaSceneKey;
-    preparedProps: ThreeByThreeSceneProjectionProps;
-    committedProps: ThreeByThreeSceneProjectionProps;
-}): ThreeByThreeSceneProjection => ({
+    preparedProps: ThreeByThreeDayPlanSceneProjectionProps;
+    committedProps: ThreeByThreeDayPlanSceneProjectionProps;
+}): ThreeByThreeDayPlanSceneProjection => ({
     sceneKey,
     rendererKind: 'card-scene',
     props: shouldUseCommittedSceneProjection(sceneKey, committedSceneKey)

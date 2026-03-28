@@ -5,6 +5,7 @@ import {
 } from 'src/mandala-scenes/shared/scene-projection-adapters';
 import type {
     Nx9WeekSceneProjectionProps,
+    ThreeByThreeDayPlanSceneProjectionProps,
     ThreeByThreeSceneProjectionProps,
 } from 'src/mandala-scenes/shared/scene-projection';
 import {
@@ -33,14 +34,8 @@ const preparedProps: ThreeByThreeSceneProjectionProps = {
         animateSwap: false,
         show3x3SubgridNavButtons: false,
         hasOpenOverlayModal: false,
-        dayPlanEnabled: false,
-        showDayPlanTodayButton: false,
-        dayPlanTodayTargetSection: '1',
-        activeCoreSection: null,
-        todayButtonLabel: '',
         enterSubgridFromButton: () => undefined,
         exitSubgridFromButton: () => undefined,
-        focusDayPlanTodayFromButton: () => undefined,
         getUpButtonLabel: () => '',
         getDownButtonLabel: () => '',
         onMobileCardDoubleClick: null,
@@ -51,6 +46,30 @@ const committedProps: ThreeByThreeSceneProjectionProps = {
     ...preparedProps,
     layoutMeta: {
         ...preparedProps.layoutMeta,
+        theme: '2',
+    },
+};
+
+const preparedDayPlanProps: ThreeByThreeDayPlanSceneProjectionProps = {
+    layoutKind: '3x3-day-plan',
+    output: {
+        descriptors: [],
+    },
+    layoutMeta: {
+        ...preparedProps.layoutMeta,
+        dayPlanEnabled: true,
+        showDayPlanTodayButton: true,
+        dayPlanTodayTargetSection: '1',
+        activeCoreSection: null,
+        todayButtonLabel: '回到今天',
+        focusDayPlanTodayFromButton: () => undefined,
+    },
+};
+
+const committedDayPlanProps: ThreeByThreeDayPlanSceneProjectionProps = {
+    ...preparedDayPlanProps,
+    layoutMeta: {
+        ...preparedDayPlanProps.layoutMeta,
         dayPlanTodayTargetSection: '2',
     },
 };
@@ -122,13 +141,16 @@ const nx9WeekProjectionProps: Nx9WeekSceneProjectionProps = {
 describe('scene-projection-adapters', () => {
     it('builds a legacy projection for non-3x3 scenes', () => {
         expect(
-            buildLegacySceneProjection({
-                viewKind: '9x9',
-                variant: 'default',
-            }, {
-                nx9WeekProps: nx9WeekProjectionProps,
-                nx9Props: nx9ProjectionProps,
-            }),
+            buildLegacySceneProjection(
+                {
+                    viewKind: '9x9',
+                    variant: 'default',
+                },
+                {
+                    nx9WeekProps: nx9WeekProjectionProps,
+                    nx9Props: nx9ProjectionProps,
+                },
+            ),
         ).toEqual({
             sceneKey: {
                 viewKind: '9x9',
@@ -139,13 +161,16 @@ describe('scene-projection-adapters', () => {
         });
 
         expect(
-            buildLegacySceneProjection({
-                viewKind: 'nx9',
-                variant: 'week-7x9',
-            }, {
-                nx9WeekProps: nx9WeekProjectionProps,
-                nx9Props: nx9ProjectionProps,
-            }),
+            buildLegacySceneProjection(
+                {
+                    viewKind: 'nx9',
+                    variant: 'week-7x9',
+                },
+                {
+                    nx9WeekProps: nx9WeekProjectionProps,
+                    nx9Props: nx9ProjectionProps,
+                },
+            ),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
@@ -156,13 +181,16 @@ describe('scene-projection-adapters', () => {
         });
 
         expect(
-            buildLegacySceneProjection({
-                viewKind: 'nx9',
-                variant: 'default',
-            }, {
-                nx9WeekProps: nx9WeekProjectionProps,
-                nx9Props: nx9ProjectionProps,
-            }),
+            buildLegacySceneProjection(
+                {
+                    viewKind: 'nx9',
+                    variant: 'default',
+                },
+                {
+                    nx9WeekProps: nx9WeekProjectionProps,
+                    nx9Props: nx9ProjectionProps,
+                },
+            ),
         ).toEqual({
             sceneKey: {
                 viewKind: 'nx9',
@@ -196,10 +224,10 @@ describe('scene-projection-adapters', () => {
         ) {
             throw new Error('expected 3x3 projection');
         }
-        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('2');
+        expect(projection.props.layoutMeta.theme).toBe('2');
     });
 
-    it('falls back to prepared props while prewarming the next 3x3 scene', () => {
+    it('routes day-plan 3x3 scenes through the explicit day-plan layout', () => {
         const projection = buildSceneProjection({
             sceneKey: {
                 viewKind: '3x3',
@@ -211,6 +239,8 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            preparedThreeByThreeDayPlanProps: preparedDayPlanProps,
+            committedThreeByThreeDayPlanProps: committedDayPlanProps,
             nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
@@ -218,9 +248,9 @@ describe('scene-projection-adapters', () => {
         expect(projection.rendererKind).toBe('card-scene');
         if (
             projection.rendererKind !== 'card-scene' ||
-            projection.props.layoutKind !== '3x3'
+            projection.props.layoutKind !== '3x3-day-plan'
         ) {
-            throw new Error('expected 3x3 projection');
+            throw new Error('expected 3x3 day-plan projection');
         }
         expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('1');
     });
@@ -237,6 +267,8 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            preparedThreeByThreeDayPlanProps: preparedDayPlanProps,
+            committedThreeByThreeDayPlanProps: committedDayPlanProps,
             nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
@@ -251,6 +283,8 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            preparedThreeByThreeDayPlanProps: preparedDayPlanProps,
+            committedThreeByThreeDayPlanProps: committedDayPlanProps,
             nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
@@ -265,6 +299,8 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            preparedThreeByThreeDayPlanProps: preparedDayPlanProps,
+            committedThreeByThreeDayPlanProps: committedDayPlanProps,
             nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
@@ -279,13 +315,15 @@ describe('scene-projection-adapters', () => {
             },
             preparedThreeByThreeProps: preparedProps,
             committedThreeByThreeProps: committedProps,
+            preparedThreeByThreeDayPlanProps: preparedDayPlanProps,
+            committedThreeByThreeDayPlanProps: committedDayPlanProps,
             nx9WeekProps: nx9WeekProjectionProps,
             nx9Props: nx9ProjectionProps,
         });
 
-        expect(hasPendingSceneSwitch(weekProjection, threeByThreeProjection)).toBe(
-            true,
-        );
+        expect(
+            hasPendingSceneSwitch(weekProjection, threeByThreeProjection),
+        ).toBe(true);
         expect(
             createSceneCommitSnapshot(weekProjection).committedSceneKey,
         ).toEqual({
@@ -324,6 +362,8 @@ describe('scene-projection-adapters', () => {
                     },
                     preparedThreeByThreeProps: preparedProps,
                     committedThreeByThreeProps: committedProps,
+                    preparedThreeByThreeDayPlanProps: preparedDayPlanProps,
+                    committedThreeByThreeDayPlanProps: committedDayPlanProps,
                     nx9WeekProps: nx9WeekProjectionProps,
                     nx9Props: nx9ProjectionProps,
                 }),

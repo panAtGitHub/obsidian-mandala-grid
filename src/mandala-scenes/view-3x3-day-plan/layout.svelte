@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
+    import { CalendarDays } from 'lucide-svelte';
     import { flip } from 'svelte/animate';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
@@ -18,11 +19,17 @@
     export let animateSwap = false;
     export let show3x3SubgridNavButtons = false;
     export let hasOpenOverlayModal = false;
+    export let dayPlanEnabled = false;
+    export let showDayPlanTodayButton = false;
+    export let dayPlanTodayTargetSection: string | null = null;
+    export let activeCoreSection: string | null = null;
+    export let todayButtonLabel = '';
     export let enterSubgridFromButton: (
         event: MouseEvent,
         nodeId: string,
     ) => void;
     export let exitSubgridFromButton: (event: MouseEvent) => void;
+    export let focusDayPlanTodayFromButton: (event: MouseEvent) => void;
     export let getUpButtonLabel: (theme: string) => string;
     export let getDownButtonLabel: (theme: string) => string;
     export let onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null =
@@ -116,6 +123,23 @@
                                                 strokeWidth={2.2}
                                             />
                                         {/if}
+                                    </span>
+                                </button>
+                            {/if}
+                            {#if dayPlanEnabled && showDayPlanTodayButton && dayPlanTodayTargetSection && activeCoreSection !== dayPlanTodayTargetSection}
+                                <button
+                                    class="mandala-subgrid-btn mandala-subgrid-btn--today"
+                                    type="button"
+                                    aria-label={todayButtonLabel}
+                                    title={todayButtonLabel}
+                                    on:click={(event) =>
+                                        focusDayPlanTodayFromButton(event)}
+                                >
+                                    <span class="mandala-subgrid-btn__icon">
+                                        <CalendarDays
+                                            size={14}
+                                            strokeWidth={2.2}
+                                        />
                                     </span>
                                 </button>
                             {/if}
@@ -217,53 +241,57 @@
     }
 
     .mandala-subgrid-btn:hover {
-        background: color-mix(
-            in srgb,
-            var(--background-primary-alt) 75%,
-            var(--interactive-accent) 25%
-        );
-        border-color: color-mix(
-            in srgb,
-            var(--interactive-accent) 55%,
-            var(--background-modifier-border) 45%
-        );
+        background: var(--background-modifier-hover);
+        border-color: var(--background-modifier-border-hover);
         box-shadow:
-            0 0 0 1px
-                color-mix(in srgb, var(--interactive-accent) 45%, transparent),
-            var(--shadow-s);
-        transform: translateY(-1px);
+            var(--shadow-s),
+            0 0 0 1px var(--background-modifier-border-hover);
     }
 
     .mandala-subgrid-btn:active {
         transform: translateY(1px);
     }
 
-    .mandala-subgrid-btn__icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        line-height: 0;
+    .mandala-subgrid-btn:focus-visible {
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: 2px;
     }
 
-    .mandala-subgrid-btn__icon :global(svg),
-    .mandala-subgrid-btn__icon :global(.svg-icon) {
-        display: block;
-        width: 14px !important;
-        height: 14px !important;
-        stroke-width: 2.2 !important;
-    }
-
-    .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--up {
+    .mandala-subgrid-btn--up {
         position: absolute;
         left: 0;
         bottom: 0;
     }
 
-    .mandala-subgrid-controls.is-center-controls .mandala-subgrid-btn--down {
+    .mandala-subgrid-btn--down {
         position: absolute;
         right: 0;
         bottom: 0;
+    }
+
+    .mandala-subgrid-btn--today {
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+    }
+
+    .mandala-subgrid-btn--today:active {
+        transform: translateX(-50%) translateY(1px);
+    }
+
+    .mandala-subgrid-btn__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+
+    .mandala-card-grid__empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100%;
+        color: var(--text-faint);
     }
 </style>

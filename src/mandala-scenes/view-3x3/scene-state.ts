@@ -1,6 +1,4 @@
 import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
-import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
-import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
 import {
     enterSubgridForNode,
     exitCurrentSubgrid,
@@ -20,30 +18,21 @@ export const resolveThreeByThreeTheme = (
 export const buildThreeByThreeCells = (args: Assemble3x3CellViewModelsArgs) =>
     assemble3x3CellViewModels(args);
 
-export const syncThreeByThreeSceneState = ({
+export const syncThreeByThreeSubgridState = ({
     view,
     mode,
     subgridTheme,
     documentState,
     sectionToNodeId,
+    allowSubgridExpansion,
 }: {
     view: MandalaView;
     mode: string;
     subgridTheme: string | null | undefined;
     documentState: DocumentState;
     sectionToNodeId: Record<string, string | undefined>;
+    allowSubgridExpansion: boolean;
 }) => {
-    const todayNavigation = resolveDayPlanTodayNavigation(
-        documentState.file.frontmatter,
-    );
-    const dayPlanTodayTargetSection = todayNavigation.targetSection;
-    const dayPlan = parseDayPlanFrontmatter(documentState.file.frontmatter);
-    const allowSubgridExpansion = !(
-        dayPlan &&
-        dayPlan.daily_only_3x3 &&
-        subgridTheme?.includes('.')
-    );
-
     if (
         allowSubgridExpansion &&
         mode === '3x3' &&
@@ -66,9 +55,29 @@ export const syncThreeByThreeSceneState = ({
             }
         }
     }
-
-    return dayPlanTodayTargetSection;
 };
+
+export const syncThreeByThreeSceneState = ({
+    view,
+    mode,
+    subgridTheme,
+    documentState,
+    sectionToNodeId,
+}: {
+    view: MandalaView;
+    mode: string;
+    subgridTheme: string | null | undefined;
+    documentState: DocumentState;
+    sectionToNodeId: Record<string, string | undefined>;
+}) =>
+    syncThreeByThreeSubgridState({
+        view,
+        mode,
+        subgridTheme,
+        documentState,
+        sectionToNodeId,
+        allowSubgridExpansion: true,
+    });
 
 export const enterThreeByThreeSubgridFromButton = (
     view: MandalaView,
@@ -85,14 +94,6 @@ export const exitThreeByThreeSubgridFromButton = (
 ) => {
     event.stopPropagation();
     exitCurrentSubgrid(view);
-};
-
-export const focusThreeByThreeTodayFromButton = (
-    view: MandalaView,
-    event: MouseEvent,
-) => {
-    event.stopPropagation();
-    view.focusDayPlanToday();
 };
 
 export const handleThreeByThreeMobileCardDoubleClick = (

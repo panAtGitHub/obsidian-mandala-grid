@@ -26,6 +26,9 @@
 - `view-3x3/`
   3x3 场景目录；当前已包含 `layout.svelte` 与 `assemble-cell-view-model.ts`。
 
+- `view-3x3-day-plan/`
+  3x3 日计划变种目录；当前承接 day-plan 专属的 projection、today 按钮布局与 `daily_only_3x3` 同步逻辑。
+
 - `view-nx9/`
   nx9 场景目录；当前由 `layout.svelte` 直接承担场景入口与布局渲染，并配套 `assemble-cell-view-model.ts`、`context.ts`、`set-active-cell.ts` 等场景专属辅助。
 
@@ -39,7 +42,10 @@
 当前主要落点如下：
 
 - `view-3x3/layout.svelte`
-  负责 3x3 格子的排列、卡片渲染、空格展示，以及子宫格导航按钮布局。
+  负责通用 3x3 格子的排列、卡片渲染、空格展示，以及子宫格导航按钮布局。
+
+- `view-3x3-day-plan/layout.svelte`
+  负责 day-plan 变种下的 3x3 布局，并承接“回到今天”按钮这类仅在日计划中出现的控件。
 
 - `view-3x3/assemble-cell-view-model.ts`
   负责把 3x3 场景状态翻译成单格输入，包括 section、section 背景、pin、interaction policy，以及默认格子配置与 3x3 微调的合并结果。
@@ -230,7 +236,7 @@ src/mandala-scenes/view-xxx/
 
 ## 当前落地状态
 
-当前 `view-3x3`、`view-9x9`、`view-nx9`、`view-nx9-week-7x9` 都已经开始按“场景 layout + assembler”分层。
+当前 `view-3x3`、`view-3x3-day-plan`、`view-9x9`、`view-nx9`、`view-nx9-week-7x9` 都已经开始按“场景 layout + assembler”分层。
 
 目前可以按下面规则理解：
 

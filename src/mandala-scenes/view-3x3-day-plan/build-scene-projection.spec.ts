@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
-    buildThreeByThreeSceneProjection,
-    buildThreeByThreeSceneProjectionProps,
-} from 'src/mandala-scenes/view-3x3/build-scene-projection';
+    buildThreeByThreeDayPlanSceneProjection,
+    buildThreeByThreeDayPlanSceneProjectionProps,
+} from 'src/mandala-scenes/view-3x3-day-plan/build-scene-projection';
 import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
-import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared/scene-projection';
+import type { ThreeByThreeDayPlanSceneProjectionProps } from 'src/mandala-scenes/shared/scene-projection';
 
 const threeByThreeGridStyle = resolveCardGridStyle({
     whiteThemeMode: false,
 });
 
-const preparedProps: ThreeByThreeSceneProjectionProps = {
-    layoutKind: '3x3',
+const preparedProps: ThreeByThreeDayPlanSceneProjectionProps = {
+    layoutKind: '3x3-day-plan',
     output: {
         descriptors: [],
     },
@@ -21,53 +21,62 @@ const preparedProps: ThreeByThreeSceneProjectionProps = {
         animateSwap: false,
         show3x3SubgridNavButtons: false,
         hasOpenOverlayModal: false,
+        dayPlanEnabled: true,
+        showDayPlanTodayButton: true,
+        dayPlanTodayTargetSection: '1',
+        activeCoreSection: null,
+        todayButtonLabel: '',
         enterSubgridFromButton: () => undefined,
         exitSubgridFromButton: () => undefined,
+        focusDayPlanTodayFromButton: () => undefined,
         getUpButtonLabel: () => '',
         getDownButtonLabel: () => '',
         onMobileCardDoubleClick: null,
     },
 };
 
-const committedProps: ThreeByThreeSceneProjectionProps = {
+const committedProps: ThreeByThreeDayPlanSceneProjectionProps = {
     ...preparedProps,
     layoutMeta: {
         ...preparedProps.layoutMeta,
-        theme: '2',
+        dayPlanTodayTargetSection: '2',
     },
 };
 
-describe('build-three-by-three-scene-projection', () => {
-    it('builds base three-by-three projection props', () => {
-        const props = buildThreeByThreeSceneProjectionProps({
+describe('build-three-by-three-day-plan-scene-projection', () => {
+    it('builds day-plan projection props with the standard today label', () => {
+        const props = buildThreeByThreeDayPlanSceneProjectionProps({
             cells: [],
             gridStyle: threeByThreeGridStyle,
             theme: '1',
             animateSwap: false,
             show3x3SubgridNavButtons: false,
             hasOpenOverlayModal: false,
+            dayPlanEnabled: true,
+            showDayPlanTodayButton: true,
+            dayPlanTodayTargetSection: null,
+            activeCoreSection: null,
             enterSubgridFromButton: () => undefined,
             exitSubgridFromButton: () => undefined,
+            focusDayPlanTodayFromButton: () => undefined,
             onMobileCardDoubleClick: null,
             getUpButtonLabel: () => '',
             getDownButtonLabel: () => '',
         });
 
-        expect(props.layoutKind).toBe('3x3');
-        expect(
-            props.layoutMeta.gridStyle.cellDisplayPolicy.inactiveSurfaceMode,
-        ).toBe('detached');
+        expect(props.layoutKind).toBe('3x3-day-plan');
+        expect(props.layoutMeta.todayButtonLabel).toBe('回到今天');
     });
 
-    it('prefers committed props for steady 3x3 scenes', () => {
-        const projection = buildThreeByThreeSceneProjection({
+    it('prefers committed props for steady 3x3 day-plan scenes', () => {
+        const projection = buildThreeByThreeDayPlanSceneProjection({
             sceneKey: {
                 viewKind: '3x3',
-                variant: 'default',
+                variant: 'day-plan',
             },
             committedSceneKey: {
                 viewKind: '3x3',
-                variant: 'default',
+                variant: 'day-plan',
             },
             preparedProps,
             committedProps,
@@ -76,15 +85,15 @@ describe('build-three-by-three-scene-projection', () => {
         expect(projection.rendererKind).toBe('card-scene');
         if (
             projection.rendererKind !== 'card-scene' ||
-            projection.props.layoutKind !== '3x3'
+            projection.props.layoutKind !== '3x3-day-plan'
         ) {
-            throw new Error('expected 3x3 projection');
+            throw new Error('expected 3x3 day-plan projection');
         }
-        expect(projection.props.layoutMeta.theme).toBe('2');
+        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('2');
     });
 
     it('uses prepared props while prewarming a different 3x3 variant', () => {
-        const projection = buildThreeByThreeSceneProjection({
+        const projection = buildThreeByThreeDayPlanSceneProjection({
             sceneKey: {
                 viewKind: '3x3',
                 variant: 'day-plan',
@@ -100,10 +109,10 @@ describe('build-three-by-three-scene-projection', () => {
         expect(projection.rendererKind).toBe('card-scene');
         if (
             projection.rendererKind !== 'card-scene' ||
-            projection.props.layoutKind !== '3x3'
+            projection.props.layoutKind !== '3x3-day-plan'
         ) {
-            throw new Error('expected 3x3 projection');
+            throw new Error('expected 3x3 day-plan projection');
         }
-        expect(projection.props.layoutMeta.theme).toBe('1');
+        expect(projection.props.layoutMeta.dayPlanTodayTargetSection).toBe('1');
     });
 });

@@ -19,34 +19,57 @@ const defaultProjection = (
     variant: 'default' | 'day-plan' | 'week-7x9' = 'default',
 ): SceneProjection =>
     viewKind === '3x3'
-        ? {
-              sceneKey: { viewKind, variant },
-              rendererKind: 'card-scene',
-              props: {
-                  layoutKind: '3x3',
-                  output: {
-                      descriptors: [],
+        ? variant === 'day-plan'
+            ? {
+                  sceneKey: { viewKind, variant },
+                  rendererKind: 'card-scene',
+                  props: {
+                      layoutKind: '3x3-day-plan',
+                      output: {
+                          descriptors: [],
+                      },
+                      layoutMeta: {
+                          gridStyle: threeByThreeGridStyle,
+                          theme: '1',
+                          animateSwap: false,
+                          show3x3SubgridNavButtons: false,
+                          hasOpenOverlayModal: false,
+                          dayPlanEnabled: true,
+                          showDayPlanTodayButton: true,
+                          dayPlanTodayTargetSection: null,
+                          activeCoreSection: null,
+                          todayButtonLabel: '',
+                          enterSubgridFromButton: () => undefined,
+                          exitSubgridFromButton: () => undefined,
+                          focusDayPlanTodayFromButton: () => undefined,
+                          getUpButtonLabel: () => '',
+                          getDownButtonLabel: () => '',
+                          onMobileCardDoubleClick: null,
+                      },
                   },
-                  layoutMeta: {
-                      gridStyle: threeByThreeGridStyle,
-                      theme: '1',
-                      animateSwap: false,
-                      show3x3SubgridNavButtons: false,
-                      hasOpenOverlayModal: false,
-                      dayPlanEnabled: false,
-                      showDayPlanTodayButton: false,
-                      dayPlanTodayTargetSection: null,
-                      activeCoreSection: null,
-                      todayButtonLabel: '',
-                      enterSubgridFromButton: () => undefined,
-                      exitSubgridFromButton: () => undefined,
-                      focusDayPlanTodayFromButton: () => undefined,
-                      getUpButtonLabel: () => '',
-                      getDownButtonLabel: () => '',
-                      onMobileCardDoubleClick: null,
+              }
+            : {
+                  sceneKey: { viewKind, variant },
+                  rendererKind: 'card-scene',
+                  props: {
+                      layoutKind: '3x3',
+                      output: {
+                          descriptors: [],
+                      },
+                      layoutMeta: {
+                          gridStyle: threeByThreeGridStyle,
+                          theme: '1',
+                          animateSwap: false,
+                          show3x3SubgridNavButtons: false,
+                          hasOpenOverlayModal: false,
+                          enterSubgridFromButton: () => undefined,
+                          exitSubgridFromButton: () => undefined,
+                          getUpButtonLabel: () => '',
+                          getDownButtonLabel: () => '',
+                          onMobileCardDoubleClick: null,
+                      },
                   },
-              },
-          }
+              }
         : viewKind === '9x9'
           ? {
                 sceneKey: { viewKind, variant },
