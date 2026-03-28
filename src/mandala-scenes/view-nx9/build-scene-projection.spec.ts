@@ -3,6 +3,12 @@ import {
     buildNx9SceneProjection,
     buildNx9SceneProjectionProps,
 } from 'src/mandala-scenes/view-nx9/build-scene-projection';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
+
+const nx9GridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'cell-outline',
+});
 
 describe('build-nx9-scene-projection', () => {
     it('builds nx9 scene projection props from a theme snapshot', () => {
@@ -58,6 +64,7 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                gridStyle: nx9GridStyle,
                 rowsPerPage: 5,
                 displaySnapshot: {
                     sectionColors: { '1': '#111' },
@@ -147,6 +154,7 @@ describe('build-nx9-scene-projection', () => {
                         themeUnderlayColor: '#fff',
                         activeThemeUnderlayColor: '#eee',
                     },
+                    gridStyle: nx9GridStyle,
                     rowsPerPage: 5,
                     displaySnapshot: {
                         sectionColors: { '1': '#111' },

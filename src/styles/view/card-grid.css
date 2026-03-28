@@ -1,0 +1,127 @@
+.mandala-card-grid {
+    --mandala-card-grid-gap: var(--mandala-gap);
+    gap: var(--mandala-card-grid-gap);
+}
+
+.mandala-card-grid.is-compact {
+    --mandala-card-grid-gap: max(2px, calc(var(--mandala-gap) * 0.75));
+}
+
+.mandala-card-grid__cell {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    background: transparent;
+}
+
+.mandala-card-grid__cell.is-clickable {
+    cursor: pointer;
+}
+
+.mandala-card-grid__cell--card {
+    padding: 0;
+    --min-node-height: 0;
+    --mandala-card-min-height: 0;
+    --mandala-card-width: 100%;
+    --mandala-card-height: 100%;
+}
+
+.mandala-card-grid__cell--card .mandala-card {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+
+.mandala-card-grid__cell--empty,
+.mandala-card-grid__cell--placeholder {
+    border: 1px dashed var(--background-modifier-border);
+    border-radius: 8px;
+    background-color: color-mix(
+        in srgb,
+        var(--background-primary) 80%,
+        var(--background-modifier-border) 20%
+    );
+}
+
+.mandala-card-grid__cell--placeholder {
+    background-color: color-mix(
+        in srgb,
+        var(--background-primary) 76%,
+        var(--background-modifier-border) 24%
+    );
+}
+
+.mandala-card-grid__cell.is-active-cell,
+.mandala-card-grid__cell.is-active-node {
+    outline: var(--mandala-grid-highlight-width, 2px) solid
+        var(--mandala-grid-highlight-color, var(--mandala-color-selection));
+    outline-offset: 0;
+}
+
+.mandala-card-grid__cell--card.is-active-cell,
+.mandala-card-grid__cell--card.is-active-node {
+    outline: none;
+}
+
+.mandala-card-grid__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.2;
+    user-select: none;
+}
+
+.mandala-white-theme .mandala-card-grid {
+    --mandala-card-grid-gap: 0px;
+    box-sizing: border-box;
+}
+
+.mandala-white-theme .mandala-card-grid > .mandala-card-grid__cell {
+    border-left: 1px dashed var(--mandala-border-color);
+    border-top: 1px dashed var(--mandala-border-color);
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 0;
+}
+
+.mandala-white-theme .mandala-card-grid > .mandala-card-grid__cell.is-top-edge {
+    border-top: 3px solid var(--mandala-border-color);
+}
+
+.mandala-white-theme
+    .mandala-card-grid
+    > .mandala-card-grid__cell.is-left-edge {
+    border-left: 3px solid var(--mandala-border-color);
+}
+
+.mandala-white-theme
+    .mandala-card-grid
+    > .mandala-card-grid__cell.is-right-edge {
+    border-right: 3px solid var(--mandala-border-color);
+}
+
+.mandala-white-theme
+    .mandala-card-grid
+    > .mandala-card-grid__cell.is-bottom-edge {
+    border-bottom: 3px solid var(--mandala-border-color);
+}
+
+.mandala-white-theme .mandala-card-grid__cell .mandala-card {
+    border: 0 !important;
+    border-left-width: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: 0 !important;
+}

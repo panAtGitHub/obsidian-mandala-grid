@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import {
     applyNx9PageInteractionState,
     assembleNx9PageFrame,
@@ -13,6 +12,12 @@ import {
     type Nx9RealCellViewModel,
 } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
+
+const nx9GridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'cell-outline',
+});
 
 const createFixture = () => {
     const sectionIdMap = {
@@ -52,6 +57,7 @@ const createFixture = () => {
             showDetailSidebar: false,
             whiteThemeMode: false,
         },
+        gridStyle: nx9GridStyle,
         hydratedNodeIds: new Set([
             'node-1',
             'node-1-1',
@@ -252,7 +258,7 @@ describe('nx9/assemble-cell-view-model', () => {
             backgroundMode: 'none',
             sectionColors: { '1.1': 'red' },
             sectionColorOpacity: 100,
-            displayPolicy: createDefaultCellDisplayPolicy(),
+            displayPolicy: nx9GridStyle.cellDisplayPolicy,
             hydratedNodeIds: new Set(['node-1', 'node-1-1']),
         });
 
@@ -285,6 +291,9 @@ describe('nx9/assemble-cell-view-model', () => {
                     contentEnabled: false,
                 },
             },
+        });
+        expect(descriptors[0].seed.descriptor.displayPolicy).toMatchObject({
+            inactiveSurfaceMode: 'detached',
         });
     });
 });

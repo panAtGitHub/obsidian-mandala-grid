@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildMandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import { build3x3CardCellDescriptors } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
-import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 
 describe('3x3/assemble-cell-view-model', () => {
     it('builds reusable card cell descriptors for a 3x3 theme', () => {
@@ -22,7 +22,10 @@ describe('3x3/assemble-cell-view-model', () => {
                 showDetailSidebar: false,
                 whiteThemeMode: false,
             },
-            displayPolicy: createDefaultCellDisplayPolicy(),
+            displayPolicy: resolveCardGridStyle({
+                whiteThemeMode: false,
+                selectionStyle: 'node-active',
+            }).cellDisplayPolicy,
         });
 
         expect(descriptors[0]).toMatchObject({
@@ -40,6 +43,8 @@ describe('3x3/assemble-cell-view-model', () => {
             extra: {
                 index: 0,
                 isCenter: false,
+                isTopEdge: true,
+                isLeftEdge: true,
             },
         });
         expect(descriptors[4]).toMatchObject({
@@ -53,6 +58,8 @@ describe('3x3/assemble-cell-view-model', () => {
             extra: {
                 index: 4,
                 isCenter: true,
+                isTopEdge: false,
+                isBottomEdge: false,
             },
         });
     });

@@ -4,10 +4,18 @@
     import { flip } from 'svelte/animate';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
     import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
+    import {
+        resolveCardGridStyle,
+        type ResolvedGridStyle,
+    } from 'src/mandala-scenes/shared/grid-style';
     import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
     import MandalaNavIcon from 'src/mandala-scenes/shared/mandala-nav-icon.svelte';
 
     export let cells: ThreeByThreeCellViewModel[] = [];
+    export let gridStyle: ResolvedGridStyle = resolveCardGridStyle({
+        whiteThemeMode: false,
+        selectionStyle: 'node-active',
+    });
     export let theme = '1';
     export let animateSwap = false;
     export let show3x3SubgridNavButtons = false;
@@ -26,13 +34,25 @@
         null;
 </script>
 
-<div class="mandala-grid mandala-grid--3 mandala-grid--core">
+<div
+    class="mandala-grid mandala-grid--3 mandala-grid--core mandala-card-grid"
+    class:is-compact={gridStyle.compactMode}
+>
     {#each cells as cell (cell.key)}
         <div
-            class="mandala-cell"
+            class="mandala-cell mandala-card-grid__cell"
+            class:mandala-card-grid__cell--card={!!cell.cardViewModel}
+            class:mandala-card-grid__cell--empty={!cell.cardViewModel}
+            class:is-top-edge={cell.isTopEdge}
+            class:is-bottom-edge={cell.isBottomEdge}
+            class:is-left-edge={cell.isLeftEdge}
+            class:is-right-edge={cell.isRightEdge}
             animate:flip={{
                 duration: animateSwap ? 220 : 0,
             }}
+            style={!cell.cardViewModel && cell.sectionBackground
+                ? `background-color: ${cell.sectionBackground};`
+                : undefined}
         >
             {#if cell.cardViewModel}
                 <MandalaCard
@@ -144,12 +164,7 @@
                     </div>
                 {/if}
             {:else}
-                <div
-                    class="mandala-empty"
-                    style={cell.sectionBackground
-                        ? `background-color: ${cell.sectionBackground};`
-                        : undefined}
-                >
+                <div class="mandala-card-grid__empty">
                     {cell.section}
                 </div>
             {/if}
@@ -161,14 +176,7 @@
     .mandala-grid {
         display: grid;
         grid-template-columns: repeat(3, var(--node-width));
-        gap: var(--mandala-gap);
         align-items: start;
-    }
-
-    .mandala-cell {
-        width: 100%;
-        height: 100%;
-        position: relative;
     }
 
     .mandala-grid--core {
@@ -189,55 +197,6 @@
             var(--mandala-a4-content-width),
             var(--mandala-a4-content-height)
         );
-    }
-
-    :global(.mandala-white-theme) .mandala-grid--core {
-        gap: 0;
-        box-sizing: border-box;
-    }
-
-    :global(.mandala-white-theme) .mandala-cell {
-        border-left: 1px dashed var(--mandala-border-color);
-        border-top: 1px dashed var(--mandala-border-color);
-        box-sizing: border-box;
-        overflow: visible;
-    }
-
-    :global(.mandala-white-theme) .mandala-cell:nth-child(-n + 3) {
-        border-top: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme) .mandala-cell:nth-child(3n + 1) {
-        border-left: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme) .mandala-cell:nth-child(n + 7) {
-        border-bottom: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme) .mandala-cell:nth-child(3n) {
-        border-right: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme) .mandala-cell :global(.mandala-card) {
-        border: 0 !important;
-        border-left-width: 0 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        outline: 0 !important;
-    }
-
-    .mandala-empty {
-        width: 100%;
-        height: 100%;
-        min-height: 0;
-        border: 1px dashed var(--background-modifier-border);
-        border-radius: 8px;
-        padding: 8px;
-        opacity: 0.7;
-        position: relative;
-        background: var(--background-primary);
-        box-sizing: border-box;
     }
 
     .mandala-subgrid-controls {

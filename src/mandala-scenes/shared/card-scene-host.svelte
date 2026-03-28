@@ -22,7 +22,7 @@
             : projection.props.layoutKind === 'nx9-week-7x9'
               ? {
                     cells: projection.props.output.descriptors,
-                    compactMode: projection.props.layoutMeta.compactMode,
+                    gridStyle: projection.props.layoutMeta.gridStyle,
                     themeSnapshot: projection.props.layoutMeta.themeSnapshot,
                 }
               : {

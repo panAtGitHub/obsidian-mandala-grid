@@ -1,5 +1,4 @@
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
-import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCellList,
@@ -11,6 +10,7 @@ import {
     type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type {
     Nx9CellWithPage,
     Nx9PageContext,
@@ -20,12 +20,12 @@ import type {
     SceneDisplaySnapshot,
     SceneEditingSnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
-import { buildNx9CellDisplayOverrides } from 'src/mandala-scenes/view-nx9/build-cell-display-overrides';
 
 type SharedStaticNx9RowsOptions = {
     context: Nx9PageContext;
     pageFrame: Nx9PageFrameRowViewModel[];
     displaySnapshot: SceneDisplaySnapshot;
+    gridStyle: ResolvedGridStyle;
     hydratedNodeIds: Set<string>;
 };
 
@@ -173,13 +173,6 @@ const isActiveCell = (
     activeCell.row === row &&
     activeCell.col === col &&
     activeCell.page === currentPage;
-
-const createDisplayPolicy = (whiteThemeMode: boolean): CellDisplayPolicy => ({
-    ...createDefaultCellDisplayPolicy(),
-    ...buildNx9CellDisplayOverrides({
-        whiteThemeMode,
-    }),
-});
 
 const createRealCellFrameViewModel = ({
     context,
@@ -336,10 +329,9 @@ export const buildNx9PageIndex = (
 export const buildNx9PageStaticRows = ({
     pageFrame,
     displaySnapshot,
+    gridStyle,
     hydratedNodeIds,
 }: SharedStaticNx9RowsOptions): Nx9StaticRowViewModel[] => {
-    const displayPolicy = createDisplayPolicy(displaySnapshot.whiteThemeMode);
-
     return pageFrame.map((row) => {
         if (!Array.isArray(row)) {
             return row;
@@ -350,7 +342,7 @@ export const buildNx9PageStaticRows = ({
             backgroundMode: displaySnapshot.backgroundMode,
             sectionColors: displaySnapshot.sectionColors,
             sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-            displayPolicy,
+            displayPolicy: gridStyle.cellDisplayPolicy,
             hydratedNodeIds,
         });
 
@@ -670,6 +662,7 @@ export const assembleNx9Rows = (
         context: options.context,
         pageFrame,
         displaySnapshot: options.displaySnapshot,
+        gridStyle: options.gridStyle,
         hydratedNodeIds: new Set(collectNx9HydratableNodeIds(pageFrame)),
     });
 

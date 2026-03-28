@@ -3,7 +3,13 @@ import {
     buildThreeByThreeSceneProjection,
     buildThreeByThreeSceneProjectionProps,
 } from 'src/mandala-scenes/view-3x3/build-scene-projection';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared/scene-projection';
+
+const threeByThreeGridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'node-active',
+});
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
     layoutKind: '3x3',
@@ -11,6 +17,7 @@ const preparedProps: ThreeByThreeSceneProjectionProps = {
         descriptors: [],
     },
     layoutMeta: {
+        gridStyle: threeByThreeGridStyle,
         theme: '1',
         animateSwap: false,
         show3x3SubgridNavButtons: false,
@@ -41,6 +48,7 @@ describe('build-three-by-three-scene-projection', () => {
     it('builds three-by-three projection props with the standard today label', () => {
         const props = buildThreeByThreeSceneProjectionProps({
             cells: [],
+            gridStyle: threeByThreeGridStyle,
             theme: '1',
             animateSwap: false,
             show3x3SubgridNavButtons: false,
@@ -58,6 +66,9 @@ describe('build-three-by-three-scene-projection', () => {
         });
 
         expect(props.layoutMeta.todayButtonLabel).toBe('回到今天');
+        expect(props.layoutMeta.gridStyle.cellDisplayPolicy.inactiveSurfaceMode).toBe(
+            'detached',
+        );
     });
 
     it('prefers committed props for steady 3x3 scenes', () => {

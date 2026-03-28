@@ -4,6 +4,7 @@ import {
     resolveWeekPlanContext,
 } from 'src/mandala-display/logic/week-plan-context';
 import type { WeekStart } from 'src/mandala-settings/state/settings-type';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import {
     assembleNx9WeekCells,
 } from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
@@ -48,6 +49,11 @@ export const buildNx9WeekSceneProjectionProps = ({
         anchorDate,
         weekStart,
     }).rows;
+    const gridStyle = resolveCardGridStyle({
+        whiteThemeMode: displaySnapshot.whiteThemeMode,
+        compactMode,
+        selectionStyle: 'cell-outline',
+    });
 
     return {
         layoutKind: 'nx9-week-7x9',
@@ -57,11 +63,10 @@ export const buildNx9WeekSceneProjectionProps = ({
                 sectionIdMap,
                 activeNodeId,
                 activeCell,
-                compactMode,
                 editingState,
                 selectedNodes,
                 pinnedSections,
-                themeSnapshot,
+                gridStyle,
                 sectionColors: displaySnapshot.sectionColors,
                 sectionColorOpacity: displaySnapshot.sectionColorOpacity,
                 backgroundMode: displaySnapshot.backgroundMode,
@@ -70,8 +75,8 @@ export const buildNx9WeekSceneProjectionProps = ({
             }),
         },
         layoutMeta: {
-            compactMode,
             displaySnapshot,
+            gridStyle,
             themeSnapshot,
         },
     };

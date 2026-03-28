@@ -1,5 +1,6 @@
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type {
     Nx9SceneProjection,
     SceneCardInteractionSnapshot,
@@ -31,6 +32,10 @@ export const buildNx9SceneProjectionProps = ({
     layoutMeta: {
         documentSnapshot,
         themeSnapshot,
+        gridStyle: resolveCardGridStyle({
+            whiteThemeMode: displaySnapshot.whiteThemeMode,
+            selectionStyle: 'cell-outline',
+        }),
         rowsPerPage,
         displaySnapshot,
         interactionSnapshot,
@@ -64,6 +69,10 @@ export const buildNx9SceneProjection = (
                   layoutMeta: {
                       documentSnapshot: props.documentSnapshot,
                       themeSnapshot: props.themeSnapshot,
+                      gridStyle: resolveCardGridStyle({
+                          whiteThemeMode: props.displaySnapshot.whiteThemeMode,
+                          selectionStyle: 'cell-outline',
+                      }),
                       rowsPerPage: props.rowsPerPage,
                       displaySnapshot: props.displaySnapshot,
                       interactionSnapshot: props.interactionSnapshot,

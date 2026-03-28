@@ -14,6 +14,10 @@
     } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
     import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import MandalaCard from 'src/mandala-cell/view/components/mandala-card.svelte';
+    import {
+        resolveCardGridStyle,
+        type ResolvedGridStyle,
+    } from 'src/mandala-scenes/shared/grid-style';
     import Nx9NextCoreCell from 'src/mandala-scenes/view-nx9/nx9-next-core-cell.svelte';
     import {
         createNx9HydrationRuntime,
@@ -74,6 +78,10 @@
         themeUnderlayColor: '',
         activeThemeUnderlayColor: '',
     };
+    export let gridStyle: ResolvedGridStyle = resolveCardGridStyle({
+        whiteThemeMode: false,
+        selectionStyle: 'cell-outline',
+    });
     export let documentSnapshot: {
         revision: number;
         contentRevision: number;
@@ -185,6 +193,7 @@
                 new Set<string>(),
         })),
         displaySnapshot,
+        gridStyle,
         interactionSnapshot,
         activeCell,
     });
@@ -193,6 +202,7 @@
         context: currentPageContext,
         pageFrame,
         displaySnapshot,
+        gridStyle,
         hydratedNodeIds,
     });
     $: rows = pageRuntime.resolveRuntimeRows({
@@ -208,16 +218,19 @@
 </script>
 
 <div
-    class="nx9-grid mandala-grid mandala-grid--nx9"
+    class="nx9-grid mandala-grid mandala-grid--nx9 mandala-card-grid"
+    class:is-compact={gridStyle.compactMode}
     style={`--nx9-rows-per-page: ${rowCount}; --nx9-font-size: var(--mandala-font-7x9, var(--mandala-font-3x3)); --nx9-future-scale: ${futureScale};`}
 >
     {#each rows as rowModel, rowIndex (`${currentPage}-${rowIndex}`)}
         {#if isRealNx9Row(rowModel)}
             {#each rowModel as cell (cell.key)}
                 <div
-                    class="nx9-cell mandala-cell nx9-cell--desktop-card"
+                    class="nx9-cell mandala-cell mandala-card-grid__cell"
+                    class:mandala-card-grid__cell--card={!!cell.cardViewModel}
+                    class:mandala-card-grid__cell--empty={!cell.nodeId}
+                    class:nx9-cell--desktop-card={!!cell.cardViewModel}
                     class:is-clickable={!!cell.nodeId}
-                    class:is-empty-section={!cell.nodeId}
                     class:is-top-edge={cell.isTopEdge}
                     class:is-bottom-edge={cell.isBottomEdge}
                     class:is-left-edge={cell.isLeftEdge}
@@ -239,13 +252,13 @@
                             {themeSnapshot}
                         />
                     {:else}
-                        <div class="nx9-cell__empty">{cell.section}</div>
+                        <div class="mandala-card-grid__empty">{cell.section}</div>
                     {/if}
                 </div>
             {/each}
         {:else if isGhostNx9Row(rowModel)}
             <div
-                class="nx9-cell mandala-cell nx9-cell--future-row nx9-cell--future-row-active"
+                class="nx9-cell mandala-cell mandala-card-grid__cell nx9-cell--future-row nx9-cell--future-row-active"
                 class:nx9-cell--future-row-with-hint={rowModel.showFutureHint}
                 class:is-top-edge={rowModel.isTopEdge}
                 class:is-bottom-edge={rowModel.isBottomEdge}
@@ -272,7 +285,7 @@
             </div>
         {:else if isPaddingNx9Row(rowModel)}
             <div
-                class="nx9-cell mandala-cell nx9-cell--future-row nx9-cell--future-row-muted"
+                class="nx9-cell mandala-cell mandala-card-grid__cell nx9-cell--future-row nx9-cell--future-row-muted"
                 class:is-top-edge={rowModel.isTopEdge}
                 class:is-bottom-edge={rowModel.isBottomEdge}
                 class:is-left-edge={true}
@@ -301,18 +314,8 @@
         display: grid;
         grid-template-columns: repeat(9, minmax(0, 1fr));
         grid-template-rows: repeat(var(--nx9-rows-per-page), minmax(0, 1fr));
-        gap: var(--mandala-gap);
         align-items: stretch;
         justify-items: stretch;
-    }
-
-    .nx9-cell {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-        min-width: 0;
-        background: transparent;
     }
 
     .nx9-cell.is-clickable,
@@ -321,33 +324,12 @@
     }
 
     .nx9-cell--desktop-card {
-        padding: 0;
-        --min-node-height: 0;
-        --mandala-card-min-height: 0;
-        --mandala-card-width: 100%;
-        --mandala-card-height: 100%;
         --mandala-card-font-size: var(--nx9-font-size);
     }
 
-    .nx9-cell--desktop-card :global(.mandala-card) {
-        width: 100%;
-        height: 100%;
-        min-height: 0;
-        min-width: 0;
-    }
-
-    .nx9-cell.is-empty-section,
     .nx9-cell--future-row {
         border: 1px dashed var(--background-modifier-border);
         border-radius: 8px;
-        background: color-mix(
-            in srgb,
-            var(--background-primary) 80%,
-            var(--background-modifier-border) 20%
-        );
-    }
-
-    .nx9-cell--future-row {
         background: color-mix(
             in srgb,
             var(--background-primary) 93%,
@@ -415,77 +397,5 @@
         color: var(--text-muted);
         user-select: none;
         flex: 0 0 auto;
-    }
-
-    .nx9-cell.is-active-cell,
-    .nx9-cell.is-active-node {
-        outline: var(--mandala-grid-highlight-width, 2px) solid
-            var(--mandala-grid-highlight-color, var(--mandala-color-selection));
-        outline-offset: 0;
-    }
-
-    .nx9-cell--desktop-card.is-active-cell,
-    .nx9-cell--desktop-card.is-active-node {
-        outline: none;
-    }
-
-    .nx9-cell__empty {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        min-height: 0;
-        padding: 10px 8px;
-        text-align: center;
-        font-size: 11px;
-        color: var(--text-muted);
-        line-height: 1.2;
-        user-select: none;
-    }
-
-    :global(.mandala-white-theme) .mandala-grid--nx9 {
-        gap: 0;
-        box-sizing: border-box;
-    }
-
-    :global(.mandala-white-theme) .mandala-grid--nx9 > .mandala-cell {
-        border-left: 1px dashed var(--mandala-border-color);
-        border-top: 1px dashed var(--mandala-border-color);
-        box-sizing: border-box;
-        overflow: hidden;
-        border-radius: 0;
-    }
-
-    :global(.mandala-white-theme)
-        .mandala-grid--nx9
-        > .mandala-cell.is-top-edge {
-        border-top: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme)
-        .mandala-grid--nx9
-        > .mandala-cell.is-left-edge {
-        border-left: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme)
-        .mandala-grid--nx9
-        > .mandala-cell.is-right-edge {
-        border-right: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme)
-        .mandala-grid--nx9
-        > .mandala-cell.is-bottom-edge {
-        border-bottom: 3px solid var(--mandala-border-color);
-    }
-
-    :global(.mandala-white-theme) .nx9-cell :global(.mandala-card) {
-        border: 0 !important;
-        border-left-width: 0 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        outline: 0 !important;
     }
 </style>

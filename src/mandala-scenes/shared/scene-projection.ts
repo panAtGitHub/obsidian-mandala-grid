@@ -3,6 +3,7 @@ import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-mode
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
 import type { Content } from 'src/mandala-document/state/document-state-type';
 import type { SceneCardInteractionDescriptor } from 'src/mandala-scenes/shared/card-scene-cell';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 import type {
     Nx9WeekCellViewModel,
@@ -45,6 +46,7 @@ export type ThreeByThreeSceneProjectionProps = {
         descriptors: ThreeByThreeCellViewModel[];
     };
     layoutMeta: {
+        gridStyle: ResolvedGridStyle;
         theme: string;
         animateSwap: boolean;
         show3x3SubgridNavButtons: boolean;
@@ -78,6 +80,7 @@ export type Nx9SceneProjection = {
         layoutMeta: {
             documentSnapshot: SceneDocumentSnapshot;
             themeSnapshot: MandalaThemeSnapshot;
+            gridStyle: ResolvedGridStyle;
             rowsPerPage: number;
             displaySnapshot: SceneDisplaySnapshot;
             interactionSnapshot: SceneCardInteractionSnapshot;
@@ -94,8 +97,8 @@ export type Nx9WeekSceneProjectionProps = {
         descriptors: Nx9WeekCellViewModel[];
     };
     layoutMeta: {
-        compactMode: boolean;
         displaySnapshot: SceneDisplaySnapshot;
+        gridStyle: ResolvedGridStyle;
         themeSnapshot: MandalaThemeSnapshot;
     };
 };

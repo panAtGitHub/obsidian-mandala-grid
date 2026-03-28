@@ -1,5 +1,3 @@
-import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
-import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildWeekPlanBaseCells,
@@ -12,7 +10,7 @@ import {
     type SceneCardCellDescriptorList,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
-import { buildNx9WeekCellDisplayOverrides } from 'src/mandala-scenes/view-nx9-week-7x9/build-cell-display-overrides';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 
 type EditingState = {
     activeNodeId: string | null;
@@ -34,42 +32,28 @@ export const assembleNx9WeekCells = ({
     sectionIdMap,
     activeNodeId,
     activeCell,
-    compactMode,
     editingState,
     selectedNodes,
     pinnedSections,
-    themeSnapshot,
+    gridStyle,
     sectionColors,
     sectionColorOpacity,
     backgroundMode,
     showDetailSidebar,
-    whiteThemeMode,
 }: {
     rows: WeekPlanRow[];
     sectionIdMap: Record<string, string | undefined>;
     activeNodeId: string | null;
     activeCell: { row: number; col: number; page?: number } | null;
-    compactMode: boolean;
     editingState: EditingState;
     selectedNodes: Set<string>;
     pinnedSections: Set<string>;
-    themeSnapshot: MandalaThemeSnapshot;
+    gridStyle: ResolvedGridStyle;
     sectionColors: Record<string, string>;
     sectionColorOpacity: number;
     backgroundMode: string;
     showDetailSidebar: boolean;
-    whiteThemeMode: boolean;
 }): Nx9WeekCellViewModel[] => {
-    void themeSnapshot;
-
-    const displayPolicy = {
-        ...createDefaultCellDisplayPolicy(),
-        ...buildNx9WeekCellDisplayOverrides({
-            whiteThemeMode,
-            hasGridSelection: Boolean(activeCell),
-            compactMode,
-        }),
-    };
     const normalizedPage = activeCell?.page ?? 0;
     const descriptors: SceneCardCellDescriptorList<
         Omit<Nx9WeekCellViewModel, keyof SceneCardCellViewModel>
@@ -90,7 +74,7 @@ export const assembleNx9WeekCells = ({
             metaAccentColor: cell.section
                 ? sectionColors[cell.section] ?? null
                 : null,
-            displayPolicy,
+            displayPolicy: gridStyle.cellDisplayPolicy,
         }),
         extra: {
             row: cell.row,

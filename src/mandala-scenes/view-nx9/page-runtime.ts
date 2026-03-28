@@ -14,6 +14,7 @@ import {
     type Nx9StaticRowViewModel,
 } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 import type { Nx9PageContext } from 'src/mandala-scenes/view-nx9/context';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type {
     SceneCardInteractionSnapshot,
     SceneDisplaySnapshot,
@@ -34,7 +35,7 @@ export const createNx9PageRuntime = ({
         backgroundMode: string;
         sectionColors: Record<string, string>;
         sectionColorOpacity: number;
-        whiteThemeMode: boolean;
+        gridStyleKey: string;
         hydratedNodeIds: Set<string>;
         value: Nx9StaticRowViewModel[];
     };
@@ -141,12 +142,14 @@ export const createNx9PageRuntime = ({
         context,
         pageFrame,
         displaySnapshot,
+        gridStyle,
         hydratedNodeIds,
     }: {
         page: number;
         context: Nx9PageContext;
         pageFrame: Nx9PageFrameRowViewModel[];
         displaySnapshot: SceneDisplaySnapshot;
+        gridStyle: ResolvedGridStyle;
         hydratedNodeIds: Set<string>;
     }) => {
         const entry = getPageCacheEntry(page);
@@ -157,7 +160,7 @@ export const createNx9PageRuntime = ({
                 candidate.sectionColors === displaySnapshot.sectionColors &&
                 candidate.sectionColorOpacity ===
                     displaySnapshot.sectionColorOpacity &&
-                candidate.whiteThemeMode === displaySnapshot.whiteThemeMode &&
+                candidate.gridStyleKey === gridStyle.cacheKey &&
                 candidate.hydratedNodeIds === hydratedNodeIds,
         );
         if (cached) {
@@ -169,6 +172,7 @@ export const createNx9PageRuntime = ({
             context,
             pageFrame,
             displaySnapshot,
+            gridStyle,
             hydratedNodeIds,
         });
         entry.staticRowsCache.push({
@@ -176,7 +180,7 @@ export const createNx9PageRuntime = ({
             backgroundMode: displaySnapshot.backgroundMode,
             sectionColors: displaySnapshot.sectionColors,
             sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-            whiteThemeMode: displaySnapshot.whiteThemeMode,
+            gridStyleKey: gridStyle.cacheKey,
             hydratedNodeIds,
             value,
         });
@@ -351,6 +355,7 @@ export const createNx9PageRuntime = ({
     const prewarmPages = ({
         pages,
         displaySnapshot,
+        gridStyle,
         interactionSnapshot,
         activeCell,
     }: {
@@ -361,6 +366,7 @@ export const createNx9PageRuntime = ({
             hydratedNodeIds: Set<string>;
         }>;
         displaySnapshot: SceneDisplaySnapshot;
+        gridStyle: ResolvedGridStyle;
         interactionSnapshot: SceneCardInteractionSnapshot;
         activeCell: { row: number; col: number; page?: number } | null;
     }) => {
@@ -382,6 +388,7 @@ export const createNx9PageRuntime = ({
                 context: pageEntry.context,
                 pageFrame,
                 displaySnapshot,
+                gridStyle,
                 hydratedNodeIds: pageEntry.hydratedNodeIds,
             });
             resolveRuntimeRows({

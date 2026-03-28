@@ -1,6 +1,12 @@
 import type { Nx9PageContext } from 'src/mandala-scenes/view-nx9/context';
 import { describe, expect, it, vi } from 'vitest';
 import { createNx9PageRuntime } from 'src/mandala-scenes/view-nx9/page-runtime';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
+
+const nx9GridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'cell-outline',
+});
 
 const createContext = (page: number): Nx9PageContext => ({
     currentPage: page,
@@ -67,6 +73,7 @@ describe('nx9-page-runtime', () => {
                 showDetailSidebar: false,
                 whiteThemeMode: false,
             },
+            gridStyle: nx9GridStyle,
             hydratedNodeIds: new Set(['node-1', 'node-1-1']),
         });
 
@@ -168,6 +175,7 @@ describe('nx9-page-runtime', () => {
                 },
             ],
             displaySnapshot,
+            gridStyle: nx9GridStyle,
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 0 },
         });
@@ -186,6 +194,7 @@ describe('nx9-page-runtime', () => {
             context: page1Context,
             pageFrame: page1Frame,
             displaySnapshot,
+            gridStyle: nx9GridStyle,
             hydratedNodeIds: new Set(['node-2', 'node-2-1']),
         });
         const firstRows = runtime.resolveRuntimeRows({
@@ -258,6 +267,7 @@ describe('nx9-page-runtime', () => {
                 },
             ],
             displaySnapshot,
+            gridStyle: nx9GridStyle,
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 0 },
         });
@@ -272,6 +282,7 @@ describe('nx9-page-runtime', () => {
                 },
             ],
             displaySnapshot,
+            gridStyle: nx9GridStyle,
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 1 },
         });

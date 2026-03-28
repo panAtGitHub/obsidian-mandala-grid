@@ -3,6 +3,18 @@ import {
     buildNx9WeekSceneProjection,
     buildNx9WeekSceneProjectionProps,
 } from 'src/mandala-scenes/view-nx9-week-7x9/build-scene-projection';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
+
+const compactWeekGridStyle = resolveCardGridStyle({
+    whiteThemeMode: true,
+    compactMode: true,
+    selectionStyle: 'cell-outline',
+});
+
+const regularWeekGridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'cell-outline',
+});
 
 describe('build-nx9-week-scene-projection', () => {
     it('builds nx9-week projection props from frontmatter and canonical active cell', () => {
@@ -45,7 +57,6 @@ mandala_plan:
         expect(props).toMatchObject({
             layoutKind: 'nx9-week-7x9',
             layoutMeta: {
-                compactMode: true,
                 displaySnapshot: {
                     sectionColors: { '1': '#111' },
                     sectionColorOpacity: 60,
@@ -56,6 +67,7 @@ mandala_plan:
                 themeSnapshot: {
                     themeTone: 'light',
                 },
+                gridStyle: compactWeekGridStyle,
             },
         });
         expect(props.output.descriptors).toHaveLength(63);
@@ -86,7 +98,6 @@ mandala_plan:
                         descriptors: [],
                     },
                     layoutMeta: {
-                        compactMode: false,
                         displaySnapshot: {
                             sectionColors: {},
                             sectionColorOpacity: 60,
@@ -99,6 +110,7 @@ mandala_plan:
                             themeUnderlayColor: '#fff',
                             activeThemeUnderlayColor: '#eee',
                         },
+                        gridStyle: regularWeekGridStyle,
                     },
                 },
             ),
@@ -114,7 +126,6 @@ mandala_plan:
                     descriptors: [],
                 },
                 layoutMeta: {
-                    compactMode: false,
                     displaySnapshot: {
                         sectionColors: {},
                         sectionColorOpacity: 60,
@@ -127,6 +138,7 @@ mandala_plan:
                         themeUnderlayColor: '#fff',
                         activeThemeUnderlayColor: '#eee',
                     },
+                    gridStyle: regularWeekGridStyle,
                 },
             },
         });

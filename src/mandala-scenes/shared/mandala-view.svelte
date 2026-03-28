@@ -16,6 +16,10 @@
         type SceneProjection,
         type ThreeByThreeSceneProjectionProps,
     } from 'src/mandala-scenes/shared/scene-projection';
+    import {
+        resolveCardGridStyle,
+        type ResolvedGridStyle,
+    } from 'src/mandala-scenes/shared/grid-style';
     import { buildSceneProjection } from 'src/mandala-scenes/shared/scene-projection-adapters';
     import { buildSceneInputSnapshots } from 'src/mandala-scenes/shared/scene-input-runtime';
     import {
@@ -313,6 +317,10 @@
     let committedThreeByThreeCells = [];
     let threeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
     let committedThreeByThreeProjectionProps: ThreeByThreeSceneProjectionProps;
+    let threeByThreeGridStyle: ResolvedGridStyle = resolveCardGridStyle({
+        whiteThemeMode: false,
+        selectionStyle: 'node-active',
+    });
     let nx9WeekProjectionProps: ReturnType<
         typeof buildNx9WeekSceneProjectionProps
     > = {
@@ -321,8 +329,12 @@
             descriptors: [],
         },
         layoutMeta: {
-            compactMode: $weekPlanCompactMode,
             displaySnapshot: DEFAULT_DISPLAY_SNAPSHOT,
+            gridStyle: resolveCardGridStyle({
+                whiteThemeMode: false,
+                compactMode: $weekPlanCompactMode,
+                selectionStyle: 'cell-outline',
+            }),
             themeSnapshot: {
                 themeTone: 'light',
                 themeUnderlayColor: '',
@@ -340,6 +352,10 @@
                 themeUnderlayColor: '',
                 activeThemeUnderlayColor: '',
             },
+            gridStyle: resolveCardGridStyle({
+                whiteThemeMode: false,
+                selectionStyle: 'cell-outline',
+            }),
             rowsPerPage: $nx9RowsPerPage,
             displaySnapshot: DEFAULT_DISPLAY_SNAPSHOT,
             interactionSnapshot: DEFAULT_INTERACTION_SNAPSHOT,
@@ -369,6 +385,10 @@
         selectedStamp: selectedNodesStamp,
         pinnedSections: $pinnedSections,
         pinnedStamp: pinnedSectionsStamp,
+    });
+    $: threeByThreeGridStyle = resolveCardGridStyle({
+        whiteThemeMode: sceneInputSnapshots.displaySnapshot.whiteThemeMode,
+        selectionStyle: 'node-active',
     });
     $: if (
         sceneKey.variant === 'week-7x9' ||
@@ -480,6 +500,7 @@
                   customLayouts: $customLayouts,
                   topology: $topology,
                   interaction: sceneInputSnapshots.interactionSnapshot,
+                  gridStyle: threeByThreeGridStyle,
                   displaySnapshot: sceneInputSnapshots.displaySnapshot,
               })
             : [];
@@ -497,6 +518,7 @@
             customLayouts: $customLayouts,
             topology: $topology,
             interaction: sceneInputSnapshots.interactionSnapshot,
+            gridStyle: threeByThreeGridStyle,
             displaySnapshot: sceneInputSnapshots.displaySnapshot,
         });
     }
@@ -516,6 +538,7 @@
     }
     $: threeByThreeProjectionProps = buildThreeByThreeSceneProjectionProps({
         cells: preparedThreeByThreeCells,
+        gridStyle: threeByThreeGridStyle,
         theme: threeByThreeTheme,
         animateSwap: $swapState.animate,
         show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
@@ -543,6 +566,7 @@
     $: committedThreeByThreeProjectionProps =
         buildThreeByThreeSceneProjectionProps({
         cells: committedThreeByThreeCells,
+        gridStyle: threeByThreeGridStyle,
         theme: threeByThreeTheme,
         animateSwap: $swapState.animate,
         show3x3SubgridNavButtons: $show3x3SubgridNavButtons,

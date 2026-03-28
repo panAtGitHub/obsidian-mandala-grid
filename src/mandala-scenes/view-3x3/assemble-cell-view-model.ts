@@ -1,4 +1,4 @@
-import { createDefaultCellDisplayPolicy } from 'src/mandala-cell/model/default-cell-display-policy';
+import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
 import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
@@ -12,8 +12,8 @@ import {
     type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { SceneDisplaySnapshot } from 'src/mandala-scenes/shared/scene-projection';
-import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
 
 export type Assemble3x3CellViewModelsArgs = {
     theme: string;
@@ -21,12 +21,17 @@ export type Assemble3x3CellViewModelsArgs = {
     customLayouts: MandalaCustomLayout[];
     topology: MandalaTopologyIndex;
     interaction: SceneCardInteractionDescriptor;
+    gridStyle: ResolvedGridStyle;
     displaySnapshot: SceneDisplaySnapshot;
 };
 
 export type ThreeByThreeCellViewModel = SceneCardCellViewModel & {
     index: number;
     isCenter: boolean;
+    isTopEdge: boolean;
+    isBottomEdge: boolean;
+    isLeftEdge: boolean;
+    isRightEdge: boolean;
     sectionBackground: string | null;
 };
 
@@ -71,6 +76,10 @@ const getSectionBackground = ({
 type ThreeByThreeCardCellDescriptorExtra = {
     index: number;
     isCenter: boolean;
+    isTopEdge: boolean;
+    isBottomEdge: boolean;
+    isLeftEdge: boolean;
+    isRightEdge: boolean;
     sectionBackground: string | null;
 };
 
@@ -85,9 +94,11 @@ export const build3x3CardCellDescriptors = ({
     layout: ReturnType<typeof getMandalaLayoutById>;
     topology: MandalaTopologyIndex;
     displaySnapshot: SceneDisplaySnapshot;
-    displayPolicy: ReturnType<typeof createDefaultCellDisplayPolicy>;
+    displayPolicy: CellDisplayPolicy;
 }): SceneCardCellDescriptorList<ThreeByThreeCardCellDescriptorExtra> =>
     layout.childSlots.map((slot, index) => {
+        const row = Math.floor(index / 3);
+        const col = index % 3;
         const section = slot ? `${theme}.${slot}` : theme;
         const nodeId = getSectionNodeId(topology, section);
         const sectionBackground = getSectionBackground({
@@ -117,6 +128,10 @@ export const build3x3CardCellDescriptors = ({
             extra: {
                 index,
                 isCenter: section === theme,
+                isTopEdge: row === 0,
+                isBottomEdge: row === 2,
+                isLeftEdge: col === 0,
+                isRightEdge: col === 2,
                 sectionBackground,
             },
         };
@@ -128,22 +143,17 @@ export const assemble3x3CellViewModels = ({
     customLayouts,
     topology,
     interaction,
+    gridStyle,
     displaySnapshot,
 }: Assemble3x3CellViewModelsArgs): ThreeByThreeCellViewModel[] => {
     const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
-    const displayPolicy = {
-        ...createDefaultCellDisplayPolicy(),
-        ...build3x3CellDisplayOverrides({
-            whiteThemeMode: displaySnapshot.whiteThemeMode,
-        }),
-    };
 
     const descriptors = build3x3CardCellDescriptors({
         theme,
         layout,
         topology,
         displaySnapshot,
-        displayPolicy,
+        displayPolicy: gridStyle.cellDisplayPolicy,
     });
 
     return buildSceneCardCellList({

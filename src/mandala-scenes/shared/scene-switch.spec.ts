@@ -3,7 +3,18 @@ import {
     createSceneCommitSnapshot,
     hasPendingSceneSwitch,
 } from 'src/mandala-scenes/shared/scene-switch';
+import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { SceneProjection } from 'src/mandala-scenes/shared/scene-projection';
+
+const threeByThreeGridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'node-active',
+});
+
+const nx9GridStyle = resolveCardGridStyle({
+    whiteThemeMode: false,
+    selectionStyle: 'cell-outline',
+});
 
 const defaultProjection = (
     viewKind: '3x3' | '9x9' | 'nx9',
@@ -19,6 +30,7 @@ const defaultProjection = (
                       descriptors: [],
                   },
                   layoutMeta: {
+                      gridStyle: threeByThreeGridStyle,
                       theme: '1',
                       animateSwap: false,
                       show3x3SubgridNavButtons: false,
@@ -53,7 +65,6 @@ const defaultProjection = (
                           descriptors: [],
                       },
                       layoutMeta: {
-                          compactMode: false,
                           displaySnapshot: {
                               sectionColors: {},
                               sectionColorOpacity: 60,
@@ -61,6 +72,7 @@ const defaultProjection = (
                               showDetailSidebar: false,
                               whiteThemeMode: false,
                           },
+                          gridStyle: nx9GridStyle,
                           themeSnapshot: {
                               themeTone: 'light',
                               themeUnderlayColor: '#fff',
@@ -89,6 +101,7 @@ const defaultProjection = (
                               themeUnderlayColor: '#fff',
                               activeThemeUnderlayColor: '#eee',
                           },
+                          gridStyle: nx9GridStyle,
                           rowsPerPage: 5,
                           displaySnapshot: {
                               sectionColors: {},
