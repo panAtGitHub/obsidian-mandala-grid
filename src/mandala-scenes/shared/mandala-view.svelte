@@ -398,7 +398,7 @@
     });
     $: nx9ProjectionProps = buildNx9SceneProjectionProps({
         documentSnapshot: sceneInputSnapshots.documentSnapshot,
-        themeSnapshot: nx9ProjectionProps.themeSnapshot,
+        themeSnapshot: nx9ProjectionProps.layoutMeta.themeSnapshot,
         rowsPerPage: $nx9RowsPerPage,
         displaySnapshot: sceneInputSnapshots.displaySnapshot,
         interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
