@@ -78,6 +78,8 @@
     );
     let dayPlanTodayNavigation = resolveDayPlanTodayNavigation('');
     let activeSection: string | null = null;
+    let retainDesktopSidebarContent = false;
+    let shouldRenderSidebarContent = false;
     $: activeSection = $activeNodeId
         ? $idToSection?.[$activeNodeId] ?? null
         : null;
@@ -92,6 +94,14 @@
         );
     $: canJumpPrevCore = activeCoreNumber > 1;
     $: dayPlanTodayNavigation = resolveDayPlanTodayNavigation($frontmatter);
+    $: if (!Platform.isMobile) {
+        if ($showSidebarStore) {
+            retainDesktopSidebarContent = true;
+        }
+    }
+    $: shouldRenderSidebarContent = Platform.isMobile
+        ? $showSidebarStore
+        : $showSidebarStore || retainDesktopSidebarContent;
 
     let editorContainer: HTMLElement;
 
@@ -201,12 +211,22 @@
         event.stopPropagation();
         view.focusDayPlanToday();
     };
+
+    const handleSidebarTransitionEnd = (event: TransitionEvent) => {
+        if (Platform.isMobile) return;
+        if (event.target !== event.currentTarget) return;
+        if (event.propertyName !== 'width' && event.propertyName !== 'height')
+            return;
+        if ($showSidebarStore) return;
+        retainDesktopSidebarContent = false;
+    };
 </script>
 
 <div
     class={'mandala-detail-sidebar' + ($isResizing ? '' : ' size-transition')}
     class:is-mobile={Platform.isMobile}
     class:is-portrait={$layout.isPortrait}
+    on:transitionend={handleSidebarTransitionEnd}
     style={Platform.isMobile
         ? !$showSidebarStore
             ? 'display: none;'
@@ -215,7 +235,7 @@
 >
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
     <div class="resizer" on:mousedown={onStartResize} />
-    {#if $showSidebarStore}
+    {#if shouldRenderSidebarContent}
         <div class="sidebar-content">
             {#if $activeNodeId}
                 <div class="editor-wrapper">
