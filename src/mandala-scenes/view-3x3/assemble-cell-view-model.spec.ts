@@ -15,9 +15,13 @@ describe('3x3/assemble-cell-view-model', () => {
             theme: '1',
             layout: getMandalaLayoutById(null, []),
             topology,
-            backgroundMode: 'none',
-            sectionColors: { '1.1': 'red' },
-            sectionColorOpacity: 100,
+            displaySnapshot: {
+                sectionColors: { '1.1': 'red' },
+                sectionColorOpacity: 100,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
             displayPolicy: createDefaultCellDisplayPolicy(),
         });
 

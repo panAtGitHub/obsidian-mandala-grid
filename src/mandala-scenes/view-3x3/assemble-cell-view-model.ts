@@ -7,31 +7,21 @@ import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
     buildSceneCardCellList,
     createSceneCardCellSeed,
+    type SceneCardInteractionDescriptor,
     type SceneCardCellDescriptorList,
     type SceneCardCellFrame,
     type SceneCardCellViewModel,
 } from 'src/mandala-scenes/shared/card-scene-cell';
+import type { SceneDisplaySnapshot } from 'src/mandala-scenes/shared/scene-projection';
 import { build3x3CellDisplayOverrides } from 'src/mandala-scenes/view-3x3/build-cell-display-overrides';
-
-type ThreeByThreeEditingState = {
-    activeNodeId: string | null;
-    isInSidebar: boolean;
-};
 
 export type Assemble3x3CellViewModelsArgs = {
     theme: string;
     selectedLayoutId: string | null;
     customLayouts: MandalaCustomLayout[];
     topology: MandalaTopologyIndex;
-    activeNodeId: string | null;
-    editingState: ThreeByThreeEditingState;
-    selectedNodes: Set<string>;
-    pinnedSections: Set<string>;
-    showDetailSidebar: boolean;
-    backgroundMode: string;
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
-    whiteThemeMode: boolean;
+    interaction: SceneCardInteractionDescriptor;
+    displaySnapshot: SceneDisplaySnapshot;
 };
 
 export type ThreeByThreeCellViewModel = SceneCardCellViewModel & {
@@ -88,17 +78,13 @@ export const build3x3CardCellDescriptors = ({
     theme,
     layout,
     topology,
-    backgroundMode,
-    sectionColors,
-    sectionColorOpacity,
+    displaySnapshot,
     displayPolicy,
 }: {
     theme: string;
     layout: ReturnType<typeof getMandalaLayoutById>;
     topology: MandalaTopologyIndex;
-    backgroundMode: string;
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
+    displaySnapshot: SceneDisplaySnapshot;
     displayPolicy: ReturnType<typeof createDefaultCellDisplayPolicy>;
 }): SceneCardCellDescriptorList<ThreeByThreeCardCellDescriptorExtra> =>
     layout.childSlots.map((slot, index) => {
@@ -107,9 +93,9 @@ export const build3x3CardCellDescriptors = ({
         const sectionBackground = getSectionBackground({
             section,
             index,
-            backgroundMode,
-            sectionColors,
-            sectionColorOpacity,
+            backgroundMode: displaySnapshot.backgroundMode,
+            sectionColors: displaySnapshot.sectionColors,
+            sectionColorOpacity: displaySnapshot.sectionColorOpacity,
         });
         const frame: SceneCardCellFrame = {
             key: section,
@@ -122,7 +108,7 @@ export const build3x3CardCellDescriptors = ({
             nodeId: frame.nodeId,
             contentEnabled: true,
             sectionColor: sectionBackground,
-            metaAccentColor: sectionColors[section] ?? null,
+            metaAccentColor: displaySnapshot.sectionColors[section] ?? null,
             displayPolicy,
         });
 
@@ -141,21 +127,14 @@ export const assemble3x3CellViewModels = ({
     selectedLayoutId,
     customLayouts,
     topology,
-    activeNodeId,
-    editingState,
-    selectedNodes,
-    pinnedSections,
-    showDetailSidebar,
-    backgroundMode,
-    sectionColors,
-    sectionColorOpacity,
-    whiteThemeMode,
+    interaction,
+    displaySnapshot,
 }: Assemble3x3CellViewModelsArgs): ThreeByThreeCellViewModel[] => {
     const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
     const displayPolicy = {
         ...createDefaultCellDisplayPolicy(),
         ...build3x3CellDisplayOverrides({
-            whiteThemeMode,
+            whiteThemeMode: displaySnapshot.whiteThemeMode,
         }),
     };
 
@@ -163,20 +142,12 @@ export const assemble3x3CellViewModels = ({
         theme,
         layout,
         topology,
-        backgroundMode,
-        sectionColors,
-        sectionColorOpacity,
+        displaySnapshot,
         displayPolicy,
     });
 
     return buildSceneCardCellList({
         descriptors,
-        interaction: {
-            activeNodeId,
-            editingState,
-            selectedNodes,
-            pinnedSections,
-            showDetailSidebar,
-        },
+        interaction,
     });
 };

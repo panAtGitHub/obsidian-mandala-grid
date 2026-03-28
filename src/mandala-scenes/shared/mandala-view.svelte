@@ -479,15 +479,20 @@
                   selectedLayoutId: $selectedLayoutId,
                   customLayouts: $customLayouts,
                   topology: $topology,
-                  activeNodeId: $activeNodeId,
-                  editingState: $editingState,
-                  selectedNodes: $selectedNodes,
-                  pinnedSections: $pinnedSections,
-                  showDetailSidebar: $showDetailSidebar,
-                  backgroundMode: $backgroundMode,
-                  sectionColors: $sectionColors,
-                  sectionColorOpacity: $sectionColorOpacity,
-                  whiteThemeMode: $whiteThemeMode,
+                  interaction: {
+                      activeNodeId: $activeNodeId,
+                      editingState: $editingState,
+                      selectedNodes: $selectedNodes,
+                      pinnedSections: $pinnedSections,
+                      showDetailSidebar: $showDetailSidebar,
+                  },
+                  displaySnapshot: {
+                      sectionColors: $sectionColors,
+                      sectionColorOpacity: $sectionColorOpacity,
+                      backgroundMode: $backgroundMode,
+                      showDetailSidebar: $showDetailSidebar,
+                      whiteThemeMode: $whiteThemeMode,
+                  },
               })
             : [];
     $: if (committedSceneKey.viewKind === '3x3') {
@@ -503,15 +508,20 @@
             selectedLayoutId: $selectedLayoutId,
             customLayouts: $customLayouts,
             topology: $topology,
-            activeNodeId: $activeNodeId,
-            editingState: $editingState,
-            selectedNodes: $selectedNodes,
-            pinnedSections: $pinnedSections,
-            showDetailSidebar: $showDetailSidebar,
-            backgroundMode: $backgroundMode,
-            sectionColors: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
-            whiteThemeMode: $whiteThemeMode,
+            interaction: {
+                activeNodeId: $activeNodeId,
+                editingState: $editingState,
+                selectedNodes: $selectedNodes,
+                pinnedSections: $pinnedSections,
+                showDetailSidebar: $showDetailSidebar,
+            },
+            displaySnapshot: {
+                sectionColors: $sectionColors,
+                sectionColorOpacity: $sectionColorOpacity,
+                backgroundMode: $backgroundMode,
+                showDetailSidebar: $showDetailSidebar,
+                whiteThemeMode: $whiteThemeMode,
+            },
         });
     }
     $: shouldRetainCommittedThreeByThreeState =
