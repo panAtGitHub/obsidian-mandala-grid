@@ -71,7 +71,6 @@ export const buildNx9WeekSceneProjectionProps = ({
                 sectionColorOpacity: displaySnapshot.sectionColorOpacity,
                 backgroundMode: displaySnapshot.backgroundMode,
                 showDetailSidebar: displaySnapshot.showDetailSidebar,
-                whiteThemeMode: displaySnapshot.whiteThemeMode,
             }),
         },
         layoutMeta: {
