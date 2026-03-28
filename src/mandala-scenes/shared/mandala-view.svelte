@@ -207,30 +207,11 @@
                 activeThemeUnderlayColor,
             };
             nx9ProjectionProps = buildNx9SceneProjectionProps({
-                documentSnapshot: buildSceneDocumentSnapshot({
-                    revision: $documentState.meta.mandalaV2.revision,
-                    contentRevision: $documentState.meta.mandalaV2.contentRevision,
-                    sectionIdMap: $documentState.sections.section_id,
-                    documentContent: $documentState.document.content,
-                }),
+                documentSnapshot: sceneInputSnapshots.documentSnapshot,
                 themeSnapshot,
                 rowsPerPage: $nx9RowsPerPage,
-                displaySnapshot: buildSceneDisplaySnapshot({
-                    sectionColors: $sectionColors,
-                    sectionColorOpacity: $sectionColorOpacity,
-                    backgroundMode: $backgroundMode,
-                    showDetailSidebar: $showDetailSidebar,
-                    whiteThemeMode: $whiteThemeMode,
-                }),
-                interactionSnapshot: buildSceneCardInteractionSnapshot({
-                    activeNodeId: $activeNodeId,
-                    editingState: $editingState,
-                    selectedNodes: $selectedNodes,
-                    showDetailSidebar: $showDetailSidebar,
-                    selectedStamp: selectedNodesStamp,
-                    pinnedSections: $pinnedSections,
-                    pinnedStamp: pinnedSectionsStamp,
-                }),
+                displaySnapshot: sceneInputSnapshots.displaySnapshot,
+                interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
                 activeSection,
                 activeCoreSection,
                 activeCell: $nx9ActiveCell,

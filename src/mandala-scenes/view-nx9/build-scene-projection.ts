@@ -25,7 +25,7 @@ export const buildNx9SceneProjectionProps = ({
     activeSection: string | null;
     activeCoreSection: string | null;
     activeCell: { row: number; col: number; page?: number } | null;
-}) => ({
+}): Nx9SceneProjection['props'] => ({
     layoutKind: 'nx9',
     output: {},
     layoutMeta: {
@@ -54,17 +54,12 @@ export const buildNx9SceneProjection = (
               activeCoreSection: string | null;
               activeCell: { row: number; col: number; page?: number } | null;
           },
-): Nx9SceneProjection => ({
-    sceneKey,
-    rendererKind: 'card-scene',
-    props:
+): Nx9SceneProjection => {
+    const normalizedProps: Nx9SceneProjection['props'] =
         'output' in props && 'layoutMeta' in props
-            ? {
-                  layoutKind: 'nx9',
-                  ...props,
-              }
+            ? props
             : {
-                  layoutKind: 'nx9',
+                  layoutKind: 'nx9' as const,
                   output: {},
                   layoutMeta: {
                       documentSnapshot: props.documentSnapshot,
@@ -76,5 +71,11 @@ export const buildNx9SceneProjection = (
                       activeCoreSection: props.activeCoreSection,
                       activeCell: props.activeCell,
                   },
-              },
-});
+              };
+
+    return {
+        sceneKey,
+        rendererKind: 'card-scene',
+        props: normalizedProps,
+    };
+};

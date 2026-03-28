@@ -90,21 +90,16 @@ export const buildWeekSceneProjection = (
     props:
         | WeekSceneProjectionProps
         | {
-              rows: WeekPlanRow[];
+              rows: WeekSceneProjectionProps['layoutMeta']['rows'];
               desktopCells: WeekPlanDesktopCellViewModel[];
               mobileCells: WeekPlanMobileCellViewModel[];
               compactMode: boolean;
               displaySnapshot: SceneDisplaySnapshot;
           },
-): WeekSceneProjection => ({
-    sceneKey,
-    rendererKind: 'card-scene',
-    props:
+): WeekSceneProjection => {
+    const normalizedProps: WeekSceneProjectionProps =
         'output' in props && 'layoutMeta' in props
-            ? {
-                  layoutKind: 'week',
-                  ...props,
-              }
+            ? props
             : {
                   layoutKind: 'week',
                   output: {
@@ -115,6 +110,12 @@ export const buildWeekSceneProjection = (
                       rows: props.rows,
                       compactMode: props.compactMode,
                       displaySnapshot: props.displaySnapshot,
-                  },
-              },
-});
+                  } satisfies WeekSceneProjectionProps['layoutMeta'],
+              };
+
+    return {
+        sceneKey,
+        rendererKind: 'card-scene',
+        props: normalizedProps,
+    };
+};
