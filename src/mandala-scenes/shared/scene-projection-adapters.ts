@@ -22,22 +22,22 @@ type SceneProjectionBuilder = (
     props: NonThreeByThreeProjectionProps,
 ) => SceneProjection;
 
-const sceneProjectionBuilders: Record<Exclude<SceneRendererKind, '3x3-layout'>, SceneProjectionBuilder> = {
+const sceneProjectionBuilders: Record<Exclude<SceneRendererKind, 'card-scene'>, SceneProjectionBuilder> = {
     '9x9-layout': buildNineByNineLegacySceneProjection,
-    'nx9-layout': (sceneKey, props) =>
-        buildNx9SceneProjection(sceneKey, props.nx9Props),
-    'week-layout': (sceneKey, props) =>
-        buildWeekSceneProjection(sceneKey, props.weekProps),
 };
 
 export const buildLegacySceneProjection = (
     sceneKey: MandalaSceneKey,
     props: NonThreeByThreeProjectionProps,
 ): SceneProjection =>
-    sceneProjectionBuilders[resolveSceneRendererKind(sceneKey) as Exclude<
-        SceneRendererKind,
-        '3x3-layout'
-    >](sceneKey, props);
+    sceneKey.variant === 'week-7x9'
+        ? buildWeekSceneProjection(sceneKey, props.weekProps)
+        : sceneKey.viewKind === 'nx9'
+          ? buildNx9SceneProjection(sceneKey, props.nx9Props)
+          : sceneProjectionBuilders[resolveSceneRendererKind(sceneKey) as Exclude<
+                SceneRendererKind,
+                'card-scene'
+            >](sceneKey, props);
 
 export const buildSceneProjection = ({
     sceneKey,

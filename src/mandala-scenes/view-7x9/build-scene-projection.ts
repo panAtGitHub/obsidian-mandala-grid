@@ -50,6 +50,7 @@ export const buildWeekSceneProjectionProps = ({
     }).rows;
 
     return {
+        layoutKind: 'week',
         rows,
         desktopCells: assembleDesktopWeekPlanCells({
             rows,
@@ -83,6 +84,9 @@ export const buildWeekSceneProjection = (
     props: WeekSceneProjectionProps,
 ): WeekSceneProjection => ({
     sceneKey,
-    rendererKind: 'week-layout',
-    props,
+    rendererKind: 'card-scene',
+    props: {
+        layoutKind: 'week',
+        ...props,
+    },
 });

@@ -1,9 +1,7 @@
 <script lang="ts">
     import { afterUpdate, tick, onDestroy } from 'svelte';
-    import Mandala3x3Layout from 'src/mandala-scenes/view-3x3/layout.svelte';
+    import CardSceneHost from 'src/mandala-scenes/shared/card-scene-host.svelte';
     import NineByNineLayout from 'src/mandala-scenes/view-9x9/layout.svelte';
-    import Nx9Layout from 'src/mandala-scenes/view-nx9/layout.svelte';
-    import WeekPlanLayout from 'src/mandala-scenes/view-7x9/layout.svelte';
     import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
     import {
         type SceneProjection,
@@ -28,10 +26,8 @@
     let isSwitchingScene = false;
     let isDestroyed = false;
     const rendererComponentByKind = {
-        '3x3-layout': Mandala3x3Layout,
+        'card-scene': CardSceneHost,
         '9x9-layout': NineByNineLayout,
-        'nx9-layout': Nx9Layout,
-        'week-layout': WeekPlanLayout,
     } as const;
     let {
         committedSceneKey: initialCommittedSceneKey,
@@ -41,10 +37,15 @@
     $: renderedComponent =
         rendererComponentByKind[renderedProjection.rendererKind];
     $: renderedComponentProps =
-        renderedProjection.rendererKind === '3x3-layout' &&
+        renderedProjection.rendererKind === 'card-scene' &&
+        renderedProjection.props.layoutKind === '3x3' &&
         renderedThreeByThreeProps
             ? renderedThreeByThreeProps
-            : renderedProjection.props;
+            : renderedProjection.rendererKind === 'card-scene'
+              ? {
+                    projection: renderedProjection,
+                }
+              : renderedProjection.props;
 
     const waitForNextPaint = () =>
         new Promise<void>((resolve) => {

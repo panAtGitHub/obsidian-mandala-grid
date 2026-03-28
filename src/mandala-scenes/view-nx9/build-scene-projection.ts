@@ -26,6 +26,7 @@ export const buildNx9SceneProjectionProps = ({
     activeCoreSection: string | null;
     activeCell: { row: number; col: number; page?: number } | null;
 }) => ({
+    layoutKind: 'nx9',
     documentSnapshot,
     themeSnapshot,
     rowsPerPage,
@@ -41,6 +42,9 @@ export const buildNx9SceneProjection = (
     props: ReturnType<typeof buildNx9SceneProjectionProps>,
 ): Nx9SceneProjection => ({
     sceneKey,
-    rendererKind: 'nx9-layout',
-    props,
+    rendererKind: 'card-scene',
+    props: {
+        layoutKind: 'nx9',
+        ...props,
+    },
 });

@@ -44,6 +44,7 @@ describe('build-nx9-scene-projection', () => {
                 activeCell: { row: 1, col: 2, page: 0 },
             }),
         ).toEqual({
+            layoutKind: 'nx9',
             documentSnapshot: {
                 revision: 1,
                 contentRevision: 2,
@@ -127,8 +128,9 @@ describe('build-nx9-scene-projection', () => {
                 viewKind: 'nx9',
                 variant: 'default',
             },
-            rendererKind: 'nx9-layout',
+            rendererKind: 'card-scene',
             props: {
+                layoutKind: 'nx9',
                 documentSnapshot: {
                     revision: 1,
                     contentRevision: 2,

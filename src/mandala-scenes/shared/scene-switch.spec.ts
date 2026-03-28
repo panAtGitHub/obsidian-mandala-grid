@@ -12,8 +12,9 @@ const defaultProjection = (
     viewKind === '3x3'
         ? {
               sceneKey: { viewKind, variant },
-              rendererKind: '3x3-layout',
+              rendererKind: 'card-scene',
               props: {
+                  layoutKind: '3x3',
                   cells: [],
                   theme: '1',
                   animateSwap: false,
@@ -41,8 +42,9 @@ const defaultProjection = (
           : variant === 'week-7x9'
             ? {
                   sceneKey: { viewKind, variant },
-                  rendererKind: 'week-layout',
+                  rendererKind: 'card-scene',
                   props: {
+                      layoutKind: 'week',
                       rows: [],
                       desktopCells: [],
                       mobileCells: [],
@@ -58,8 +60,9 @@ const defaultProjection = (
               }
             : {
                   sceneKey: { viewKind, variant },
-                  rendererKind: 'nx9-layout',
+                  rendererKind: 'card-scene',
                   props: {
+                      layoutKind: 'nx9',
                       documentSnapshot: {
                           revision: 1,
                           contentRevision: 2,

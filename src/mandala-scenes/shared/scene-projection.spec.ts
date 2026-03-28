@@ -13,7 +13,7 @@ describe('scene-projection', () => {
                 viewKind: '3x3',
                 variant: 'default',
             }),
-        ).toBe('3x3-layout');
+        ).toBe('card-scene');
         expect(
             resolveSceneRendererKind({
                 viewKind: '9x9',
@@ -25,13 +25,13 @@ describe('scene-projection', () => {
                 viewKind: 'nx9',
                 variant: 'default',
             }),
-        ).toBe('nx9-layout');
+        ).toBe('card-scene');
         expect(
             resolveSceneRendererKind({
                 viewKind: 'nx9',
                 variant: 'week-7x9',
             }),
-        ).toBe('week-layout');
+        ).toBe('card-scene');
     });
 
     it('compares and serializes scene keys consistently', () => {

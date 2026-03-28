@@ -19,5 +19,8 @@ export const createSceneCommitSnapshot = (
 ): SceneCommitSnapshot => ({
     committedSceneKey: projection.sceneKey,
     renderedThreeByThreeProps:
-        projection.rendererKind === '3x3-layout' ? projection.props : null,
+        projection.rendererKind === 'card-scene' &&
+        projection.props.layoutKind === '3x3'
+            ? projection.props
+            : null,
 });

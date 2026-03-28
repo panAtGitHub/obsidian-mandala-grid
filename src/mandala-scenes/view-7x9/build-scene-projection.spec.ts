@@ -43,6 +43,7 @@ mandala_plan:
         });
 
         expect(props).toMatchObject({
+            layoutKind: 'week',
             rows: [
                 { date: '2025-12-29', coreSection: null, inPlanYear: false },
                 { date: '2025-12-30', coreSection: null, inPlanYear: false },
@@ -103,8 +104,9 @@ mandala_plan:
                 viewKind: 'nx9',
                 variant: 'week-7x9',
             },
-            rendererKind: 'week-layout',
+            rendererKind: 'card-scene',
             props: {
+                layoutKind: 'week',
                 rows: [],
                 desktopCells: [],
                 mobileCells: [],

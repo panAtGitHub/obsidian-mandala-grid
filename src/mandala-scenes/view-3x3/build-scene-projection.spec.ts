@@ -6,6 +6,7 @@ import {
 import type { ThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/shared/scene-projection';
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
+    layoutKind: '3x3',
     cells: [],
     theme: '1',
     animateSwap: false,
@@ -66,8 +67,11 @@ describe('build-three-by-three-scene-projection', () => {
             committedProps,
         });
 
-        expect(projection.rendererKind).toBe('3x3-layout');
-        if (projection.rendererKind !== '3x3-layout') {
+        expect(projection.rendererKind).toBe('card-scene');
+        if (
+            projection.rendererKind !== 'card-scene' ||
+            projection.props.layoutKind !== '3x3'
+        ) {
             throw new Error('expected 3x3 projection');
         }
         expect(projection.props.dayPlanTodayTargetSection).toBe('2');
@@ -87,8 +91,11 @@ describe('build-three-by-three-scene-projection', () => {
             committedProps,
         });
 
-        expect(projection.rendererKind).toBe('3x3-layout');
-        if (projection.rendererKind !== '3x3-layout') {
+        expect(projection.rendererKind).toBe('card-scene');
+        if (
+            projection.rendererKind !== 'card-scene' ||
+            projection.props.layoutKind !== '3x3'
+        ) {
             throw new Error('expected 3x3 projection');
         }
         expect(projection.props.dayPlanTodayTargetSection).toBe('1');

@@ -11,10 +11,10 @@ import type {
 } from 'src/mandala-scenes/view-7x9/assemble-cell-view-model';
 
 export type SceneRendererKind =
-    | '3x3-layout'
-    | '9x9-layout'
-    | 'nx9-layout'
-    | 'week-layout';
+    | 'card-scene'
+    | '9x9-layout';
+
+export type CardSceneLayoutKind = '3x3' | 'week' | 'nx9';
 
 export type SceneDocumentSnapshot = {
     revision: number;
@@ -42,6 +42,7 @@ export type SceneCardInteractionSnapshot = SceneCardInteractionDescriptor & {
 };
 
 export type ThreeByThreeSceneProjectionProps = {
+    layoutKind: '3x3';
     cells: ThreeByThreeCellViewModel[];
     theme: string;
     animateSwap: boolean;
@@ -60,12 +61,6 @@ export type ThreeByThreeSceneProjectionProps = {
     onMobileCardDoubleClick: MandalaCardMobileDoubleClickHandler | null;
 };
 
-export type ThreeByThreeSceneProjection = {
-    sceneKey: MandalaSceneKey;
-    rendererKind: '3x3-layout';
-    props: ThreeByThreeSceneProjectionProps;
-};
-
 export type NineByNineSceneProjection = {
     sceneKey: MandalaSceneKey;
     rendererKind: '9x9-layout';
@@ -74,8 +69,9 @@ export type NineByNineSceneProjection = {
 
 export type Nx9SceneProjection = {
     sceneKey: MandalaSceneKey;
-    rendererKind: 'nx9-layout';
+    rendererKind: 'card-scene';
     props: {
+        layoutKind: 'nx9';
         documentSnapshot: SceneDocumentSnapshot;
         themeSnapshot: MandalaThemeSnapshot;
         rowsPerPage: number;
@@ -88,6 +84,7 @@ export type Nx9SceneProjection = {
 };
 
 export type WeekSceneProjectionProps = {
+    layoutKind: 'week';
     rows: WeekPlanRow[];
     desktopCells: WeekPlanDesktopCellViewModel[];
     mobileCells: WeekPlanMobileCellViewModel[];
@@ -97,15 +94,25 @@ export type WeekSceneProjectionProps = {
 
 export type WeekSceneProjection = {
     sceneKey: MandalaSceneKey;
-    rendererKind: 'week-layout';
+    rendererKind: 'card-scene';
     props: WeekSceneProjectionProps;
 };
 
-export type SceneProjection =
+export type ThreeByThreeSceneProjection = {
+    sceneKey: MandalaSceneKey;
+    rendererKind: 'card-scene';
+    props: ThreeByThreeSceneProjectionProps;
+};
+
+export type CardSceneProjection =
     | ThreeByThreeSceneProjection
-    | NineByNineSceneProjection
     | Nx9SceneProjection
     | WeekSceneProjection;
+
+export type SceneProjection =
+    | CardSceneProjection
+    | NineByNineSceneProjection
+;
 
 export const sceneKeyEquals = (a: MandalaSceneKey, b: MandalaSceneKey) =>
     a.viewKind === b.viewKind && a.variant === b.variant;
@@ -124,14 +131,8 @@ export const getSceneKeyId = (sceneKey: MandalaSceneKey) =>
 export const resolveSceneRendererKind = (
     sceneKey: MandalaSceneKey,
 ): SceneRendererKind => {
-    if (sceneKey.viewKind === '3x3') {
-        return '3x3-layout';
-    }
     if (sceneKey.viewKind === '9x9') {
         return '9x9-layout';
     }
-    if (sceneKey.variant === 'week-7x9') {
-        return 'week-layout';
-    }
-    return 'nx9-layout';
+    return 'card-scene';
 };

@@ -14,6 +14,7 @@ import {
 import { buildThreeByThreeSceneProjection } from 'src/mandala-scenes/view-3x3/build-scene-projection';
 
 const preparedProps: ThreeByThreeSceneProjectionProps = {
+    layoutKind: '3x3',
     cells: [],
     theme: '1',
     animateSwap: false,
@@ -38,6 +39,7 @@ const committedProps: ThreeByThreeSceneProjectionProps = {
 };
 
 const nx9ProjectionProps = {
+    layoutKind: 'nx9',
     documentSnapshot: {
         revision: 1,
         contentRevision: 2,
@@ -75,6 +77,7 @@ const nx9ProjectionProps = {
 } as const;
 
 const weekProjectionProps: WeekSceneProjectionProps = {
+    layoutKind: 'week',
     rows: [],
     desktopCells: [],
     mobileCells: [],
@@ -120,7 +123,7 @@ describe('scene-projection-adapters', () => {
                 viewKind: 'nx9',
                 variant: 'week-7x9',
             },
-            rendererKind: 'week-layout',
+            rendererKind: 'card-scene',
             props: weekProjectionProps,
         });
 
@@ -137,7 +140,7 @@ describe('scene-projection-adapters', () => {
                 viewKind: 'nx9',
                 variant: 'default',
             },
-            rendererKind: 'nx9-layout',
+            rendererKind: 'card-scene',
             props: {
                 ...nx9ProjectionProps,
             },
@@ -158,8 +161,11 @@ describe('scene-projection-adapters', () => {
             committedProps,
         });
 
-        expect(projection.rendererKind).toBe('3x3-layout');
-        if (projection.rendererKind !== '3x3-layout') {
+        expect(projection.rendererKind).toBe('card-scene');
+        if (
+            projection.rendererKind !== 'card-scene' ||
+            projection.props.layoutKind !== '3x3'
+        ) {
             throw new Error('expected 3x3 projection');
         }
         expect(projection.props.dayPlanTodayTargetSection).toBe('2');
@@ -181,8 +187,11 @@ describe('scene-projection-adapters', () => {
             nx9Props: nx9ProjectionProps,
         });
 
-        expect(projection.rendererKind).toBe('3x3-layout');
-        if (projection.rendererKind !== '3x3-layout') {
+        expect(projection.rendererKind).toBe('card-scene');
+        if (
+            projection.rendererKind !== 'card-scene' ||
+            projection.props.layoutKind !== '3x3'
+        ) {
             throw new Error('expected 3x3 projection');
         }
         expect(projection.props.dayPlanTodayTargetSection).toBe('1');
@@ -259,8 +268,11 @@ describe('scene-projection-adapters', () => {
         expect(
             hasPendingSceneSwitch(threeByThreeProjection, nx9Projection),
         ).toBe(true);
-        expect(threeByThreeProjection.rendererKind).toBe('3x3-layout');
-        if (threeByThreeProjection.rendererKind !== '3x3-layout') {
+        expect(threeByThreeProjection.rendererKind).toBe('card-scene');
+        if (
+            threeByThreeProjection.rendererKind !== 'card-scene' ||
+            threeByThreeProjection.props.layoutKind !== '3x3'
+        ) {
             throw new Error('expected 3x3 projection');
         }
         expect(threeByThreeProjection.props.cells).toBe(preparedProps.cells);

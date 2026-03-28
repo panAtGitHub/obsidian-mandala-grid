@@ -41,6 +41,7 @@ export const buildThreeByThreeSceneProjectionProps = ({
     getUpButtonLabel: (theme: string) => string;
     getDownButtonLabel: (theme: string) => string;
 }): ThreeByThreeSceneProjectionProps => ({
+    layoutKind: '3x3',
     cells,
     theme,
     animateSwap,
@@ -71,7 +72,7 @@ export const buildThreeByThreeSceneProjection = ({
     committedProps: ThreeByThreeSceneProjectionProps;
 }): SceneProjection => ({
     sceneKey,
-    rendererKind: '3x3-layout',
+    rendererKind: 'card-scene',
     props: shouldUseCommittedSceneProjection(sceneKey, committedSceneKey)
         ? committedProps
         : preparedProps,
