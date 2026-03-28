@@ -64,6 +64,7 @@ const nx9ProjectionProps = {
             isInSidebar: false,
         },
         selectedNodes: new Set(['node-1']),
+        showDetailSidebar: false,
         selectedStamp: 'node-1',
         pinnedSections: new Set(['1']),
         pinnedStamp: '1',
