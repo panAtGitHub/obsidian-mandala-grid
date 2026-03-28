@@ -8,6 +8,7 @@ export const derived = <Value, Action extends { type: string }, DerivedValue>(
 ): Derivable<DerivedValue, Action> => {
     const subscribers: Set<Subscriber<DerivedValue, Action>> = new Set();
     let derivedValue: DerivedValue;
+    let hasValue = false;
     let unsubFromSource: Unsubscriber | null = null;
     return {
         subscribe: (run) => {
@@ -17,8 +18,9 @@ export const derived = <Value, Action extends { type: string }, DerivedValue>(
                     (value, action, initialRun) => {
                         if (action || initialRun) {
                             const newValue = mapper(value, action);
-                            if (newValue !== derivedValue) {
+                            if (!hasValue || newValue !== derivedValue) {
                                 derivedValue = newValue;
+                                hasValue = true;
                                 for (const sub of subscribers) {
                                     sub(derivedValue, action, initialRun);
                                 }
@@ -26,7 +28,7 @@ export const derived = <Value, Action extends { type: string }, DerivedValue>(
                         }
                     },
                 );
-            } else {
+            } else if (hasValue) {
                 run(derivedValue, undefined, true);
             }
 
@@ -35,6 +37,7 @@ export const derived = <Value, Action extends { type: string }, DerivedValue>(
                 if (unsubFromSource && subscribers.size === 0) {
                     unsubFromSource();
                     unsubFromSource = null;
+                    hasValue = false;
                 }
             };
         },
@@ -77,6 +80,7 @@ export const derivedEq = <Value, Action extends { type: string }, DerivedValue>(
                 if (unsubFromSource && subscribers.size === 0) {
                     unsubFromSource();
                     unsubFromSource = null;
+                    hasValue = false;
                 }
             };
         },
