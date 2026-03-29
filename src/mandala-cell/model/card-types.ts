@@ -5,6 +5,8 @@ export type CellSectionIndicatorVariant =
     | 'plain-with-pin'
     | 'section-capsule';
 
+export type CellSectionMetaVariant = 'plain' | 'capsule' | 'background';
+
 export type CellTextTone = 'dark' | 'light';
 
 export type CellStyle = NodeStyle | undefined;

@@ -1,6 +1,7 @@
 import type { CellStyle } from 'src/mandala-cell/model/card-types';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
-import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
+import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
+import type { CellSectionColorContext } from 'src/mandala-cell/visual/section-color-visual';
 
 // 阅读顺序建议（标准格子数据流）：
 // 1. 先看 cell-display-policy.ts 和 default-cell-display-policy.ts
@@ -10,9 +11,8 @@ import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-to
 type SharedCardViewModel = {
     style: CellStyle;
     contentEnabled: boolean;
-    // 用户自定义色应用透明度后的最终背景输入；没有自定义色时为 null。
-    sectionColor: string | null;
-    metaAccentColor: string | null;
+    // scene 只负责传 section 色彩输入；具体背景/胶囊色由 cell visual 层统一决定。
+    sectionColorContext: CellSectionColorContext | null;
     displayPolicy: CellDisplayPolicy;
 };
 

@@ -1,4 +1,3 @@
-import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildWeekPlanBaseCells,
     type WeekPlanBaseCell,
@@ -58,16 +57,12 @@ const buildNx9WeekCellDescriptors = ({
             section: cell.section ?? `${cell.row}:${cell.col}`,
             nodeId: cell.nodeId,
             contentEnabled: true,
-            sectionColor: cell.section
-                ? resolveSectionBackgroundInput({
-                      section: cell.section,
+            sectionColorContext: cell.section
+                ? {
                       backgroundMode,
                       sectionColorsBySection: sectionColors,
                       sectionColorOpacity,
-                  })
-                : null,
-            metaAccentColor: cell.section
-                ? sectionColors[cell.section] ?? null
+                  }
                 : null,
             displayPolicy: gridStyle.cellDisplayPolicy,
         }),

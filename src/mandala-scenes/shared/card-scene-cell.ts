@@ -4,6 +4,7 @@ import type {
     MandalaCardViewModel,
 } from 'src/mandala-cell/model/card-view-model';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
+import type { CellSectionColorContext } from 'src/mandala-cell/visual/section-color-visual';
 
 export type SceneCardEditingState = {
     activeNodeId: string | null;
@@ -20,8 +21,7 @@ export type SceneCardCellDescriptor = {
     nodeId: string | null;
     section: string;
     contentEnabled: boolean;
-    sectionColor: string | null;
-    metaAccentColor: string | null;
+    sectionColorContext: CellSectionColorContext | null;
     displayPolicy: CellDisplayPolicy;
 };
 
@@ -63,8 +63,7 @@ export const buildSceneCardViewModel = (
               section: descriptor.section,
               contentEnabled: descriptor.contentEnabled,
               style: undefined,
-              sectionColor: descriptor.sectionColor,
-              metaAccentColor: descriptor.metaAccentColor,
+              sectionColorContext: descriptor.sectionColorContext,
               displayPolicy: descriptor.displayPolicy,
           })
         : null;
@@ -152,16 +151,14 @@ export const createSceneCardCellSeed = ({
     section,
     nodeId,
     contentEnabled,
-    sectionColor,
-    metaAccentColor,
+    sectionColorContext,
     displayPolicy,
 }: {
     key: string;
     section: string;
     nodeId: string | null;
     contentEnabled: boolean;
-    sectionColor: string | null;
-    metaAccentColor: string | null;
+    sectionColorContext: CellSectionColorContext | null;
     displayPolicy: CellDisplayPolicy;
 }): SceneCardCellSeed => ({
     frame: {
@@ -173,8 +170,7 @@ export const createSceneCardCellSeed = ({
         nodeId,
         section,
         contentEnabled,
-        sectionColor,
-        metaAccentColor,
+        sectionColorContext,
         displayPolicy,
     },
 });

@@ -1,5 +1,6 @@
 import type {
     CellSectionIndicatorVariant,
+    CellSectionMetaVariant,
     CellStyle,
     CellTextTone,
 } from 'src/mandala-cell/model/card-types';
@@ -22,11 +23,9 @@ export type MandalaCardRenderModel = SharedCardRenderModel & {
     displaySection: string;
     shouldHideBackgroundStyle: boolean;
     sectionIndicatorVariant: CellSectionIndicatorVariant;
-    showSectionBackground: boolean;
+    sectionMetaVariant: CellSectionMetaVariant;
     showSectionPin: boolean;
-    showSectionColorDot: boolean;
-    capsuleTextTone: CellTextTone | null;
+    sectionMetaTextTone: CellTextTone | null;
     metaStyle: string | undefined;
-    metaAccentColor: string | null;
     isFloatingMobile: boolean;
 };

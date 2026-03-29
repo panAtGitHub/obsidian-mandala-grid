@@ -3,11 +3,11 @@ import {
     getReadableTextTone,
     type TextTone,
     type ThemeTone,
-} from 'src/mandala-interaction/helpers/contrast-text-tone';
+} from 'src/mandala-display/contrast/readable-text-tone';
 
 export type BuildMandalaCardStyleOptions = {
     active: boolean;
-    sectionColor: string | null;
+    backgroundColor: string | null;
     style: NodeStyle | undefined;
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
@@ -31,15 +31,15 @@ const LIGHT_TEXT_TOKENS =
 
 const getContrastBackgroundColor = ({
     active,
-    sectionColor,
+    backgroundColor,
     preserveActiveBackground = false,
     style,
 }: Pick<
     BuildMandalaCardStyleOptions,
-    'active' | 'sectionColor' | 'style' | 'preserveActiveBackground'
+    'active' | 'backgroundColor' | 'style' | 'preserveActiveBackground'
 >): string | null => {
     const shouldForceActiveBackground = active && !preserveActiveBackground;
-    if (sectionColor && !shouldForceActiveBackground) return sectionColor;
+    if (backgroundColor && !shouldForceActiveBackground) return backgroundColor;
     if (
         style?.styleVariant === 'background-color' &&
         !shouldForceActiveBackground
@@ -51,21 +51,21 @@ const getContrastBackgroundColor = ({
 
 export const buildMandalaCardStyle = ({
     active,
-    sectionColor,
+    backgroundColor,
     preserveActiveBackground = false,
     style,
     themeTone,
     themeUnderlayColor,
 }: BuildMandalaCardStyleOptions): MandalaCardStyleState => {
     const shouldForceActiveBackground = active && !preserveActiveBackground;
-    const backgroundColor = getContrastBackgroundColor({
+    const contrastBackgroundColor = getContrastBackgroundColor({
         active,
-        sectionColor,
+        backgroundColor,
         preserveActiveBackground,
         style,
     });
     const textTone = getReadableTextTone(
-        backgroundColor,
+        contrastBackgroundColor,
         themeTone,
         themeUnderlayColor,
     );
@@ -73,8 +73,8 @@ export const buildMandalaCardStyle = ({
     const surfaceStyle = [
         shouldForceActiveBackground
             ? 'background-color: var(--background-active-node) !important'
-            : sectionColor
-              ? `background-color: ${sectionColor}`
+            : backgroundColor
+              ? `background-color: ${backgroundColor}`
               : !active && style?.styleVariant !== 'background-color'
                 ? 'background-color: var(--background-primary)'
                 : '',
@@ -90,9 +90,9 @@ export const buildMandalaCardStyle = ({
         !shouldForceActiveBackground && textTone === 'light'
             ? LIGHT_TEXT_TOKENS
             : '',
-        !backgroundColor && active
+        !contrastBackgroundColor && active
             ? '--text-normal: var(--color-active-node)'
-            : !backgroundColor
+            : !contrastBackgroundColor
               ? '--text-normal: var(--color-active-parent)'
               : '',
     ]
@@ -102,8 +102,8 @@ export const buildMandalaCardStyle = ({
     const cardStyle = [
         shouldForceActiveBackground
             ? 'background-color: var(--background-active-node) !important'
-            : sectionColor
-              ? `background-color: ${sectionColor}`
+            : backgroundColor
+              ? `background-color: ${backgroundColor}`
               : '',
         !shouldForceActiveBackground && textTone === 'dark'
             ? DARK_TEXT_TOKENS
@@ -116,13 +116,13 @@ export const buildMandalaCardStyle = ({
         .join('; ');
 
     return {
-        backgroundColor,
+        backgroundColor: contrastBackgroundColor,
         textTone,
         cardStyle: cardStyle.length > 0 ? cardStyle : undefined,
         surfaceStyle: surfaceStyle.length > 0 ? surfaceStyle : undefined,
         bodyStyle: bodyStyle.length > 0 ? bodyStyle : undefined,
         shouldHideBackgroundStyle: Boolean(
-            (sectionColor || shouldForceActiveBackground) &&
+            (backgroundColor || shouldForceActiveBackground) &&
                 style?.styleVariant === 'background-color',
         ),
     };

@@ -16,16 +16,22 @@ describe('card-scene-cell', () => {
                 nodeId: 'node-1',
                 section: '1.1',
                 contentEnabled: true,
-                sectionColor: 'red',
-                metaAccentColor: 'blue',
+                sectionColorContext: {
+                    backgroundMode: 'custom',
+                    sectionColorsBySection: { '1.1': '#0000ff' },
+                    sectionColorOpacity: 100,
+                },
                 displayPolicy: createDefaultCellDisplayPolicy(),
             }),
         ).toMatchObject({
             nodeId: 'node-1',
             section: '1.1',
             contentEnabled: true,
-            sectionColor: 'red',
-            metaAccentColor: 'blue',
+            sectionColorContext: {
+                backgroundMode: 'custom',
+                sectionColorsBySection: { '1.1': '#0000ff' },
+                sectionColorOpacity: 100,
+            },
         });
     });
 
@@ -66,8 +72,7 @@ describe('card-scene-cell', () => {
             section: '1.1',
             nodeId: 'node-1',
             contentEnabled: true,
-            sectionColor: null,
-            metaAccentColor: null,
+            sectionColorContext: null,
             displayPolicy: createDefaultCellDisplayPolicy(),
         });
 
@@ -109,8 +114,11 @@ describe('card-scene-cell', () => {
                 section: '1.2',
                 nodeId: 'node-2',
                 contentEnabled: false,
-                sectionColor: 'red',
-                metaAccentColor: 'blue',
+                sectionColorContext: {
+                    backgroundMode: 'custom',
+                    sectionColorsBySection: { '1.2': '#0000ff' },
+                    sectionColorOpacity: 100,
+                },
                 displayPolicy: createDefaultCellDisplayPolicy(),
             }),
         ).toMatchObject({
@@ -123,8 +131,11 @@ describe('card-scene-cell', () => {
                 nodeId: 'node-2',
                 section: '1.2',
                 contentEnabled: false,
-                sectionColor: 'red',
-                metaAccentColor: 'blue',
+                sectionColorContext: {
+                    backgroundMode: 'custom',
+                    sectionColorsBySection: { '1.2': '#0000ff' },
+                    sectionColorOpacity: 100,
+                },
             },
         });
     });
@@ -141,8 +152,7 @@ describe('card-scene-cell', () => {
                             section: '1.1',
                             nodeId: 'node-1',
                             contentEnabled: true,
-                            sectionColor: null,
-                            metaAccentColor: null,
+                            sectionColorContext: null,
                             displayPolicy,
                         }),
                         extra: { index: 0 },
@@ -153,8 +163,7 @@ describe('card-scene-cell', () => {
                             section: '1.2',
                             nodeId: 'node-2',
                             contentEnabled: false,
-                            sectionColor: null,
-                            metaAccentColor: null,
+                            sectionColorContext: null,
                             displayPolicy,
                         }),
                         extra: { index: 1 },

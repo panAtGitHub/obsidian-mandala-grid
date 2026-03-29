@@ -35,7 +35,12 @@ describe('3x3/assemble-cell-view-model', () => {
                     nodeId: 'node-1-1',
                 },
                 descriptor: {
-                    metaAccentColor: 'red',
+                    sectionColorContext: {
+                        backgroundMode: 'none',
+                        sectionColorsBySection: { '1.1': 'red' },
+                        sectionColorOpacity: 100,
+                        showGrayBlockBackground: false,
+                    },
                     contentEnabled: true,
                 },
             },

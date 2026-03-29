@@ -6,7 +6,7 @@ describe('buildMandalaCardStyle', () => {
     it('keeps existing active background behavior by default', () => {
         const state = buildMandalaCardStyle({
             active: true,
-            sectionColor: 'rgba(103, 127, 239, 0.65)',
+            backgroundColor: 'rgba(103, 127, 239, 0.65)',
             style: undefined,
             themeTone: 'light',
         });
@@ -20,7 +20,7 @@ describe('buildMandalaCardStyle', () => {
     it('keeps section background color when table style asks to preserve it', () => {
         const state = buildMandalaCardStyle({
             active: true,
-            sectionColor: 'rgba(103, 127, 239, 0.65)',
+            backgroundColor: 'rgba(103, 127, 239, 0.65)',
             preserveActiveBackground: true,
             style: undefined,
             themeTone: 'light',
@@ -35,7 +35,7 @@ describe('buildMandalaCardStyle', () => {
     it('keeps custom card background color only when preserve mode is enabled', () => {
         const state = buildMandalaCardStyle({
             active: true,
-            sectionColor: null,
+            backgroundColor: null,
             preserveActiveBackground: true,
             style: {
                 color: '#2B3040',
@@ -52,7 +52,7 @@ describe('buildMandalaCardStyle', () => {
     it('injects the active background when no custom background exists by default', () => {
         const state = buildMandalaCardStyle({
             active: true,
-            sectionColor: null,
+            backgroundColor: null,
             style: undefined,
             themeTone: 'light',
         });
@@ -66,7 +66,7 @@ describe('buildMandalaCardStyle', () => {
     it('keeps text contrast tokens for dark custom backgrounds', () => {
         const state = buildMandalaCardStyle({
             active: true,
-            sectionColor: null,
+            backgroundColor: null,
             preserveActiveBackground: true,
             style: {
                 color: '#2B3040',
@@ -82,7 +82,7 @@ describe('buildMandalaCardStyle', () => {
     it('provides detached inactive surface and body styles for plain nx9 cards', () => {
         const state = buildMandalaCardStyle({
             active: false,
-            sectionColor: null,
+            backgroundColor: null,
             style: undefined,
             themeTone: 'light',
         });
@@ -99,7 +99,7 @@ describe('buildMandalaCardStyle', () => {
     it('keeps contrast text tokens on detached inactive section-color cards', () => {
         const state = buildMandalaCardStyle({
             active: false,
-            sectionColor: 'rgba(103, 127, 239, 0.65)',
+            backgroundColor: 'rgba(103, 127, 239, 0.65)',
             style: undefined,
             themeTone: 'light',
         });
@@ -128,7 +128,7 @@ describe('buildMandalaCardStyle', () => {
         for (const gridStyle of styles) {
             const state = buildMandalaCardStyle({
                 active: false,
-                sectionColor: null,
+                backgroundColor: null,
                 style: undefined,
                 preserveActiveBackground:
                     gridStyle.cellDisplayPolicy.preserveActiveBackground,

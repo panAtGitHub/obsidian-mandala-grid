@@ -11,15 +11,13 @@ export const buildMandalaCardViewModel = ({
     section,
     contentEnabled,
     style,
-    sectionColor,
-    metaAccentColor,
+    sectionColorContext,
     displayPolicy,
 }: BuildMandalaCardViewModelOptions): MandalaCardViewModel => ({
     nodeId,
     section,
     contentEnabled,
     style,
-    sectionColor,
-    metaAccentColor,
+    sectionColorContext,
     displayPolicy,
 });

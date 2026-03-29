@@ -1,19 +1,15 @@
 <script lang="ts">
     import clx from 'classnames';
     import { Pin } from 'lucide-svelte';
-    import type { CellTextTone } from 'src/mandala-cell/model/card-types';
-
-    type SectionMetaVariant = 'plain' | 'capsule' | 'background';
+    import type {
+        CellSectionMetaVariant,
+        CellTextTone,
+    } from 'src/mandala-cell/model/card-types';
 
     // 卡片右上角的元信息：section 编号，可选附带 pin 图标。
     export let sectionLabel = '';
     export let showPin = false;
-    // 推荐由 ViewModel 直接给最终展示模式；旧布尔字段仍保留兼容。
-    export let variant: SectionMetaVariant | null = null;
-    // 旧字段名保留不动；这里实际控制的是彩色胶囊包裹样式。
-    export let showColorDot = false;
-    // 开启后走整块背景模式；否则使用轻量文本/胶囊模式。
-    export let showBackground = false;
+    export let variant: CellSectionMetaVariant = 'plain';
     // 整块背景较深时，用它切换文字明暗。
     export let textTone: CellTextTone | null = null;
     // 外部注入的 CSS 变量主要用于 section 相关配色。
@@ -22,31 +18,20 @@
     export let className = '';
     export let density: 'normal' | 'compact' = 'normal';
 
-    // 优先使用显式 variant；未提供时再从旧参数推导。
-    $: resolvedVariant = variant ?? getLegacyVariant(showBackground, showColorDot);
     $: metaClassName = clx(
         className,
         'mandala-card-meta',
-        resolvedVariant === 'capsule'
+        variant === 'capsule'
             ? 'mandala-card-meta--capsule-wrap'
             : undefined,
-        resolvedVariant === 'background'
+        variant === 'background'
             ? 'mandala-card-meta--with-bg'
             : 'mandala-card-meta--without-bg',
-        resolvedVariant === 'background' && textTone
+        variant === 'background' && textTone
             ? `mandala-card-meta--tone-${textTone}`
             : undefined,
         density === 'compact' ? 'mandala-card-meta--compact' : undefined,
     );
-
-    function getLegacyVariant(
-        showBackground: boolean,
-        showColorDot: boolean,
-    ): SectionMetaVariant {
-        if (showBackground) return 'background';
-        if (showColorDot) return 'capsule';
-        return 'plain';
-    }
 </script>
 
 <!-- ViewModel 给出最终展示模式后，这里只负责渲染对应的 meta 外观。 -->

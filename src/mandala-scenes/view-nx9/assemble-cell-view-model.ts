@@ -1,5 +1,4 @@
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
-import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
 import {
     buildSceneCardCellList,
     buildSceneCardUiState,
@@ -379,13 +378,11 @@ export const buildNx9StaticCardCellDescriptors = ({
             key: cell.key,
             section: cell.section,
             nodeId: cell.nodeId,
-            sectionColor: resolveSectionBackgroundInput({
-                section: cell.section,
+            sectionColorContext: {
                 backgroundMode,
                 sectionColorsBySection: sectionColors,
                 sectionColorOpacity,
-            }),
-            metaAccentColor: sectionColors[cell.section] ?? null,
+            },
             displayPolicy,
             contentEnabled: !!cell.nodeId && hydratedNodeIds.has(cell.nodeId),
         });

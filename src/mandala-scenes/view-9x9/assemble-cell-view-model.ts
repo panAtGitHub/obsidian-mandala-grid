@@ -1,13 +1,16 @@
 import {
     getReadableTextTone,
     type ThemeTone,
-} from 'src/mandala-interaction/helpers/contrast-text-tone';
+} from 'src/mandala-display/contrast/readable-text-tone';
 import {
     getSectionCore,
     getSectionNodeId,
     type MandalaTopologyIndex,
 } from 'src/mandala-display/logic/mandala-topology';
-import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
+import {
+    resolveGrayBlockSurfaceColor,
+    resolveSectionSurfaceColor,
+} from 'src/mandala-display/palette/section-colors';
 import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
@@ -158,7 +161,7 @@ export const decorate9x9CellViewModels = ({
     themeUnderlayColor,
 }: Decorate9x9CellsOptions): SimpleSummaryCellModel[] => {
     return cells.map((cell) => {
-        const customBackground = resolveSectionBackgroundInput({
+        const customBackground = resolveSectionSurfaceColor({
             section: cell.section,
             backgroundMode,
             sectionColorsBySection: sectionColors,
@@ -167,7 +170,7 @@ export const decorate9x9CellViewModels = ({
         const background = customBackground
             ? customBackground
             : backgroundMode === 'gray' && cell.isGrayBlock
-              ? `color-mix(in srgb, var(--mandala-gray-block-base) ${sectionColorOpacity}%, transparent)`
+              ? resolveGrayBlockSurfaceColor(sectionColorOpacity)
               : null;
         const textTone = background
             ? getReadableTextTone(background, themeTone, themeUnderlayColor)

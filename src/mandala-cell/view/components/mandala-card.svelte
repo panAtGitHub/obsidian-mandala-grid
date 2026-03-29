@@ -69,7 +69,7 @@
         displayPolicy,
     } = viewModel);
     $: ({ active, selected, pinned } = uiState);
-    $: hasSectionColor = !!viewModel.sectionColor;
+    $: hasSectionColor = !!viewModel.sectionColorContext;
     $: fillContent = displayPolicy.contentLayout === 'fill';
     $: contentDensity = displayPolicy.density;
     $: scrollbarMode = displayPolicy.scrollbarMode;
@@ -205,10 +205,9 @@
 
         <CardMeta
             displaySection={renderModel.displaySection}
-            showSectionBackground={renderModel.showSectionBackground}
+            variant={renderModel.sectionMetaVariant}
             showSectionPin={renderModel.showSectionPin}
-            showSectionColorDot={renderModel.showSectionColorDot}
-            capsuleTextTone={renderModel.capsuleTextTone}
+            textTone={renderModel.sectionMetaTextTone}
             metaStyle={renderModel.metaStyle}
             density={contentDensity}
         />

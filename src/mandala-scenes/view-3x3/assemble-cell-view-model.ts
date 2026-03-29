@@ -1,7 +1,10 @@
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
-import { resolveSectionBackgroundInput } from 'src/mandala-display/logic/section-colors';
+import {
+    resolveGrayBlockSurfaceColor,
+    resolveSectionSurfaceColor,
+} from 'src/mandala-display/palette/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import {
@@ -60,7 +63,7 @@ const getSectionBackground = ({
     sectionColors: Record<string, string>;
     sectionColorOpacity: number;
 }) => {
-    const customColor = resolveSectionBackgroundInput({
+    const customColor = resolveSectionSurfaceColor({
         section,
         backgroundMode,
         sectionColorsBySection: sectionColors,
@@ -68,7 +71,7 @@ const getSectionBackground = ({
     });
     if (customColor) return customColor;
     if (backgroundMode === 'gray' && isCrossIndex(index)) {
-        return `color-mix(in srgb, var(--mandala-gray-block-base) ${sectionColorOpacity}%, transparent)`;
+        return resolveGrayBlockSurfaceColor(sectionColorOpacity);
     }
     return null;
 };
@@ -118,8 +121,12 @@ export const build3x3CardCellDescriptors = ({
             section: frame.section,
             nodeId: frame.nodeId,
             contentEnabled: true,
-            sectionColor: sectionBackground,
-            metaAccentColor: displaySnapshot.sectionColors[section] ?? null,
+            sectionColorContext: {
+                backgroundMode: displaySnapshot.backgroundMode,
+                sectionColorsBySection: displaySnapshot.sectionColors,
+                sectionColorOpacity: displaySnapshot.sectionColorOpacity,
+                showGrayBlockBackground: isCrossIndex(index),
+            },
             displayPolicy,
         });
 

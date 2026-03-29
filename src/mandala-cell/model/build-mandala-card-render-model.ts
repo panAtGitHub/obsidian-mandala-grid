@@ -1,12 +1,12 @@
-import { buildMandalaCardMetaState } from 'src/mandala-cell/model/mandala-card-meta';
 import { buildMandalaCardStyle } from 'src/mandala-cell/model/mandala-card-style';
 import type { MandalaCardRenderModel } from 'src/mandala-cell/model/card-render-model';
 import type {
     MandalaCardUiState,
     MandalaCardViewModel,
 } from 'src/mandala-cell/model/card-view-model';
+import { resolveCellSectionColorVisual } from 'src/mandala-cell/visual/section-color-visual';
 import { isPreviewDialogEditingNode } from 'src/mandala-interaction/helpers/is-preview-dialog-editing-node';
-import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
+import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
 
 // 阅读顺序建议：
 // 1. 先看 card-view-model.ts，了解场景层已经决定好的输入
@@ -40,12 +40,19 @@ export const buildMandalaCardRenderModel = ({
         section,
         contentEnabled,
         style,
-        sectionColor,
-        metaAccentColor,
+        sectionColorContext,
         displayPolicy,
     } = viewModel;
     const { active, editing, pinned } = uiState;
     const displaySection = section || fallbackSection || '';
+    const sectionColorVisual = resolveCellSectionColorVisual({
+        section: displaySection,
+        colorContext: sectionColorContext,
+        indicatorVariant: displayPolicy.sectionIndicatorVariant,
+        pinned,
+        themeTone,
+        themeUnderlayColor,
+    });
     const {
         cardStyle,
         surfaceStyle,
@@ -53,21 +60,9 @@ export const buildMandalaCardRenderModel = ({
         shouldHideBackgroundStyle,
     } = buildMandalaCardStyle({
         active,
-        sectionColor,
+        backgroundColor: sectionColorVisual.backgroundColor,
         preserveActiveBackground: displayPolicy.preserveActiveBackground,
         style,
-        themeTone,
-        themeUnderlayColor,
-    });
-    const {
-        showBackground: showSectionBackground,
-        showPin: showSectionPin,
-        showColorDot: showSectionColorDot,
-        textTone: capsuleTextTone,
-    } = buildMandalaCardMetaState({
-        variant: displayPolicy.sectionIndicatorVariant,
-        sectionColor,
-        pinned,
         themeTone,
         themeUnderlayColor,
     });
@@ -92,16 +87,18 @@ export const buildMandalaCardRenderModel = ({
         displaySection,
         shouldHideBackgroundStyle,
         sectionIndicatorVariant: displayPolicy.sectionIndicatorVariant,
-        showSectionBackground,
-        showSectionPin,
-        showSectionColorDot,
-        capsuleTextTone,
-        metaAccentColor: metaAccentColor ?? sectionColor,
-        metaStyle: sectionColor
+        sectionMetaVariant: sectionColorVisual.metaVariant,
+        showSectionPin: sectionColorVisual.showPin,
+        sectionMetaTextTone: sectionColorVisual.metaTextTone,
+        metaStyle:
+            sectionColorVisual.metaAccentColor ||
+            sectionColorVisual.metaBackgroundColor
             ? [
-                  `--mandala-card-meta-accent: ${metaAccentColor ?? sectionColor}`,
-                  showSectionBackground
-                      ? `--mandala-card-meta-bg: ${sectionColor}`
+                  sectionColorVisual.metaAccentColor
+                      ? `--mandala-card-meta-accent: ${sectionColorVisual.metaAccentColor}`
+                      : null,
+                  sectionColorVisual.metaBackgroundColor
+                      ? `--mandala-card-meta-bg: ${sectionColorVisual.metaBackgroundColor}`
                       : null,
               ]
                   .filter(Boolean)

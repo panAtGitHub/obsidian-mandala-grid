@@ -1,22 +1,23 @@
 <script lang="ts">
     import SectionMeta from 'src/mandala-cell/view/section-meta.svelte';
-    import type { CellTextTone } from 'src/mandala-cell/model/card-types';
+    import type {
+        CellSectionMetaVariant,
+        CellTextTone,
+    } from 'src/mandala-cell/model/card-types';
 
     export let displaySection: string;
-    export let showSectionBackground = false;
+    export let variant: CellSectionMetaVariant = 'plain';
     export let showSectionPin = false;
-    export let showSectionColorDot = false;
-    export let capsuleTextTone: CellTextTone | null = null;
+    export let textTone: CellTextTone | null = null;
     export let metaStyle: string | undefined;
     export let density: 'normal' | 'compact' = 'normal';
 </script>
 
 <SectionMeta
     sectionLabel={displaySection}
-    showBackground={showSectionBackground}
+    {variant}
     showPin={showSectionPin}
-    showColorDot={showSectionColorDot}
-    textTone={capsuleTextTone}
+    {textTone}
     style={metaStyle}
     className="mandala-card-meta"
     {density}

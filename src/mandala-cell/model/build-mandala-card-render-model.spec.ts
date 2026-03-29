@@ -8,8 +8,7 @@ const baseOptions = () => ({
         section: '1',
         contentEnabled: true,
         style: undefined,
-        sectionColor: null,
-        metaAccentColor: null,
+        sectionColorContext: null,
         displayPolicy: createDefaultCellDisplayPolicy(),
     },
     uiState: {
@@ -62,5 +61,25 @@ describe('buildMandalaCardRenderModel', () => {
             'background-color: var(--background-primary)',
         );
         expect(model.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+    });
+
+    it('keeps section-capsule meta background aligned with the resolved card background', () => {
+        const model = buildMandalaCardRenderModel({
+            ...baseOptions(),
+            viewModel: {
+                ...baseOptions().viewModel,
+                section: '1.1',
+                sectionColorContext: {
+                    backgroundMode: 'custom',
+                    sectionColorsBySection: { '1.1': '#E9D967' },
+                    sectionColorOpacity: 100,
+                },
+            },
+        });
+
+        expect(model.sectionMetaVariant).toBe('background');
+        expect(model.metaStyle).toContain(
+            '--mandala-card-meta-bg: rgba(233, 217, 103, 1)',
+        );
     });
 });
