@@ -18,7 +18,7 @@
         Show9x9TitleOnlyStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
-    import type { ThemeTone } from 'src/mandala-interaction/helpers/contrast-text-tone';
+    import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
     import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
     import {
         buildMandalaTopologyIndex,

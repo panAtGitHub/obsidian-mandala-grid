@@ -3,7 +3,7 @@ import { MandalaViewDocumentPreferences } from 'src/mandala-settings/state/setti
 import {
     parsePinnedSectionsFromPersistedState,
     parseSectionColorsFromPersistedState,
-} from 'src/mandala-display/logic/section-colors';
+} from 'src/mandala-display/palette/section-colors';
 
 const getCurrentFilePath = (view: MandalaView) => view.file?.path ?? null;
 

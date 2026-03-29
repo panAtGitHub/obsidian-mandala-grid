@@ -13,7 +13,7 @@
         applyOpacityToHex,
         SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
-    } from 'src/mandala-display/logic/section-colors';
+    } from 'src/mandala-display/palette/section-colors';
     import {
         MandalaBackgroundModeStore,
         MandalaSectionColorOpacityStore,
@@ -22,7 +22,7 @@
     import {
         getReadableTextTone,
         type ThemeTone,
-    } from 'src/mandala-interaction/helpers/contrast-text-tone';
+    } from 'src/mandala-display/contrast/readable-text-tone';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);

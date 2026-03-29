@@ -3,7 +3,7 @@ import { DocumentStoreAction } from 'src/mandala-document/state/document-store-a
 import {
     serializeSectionColorMapForSettings,
     swapSectionSubtreeColors,
-} from 'src/mandala-display/logic/section-colors';
+} from 'src/mandala-display/palette/section-colors';
 import { getCurrentFileSectionColorMap } from 'src/mandala-settings/state/current-file/current-file-preferences';
 import { persistPinnedNodes } from 'src/stores/view/subscriptions/actions/persist-pinned-nodes';
 

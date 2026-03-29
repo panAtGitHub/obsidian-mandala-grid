@@ -5,7 +5,7 @@ import {
     Content,
     NodeGroup,
 } from 'src/mandala-document/state/document-state-type';
-import { createPinnedSectionSet } from 'src/mandala-display/logic/section-colors';
+import { createPinnedSectionSet } from 'src/mandala-display/palette/section-colors';
 import { MandalaView } from 'src/view/view';
 import { buildSetStamp } from 'src/shared/helpers/build-set-stamp';
 

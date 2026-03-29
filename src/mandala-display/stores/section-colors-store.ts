@@ -9,7 +9,7 @@ import {
     SectionColorMap,
     SECTION_COLOR_PALETTE,
     SECTION_COLOR_KEYS,
-} from 'src/mandala-display/logic/section-colors';
+} from 'src/mandala-display/palette/section-colors';
 
 type SectionColorSnapshot = {
     path: string | null;
