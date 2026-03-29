@@ -1,16 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Platform } from 'obsidian';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
-import { persistCurrentMandalaViewState } from 'src/mandala-settings/state/current-file/mandala-view-state';
+import {
+    persistCurrentMandalaViewState,
+    syncCurrentMandalaDetailSidebarVisibility,
+} from 'src/mandala-settings/state/current-file/mandala-view-state';
 import type { PersistMandalaViewStateAction } from 'src/mandala-settings/state/settings-store-actions';
 import type { Settings } from 'src/mandala-settings/state/settings-type';
 import type { MandalaView } from 'src/view/view';
 
 const createTestView = ({
+    path = 'demo.md',
     isMobile = false,
     showDetailSidebar = false,
     currentPreferences = {},
 }: {
+    path?: string;
     isMobile?: boolean;
     showDetailSidebar?: boolean;
     currentPreferences?: Partial<
@@ -21,8 +26,9 @@ const createTestView = ({
     Platform.isDesktop = !isMobile;
 
     const dispatch = vi.fn<[PersistMandalaViewStateAction], void>();
+    const viewDispatch = vi.fn();
     const settings = DEFAULT_SETTINGS();
-    settings.documents['demo.md'] = {
+    settings.documents[path] = {
         viewType: 'mandala-grid',
         activeSection: null,
         outline: null,
@@ -42,8 +48,10 @@ const createTestView = ({
 
     return {
         dispatch,
+        viewDispatch,
+        settings,
         view: {
-            getCurrentFilePath: () => 'demo.md',
+            getCurrentFilePath: () => path,
             plugin: {
                 settings: {
                     getValue: () => settings,
@@ -62,6 +70,7 @@ const createTestView = ({
                         },
                     },
                 }),
+                dispatch: viewDispatch,
             },
             documentStore: {
                 getValue: () => ({
@@ -164,5 +173,43 @@ describe('persistCurrentMandalaViewState', () => {
 
         expect(action.type).toBe('settings/documents/persist-mandala-view-state');
         expect(action.payload.showDetailSidebarDesktop).toBe(true);
+    });
+});
+
+describe('syncCurrentMandalaDetailSidebarVisibility', () => {
+    beforeEach(() => {
+        Platform.isMobile = false;
+        Platform.isDesktop = true;
+    });
+
+    it('restores the persisted sidebar visibility for the current file', () => {
+        const { view, viewDispatch } = createTestView({
+            path: 'b.md',
+            showDetailSidebar: true,
+            currentPreferences: {
+                showDetailSidebarDesktop: false,
+            },
+        });
+
+        syncCurrentMandalaDetailSidebarVisibility(view);
+
+        expect(viewDispatch).toHaveBeenCalledWith({
+            type: 'view/mandala/detail-sidebar/set',
+            payload: { open: false },
+        });
+    });
+
+    it('skips dispatch when the current file already matches its persisted visibility', () => {
+        const { view, viewDispatch } = createTestView({
+            path: 'a.md',
+            showDetailSidebar: true,
+            currentPreferences: {
+                showDetailSidebarDesktop: true,
+            },
+        });
+
+        syncCurrentMandalaDetailSidebarVisibility(view);
+
+        expect(viewDispatch).not.toHaveBeenCalled();
     });
 });

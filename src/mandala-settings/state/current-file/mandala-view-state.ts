@@ -73,6 +73,23 @@ export const resolveInitialMandalaDetailSidebarVisible = (
               settings.view.showMandalaDetailSidebarDesktop;
 };
 
+export const syncCurrentMandalaDetailSidebarVisibility = (
+    view: MandalaView,
+    settings = view.plugin.settings.getValue(),
+) => {
+    const nextVisible = resolveInitialMandalaDetailSidebarVisible(
+        view,
+        settings,
+    );
+    if (view.viewStore.getValue().ui.mandala.showDetailSidebar === nextVisible) {
+        return;
+    }
+    view.viewStore.dispatch({
+        type: 'view/mandala/detail-sidebar/set',
+        payload: { open: nextVisible },
+    });
+};
+
 export const persistCurrentMandalaViewState = (
     view: MandalaView,
     options?: {

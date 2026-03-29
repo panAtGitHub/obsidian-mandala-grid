@@ -67,6 +67,7 @@ import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import {
     ensureCurrentFileCustomLayoutAvailable,
     resolveInitialMandalaDetailSidebarVisible,
+    syncCurrentMandalaDetailSidebarVisibility,
     type MandalaUiStateSnapshot,
 } from 'src/mandala-settings/state/current-file/mandala-view-state';
 import {
@@ -899,6 +900,7 @@ export class MandalaView extends TextFileView {
             filePath,
             settings,
         );
+        syncCurrentMandalaDetailSidebarVisibility(this, hydratedSettings);
         const documentPreferences = hydratedSettings.documents[filePath];
         const persistedMandalaViewState = documentPreferences?.mandalaView;
         const customLayouts = hydratedSettings.view.mandalaGridCustomLayouts;
