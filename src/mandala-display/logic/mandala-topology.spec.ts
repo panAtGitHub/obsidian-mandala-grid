@@ -52,4 +52,37 @@ describe('mandala-topology', () => {
 
         expect(second).toBe(first);
     });
+
+    it('keeps multiple topology entries hot across alternating section maps', () => {
+        const firstMap = {
+            '1': 'node-1',
+            '1.1': 'node-1-1',
+        };
+        const secondMap = {
+            '2': 'node-2',
+            '2.1': 'node-2-1',
+        };
+
+        const first = buildMandalaTopologyIndex(firstMap);
+        buildMandalaTopologyIndex(secondMap);
+        const revisited = buildMandalaTopologyIndex(firstMap);
+
+        expect(revisited).toBe(first);
+    });
+
+    it('evicts the oldest topology entry after the cache exceeds eight section maps', () => {
+        const firstMap = {
+            '1': 'node-1',
+        };
+        const first = buildMandalaTopologyIndex(firstMap);
+
+        for (let index = 2; index <= 9; index += 1) {
+            buildMandalaTopologyIndex({
+                [String(index)]: `node-${index}`,
+            });
+        }
+
+        const revisited = buildMandalaTopologyIndex(firstMap);
+        expect(revisited).not.toBe(first);
+    });
 });

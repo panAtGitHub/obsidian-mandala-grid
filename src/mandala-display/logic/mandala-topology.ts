@@ -3,6 +3,10 @@ import {
     getParentSection,
     parseSectionParts,
 } from 'src/mandala-document/engine/section-utils';
+import {
+    createBoundedCache,
+    createObjectIdentityKeyResolver,
+} from 'src/shared/helpers/bounded-cache';
 
 export type MandalaTopologyEntry = {
     section: string;
@@ -23,8 +27,13 @@ export type MandalaTopologyIndex = {
     childrenBySection: Record<string, string[]>;
 };
 
-let cachedSectionIdMap: Record<string, string | undefined> | null = null;
-let cachedTopologyIndex: MandalaTopologyIndex | null = null;
+const TOPOLOGY_CACHE_LIMIT = 8;
+const topologyCache = createBoundedCache<MandalaTopologyIndex>({
+    capacity: TOPOLOGY_CACHE_LIMIT,
+});
+const resolveSectionIdMapKey = createObjectIdentityKeyResolver({
+    label: 'section-id-map',
+});
 
 const toSectionEntry = (
     section: string,
@@ -45,8 +54,10 @@ const toSectionEntry = (
 export const buildMandalaTopologyIndex = (
     sectionIdMap: Record<string, string | undefined>,
 ): MandalaTopologyIndex => {
-    if (cachedSectionIdMap === sectionIdMap && cachedTopologyIndex) {
-        return cachedTopologyIndex;
+    const cacheKey = resolveSectionIdMapKey(sectionIdMap);
+    const cached = topologyCache.get(cacheKey);
+    if (cached) {
+        return cached;
     }
 
     const orderedSections = Object.keys(sectionIdMap).sort(compareSectionIds);
@@ -79,9 +90,7 @@ export const buildMandalaTopologyIndex = (
         sectionByNodeId,
         childrenBySection,
     };
-    cachedSectionIdMap = sectionIdMap;
-    cachedTopologyIndex = topology;
-    return topology;
+    return topologyCache.set(cacheKey, topology);
 };
 
 export const getTopologyEntry = (

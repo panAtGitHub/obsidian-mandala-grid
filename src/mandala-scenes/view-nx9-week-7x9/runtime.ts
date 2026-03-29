@@ -10,6 +10,10 @@ import {
     type Nx9WeekCellDescriptorList,
     type Nx9WeekCellViewModel,
 } from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
+import {
+    createBoundedCache,
+    createObjectIdentityKeyResolver,
+} from 'src/shared/helpers/bounded-cache';
 
 type WeekActiveCell = { row: number; col: number; page?: number } | null;
 
@@ -24,17 +28,14 @@ type Nx9WeekInteractionSnapshot = {
 };
 
 type WeekStaticCacheEntry = {
-    rows: WeekPlanContext['rows'];
-    sectionIdMap: Record<string, string | undefined>;
-    gridStyleKey: string;
-    displaySnapshot: SceneDisplaySnapshot;
+    key: string;
     descriptors: Nx9WeekCellDescriptorList;
     indexByCellKey: Map<string, number>;
     indexByNodeId: Map<string, number[]>;
 };
 
 type WeekRuntimeCacheEntry = {
-    descriptors: Nx9WeekCellDescriptorList;
+    key: string;
     interaction: Nx9WeekInteractionSnapshot;
     value: Nx9WeekCellViewModel[];
 };
@@ -60,18 +61,6 @@ const buildInteractionSnapshot = ({
     showDetailSidebar: interactionSnapshot.showDetailSidebar,
 });
 
-const sameInteractionSnapshot = (
-    a: Nx9WeekInteractionSnapshot,
-    b: Nx9WeekInteractionSnapshot,
-) =>
-    a.activeNodeId === b.activeNodeId &&
-    a.activeCellKey === b.activeCellKey &&
-    a.editingNodeId === b.editingNodeId &&
-    a.editingInSidebar === b.editingInSidebar &&
-    a.selectedStamp === b.selectedStamp &&
-    a.pinnedStamp === b.pinnedStamp &&
-    a.showDetailSidebar === b.showDetailSidebar;
-
 const canPatchActiveInteractionState = (
     previous: Nx9WeekInteractionSnapshot,
     next: Nx9WeekInteractionSnapshot,
@@ -83,14 +72,6 @@ const canPatchActiveInteractionState = (
     previous.showDetailSidebar === next.showDetailSidebar &&
     (previous.activeNodeId !== next.activeNodeId ||
         previous.activeCellKey !== next.activeCellKey);
-
-const sameDisplaySnapshot = (
-    a: SceneDisplaySnapshot,
-    b: SceneDisplaySnapshot,
-) =>
-    a.backgroundMode === b.backgroundMode &&
-    a.sectionColors === b.sectionColors &&
-    a.sectionColorOpacity === b.sectionColorOpacity;
 
 const buildIndexes = (descriptors: Nx9WeekCellDescriptorList) => {
     const indexByCellKey = new Map<string, number>();
@@ -190,8 +171,48 @@ const patchActiveInteractionState = ({
 };
 
 export const createNx9WeekRuntime = () => {
-    const staticCache: WeekStaticCacheEntry[] = [];
-    const runtimeCache: WeekRuntimeCacheEntry[] = [];
+    const STATIC_CACHE_LIMIT = 12;
+    const RUNTIME_CACHE_LIMIT = 24;
+    const staticCache = createBoundedCache<WeekStaticCacheEntry>({
+        capacity: STATIC_CACHE_LIMIT,
+    });
+    const runtimeCache = createBoundedCache<WeekRuntimeCacheEntry>({
+        capacity: RUNTIME_CACHE_LIMIT,
+    });
+    const latestRuntimeByDescriptorKey =
+        createBoundedCache<WeekRuntimeCacheEntry>({
+            capacity: RUNTIME_CACHE_LIMIT,
+        });
+    const resolveObjectKey = createObjectIdentityKeyResolver();
+
+    const resolveStaticKey = ({
+        weekContext,
+        sectionIdMap,
+        gridStyle,
+        displaySnapshot,
+    }: {
+        weekContext: WeekPlanContext;
+        sectionIdMap: Record<string, string | undefined>;
+        gridStyle: ResolvedGridStyle;
+        displaySnapshot: SceneDisplaySnapshot;
+    }) =>
+        [
+            resolveObjectKey(weekContext.rows),
+            resolveObjectKey(sectionIdMap),
+            gridStyle.cacheKey,
+            resolveObjectKey(displaySnapshot),
+        ].join('|');
+
+    const resolveInteractionKey = (interaction: Nx9WeekInteractionSnapshot) =>
+        [
+            interaction.activeNodeId ?? '',
+            interaction.activeCellKey ?? '',
+            interaction.editingNodeId ?? '',
+            interaction.editingInSidebar ? 'sidebar' : 'main',
+            interaction.selectedStamp,
+            interaction.pinnedStamp,
+            interaction.showDetailSidebar ? 'detail' : 'inline',
+        ].join('|');
 
     const resolveStaticEntry = ({
         weekContext,
@@ -204,13 +225,13 @@ export const createNx9WeekRuntime = () => {
         gridStyle: ResolvedGridStyle;
         displaySnapshot: SceneDisplaySnapshot;
     }) => {
-        const cached = staticCache.find(
-            (candidate) =>
-                candidate.rows === weekContext.rows &&
-                candidate.sectionIdMap === sectionIdMap &&
-                candidate.gridStyleKey === gridStyle.cacheKey &&
-                sameDisplaySnapshot(candidate.displaySnapshot, displaySnapshot),
-        );
+        const key = resolveStaticKey({
+            weekContext,
+            sectionIdMap,
+            gridStyle,
+            displaySnapshot,
+        });
+        const cached = staticCache.get(key);
         if (cached) {
             return cached;
         }
@@ -225,15 +246,11 @@ export const createNx9WeekRuntime = () => {
         });
         const indexes = buildIndexes(descriptors);
         const entry: WeekStaticCacheEntry = {
-            rows: weekContext.rows,
-            sectionIdMap,
-            gridStyleKey: gridStyle.cacheKey,
-            displaySnapshot,
+            key,
             descriptors,
             ...indexes,
         };
-        staticCache.push(entry);
-        return entry;
+        return staticCache.set(key, entry);
     };
 
     const resolveCells = ({
@@ -261,13 +278,17 @@ export const createNx9WeekRuntime = () => {
             interactionSnapshot,
             activeCell,
         });
-        const cached = runtimeCache.find(
-            (candidate) => candidate.descriptors === staticEntry.descriptors,
-        );
-        if (cached && sameInteractionSnapshot(cached.interaction, interaction)) {
-            return cached.value;
+        const runtimeKey = [
+            staticEntry.key,
+            resolveInteractionKey(interaction),
+        ].join('|');
+        const exactCached = runtimeCache.get(runtimeKey);
+        if (exactCached) {
+            latestRuntimeByDescriptorKey.set(staticEntry.key, exactCached);
+            return exactCached.value;
         }
 
+        const cached = latestRuntimeByDescriptorKey.get(staticEntry.key);
         if (
             cached &&
             canPatchActiveInteractionState(cached.interaction, interaction)
@@ -279,8 +300,13 @@ export const createNx9WeekRuntime = () => {
                 indexByCellKey: staticEntry.indexByCellKey,
                 indexByNodeId: staticEntry.indexByNodeId,
             });
-            cached.interaction = interaction;
-            cached.value = patched;
+            const entry: WeekRuntimeCacheEntry = {
+                key: runtimeKey,
+                interaction,
+                value: patched,
+            };
+            latestRuntimeByDescriptorKey.set(staticEntry.key, entry);
+            runtimeCache.set(runtimeKey, entry);
             return patched;
         }
 
@@ -290,17 +316,13 @@ export const createNx9WeekRuntime = () => {
             activeNodeId: interactionSnapshot.activeNodeId,
             activeCell,
         });
-        if (cached) {
-            cached.interaction = interaction;
-            cached.value = value;
-            return value;
-        }
-
-        runtimeCache.push({
-            descriptors: staticEntry.descriptors,
+        const entry: WeekRuntimeCacheEntry = {
+            key: runtimeKey,
             interaction,
             value,
-        });
+        };
+        latestRuntimeByDescriptorKey.set(staticEntry.key, entry);
+        runtimeCache.set(runtimeKey, entry);
         return value;
     };
 

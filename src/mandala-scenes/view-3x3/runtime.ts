@@ -10,23 +10,15 @@ import {
     type ThreeByThreeCellViewModel,
     type ThreeByThreeCardCellDescriptorExtra,
 } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
+import {
+    createBoundedCache,
+    createObjectIdentityKeyResolver,
+} from 'src/shared/helpers/bounded-cache';
 
 type ThreeByThreeRuntimeArgs = Assemble3x3CellViewModelsArgs;
 
 type ThreeByThreeStaticCacheEntry = {
-    theme: string;
-    selectedLayoutId: string | null;
-    customLayouts: ThreeByThreeRuntimeArgs['customLayouts'];
-    topology: ThreeByThreeRuntimeArgs['topology'];
-    gridStyleKey: string;
-    displaySnapshot: ThreeByThreeRuntimeArgs['displaySnapshot'];
     descriptors: SceneCardCellDescriptorList<ThreeByThreeCardCellDescriptorExtra>;
-};
-
-type ThreeByThreeCellsCacheEntry = {
-    descriptors: SceneCardCellDescriptorList<ThreeByThreeCardCellDescriptorExtra>;
-    interaction: SceneCardInteractionDescriptor;
-    value: ThreeByThreeCellViewModel[];
 };
 
 type InteractionStampCarrier = {
@@ -34,47 +26,59 @@ type InteractionStampCarrier = {
     pinnedStamp?: string;
 };
 
-const sameDisplaySnapshot = (
-    a: ThreeByThreeRuntimeArgs['displaySnapshot'],
-    b: ThreeByThreeRuntimeArgs['displaySnapshot'],
-) =>
-    a.backgroundMode === b.backgroundMode &&
-    a.sectionColors === b.sectionColors &&
-    a.sectionColorOpacity === b.sectionColorOpacity;
-
-const sameEditingState = (
-    a: SceneCardInteractionDescriptor['editingState'],
-    b: SceneCardInteractionDescriptor['editingState'],
-) => a.activeNodeId === b.activeNodeId && a.isInSidebar === b.isInSidebar;
-
-const sameInteractionSnapshot = (
-    a: SceneCardInteractionDescriptor,
-    b: SceneCardInteractionDescriptor,
-) => {
-    const aStamps = a as SceneCardInteractionDescriptor & InteractionStampCarrier;
-    const bStamps = b as SceneCardInteractionDescriptor & InteractionStampCarrier;
-    const sameSelected =
-        aStamps.selectedStamp !== undefined &&
-        bStamps.selectedStamp !== undefined
-            ? aStamps.selectedStamp === bStamps.selectedStamp
-            : a.selectedNodes === b.selectedNodes;
-    const samePinned =
-        aStamps.pinnedStamp !== undefined && bStamps.pinnedStamp !== undefined
-            ? aStamps.pinnedStamp === bStamps.pinnedStamp
-            : a.pinnedSections === b.pinnedSections;
-
-    return (
-        a.activeNodeId === b.activeNodeId &&
-        sameEditingState(a.editingState, b.editingState) &&
-        sameSelected &&
-        samePinned &&
-        a.showDetailSidebar === b.showDetailSidebar
-    );
-};
-
 export const createThreeByThreeRuntime = () => {
-    const staticCache: ThreeByThreeStaticCacheEntry[] = [];
-    const cellsCache: ThreeByThreeCellsCacheEntry[] = [];
+    const STATIC_CACHE_LIMIT = 12;
+    const CELLS_CACHE_LIMIT = 24;
+    const staticCache = createBoundedCache<ThreeByThreeStaticCacheEntry>({
+        capacity: STATIC_CACHE_LIMIT,
+    });
+    const cellsCache = createBoundedCache<ThreeByThreeCellViewModel[]>({
+        capacity: CELLS_CACHE_LIMIT,
+    });
+    const resolveObjectKey = createObjectIdentityKeyResolver();
+
+    const resolveStaticKey = ({
+        theme,
+        selectedLayoutId,
+        customLayouts,
+        topology,
+        gridStyle,
+        displaySnapshot,
+    }: Pick<
+        ThreeByThreeRuntimeArgs,
+        | 'theme'
+        | 'selectedLayoutId'
+        | 'customLayouts'
+        | 'topology'
+        | 'gridStyle'
+        | 'displaySnapshot'
+    >) =>
+        [
+            theme,
+            selectedLayoutId ?? 'default',
+            resolveObjectKey(customLayouts),
+            resolveObjectKey(topology),
+            gridStyle.cacheKey,
+            resolveObjectKey(displaySnapshot),
+        ].join('|');
+
+    const resolveInteractionKey = (interaction: SceneCardInteractionDescriptor) => {
+        const stamps = interaction as SceneCardInteractionDescriptor &
+            InteractionStampCarrier;
+        const selectedKey =
+            stamps.selectedStamp ?? resolveObjectKey(interaction.selectedNodes);
+        const pinnedKey =
+            stamps.pinnedStamp ?? resolveObjectKey(interaction.pinnedSections);
+
+        return [
+            interaction.activeNodeId ?? '',
+            interaction.editingState.activeNodeId ?? '',
+            interaction.editingState.isInSidebar ? 'sidebar' : 'main',
+            selectedKey,
+            pinnedKey,
+            interaction.showDetailSidebar ? 'detail' : 'inline',
+        ].join('|');
+    };
 
     const resolveStaticDescriptors = ({
         theme,
@@ -92,17 +96,20 @@ export const createThreeByThreeRuntime = () => {
         | 'gridStyle'
         | 'displaySnapshot'
     >) => {
-        const cached = staticCache.find(
-            (candidate) =>
-                candidate.theme === theme &&
-                candidate.selectedLayoutId === selectedLayoutId &&
-                candidate.customLayouts === customLayouts &&
-                candidate.topology === topology &&
-                candidate.gridStyleKey === gridStyle.cacheKey &&
-                sameDisplaySnapshot(candidate.displaySnapshot, displaySnapshot),
-        );
+        const key = resolveStaticKey({
+            theme,
+            selectedLayoutId,
+            customLayouts,
+            topology,
+            gridStyle,
+            displaySnapshot,
+        });
+        const cached = staticCache.get(key);
         if (cached) {
-            return cached.descriptors;
+            return {
+                key,
+                descriptors: cached.descriptors,
+            };
         }
 
         const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
@@ -113,39 +120,30 @@ export const createThreeByThreeRuntime = () => {
             displaySnapshot,
             displayPolicy: gridStyle.cellDisplayPolicy,
         });
-        staticCache.push({
-            theme,
-            selectedLayoutId,
-            customLayouts,
-            topology,
-            gridStyleKey: gridStyle.cacheKey,
-            displaySnapshot,
+        staticCache.set(key, {
             descriptors,
         });
-        return descriptors;
+        return {
+            key,
+            descriptors,
+        };
     };
 
     const resolveCells = (args: ThreeByThreeRuntimeArgs) => {
-        const descriptors = resolveStaticDescriptors(args);
-        const cached = cellsCache.find(
-            (candidate) =>
-                candidate.descriptors === descriptors &&
-                sameInteractionSnapshot(candidate.interaction, args.interaction),
+        const { key: staticKey, descriptors } = resolveStaticDescriptors(args);
+        const cellsKey = [staticKey, resolveInteractionKey(args.interaction)].join(
+            '|',
         );
+        const cached = cellsCache.get(cellsKey);
         if (cached) {
-            return cached.value;
+            return cached;
         }
 
         const value = buildSceneCardCellList({
             descriptors,
             interaction: args.interaction,
         });
-        cellsCache.push({
-            descriptors,
-            interaction: args.interaction,
-            value,
-        });
-        return value;
+        return cellsCache.set(cellsKey, value);
     };
 
     return {

@@ -189,4 +189,68 @@ describe('root-controller', () => {
         expect(mocks.cleanSceneCaches).toHaveBeenCalledTimes(1);
         expect(mocks.flushSceneSyncTrace).toHaveBeenCalledTimes(1);
     });
+
+    it('reuses derived display data when only the theme snapshot changes', () => {
+        const view = {
+            plugin: {
+                settings: {
+                    getValue: () => ({
+                        general: {
+                            weekPlanEnabled: true,
+                        },
+                    }),
+                },
+            },
+            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
+        } as never;
+        const controller = createSceneRootController(view);
+        const args = createArgs();
+        const first = controller.buildContext(args);
+        const second = controller.buildContext({
+            ...args,
+            sceneThemeSnapshot: {
+                themeTone: 'dark',
+                themeUnderlayColor: '#111',
+                activeThemeUnderlayColor: '#222',
+            },
+        });
+
+        expect(second.dayPlan).toBe(first.dayPlan);
+        expect(second.dayPlanTodayNavigation).toStrictEqual(
+            first.dayPlanTodayNavigation,
+        );
+        expect(second.weekContext).toBe(first.weekContext);
+        expect(second.topology).toBe(first.topology);
+        expect(second.gridStyles).toBe(first.gridStyles);
+        expect(second.sceneThemeSnapshot).not.toBe(first.sceneThemeSnapshot);
+    });
+
+    it('only refreshes the week grid style when compact mode changes', () => {
+        const view = {
+            plugin: {
+                settings: {
+                    getValue: () => ({
+                        general: {
+                            weekPlanEnabled: true,
+                        },
+                    }),
+                },
+            },
+            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
+        } as never;
+        const controller = createSceneRootController(view);
+        const args = createArgs();
+        const first = controller.buildContext(args);
+        const second = controller.buildContext({
+            ...args,
+            weekPlanCompactMode: true,
+        });
+
+        expect(second.dayPlan).toBe(first.dayPlan);
+        expect(second.weekContext).toBe(first.weekContext);
+        expect(second.topology).toBe(first.topology);
+        expect(second.gridStyles.threeByThree).toBe(first.gridStyles.threeByThree);
+        expect(second.gridStyles.nx9).toBe(first.gridStyles.nx9);
+        expect(second.gridStyles.week).not.toBe(first.gridStyles.week);
+    });
 });

@@ -36,7 +36,26 @@ describe('nx9-context-runtime', () => {
         expect(recordPerfEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('reuses the page context while structure and requested page stay stable', () => {
+    it('invalidates the structure cache when content revision changes', () => {
+        const runtime = createNx9ContextRuntime();
+        const first = runtime.resolveStructureContext({
+            documentSnapshot,
+            rowsPerPage: 5,
+            activeSection: '1',
+        });
+        const second = runtime.resolveStructureContext({
+            documentSnapshot: {
+                ...documentSnapshot,
+                contentRevision: 3,
+            },
+            rowsPerPage: 5,
+            activeSection: '1',
+        });
+
+        expect(second).not.toBe(first);
+    });
+
+    it('invalidates the page cache when the active cell changes within a page', () => {
         const runtime = createNx9ContextRuntime();
         const structureContext = runtime.resolveStructureContext({
             documentSnapshot,
@@ -55,7 +74,7 @@ describe('nx9-context-runtime', () => {
             activeCell: { row: 0, col: 1, page: 0 },
         });
 
-        expect(second).toBe(first);
+        expect(second).not.toBe(first);
     });
 
     it('caches adjacent page contexts independently for the same structure context', () => {
@@ -85,7 +104,23 @@ describe('nx9-context-runtime', () => {
             requestedPage: 1,
         });
 
-        expect(firstPage1).toBe(secondPage1);
+        expect(firstPage1).not.toBe(secondPage1);
         expect(firstPage0).not.toBe(firstPage1);
+    });
+
+    it('reuses the structure context when only the active cell changes', () => {
+        const runtime = createNx9ContextRuntime();
+        const first = runtime.resolveStructureContext({
+            documentSnapshot,
+            rowsPerPage: 5,
+            activeSection: '1',
+        });
+        const second = runtime.resolveStructureContext({
+            documentSnapshot,
+            rowsPerPage: 5,
+            activeSection: '1.7',
+        });
+
+        expect(second).toBe(first);
     });
 });

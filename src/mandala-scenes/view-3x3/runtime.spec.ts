@@ -92,4 +92,40 @@ describe('three-by-three-runtime', () => {
         expect(active).not.toBe(inactive);
         expect(activeAgain).toBe(active);
     });
+
+    it('evicts the oldest interaction entries when the runtime cache is full', () => {
+        const runtime = createThreeByThreeRuntime();
+        const args = {
+            theme: '1',
+            selectedLayoutId: null,
+            customLayouts: [],
+            topology,
+            gridStyle,
+            displaySnapshot,
+        };
+        const first = runtime.resolveCells({
+            ...args,
+            interaction: createInteraction({
+                activeNodeId: 'node-0',
+            }),
+        });
+
+        for (let index = 1; index <= 24; index += 1) {
+            runtime.resolveCells({
+                ...args,
+                interaction: createInteraction({
+                    activeNodeId: `node-${index}`,
+                }),
+            });
+        }
+
+        const revisited = runtime.resolveCells({
+            ...args,
+            interaction: createInteraction({
+                activeNodeId: 'node-0',
+            }),
+        });
+
+        expect(revisited).not.toBe(first);
+    });
 });

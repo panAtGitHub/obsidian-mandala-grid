@@ -4,6 +4,10 @@ import {
     buildSceneDisplaySnapshot,
     buildSceneDocumentSnapshot,
 } from 'src/mandala-scenes/shared/scene-snapshot-builders';
+import {
+    createBoundedCache,
+    createObjectIdentityKeyResolver,
+} from 'src/shared/helpers/bounded-cache';
 
 type SceneInputRuntimeOptions = {
     documentState: DocumentState;
@@ -65,7 +69,12 @@ const buildSceneInputSnapshotsUncached = ({
     }),
 });
 
-let cachedSceneInputSnapshots: SceneInputRuntimeCacheEntry | null = null;
+const SNAPSHOT_CACHE_LIMIT = 8;
+const snapshotCache =
+    createBoundedCache<SceneInputRuntimeCacheEntry['value']>({
+        capacity: SNAPSHOT_CACHE_LIMIT,
+    });
+const resolveObjectKey = createObjectIdentityKeyResolver();
 
 export const buildSceneInputSnapshots = ({
     documentState,
@@ -81,22 +90,23 @@ export const buildSceneInputSnapshots = ({
     pinnedSections,
     pinnedStamp,
 }: SceneInputRuntimeOptions) => {
-    if (
-        cachedSceneInputSnapshots &&
-        cachedSceneInputSnapshots.documentState === documentState &&
-        cachedSceneInputSnapshots.sectionColors === sectionColors &&
-        cachedSceneInputSnapshots.sectionColorOpacity === sectionColorOpacity &&
-        cachedSceneInputSnapshots.backgroundMode === backgroundMode &&
-        cachedSceneInputSnapshots.showDetailSidebar === showDetailSidebar &&
-        cachedSceneInputSnapshots.whiteThemeMode === whiteThemeMode &&
-        cachedSceneInputSnapshots.activeNodeId === activeNodeId &&
-        cachedSceneInputSnapshots.editingState === editingState &&
-        cachedSceneInputSnapshots.selectedNodes === selectedNodes &&
-        cachedSceneInputSnapshots.selectedStamp === selectedStamp &&
-        cachedSceneInputSnapshots.pinnedSections === pinnedSections &&
-        cachedSceneInputSnapshots.pinnedStamp === pinnedStamp
-    ) {
-        return cachedSceneInputSnapshots.value;
+    const cacheKey = [
+        resolveObjectKey(documentState),
+        resolveObjectKey(sectionColors),
+        sectionColorOpacity,
+        backgroundMode,
+        showDetailSidebar ? 'detail' : 'inline',
+        whiteThemeMode ? 'white' : 'theme',
+        activeNodeId ?? '',
+        resolveObjectKey(editingState),
+        resolveObjectKey(selectedNodes),
+        selectedStamp,
+        resolveObjectKey(pinnedSections),
+        pinnedStamp,
+    ].join('|');
+    const cached = snapshotCache.get(cacheKey);
+    if (cached) {
+        return cached;
     }
 
     const value = buildSceneInputSnapshotsUncached({
@@ -113,20 +123,5 @@ export const buildSceneInputSnapshots = ({
         pinnedSections,
         pinnedStamp,
     });
-    cachedSceneInputSnapshots = {
-        documentState,
-        sectionColors,
-        sectionColorOpacity,
-        backgroundMode,
-        showDetailSidebar,
-        whiteThemeMode,
-        activeNodeId,
-        editingState,
-        selectedNodes,
-        selectedStamp,
-        pinnedSections,
-        pinnedStamp,
-        value,
-    };
-    return value;
+    return snapshotCache.set(cacheKey, value);
 };

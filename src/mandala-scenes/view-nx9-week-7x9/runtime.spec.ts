@@ -98,4 +98,44 @@ describe('nx9-week-runtime', () => {
         expect(shifted[9]).not.toBe(base[9]);
         expect(shifted[1]).toBe(base[1]);
     });
+
+    it('evicts the oldest week runtime entries once the bounded cache is full', () => {
+        const runtime = createNx9WeekRuntime();
+        const firstDisplaySnapshot = {
+            ...displaySnapshot,
+        };
+        const first = runtime.resolveCells({
+            weekContext,
+            sectionIdMap,
+            gridStyle,
+            displaySnapshot: firstDisplaySnapshot,
+            interactionSnapshot: createInteraction(),
+            activeCell: null,
+        });
+
+        for (let index = 1; index <= 24; index += 1) {
+            runtime.resolveCells({
+                weekContext,
+                sectionIdMap,
+                gridStyle,
+                displaySnapshot: {
+                    ...displaySnapshot,
+                    backgroundMode: `custom-${index}`,
+                },
+                interactionSnapshot: createInteraction(),
+                activeCell: null,
+            });
+        }
+
+        const revisited = runtime.resolveCells({
+            weekContext,
+            sectionIdMap,
+            gridStyle,
+            displaySnapshot: firstDisplaySnapshot,
+            interactionSnapshot: createInteraction(),
+            activeCell: null,
+        });
+
+        expect(revisited).not.toBe(first);
+    });
 });

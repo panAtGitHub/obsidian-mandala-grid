@@ -6,16 +6,22 @@ import type {
 import { buildNx9SceneProjection } from 'src/mandala-scenes/view-nx9/build-scene-projection';
 import {
     normalizeNx9VisibleSection,
-    resolveNx9Context,
 } from 'src/mandala-scenes/view-nx9/context';
+import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 
-const syncNx9SceneState = (context: SceneRootContext) => {
-    const section = context.idToSection[context.ui.activeNodeId ?? ''];
-    const nx9Context = resolveNx9Context({
-        sectionIdMap: context.documentState.sections.section_id,
-        documentContent: context.documentState.document.content,
+const syncNx9SceneState = (
+    context: SceneRootContext,
+    contextRuntime: ReturnType<typeof createNx9ContextRuntime>,
+) => {
+    const section = context.idToSection[context.ui.activeNodeId ?? ''] ?? null;
+    const structureContext = contextRuntime.resolveStructureContext({
+        documentSnapshot: context.documentSnapshot,
         rowsPerPage: context.settings.nx9RowsPerPage,
+        activeSection: context.ui.activeCoreSection,
+    });
+    const nx9Context = contextRuntime.resolvePageContext({
+        structureContext,
         activeSection: section,
         activeCell: context.ui.nx9ActiveCell,
     });
@@ -78,6 +84,7 @@ const syncNx9SceneState = (context: SceneRootContext) => {
 };
 
 export const createNx9Controller = (): SceneController => {
+    const contextRuntime = createNx9ContextRuntime();
     let cachedProjection: Nx9SceneProjection | null = null;
     let cachedDocumentSnapshot: SceneRootContext['documentSnapshot'] | null =
         null;
@@ -95,7 +102,7 @@ export const createNx9Controller = (): SceneController => {
 
     return {
         resolveProjection: (context) => {
-            syncNx9SceneState(context);
+            syncNx9SceneState(context, contextRuntime);
 
             const nextSceneKeyId = `${context.sceneKey.viewKind}:${context.sceneKey.variant}`;
             if (

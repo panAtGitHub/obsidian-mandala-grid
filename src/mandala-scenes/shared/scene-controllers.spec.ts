@@ -10,7 +10,8 @@ const mocks = vi.hoisted(() => ({
     syncThreeByThreeDayPlanSceneState: vi.fn(),
     resolveThreeByThreeDayPlanTodayTargetSection: vi.fn(),
     buildNx9SceneProjection: vi.fn(),
-    resolveNx9Context: vi.fn(),
+    resolveNx9StructureContext: vi.fn(),
+    resolveNx9PageContext: vi.fn(),
     setActiveCellNx9: vi.fn(),
     buildNx9WeekSceneProjection: vi.fn(),
     runtimeResolveCells: vi.fn(),
@@ -45,7 +46,13 @@ vi.mock('src/mandala-scenes/view-nx9/build-scene-projection', () => ({
 
 vi.mock('src/mandala-scenes/view-nx9/context', () => ({
     normalizeNx9VisibleSection: (section: string | undefined) => section ?? null,
-    resolveNx9Context: mocks.resolveNx9Context,
+}));
+
+vi.mock('src/mandala-scenes/view-nx9/context-runtime', () => ({
+    createNx9ContextRuntime: () => ({
+        resolveStructureContext: mocks.resolveNx9StructureContext,
+        resolvePageContext: mocks.resolveNx9PageContext,
+    }),
 }));
 
 vi.mock('src/mandala-scenes/view-nx9/set-active-cell', () => ({
@@ -221,7 +228,8 @@ describe('scene-controllers', () => {
         mocks.syncThreeByThreeDayPlanSceneState.mockReset();
         mocks.resolveThreeByThreeDayPlanTodayTargetSection.mockReset();
         mocks.buildNx9SceneProjection.mockReset();
-        mocks.resolveNx9Context.mockReset();
+        mocks.resolveNx9StructureContext.mockReset();
+        mocks.resolveNx9PageContext.mockReset();
         mocks.setActiveCellNx9.mockReset();
         mocks.buildNx9WeekSceneProjection.mockReset();
         mocks.runtimeResolveCells.mockReset();
@@ -284,7 +292,14 @@ describe('scene-controllers', () => {
                 props,
             }),
         );
-        mocks.resolveNx9Context.mockReturnValue({
+        mocks.resolveNx9StructureContext.mockReturnValue({
+            posForSection: () => ({
+                row: 0,
+                col: 0,
+                page: 0,
+            }),
+        });
+        mocks.resolveNx9PageContext.mockReturnValue({
             posForSection: () => ({
                 row: 0,
                 col: 0,
@@ -390,7 +405,8 @@ describe('scene-controllers', () => {
         const second = controller.resolveProjection(context);
 
         expect(first).toBe(second);
-        expect(mocks.resolveNx9Context).toHaveBeenCalledTimes(2);
+        expect(mocks.resolveNx9StructureContext).toHaveBeenCalledTimes(2);
+        expect(mocks.resolveNx9PageContext).toHaveBeenCalledTimes(2);
         expect(mocks.buildNx9SceneProjection).toHaveBeenCalledTimes(1);
         expect(mocks.setActiveCellNx9).not.toHaveBeenCalled();
     });

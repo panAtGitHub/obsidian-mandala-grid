@@ -61,54 +61,91 @@ type BuildSceneRootContextArgs = {
     mode: MandalaMode;
 };
 
+type SceneFacts = {
+    sceneKey: SceneRootContext['sceneKey'];
+    sectionToNodeId: SceneRootContext['sectionToNodeId'];
+    idToSection: SceneRootContext['idToSection'];
+    activeSection: string | null;
+    activeCoreSection: string | null;
+};
+
+type SceneSnapshots = Pick<
+    SceneRootContext,
+    'documentSnapshot' | 'displaySnapshot' | 'interactionSnapshot'
+>;
+
+type SceneDerivedDisplay = Pick<
+    SceneRootContext,
+    'dayPlan' | 'dayPlanTodayNavigation' | 'weekContext' | 'topology' | 'gridStyles'
+>;
+
 export const createSceneRootController = (view: MandalaView) => {
     const cleanSceneCaches = createSceneCacheCleaner();
     const controllerRegistry = createSceneControllerRegistry(view);
+    let cachedFacts: SceneFacts | null = null;
+    let cachedFactsArgs:
+        | Pick<BuildSceneRootContextArgs, 'documentState' | 'activeNodeId' | 'mode'>
+        | null = null;
+    let cachedSnapshots: SceneSnapshots | null = null;
+    let cachedSnapshotArgs:
+        | Pick<
+              BuildSceneRootContextArgs,
+              | 'documentState'
+              | 'sectionColors'
+              | 'sectionColorOpacity'
+              | 'backgroundMode'
+              | 'showDetailSidebar'
+              | 'whiteThemeMode'
+              | 'activeNodeId'
+              | 'editingState'
+              | 'selectedNodes'
+              | 'selectedStamp'
+              | 'pinnedSections'
+              | 'pinnedStamp'
+          >
+        | null = null;
+    let cachedDerivedDisplay: SceneDerivedDisplay | null = null;
+    let cachedDerivedArgs:
+        | {
+              frontmatter: string;
+              weekAnchorDate: string | null | undefined;
+              weekStart: WeekStart;
+              weekPlanCompactMode: boolean;
+              displaySnapshot: SceneRootContext['displaySnapshot'];
+              sectionToNodeId: SceneRootContext['sectionToNodeId'];
+          }
+        | null = null;
     let cachedContext: SceneRootContext | null = null;
-    let cachedArgs: BuildSceneRootContextArgs | null = null;
+    let cachedContextDeps:
+        | {
+              facts: SceneFacts;
+              snapshots: SceneSnapshots;
+              derivedDisplay: SceneDerivedDisplay;
+              sceneThemeSnapshot: BuildSceneRootContextArgs['sceneThemeSnapshot'];
+              committedSceneKey: BuildSceneRootContextArgs['committedSceneKey'];
+              selectedLayoutId: string;
+              customLayouts: BuildSceneRootContextArgs['customLayouts'];
+              nx9RowsPerPage: number;
+              weekPlanCompactMode: boolean;
+              weekStart: WeekStart;
+              dayPlanEnabled: boolean;
+              showDayPlanTodayButton: boolean;
+              show3x3SubgridNavButtons: boolean;
+              uiKey: string;
+          }
+        | null = null;
     let cachedProjectionContext: SceneRootContext | null = null;
     let cachedProjection: SceneProjection | null = null;
 
-    const buildContext = (args: BuildSceneRootContextArgs): SceneRootContext => {
+    const resolveSceneFacts = (args: BuildSceneRootContextArgs) => {
         if (
-            cachedContext &&
-            cachedArgs &&
-            cachedArgs.documentState === args.documentState &&
-            cachedArgs.sceneThemeSnapshot === args.sceneThemeSnapshot &&
-            cachedArgs.committedSceneKey === args.committedSceneKey &&
-            cachedArgs.activeNodeId === args.activeNodeId &&
-            cachedArgs.editingState === args.editingState &&
-            cachedArgs.selectedNodes === args.selectedNodes &&
-            cachedArgs.selectedStamp === args.selectedStamp &&
-            cachedArgs.pinnedSections === args.pinnedSections &&
-            cachedArgs.pinnedStamp === args.pinnedStamp &&
-            cachedArgs.sectionColors === args.sectionColors &&
-            cachedArgs.sectionColorOpacity === args.sectionColorOpacity &&
-            cachedArgs.backgroundMode === args.backgroundMode &&
-            cachedArgs.showDetailSidebar === args.showDetailSidebar &&
-            cachedArgs.whiteThemeMode === args.whiteThemeMode &&
-            cachedArgs.subgridTheme === args.subgridTheme &&
-            cachedArgs.nx9ActiveCell === args.nx9ActiveCell &&
-            cachedArgs.weekAnchorDate === args.weekAnchorDate &&
-            cachedArgs.selectedLayoutId === args.selectedLayoutId &&
-            cachedArgs.customLayouts === args.customLayouts &&
-            cachedArgs.nx9RowsPerPage === args.nx9RowsPerPage &&
-            cachedArgs.weekPlanCompactMode === args.weekPlanCompactMode &&
-            cachedArgs.weekStart === args.weekStart &&
-            cachedArgs.dayPlanEnabled === args.dayPlanEnabled &&
-            cachedArgs.showDayPlanTodayButton ===
-                args.showDayPlanTodayButton &&
-            cachedArgs.show3x3SubgridNavButtons ===
-                args.show3x3SubgridNavButtons &&
-            cachedArgs.hasOpenOverlayModal === args.hasOpenOverlayModal &&
-            cachedArgs.animateSwap === args.animateSwap &&
-            cachedArgs.desktopSquareSize === args.desktopSquareSize &&
-            cachedArgs.isMobilePopupEditing === args.isMobilePopupEditing &&
-            cachedArgs.isMobileFullScreenSearch ===
-                args.isMobileFullScreenSearch &&
-            cachedArgs.mode === args.mode
+            cachedFacts &&
+            cachedFactsArgs &&
+            cachedFactsArgs.documentState === args.documentState &&
+            cachedFactsArgs.activeNodeId === args.activeNodeId &&
+            cachedFactsArgs.mode === args.mode
         ) {
-            return cachedContext;
+            return cachedFacts;
         }
 
         const sectionToNodeId = args.documentState.sections.section_id;
@@ -117,13 +154,48 @@ export const createSceneRootController = (view: MandalaView) => {
             ? idToSection[args.activeNodeId] ?? null
             : null;
         const activeCoreSection = activeSection?.split('.')[0] ?? null;
-        const sceneKey = resolveMandalaSceneKey({
-            frontmatter: args.documentState.file.frontmatter,
-            viewKind: args.mode,
-            weekPlanEnabled:
-                view.plugin.settings.getValue().general.weekPlanEnabled,
-        });
-        const sceneInputSnapshots = buildSceneInputSnapshots({
+        const nextFacts = {
+            sceneKey: resolveMandalaSceneKey({
+                frontmatter: args.documentState.file.frontmatter,
+                viewKind: args.mode,
+                weekPlanEnabled:
+                    view.plugin.settings.getValue().general.weekPlanEnabled,
+            }),
+            sectionToNodeId,
+            idToSection,
+            activeSection,
+            activeCoreSection,
+        };
+        cachedFactsArgs = {
+            documentState: args.documentState,
+            activeNodeId: args.activeNodeId,
+            mode: args.mode,
+        };
+        cachedFacts = nextFacts;
+        return nextFacts;
+    };
+
+    const resolveSceneSnapshots = (args: BuildSceneRootContextArgs) => {
+        if (
+            cachedSnapshots &&
+            cachedSnapshotArgs &&
+            cachedSnapshotArgs.documentState === args.documentState &&
+            cachedSnapshotArgs.sectionColors === args.sectionColors &&
+            cachedSnapshotArgs.sectionColorOpacity === args.sectionColorOpacity &&
+            cachedSnapshotArgs.backgroundMode === args.backgroundMode &&
+            cachedSnapshotArgs.showDetailSidebar === args.showDetailSidebar &&
+            cachedSnapshotArgs.whiteThemeMode === args.whiteThemeMode &&
+            cachedSnapshotArgs.activeNodeId === args.activeNodeId &&
+            cachedSnapshotArgs.editingState === args.editingState &&
+            cachedSnapshotArgs.selectedNodes === args.selectedNodes &&
+            cachedSnapshotArgs.selectedStamp === args.selectedStamp &&
+            cachedSnapshotArgs.pinnedSections === args.pinnedSections &&
+            cachedSnapshotArgs.pinnedStamp === args.pinnedStamp
+        ) {
+            return cachedSnapshots;
+        }
+
+        const nextSnapshots = buildSceneInputSnapshots({
             documentState: args.documentState,
             sectionColors: args.sectionColors,
             sectionColorOpacity: args.sectionColorOpacity,
@@ -137,46 +209,140 @@ export const createSceneRootController = (view: MandalaView) => {
             pinnedSections: args.pinnedSections,
             pinnedStamp: args.pinnedStamp,
         });
-        const dayPlan = parseDayPlanFrontmatter(
-            args.documentState.file.frontmatter,
-        );
-        const weekContext = resolveWeekPlanContext({
-            frontmatter: args.documentState.file.frontmatter,
-            anchorDate: args.weekAnchorDate,
-            weekStart: args.weekStart,
+        cachedSnapshotArgs = {
+            documentState: args.documentState,
+            sectionColors: args.sectionColors,
+            sectionColorOpacity: args.sectionColorOpacity,
+            backgroundMode: args.backgroundMode,
+            showDetailSidebar: args.showDetailSidebar,
+            whiteThemeMode: args.whiteThemeMode,
+            activeNodeId: args.activeNodeId,
+            editingState: args.editingState,
+            selectedNodes: args.selectedNodes,
+            selectedStamp: args.selectedStamp,
+            pinnedSections: args.pinnedSections,
+            pinnedStamp: args.pinnedStamp,
+        };
+        cachedSnapshots = nextSnapshots;
+        return nextSnapshots;
+    };
+
+    const resolveSceneDerivedDisplay = ({
+        args,
+        facts,
+        snapshots,
+    }: {
+        args: BuildSceneRootContextArgs;
+        facts: NonNullable<typeof cachedFacts>;
+        snapshots: NonNullable<typeof cachedSnapshots>;
+    }) => {
+        const frontmatter = args.documentState.file.frontmatter;
+        if (
+            cachedDerivedDisplay &&
+            cachedDerivedArgs &&
+            cachedDerivedArgs.frontmatter === frontmatter &&
+            cachedDerivedArgs.weekAnchorDate === args.weekAnchorDate &&
+            cachedDerivedArgs.weekStart === args.weekStart &&
+            cachedDerivedArgs.weekPlanCompactMode === args.weekPlanCompactMode &&
+            cachedDerivedArgs.displaySnapshot === snapshots.displaySnapshot &&
+            cachedDerivedArgs.sectionToNodeId === facts.sectionToNodeId
+        ) {
+            return cachedDerivedDisplay;
+        }
+
+        const baseGridStyle = resolveCardGridStyle({
+            whiteThemeMode: snapshots.displaySnapshot.whiteThemeMode,
         });
+        const nextDerivedDisplay = {
+            dayPlan: parseDayPlanFrontmatter(frontmatter),
+            dayPlanTodayNavigation: resolveDayPlanTodayNavigation(frontmatter),
+            weekContext: resolveWeekPlanContext({
+                frontmatter,
+                anchorDate: args.weekAnchorDate,
+                weekStart: args.weekStart,
+            }),
+            topology: buildMandalaTopologyIndex(facts.sectionToNodeId),
+            gridStyles: {
+                threeByThree: baseGridStyle,
+                nx9: baseGridStyle,
+                week: resolveCardGridStyle({
+                    whiteThemeMode: snapshots.displaySnapshot.whiteThemeMode,
+                    compactMode: args.weekPlanCompactMode,
+                }),
+            },
+        };
+        cachedDerivedArgs = {
+            frontmatter,
+            weekAnchorDate: args.weekAnchorDate,
+            weekStart: args.weekStart,
+            weekPlanCompactMode: args.weekPlanCompactMode,
+            displaySnapshot: snapshots.displaySnapshot,
+            sectionToNodeId: facts.sectionToNodeId,
+        };
+        cachedDerivedDisplay = nextDerivedDisplay;
+        return nextDerivedDisplay;
+    };
+
+    const buildContext = (args: BuildSceneRootContextArgs): SceneRootContext => {
+        const facts = resolveSceneFacts(args);
+        const sceneInputSnapshots = resolveSceneSnapshots(args);
+        const derivedDisplay = resolveSceneDerivedDisplay({
+            args,
+            facts,
+            snapshots: sceneInputSnapshots,
+        });
+        const uiKey = [
+            args.activeNodeId ?? '',
+            args.subgridTheme ?? '',
+            args.nx9ActiveCell?.row ?? '',
+            args.nx9ActiveCell?.col ?? '',
+            args.nx9ActiveCell?.page ?? '',
+            args.weekAnchorDate ?? '',
+            args.animateSwap ? 'animate' : 'static',
+            args.hasOpenOverlayModal ? 'overlay' : 'clear',
+            args.desktopSquareSize,
+            args.isMobilePopupEditing ? 'mobile-editor' : 'no-mobile-editor',
+            args.isMobileFullScreenSearch ? 'mobile-search' : 'no-mobile-search',
+        ].join('|');
+        if (
+            cachedContext &&
+            cachedContextDeps &&
+            cachedContextDeps.facts === facts &&
+            cachedContextDeps.snapshots === sceneInputSnapshots &&
+            cachedContextDeps.derivedDisplay === derivedDisplay &&
+            cachedContextDeps.sceneThemeSnapshot === args.sceneThemeSnapshot &&
+            cachedContextDeps.committedSceneKey === args.committedSceneKey &&
+            cachedContextDeps.selectedLayoutId === args.selectedLayoutId &&
+            cachedContextDeps.customLayouts === args.customLayouts &&
+            cachedContextDeps.nx9RowsPerPage === args.nx9RowsPerPage &&
+            cachedContextDeps.weekPlanCompactMode === args.weekPlanCompactMode &&
+            cachedContextDeps.weekStart === args.weekStart &&
+            cachedContextDeps.dayPlanEnabled === args.dayPlanEnabled &&
+            cachedContextDeps.showDayPlanTodayButton ===
+                args.showDayPlanTodayButton &&
+            cachedContextDeps.show3x3SubgridNavButtons ===
+                args.show3x3SubgridNavButtons &&
+            cachedContextDeps.uiKey === uiKey
+        ) {
+            return cachedContext;
+        }
+
         const nextContext: SceneRootContext = {
             view,
-            sceneKey,
+            sceneKey: facts.sceneKey,
             committedSceneKey: args.committedSceneKey,
             documentState: args.documentState,
             documentSnapshot: sceneInputSnapshots.documentSnapshot,
             displaySnapshot: sceneInputSnapshots.displaySnapshot,
             interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
             sceneThemeSnapshot: args.sceneThemeSnapshot,
-            topology: buildMandalaTopologyIndex(sectionToNodeId),
-            sectionToNodeId,
-            idToSection,
-            dayPlan,
-            dayPlanTodayNavigation: resolveDayPlanTodayNavigation(
-                args.documentState.file.frontmatter,
-            ),
-            weekContext,
-            gridStyles: {
-                threeByThree: resolveCardGridStyle({
-                    whiteThemeMode:
-                        sceneInputSnapshots.displaySnapshot.whiteThemeMode,
-                }),
-                nx9: resolveCardGridStyle({
-                    whiteThemeMode:
-                        sceneInputSnapshots.displaySnapshot.whiteThemeMode,
-                }),
-                week: resolveCardGridStyle({
-                    whiteThemeMode:
-                        sceneInputSnapshots.displaySnapshot.whiteThemeMode,
-                    compactMode: args.weekPlanCompactMode,
-                }),
-            },
+            topology: derivedDisplay.topology,
+            sectionToNodeId: facts.sectionToNodeId,
+            idToSection: facts.idToSection,
+            dayPlan: derivedDisplay.dayPlan,
+            dayPlanTodayNavigation: derivedDisplay.dayPlanTodayNavigation,
+            weekContext: derivedDisplay.weekContext,
+            gridStyles: derivedDisplay.gridStyles,
             settings: {
                 selectedLayoutId: args.selectedLayoutId,
                 customLayouts: args.customLayouts,
@@ -189,8 +355,8 @@ export const createSceneRootController = (view: MandalaView) => {
             },
             ui: {
                 activeNodeId: args.activeNodeId,
-                activeSection,
-                activeCoreSection,
+                activeSection: facts.activeSection,
+                activeCoreSection: facts.activeCoreSection,
                 subgridTheme: args.subgridTheme,
                 nx9ActiveCell: args.nx9ActiveCell,
                 weekAnchorDate: args.weekAnchorDate,
@@ -203,23 +369,38 @@ export const createSceneRootController = (view: MandalaView) => {
             lifecycle: {
                 ensureCompatibility: () =>
                     ensureSceneCompatibility(view, {
-                        sceneKey,
+                        sceneKey: facts.sceneKey,
                         dayPlanEnabled: args.dayPlanEnabled,
                         subgridTheme: args.subgridTheme,
-                        sectionToNodeId,
+                        sectionToNodeId: facts.sectionToNodeId,
                         documentState: args.documentState,
                     }),
                 cleanSceneCaches: () =>
                     cleanSceneCaches(view, args.committedSceneKey),
                 flushSceneSyncTrace: () =>
                     view.flushSceneSyncTrace({
-                        mode: sceneKey.viewKind,
+                        mode: facts.sceneKey.viewKind,
                     }),
             },
         };
 
-        cachedArgs = args;
         cachedContext = nextContext;
+        cachedContextDeps = {
+            facts,
+            snapshots: sceneInputSnapshots,
+            derivedDisplay,
+            sceneThemeSnapshot: args.sceneThemeSnapshot,
+            committedSceneKey: args.committedSceneKey,
+            selectedLayoutId: args.selectedLayoutId,
+            customLayouts: args.customLayouts,
+            nx9RowsPerPage: args.nx9RowsPerPage,
+            weekPlanCompactMode: args.weekPlanCompactMode,
+            weekStart: args.weekStart,
+            dayPlanEnabled: args.dayPlanEnabled,
+            showDayPlanTodayButton: args.showDayPlanTodayButton,
+            show3x3SubgridNavButtons: args.show3x3SubgridNavButtons,
+            uiKey,
+        };
         return nextContext;
     };
 
