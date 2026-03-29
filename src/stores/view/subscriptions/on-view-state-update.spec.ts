@@ -107,4 +107,19 @@ describe('onViewStateUpdate', () => {
         expect(mocks.persistCurrentMandalaViewState).not.toHaveBeenCalled();
         expect(mocks.updateSearchResults).toHaveBeenCalledWith(view);
     });
+
+    it('skips document persistence for restore-only sidebar sync actions', () => {
+        const view = createView();
+        const action: ViewStoreAction = {
+            type: 'view/mandala/detail-sidebar/set',
+            payload: {
+                open: false,
+                persistInDocument: false,
+            },
+        };
+
+        onViewStateUpdate(view, action, createLocalState());
+
+        expect(mocks.persistCurrentMandalaViewState).not.toHaveBeenCalled();
+    });
 });

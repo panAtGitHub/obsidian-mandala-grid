@@ -102,7 +102,10 @@ export const onViewStateUpdate = (
     if (action.type === 'view/search/set-query') {
         updateSearchResults(view);
     }
-    if (action.type === 'view/mandala/detail-sidebar/set') {
+    if (
+        action.type === 'view/mandala/detail-sidebar/set' &&
+        action.payload.persistInDocument !== false
+    ) {
         persistCurrentMandalaViewState(view);
     }
 

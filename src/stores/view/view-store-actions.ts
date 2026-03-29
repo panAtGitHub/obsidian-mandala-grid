@@ -22,7 +22,10 @@ export type MandalaActions =
       }
     | {
           type: 'view/mandala/detail-sidebar/set';
-          payload: { open: boolean };
+          payload: {
+              open: boolean;
+              persistInDocument?: boolean;
+          };
       }
     | {
           type: 'view/mandala/subgrid/enter';

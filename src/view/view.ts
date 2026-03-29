@@ -468,7 +468,10 @@ export class MandalaView extends TextFileView {
         ) {
             this.viewStore.dispatch({
                 type: 'view/mandala/detail-sidebar/set',
-                payload: { open: nextShowDetailSidebar },
+                payload: {
+                    open: nextShowDetailSidebar,
+                    persistInDocument: false,
+                },
             });
         }
         await super.setState(state, result);

@@ -195,7 +195,10 @@ describe('syncCurrentMandalaDetailSidebarVisibility', () => {
 
         expect(viewDispatch).toHaveBeenCalledWith({
             type: 'view/mandala/detail-sidebar/set',
-            payload: { open: false },
+            payload: {
+                open: false,
+                persistInDocument: false,
+            },
         });
     });
 

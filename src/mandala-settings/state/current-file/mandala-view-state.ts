@@ -86,7 +86,10 @@ export const syncCurrentMandalaDetailSidebarVisibility = (
     }
     view.viewStore.dispatch({
         type: 'view/mandala/detail-sidebar/set',
-        payload: { open: nextVisible },
+        payload: {
+            open: nextVisible,
+            persistInDocument: false,
+        },
     });
 };
 
