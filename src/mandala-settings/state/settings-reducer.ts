@@ -348,16 +348,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/mandala/set-mode') return;
         store.view.mandalaMode = action.payload.mode;
     },
-    'view/mandala-detail-sidebar/toggle': (store, action) => {
-        if (action.type !== 'view/mandala-detail-sidebar/toggle') return;
-        if (Platform.isMobile) {
-            store.view.showMandalaDetailSidebarMobile =
-                !store.view.showMandalaDetailSidebarMobile;
-            return;
-        }
-        store.view.showMandalaDetailSidebarDesktop =
-            !store.view.showMandalaDetailSidebarDesktop;
-    },
     'view/mandala-detail-sidebar/set-width': (store, action) => {
         if (action.type !== 'view/mandala-detail-sidebar/set-width') return;
         if (action.payload.width > 0) {

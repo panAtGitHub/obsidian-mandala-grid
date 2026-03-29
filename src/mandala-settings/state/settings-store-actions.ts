@@ -165,7 +165,6 @@ export type SettingsActions =
               mode: MandalaMode;
           };
       }
-    | { type: 'view/mandala-detail-sidebar/toggle' }
     | {
           type: 'view/mandala-detail-sidebar/set-width';
           payload: { width: number };
