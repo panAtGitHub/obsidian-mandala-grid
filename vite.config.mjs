@@ -8,7 +8,7 @@ const configMain = defineConfig({
         exclude: ['temp/**', "node_modules/**","e2e/**"],
         alias: {
             'src': path.resolve('./src'),
-            'obsidian': path.resolve('./src/helpers/test-helpers/obsidian-mock.ts')
+            'obsidian': path.resolve('./src/shared/test-helpers/obsidian-mock.ts')
         }
     },
 });
