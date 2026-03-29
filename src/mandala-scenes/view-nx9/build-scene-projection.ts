@@ -1,6 +1,6 @@
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
 import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
-import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
+import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type {
     Nx9SceneProjection,
     SceneCardInteractionSnapshot,
@@ -11,6 +11,7 @@ import type {
 export const buildNx9SceneProjectionProps = ({
     documentSnapshot,
     themeSnapshot,
+    gridStyle,
     rowsPerPage,
     displaySnapshot,
     interactionSnapshot,
@@ -20,6 +21,7 @@ export const buildNx9SceneProjectionProps = ({
 }: {
     documentSnapshot: SceneDocumentSnapshot;
     themeSnapshot: MandalaThemeSnapshot;
+    gridStyle: ResolvedGridStyle;
     rowsPerPage: number;
     displaySnapshot: SceneDisplaySnapshot;
     interactionSnapshot: SceneCardInteractionSnapshot;
@@ -32,9 +34,7 @@ export const buildNx9SceneProjectionProps = ({
     layoutMeta: {
         documentSnapshot,
         themeSnapshot,
-        gridStyle: resolveCardGridStyle({
-            whiteThemeMode: displaySnapshot.whiteThemeMode,
-        }),
+        gridStyle,
         rowsPerPage,
         displaySnapshot,
         interactionSnapshot,
@@ -51,6 +51,7 @@ export const buildNx9SceneProjection = (
         | {
               documentSnapshot: SceneDocumentSnapshot;
               themeSnapshot: MandalaThemeSnapshot;
+              gridStyle: ResolvedGridStyle;
               rowsPerPage: number;
               displaySnapshot: SceneDisplaySnapshot;
               interactionSnapshot: SceneCardInteractionSnapshot;
@@ -68,9 +69,7 @@ export const buildNx9SceneProjection = (
                   layoutMeta: {
                       documentSnapshot: props.documentSnapshot,
                       themeSnapshot: props.themeSnapshot,
-                      gridStyle: resolveCardGridStyle({
-                          whiteThemeMode: props.displaySnapshot.whiteThemeMode,
-                      }),
+                      gridStyle: props.gridStyle,
                       rowsPerPage: props.rowsPerPage,
                       displaySnapshot: props.displaySnapshot,
                       interactionSnapshot: props.interactionSnapshot,

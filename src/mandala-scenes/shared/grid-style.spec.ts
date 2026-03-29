@@ -74,4 +74,17 @@ describe('shared/grid-style', () => {
         expect(threeByThree.cellDisplayPolicy.hoverBehavior).toBe('none');
         expect(nx9.cellDisplayPolicy.hoverBehavior).toBe('none');
     });
+
+    it('reuses cached style objects for the same view combination', () => {
+        const first = resolveCardGridStyle({
+            whiteThemeMode: true,
+            compactMode: true,
+        });
+        const second = resolveCardGridStyle({
+            whiteThemeMode: true,
+            compactMode: true,
+        });
+
+        expect(second).toBe(first);
+    });
 });

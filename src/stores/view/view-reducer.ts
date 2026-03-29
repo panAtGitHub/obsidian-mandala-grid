@@ -19,6 +19,7 @@ import { MandalaGridDocument } from 'src/mandala-document/state/document-state-t
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
 import { Platform } from 'obsidian';
 import type { FocusTarget, ViewState } from 'src/stores/view/view-state-type';
+import { assignSelectedNodes } from 'src/stores/view/reducers/document/helpers/assign-selected-nodes';
 
 type ViewActionHandler = (
     state: ViewState,
@@ -363,7 +364,7 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/selection/set-selection': (state, action) => {
         if (action.type !== 'view/selection/set-selection') return;
-        state.document.selectedNodes = new Set(action.payload.ids);
+        assignSelectedNodes(state.document, new Set(action.payload.ids));
     },
     'view/mandala/subgrid/enter': (state, action) => {
         if (action.type !== 'view/mandala/subgrid/enter') return;

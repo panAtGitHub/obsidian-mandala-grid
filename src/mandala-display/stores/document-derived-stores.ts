@@ -7,6 +7,7 @@ import {
 } from 'src/mandala-document/state/document-state-type';
 import { createPinnedSectionSet } from 'src/mandala-display/logic/section-colors';
 import { MandalaView } from 'src/view/view';
+import { buildSetStamp } from 'src/shared/helpers/build-set-stamp';
 
 // 这一组都是“从 documentStore 派生出某一小块数据”的轻量 store。
 // 之前它们被拆在多个很小的文件里，不利于集中查看；
@@ -122,3 +123,15 @@ export const PinnedSectionsStore = (view: MandalaView) =>
     derived(view.documentStore, (state) =>
         createPinnedSectionSet(state.sections, state.pinnedNodes.Ids),
     );
+
+export const PinnedSectionsSnapshotStore = (view: MandalaView) =>
+    derived(view.documentStore, (state) => {
+        const sections = createPinnedSectionSet(
+            state.sections,
+            state.pinnedNodes.Ids,
+        );
+        return {
+            sections,
+            stamp: buildSetStamp(sections),
+        };
+    });

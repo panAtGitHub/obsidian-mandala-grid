@@ -72,4 +72,48 @@ describe('scene-input-runtime', () => {
             },
         });
     });
+
+    it('reuses the same snapshot object when every input is stable', () => {
+        const args = {
+            documentState: {
+                meta: {
+                    mandalaV2: {
+                        revision: 3,
+                        contentRevision: 7,
+                    },
+                },
+                sections: {
+                    section_id: {
+                        '1': 'node-1',
+                    },
+                },
+                document: {
+                    content: {
+                        'node-1': {
+                            content: 'hello',
+                        },
+                    },
+                },
+            } as never,
+            sectionColors: { '1': '#111' },
+            sectionColorOpacity: 60,
+            backgroundMode: 'custom',
+            showDetailSidebar: true,
+            whiteThemeMode: false,
+            activeNodeId: 'node-1',
+            editingState: {
+                activeNodeId: 'node-1',
+                isInSidebar: false,
+            },
+            selectedNodes: new Set(['node-1']),
+            selectedStamp: 'node-1',
+            pinnedSections: new Set(['1']),
+            pinnedStamp: '1',
+        };
+
+        const first = buildSceneInputSnapshots(args);
+        const second = buildSceneInputSnapshots(args);
+
+        expect(second).toBe(first);
+    });
 });

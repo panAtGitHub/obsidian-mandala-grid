@@ -23,6 +23,9 @@ export type MandalaTopologyIndex = {
     childrenBySection: Record<string, string[]>;
 };
 
+let cachedSectionIdMap: Record<string, string | undefined> | null = null;
+let cachedTopologyIndex: MandalaTopologyIndex | null = null;
+
 const toSectionEntry = (
     section: string,
     nodeId: string | undefined,
@@ -42,6 +45,10 @@ const toSectionEntry = (
 export const buildMandalaTopologyIndex = (
     sectionIdMap: Record<string, string | undefined>,
 ): MandalaTopologyIndex => {
+    if (cachedSectionIdMap === sectionIdMap && cachedTopologyIndex) {
+        return cachedTopologyIndex;
+    }
+
     const orderedSections = Object.keys(sectionIdMap).sort(compareSectionIds);
     const entries: Record<string, MandalaTopologyEntry> = {};
     const sectionsWithNode: string[] = [];
@@ -64,7 +71,7 @@ export const buildMandalaTopologyIndex = (
         }
     }
 
-    return {
+    const topology = {
         entries,
         orderedSections,
         sectionsWithNode,
@@ -72,6 +79,9 @@ export const buildMandalaTopologyIndex = (
         sectionByNodeId,
         childrenBySection,
     };
+    cachedSectionIdMap = sectionIdMap;
+    cachedTopologyIndex = topology;
+    return topology;
 };
 
 export const getTopologyEntry = (

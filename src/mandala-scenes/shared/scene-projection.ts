@@ -1,11 +1,27 @@
 import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
-import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
-import type { Content } from 'src/mandala-document/state/document-state-type';
+import type {
+    DayPlanFrontmatter,
+} from 'src/mandala-display/logic/day-plan';
+import type {
+    DayPlanTodayNavigation,
+    MandalaSceneKey,
+} from 'src/mandala-display/logic/mandala-profile';
+import type { WeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
+import type {
+    Content,
+    DocumentState,
+} from 'src/mandala-document/state/document-state-type';
+import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import type { SceneCardInteractionDescriptor } from 'src/mandala-scenes/shared/card-scene-cell';
 import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { ThreeByThreeCellViewModel } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
 import type { Nx9WeekCellViewModel } from 'src/mandala-scenes/view-nx9-week-7x9/assemble-cell-view-model';
+import type {
+    MandalaCustomLayout,
+    WeekStart,
+} from 'src/mandala-settings/state/settings-type';
+import type { MandalaView } from 'src/view/view';
 
 export type SceneRendererKind = 'card-scene' | '9x9-layout';
 
@@ -140,6 +156,74 @@ export type CardSceneProjection =
     | Nx9WeekSceneProjection;
 
 export type SceneProjection = CardSceneProjection | NineByNineSceneProjection;
+
+export type SceneLifecycle = {
+    ensureCompatibility: () => void;
+    cleanSceneCaches: () => void;
+    flushSceneSyncTrace: () => void;
+};
+
+export type SceneRootGridStyles = {
+    threeByThree: ResolvedGridStyle;
+    nx9: ResolvedGridStyle;
+    week: ResolvedGridStyle;
+};
+
+export type SceneRootSettings = {
+    selectedLayoutId: string;
+    customLayouts: MandalaCustomLayout[];
+    nx9RowsPerPage: number;
+    weekPlanCompactMode: boolean;
+    weekStart: WeekStart;
+    dayPlanEnabled: boolean;
+    showDayPlanTodayButton: boolean;
+    show3x3SubgridNavButtons: boolean;
+};
+
+export type SceneRootUiState = {
+    activeNodeId: string | null;
+    activeSection: string | null;
+    activeCoreSection: string | null;
+    subgridTheme: string | null | undefined;
+    nx9ActiveCell: { row: number; col: number; page?: number } | null;
+    weekAnchorDate: string | null | undefined;
+    animateSwap: boolean;
+    hasOpenOverlayModal: boolean;
+    desktopSquareSize: number;
+    isMobilePopupEditing: boolean;
+    isMobileFullScreenSearch: boolean;
+};
+
+export type SceneRootContext = {
+    view: MandalaView;
+    sceneKey: MandalaSceneKey;
+    committedSceneKey: MandalaSceneKey;
+    documentState: DocumentState;
+    documentSnapshot: SceneDocumentSnapshot;
+    displaySnapshot: SceneDisplaySnapshot;
+    interactionSnapshot: SceneCardInteractionSnapshot;
+    sceneThemeSnapshot: MandalaThemeSnapshot;
+    topology: MandalaTopologyIndex;
+    sectionToNodeId: Record<string, string | undefined>;
+    idToSection: Record<string, string | undefined>;
+    dayPlan: DayPlanFrontmatter | null;
+    dayPlanTodayNavigation: DayPlanTodayNavigation;
+    weekContext: WeekPlanContext;
+    gridStyles: SceneRootGridStyles;
+    settings: SceneRootSettings;
+    ui: SceneRootUiState;
+    lifecycle: SceneLifecycle;
+};
+
+export type SceneController = {
+    resolveProjection: (context: SceneRootContext) => SceneProjection;
+};
+
+export type SceneRootShellProps = {
+    sceneKey: MandalaSceneKey;
+    committedSceneKey: MandalaSceneKey;
+    projection: SceneProjection;
+};
 
 export const sceneKeyEquals = (a: MandalaSceneKey, b: MandalaSceneKey) =>
     a.viewKind === b.viewKind && a.variant === b.variant;

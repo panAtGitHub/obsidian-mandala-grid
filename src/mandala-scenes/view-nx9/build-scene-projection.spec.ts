@@ -24,6 +24,7 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                gridStyle: nx9GridStyle,
                 rowsPerPage: 5,
                 displaySnapshot: {
                     sectionColors: {},
@@ -70,6 +71,7 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                gridStyle: nx9GridStyle,
                 rowsPerPage: 5,
                 displaySnapshot: {
                     sectionColors: { '1': '#111' },
@@ -154,6 +156,7 @@ describe('build-nx9-scene-projection', () => {
                     themeUnderlayColor: '#fff',
                     activeThemeUnderlayColor: '#eee',
                 },
+                gridStyle: nx9GridStyle,
                 rowsPerPage: 5,
                 displaySnapshot: {
                     sectionColors: { '1': '#111' },

@@ -37,7 +37,6 @@ describe('build-nx9-week-scene-projection', () => {
                 anchorDate: '2026-01-01',
                 weekStart: 'monday',
             }),
-            compactMode: false,
             themeSnapshot: {
                 themeTone: 'light',
                 themeUnderlayColor: '#fff',
@@ -50,6 +49,7 @@ describe('build-nx9-week-scene-projection', () => {
                 showDetailSidebar: false,
                 whiteThemeMode: false,
             },
+            gridStyle: regularWeekGridStyle,
             sectionIdMap: {},
             interactionSnapshot: createInteractionSnapshot(),
             activeCell: null,
@@ -61,7 +61,6 @@ describe('build-nx9-week-scene-projection', () => {
                 anchorDate: '2026-01-01',
                 weekStart: 'monday',
             }),
-            compactMode: false,
             themeSnapshot: {
                 themeTone: 'light',
                 themeUnderlayColor: '#fff',
@@ -74,6 +73,9 @@ describe('build-nx9-week-scene-projection', () => {
                 showDetailSidebar: false,
                 whiteThemeMode: true,
             },
+            gridStyle: resolveCardGridStyle({
+                whiteThemeMode: true,
+            }),
             sectionIdMap: {},
             interactionSnapshot: createInteractionSnapshot(),
             activeCell: null,
@@ -107,7 +109,6 @@ mandala_plan:
                 anchorDate: '2026-01-01',
                 weekStart: 'monday',
             }),
-            compactMode: true,
             themeSnapshot: {
                 themeTone: 'light',
                 themeUnderlayColor: '#fff',
@@ -120,6 +121,7 @@ mandala_plan:
                 showDetailSidebar: false,
                 whiteThemeMode: true,
             },
+            gridStyle: compactWeekGridStyle,
             sectionIdMap: {
                 '1': 'node-1',
             },

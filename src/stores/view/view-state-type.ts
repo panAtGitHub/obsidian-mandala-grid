@@ -25,6 +25,7 @@ export type DocumentViewState = {
     activeNode: string;
     activeNodesOfColumn: ActiveNodesOfColumn;
     selectedNodes: Set<string>;
+    selectedNodesStamp: string;
     pendingConfirmation: PendingDocumentConfirmation;
 };
 export type PinnedNodes = {

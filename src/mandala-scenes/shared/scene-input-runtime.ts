@@ -23,7 +23,11 @@ type SceneInputRuntimeOptions = {
     pinnedStamp: string;
 };
 
-export const buildSceneInputSnapshots = ({
+type SceneInputRuntimeCacheEntry = SceneInputRuntimeOptions & {
+    value: ReturnType<typeof buildSceneInputSnapshotsUncached>;
+};
+
+const buildSceneInputSnapshotsUncached = ({
     documentState,
     sectionColors,
     sectionColorOpacity,
@@ -60,3 +64,69 @@ export const buildSceneInputSnapshots = ({
         pinnedStamp,
     }),
 });
+
+let cachedSceneInputSnapshots: SceneInputRuntimeCacheEntry | null = null;
+
+export const buildSceneInputSnapshots = ({
+    documentState,
+    sectionColors,
+    sectionColorOpacity,
+    backgroundMode,
+    showDetailSidebar,
+    whiteThemeMode,
+    activeNodeId,
+    editingState,
+    selectedNodes,
+    selectedStamp,
+    pinnedSections,
+    pinnedStamp,
+}: SceneInputRuntimeOptions) => {
+    if (
+        cachedSceneInputSnapshots &&
+        cachedSceneInputSnapshots.documentState === documentState &&
+        cachedSceneInputSnapshots.sectionColors === sectionColors &&
+        cachedSceneInputSnapshots.sectionColorOpacity === sectionColorOpacity &&
+        cachedSceneInputSnapshots.backgroundMode === backgroundMode &&
+        cachedSceneInputSnapshots.showDetailSidebar === showDetailSidebar &&
+        cachedSceneInputSnapshots.whiteThemeMode === whiteThemeMode &&
+        cachedSceneInputSnapshots.activeNodeId === activeNodeId &&
+        cachedSceneInputSnapshots.editingState === editingState &&
+        cachedSceneInputSnapshots.selectedNodes === selectedNodes &&
+        cachedSceneInputSnapshots.selectedStamp === selectedStamp &&
+        cachedSceneInputSnapshots.pinnedSections === pinnedSections &&
+        cachedSceneInputSnapshots.pinnedStamp === pinnedStamp
+    ) {
+        return cachedSceneInputSnapshots.value;
+    }
+
+    const value = buildSceneInputSnapshotsUncached({
+        documentState,
+        sectionColors,
+        sectionColorOpacity,
+        backgroundMode,
+        showDetailSidebar,
+        whiteThemeMode,
+        activeNodeId,
+        editingState,
+        selectedNodes,
+        selectedStamp,
+        pinnedSections,
+        pinnedStamp,
+    });
+    cachedSceneInputSnapshots = {
+        documentState,
+        sectionColors,
+        sectionColorOpacity,
+        backgroundMode,
+        showDetailSidebar,
+        whiteThemeMode,
+        activeNodeId,
+        editingState,
+        selectedNodes,
+        selectedStamp,
+        pinnedSections,
+        pinnedStamp,
+        value,
+    };
+    return value;
+};

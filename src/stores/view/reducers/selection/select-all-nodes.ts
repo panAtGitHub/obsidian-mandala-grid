@@ -4,6 +4,7 @@ import { findGroupByNodeId } from 'src/mandala-document/tree-utils/find/find-gro
 import invariant from 'tiny-invariant';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { resolveSafeActiveNode } from 'src/stores/view/reducers/document/helpers/active-node-safety';
+import { assignSelectedNodes } from 'src/stores/view/reducers/document/helpers/assign-selected-nodes';
 
 export type SelectAllNodesAction = {
     type: 'view/selection/select-all';
@@ -40,7 +41,7 @@ export const selectAllNodes = (state: DocumentViewState, columns: Column[]) => {
         nodeColumnNodes,
     );
     if (columnIsSelected) {
-        state.selectedNodes = new Set(firstColumnNodes);
+        assignSelectedNodes(state, new Set(firstColumnNodes));
         state.activeNode = state.activeBranch.sortedParentNodes[0];
         return;
     }
@@ -52,9 +53,9 @@ export const selectAllNodes = (state: DocumentViewState, columns: Column[]) => {
         nodeGroup.nodes,
     );
     if (groupIsSelected) {
-        state.selectedNodes = new Set(nodeColumnNodes);
+        assignSelectedNodes(state, new Set(nodeColumnNodes));
         return;
     }
 
-    state.selectedNodes = new Set(nodeGroup.nodes);
+    assignSelectedNodes(state, new Set(nodeGroup.nodes));
 };

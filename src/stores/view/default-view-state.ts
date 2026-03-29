@@ -62,6 +62,7 @@ export const defaultViewState = (
         activeNode: '',
         activeNodesOfColumn: {},
         selectedNodes: new Set<string>(),
+        selectedNodesStamp: '',
         pendingConfirmation: {
             disableEdit: null,
             deleteNode: new Set<string>(),

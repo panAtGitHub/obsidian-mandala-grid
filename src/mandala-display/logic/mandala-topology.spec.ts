@@ -40,4 +40,16 @@ describe('mandala-topology', () => {
         expect(topology.childrenBySection['3']).toEqual(['3.4']);
         expect(topology.childrenBySection['3.4']).toEqual(['3.4.5']);
     });
+
+    it('reuses the cached topology for the same section map reference', () => {
+        const sectionIdMap = {
+            '1': 'node-1',
+            '1.1': 'node-1-1',
+        };
+
+        const first = buildMandalaTopologyIndex(sectionIdMap);
+        const second = buildMandalaTopologyIndex(sectionIdMap);
+
+        expect(second).toBe(first);
+    });
 });

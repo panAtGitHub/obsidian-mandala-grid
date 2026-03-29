@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant';
 import { updateSelectedNodes } from 'src/stores/view/reducers/document/helpers/update-selected-nodes';
 import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/reset-selection-state';
 import { Column } from 'src/mandala-document/state/document-state-type';
+import { assignSelectedNodes } from 'src/stores/view/reducers/document/helpers/assign-selected-nodes';
 
 export const updateSelectionState = (
     columns: Column[],
@@ -22,7 +23,7 @@ export const updateSelectionState = (
             documentState.activeNode,
             nextNode,
         );
-        documentState.selectedNodes = new Set(documentState.selectedNodes);
+        assignSelectedNodes(documentState, new Set(documentState.selectedNodes));
     } else {
         resetSelectionState(documentState);
     }

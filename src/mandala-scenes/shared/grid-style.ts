@@ -15,17 +15,25 @@ export type ResolvedGridStyle = {
     cellDisplayPolicy: CellDisplayPolicy;
 };
 
+const gridStyleCache = new Map<string, ResolvedGridStyle>();
+
 export const resolveCardGridStyle = ({
     whiteThemeMode,
     compactMode = false,
 }: GridStyleOptions): ResolvedGridStyle => {
+    const cacheKey = `${whiteThemeMode ? 'white' : 'theme'}:${compactMode ? 'compact' : 'regular'}`;
+    const cached = gridStyleCache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+
     const defaultPolicy = createDefaultCellDisplayPolicy();
     const selectionStyle: GridSelectionStyle = whiteThemeMode
         ? 'cell-outline'
         : 'node-active';
     const preserveActiveBackground = selectionStyle === 'cell-outline';
 
-    return {
+    const resolved: ResolvedGridStyle = {
         cacheKey: [
             whiteThemeMode ? 'white' : 'theme',
             compactMode ? 'compact' : 'regular',
@@ -50,4 +58,6 @@ export const resolveCardGridStyle = ({
                 : {}),
         },
     };
+    gridStyleCache.set(cacheKey, resolved);
+    return resolved;
 };
