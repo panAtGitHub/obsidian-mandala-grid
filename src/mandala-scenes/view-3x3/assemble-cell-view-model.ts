@@ -1,12 +1,9 @@
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
-import {
-    resolveGrayBlockSurfaceColor,
-    resolveSectionSurfaceColor,
-} from 'src/mandala-display/palette/section-colors';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
+import { resolveCellSurfaceVisual } from 'src/mandala-cell/visual/section-surface-visual';
 import {
     buildSceneCardCellList,
     createSceneCardCellSeed,
@@ -50,32 +47,6 @@ const isCrossIndex = (index: number) => {
     return isCrossPosition(row, col);
 };
 
-const getSectionBackground = ({
-    section,
-    index,
-    backgroundMode,
-    sectionColors,
-    sectionColorOpacity,
-}: {
-    section: string;
-    index: number;
-    backgroundMode: string;
-    sectionColors: Record<string, string>;
-    sectionColorOpacity: number;
-}) => {
-    const customColor = resolveSectionSurfaceColor({
-        section,
-        backgroundMode,
-        sectionColorsBySection: sectionColors,
-        sectionColorOpacity,
-    });
-    if (customColor) return customColor;
-    if (backgroundMode === 'gray' && isCrossIndex(index)) {
-        return resolveGrayBlockSurfaceColor(sectionColorOpacity);
-    }
-    return null;
-};
-
 export type ThreeByThreeCardCellDescriptorExtra = {
     index: number;
     isCenter: boolean;
@@ -104,13 +75,16 @@ export const build3x3CardCellDescriptors = ({
         const col = index % 3;
         const section = slot ? `${theme}.${slot}` : theme;
         const nodeId = getSectionNodeId(topology, section);
-        const sectionBackground = getSectionBackground({
-            section,
-            index,
+        const sectionColorContext = {
             backgroundMode: displaySnapshot.backgroundMode,
-            sectionColors: displaySnapshot.sectionColors,
+            sectionColorsBySection: displaySnapshot.sectionColors,
             sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-        });
+            showGrayBlockBackground: isCrossIndex(index),
+        };
+        const sectionBackground = resolveCellSurfaceVisual({
+            section,
+            colorContext: sectionColorContext,
+        }).backgroundColor;
         const frame: SceneCardCellFrame = {
             key: section,
             section,
@@ -121,12 +95,7 @@ export const build3x3CardCellDescriptors = ({
             section: frame.section,
             nodeId: frame.nodeId,
             contentEnabled: true,
-            sectionColorContext: {
-                backgroundMode: displaySnapshot.backgroundMode,
-                sectionColorsBySection: displaySnapshot.sectionColors,
-                sectionColorOpacity: displaySnapshot.sectionColorOpacity,
-                showGrayBlockBackground: isCrossIndex(index),
-            },
+            sectionColorContext,
             displayPolicy,
         });
 

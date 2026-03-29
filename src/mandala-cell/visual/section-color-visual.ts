@@ -4,20 +4,19 @@ import {
     type ThemeTone,
 } from 'src/mandala-display/contrast/readable-text-tone';
 import {
-    resolveGrayBlockSurfaceColor,
     resolveSectionAccentColor,
-    resolveSectionSurfaceColor,
-    type SectionColorContext,
 } from 'src/mandala-display/palette/section-colors';
 import { resolveSectionColorPolicy } from 'src/mandala-display/policies/section-color-policy';
 import type {
     CellSectionIndicatorVariant,
     CellSectionMetaVariant,
 } from 'src/mandala-cell/model/card-types';
+import {
+    resolveCellSurfaceBackgroundColor,
+    type CellSurfaceColorContext,
+} from 'src/mandala-cell/visual/section-surface-visual';
 
-export type CellSectionColorContext = SectionColorContext & {
-    showGrayBlockBackground?: boolean;
-};
+export type CellSectionColorContext = CellSurfaceColorContext;
 
 export type CellSectionColorVisual = {
     backgroundColor: string | null;
@@ -26,30 +25,6 @@ export type CellSectionColorVisual = {
     metaBackgroundColor: string | null;
     metaTextTone: TextTone | null;
     showPin: boolean;
-};
-
-const resolveCellBackgroundColor = ({
-    section,
-    colorContext,
-}: {
-    section: string;
-    colorContext: CellSectionColorContext | null;
-}) => {
-    if (!colorContext) return null;
-    const customBackground = resolveSectionSurfaceColor({
-        section,
-        backgroundMode: colorContext.backgroundMode,
-        sectionColorsBySection: colorContext.sectionColorsBySection,
-        sectionColorOpacity: colorContext.sectionColorOpacity,
-    });
-    if (customBackground) return customBackground;
-    if (
-        colorContext.showGrayBlockBackground &&
-        colorContext.backgroundMode === 'gray'
-    ) {
-        return resolveGrayBlockSurfaceColor(colorContext.sectionColorOpacity);
-    }
-    return null;
 };
 
 export const resolveCellSectionColorVisual = ({
@@ -67,7 +42,7 @@ export const resolveCellSectionColorVisual = ({
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
 }): CellSectionColorVisual => {
-    const backgroundColor = resolveCellBackgroundColor({
+    const backgroundColor = resolveCellSurfaceBackgroundColor({
         section,
         colorContext,
     });

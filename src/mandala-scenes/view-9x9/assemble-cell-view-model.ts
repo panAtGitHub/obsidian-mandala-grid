@@ -1,20 +1,14 @@
-import {
-    getReadableTextTone,
-    type ThemeTone,
-} from 'src/mandala-display/contrast/readable-text-tone';
+import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
 import {
     getSectionCore,
     getSectionNodeId,
     type MandalaTopologyIndex,
 } from 'src/mandala-display/logic/mandala-topology';
-import {
-    resolveGrayBlockSurfaceColor,
-    resolveSectionSurfaceColor,
-} from 'src/mandala-display/palette/section-colors';
 import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
 } from 'src/mandala-cell/model/simple-summary-cell-model';
+import { resolveCellSurfaceVisual } from 'src/mandala-cell/visual/section-surface-visual';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 
@@ -34,12 +28,6 @@ type Decorate9x9CellsOptions = {
     themeTone: ThemeTone;
     themeUnderlayColor: string;
 };
-
-const DARK_TEXT_TOKENS =
-    '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b; --text-accent: #0f131a;';
-
-const LIGHT_TEXT_TOKENS =
-    '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce; --text-accent: #f3f6fd;';
 
 const HEADING_RE = /^\s{0,3}#{1,6}\s+/;
 
@@ -161,31 +149,23 @@ export const decorate9x9CellViewModels = ({
     themeUnderlayColor,
 }: Decorate9x9CellsOptions): SimpleSummaryCellModel[] => {
     return cells.map((cell) => {
-        const customBackground = resolveSectionSurfaceColor({
+        const surfaceVisual = resolveCellSurfaceVisual({
             section: cell.section,
-            backgroundMode,
-            sectionColorsBySection: sectionColors,
-            sectionColorOpacity,
+            colorContext: {
+                backgroundMode,
+                sectionColorsBySection: sectionColors,
+                sectionColorOpacity,
+                showGrayBlockBackground: cell.isGrayBlock,
+            },
+            themeTone,
+            themeUnderlayColor,
         });
-        const background = customBackground
-            ? customBackground
-            : backgroundMode === 'gray' && cell.isGrayBlock
-              ? resolveGrayBlockSurfaceColor(sectionColorOpacity)
-              : null;
-        const textTone = background
-            ? getReadableTextTone(background, themeTone, themeUnderlayColor)
-            : null;
-
-        const styleParts = [];
-        if (background) styleParts.push(`background-color: ${background};`);
-        if (textTone === 'dark') styleParts.push(DARK_TEXT_TOKENS);
-        if (textTone === 'light') styleParts.push(LIGHT_TEXT_TOKENS);
 
         return {
             ...cell,
-            background,
-            textTone,
-            style: styleParts.length > 0 ? styleParts.join(' ') : null,
+            background: surfaceVisual.backgroundColor,
+            textTone: surfaceVisual.textTone,
+            style: surfaceVisual.style,
         };
     });
 };
