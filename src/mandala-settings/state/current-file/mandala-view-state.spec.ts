@@ -20,7 +20,7 @@ const createTestView = ({
     Platform.isMobile = isMobile;
     Platform.isDesktop = !isMobile;
 
-    const dispatch = vi.fn<(action: PersistMandalaViewStateAction) => void>();
+    const dispatch = vi.fn<[PersistMandalaViewStateAction], void>();
     const settings = DEFAULT_SETTINGS();
     settings.documents['demo.md'] = {
         viewType: 'mandala-grid',
@@ -96,7 +96,7 @@ describe('persistCurrentMandalaViewState', () => {
 
         persistCurrentMandalaViewState(view);
 
-        const action = dispatch.mock.calls[0]?.[0] as PersistMandalaViewStateAction;
+        const action = dispatch.mock.calls[0]?.[0];
 
         expect(action.type).toBe('settings/documents/persist-mandala-view-state');
         expect(action.payload.path).toBe('demo.md');
@@ -116,7 +116,7 @@ describe('persistCurrentMandalaViewState', () => {
 
         persistCurrentMandalaViewState(view);
 
-        const action = dispatch.mock.calls[0]?.[0] as PersistMandalaViewStateAction;
+        const action = dispatch.mock.calls[0]?.[0];
 
         expect(action.type).toBe('settings/documents/persist-mandala-view-state');
         expect(action.payload.path).toBe('demo.md');
@@ -160,7 +160,7 @@ describe('persistCurrentMandalaViewState', () => {
         persistCurrentMandalaViewState(view);
 
         expect(dispatch).toHaveBeenCalledTimes(1);
-        const action = dispatch.mock.calls[0]?.[0] as PersistMandalaViewStateAction;
+        const action = dispatch.mock.calls[0]?.[0];
 
         expect(action.type).toBe('settings/documents/persist-mandala-view-state');
         expect(action.payload.showDetailSidebarDesktop).toBe(true);
