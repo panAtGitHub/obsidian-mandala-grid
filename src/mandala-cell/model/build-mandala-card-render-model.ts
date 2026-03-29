@@ -10,7 +10,7 @@ import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone'
 
 // 阅读顺序建议：
 // 1. 先看 card-view-model.ts，了解场景层已经决定好的输入
-// 2. 再看 mandala-card-style.ts 和 mandala-card-meta.ts，了解背景和 meta 如何派生
+// 2. 再看 mandala-card-style.ts 和 visual/section-color-visual.ts，了解背景和 meta 如何派生
 // 3. 最后看本文件，理解这些输入如何合并成 view 真正消费的 render model
 type BuildMandalaCardRenderModelOptions = {
     viewModel: MandalaCardViewModel;
@@ -86,7 +86,6 @@ export const buildMandalaCardRenderModel = ({
         style,
         displaySection,
         shouldHideBackgroundStyle,
-        sectionIndicatorVariant: displayPolicy.sectionIndicatorVariant,
         sectionMetaVariant: sectionColorVisual.metaVariant,
         showSectionPin: sectionColorVisual.showPin,
         sectionMetaTextTone: sectionColorVisual.metaTextTone,

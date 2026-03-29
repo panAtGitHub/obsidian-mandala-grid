@@ -4,12 +4,24 @@
 
 ## 总体分层
 
+- `visual/`
+  负责单格色彩与 meta 外观这类纯视觉语义派生；回答“背景色、胶囊色、文字 tone 应该是什么”。
 - `model/`
   负责纯数据结构、派生状态、展示策略、render model / view model 组装；不直接处理 Svelte 事件。
 - `view/`
   负责 Svelte 展示组件；接收外部状态并渲染，不承担核心业务决策。
 - `viewmodel/`
   负责交互动作、控制器、事件处理策略；连接 view 与外部 view/store。
+
+---
+
+## visual/
+
+- `section-color-visual.ts`
+  负责把 section 色彩上下文、section 指示器策略、pin 状态与主题明暗，统一派生成 card 背景色、右上角胶囊变体、胶囊背景/强调色与文字 tone。
+
+- `section-color-visual.spec.ts`
+  `section-color-visual.ts` 的单元测试。
 
 ---
 
@@ -47,12 +59,6 @@
 
 - `cell-display-policy.spec.ts`
   已移除。默认配置与各场景 overrides 分别在各自文件旁边测试。
-
-- `mandala-card-meta.ts`
-  根据 section 指示器变体、section 颜色、pin 状态、主题明暗，计算 meta 区域该显示背景、pin、胶囊色块和文字 tone。
-
-- `mandala-card-meta.spec.ts`
-  `mandala-card-meta.ts` 的单元测试。
 
 - `mandala-card-style.ts`
   负责 card 主体样式派生，例如背景色、激活态视觉、是否隐藏背景样式、文字 tone 等。
@@ -158,9 +164,11 @@
    了解场景层最终会把什么数据交给标准格子。
 2. `model/build-mandala-card-view-model.ts`
    了解这些字段如何被统一装配。
-3. `model/build-mandala-card-render-model.ts`
+3. `visual/section-color-visual.ts`
+   了解 section 色彩上下文如何先派生成 card 背景与右上角 meta 外观。
+4. `model/build-mandala-card-render-model.ts`
    了解 view model 如何继续被派生成 render model。
-4. `model/card-render-model.ts`
+5. `model/card-render-model.ts`
    确认 view 层最终拿到的渲染字段有哪些。
 
 ### 3. 最后看视图层
