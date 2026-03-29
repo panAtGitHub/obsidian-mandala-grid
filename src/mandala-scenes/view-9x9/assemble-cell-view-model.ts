@@ -8,9 +8,9 @@ import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
 } from 'src/mandala-cell/model/simple-summary-cell-model';
+import { decorateSimpleSummaryCellSurface } from 'src/mandala-cell/visual/cell-surface-visual';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
-import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/section-surface-visual';
 
 type Build9x9CellsOptions = {
     topology: MandalaTopologyIndex;
@@ -148,26 +148,16 @@ export const decorate9x9CellViewModels = ({
     themeTone,
     themeUnderlayColor,
 }: Decorate9x9CellsOptions): SimpleSummaryCellModel[] => {
-    return cells.map((cell) => {
-        const surfaceVisual = resolveSectionSurfaceVisual({
-            section: cell.section,
-            colorContext: {
-                backgroundMode,
-                sectionColorsBySection: sectionColors,
-                sectionColorOpacity,
-                showGrayBlockBackground: cell.isGrayBlock,
-            },
+    return cells.map((cell) =>
+        decorateSimpleSummaryCellSurface({
+            cell,
+            backgroundMode,
+            sectionColors,
+            sectionColorOpacity,
             themeTone,
             themeUnderlayColor,
-        });
-
-        return {
-            ...cell,
-            background: surfaceVisual.backgroundColor,
-            textTone: surfaceVisual.textTone,
-            style: surfaceVisual.style,
-        };
-    });
+        }),
+    );
 };
 
 export const toActiveSummaryCell = (

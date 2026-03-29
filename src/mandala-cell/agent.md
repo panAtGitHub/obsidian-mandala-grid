@@ -23,6 +23,12 @@
 - `section-color-visual.spec.ts`
   `section-color-visual.ts` 的单元测试。
 
+- `cell-surface-visual.ts`
+  负责把 display 层的通用 surface 色彩规则收敛为单格可直接消费的 surface style 或 summary cell 视觉结果，避免 scene 自己调用底层色彩函数。
+
+- `cell-surface-visual.spec.ts`
+  `cell-surface-visual.ts` 的单元测试。
+
 ---
 
 ## model/
