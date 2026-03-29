@@ -19,7 +19,7 @@ describe('nx9-selection-runtime', () => {
         expect(assigned).toEqual([{ row: 4, col: 0, page: 3 }]);
     });
 
-    it('ignores empty real cells and activates populated cells', () => {
+    it('activates addressable empty cells and populated cells', () => {
         const assigned: unknown[] = [];
         const view = {
             set mandalaActiveCellNx9(value: unknown) {
@@ -32,10 +32,41 @@ describe('nx9-selection-runtime', () => {
             getCurrentPage,
         });
 
-        runtime.selectRealCell(1, 2, null);
-        runtime.selectRealCell(1, 2, 'node-1-2');
+        runtime.selectRealCell(1, 2, {
+            nodeId: null,
+            section: '2.2',
+        });
+        runtime.selectRealCell(1, 3, {
+            nodeId: 'node-1-2',
+            section: '2.3',
+        });
 
-        expect(getCurrentPage).toHaveBeenCalledTimes(1);
-        expect(assigned).toEqual([{ row: 1, col: 2, page: 2 }]);
+        expect(getCurrentPage).toHaveBeenCalledTimes(2);
+        expect(assigned).toEqual([
+            { row: 1, col: 2, page: 2 },
+            { row: 1, col: 3, page: 2 },
+        ]);
+    });
+
+    it('ignores cells that are neither backed by a node nor a section', () => {
+        const assigned: unknown[] = [];
+        const view = {
+            set mandalaActiveCellNx9(value: unknown) {
+                assigned.push(value);
+            },
+        } as never;
+        const getCurrentPage = vi.fn(() => 2);
+        const runtime = createNx9SelectionRuntime({
+            view,
+            getCurrentPage,
+        });
+
+        runtime.selectRealCell(1, 2, {
+            nodeId: null,
+            section: null,
+        });
+
+        expect(getCurrentPage).not.toHaveBeenCalled();
+        expect(assigned).toEqual([]);
     });
 });

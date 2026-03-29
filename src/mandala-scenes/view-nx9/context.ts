@@ -34,6 +34,7 @@ export type Nx9Context = {
     posForSection: (
         section: string | null | undefined,
     ) => Nx9CellWithPage | null;
+    isAddressableCell: (row: number, col: number, page?: number) => boolean;
     isGhostCreateCell: (row: number, col: number, page?: number) => boolean;
     isSelectableCell: (row: number, col: number, page?: number) => boolean;
 };
@@ -317,6 +318,8 @@ export const resolveNx9PageContext = ({
         sectionForCell: (row, col, page = currentPage) =>
             sectionAtCellNx9(row, col, getPageRows(page)),
         posForSection,
+        isAddressableCell: (row, col, page = currentPage) =>
+            Boolean(sectionAtCellNx9(row, col, getPageRows(page))),
         isGhostCreateCell: (row, col, page = currentPage) =>
             isGhostCreateCellNx9(row, col, getPageRows(page)),
         isSelectableCell: (row, col, page = currentPage) =>
@@ -383,19 +386,16 @@ export const resolveNx9PageNavigationTarget = ({
     context,
     page,
     preferredCol,
-    sectionIdMap,
 }: {
     context: Nx9Context;
     page: number;
     preferredCol: number;
-    sectionIdMap: Record<string, string | undefined>;
 }): Nx9CellWithPage | null => {
     if (context.isGhostCreateCell(0, 0, page)) {
         return { page, row: 0, col: 0 };
     }
 
-    const preferredSection = context.sectionForCell(0, preferredCol, page);
-    if (preferredSection && sectionIdMap[preferredSection]) {
+    if (context.isSelectableCell(0, preferredCol, page)) {
         return {
             page,
             row: 0,
@@ -405,17 +405,9 @@ export const resolveNx9PageNavigationTarget = ({
 
     for (let row = 0; row < context.rowsPerPage; row += 1) {
         for (let col = 0; col < 9; col += 1) {
-            const section = context.sectionForCell(row, col, page);
-            if (!section) continue;
-            if (!sectionIdMap[section]) continue;
+            if (!context.isSelectableCell(row, col, page)) continue;
             return { page, row, col };
         }
-    }
-
-    for (let row = 0; row < context.rowsPerPage; row += 1) {
-        const section = context.sectionForCell(row, 0, page);
-        if (!section) continue;
-        return { page, row, col: 0 };
     }
 
     return findFirstSelectableNx9Cell({ context, page });

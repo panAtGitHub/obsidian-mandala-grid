@@ -25,6 +25,7 @@ const createContext = (page: number): Nx9PageContext => ({
         col: 0,
         page,
     }),
+    isAddressableCell: () => true,
     isGhostCreateCell: () => false,
     isSelectableCell: () => true,
 });

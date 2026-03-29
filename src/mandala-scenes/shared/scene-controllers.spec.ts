@@ -411,6 +411,60 @@ describe('scene-controllers', () => {
         expect(mocks.setActiveCellNx9).not.toHaveBeenCalled();
     });
 
+    it('keeps a virtual nx9 child cell selected when the mapped section has no node yet', () => {
+        const controller = createNx9Controller();
+        const context = createContext({
+            sceneKey: {
+                viewKind: 'nx9',
+                variant: 'default',
+            },
+            committedSceneKey: {
+                viewKind: 'nx9',
+                variant: 'default',
+            },
+            documentSnapshot: {
+                revision: 1,
+                contentRevision: 1,
+                sectionIdMap: { '1': 'node-1' },
+                documentContent: {},
+            },
+            ui: {
+                ...createContext().ui,
+                activeSection: '1',
+                activeCoreSection: '1',
+                nx9ActiveCell: {
+                    row: 0,
+                    col: 3,
+                    page: 0,
+                },
+            },
+            view: {
+                mandalaActiveCellNx9: {
+                    row: 0,
+                    col: 3,
+                    page: 0,
+                },
+                viewStore: {
+                    dispatch: vi.fn(),
+                },
+            } as never,
+        });
+
+        mocks.resolveNx9PageContext.mockReturnValueOnce({
+            posForSection: () => ({
+                row: 0,
+                col: 0,
+                page: 0,
+            }),
+            sectionForCell: () => '1.3',
+            isGhostCreateCell: () => false,
+        });
+
+        controller.resolveProjection(context);
+
+        expect(mocks.setActiveCellNx9).not.toHaveBeenCalled();
+    });
+
     it('keeps week projection assembly inside the week controller and runtime', () => {
         const controller = createNx9WeekController();
         const dispatch = vi.fn();

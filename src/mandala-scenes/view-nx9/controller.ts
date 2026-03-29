@@ -69,7 +69,10 @@ const syncNx9SceneState = (
         return;
     }
 
-    if (mapped && mapped !== visibleSection) {
+    const mappedNodeId = mapped
+        ? context.documentSnapshot.sectionIdMap[mapped] ?? null
+        : null;
+    if (mapped && mapped !== visibleSection && mappedNodeId) {
         setActiveCellNx9(
             context.view,
             pos

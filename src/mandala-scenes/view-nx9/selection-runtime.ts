@@ -19,9 +19,15 @@ export const createNx9SelectionRuntime = ({
     const selectRealCell = (
         row: number,
         col: number,
-        nodeId: string | null,
+        {
+            nodeId,
+            section,
+        }: {
+            nodeId: string | null;
+            section: string | null;
+        },
     ) => {
-        if (!nodeId) return;
+        if (!nodeId && !section) return;
         setActiveCellNx9(view, {
             row,
             col,

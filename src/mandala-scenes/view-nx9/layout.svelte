@@ -229,7 +229,7 @@
                     class:mandala-card-grid__cell--card={!!cell.cardViewModel}
                     class:mandala-card-grid__cell--empty={!cell.nodeId}
                     class:nx9-cell--desktop-card={!!cell.cardViewModel}
-                    class:is-clickable={!!cell.nodeId}
+                    class:is-clickable={!!cell.nodeId || !!cell.section}
                     class:is-top-edge={cell.isTopEdge}
                     class:is-bottom-edge={cell.isBottomEdge}
                     class:is-left-edge={cell.isLeftEdge}
@@ -241,7 +241,10 @@
                         selectionRuntime.selectRealCell(
                             cell.row,
                             cell.col,
-                            cell.nodeId,
+                            {
+                                nodeId: cell.nodeId,
+                                section: cell.section,
+                            },
                         )}
                 >
                     {#if cell.cardViewModel}

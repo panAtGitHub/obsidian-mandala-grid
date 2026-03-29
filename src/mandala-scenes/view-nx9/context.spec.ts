@@ -7,6 +7,7 @@ import {
     getNx9TotalPages,
     posOfSectionNx9,
     resolveNx9Context,
+    resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
     sectionAtCellNx9,
 } from 'src/mandala-scenes/view-nx9/context';
@@ -79,7 +80,7 @@ describe('nx9/context', () => {
         });
     });
 
-    it('maps only real rows to sections and hides ghost child cells', () => {
+    it('treats empty child slots on real rows as addressable and selectable cells', () => {
         const context = resolveNx9Context({
             sectionIdMap: {
                 '1': 'node-1',
@@ -94,6 +95,8 @@ describe('nx9/context', () => {
         });
 
         expect(sectionAtCellNx9(1, 8, context.pageRows)).toBe('2.8');
+        expect(context.isAddressableCell(1, 8, 0)).toBe(true);
+        expect(context.isSelectableCell(1, 8, 0)).toBe(true);
         expect(context.sectionForCell(0, 1, 1)).toBeNull();
         expect(context.isGhostCreateCell(0, 0, 1)).toBe(true);
         expect(context.isSelectableCell(0, 1, 1)).toBe(false);
@@ -167,12 +170,70 @@ describe('nx9/context', () => {
                 context,
                 page: 1,
                 preferredCol: 4,
-                sectionIdMap,
             }),
         ).toEqual({
             page: 1,
             row: 0,
             col: 0,
+        });
+    });
+
+    it('keeps a virtual child cell as the current cell when it is selectable', () => {
+        const context = resolveNx9Context({
+            sectionIdMap: {
+                '1': 'node-1',
+                '6': 'node-6',
+            },
+            documentContent: {
+                'node-1': { content: 'filled' },
+                'node-6': { content: 'filled' },
+            },
+            rowsPerPage: 6,
+            activeSection: '6',
+            activeCell: { row: 1, col: 3, page: 0 },
+        });
+
+        expect(
+            resolveNx9CurrentCell({
+                activeCell: { row: 1, col: 3, page: 0 },
+                activeSection: '6',
+                context,
+            }),
+        ).toEqual({
+            page: 0,
+            row: 1,
+            col: 3,
+        });
+    });
+
+    it('prefers empty child slots when changing to a page with real rows', () => {
+        const context = resolveNx9Context({
+            sectionIdMap: {
+                '1': 'node-1',
+                '2': 'node-2',
+                '3': 'node-3',
+                '4': 'node-4',
+            },
+            documentContent: {
+                'node-1': { content: 'filled' },
+                'node-2': { content: 'filled' },
+                'node-3': { content: 'filled' },
+                'node-4': { content: 'filled' },
+            },
+            rowsPerPage: 2,
+            activeSection: '2',
+        });
+
+        expect(
+            resolveNx9PageNavigationTarget({
+                context,
+                page: 1,
+                preferredCol: 4,
+            }),
+        ).toEqual({
+            page: 1,
+            row: 0,
+            col: 4,
         });
     });
 });

@@ -372,7 +372,6 @@ export class MandalaView extends TextFileView {
             context,
             page: targetPage,
             preferredCol: currentCell.col,
-            sectionIdMap: documentState.sections.section_id,
         });
         if (!target) return;
 
