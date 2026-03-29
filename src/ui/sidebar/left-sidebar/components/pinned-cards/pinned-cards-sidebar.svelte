@@ -7,10 +7,12 @@
     import { scrollActivePinnedNode } from 'src/ui/sidebar/left-sidebar/components/pinned-cards/actions/scroll-active-pinned-node';
     import { navigateToSearchResult } from 'src/mandala-interaction/helpers/search-utils';
     import { setActiveSidebarNode } from 'src/stores/view/subscriptions/actions/set-active-sidebar-node';
-    import { CurrentFileSectionColorMapStore } from 'src/mandala-display/stores/section-colors-store';
+    import {
+        CurrentFileSectionColorMapStore,
+        SectionColorBySectionStore,
+    } from 'src/mandala-display/stores/section-colors-store';
     import {
         createSectionColorIndex,
-        SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
     } from 'src/mandala-display/palette/section-colors';
     import {
@@ -26,14 +28,7 @@
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
     const sectionColorMapStore = CurrentFileSectionColorMapStore(view);
-    const sectionColors = derived(sectionColorMapStore, (colorMap) => {
-        const index = createSectionColorIndex(colorMap);
-        const result: Record<string, string> = {};
-        for (const [section, key] of Object.entries(index)) {
-            result[section] = SECTION_COLOR_PALETTE[key];
-        }
-        return result;
-    });
+    const sectionColors = SectionColorBySectionStore(view);
 
     const activePinnedCard = ActivePinnedCardStore(view);
 
