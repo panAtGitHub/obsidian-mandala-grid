@@ -49,6 +49,7 @@ describe('3x3/assemble-cell-view-model', () => {
                 isCenter: false,
                 isTopEdge: true,
                 isLeftEdge: true,
+                emptySurfaceStyle: undefined,
             },
         });
         expect(descriptors[4]).toMatchObject({
@@ -64,6 +65,7 @@ describe('3x3/assemble-cell-view-model', () => {
                 isCenter: true,
                 isTopEdge: false,
                 isBottomEdge: false,
+                emptySurfaceStyle: undefined,
             },
         });
     });

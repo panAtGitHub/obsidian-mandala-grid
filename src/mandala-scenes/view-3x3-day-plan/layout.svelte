@@ -66,9 +66,7 @@
             animate:flip={{
                 duration: animateSwap ? 220 : 0,
             }}
-            style={!cell.cardViewModel && cell.sectionBackground
-                ? `background-color: ${cell.sectionBackground};`
-                : undefined}
+            style={!cell.cardViewModel ? cell.emptySurfaceStyle : undefined}
         >
             {#if cell.cardViewModel}
                 <MandalaCard

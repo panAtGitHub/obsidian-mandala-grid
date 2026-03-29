@@ -32,7 +32,7 @@ export type ThreeByThreeCellViewModel = SceneCardCellViewModel & {
     isBottomEdge: boolean;
     isLeftEdge: boolean;
     isRightEdge: boolean;
-    sectionBackground: string | null;
+    emptySurfaceStyle: string | undefined;
 };
 
 const isCrossPosition = (row: number, col: number) =>
@@ -54,7 +54,7 @@ export type ThreeByThreeCardCellDescriptorExtra = {
     isBottomEdge: boolean;
     isLeftEdge: boolean;
     isRightEdge: boolean;
-    sectionBackground: string | null;
+    emptySurfaceStyle: string | undefined;
 };
 
 export const build3x3CardCellDescriptors = ({
@@ -81,10 +81,11 @@ export const build3x3CardCellDescriptors = ({
             sectionColorOpacity: displaySnapshot.sectionColorOpacity,
             showGrayBlockBackground: isCrossIndex(index),
         };
-        const sectionBackground = resolveSectionSurfaceVisual({
+        const emptySurfaceStyle =
+            resolveSectionSurfaceVisual({
             section,
             colorContext: sectionColorContext,
-        }).backgroundColor;
+        }).style ?? undefined;
         const frame: SceneCardCellFrame = {
             key: section,
             section,
@@ -108,7 +109,7 @@ export const build3x3CardCellDescriptors = ({
                 isBottomEdge: row === 2,
                 isLeftEdge: col === 0,
                 isRightEdge: col === 2,
-                sectionBackground,
+                emptySurfaceStyle,
             },
         };
     });
