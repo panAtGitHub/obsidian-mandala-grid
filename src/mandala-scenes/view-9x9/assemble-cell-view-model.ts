@@ -8,9 +8,9 @@ import type {
     SimpleSummaryCellModel,
     SimpleSummaryActiveCell,
 } from 'src/mandala-cell/model/simple-summary-cell-model';
-import { resolveCellSurfaceVisual } from 'src/mandala-cell/visual/section-surface-visual';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
+import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/section-surface-visual';
 
 type Build9x9CellsOptions = {
     topology: MandalaTopologyIndex;
@@ -149,7 +149,7 @@ export const decorate9x9CellViewModels = ({
     themeUnderlayColor,
 }: Decorate9x9CellsOptions): SimpleSummaryCellModel[] => {
     return cells.map((cell) => {
-        const surfaceVisual = resolveCellSurfaceVisual({
+        const surfaceVisual = resolveSectionSurfaceVisual({
             section: cell.section,
             colorContext: {
                 backgroundMode,

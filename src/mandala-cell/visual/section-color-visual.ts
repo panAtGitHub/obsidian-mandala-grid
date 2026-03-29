@@ -12,11 +12,11 @@ import type {
     CellSectionMetaVariant,
 } from 'src/mandala-cell/model/card-types';
 import {
-    resolveCellSurfaceBackgroundColor,
-    type CellSurfaceColorContext,
-} from 'src/mandala-cell/visual/section-surface-visual';
+    resolveSectionSurfaceBackgroundColor,
+    type SectionSurfaceColorContext,
+} from 'src/mandala-display/contrast/section-surface-visual';
 
-export type CellSectionColorContext = CellSurfaceColorContext;
+export type CellSectionColorContext = SectionSurfaceColorContext;
 
 export type CellSectionColorVisual = {
     backgroundColor: string | null;
@@ -42,7 +42,7 @@ export const resolveCellSectionColorVisual = ({
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
 }): CellSectionColorVisual => {
-    const backgroundColor = resolveCellSurfaceBackgroundColor({
+    const backgroundColor = resolveSectionSurfaceBackgroundColor({
         section,
         colorContext,
     });

@@ -10,7 +10,6 @@
     import { CurrentFileSectionColorMapStore } from 'src/mandala-display/stores/section-colors-store';
     import {
         createSectionColorIndex,
-        applyOpacityToHex,
         SECTION_COLOR_PALETTE,
         SECTION_COLOR_KEYS,
     } from 'src/mandala-display/palette/section-colors';
@@ -19,10 +18,8 @@
         MandalaSectionColorOpacityStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
-    import {
-        getReadableTextTone,
-        type ThemeTone,
-    } from 'src/mandala-display/contrast/readable-text-tone';
+    import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/section-surface-visual';
+    import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
@@ -204,27 +201,19 @@
             .trim();
 
     const getPinnedItemStyle = (section: string) => {
-        if ($backgroundMode !== 'custom') return undefined;
-        const sectionColor = $sectionColors[section];
-        if (!sectionColor) return undefined;
-
-        const background = applyOpacityToHex(
-            sectionColor,
-            $sectionColorOpacity / 100,
+        return (
+            resolveSectionSurfaceVisual({
+                section,
+                colorContext: {
+                    backgroundMode: $backgroundMode,
+                    sectionColorsBySection: $sectionColors,
+                    sectionColorOpacity: $sectionColorOpacity,
+                },
+                themeTone: getThemeTone(),
+                themeUnderlayColor: getThemeUnderlayColor(),
+                backgroundCssProperty: '--pinned-item-bg',
+            }).style ?? undefined
         );
-        const textTone = getReadableTextTone(
-            background,
-            getThemeTone(),
-            getThemeUnderlayColor(),
-        );
-        const textVars =
-            textTone === 'dark'
-                ? '--text-normal: #0f131a; --text-muted: #2f3a48; --text-faint: #4f5c6b;'
-                : textTone === 'light'
-                  ? '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce;'
-                  : '';
-
-        return `--pinned-item-bg: ${background}; ${textVars}`;
     };
 </script>
 

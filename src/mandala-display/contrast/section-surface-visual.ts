@@ -9,11 +9,11 @@ import {
     type SectionColorContext,
 } from 'src/mandala-display/palette/section-colors';
 
-export type CellSurfaceColorContext = SectionColorContext & {
+export type SectionSurfaceColorContext = SectionColorContext & {
     showGrayBlockBackground?: boolean;
 };
 
-export type CellSurfaceVisual = {
+export type SectionSurfaceVisual = {
     backgroundColor: string | null;
     textTone: TextTone | null;
     style: string | null;
@@ -25,12 +25,12 @@ const DARK_TEXT_TOKENS =
 const LIGHT_TEXT_TOKENS =
     '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce; --text-accent: #f3f6fd;';
 
-export const resolveCellSurfaceBackgroundColor = ({
+export const resolveSectionSurfaceBackgroundColor = ({
     section,
     colorContext,
 }: {
     section: string | null;
-    colorContext: CellSurfaceColorContext | null;
+    colorContext: SectionSurfaceColorContext | null;
 }) => {
     if (!colorContext) return null;
     const customBackground = resolveSectionSurfaceColor({
@@ -49,18 +49,20 @@ export const resolveCellSurfaceBackgroundColor = ({
     return null;
 };
 
-export const resolveCellSurfaceVisual = ({
+export const resolveSectionSurfaceVisual = ({
     section,
     colorContext,
     themeTone,
     themeUnderlayColor,
+    backgroundCssProperty = 'background-color',
 }: {
     section: string | null;
-    colorContext: CellSurfaceColorContext | null;
+    colorContext: SectionSurfaceColorContext | null;
     themeTone?: ThemeTone;
     themeUnderlayColor?: string;
-}): CellSurfaceVisual => {
-    const backgroundColor = resolveCellSurfaceBackgroundColor({
+    backgroundCssProperty?: string;
+}): SectionSurfaceVisual => {
+    const backgroundColor = resolveSectionSurfaceBackgroundColor({
         section,
         colorContext,
     });
@@ -70,7 +72,9 @@ export const resolveCellSurfaceVisual = ({
             : null;
     const styleParts = [];
 
-    if (backgroundColor) styleParts.push(`background-color: ${backgroundColor};`);
+    if (backgroundColor) {
+        styleParts.push(`${backgroundCssProperty}: ${backgroundColor};`);
+    }
     if (textTone === 'dark') styleParts.push(DARK_TEXT_TOKENS);
     if (textTone === 'light') styleParts.push(LIGHT_TEXT_TOKENS);
 

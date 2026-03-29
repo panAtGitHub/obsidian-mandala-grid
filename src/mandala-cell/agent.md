@@ -17,12 +17,6 @@
 
 ## visual/
 
-- `section-surface-visual.ts`
-  负责单格 surface 背景与文字 tone 的统一派生；给 card、3x3 空格、9x9 summary cell 这类不同单格复用同一条背景色链路。
-
-- `section-surface-visual.spec.ts`
-  `section-surface-visual.ts` 的单元测试。
-
 - `section-color-visual.ts`
   负责把 section 色彩上下文、section 指示器策略、pin 状态与主题明暗，统一派生成 card 背景色、右上角胶囊变体、胶囊背景/强调色与文字 tone。
 
@@ -170,8 +164,8 @@
    了解场景层最终会把什么数据交给标准格子。
 2. `model/build-mandala-card-view-model.ts`
    了解这些字段如何被统一装配。
-3. `visual/section-surface-visual.ts`
-   先了解 section surface 背景与文字 tone 是如何统一决策的。
+3. `src/mandala-display/contrast/section-surface-visual.ts`
+   先了解通用 section surface 背景与文字 tone 是如何在 display 层统一决策的。
 4. `visual/section-color-visual.ts`
    再看 card 专属的 section meta 外观是如何叠加在 surface 之上的。
 5. `model/build-mandala-card-render-model.ts`

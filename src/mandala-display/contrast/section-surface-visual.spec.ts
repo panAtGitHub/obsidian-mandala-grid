@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCellSurfaceVisual } from 'src/mandala-cell/visual/section-surface-visual';
+import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/section-surface-visual';
 
 describe('section-surface-visual', () => {
-    it('resolves custom section backgrounds through the shared cell visual layer', () => {
-        const visual = resolveCellSurfaceVisual({
+    it('resolves custom section backgrounds through the shared display visual layer', () => {
+        const visual = resolveSectionSurfaceVisual({
             section: '1.2',
             colorContext: {
                 backgroundMode: 'custom',
@@ -23,7 +23,7 @@ describe('section-surface-visual', () => {
     });
 
     it('resolves gray block surfaces through the same visual entry point', () => {
-        const visual = resolveCellSurfaceVisual({
+        const visual = resolveSectionSurfaceVisual({
             section: '1.2',
             colorContext: {
                 backgroundMode: 'gray',
@@ -38,6 +38,24 @@ describe('section-surface-visual', () => {
         );
         expect(visual.style).toContain(
             'background-color: color-mix(in srgb, var(--mandala-gray-block-base) 80%, transparent);',
+        );
+    });
+
+    it('supports custom css properties for non-card surfaces', () => {
+        const visual = resolveSectionSurfaceVisual({
+            section: '1.2',
+            colorContext: {
+                backgroundMode: 'custom',
+                sectionColorsBySection: {
+                    '1.2': '#677FEF',
+                },
+                sectionColorOpacity: 65,
+            },
+            backgroundCssProperty: '--pinned-item-bg',
+        });
+
+        expect(visual.style).toContain(
+            '--pinned-item-bg: rgba(103, 127, 239, 0.65);',
         );
     });
 });

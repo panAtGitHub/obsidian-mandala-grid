@@ -3,7 +3,7 @@ import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-top
 import { getSectionNodeId } from 'src/mandala-display/logic/mandala-topology';
 import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 import { getMandalaLayoutById } from 'src/mandala-display/logic/mandala-grid';
-import { resolveCellSurfaceVisual } from 'src/mandala-cell/visual/section-surface-visual';
+import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/section-surface-visual';
 import {
     buildSceneCardCellList,
     createSceneCardCellSeed,
@@ -81,7 +81,7 @@ export const build3x3CardCellDescriptors = ({
             sectionColorOpacity: displaySnapshot.sectionColorOpacity,
             showGrayBlockBackground: isCrossIndex(index),
         };
-        const sectionBackground = resolveCellSurfaceVisual({
+        const sectionBackground = resolveSectionSurfaceVisual({
             section,
             colorContext: sectionColorContext,
         }).backgroundColor;
