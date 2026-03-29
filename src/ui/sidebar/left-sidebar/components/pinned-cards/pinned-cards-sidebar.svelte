@@ -18,8 +18,8 @@
         MandalaSectionColorOpacityStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
-    import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/section-surface-visual';
     import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
+    import { resolvePinnedItemColorStyle } from 'src/mandala-display/policies/pinned-item-color-style';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
@@ -201,19 +201,14 @@
             .trim();
 
     const getPinnedItemStyle = (section: string) => {
-        return (
-            resolveSectionSurfaceVisual({
-                section,
-                colorContext: {
-                    backgroundMode: $backgroundMode,
-                    sectionColorsBySection: $sectionColors,
-                    sectionColorOpacity: $sectionColorOpacity,
-                },
-                themeTone: getThemeTone(),
-                themeUnderlayColor: getThemeUnderlayColor(),
-                backgroundCssProperty: '--pinned-item-bg',
-            }).style ?? undefined
-        );
+        return resolvePinnedItemColorStyle({
+            section,
+            backgroundMode: $backgroundMode,
+            sectionColorsBySection: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+            themeTone: getThemeTone(),
+            themeUnderlayColor: getThemeUnderlayColor(),
+        });
     };
 </script>
 
