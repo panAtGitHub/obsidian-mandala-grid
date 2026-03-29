@@ -82,4 +82,31 @@ describe('buildMandalaCardRenderModel', () => {
             '--mandala-card-meta-bg: rgba(233, 217, 103, 1)',
         );
     });
+
+    it('propagates explicit text tone for colored capsule meta', () => {
+        const model = buildMandalaCardRenderModel({
+            ...baseOptions(),
+            viewModel: {
+                ...baseOptions().viewModel,
+                section: '1.1',
+                sectionColorContext: {
+                    backgroundMode: 'custom',
+                    sectionColorsBySection: { '1.1': '#323232' },
+                    sectionColorOpacity: 100,
+                },
+                displayPolicy: {
+                    ...createDefaultCellDisplayPolicy(),
+                    sectionIndicatorVariant: 'plain-with-pin',
+                },
+            },
+            uiState: {
+                ...baseOptions().uiState,
+                pinned: true,
+            },
+        });
+
+        expect(model.sectionMetaVariant).toBe('capsule');
+        expect(model.sectionMetaTextTone).toBe('light');
+        expect(model.metaStyle).toContain('--mandala-card-meta-accent: #323232');
+    });
 });

@@ -27,7 +27,7 @@
         variant === 'background'
             ? 'mandala-card-meta--with-bg'
             : 'mandala-card-meta--without-bg',
-        variant === 'background' && textTone
+        variant !== 'plain' && textTone
             ? `mandala-card-meta--tone-${textTone}`
             : undefined,
         density === 'compact' ? 'mandala-card-meta--compact' : undefined,
@@ -74,11 +74,7 @@
         padding: 1px 8px;
         border-radius: 999px;
         background: var(--mandala-card-meta-accent, currentColor);
-        color: color-mix(
-            in srgb,
-            var(--mandala-card-meta-accent, currentColor) 75%,
-            var(--text-normal) 25%
-        );
+        color: var(--text-normal);
         opacity: 1;
     }
 
@@ -112,7 +108,7 @@
         height: 9px !important;
     }
 
-    /* 深浅文字 tone 只在整块背景模式下使用。 */
+    /* 深浅文字 tone 由 visual 层统一决定，胶囊和整块背景都直接消费。 */
     .mandala-card-meta--tone-dark {
         color: #2f3a48;
     }

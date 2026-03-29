@@ -25,17 +25,18 @@ describe('section-color-visual', () => {
             section: '1.1',
             colorContext: {
                 backgroundMode: 'custom',
-                sectionColorsBySection: { '1.1': '#E9D967' },
-                sectionColorOpacity: 65,
+                sectionColorsBySection: { '1.1': '#323232' },
+                sectionColorOpacity: 100,
             },
             indicatorVariant: 'plain-with-pin',
             pinned: true,
             themeTone: 'light',
         });
 
-        expect(visual.backgroundColor).toBe('rgba(233, 217, 103, 0.65)');
+        expect(visual.backgroundColor).toBe('rgba(50, 50, 50, 1)');
         expect(visual.metaVariant).toBe('capsule');
-        expect(visual.metaAccentColor).toBe('#E9D967');
+        expect(visual.metaAccentColor).toBe('#323232');
+        expect(visual.metaTextTone).toBe('light');
         expect(visual.showPin).toBe(true);
     });
 });
