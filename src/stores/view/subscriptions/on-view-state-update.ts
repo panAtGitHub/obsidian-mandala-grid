@@ -4,6 +4,7 @@ import { getViewEventType } from 'src/stores/view/helpers/get-view-event-type';
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 import { persistActiveNodeInPluginSettings } from 'src/stores/view/subscriptions/actions/persist-active-node-in-plugin-settings';
+import { persistCurrentMandalaViewState } from 'src/mandala-settings/state/current-file/mandala-view-state';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 
 const NAVIGATION_ACTIVE_NODE_ACTIONS = new Set<ViewStoreAction['type']>([
@@ -100,6 +101,9 @@ export const onViewStateUpdate = (
     }
     if (action.type === 'view/search/set-query') {
         updateSearchResults(view);
+    }
+    if (action.type === 'view/mandala/detail-sidebar/set') {
+        persistCurrentMandalaViewState(view);
     }
 
     // effects

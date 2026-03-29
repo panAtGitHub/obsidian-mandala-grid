@@ -386,6 +386,8 @@ export type PersistMandalaViewStateAction = {
         lastActiveSection: string | null;
         subgridTheme: string | null;
         nx9RowsPerPage?: number;
+        showDetailSidebarDesktop?: boolean | null;
+        showDetailSidebarMobile?: boolean | null;
     };
 };
 export type PersistMandalaPinnedSectionsAction = {

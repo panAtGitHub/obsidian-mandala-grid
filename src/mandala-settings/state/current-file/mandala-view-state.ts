@@ -113,6 +113,17 @@ export const persistCurrentMandalaViewState = (
         options?.overrides?.nx9RowsPerPage ??
         currentMandalaViewState?.nx9RowsPerPage ??
         DEFAULT_NX9_ROWS_PER_PAGE;
+    const showDetailSidebar = viewState.ui.mandala.showDetailSidebar;
+    const currentDesktopSidebarVisibility =
+        currentMandalaViewState?.showDetailSidebarDesktop ?? null;
+    const currentMobileSidebarVisibility =
+        currentMandalaViewState?.showDetailSidebarMobile ?? null;
+    const nextDesktopSidebarVisibility = Platform.isMobile
+        ? currentDesktopSidebarVisibility
+        : showDetailSidebar;
+    const nextMobileSidebarVisibility = Platform.isMobile
+        ? showDetailSidebar
+        : currentMobileSidebarVisibility;
 
     if (
         (currentMandalaViewState?.selectedLayoutId ?? null) ===
@@ -124,7 +135,9 @@ export const persistCurrentMandalaViewState = (
             lastActiveSection &&
         (currentMandalaViewState?.subgridTheme ?? null) === subgridTheme &&
         (currentMandalaViewState?.nx9RowsPerPage ??
-            DEFAULT_NX9_ROWS_PER_PAGE) === nx9RowsPerPage
+            DEFAULT_NX9_ROWS_PER_PAGE) === nx9RowsPerPage &&
+        currentDesktopSidebarVisibility === nextDesktopSidebarVisibility &&
+        currentMobileSidebarVisibility === nextMobileSidebarVisibility
     ) {
         return;
     }
@@ -139,6 +152,8 @@ export const persistCurrentMandalaViewState = (
             lastActiveSection,
             subgridTheme,
             nx9RowsPerPage,
+            showDetailSidebarDesktop: nextDesktopSidebarVisibility,
+            showDetailSidebarMobile: nextMobileSidebarVisibility,
         },
     });
 };

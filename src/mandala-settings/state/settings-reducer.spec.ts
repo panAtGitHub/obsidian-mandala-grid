@@ -122,6 +122,75 @@ describe('settingsReducer custom grid layouts', () => {
         });
     });
 
+    test('persists detail sidebar visibility independently per platform', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: 'builtin:left-to-right',
+                lastActiveSection: '2',
+                subgridTheme: '2',
+                nx9RowsPerPage: 3,
+                showDetailSidebarDesktop: true,
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: 'builtin:left-to-right',
+                lastActiveSection: '2',
+                subgridTheme: '2',
+                nx9RowsPerPage: 3,
+                showDetailSidebarMobile: false,
+            },
+        });
+
+        expect(settings.documents['a.md']?.mandalaView).toMatchObject({
+            showDetailSidebarDesktop: true,
+            showDetailSidebarMobile: false,
+        });
+    });
+
+    test('does not overwrite the other platform detail sidebar visibility', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: 'builtin:left-to-right',
+                lastActiveSection: '2',
+                subgridTheme: '2',
+                nx9RowsPerPage: 3,
+                showDetailSidebarDesktop: true,
+                showDetailSidebarMobile: true,
+            },
+        });
+        settingsReducer(settings, {
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'a.md',
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: 'builtin:left-to-right',
+                lastActiveSection: '2',
+                subgridTheme: '2',
+                nx9RowsPerPage: 3,
+                showDetailSidebarDesktop: false,
+            },
+        });
+
+        expect(settings.documents['a.md']?.mandalaView).toMatchObject({
+            showDetailSidebarDesktop: false,
+            showDetailSidebarMobile: true,
+        });
+    });
+
     test('toggles day plan today buttons independently per platform', () => {
         const settings = DEFAULT_SETTINGS();
 

@@ -150,6 +150,14 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             action.payload.selectedCustomLayout ?? null;
         mandalaView.lastActiveSection = action.payload.lastActiveSection;
         mandalaView.subgridTheme = action.payload.subgridTheme;
+        if ('showDetailSidebarDesktop' in action.payload) {
+            mandalaView.showDetailSidebarDesktop =
+                action.payload.showDetailSidebarDesktop ?? null;
+        }
+        if ('showDetailSidebarMobile' in action.payload) {
+            mandalaView.showDetailSidebarMobile =
+                action.payload.showDetailSidebarMobile ?? null;
+        }
         const nx9RowsPerPage = action.payload.nx9RowsPerPage;
         if (
             typeof nx9RowsPerPage === 'number' &&
