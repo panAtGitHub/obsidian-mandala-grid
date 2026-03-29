@@ -18,9 +18,12 @@
     import MobileFullScreenSearch from 'src/ui/modals/mobile-fullscreen-search.svelte';
     import MobileNativeEditorSheet from 'src/ui/modals/mobile-native-editor-sheet.svelte';
     import type { EditingState } from 'src/stores/view/default-view-state';
+    import {
+        resolveDesktopSquareSize,
+        resolveSceneThemeSnapshot,
+    } from 'src/mandala-scenes/shared/root-shell-state';
 
     const view = getView();
-    const MIN_DESKTOP_DETAIL_SIDEBAR_SIZE = 200;
     const DEFAULT_THEME_SNAPSHOT: MandalaThemeSnapshot = {
         themeTone: 'light',
         themeUnderlayColor: '',
@@ -73,40 +76,27 @@
     const mobileKeyboardOverlayFallback = mobileEditorViewport.keyboardFallback;
 
     const readSceneThemeSnapshot = (): MandalaThemeSnapshot => {
-        const styles = window.getComputedStyle(document.body);
-        const inactiveThemeUnderlayColor =
-            styles.getPropertyValue('--background-active-parent').trim() ||
-            styles.getPropertyValue('--background-primary').trim();
-        const activeThemeUnderlayColor =
-            styles.getPropertyValue('--background-active-node').trim() ||
-            inactiveThemeUnderlayColor;
-
-        return {
-            themeTone: document.body.classList.contains('theme-dark')
-                ? 'dark'
-                : 'light',
-            themeUnderlayColor: inactiveThemeUnderlayColor,
-            activeThemeUnderlayColor,
-        };
+        return resolveSceneThemeSnapshot(
+            document.body,
+            window.getComputedStyle(document.body),
+        );
     };
 
     const recomputeDesktopSquareSize = () => {
-        if (Platform.isMobile || !squareLayout || !contentWrapperRef) {
+        if (!contentWrapperRef) {
             desktopSquareSize = 0;
             return;
         }
 
         const rect = contentWrapperRef.getBoundingClientRect();
-        const sidebarMinWidth = showDetailSidebar
-            ? Math.max(
-                  MIN_DESKTOP_DETAIL_SIDEBAR_SIZE,
-                  detailSidebarWidth || MIN_DESKTOP_DETAIL_SIDEBAR_SIZE,
-              )
-            : 0;
-        const availableWidth = Math.max(0, rect.width - sidebarMinWidth);
-        desktopSquareSize = Math.floor(
-            Math.max(0, Math.min(rect.height, availableWidth)),
-        );
+        desktopSquareSize = resolveDesktopSquareSize({
+            isMobile: Platform.isMobile,
+            squareLayout,
+            wrapperWidth: rect.width,
+            wrapperHeight: rect.height,
+            showDetailSidebar,
+            detailSidebarWidth,
+        });
     };
 
     onMount(() => {

@@ -99,40 +99,8 @@
         viewKind: '3x3',
         variant: 'default',
     } as const;
-    let sceneRootContext = rootController.buildContext({
-        documentState: $documentState,
-        sceneThemeSnapshot,
-        committedSceneKey,
-        activeNodeId: $activeNodeId,
-        editingState: $editingState,
-        selectedNodes: $selectedNodesSnapshot.selectedNodes,
-        selectedStamp: $selectedNodesSnapshot.stamp,
-        pinnedSections: $pinnedSectionsSnapshot.sections,
-        pinnedStamp: $pinnedSectionsSnapshot.stamp,
-        sectionColors: $sectionColors,
-        sectionColorOpacity: $sectionColorOpacity,
-        backgroundMode: $backgroundMode,
-        showDetailSidebar: $showDetailSidebar,
-        whiteThemeMode: $whiteThemeMode,
-        subgridTheme: $subgridTheme,
-        nx9ActiveCell: $nx9ActiveCell,
-        weekAnchorDate: $weekAnchorDate,
-        selectedLayoutId: $selectedLayoutId,
-        customLayouts: $customLayouts,
-        nx9RowsPerPage: $nx9RowsPerPage,
-        weekPlanCompactMode: $weekPlanCompactMode,
-        weekStart: $weekStart,
-        dayPlanEnabled: $dayPlanEnabled,
-        showDayPlanTodayButton: $showDayPlanTodayButton,
-        show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
-        hasOpenOverlayModal: $hasOpenOverlayModal,
-        animateSwap: $swapState.animate,
-        desktopSquareSize,
-        isMobilePopupEditing: false,
-        isMobileFullScreenSearch: Platform.isMobile && $search.showInput,
-        mode: $mode,
-    });
-    let sceneProjection = rootController.resolveProjection(sceneRootContext);
+    let sceneRootContext: ReturnType<typeof rootController.buildContext>;
+    let sceneProjection: ReturnType<typeof rootController.resolveProjection>;
 
     const handleSave = () => {
         if ($editingState.activeNodeId) {
@@ -154,40 +122,42 @@
     const handleMobileEditorFocusIn = () => undefined;
     const handleMobileEditorFocusOut = () => undefined;
 
-    $: sceneRootContext = rootController.buildContext({
-        documentState: $documentState,
-        sceneThemeSnapshot,
-        committedSceneKey,
-        activeNodeId: $activeNodeId,
-        editingState: $editingState,
-        selectedNodes: $selectedNodesSnapshot.selectedNodes,
-        selectedStamp: $selectedNodesSnapshot.stamp,
-        pinnedSections: $pinnedSectionsSnapshot.sections,
-        pinnedStamp: $pinnedSectionsSnapshot.stamp,
-        sectionColors: $sectionColors,
-        sectionColorOpacity: $sectionColorOpacity,
-        backgroundMode: $backgroundMode,
-        showDetailSidebar: $showDetailSidebar,
-        whiteThemeMode: $whiteThemeMode,
-        subgridTheme: $subgridTheme,
-        nx9ActiveCell: $nx9ActiveCell,
-        weekAnchorDate: $weekAnchorDate,
-        selectedLayoutId: $selectedLayoutId,
-        customLayouts: $customLayouts,
-        nx9RowsPerPage: $nx9RowsPerPage,
-        weekPlanCompactMode: $weekPlanCompactMode,
-        weekStart: $weekStart,
-        dayPlanEnabled: $dayPlanEnabled,
-        showDayPlanTodayButton: $showDayPlanTodayButton,
-        show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
-        hasOpenOverlayModal: $hasOpenOverlayModal,
-        animateSwap: $swapState.animate,
-        desktopSquareSize,
-        isMobilePopupEditing: false,
-        isMobileFullScreenSearch: Platform.isMobile && $search.showInput,
-        mode: $mode,
-    });
-    $: sceneProjection = rootController.resolveProjection(sceneRootContext);
+    $: {
+        sceneRootContext = rootController.buildContext({
+            documentState: $documentState,
+            sceneThemeSnapshot,
+            committedSceneKey,
+            activeNodeId: $activeNodeId,
+            editingState: $editingState,
+            selectedNodes: $selectedNodesSnapshot.selectedNodes,
+            selectedStamp: $selectedNodesSnapshot.stamp,
+            pinnedSections: $pinnedSectionsSnapshot.sections,
+            pinnedStamp: $pinnedSectionsSnapshot.stamp,
+            sectionColors: $sectionColors,
+            sectionColorOpacity: $sectionColorOpacity,
+            backgroundMode: $backgroundMode,
+            showDetailSidebar: $showDetailSidebar,
+            whiteThemeMode: $whiteThemeMode,
+            subgridTheme: $subgridTheme,
+            nx9ActiveCell: $nx9ActiveCell,
+            weekAnchorDate: $weekAnchorDate,
+            selectedLayoutId: $selectedLayoutId,
+            customLayouts: $customLayouts,
+            nx9RowsPerPage: $nx9RowsPerPage,
+            weekPlanCompactMode: $weekPlanCompactMode,
+            weekStart: $weekStart,
+            dayPlanEnabled: $dayPlanEnabled,
+            showDayPlanTodayButton: $showDayPlanTodayButton,
+            show3x3SubgridNavButtons: $show3x3SubgridNavButtons,
+            hasOpenOverlayModal: $hasOpenOverlayModal,
+            animateSwap: $swapState.animate,
+            desktopSquareSize,
+            isMobilePopupEditing: false,
+            isMobileFullScreenSearch: Platform.isMobile && $search.showInput,
+            mode: $mode,
+        });
+        sceneProjection = rootController.resolveProjection(sceneRootContext);
+    }
 </script>
 
 <RootShell
