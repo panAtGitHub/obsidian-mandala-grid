@@ -1,6 +1,6 @@
 <script lang="ts">
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import { Printer, Trash2, X } from 'lucide-svelte';
+    import { Printer, Settings2, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
     import { Notice, Platform } from 'obsidian';
     import {
@@ -79,6 +79,7 @@
     import {
         createViewOptionsDocumentActions,
     } from './view-options-document-actions';
+    import { openCurrentFileMandalaSettingsModal } from 'src/obsidian/modals/current-file-mandala-settings-modal';
 
     const dispatch = createEventDispatcher<{ close: void }>();
     const view = getView();
@@ -751,6 +752,15 @@
         closeMenu(true);
     };
 
+    const openCurrentFileSettings = () => {
+        if (!view.file) {
+            new Notice('未找到当前文件。');
+            return;
+        }
+        openCurrentFileMandalaSettingsModal(view);
+        closeMenu();
+    };
+
     const closeExportMode = () => {
         exportModalState.close();
         closeExportModeModal();
@@ -1122,6 +1132,21 @@
                 {saveCurrentThemeAsTemplate}
                 {applyTemplateToCurrentTheme}
             />
+
+            <button
+                class="view-options-menu__item"
+                on:click={openCurrentFileSettings}
+            >
+                <div class="view-options-menu__icon">
+                    <Settings2 class="view-options-menu__icon-svg" size={18} />
+                </div>
+                <div class="view-options-menu__content">
+                    <div class="view-options-menu__label">当前文件设置</div>
+                    <div class="view-options-menu__desc">
+                        打开九宫格当前文件设置面板
+                    </div>
+                </div>
+            </button>
 
             <button
                 class="view-options-menu__item"
