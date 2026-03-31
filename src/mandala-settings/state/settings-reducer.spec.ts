@@ -273,6 +273,17 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.view.mandalaMode).toBe('3x3');
     });
 
+    test('skips disabled 9x9/nx9 modes when cycling', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.enable9x9View = false;
+        settings.view.enableNx9View = false;
+
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/toggle-mode',
+        });
+        expect(settings.view.mandalaMode).toBe('3x3');
+    });
+
     test('updates week start setting', () => {
         const settings = DEFAULT_SETTINGS();
 
@@ -293,6 +304,20 @@ describe('settingsReducer custom grid layouts', () => {
         });
 
         expect(settings.general.weekPlanCompactMode).toBe(false);
+    });
+
+    test('toggles 9x9 and nx9 global view switches independently', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        settingsReducer(settings, {
+            type: 'settings/view/toggle-9x9-view',
+        });
+        settingsReducer(settings, {
+            type: 'settings/view/toggle-nx9-view',
+        });
+
+        expect(settings.view.enable9x9View).toBe(false);
+        expect(settings.view.enableNx9View).toBe(false);
     });
 
     test('disabling week plan keeps mandala mode unchanged', () => {

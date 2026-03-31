@@ -309,10 +309,15 @@ export class MandalaView extends TextFileView {
         );
     }
 
+    canUse9x9Mode() {
+        return this.plugin.settings.getValue().view.enable9x9View ?? true;
+    }
+
     canUseNx9Mode(
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ) {
         return (
+            (this.plugin.settings.getValue().view.enableNx9View ?? true) &&
             !Platform.isMobile &&
             this.documentStore.getValue().meta.isMandala &&
             (!resolveMandalaProfile(frontmatter)?.dayPlan ||
@@ -396,6 +401,17 @@ export class MandalaView extends TextFileView {
     }
 
     setMandalaMode(mode: MandalaMode) {
+        if (mode === '9x9' && !this.canUse9x9Mode()) {
+            new Notice('9x9 视图已在插件设置中关闭。');
+            return false;
+        }
+        if (
+            mode === 'nx9' &&
+            !(this.plugin.settings.getValue().view.enableNx9View ?? true)
+        ) {
+            new Notice('nx9 视图已在插件设置中关闭。');
+            return false;
+        }
         if (mode === 'nx9' && !this.canUseNx9Mode()) {
             new Notice('Nx9 视图仅支持桌面端的 mandala 文件。');
             return false;
@@ -415,7 +431,11 @@ export class MandalaView extends TextFileView {
         const current = this.mandalaMode;
         const next =
             current === '3x3'
-                ? '9x9'
+                ? this.canUse9x9Mode()
+                    ? '9x9'
+                    : this.canUseNx9Mode()
+                      ? 'nx9'
+                      : '3x3'
                 : current === '9x9'
                   ? this.canUseNx9Mode()
                       ? 'nx9'
@@ -430,6 +450,7 @@ export class MandalaView extends TextFileView {
         const currentMode = this.mandalaMode;
         const nextMode = resolveCompatibleMandalaMode({
             currentMode,
+            canUse9x9Mode: this.canUse9x9Mode(),
             canUseNx9Mode: this.canUseNx9Mode(frontmatter),
         });
 
@@ -453,7 +474,14 @@ export class MandalaView extends TextFileView {
     }
 
     async setState(state: unknown, result: ViewStateResult): Promise<void> {
-        const nextMode = this.readMandalaModeFromState(state);
+        const nextModeRaw = this.readMandalaModeFromState(state);
+        const nextMode =
+            nextModeRaw &&
+            (resolveCompatibleMandalaMode({
+                currentMode: nextModeRaw,
+                canUse9x9Mode: this.canUse9x9Mode(),
+                canUseNx9Mode: this.canUseNx9Mode(),
+            }) ?? nextModeRaw);
         if (nextMode && nextMode !== this.mandalaMode) {
             this.viewStore.dispatch({
                 type: 'view/mandala/mode/set',

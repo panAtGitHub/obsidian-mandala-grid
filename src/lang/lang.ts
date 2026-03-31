@@ -304,6 +304,31 @@ export const lang = {
     settings_layout: 'Layout',
     settings_reset: '重置',
 
+    // features settings
+    settings_features: '功能',
+    settings_features_3x3_subgrid_nav_desktop: '3×3 子九宫导航按钮（PC）',
+    settings_features_3x3_subgrid_nav_mobile: '3×3 子九宫导航按钮（手机）',
+    settings_features_3x3_infinite_nesting: '3×3 无限嵌套',
+    settings_features_3x3_infinite_nesting_desc:
+        '开启后，点击 3×3 格子可进入子九宫，支持无限层级嵌套。',
+    settings_features_9x9_parallel_nav_desktop: '9×9 并行导航按钮（PC）',
+    settings_features_9x9_parallel_nav_mobile: '9×9 并行导航按钮（手机）',
+    settings_features_9x9_title_only: '9×9 仅显示标题',
+    settings_features_hidden_card_info: '显示隐藏卡片信息（Anki）',
+    settings_features_cell_quick_preview_desktop: '格子快速预览弹层（PC）',
+    settings_features_cell_quick_preview_mobile: '格子快速预览弹层（手机）',
+
+    // day/week plan settings
+    settings_day_week_plan: '日/周计划',
+    settings_day_week_plan_redirect:
+        '日/周计划设置已移至曼陀罗视图的设置面板中。请打开任意曼陀罗视图并点击设置图标。',
+    settings_global_view_switches: '全局视图开关',
+    settings_global_enable_9x9_view: '启用 9×9 视图',
+    settings_global_enable_nx9_view: '启用 nx9 视图',
+    settings_global_enable_3x3_infinite: '3×3 无限九宫',
+    settings_global_enable_3x3_infinite_desc:
+        '关闭后：若 9×9 关闭，仅保留到 1.1~1.8；若 9×9 开启，可到 1.1.1~1.8.8。',
+
     // general settings
     settings_general_link_split: 'Open in new split',
     settings_general_link_tab: 'Open in new tab',

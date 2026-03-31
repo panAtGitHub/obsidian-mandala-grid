@@ -74,6 +74,19 @@ describe('migrateSettings', () => {
         expect('show9x9ParallelNavButtons' in settings.view).toBe(false);
     });
 
+    test('fills missing global view switches with defaults', () => {
+        const settings = DEFAULT_SETTINGS() as Settings & {
+            view: Settings['view'];
+        };
+        delete (settings.view as Record<string, unknown>).enable9x9View;
+        delete (settings.view as Record<string, unknown>).enableNx9View;
+
+        migrateSettings(settings);
+
+        expect(settings.view.enable9x9View).toBe(true);
+        expect(settings.view.enableNx9View).toBe(true);
+    });
+
     test('drops legacy maintainEditMode field', () => {
         const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
         settings.view.maintainEditMode = true;

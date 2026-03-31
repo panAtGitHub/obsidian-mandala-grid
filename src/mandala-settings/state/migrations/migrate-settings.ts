@@ -389,6 +389,15 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (viewSettings.leftSidebarActiveTab !== 'pinned-cards') {
         viewSettings.leftSidebarActiveTab = 'pinned-cards';
     }
+    if (typeof (viewSettings as Record<string, unknown>).enable3x3InfiniteNesting !== 'boolean') {
+        (viewSettings as Record<string, unknown>).enable3x3InfiniteNesting = true;
+    }
+    if (typeof (viewSettings as Record<string, unknown>).enable9x9View !== 'boolean') {
+        (viewSettings as Record<string, unknown>).enable9x9View = true;
+    }
+    if (typeof (viewSettings as Record<string, unknown>).enableNx9View !== 'boolean') {
+        (viewSettings as Record<string, unknown>).enableNx9View = true;
+    }
 
     const legacyViewSettings = viewSettings as Record<string, unknown>;
     for (const key of [

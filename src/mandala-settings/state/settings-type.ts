@@ -150,10 +150,13 @@ export type Settings = {
         contextMenuCopyLinkVisibilityMobile: ContextMenuCopyLinkVisibility;
         mobileEditFontSizeOffset: number;
         show9x9TitleOnly: boolean;
+        enable9x9View: boolean;
+        enableNx9View: boolean;
         squareLayout: boolean;
         whiteThemeMode: boolean;
         mandalaEmbedDebug: boolean;
         hiddenVerticalToolbarButtons: ToolbarButton[];
+        enable3x3InfiniteNesting: boolean;
     };
     general: {
         linkPaneType: LinkPaneType;

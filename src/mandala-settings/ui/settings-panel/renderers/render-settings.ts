@@ -12,10 +12,14 @@ import { HeadingsFontSize } from 'src/mandala-settings/ui/settings-panel/fields/
 import { MandalaFontSizes } from 'src/mandala-settings/ui/settings-panel/fields/mandala-font-sizes';
 import { LinkPaneType } from 'src/mandala-settings/ui/settings-panel/fields/link-pane-type';
 import { MandalaEmbedDebug } from 'src/mandala-settings/ui/settings-panel/fields/mandala-embed-debug';
+import { Features3x3 } from 'src/mandala-settings/ui/settings-panel/fields/features/features-3x3';
+import { Features9x9 } from 'src/mandala-settings/ui/settings-panel/fields/features/features-9x9';
+import { FeaturesGeneral } from 'src/mandala-settings/ui/settings-panel/fields/features/features-general';
+import { DayWeekPlanSettings } from 'src/mandala-settings/ui/settings-panel/fields/day-week-plan/day-week-plan';
 import { MandalaView } from 'src/view/view';
 import { lang } from 'src/lang/lang';
 
-export type SettingsTab = 'General' | 'Appearance' | 'Layout';
+export type SettingsTab = 'General' | 'Appearance' | 'Layout' | 'Features' | 'Day/Week Plan';
 type Tab = { element: HTMLDivElement; name: SettingsTab };
 
 const setVisibleTab = (tabs: Tab[], activeTab: SettingsTab) => {
@@ -31,15 +35,20 @@ const setVisibleTab = (tabs: Tab[], activeTab: SettingsTab) => {
 const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     const settingsStore = view.plugin.settings;
     const isMandala = view.getViewType() === 'mandala-grid';
+
     const generalTab = activeDocument.createElement('div');
     const appearanceTab = activeDocument.createElement('div');
     const layoutTab = activeDocument.createElement('div');
+    const featuresTab = activeDocument.createElement('div');
+    const dayWeekPlanTab = activeDocument.createElement('div');
 
     tabs.push({ element: generalTab, name: 'General' });
     tabs.push({ element: appearanceTab, name: 'Appearance' });
     tabs.push({ element: layoutTab, name: 'Layout' });
+    tabs.push({ element: featuresTab, name: 'Features' });
+    tabs.push({ element: dayWeekPlanTab, name: 'Day/Week Plan' });
 
-    // general
+    // ── General Tab ──
     LinkPaneType(generalTab, settingsStore);
     MandalaEmbedDebug(generalTab, settingsStore);
     ControlsBarButtons(
@@ -48,7 +57,7 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
         isMandala ? '顶部工具栏按钮管理' : undefined,
     );
 
-    // appearance
+    // ── Appearance Tab ──
     if (!isMandala) {
         BackgroundColor(appearanceTab, settingsStore);
         ActiveBranchBackground(appearanceTab, settingsStore);
@@ -73,7 +82,7 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
         HeadingsFontSize(fontContent, settingsStore);
     }
 
-    // layout
+    // ── Layout Tab ──
     if (!isMandala) {
         CardWidth(layoutTab, settingsStore);
     }
@@ -84,7 +93,34 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
         LimitCardHeight(layoutTab, settingsStore);
     }
 
-    element.append(generalTab, appearanceTab, layoutTab);
+    // ── Features Tab ──
+    if (isMandala) {
+        const section3x3 = featuresTab.createEl('details', {
+            cls: 'mandala-features-section',
+        });
+        section3x3.open = true;
+        section3x3.createEl('summary', { text: '3×3 视图' });
+        Features3x3(section3x3.createEl('div'), settingsStore);
+
+        const section9x9 = featuresTab.createEl('details', {
+            cls: 'mandala-features-section',
+        });
+        section9x9.open = true;
+        section9x9.createEl('summary', { text: '9×9 视图' });
+        Features9x9(section9x9.createEl('div'), settingsStore);
+
+        const sectionGeneral = featuresTab.createEl('details', {
+            cls: 'mandala-features-section',
+        });
+        sectionGeneral.open = true;
+        sectionGeneral.createEl('summary', { text: '通用' });
+        FeaturesGeneral(sectionGeneral.createEl('div'), settingsStore);
+    }
+
+    // ── Day/Week Plan Tab ──
+    DayWeekPlanSettings(dayWeekPlanTab, settingsStore);
+
+    element.append(generalTab, appearanceTab, layoutTab, featuresTab, dayWeekPlanTab);
 };
 
 export const renderSettings = (element: HTMLElement, tab: SettingsTab) => {

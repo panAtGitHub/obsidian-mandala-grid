@@ -1,6 +1,7 @@
 import { PluginSettingTab, Setting } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
+import { MandalaView } from 'src/view/view';
 import {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
@@ -15,6 +16,25 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         this.plugin = plugin;
     }
 
+    private syncActiveViewModeWithGlobalSwitches() {
+        const settings = this.plugin.settings.getValue();
+        const mode = settings.view.mandalaMode;
+        if (
+            (mode === '9x9' && !settings.view.enable9x9View) ||
+            (mode === 'nx9' && !settings.view.enableNx9View)
+        ) {
+            this.plugin.settings.dispatch({
+                type: 'settings/view/mandala/set-mode',
+                payload: { mode: '3x3' },
+            });
+            const activeView =
+                this.app.workspace.getActiveViewOfType(MandalaView);
+            if (activeView) {
+                void activeView.setMandalaMode('3x3');
+            }
+        }
+    }
+
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
@@ -22,6 +42,56 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName(lang.settings_plugin_title)
             .setHeading();
+
+        containerEl.createEl('h3', { text: lang.settings_global_view_switches });
+
+        new Setting(containerEl)
+            .setName(lang.settings_global_enable_9x9_view)
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(
+                        this.plugin.settings.getValue().view.enable9x9View ??
+                            true,
+                    )
+                    .onChange(() => {
+                        this.plugin.settings.dispatch({
+                            type: 'settings/view/toggle-9x9-view',
+                        });
+                        this.syncActiveViewModeWithGlobalSwitches();
+                    });
+            });
+
+        new Setting(containerEl)
+            .setName(lang.settings_global_enable_nx9_view)
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(
+                        this.plugin.settings.getValue().view.enableNx9View ??
+                            true,
+                    )
+                    .onChange(() => {
+                        this.plugin.settings.dispatch({
+                            type: 'settings/view/toggle-nx9-view',
+                        });
+                        this.syncActiveViewModeWithGlobalSwitches();
+                    });
+            });
+
+        new Setting(containerEl)
+            .setName(lang.settings_global_enable_3x3_infinite)
+            .setDesc(lang.settings_global_enable_3x3_infinite_desc)
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(
+                        this.plugin.settings.getValue().view
+                            .enable3x3InfiniteNesting ?? true,
+                    )
+                    .onChange(() => {
+                        this.plugin.settings.dispatch({
+                            type: 'settings/view/toggle-3x3-infinite-nesting',
+                        });
+                    });
+            });
 
         new Setting(containerEl)
             .setName(lang.settings_general_day_plan_enabled)
@@ -106,7 +176,8 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                             lang.settings_general_day_plan_date_heading_format_zh_short,
                         'en-short':
                             lang.settings_general_day_plan_date_heading_format_en_short,
-                        custom: lang.settings_general_day_plan_date_heading_format_custom,
+                        custom:
+                            lang.settings_general_day_plan_date_heading_format_custom,
                     } satisfies Record<DayPlanDateHeadingFormat, string>)
                     .setValue(settings.general.dayPlanDateHeadingFormat)
                     .onChange((value) => {

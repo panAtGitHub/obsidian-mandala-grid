@@ -10,6 +10,7 @@ import {
     assemble3x3CellViewModels,
     type Assemble3x3CellViewModelsArgs,
 } from 'src/mandala-scenes/view-3x3/assemble-cell-view-model';
+import { canExpandThreeByThreeChildren } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 export const resolveThreeByThreeTheme = (
     subgridTheme: string | null | undefined,
@@ -37,6 +38,7 @@ export const syncThreeByThreeSubgridState = ({
         allowSubgridExpansion &&
         mode === '3x3' &&
         subgridTheme &&
+        canExpandThreeByThreeChildren(view, subgridTheme) &&
         !subgridTheme.includes('.') &&
         documentState.meta.isMandala
     ) {

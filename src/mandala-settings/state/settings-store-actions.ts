@@ -352,6 +352,15 @@ export type SettingsActions =
           payload: { opacity: number };
       }
     | {
+          type: 'settings/view/toggle-3x3-infinite-nesting';
+      }
+    | {
+          type: 'settings/view/toggle-9x9-view';
+      }
+    | {
+          type: 'settings/view/toggle-nx9-view';
+      }
+    | {
           type: 'settings/view/mandala/set-last-export-preset';
           payload: {
               preset: {

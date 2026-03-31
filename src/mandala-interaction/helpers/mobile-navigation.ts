@@ -9,6 +9,10 @@ import {
     applyDayPlanToCore,
     resolveNextDayPlanDate,
 } from 'src/mandala-display/logic/apply-day-plan-to-core';
+import {
+    canEnterThreeByThreeTheme,
+    canExpandThreeByThreeChildren,
+} from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     if (view.mandalaMode !== '3x3') return;
@@ -18,6 +22,10 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
 
     const section = docState.sections.id_section[nodeId];
     if (!section) return;
+    if (!canEnterThreeByThreeTheme(view, section)) {
+        new Notice('当前设置下已达到 3×3 子九宫层级上限。');
+        return;
+    }
     const currentTheme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
     const dayPlan = parseDayPlanFrontmatter(docState.file.frontmatter);
     if (dayPlan) {
@@ -77,7 +85,7 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     );
     const childCount = childGroup?.nodes.length ?? 0;
 
-    if (childCount < 8) {
+    if (childCount < 8 && canExpandThreeByThreeChildren(view, section)) {
         if (childCount === 0) {
             const content =
                 docState.document.content[nodeId]?.content ?? '';

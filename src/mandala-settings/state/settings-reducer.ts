@@ -335,11 +335,19 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     },
     'settings/view/mandala/toggle-mode': (store, action) => {
         if (action.type !== 'settings/view/mandala/toggle-mode') return;
+        const canUse9x9 = store.view.enable9x9View ?? true;
+        const canUseNx9 = store.view.enableNx9View ?? true;
         store.view.mandalaMode =
             store.view.mandalaMode === '3x3'
-                ? '9x9'
+                ? canUse9x9
+                    ? '9x9'
+                    : canUseNx9
+                      ? 'nx9'
+                      : '3x3'
                 : store.view.mandalaMode === '9x9'
-                  ? 'nx9'
+                  ? canUseNx9
+                      ? 'nx9'
+                      : '3x3'
                   : store.view.mandalaMode === 'nx9'
                     ? '3x3'
                     : '3x3';
@@ -599,6 +607,19 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
     'settings/view/toggle-square-layout': (store, action) => {
         if (action.type !== 'settings/view/toggle-square-layout') return;
         store.view.squareLayout = !store.view.squareLayout;
+    },
+    'settings/view/toggle-3x3-infinite-nesting': (store, action) => {
+        if (action.type !== 'settings/view/toggle-3x3-infinite-nesting') return;
+        store.view.enable3x3InfiniteNesting =
+            !(store.view.enable3x3InfiniteNesting ?? true);
+    },
+    'settings/view/toggle-9x9-view': (store, action) => {
+        if (action.type !== 'settings/view/toggle-9x9-view') return;
+        store.view.enable9x9View = !(store.view.enable9x9View ?? true);
+    },
+    'settings/view/toggle-nx9-view': (store, action) => {
+        if (action.type !== 'settings/view/toggle-nx9-view') return;
+        store.view.enableNx9View = !(store.view.enableNx9View ?? true);
     },
     'settings/view/toggle-white-theme': (store, action) => {
         if (action.type !== 'settings/view/toggle-white-theme') return;
