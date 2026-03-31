@@ -64,6 +64,11 @@ class CurrentFileMandalaSettingsModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
+        contentEl.createDiv({
+            cls: 'mandala-file-settings__note',
+            text: '仅影响当前 md 文件，保存到 YAML 的 mandala_settings。',
+        });
+
         renderMandalaCoreSettings({
             parentEl: contentEl,
             state: this.state,
@@ -79,6 +84,20 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 });
             },
             showDescriptions: false,
+            texts: {
+                sectionGlobalView: '当前文件视图覆盖',
+                sectionTimePlan: '当前文件时间计划覆盖',
+                enable9x9View: '当前文件启用 9×9 视图',
+                enableNx9View: '当前文件启用 nx9 视图',
+                enable3x3InfiniteNesting: '当前文件启用 3×3 无限九宫',
+                dayPlanEnabled: '当前文件启用「日计划」',
+                weekPlanEnabled: '当前文件启用「周计划」',
+                weekPlanCompactMode: '当前文件使用 7×9 周计划紧凑显示',
+                weekStart: '当前文件周计划起始日',
+                dayPlanDateHeadingFormat: '当前文件日计划日期标题格式',
+                dayPlanDateHeadingCustomTemplate: '当前文件自定义日期标题模板',
+                dayPlanDateHeadingApplyMode: '当前文件日期标题生效时机',
+            },
             handlers: {
                 setEnable9x9View: (enabled) => {
                     this.state.view.enable9x9View = enabled;
@@ -126,7 +145,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
         });
 
         new Setting(actionsContainer)
-            .setName(lang.cmd_set_day_plan_mandala_format)
+            .setName('将当前文件转换为「日计划」结构')
             .addButton((button) =>
                 button.setButtonText('执行').onClick(() => {
                     void setupDayPlanMandalaFormat(this.view.plugin);

@@ -32,6 +32,20 @@ type RenderMandalaCoreSettingsOptions = {
         group: 'global-view' | 'time-plan',
     ) => HTMLElement;
     showDescriptions: boolean;
+    texts?: Partial<{
+        sectionGlobalView: string;
+        sectionTimePlan: string;
+        enable9x9View: string;
+        enableNx9View: string;
+        enable3x3InfiniteNesting: string;
+        dayPlanEnabled: string;
+        weekPlanEnabled: string;
+        weekPlanCompactMode: string;
+        weekStart: string;
+        dayPlanDateHeadingFormat: string;
+        dayPlanDateHeadingCustomTemplate: string;
+        dayPlanDateHeadingApplyMode: string;
+    }>;
 };
 
 const createMaybeDescriptionSetting = (
@@ -51,20 +65,21 @@ export const renderMandalaCoreSettings = ({
     handlers,
     createGroupContainer,
     showDescriptions,
+    texts,
 }: RenderMandalaCoreSettingsOptions) => {
     const globalViewContainer = createGroupContainer(
         parentEl,
-        lang.settings_section_global_view,
+        texts?.sectionGlobalView ?? lang.settings_section_global_view,
         'global-view',
     );
     const timePlanContainer = createGroupContainer(
         parentEl,
-        lang.settings_section_time_plan,
+        texts?.sectionTimePlan ?? lang.settings_section_time_plan,
         'time-plan',
     );
 
     new Setting(globalViewContainer)
-        .setName(lang.settings_global_enable_9x9_view)
+        .setName(texts?.enable9x9View ?? lang.settings_global_enable_9x9_view)
         .addToggle((toggle) =>
             toggle
                 .setValue(state.view.enable9x9View)
@@ -72,7 +87,7 @@ export const renderMandalaCoreSettings = ({
         );
 
     new Setting(globalViewContainer)
-        .setName(lang.settings_global_enable_nx9_view)
+        .setName(texts?.enableNx9View ?? lang.settings_global_enable_nx9_view)
         .addToggle((toggle) =>
             toggle
                 .setValue(state.view.enableNx9View)
@@ -81,7 +96,8 @@ export const renderMandalaCoreSettings = ({
 
     createMaybeDescriptionSetting(
         new Setting(globalViewContainer).setName(
-            lang.settings_global_enable_3x3_infinite,
+            texts?.enable3x3InfiniteNesting ??
+                lang.settings_global_enable_3x3_infinite,
         ),
         lang.settings_global_enable_3x3_infinite_desc,
         showDescriptions,
@@ -93,7 +109,7 @@ export const renderMandalaCoreSettings = ({
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
-            lang.settings_general_day_plan_enabled,
+            texts?.dayPlanEnabled ?? lang.settings_general_day_plan_enabled,
         ),
         lang.settings_general_day_plan_enabled_desc,
         showDescriptions,
@@ -105,7 +121,7 @@ export const renderMandalaCoreSettings = ({
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
-            lang.settings_general_week_plan_enabled,
+            texts?.weekPlanEnabled ?? lang.settings_general_week_plan_enabled,
         ),
         lang.settings_general_week_plan_enabled_desc,
         showDescriptions,
@@ -118,7 +134,8 @@ export const renderMandalaCoreSettings = ({
     if (state.general.weekPlanEnabled) {
         createMaybeDescriptionSetting(
             new Setting(timePlanContainer).setName(
-                lang.settings_general_week_plan_compact_mode,
+                texts?.weekPlanCompactMode ??
+                    lang.settings_general_week_plan_compact_mode,
             ),
             lang.settings_general_week_plan_compact_mode_desc,
             showDescriptions,
@@ -128,7 +145,9 @@ export const renderMandalaCoreSettings = ({
                 .onChange((enabled) => handlers.setWeekPlanCompactMode(enabled)),
         );
 
-        new Setting(timePlanContainer).setName('周计划起始日').addDropdown(
+        new Setting(timePlanContainer)
+            .setName(texts?.weekStart ?? '周计划起始日')
+            .addDropdown(
             (dropdown) =>
                 dropdown
                     .addOptions({
@@ -137,12 +156,13 @@ export const renderMandalaCoreSettings = ({
                     } satisfies Record<WeekStart, string>)
                     .setValue(state.general.weekStart)
                     .onChange((value) => handlers.setWeekStart(value as WeekStart)),
-        );
+            );
     }
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
-            lang.settings_general_day_plan_date_heading_format,
+            texts?.dayPlanDateHeadingFormat ??
+                lang.settings_general_day_plan_date_heading_format,
         ),
         lang.settings_general_day_plan_date_heading_format_desc,
         showDescriptions,
@@ -171,7 +191,8 @@ export const renderMandalaCoreSettings = ({
     if (state.general.dayPlanDateHeadingFormat === 'custom') {
         createMaybeDescriptionSetting(
             new Setting(timePlanContainer).setName(
-                lang.settings_general_day_plan_date_heading_custom_template,
+                texts?.dayPlanDateHeadingCustomTemplate ??
+                    lang.settings_general_day_plan_date_heading_custom_template,
             ),
             lang.settings_general_day_plan_date_heading_custom_template_desc,
             showDescriptions,
@@ -187,7 +208,8 @@ export const renderMandalaCoreSettings = ({
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
-            lang.settings_general_day_plan_date_heading_apply_mode,
+            texts?.dayPlanDateHeadingApplyMode ??
+                lang.settings_general_day_plan_date_heading_apply_mode,
         ),
         lang.settings_general_day_plan_date_heading_apply_mode_desc,
         showDescriptions,
