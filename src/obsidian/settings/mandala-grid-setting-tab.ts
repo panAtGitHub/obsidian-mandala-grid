@@ -33,14 +33,18 @@ export class MandalaGridSettingTab extends PluginSettingTab {
 
     private createDrawer(parent: HTMLElement, title: string) {
         const details = parent.createEl('details');
+        details.addClass('mandala-settings-drawer');
         details.open = false;
-        details.createEl('summary', { text: title });
-        return details.createDiv();
+        details
+            .createEl('summary', { text: title })
+            .addClass('mandala-settings-drawer__summary');
+        return details.createDiv({ cls: 'mandala-settings-drawer__content' });
     }
 
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
+        containerEl.addClass('mandala-plugin-settings');
 
         new Setting(containerEl)
             .setName(lang.settings_plugin_title)

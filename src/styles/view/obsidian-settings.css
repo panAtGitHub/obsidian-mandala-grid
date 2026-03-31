@@ -1,0 +1,93 @@
+.mandala-plugin-settings,
+.mandala-file-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mandala-plugin-settings .setting-item-heading {
+    margin-bottom: 4px;
+}
+
+.mandala-settings-drawer {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 12px;
+    background: color-mix(
+        in srgb,
+        var(--background-primary) 88%,
+        var(--background-secondary)
+    );
+    overflow: hidden;
+}
+
+.mandala-settings-drawer__summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-normal);
+    padding: 12px 14px;
+    border-bottom: 1px solid transparent;
+}
+
+.mandala-settings-drawer[open] > .mandala-settings-drawer__summary {
+    border-bottom-color: var(--background-modifier-border);
+    background: color-mix(
+        in srgb,
+        var(--background-secondary) 82%,
+        var(--background-primary)
+    );
+}
+
+.mandala-settings-drawer__summary::-webkit-details-marker {
+    margin-right: 6px;
+}
+
+.mandala-settings-drawer__content {
+    padding: 8px;
+}
+
+.mandala-settings-drawer__content .setting-item {
+    border: none;
+    border-radius: 10px;
+    background: var(--background-primary);
+    padding: 10px 12px;
+    margin: 6px 0;
+}
+
+.mandala-settings-drawer__content .setting-item:first-child {
+    margin-top: 0;
+}
+
+.mandala-settings-drawer__content .setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.mandala-settings-drawer__content .setting-item-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.mandala-settings-drawer__content .setting-item-description {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.mandala-settings-drawer__content .setting-item-control button {
+    min-width: 64px;
+}
+
+.mandala-file-settings-modal .modal-title {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.mandala-file-settings__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 0 2px;
+}

@@ -51,6 +51,8 @@ class CurrentFileMandalaSettingsModal extends Modal {
 
     onOpen() {
         this.setTitle('当前文件九宫设置');
+        this.modalEl.addClass('mandala-file-settings-modal');
+        this.contentEl.addClass('mandala-file-settings');
         this.render();
     }
 
@@ -67,9 +69,14 @@ class CurrentFileMandalaSettingsModal extends Modal {
             state: this.state,
             createGroupContainer: (parentEl, title) => {
                 const details = parentEl.createEl('details');
+                details.addClass('mandala-settings-drawer');
                 details.open = true;
-                details.createEl('summary', { text: title });
-                return details.createDiv();
+                details
+                    .createEl('summary', { text: title })
+                    .addClass('mandala-settings-drawer__summary');
+                return details.createDiv({
+                    cls: 'mandala-settings-drawer__content',
+                });
             },
             showDescriptions: false,
             handlers: {
@@ -109,9 +116,14 @@ class CurrentFileMandalaSettingsModal extends Modal {
         });
 
         const actionsDetails = contentEl.createEl('details');
+        actionsDetails.addClass('mandala-settings-drawer');
         actionsDetails.open = true;
-        actionsDetails.createEl('summary', { text: '日计划操作' });
-        const actionsContainer = actionsDetails.createDiv();
+        actionsDetails
+            .createEl('summary', { text: '日计划操作' })
+            .addClass('mandala-settings-drawer__summary');
+        const actionsContainer = actionsDetails.createDiv({
+            cls: 'mandala-settings-drawer__content',
+        });
 
         new Setting(actionsContainer)
             .setName(lang.cmd_set_day_plan_mandala_format)
@@ -137,13 +149,21 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 }),
             );
 
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('保存').setCta().onClick(() => {
-                void this.save();
-            });
+        const footerActions = contentEl.createDiv({
+            cls: 'mandala-file-settings__actions',
         });
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => this.close());
+        const cancelButton = footerActions.createEl('button', {
+            text: '取消',
+            cls: 'mod-muted',
+        });
+        cancelButton.addEventListener('click', () => this.close());
+
+        const saveButton = footerActions.createEl('button', {
+            text: '保存',
+            cls: 'mod-cta',
+        });
+        saveButton.addEventListener('click', () => {
+            void this.save();
         });
     }
 
