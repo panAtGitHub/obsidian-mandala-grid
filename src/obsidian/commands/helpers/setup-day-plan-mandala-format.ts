@@ -12,6 +12,7 @@ import {
     MandalaConversionMode,
 } from 'src/mandala-display/logic/mandala-conversion';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
+import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import {
     allSlotsFilled,
     buildCenterDateHeading,
@@ -151,14 +152,17 @@ const getPlanDayFromToday = (planYear: number) => {
     return dayOfYearFromDate(planYear, month, day);
 };
 
-const getDateHeadingSettings = (plugin: MandalaGrid) =>
-    getDayPlanDateHeadingSettings({
-        format: plugin.settings.getValue().general.dayPlanDateHeadingFormat,
-        customTemplate:
-            plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
-        applyMode:
-            plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+const getDateHeadingSettings = (plugin: MandalaGrid, frontmatter: string) => {
+    const effective = resolveEffectiveMandalaSettings(
+        plugin.settings.getValue(),
+        frontmatter,
+    );
+    return getDayPlanDateHeadingSettings({
+        format: effective.general.dayPlanDateHeadingFormat,
+        customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
+        applyMode: effective.general.dayPlanDateHeadingApplyMode,
     });
+};
 
 const createYearPlanBodyAsync = async (
     planYear: number,
@@ -385,7 +389,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
 
     const slots = await chooseSlots(plugin, initialSlots);
     if (!slots) return;
-    const dateHeadingSettings = getDateHeadingSettings(plugin);
+    const dateHeadingSettings = getDateHeadingSettings(plugin, frontmatter);
 
     let nextBody = body;
     let firstRun = !(existingPlan?.enabled === true);

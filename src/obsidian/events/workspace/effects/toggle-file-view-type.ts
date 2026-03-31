@@ -27,6 +27,8 @@ import {
     DayPlanSlotsSyncMode,
     openDayPlanSlotsSyncModeModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
+import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
+import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 
@@ -54,14 +56,18 @@ const getTodayIsoDate = () => {
     return `${now.getFullYear()}-${month}-${day}`;
 };
 
-const getDateHeadingSettings = (plugin: MandalaGrid) =>
-    getDayPlanDateHeadingSettings({
-        format: plugin.settings.getValue().general.dayPlanDateHeadingFormat,
-        customTemplate:
-            plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
-        applyMode:
-            plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+const getDateHeadingSettings = (plugin: MandalaGrid, markdown: string) => {
+    const { frontmatter } = extractFrontmatter(markdown);
+    const effective = resolveEffectiveMandalaSettings(
+        plugin.settings.getValue(),
+        frontmatter,
+    );
+    return getDayPlanDateHeadingSettings({
+        format: effective.general.dayPlanDateHeadingFormat,
+        customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
+        applyMode: effective.general.dayPlanDateHeadingApplyMode,
     });
+};
 
 const splitSectionsToBatches = (sections: string[], batchSize: number) => {
     const normalizedBatchSize = Math.max(1, batchSize);
@@ -188,7 +194,7 @@ const syncDayPlanCenterDateHeadingWithToday = async (
 ) => {
     const plan = parseDayPlanFromMarkdown(content);
     if (!plan || plan.enabled !== true) return false;
-    const dateHeadingSettings = getDateHeadingSettings(plugin);
+    const dateHeadingSettings = getDateHeadingSettings(plugin, content);
     if (dateHeadingSettings.applyMode === 'manual') return false;
     const todayHeading = buildCenterDateHeading(
         getTodayIsoDate(),
@@ -253,7 +259,7 @@ export const toggleFileViewType = async (
             nextContent,
         );
         nextContent = syncResult.markdown;
-        const dateHeadingSettings = getDateHeadingSettings(plugin);
+        const dateHeadingSettings = getDateHeadingSettings(plugin, nextContent);
         if (dateHeadingSettings.applyMode === 'immediate') {
             nextContent = refreshDayPlanDateHeadingsInMarkdown(
                 nextContent,

@@ -14,6 +14,8 @@ import {
 } from 'src/mandala-display/logic/day-plan-sections';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { lang } from 'src/lang/lang';
+import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
+import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 
 const isCoreSection = (section: string) => /^\d+$/.test(section);
 const getTodayIsoDate = () => {
@@ -93,12 +95,15 @@ export const refreshCurrentDayPlanDateHeadings = async (plugin: MandalaGrid) => 
         return;
     }
 
+    const { frontmatter } = extractFrontmatter(markdown);
+    const effective = resolveEffectiveMandalaSettings(
+        plugin.settings.getValue(),
+        frontmatter,
+    );
     const settings = getDayPlanDateHeadingSettings({
-        format: plugin.settings.getValue().general.dayPlanDateHeadingFormat,
-        customTemplate:
-            plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
-        applyMode:
-            plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+        format: effective.general.dayPlanDateHeadingFormat,
+        customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
+        applyMode: effective.general.dayPlanDateHeadingApplyMode,
     });
     const refreshed = refreshDayPlanDateHeadingsInMarkdown(markdown, settings);
     if (refreshed.changed) {

@@ -10,13 +10,22 @@ const mockView = (props: {
     enable9x9View: boolean;
 }) =>
     ({
-        plugin: {
-            settings: {
-                getValue: () => ({
-                    view: props,
-                }),
+        getEffectiveMandalaSettings: () => ({
+            view: {
+                enable3x3InfiniteNesting: props.enable3x3InfiniteNesting,
+                enable9x9View: props.enable9x9View,
+                enableNx9View: true,
             },
-        },
+            general: {
+                dayPlanEnabled: true,
+                weekPlanEnabled: true,
+                weekPlanCompactMode: true,
+                weekStart: 'monday',
+                dayPlanDateHeadingFormat: 'zh-short',
+                dayPlanDateHeadingCustomTemplate: '## {date} {cn}',
+                dayPlanDateHeadingApplyMode: 'manual',
+            },
+        }),
     }) as unknown as MandalaView;
 
 describe('view-3x3/subgrid-depth', () => {

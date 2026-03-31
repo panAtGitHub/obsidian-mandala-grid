@@ -24,7 +24,7 @@ export const tryMandalaWeek7x9Navigation = (
     const weekContext = resolveWeekPlanContext({
         frontmatter: documentState.file.frontmatter,
         anchorDate: view.mandalaWeekAnchorDate,
-        weekStart: view.plugin.settings.getValue().general.weekStart,
+        weekStart: view.getEffectiveMandalaSettings().general.weekStart,
     });
     if (!weekContext.dayPlan) return false;
 

@@ -13,6 +13,8 @@ import { openExportModeModalForView } from 'src/mandala-settings/ui/view-options
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import { exportPerfSnapshot } from 'src/obsidian/commands/helpers/export-perf-snapshot';
+import { Notice } from 'obsidian';
+import { openCurrentFileMandalaSettingsModal } from 'src/obsidian/modals/current-file-mandala-settings-modal';
 
 type ManagedCommand = Omit<Command, 'id' | 'callback'> & {
     commandId: string;
@@ -108,6 +110,23 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
             if (!view) return false;
             if (checking) return true;
             openExportModeModalForView(view.id);
+        },
+    });
+
+    commands.push({
+        commandId: 'mandala-current-file-settings',
+        name: lang.cmd_open_current_file_mandala_settings,
+        icon: customIcons.mandalaGrid.name,
+        checkCallback: (checking) => {
+            const view = getActiveMandalaView(plugin);
+            if (!view || !view.file) {
+                if (!checking) {
+                    new Notice('请先打开一个九宫格文件。');
+                }
+                return false;
+            }
+            if (checking) return true;
+            openCurrentFileMandalaSettingsModal(view);
         },
     });
 

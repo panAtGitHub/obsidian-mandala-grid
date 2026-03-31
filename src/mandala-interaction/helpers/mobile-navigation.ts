@@ -32,7 +32,7 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
         view.dayPlanHotCores = shiftHotWindowToCore(
             dayPlan.year,
             section,
-            view.plugin.settings.getValue().general.weekStart,
+            view.getEffectiveMandalaSettings().general.weekStart,
         );
     }
     if (dayPlan && dayPlan.daily_only_3x3 && section.includes('.')) {

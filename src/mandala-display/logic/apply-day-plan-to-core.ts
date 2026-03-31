@@ -22,12 +22,13 @@ const getFirstNonEmptyLine = (content: string) =>
 const isHeadingLine = (line: string) => /^#{1,6}\s+/.test(line);
 
 const getDateHeadingSettings = (view: MandalaView) =>
+    // File-level YAML overrides plugin defaults when present.
     getDayPlanDateHeadingSettings({
-        format: view.plugin.settings.getValue().general.dayPlanDateHeadingFormat,
+        format: view.getEffectiveMandalaSettings().general.dayPlanDateHeadingFormat,
         customTemplate:
-            view.plugin.settings.getValue().general.dayPlanDateHeadingCustomTemplate,
+            view.getEffectiveMandalaSettings().general.dayPlanDateHeadingCustomTemplate,
         applyMode:
-            view.plugin.settings.getValue().general.dayPlanDateHeadingApplyMode,
+            view.getEffectiveMandalaSettings().general.dayPlanDateHeadingApplyMode,
     });
 
 export const shouldApplyDayPlanSlotTemplate = (content: string) => {
@@ -143,7 +144,7 @@ export const applyDayPlanToCore = (
         view.dayPlanHotCores = shiftHotWindowToCore(
             config.year,
             nextCore,
-            view.plugin.settings.getValue().general.weekStart,
+            view.getEffectiveMandalaSettings().general.weekStart,
         );
     }
 

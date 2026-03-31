@@ -12,6 +12,7 @@ export const lang = {
     // create document
     cmd_create_new_document: '新建九宫格文件',
     cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
+    cmd_open_current_file_mandala_settings: '九宫格：当前文件设置',
     cmd_write_current_core_day_plan_slots_to_yaml:
         '将当前核心九宫的 8 个标题写回「日计划」模板',
     cmd_refresh_day_plan_date_headings: '按当前设置刷新日计划日期标题',

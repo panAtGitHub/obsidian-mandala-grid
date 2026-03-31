@@ -9,9 +9,10 @@ export const ensureSceneCompatibility = (
     view: MandalaView,
     args: Omit<ResolveSceneCompatibilityActionsArgs, 'weekPlanEnabled' | 'isMobile'>,
 ) => {
+    const effective = view.getEffectiveMandalaSettings();
     const actions = resolveSceneCompatibilityActions({
         ...args,
-        weekPlanEnabled: view.plugin.settings.getValue().general.weekPlanEnabled,
+        weekPlanEnabled: effective.general.weekPlanEnabled,
         isMobile: Platform.isMobile,
     });
 

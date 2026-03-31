@@ -156,16 +156,28 @@ export const ShowCellQuickPreviewDialogStore = (view: MandalaView) =>
     );
 
 export const DayPlanEnabledStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.general.dayPlanEnabled);
+    derived(
+        view.documentStore,
+        () => view.getEffectiveMandalaSettings().general.dayPlanEnabled,
+    );
 
 export const WeekPlanEnabledStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.general.weekPlanEnabled);
+    derived(
+        view.documentStore,
+        () => view.getEffectiveMandalaSettings().general.weekPlanEnabled,
+    );
 
 export const WeekPlanCompactModeStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.general.weekPlanCompactMode);
+    derived(
+        view.documentStore,
+        () => view.getEffectiveMandalaSettings().general.weekPlanCompactMode,
+    );
 
 export const WeekStartStore = (view: MandalaView) =>
-    derived(view.plugin.settings, (state) => state.general.weekStart);
+    derived(
+        view.documentStore,
+        () => view.getEffectiveMandalaSettings().general.weekStart,
+    );
 
 export const ContextMenuCopyLinkVisibilityStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) =>

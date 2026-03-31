@@ -75,7 +75,7 @@
                           .mandalaGridCustomLayouts ?? [],
                   frontmatter: view.documentStore.getValue().file.frontmatter,
                   weekAnchorDate: getMandalaWeekAnchorDate($viewState),
-                  weekStart: view.plugin.settings.getValue().general.weekStart,
+                  weekStart: view.getEffectiveMandalaSettings().general.weekStart,
               })
             : null;
     $: if (

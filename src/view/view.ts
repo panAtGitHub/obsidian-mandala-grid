@@ -99,6 +99,10 @@ import {
     resolveNx9PageNavigationTarget,
 } from 'src/mandala-scenes/view-nx9/context';
 import { resolveCompatibleMandalaMode } from 'src/mandala-interaction/helpers/resolve-compatible-mandala-mode';
+import {
+    resolveEffectiveMandalaSettings,
+    type EffectiveMandalaSettings,
+} from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -303,21 +307,22 @@ export class MandalaView extends TextFileView {
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ) {
         const profile = resolveMandalaProfile(frontmatter);
+        const effective = this.getEffectiveMandalaSettings();
         return (
-            this.plugin.settings.getValue().general.weekPlanEnabled &&
+            effective.general.weekPlanEnabled &&
             profile?.kind === 'day-plan'
         );
     }
 
     canUse9x9Mode() {
-        return this.plugin.settings.getValue().view.enable9x9View ?? true;
+        return this.getEffectiveMandalaSettings().view.enable9x9View;
     }
 
     canUseNx9Mode(
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ) {
         return (
-            (this.plugin.settings.getValue().view.enableNx9View ?? true) &&
+            this.getEffectiveMandalaSettings().view.enableNx9View &&
             !Platform.isMobile &&
             this.documentStore.getValue().meta.isMandala &&
             (!resolveMandalaProfile(frontmatter)?.dayPlan ||
@@ -328,10 +333,11 @@ export class MandalaView extends TextFileView {
     getMandalaSceneKey(
         frontmatter = this.documentStore.getValue().file.frontmatter,
     ): MandalaSceneKey {
+        const effective = this.getEffectiveMandalaSettings();
         return resolveMandalaSceneKey({
             frontmatter,
             viewKind: this.mandalaMode,
-            weekPlanEnabled: this.plugin.settings.getValue().general.weekPlanEnabled,
+            weekPlanEnabled: effective.general.weekPlanEnabled,
         });
     }
 
@@ -407,7 +413,7 @@ export class MandalaView extends TextFileView {
         }
         if (
             mode === 'nx9' &&
-            !(this.plugin.settings.getValue().view.enableNx9View ?? true)
+            !this.getEffectiveMandalaSettings().view.enableNx9View
         ) {
             new Notice('nx9 视图已在插件设置中关闭。');
             return false;
@@ -1345,7 +1351,7 @@ export class MandalaView extends TextFileView {
         const activation = resolveMandalaProfileActivation(
             frontmatter,
             new Date(),
-            this.plugin.settings.getValue().general.weekStart,
+            this.getEffectiveMandalaSettings().general.weekStart,
         );
         this.cachedActivation = { frontmatter, activation };
         return activation;
@@ -1419,6 +1425,15 @@ export class MandalaView extends TextFileView {
             type: 'view/mandala/subgrid/enter',
             payload: { theme },
         });
+    }
+
+    getEffectiveMandalaSettings(
+        settings = this.plugin.settings.getValue(),
+    ): EffectiveMandalaSettings {
+        return resolveEffectiveMandalaSettings(
+            settings,
+            this.documentStore.getValue().file.frontmatter,
+        );
     }
 
     private getSectionNumberForLine(line: number): string | null {

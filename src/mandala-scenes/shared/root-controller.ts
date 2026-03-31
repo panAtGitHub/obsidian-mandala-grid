@@ -154,12 +154,12 @@ export const createSceneRootController = (view: MandalaView) => {
             ? idToSection[args.activeNodeId] ?? null
             : null;
         const activeCoreSection = activeSection?.split('.')[0] ?? null;
+        const effective = view.getEffectiveMandalaSettings();
         const nextFacts = {
             sceneKey: resolveMandalaSceneKey({
                 frontmatter: args.documentState.file.frontmatter,
                 viewKind: args.mode,
-                weekPlanEnabled:
-                    view.plugin.settings.getValue().general.weekPlanEnabled,
+                weekPlanEnabled: effective.general.weekPlanEnabled,
             }),
             sectionToNodeId,
             idToSection,

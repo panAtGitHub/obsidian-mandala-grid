@@ -107,7 +107,7 @@ export const editCommands = () => {
                             view.documentStore.getValue().file.frontmatter,
                         anchorDate: view.mandalaWeekAnchorDate,
                         weekStart:
-                            view.plugin.settings.getValue().general.weekStart,
+                            view.getEffectiveMandalaSettings().general.weekStart,
                     });
                     const section = weekContext.sectionForCell(
                         view.mandalaActiveCellNx9.row,
