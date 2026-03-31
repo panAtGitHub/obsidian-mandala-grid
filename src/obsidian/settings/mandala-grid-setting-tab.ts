@@ -35,6 +35,13 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         }
     }
 
+    private createDrawer(parent: HTMLElement, title: string) {
+        const details = parent.createEl('details');
+        details.open = false;
+        details.createEl('summary', { text: title });
+        return details.createDiv();
+    }
+
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
@@ -43,9 +50,16 @@ export class MandalaGridSettingTab extends PluginSettingTab {
             .setName(lang.settings_plugin_title)
             .setHeading();
 
-        containerEl.createEl('h3', { text: lang.settings_global_view_switches });
+        const globalViewDrawer = this.createDrawer(
+            containerEl,
+            lang.settings_section_global_view,
+        );
+        const timePlanDrawer = this.createDrawer(
+            containerEl,
+            lang.settings_section_time_plan,
+        );
 
-        new Setting(containerEl)
+        new Setting(globalViewDrawer)
             .setName(lang.settings_global_enable_9x9_view)
             .addToggle((toggle) => {
                 toggle
@@ -61,7 +75,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                     });
             });
 
-        new Setting(containerEl)
+        new Setting(globalViewDrawer)
             .setName(lang.settings_global_enable_nx9_view)
             .addToggle((toggle) => {
                 toggle
@@ -77,7 +91,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                     });
             });
 
-        new Setting(containerEl)
+        new Setting(globalViewDrawer)
             .setName(lang.settings_global_enable_3x3_infinite)
             .setDesc(lang.settings_global_enable_3x3_infinite_desc)
             .addToggle((toggle) => {
@@ -93,7 +107,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                     });
             });
 
-        new Setting(containerEl)
+        new Setting(timePlanDrawer)
             .setName(lang.settings_general_day_plan_enabled)
             .setDesc(lang.settings_general_day_plan_enabled_desc)
             .addToggle((toggle) => {
@@ -111,7 +125,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
 
         const settings = this.plugin.settings.getValue();
 
-        new Setting(containerEl)
+        new Setting(timePlanDrawer)
             .setName(lang.settings_general_week_plan_enabled)
             .setDesc(lang.settings_general_week_plan_enabled_desc)
             .addToggle((toggle) => {
@@ -127,7 +141,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
             });
 
         if (settings.general.weekPlanEnabled) {
-            new Setting(containerEl)
+            new Setting(timePlanDrawer)
                 .setName(lang.settings_general_week_plan_compact_mode)
                 .setDesc(lang.settings_general_week_plan_compact_mode_desc)
                 .addToggle((toggle) => {
@@ -141,7 +155,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                         });
                 });
 
-            new Setting(containerEl)
+            new Setting(timePlanDrawer)
                 .setName('周计划起始日')
                 .setDesc('周视图中一周从周一或周日开始。')
                 .addDropdown((dropdown) => {
@@ -162,7 +176,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                 });
         }
 
-        new Setting(containerEl)
+        new Setting(timePlanDrawer)
             .setName(lang.settings_general_day_plan_date_heading_format)
             .setDesc(lang.settings_general_day_plan_date_heading_format_desc)
             .addDropdown((dropdown) => {
@@ -192,7 +206,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
             });
 
         if (settings.general.dayPlanDateHeadingFormat === 'custom') {
-            new Setting(containerEl)
+            new Setting(timePlanDrawer)
                 .setName(lang.settings_general_day_plan_date_heading_custom_template)
                 .setDesc(
                     lang.settings_general_day_plan_date_heading_custom_template_desc,
@@ -213,7 +227,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                 });
         }
 
-        new Setting(containerEl)
+        new Setting(timePlanDrawer)
             .setName(lang.settings_general_day_plan_date_heading_apply_mode)
             .setDesc(lang.settings_general_day_plan_date_heading_apply_mode_desc)
             .addDropdown((dropdown) => {
