@@ -7,6 +7,10 @@ import {
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
+import { lang } from 'src/lang/lang';
+import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
+import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
+import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 
 type LocalFileSettings = EffectiveMandalaSettings;
 
@@ -103,6 +107,35 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 },
             },
         });
+
+        const actionsDetails = contentEl.createEl('details');
+        actionsDetails.open = true;
+        actionsDetails.createEl('summary', { text: '日计划操作' });
+        const actionsContainer = actionsDetails.createDiv();
+
+        new Setting(actionsContainer)
+            .setName(lang.cmd_set_day_plan_mandala_format)
+            .addButton((button) =>
+                button.setButtonText('执行').onClick(() => {
+                    void setupDayPlanMandalaFormat(this.view.plugin);
+                }),
+            );
+
+        new Setting(actionsContainer)
+            .setName(lang.cmd_refresh_day_plan_date_headings)
+            .addButton((button) =>
+                button.setButtonText('执行').onClick(() => {
+                    void refreshCurrentDayPlanDateHeadings(this.view.plugin);
+                }),
+            );
+
+        new Setting(actionsContainer)
+            .setName(lang.cmd_write_current_core_day_plan_slots_to_yaml)
+            .addButton((button) =>
+                button.setButtonText('执行').onClick(() => {
+                    void writeCurrentCoreDayPlanSlotsToYaml(this.view.plugin);
+                }),
+            );
 
         new Setting(contentEl).addButton((button) => {
             button.setButtonText('保存').setCta().onClick(() => {

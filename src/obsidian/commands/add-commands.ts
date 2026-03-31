@@ -7,11 +7,8 @@ import { customIcons } from 'src/shared/helpers/load-custom-icons';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { createMandalaGridDocument } from 'src/obsidian/events/workspace/effects/create-mandala-document';
 import { onPluginError } from 'src/shared/store/on-plugin-error';
-import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
 import { openExportModeModalForView } from 'src/mandala-settings/ui/view-options/export-mode-modal-store';
-import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
-import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import { exportPerfSnapshot } from 'src/obsidian/commands/helpers/export-perf-snapshot';
 import { Notice } from 'obsidian';
 import { openCurrentFileMandalaSettingsModal } from 'src/obsidian/modals/current-file-mandala-settings-modal';
@@ -64,42 +61,6 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
     // - lang.cm_eject_document
     // - lang.cmd_toggle_left_sidebar
     // - lang.cmd_space_between_cards
-
-    commands.push({
-        commandId: 'set-day-plan-mandala-format',
-        name: lang.cmd_set_day_plan_mandala_format,
-        icon: customIcons.mandalaGrid.name,
-        isEnabled: (currentPlugin) =>
-            currentPlugin.settings.getValue().general.dayPlanEnabled,
-        checkCallback: (checking) => {
-            if (checking) return true;
-            void setupDayPlanMandalaFormat(plugin);
-        },
-    });
-
-    commands.push({
-        commandId: 'write-current-core-day-plan-slots-to-yaml',
-        name: lang.cmd_write_current_core_day_plan_slots_to_yaml,
-        icon: customIcons.mandalaGrid.name,
-        isEnabled: (currentPlugin) =>
-            currentPlugin.settings.getValue().general.dayPlanEnabled,
-        checkCallback: (checking) => {
-            if (checking) return true;
-            void writeCurrentCoreDayPlanSlotsToYaml(plugin);
-        },
-    });
-
-    commands.push({
-        commandId: 'refresh-day-plan-date-headings',
-        name: lang.cmd_refresh_day_plan_date_headings,
-        icon: customIcons.mandalaGrid.name,
-        isEnabled: (currentPlugin) =>
-            currentPlugin.settings.getValue().general.dayPlanEnabled,
-        checkCallback: (checking) => {
-            if (checking) return true;
-            void refreshCurrentDayPlanDateHeadings(plugin);
-        },
-    });
 
     commands.push({
         commandId: 'open-export-mode',
