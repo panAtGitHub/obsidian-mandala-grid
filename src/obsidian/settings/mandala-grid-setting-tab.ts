@@ -2,11 +2,7 @@ import { PluginSettingTab, Setting } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
-import {
-    DayPlanDateHeadingApplyMode,
-    DayPlanDateHeadingFormat,
-    WeekStart,
-} from 'src/mandala-settings/state/settings-type';
+import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
 
 export class MandalaGridSettingTab extends PluginSettingTab {
     plugin: MandalaGrid;
@@ -49,204 +45,95 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName(lang.settings_plugin_title)
             .setHeading();
-
-        const globalViewDrawer = this.createDrawer(
-            containerEl,
-            lang.settings_section_global_view,
-        );
-        const timePlanDrawer = this.createDrawer(
-            containerEl,
-            lang.settings_section_time_plan,
-        );
-
-        new Setting(globalViewDrawer)
-            .setName(lang.settings_global_enable_9x9_view)
-            .addToggle((toggle) => {
-                toggle
-                    .setValue(
-                        this.plugin.settings.getValue().view.enable9x9View ??
-                            true,
-                    )
-                    .onChange(() => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/view/toggle-9x9-view',
-                        });
-                        this.syncActiveViewModeWithGlobalSwitches();
-                    });
-            });
-
-        new Setting(globalViewDrawer)
-            .setName(lang.settings_global_enable_nx9_view)
-            .addToggle((toggle) => {
-                toggle
-                    .setValue(
-                        this.plugin.settings.getValue().view.enableNx9View ??
-                            true,
-                    )
-                    .onChange(() => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/view/toggle-nx9-view',
-                        });
-                        this.syncActiveViewModeWithGlobalSwitches();
-                    });
-            });
-
-        new Setting(globalViewDrawer)
-            .setName(lang.settings_global_enable_3x3_infinite)
-            .setDesc(lang.settings_global_enable_3x3_infinite_desc)
-            .addToggle((toggle) => {
-                toggle
-                    .setValue(
-                        this.plugin.settings.getValue().view
-                            .enable3x3InfiniteNesting ?? true,
-                    )
-                    .onChange(() => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/view/toggle-3x3-infinite-nesting',
-                        });
-                    });
-            });
-
-        new Setting(timePlanDrawer)
-            .setName(lang.settings_general_day_plan_enabled)
-            .setDesc(lang.settings_general_day_plan_enabled_desc)
-            .addToggle((toggle) => {
-                toggle
-                    .setValue(
-                        this.plugin.settings.getValue().general.dayPlanEnabled,
-                    )
-                    .onChange((enabled) => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/general/set-day-plan-enabled',
-                            payload: { enabled },
-                        });
-                    });
-            });
-
         const settings = this.plugin.settings.getValue();
-
-        new Setting(timePlanDrawer)
-            .setName(lang.settings_general_week_plan_enabled)
-            .setDesc(lang.settings_general_week_plan_enabled_desc)
-            .addToggle((toggle) => {
-                toggle
-                    .setValue(settings.general.weekPlanEnabled)
-                    .onChange((enabled) => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/general/set-week-plan-enabled',
-                            payload: { enabled },
-                        });
-                        this.display();
+        renderMandalaCoreSettings({
+            parentEl: containerEl,
+            state: {
+                view: {
+                    enable9x9View: settings.view.enable9x9View,
+                    enableNx9View: settings.view.enableNx9View,
+                    enable3x3InfiniteNesting:
+                        settings.view.enable3x3InfiniteNesting,
+                },
+                general: {
+                    dayPlanEnabled: settings.general.dayPlanEnabled,
+                    weekPlanEnabled: settings.general.weekPlanEnabled,
+                    weekPlanCompactMode: settings.general.weekPlanCompactMode,
+                    weekStart: settings.general.weekStart,
+                    dayPlanDateHeadingFormat:
+                        settings.general.dayPlanDateHeadingFormat,
+                    dayPlanDateHeadingCustomTemplate:
+                        settings.general.dayPlanDateHeadingCustomTemplate,
+                    dayPlanDateHeadingApplyMode:
+                        settings.general.dayPlanDateHeadingApplyMode,
+                },
+            },
+            createGroupContainer: (parentEl, title) =>
+                this.createDrawer(parentEl, title),
+            showDescriptions: true,
+            handlers: {
+                setEnable9x9View: () => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/view/toggle-9x9-view',
                     });
-            });
-
-        if (settings.general.weekPlanEnabled) {
-            new Setting(timePlanDrawer)
-                .setName(lang.settings_general_week_plan_compact_mode)
-                .setDesc(lang.settings_general_week_plan_compact_mode_desc)
-                .addToggle((toggle) => {
-                    toggle
-                        .setValue(settings.general.weekPlanCompactMode)
-                        .onChange((enabled) => {
-                            this.plugin.settings.dispatch({
-                                type: 'settings/general/set-week-plan-compact-mode',
-                                payload: { enabled },
-                            });
-                        });
-                });
-
-            new Setting(timePlanDrawer)
-                .setName('周计划起始日')
-                .setDesc('周视图中一周从周一或周日开始。')
-                .addDropdown((dropdown) => {
-                    dropdown
-                        .addOptions({
-                            monday: '周一开始',
-                            sunday: '周日开始',
-                        } satisfies Record<WeekStart, string>)
-                        .setValue(settings.general.weekStart)
-                        .onChange((value) => {
-                            this.plugin.settings.dispatch({
-                                type: 'settings/general/set-week-start',
-                                payload: {
-                                    weekStart: value as WeekStart,
-                                },
-                            });
-                        });
-                });
-        }
-
-        new Setting(timePlanDrawer)
-            .setName(lang.settings_general_day_plan_date_heading_format)
-            .setDesc(lang.settings_general_day_plan_date_heading_format_desc)
-            .addDropdown((dropdown) => {
-                dropdown
-                    .addOptions({
-                        'date-only':
-                            lang.settings_general_day_plan_date_heading_format_date_only,
-                        'zh-full':
-                            lang.settings_general_day_plan_date_heading_format_zh_full,
-                        'zh-short':
-                            lang.settings_general_day_plan_date_heading_format_zh_short,
-                        'en-short':
-                            lang.settings_general_day_plan_date_heading_format_en_short,
-                        custom:
-                            lang.settings_general_day_plan_date_heading_format_custom,
-                    } satisfies Record<DayPlanDateHeadingFormat, string>)
-                    .setValue(settings.general.dayPlanDateHeadingFormat)
-                    .onChange((value) => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/general/set-day-plan-date-heading-format',
-                            payload: {
-                                format: value as DayPlanDateHeadingFormat,
-                            },
-                        });
-                        this.display();
+                    this.syncActiveViewModeWithGlobalSwitches();
+                },
+                setEnableNx9View: () => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/view/toggle-nx9-view',
                     });
-            });
-
-        if (settings.general.dayPlanDateHeadingFormat === 'custom') {
-            new Setting(timePlanDrawer)
-                .setName(lang.settings_general_day_plan_date_heading_custom_template)
-                .setDesc(
-                    lang.settings_general_day_plan_date_heading_custom_template_desc,
-                )
-                .addText((text) => {
-                    text.setPlaceholder('## {date} {cn}')
-                        .setValue(
-                            settings.general.dayPlanDateHeadingCustomTemplate,
-                        )
-                        .onChange((value) => {
-                            this.plugin.settings.dispatch({
-                                type: 'settings/general/set-day-plan-date-heading-custom-template',
-                                payload: {
-                                    template: value,
-                                },
-                            });
-                        });
-                });
-        }
-
-        new Setting(timePlanDrawer)
-            .setName(lang.settings_general_day_plan_date_heading_apply_mode)
-            .setDesc(lang.settings_general_day_plan_date_heading_apply_mode_desc)
-            .addDropdown((dropdown) => {
-                dropdown
-                    .addOptions({
-                        immediate:
-                            lang.settings_general_day_plan_date_heading_apply_mode_immediate,
-                        manual:
-                            lang.settings_general_day_plan_date_heading_apply_mode_manual,
-                    } satisfies Record<DayPlanDateHeadingApplyMode, string>)
-                    .setValue(settings.general.dayPlanDateHeadingApplyMode)
-                    .onChange((value) => {
-                        this.plugin.settings.dispatch({
-                            type: 'settings/general/set-day-plan-date-heading-apply-mode',
-                            payload: {
-                                mode: value as DayPlanDateHeadingApplyMode,
-                            },
-                        });
+                    this.syncActiveViewModeWithGlobalSwitches();
+                },
+                setEnable3x3InfiniteNesting: () => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/view/toggle-3x3-infinite-nesting',
                     });
-            });
+                },
+                setDayPlanEnabled: (enabled) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-day-plan-enabled',
+                        payload: { enabled },
+                    });
+                },
+                setWeekPlanEnabled: (enabled) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-week-plan-enabled',
+                        payload: { enabled },
+                    });
+                    this.display();
+                },
+                setWeekPlanCompactMode: (enabled) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-week-plan-compact-mode',
+                        payload: { enabled },
+                    });
+                },
+                setWeekStart: (weekStart) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-week-start',
+                        payload: { weekStart },
+                    });
+                },
+                setDayPlanDateHeadingFormat: (format) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-day-plan-date-heading-format',
+                        payload: { format },
+                    });
+                    this.display();
+                },
+                setDayPlanDateHeadingCustomTemplate: (template) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-day-plan-date-heading-custom-template',
+                        payload: { template },
+                    });
+                },
+                setDayPlanDateHeadingApplyMode: (mode) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/general/set-day-plan-date-heading-apply-mode',
+                        payload: { mode },
+                    });
+                },
+            },
+        });
     }
 }
