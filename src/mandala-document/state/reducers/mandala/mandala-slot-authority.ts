@@ -106,6 +106,15 @@ export const rebuildMandalaV2MetaFromSections = (
         orderedSections,
     );
 
+    // Create new object references for downstream cache invalidation.
+    // Topology and derived-display caches use object identity on section_id
+    // to detect changes, so we must produce a new reference after mutation.
+    state.sections = {
+        ...state.sections,
+        section_id: { ...state.sections.section_id },
+        id_section: { ...state.sections.id_section },
+    };
+
     state.meta.mandalaV2 = {
         ...state.meta.mandalaV2,
         revision: bumpRevision

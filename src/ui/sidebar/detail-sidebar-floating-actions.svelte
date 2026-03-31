@@ -131,7 +131,7 @@
         height: 36px;
         border-radius: 999px;
         border: 1px solid var(--background-modifier-border);
-        background: var(--background-primary);
+        background: transparent;
         color: var(--text-normal);
         display: inline-flex;
         align-items: center;
