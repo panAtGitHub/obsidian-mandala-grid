@@ -3,6 +3,7 @@ import {
     applyDayPlanToCore,
     resolveNextDayPlanDate,
 } from 'src/mandala-display/logic/apply-day-plan-to-core';
+import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 
 type CoreJumpDirection = 'up' | 'down';
@@ -36,6 +37,11 @@ export const jumpCoreTheme = (
         }
 
         const nextCore = String(coreNumber + 1);
+        const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+        if (coreSectionMax !== null && coreNumber + 1 > coreSectionMax) {
+            new Notice(lang.notice_core_section_limit_reached);
+            return;
+        }
         const dayPlanResolution = resolveNextDayPlanDate(view, core);
         if (dayPlanResolution.blocked) return;
 

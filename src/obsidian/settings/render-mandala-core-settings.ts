@@ -1,5 +1,9 @@
 import { Setting } from 'obsidian';
 import { lang } from 'src/lang/lang';
+import {
+    parsePositiveIntegerInput,
+    resolveMaxSectionExample,
+} from 'src/mandala-settings/state/helpers/section-range';
 import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
@@ -12,7 +16,8 @@ export type MandalaCoreSettingsState = EffectiveMandalaSettings;
 export type MandalaCoreSettingsHandlers = {
     setEnable9x9View: (enabled: boolean) => void;
     setEnableNx9View: (enabled: boolean) => void;
-    setEnable3x3InfiniteNesting: (enabled: boolean) => void;
+    setCoreSectionMax: (max: number | null) => void;
+    setSubgridMaxDepth: (depth: number | null) => void;
     setDayPlanEnabled: (enabled: boolean) => void;
     setWeekPlanEnabled: (enabled: boolean) => void;
     setWeekPlanCompactMode: (enabled: boolean) => void;
@@ -37,7 +42,9 @@ type RenderMandalaCoreSettingsOptions = {
         sectionTimePlan: string;
         enable9x9View: string;
         enableNx9View: string;
-        enable3x3InfiniteNesting: string;
+        coreSectionMax: string;
+        subgridMaxDepth: string;
+        rangePreviewTitle: string;
         dayPlanEnabled: string;
         weekPlanEnabled: string;
         weekPlanCompactMode: string;
@@ -94,18 +101,116 @@ export const renderMandalaCoreSettings = ({
                 .onChange((enabled) => handlers.setEnableNx9View(enabled)),
         );
 
-    createMaybeDescriptionSetting(
-        new Setting(globalViewContainer).setName(
-            texts?.enable3x3InfiniteNesting ??
-                lang.settings_global_enable_3x3_infinite,
-        ),
-        lang.settings_global_enable_3x3_infinite_desc,
-        showDescriptions,
-    ).addToggle((toggle) =>
-        toggle
-            .setValue(state.view.enable3x3InfiniteNesting)
-            .onChange((enabled) => handlers.setEnable3x3InfiniteNesting(enabled)),
+    let currentCoreSectionMax = state.view.coreSectionMax;
+    let currentSubgridMaxDepth = state.view.subgridMaxDepth;
+    let coreSectionError: string | null = null;
+    let subgridDepthError: string | null = null;
+
+    const coreSectionSetting = new Setting(globalViewContainer).setName(
+        texts?.coreSectionMax ?? lang.settings_global_core_section_max,
     );
+    const subgridDepthSetting = new Setting(globalViewContainer).setName(
+        texts?.subgridMaxDepth ?? lang.settings_global_subgrid_max_depth,
+    );
+    const previewContainer = showDescriptions
+        ? globalViewContainer.createDiv({
+              cls: 'mandala-settings-range-preview',
+          })
+        : null;
+    const previewTitleEl = previewContainer?.createDiv({
+        cls: 'mandala-settings-range-preview__title',
+        text: texts?.rangePreviewTitle ?? lang.settings_global_range_preview_title,
+    });
+    const previewCoreEl = previewContainer?.createDiv({
+        cls: 'mandala-settings-range-preview__line',
+    });
+    const previewDepthEl = previewContainer?.createDiv({
+        cls: 'mandala-settings-range-preview__line',
+    });
+    const previewSectionEl = previewContainer?.createDiv({
+        cls: 'mandala-settings-range-preview__line',
+    });
+    const previewBehaviorEl = previewContainer?.createDiv({
+        cls: 'mandala-settings-range-preview__line',
+    });
+
+    const updateRangeHints = () => {
+        const coreText =
+            coreSectionError ??
+            (currentCoreSectionMax === null
+                ? `实时提示：${lang.settings_global_range_input_empty}`
+                : `实时提示：当前仅允许核心编号 1 ~ ${currentCoreSectionMax}。`);
+        const depthText =
+            subgridDepthError ??
+            (currentSubgridMaxDepth === null
+                ? `实时提示：${lang.settings_global_range_input_empty}`
+                : `实时提示：当前最大层级 = ${currentSubgridMaxDepth}，最大 section 可到 ${resolveMaxSectionExample(currentSubgridMaxDepth)}。`);
+        coreSectionSetting.setDesc(coreText);
+        subgridDepthSetting.setDesc(depthText);
+
+        if (!previewContainer) return;
+        if (previewTitleEl) {
+            previewTitleEl.setText(
+                texts?.rangePreviewTitle ?? lang.settings_global_range_preview_title,
+            );
+        }
+        previewCoreEl?.setText(
+            currentCoreSectionMax === null
+                ? '核心范围：1 ~ n（不设上限）'
+                : `核心范围：1 ~ ${currentCoreSectionMax}`,
+        );
+        previewDepthEl?.setText(
+            currentSubgridMaxDepth === null
+                ? '子九宫层级：n 层（不设上限）'
+                : `子九宫层级：${currentSubgridMaxDepth} 层（含核心层）`,
+        );
+        previewSectionEl?.setText(
+            `最大 section 示例：${resolveMaxSectionExample(currentSubgridMaxDepth)}`,
+        );
+        previewBehaviorEl?.setText(lang.settings_global_range_preview_limit_behavior);
+    };
+
+    coreSectionSetting.addText((text) =>
+        text
+            .setPlaceholder('留空表示不限')
+            .setValue(
+                currentCoreSectionMax === null ? '' : String(currentCoreSectionMax),
+            )
+            .onChange((value) => {
+                const parsed = parsePositiveIntegerInput(value);
+                if (!parsed.valid) {
+                    coreSectionError = lang.settings_global_range_input_invalid;
+                    updateRangeHints();
+                    return;
+                }
+                coreSectionError = null;
+                currentCoreSectionMax = parsed.value;
+                handlers.setCoreSectionMax(parsed.value);
+                updateRangeHints();
+            }),
+    );
+
+    subgridDepthSetting.addText((text) =>
+        text
+            .setPlaceholder('留空表示不限')
+            .setValue(
+                currentSubgridMaxDepth === null ? '' : String(currentSubgridMaxDepth),
+            )
+            .onChange((value) => {
+                const parsed = parsePositiveIntegerInput(value);
+                if (!parsed.valid) {
+                    subgridDepthError = lang.settings_global_range_input_invalid;
+                    updateRangeHints();
+                    return;
+                }
+                subgridDepthError = null;
+                currentSubgridMaxDepth = parsed.value;
+                handlers.setSubgridMaxDepth(parsed.value);
+                updateRangeHints();
+            }),
+    );
+
+    updateRangeHints();
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(

@@ -43,6 +43,9 @@ describe('nx9/create-next-core', () => {
 
         const view = {
             mandalaActiveCellNx9: null,
+            getEffectiveMandalaSettings: () => ({
+                view: { coreSectionMax: null },
+            }),
             documentStore: {
                 getValue: () => documentState,
                 dispatch: vi.fn(
@@ -119,6 +122,9 @@ describe('nx9/create-next-core', () => {
         };
         const view = {
             mandalaActiveCellNx9: null,
+            getEffectiveMandalaSettings: () => ({
+                view: { coreSectionMax: null },
+            }),
             documentStore: {
                 getValue: () => documentState,
                 dispatch: vi.fn(),
@@ -135,5 +141,45 @@ describe('nx9/create-next-core', () => {
         expect(noticeMock).toHaveBeenCalledWith(
             '请先填写核心 2 的中心格内容，再创建新的核心九宫格。',
         );
+    });
+
+    it('blocks creation when target core exceeds configured max core range', () => {
+        const documentState = {
+            sections: {
+                section_id: {
+                    '1': 'node-1',
+                    '2': 'node-2',
+                } as Record<string, string | undefined>,
+                id_section: {
+                    'node-1': '1',
+                    'node-2': '2',
+                } as Record<string, string | undefined>,
+            },
+            document: {
+                content: {
+                    'node-1': { content: 'filled' },
+                    'node-2': { content: 'filled' },
+                } as Record<string, { content: string }>,
+            },
+        };
+        const view = {
+            mandalaActiveCellNx9: null,
+            getEffectiveMandalaSettings: () => ({
+                view: { coreSectionMax: 2 },
+            }),
+            documentStore: {
+                getValue: () => documentState,
+                dispatch: vi.fn(),
+            },
+            viewStore: {
+                dispatch: vi.fn(),
+            },
+            getCurrentNx9RowsPerPage: () => 2,
+        };
+
+        expect(createNextNx9Core(view as never, '3')).toBe(false);
+        expect(view.documentStore.dispatch).not.toHaveBeenCalled();
+        expect(view.viewStore.dispatch).not.toHaveBeenCalled();
+        expect(noticeMock).toHaveBeenCalledWith('已达到你设定的范围上限。');
     });
 });

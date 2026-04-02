@@ -6,13 +6,14 @@ import {
 } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 const mockView = (props: {
-    enable3x3InfiniteNesting: boolean;
+    subgridMaxDepth: number | null;
     enable9x9View: boolean;
 }) =>
     ({
         getEffectiveMandalaSettings: () => ({
             view: {
-                enable3x3InfiniteNesting: props.enable3x3InfiniteNesting,
+                coreSectionMax: null,
+                subgridMaxDepth: props.subgridMaxDepth,
                 enable9x9View: props.enable9x9View,
                 enableNx9View: true,
             },
@@ -33,16 +34,16 @@ describe('view-3x3/subgrid-depth', () => {
         expect(
             resolveThreeByThreeMaxDepth(
                 mockView({
-                    enable3x3InfiniteNesting: true,
+                    subgridMaxDepth: null,
                     enable9x9View: false,
                 }),
             ),
         ).toBe(Number.POSITIVE_INFINITY);
     });
 
-    test('limits to 1.1~1.8 when infinite nesting is off and 9x9 is off', () => {
+    test('limits to 1.1~1.8 when max depth is 2', () => {
         const view = mockView({
-            enable3x3InfiniteNesting: false,
+            subgridMaxDepth: 2,
             enable9x9View: false,
         });
         expect(resolveThreeByThreeMaxDepth(view)).toBe(2);
@@ -50,9 +51,9 @@ describe('view-3x3/subgrid-depth', () => {
         expect(canEnterThreeByThreeTheme(view, '1.1.1')).toBe(false);
     });
 
-    test('limits to 1.1.1~1.8.8 when infinite nesting is off and 9x9 is on', () => {
+    test('limits to 1.1.1~1.8.8 when max depth is 3', () => {
         const view = mockView({
-            enable3x3InfiniteNesting: false,
+            subgridMaxDepth: 3,
             enable9x9View: true,
         });
         expect(resolveThreeByThreeMaxDepth(view)).toBe(3);

@@ -31,6 +31,7 @@ export const tryMandalaNx9Navigation = (
         rowsPerPage: view.getCurrentNx9RowsPerPage(),
         activeSection,
         activeCell: view.mandalaActiveCellNx9,
+        coreSectionMax: view.getEffectiveMandalaSettings().view.coreSectionMax,
     });
     const current = resolveNx9CurrentCell({
         activeCell: view.mandalaActiveCellNx9,

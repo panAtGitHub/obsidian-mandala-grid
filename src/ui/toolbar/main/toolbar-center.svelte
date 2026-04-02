@@ -67,6 +67,8 @@
                   rowsPerPage: $nx9RowsPerPage,
                   activeSection,
                   activeCell: $activeCellNx9,
+                  coreSectionMax:
+                      view.getEffectiveMandalaSettings().view.coreSectionMax,
               })
             : null;
 

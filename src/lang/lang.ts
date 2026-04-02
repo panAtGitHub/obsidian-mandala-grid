@@ -329,9 +329,13 @@ export const lang = {
     settings_global_view_switches: '全局视图开关',
     settings_global_enable_9x9_view: '启用 9×9 视图',
     settings_global_enable_nx9_view: '启用 nx9 视图',
-    settings_global_enable_3x3_infinite: '3×3 无限九宫',
-    settings_global_enable_3x3_infinite_desc:
-        '关闭后：若 9×9 关闭，仅保留到 1.1~1.8；若 9×9 开启，可到 1.1.1~1.8.8。',
+    settings_global_core_section_max: '核心格子编号范围（1 ~ n）',
+    settings_global_subgrid_max_depth: '子九宫最大层级（含核心层）',
+    settings_global_range_input_empty: '留空表示不设上限。',
+    settings_global_range_input_invalid: '请输入大于等于 1 的整数。',
+    settings_global_range_preview_title: '当前范围总览（实时）',
+    settings_global_range_preview_limit_behavior:
+        '超限行为：阻止创建并提示“已达到你设定的范围上限”。',
 
     // general settings
     settings_general_link_split: 'Open in new split',
@@ -371,6 +375,7 @@ export const lang = {
     notice_day_plan_date_headings_already_latest:
         '当前日计划日期标题已是最新，无需刷新。',
     notice_day_plan_not_active_file: '当前文件不是日计划模式。',
+    notice_core_section_limit_reached: '已达到你设定的范围上限。',
 
     // hotkeys
     hk_enter_subgrid: '进入子九宫',

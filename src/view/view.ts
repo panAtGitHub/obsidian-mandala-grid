@@ -368,6 +368,7 @@ export class MandalaView extends TextFileView {
             rowsPerPage: this.getCurrentNx9RowsPerPage(),
             activeSection,
             activeCell: this.mandalaActiveCellNx9,
+            coreSectionMax: this.getEffectiveMandalaSettings().view.coreSectionMax,
         });
         const targetPage =
             direction === 'prev'

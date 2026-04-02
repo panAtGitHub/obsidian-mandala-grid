@@ -1,5 +1,6 @@
 import { Notice } from 'obsidian';
 import { isEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
+import { lang } from 'src/lang/lang';
 import type { MandalaView } from 'src/view/view';
 import {
     resolveNx9Context,
@@ -24,6 +25,15 @@ export const createNextNx9Core = (
     view: MandalaView,
     nextCoreSection: string,
 ) => {
+    const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+    if (
+        coreSectionMax !== null &&
+        Number(nextCoreSection) > coreSectionMax
+    ) {
+        new Notice(lang.notice_core_section_limit_reached);
+        return false;
+    }
+
     const previousCoreNumber = Number(nextCoreSection) - 1;
     if (previousCoreNumber >= 1) {
         const previousCoreSection = String(previousCoreNumber);
@@ -56,6 +66,7 @@ export const createNextNx9Core = (
         documentContent: documentState.document.content,
         rowsPerPage: view.getCurrentNx9RowsPerPage(),
         activeSection: nextCoreSection,
+        coreSectionMax,
     });
     const nextCell = resolveFallbackCell(
         nextCoreSection,

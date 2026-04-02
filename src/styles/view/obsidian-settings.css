@@ -93,6 +93,27 @@
     min-width: 64px;
 }
 
+.mandala-settings-range-preview {
+    margin: 8px 2px 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--background-modifier-border);
+    background: color-mix(
+        in srgb,
+        var(--background-primary) 85%,
+        var(--background-secondary)
+    );
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+
+.mandala-settings-range-preview__title {
+    font-weight: 700;
+    color: var(--text-normal);
+    margin-bottom: 4px;
+}
+
 .mandala-file-settings-modal .modal-title {
     font-size: 30px;
     font-weight: 800;

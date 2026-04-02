@@ -389,8 +389,28 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (viewSettings.leftSidebarActiveTab !== 'pinned-cards') {
         viewSettings.leftSidebarActiveTab = 'pinned-cards';
     }
-    if (typeof (viewSettings as Record<string, unknown>).enable3x3InfiniteNesting !== 'boolean') {
-        (viewSettings as Record<string, unknown>).enable3x3InfiniteNesting = true;
+    const legacyViewSettings = viewSettings as Record<string, unknown>;
+    const legacyInfiniteNesting = legacyViewSettings.enable3x3InfiniteNesting;
+    if (
+        typeof legacyViewSettings.subgridMaxDepth !== 'number' &&
+        legacyViewSettings.subgridMaxDepth !== null
+    ) {
+        if (typeof legacyInfiniteNesting === 'boolean') {
+            legacyViewSettings.subgridMaxDepth = legacyInfiniteNesting
+                ? null
+                : ((legacyViewSettings.enable9x9View as boolean | undefined) ??
+                    true)
+                  ? 3
+                  : 2;
+        } else {
+            legacyViewSettings.subgridMaxDepth = null;
+        }
+    }
+    if (
+        typeof legacyViewSettings.coreSectionMax !== 'number' &&
+        legacyViewSettings.coreSectionMax !== null
+    ) {
+        legacyViewSettings.coreSectionMax = null;
     }
     if (typeof (viewSettings as Record<string, unknown>).enable9x9View !== 'boolean') {
         (viewSettings as Record<string, unknown>).enable9x9View = true;
@@ -399,7 +419,6 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         (viewSettings as Record<string, unknown>).enableNx9View = true;
     }
 
-    const legacyViewSettings = viewSettings as Record<string, unknown>;
     for (const key of [
         'showMinimap',
         'minimapWidth',
@@ -412,6 +431,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         'showStyleRules',
         'showStyleRulesPanel',
         'styleRulesSidebarWidth',
+        'enable3x3InfiniteNesting',
     ]) {
         delete legacyViewSettings[key];
     }

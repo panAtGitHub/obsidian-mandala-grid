@@ -13,6 +13,7 @@ import {
     canEnterThreeByThreeTheme,
     canExpandThreeByThreeChildren,
 } from 'src/mandala-scenes/view-3x3/subgrid-depth';
+import { lang } from 'src/lang/lang';
 
 export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     if (view.mandalaMode !== '3x3') return;
@@ -47,6 +48,14 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
             return;
         }
         const nextTheme = String(Number(currentTheme) + 1);
+        const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+        if (
+            coreSectionMax !== null &&
+            Number(currentTheme) + 1 > coreSectionMax
+        ) {
+            new Notice(lang.notice_core_section_limit_reached);
+            return;
+        }
         const dayPlanResolution = resolveNextDayPlanDate(view, currentTheme);
         if (dayPlanResolution.blocked) return;
 

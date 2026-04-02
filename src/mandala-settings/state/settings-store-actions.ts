@@ -352,7 +352,12 @@ export type SettingsActions =
           payload: { opacity: number };
       }
     | {
-          type: 'settings/view/toggle-3x3-infinite-nesting';
+          type: 'settings/view/set-core-section-max';
+          payload: { max: number | null };
+      }
+    | {
+          type: 'settings/view/set-subgrid-max-depth';
+          payload: { depth: number | null };
       }
     | {
           type: 'settings/view/toggle-9x9-view';

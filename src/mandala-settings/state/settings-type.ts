@@ -156,7 +156,8 @@ export type Settings = {
         whiteThemeMode: boolean;
         mandalaEmbedDebug: boolean;
         hiddenVerticalToolbarButtons: ToolbarButton[];
-        enable3x3InfiniteNesting: boolean;
+        coreSectionMax: number | null;
+        subgridMaxDepth: number | null;
     };
     general: {
         linkPaneType: LinkPaneType;

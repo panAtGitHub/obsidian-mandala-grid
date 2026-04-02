@@ -608,10 +608,13 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/toggle-square-layout') return;
         store.view.squareLayout = !store.view.squareLayout;
     },
-    'settings/view/toggle-3x3-infinite-nesting': (store, action) => {
-        if (action.type !== 'settings/view/toggle-3x3-infinite-nesting') return;
-        store.view.enable3x3InfiniteNesting =
-            !(store.view.enable3x3InfiniteNesting ?? true);
+    'settings/view/set-core-section-max': (store, action) => {
+        if (action.type !== 'settings/view/set-core-section-max') return;
+        store.view.coreSectionMax = action.payload.max;
+    },
+    'settings/view/set-subgrid-max-depth': (store, action) => {
+        if (action.type !== 'settings/view/set-subgrid-max-depth') return;
+        store.view.subgridMaxDepth = action.payload.depth;
     },
     'settings/view/toggle-9x9-view': (store, action) => {
         if (action.type !== 'settings/view/toggle-9x9-view') return;

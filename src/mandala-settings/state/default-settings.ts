@@ -126,7 +126,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         whiteThemeMode: false,
         mandalaEmbedDebug: false,
         hiddenVerticalToolbarButtons: [],
-        enable3x3InfiniteNesting: true,
+        coreSectionMax: null,
+        subgridMaxDepth: null,
     },
     general: {
         linkPaneType: 'tab',

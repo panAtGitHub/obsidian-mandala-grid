@@ -60,6 +60,16 @@ describe('nx9/context', () => {
         ]);
     });
 
+    it('hides ghost next-core row when core range reaches max', () => {
+        const rows = buildNx9Rows(['1', '2', '3', '4'], 4);
+        expect(rows).toEqual([
+            { kind: 'real-core-row', coreSection: '1' },
+            { kind: 'real-core-row', coreSection: '2' },
+            { kind: 'real-core-row', coreSection: '3' },
+            { kind: 'real-core-row', coreSection: '4' },
+        ]);
+    });
+
     it('maps sections by depth to nx9 positions', () => {
         const coreSections = ['1', '2', '3', '4', '5'];
 

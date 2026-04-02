@@ -56,8 +56,8 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                 view: {
                     enable9x9View: settings.view.enable9x9View,
                     enableNx9View: settings.view.enableNx9View,
-                    enable3x3InfiniteNesting:
-                        settings.view.enable3x3InfiniteNesting,
+                    coreSectionMax: settings.view.coreSectionMax,
+                    subgridMaxDepth: settings.view.subgridMaxDepth,
                 },
                 general: {
                     dayPlanEnabled: settings.general.dayPlanEnabled,
@@ -88,9 +88,16 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                     });
                     this.syncActiveViewModeWithGlobalSwitches();
                 },
-                setEnable3x3InfiniteNesting: () => {
+                setCoreSectionMax: (max) => {
                     this.plugin.settings.dispatch({
-                        type: 'settings/view/toggle-3x3-infinite-nesting',
+                        type: 'settings/view/set-core-section-max',
+                        payload: { max },
+                    });
+                },
+                setSubgridMaxDepth: (depth) => {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/view/set-subgrid-max-depth',
+                        payload: { depth },
                     });
                 },
                 setDayPlanEnabled: (enabled) => {

@@ -12,7 +12,8 @@ export type MandalaFrontmatterSettings = {
     view?: {
         enable9x9View?: boolean;
         enableNx9View?: boolean;
-        enable3x3InfiniteNesting?: boolean;
+        coreSectionMax?: number | null;
+        subgridMaxDepth?: number | null;
     };
     general?: {
         dayPlanEnabled?: boolean;
@@ -29,7 +30,8 @@ export type EffectiveMandalaSettings = {
     view: {
         enable9x9View: boolean;
         enableNx9View: boolean;
-        enable3x3InfiniteNesting: boolean;
+        coreSectionMax: number | null;
+        subgridMaxDepth: number | null;
     };
     general: {
         dayPlanEnabled: boolean;
@@ -62,6 +64,19 @@ const isDayPlanDateHeadingApplyMode = (
 ): value is DayPlanDateHeadingApplyMode =>
     value === 'immediate' || value === 'manual';
 
+const toNullablePositiveInteger = (value: unknown) => {
+    if (value === null) return null;
+    if (
+        typeof value === 'number' &&
+        Number.isInteger(value) &&
+        Number.isFinite(value) &&
+        value >= 1
+    ) {
+        return value;
+    }
+    return undefined;
+};
+
 const stripFrontmatterMarkers = (frontmatter: string) =>
     frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, '');
 
@@ -91,8 +106,13 @@ export const parseMandalaFrontmatterSettings = (
     if (typeof viewRaw?.enableNx9View === 'boolean') {
         view.enableNx9View = viewRaw.enableNx9View;
     }
-    if (typeof viewRaw?.enable3x3InfiniteNesting === 'boolean') {
-        view.enable3x3InfiniteNesting = viewRaw.enable3x3InfiniteNesting;
+    const coreSectionMax = toNullablePositiveInteger(viewRaw?.coreSectionMax);
+    if (coreSectionMax !== undefined) {
+        view.coreSectionMax = coreSectionMax;
+    }
+    const subgridMaxDepth = toNullablePositiveInteger(viewRaw?.subgridMaxDepth);
+    if (subgridMaxDepth !== undefined) {
+        view.subgridMaxDepth = subgridMaxDepth;
     }
 
     const general: MandalaFrontmatterSettings['general'] = {};
@@ -136,9 +156,10 @@ export const resolveEffectiveMandalaSettings = (
                 overrides.view?.enable9x9View ?? settings.view.enable9x9View,
             enableNx9View:
                 overrides.view?.enableNx9View ?? settings.view.enableNx9View,
-            enable3x3InfiniteNesting:
-                overrides.view?.enable3x3InfiniteNesting ??
-                settings.view.enable3x3InfiniteNesting,
+            coreSectionMax:
+                overrides.view?.coreSectionMax ?? settings.view.coreSectionMax,
+            subgridMaxDepth:
+                overrides.view?.subgridMaxDepth ?? settings.view.subgridMaxDepth,
         },
         general: {
             dayPlanEnabled:

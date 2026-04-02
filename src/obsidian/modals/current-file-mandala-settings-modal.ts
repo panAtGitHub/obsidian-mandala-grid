@@ -20,7 +20,8 @@ const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
         view: {
             enable9x9View: effective.view.enable9x9View,
             enableNx9View: effective.view.enableNx9View,
-            enable3x3InfiniteNesting: effective.view.enable3x3InfiniteNesting,
+            coreSectionMax: effective.view.coreSectionMax,
+            subgridMaxDepth: effective.view.subgridMaxDepth,
         },
         general: {
             dayPlanEnabled: effective.general.dayPlanEnabled,
@@ -89,7 +90,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 sectionTimePlan: '当前文件时间计划覆盖',
                 enable9x9View: '当前文件启用 9×9 视图',
                 enableNx9View: '当前文件启用 nx9 视图',
-                enable3x3InfiniteNesting: '当前文件启用 3×3 无限九宫',
+                coreSectionMax: '当前文件核心格子编号范围（1 ~ n）',
+                subgridMaxDepth: '当前文件子九宫最大层级（含核心层）',
+                rangePreviewTitle: '当前文件范围总览（实时）',
                 dayPlanEnabled: '当前文件启用「日计划」',
                 weekPlanEnabled: '当前文件启用「周计划」',
                 weekPlanCompactMode: '当前文件使用 7×9 周计划紧凑显示',
@@ -105,8 +108,11 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 setEnableNx9View: (enabled) => {
                     this.state.view.enableNx9View = enabled;
                 },
-                setEnable3x3InfiniteNesting: (enabled) => {
-                    this.state.view.enable3x3InfiniteNesting = enabled;
+                setCoreSectionMax: (max) => {
+                    this.state.view.coreSectionMax = max;
+                },
+                setSubgridMaxDepth: (depth) => {
+                    this.state.view.subgridMaxDepth = depth;
                 },
                 setDayPlanEnabled: (enabled) => {
                     this.state.general.dayPlanEnabled = enabled;
@@ -200,8 +206,8 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     view: {
                         enable9x9View: this.state.view.enable9x9View,
                         enableNx9View: this.state.view.enableNx9View,
-                        enable3x3InfiniteNesting:
-                            this.state.view.enable3x3InfiniteNesting,
+                        coreSectionMax: this.state.view.coreSectionMax,
+                        subgridMaxDepth: this.state.view.subgridMaxDepth,
                     },
                     general: {
                         dayPlanEnabled: this.state.general.dayPlanEnabled,

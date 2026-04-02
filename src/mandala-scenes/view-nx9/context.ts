@@ -118,20 +118,26 @@ export const collectEffectiveNx9CoreSections = ({
 
 export const buildNx9Rows = (
     effectiveCoreSections: string[],
+    coreSectionMax: number | null = null,
 ): Nx9RowModel[] => {
     const rows: Nx9RowModel[] = effectiveCoreSections.map((coreSection) => ({
         kind: 'real-core-row',
         coreSection,
     }));
     const lastCoreNumber = Number(effectiveCoreSections.at(-1) ?? '0');
-    rows.push({
-        kind: 'ghost-next-core-row',
-        nextCoreSection: String(
-            Number.isFinite(lastCoreNumber) && lastCoreNumber > 0
-                ? lastCoreNumber + 1
-                : 1,
-        ),
-    });
+    const nextCoreSection = String(
+        Number.isFinite(lastCoreNumber) && lastCoreNumber > 0
+            ? lastCoreNumber + 1
+            : 1,
+    );
+    const canCreateNextCore =
+        coreSectionMax === null || Number(nextCoreSection) <= coreSectionMax;
+    if (canCreateNextCore) {
+        rows.push({
+            kind: 'ghost-next-core-row',
+            nextCoreSection,
+        });
+    }
     return rows;
 };
 
@@ -211,18 +217,21 @@ export const resolveNx9Context = ({
     rowsPerPage,
     activeSection,
     activeCell,
+    coreSectionMax,
 }: {
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Content;
     rowsPerPage: number | null | undefined;
     activeSection: string | null | undefined;
     activeCell?: Nx9ActiveCell | null | undefined;
+    coreSectionMax?: number | null | undefined;
 }): Nx9Context => {
     const structureContext = resolveNx9StructureContext({
         sectionIdMap,
         documentContent,
         rowsPerPage,
         activeSection,
+        coreSectionMax,
     });
     return resolveNx9PageContext({
         structureContext,
@@ -236,11 +245,13 @@ export const resolveNx9StructureContext = ({
     documentContent,
     rowsPerPage,
     activeSection,
+    coreSectionMax,
 }: {
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Content;
     rowsPerPage: number | null | undefined;
     activeSection: string | null | undefined;
+    coreSectionMax?: number | null | undefined;
 }): Nx9StructureContext => {
     const normalizedRowsPerPage = normalizeNx9RowsPerPage(rowsPerPage);
     const coreSections = collectNx9CoreSections(sectionIdMap);
@@ -249,7 +260,7 @@ export const resolveNx9StructureContext = ({
         documentContent,
         activeSection,
     });
-    const rows = buildNx9Rows(effectiveCoreSections);
+    const rows = buildNx9Rows(effectiveCoreSections, coreSectionMax ?? null);
     const totalPages = getNx9TotalPages(rows.length, normalizedRowsPerPage);
 
     return {
