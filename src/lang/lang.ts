@@ -321,8 +321,9 @@ export const lang = {
 
     // day/week plan settings
     settings_day_week_plan: '日/周计划',
-    settings_section_global_view: '全局视图',
-    settings_section_time_plan: '时间计划',
+    settings_section_global_view: '全局视图（针对新建的九宫格 md 文件做默认设置）',
+    settings_section_time_plan:
+        '时间计划（打开本设置后，可通过命令面板新建「日计划九宫格」）',
     settings_day_week_plan_redirect:
         '日/周计划设置已移至曼陀罗视图的设置面板中。请打开任意曼陀罗视图并点击设置图标。',
     settings_global_view_switches: '全局视图开关',
