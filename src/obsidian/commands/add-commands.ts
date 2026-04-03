@@ -12,6 +12,7 @@ import { openExportModeModalForView } from 'src/mandala-settings/ui/view-options
 import { exportPerfSnapshot } from 'src/obsidian/commands/helpers/export-perf-snapshot';
 import { Notice } from 'obsidian';
 import { openCurrentFileMandalaSettingsModal } from 'src/obsidian/modals/current-file-mandala-settings-modal';
+import { createDayPlanDocument } from 'src/obsidian/commands/helpers/create-day-plan-document';
 
 type ManagedCommand = Omit<Command, 'id' | 'callback'> & {
     commandId: string;
@@ -43,6 +44,19 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
         checkCallback: (checking) => {
             if (checking) return true;
             void createMandalaGridDocument(plugin);
+        },
+    });
+
+    commands.push({
+        commandId: 'create-day-plan-document',
+        name: lang.cmd_create_day_plan_document,
+        icon: customIcons.mandalaGrid.name,
+        isEnabled: (pluginValue) =>
+            pluginValue.settings.getValue().general.dayPlanEnabled &&
+            pluginValue.settings.getValue().general.weekPlanEnabled,
+        checkCallback: (checking) => {
+            if (checking) return true;
+            void createDayPlanDocument(plugin);
         },
     });
 

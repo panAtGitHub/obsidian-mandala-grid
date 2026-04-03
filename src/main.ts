@@ -74,6 +74,7 @@ export default class MandalaGrid extends Plugin {
     private readonly mandalaSourceEmbedExtensions: Extension[] = [];
     private lastMandalaGridOrientation: string | null = null;
     private lastDayPlanEnabled: boolean | null = null;
+    private lastWeekPlanEnabled: boolean | null = null;
     private registeredCommandIds = new Set<string>();
     viewType: DocumentsPreferences = {};
 
@@ -92,6 +93,8 @@ export default class MandalaGrid extends Plugin {
             this.settings.getValue().view.mandalaGridOrientation;
         this.lastDayPlanEnabled =
             this.settings.getValue().general.dayPlanEnabled;
+        this.lastWeekPlanEnabled =
+            this.settings.getValue().general.weekPlanEnabled;
         loadCustomIcons();
         this.registerView(
             MANDALA_VIEW_TYPE,
@@ -152,8 +155,14 @@ export default class MandalaGrid extends Plugin {
             }
             const nextDayPlanEnabled =
                 this.settings.getValue().general.dayPlanEnabled;
-            if (this.lastDayPlanEnabled !== nextDayPlanEnabled) {
+            const nextWeekPlanEnabled =
+                this.settings.getValue().general.weekPlanEnabled;
+            if (
+                this.lastDayPlanEnabled !== nextDayPlanEnabled ||
+                this.lastWeekPlanEnabled !== nextWeekPlanEnabled
+            ) {
                 this.lastDayPlanEnabled = nextDayPlanEnabled;
+                this.lastWeekPlanEnabled = nextWeekPlanEnabled;
                 this.refreshCommands();
             }
             this.queueSettingsSave();

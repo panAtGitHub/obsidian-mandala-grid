@@ -191,8 +191,8 @@ export const getDayPlanDateHeadingSettings = (
     customTemplate:
         value?.customTemplate ??
         DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.customTemplate,
-    applyMode:
-        value?.applyMode ?? DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.applyMode,
+    // Keep compatibility with persisted settings while enforcing manual-only behavior.
+    applyMode: DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.applyMode,
 });
 
 export const getHotCoreSections = (
@@ -590,4 +590,15 @@ export const parseDayPlanFromMarkdown = (markdown: string) => {
     const frontmatterMatch = markdown.match(/^---\n([\s\S]+?)\n---\n?/);
     if (!frontmatterMatch) return null;
     return parseDayPlanFrontmatter(`---\n${frontmatterMatch[1]}\n---\n`);
+};
+
+export const isDayPlanDedicatedFrontmatter = (frontmatter: string) => {
+    const parsed = parseDayPlanFrontmatterWithMandala(frontmatter);
+    return parsed.mandalaEnabled && parsed.dayPlan?.enabled === true;
+};
+
+export const isDayPlanDedicatedMarkdown = (markdown: string) => {
+    const frontmatterMatch = markdown.match(/^---\n([\s\S]+?)\n---\n?/);
+    if (!frontmatterMatch) return false;
+    return isDayPlanDedicatedFrontmatter(`---\n${frontmatterMatch[1]}\n---\n`);
 };

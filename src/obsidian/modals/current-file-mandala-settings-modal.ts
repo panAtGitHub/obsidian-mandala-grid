@@ -8,9 +8,9 @@ import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
 import { lang } from 'src/lang/lang';
-import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
 import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
+import { isDayPlanDedicatedFrontmatter } from 'src/mandala-display/logic/day-plan';
 
 type LocalFileSettings = EffectiveMandalaSettings;
 
@@ -24,14 +24,14 @@ const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
             subgridMaxDepth: effective.view.subgridMaxDepth,
         },
         general: {
-            dayPlanEnabled: effective.general.dayPlanEnabled,
-            weekPlanEnabled: effective.general.weekPlanEnabled,
-            weekPlanCompactMode: effective.general.weekPlanCompactMode,
-            weekStart: effective.general.weekStart,
-            dayPlanDateHeadingFormat: effective.general.dayPlanDateHeadingFormat,
-            dayPlanDateHeadingCustomTemplate:
-                effective.general.dayPlanDateHeadingCustomTemplate,
-            dayPlanDateHeadingApplyMode:
+                dayPlanEnabled: effective.general.dayPlanEnabled,
+                weekPlanEnabled: effective.general.weekPlanEnabled,
+                weekPlanCompactMode: effective.general.weekPlanCompactMode,
+                weekStart: effective.general.weekStart,
+                dayPlanDateHeadingFormat: effective.general.dayPlanDateHeadingFormat,
+                dayPlanDateHeadingCustomTemplate:
+                    effective.general.dayPlanDateHeadingCustomTemplate,
+                dayPlanDateHeadingApplyMode:
                 effective.general.dayPlanDateHeadingApplyMode,
         },
     };
@@ -73,6 +73,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
         renderMandalaCoreSettings({
             parentEl: contentEl,
             state: this.state,
+            showTimePlanEnabledToggle: false,
             createGroupContainer: (parentEl, title) => {
                 const details = parentEl.createEl('details');
                 details.addClass('mandala-settings-drawer');
@@ -93,13 +94,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 coreSectionMax: '当前文件核心格子编号范围（1 ~ n）',
                 subgridMaxDepth: '当前文件子九宫最大层级（含核心层）',
                 rangePreviewTitle: '当前文件范围总览（实时）',
-                dayPlanEnabled: '当前文件启用「日计划」',
-                weekPlanEnabled: '当前文件启用「周计划」',
-                weekPlanCompactMode: '当前文件使用 7×9 周计划紧凑显示',
                 weekStart: '当前文件周计划起始日',
                 dayPlanDateHeadingFormat: '当前文件日计划日期标题格式',
                 dayPlanDateHeadingCustomTemplate: '当前文件自定义日期标题模板',
-                dayPlanDateHeadingApplyMode: '当前文件日期标题生效时机',
             },
             handlers: {
                 setEnable9x9View: (enabled) => {
@@ -114,16 +111,6 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 setSubgridMaxDepth: (depth) => {
                     this.state.view.subgridMaxDepth = depth;
                 },
-                setDayPlanEnabled: (enabled) => {
-                    this.state.general.dayPlanEnabled = enabled;
-                },
-                setWeekPlanEnabled: (enabled) => {
-                    this.state.general.weekPlanEnabled = enabled;
-                    this.render();
-                },
-                setWeekPlanCompactMode: (enabled) => {
-                    this.state.general.weekPlanCompactMode = enabled;
-                },
                 setWeekStart: (weekStart) => {
                     this.state.general.weekStart = weekStart;
                 },
@@ -134,45 +121,39 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 setDayPlanDateHeadingCustomTemplate: (template) => {
                     this.state.general.dayPlanDateHeadingCustomTemplate = template;
                 },
-                setDayPlanDateHeadingApplyMode: (mode) => {
-                    this.state.general.dayPlanDateHeadingApplyMode = mode;
-                },
             },
         });
 
-        const actionsDetails = contentEl.createEl('details');
-        actionsDetails.addClass('mandala-settings-drawer');
-        actionsDetails.open = true;
-        actionsDetails
-            .createEl('summary', { text: '日计划操作' })
-            .addClass('mandala-settings-drawer__summary');
-        const actionsContainer = actionsDetails.createDiv({
-            cls: 'mandala-settings-drawer__content',
-        });
+        const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
+            this.view.documentStore.getValue().file.frontmatter,
+        );
+        if (isDayPlanDedicated) {
+            const actionsDetails = contentEl.createEl('details');
+            actionsDetails.addClass('mandala-settings-drawer');
+            actionsDetails.open = true;
+            actionsDetails
+                .createEl('summary', { text: '日计划维护' })
+                .addClass('mandala-settings-drawer__summary');
+            const actionsContainer = actionsDetails.createDiv({
+                cls: 'mandala-settings-drawer__content',
+            });
 
-        new Setting(actionsContainer)
-            .setName('将当前文件转换为「日计划」结构')
-            .addButton((button) =>
-                button.setButtonText('执行').onClick(() => {
-                    void setupDayPlanMandalaFormat(this.view.plugin);
-                }),
-            );
+            new Setting(actionsContainer)
+                .setName(lang.cmd_refresh_day_plan_date_headings)
+                .addButton((button) =>
+                    button.setButtonText('执行').onClick(() => {
+                        void refreshCurrentDayPlanDateHeadings(this.view.plugin);
+                    }),
+                );
 
-        new Setting(actionsContainer)
-            .setName(lang.cmd_refresh_day_plan_date_headings)
-            .addButton((button) =>
-                button.setButtonText('执行').onClick(() => {
-                    void refreshCurrentDayPlanDateHeadings(this.view.plugin);
-                }),
-            );
-
-        new Setting(actionsContainer)
-            .setName(lang.cmd_write_current_core_day_plan_slots_to_yaml)
-            .addButton((button) =>
-                button.setButtonText('执行').onClick(() => {
-                    void writeCurrentCoreDayPlanSlotsToYaml(this.view.plugin);
-                }),
-            );
+            new Setting(actionsContainer)
+                .setName(lang.cmd_write_current_core_day_plan_slots_to_yaml)
+                .addButton((button) =>
+                    button.setButtonText('执行').onClick(() => {
+                        void writeCurrentCoreDayPlanSlotsToYaml(this.view.plugin);
+                    }),
+                );
+        }
 
         const footerActions = contentEl.createDiv({
             cls: 'mandala-file-settings__actions',

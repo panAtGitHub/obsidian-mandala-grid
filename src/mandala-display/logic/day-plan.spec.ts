@@ -18,6 +18,8 @@ import {
     getStartOfWeekIsoDate,
     getWeekIsoDates,
     hasValidCenterDateHeading,
+    isDayPlanDedicatedFrontmatter,
+    isDayPlanDedicatedMarkdown,
     isLeapYear,
     isIsoDate,
     mapWeekPlanRows,
@@ -163,6 +165,11 @@ describe('day-plan helpers', () => {
             customTemplate: DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
             applyMode: 'manual',
         });
+        expect(
+            getDayPlanDateHeadingSettings({
+                applyMode: 'immediate',
+            }).applyMode,
+        ).toBe('manual');
     });
 
     it('upserts slot heading and keeps body', () => {
@@ -281,6 +288,53 @@ describe('day-plan helpers', () => {
         const parsed = parseDayPlanFrontmatter(frontmatter);
         expect(parsed).not.toBeNull();
         expect(parsed?.year).toBe(2026);
+    });
+
+    it('strictly detects day-plan dedicated files from frontmatter', () => {
+        const valid =
+            '---\n' +
+            'mandala: true\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '  slots:\n' +
+            '    "1": "a"\n' +
+            '    "2": "b"\n' +
+            '    "3": "c"\n' +
+            '    "4": "d"\n' +
+            '    "5": "e"\n' +
+            '    "6": "f"\n' +
+            '    "7": "g"\n' +
+            '    "8": "h"\n' +
+            '---\n';
+        const noMandala = valid.replace('mandala: true\n', '');
+        const notEnabled = valid.replace('enabled: true', 'enabled: false');
+        expect(isDayPlanDedicatedFrontmatter(valid)).toBe(true);
+        expect(isDayPlanDedicatedFrontmatter(noMandala)).toBe(false);
+        expect(isDayPlanDedicatedFrontmatter(notEnabled)).toBe(false);
+        expect(isDayPlanDedicatedFrontmatter('')).toBe(false);
+    });
+
+    it('strictly detects day-plan dedicated files from markdown', () => {
+        const validMarkdown =
+            '---\n' +
+            'mandala: true\n' +
+            'mandala_plan:\n' +
+            '  enabled: true\n' +
+            '  year: 2026\n' +
+            '  slots:\n' +
+            '    "1": "a"\n' +
+            '    "2": "b"\n' +
+            '    "3": "c"\n' +
+            '    "4": "d"\n' +
+            '    "5": "e"\n' +
+            '    "6": "f"\n' +
+            '    "7": "g"\n' +
+            '    "8": "h"\n' +
+            '---\n' +
+            '\nbody\n';
+        expect(isDayPlanDedicatedMarkdown(validMarkdown)).toBe(true);
+        expect(isDayPlanDedicatedMarkdown('# no frontmatter')).toBe(false);
     });
 
     it('reuses cached frontmatter parsing for identical inputs', () => {

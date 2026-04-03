@@ -5,7 +5,6 @@ import {
     resolveMaxSectionExample,
 } from 'src/mandala-settings/state/helpers/section-range';
 import type {
-    DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     SectionRangeLimit,
     WeekStart,
@@ -19,13 +18,10 @@ export type MandalaCoreSettingsHandlers = {
     setEnableNx9View: (enabled: boolean) => void;
     setCoreSectionMax: (max: SectionRangeLimit) => void;
     setSubgridMaxDepth: (depth: SectionRangeLimit) => void;
-    setDayPlanEnabled: (enabled: boolean) => void;
-    setWeekPlanEnabled: (enabled: boolean) => void;
-    setWeekPlanCompactMode: (enabled: boolean) => void;
+    setTimePlanEnabled?: (enabled: boolean) => void;
     setWeekStart: (weekStart: WeekStart) => void;
     setDayPlanDateHeadingFormat: (format: DayPlanDateHeadingFormat) => void;
     setDayPlanDateHeadingCustomTemplate: (template: string) => void;
-    setDayPlanDateHeadingApplyMode: (mode: DayPlanDateHeadingApplyMode) => void;
 };
 
 type RenderMandalaCoreSettingsOptions = {
@@ -38,6 +34,7 @@ type RenderMandalaCoreSettingsOptions = {
         group: 'global-view' | 'time-plan',
     ) => HTMLElement;
     showDescriptions: boolean;
+    showTimePlanEnabledToggle?: boolean;
     texts?: Partial<{
         sectionGlobalView: string;
         sectionTimePlan: string;
@@ -46,13 +43,10 @@ type RenderMandalaCoreSettingsOptions = {
         coreSectionMax: string;
         subgridMaxDepth: string;
         rangePreviewTitle: string;
-        dayPlanEnabled: string;
-        weekPlanEnabled: string;
-        weekPlanCompactMode: string;
+        timePlanEnabled: string;
         weekStart: string;
         dayPlanDateHeadingFormat: string;
         dayPlanDateHeadingCustomTemplate: string;
-        dayPlanDateHeadingApplyMode: string;
     }>;
 };
 
@@ -73,6 +67,7 @@ export const renderMandalaCoreSettings = ({
     handlers,
     createGroupContainer,
     showDescriptions,
+    showTimePlanEnabledToggle = true,
     texts,
 }: RenderMandalaCoreSettingsOptions) => {
     const globalViewContainer = createGroupContainer(
@@ -217,44 +212,23 @@ export const renderMandalaCoreSettings = ({
 
     updateRangeHints();
 
-    createMaybeDescriptionSetting(
-        new Setting(timePlanContainer).setName(
-            texts?.dayPlanEnabled ?? lang.settings_general_day_plan_enabled,
-        ),
-        lang.settings_general_day_plan_enabled_desc,
-        showDescriptions,
-    ).addToggle((toggle) =>
-        toggle
-            .setValue(state.general.dayPlanEnabled)
-            .onChange((enabled) => handlers.setDayPlanEnabled(enabled)),
-    );
-
-    createMaybeDescriptionSetting(
-        new Setting(timePlanContainer).setName(
-            texts?.weekPlanEnabled ?? lang.settings_general_week_plan_enabled,
-        ),
-        lang.settings_general_week_plan_enabled_desc,
-        showDescriptions,
-    ).addToggle((toggle) =>
-        toggle
-            .setValue(state.general.weekPlanEnabled)
-            .onChange((enabled) => handlers.setWeekPlanEnabled(enabled)),
-    );
-
-    if (state.general.weekPlanEnabled) {
+    if (showTimePlanEnabledToggle && handlers.setTimePlanEnabled) {
         createMaybeDescriptionSetting(
             new Setting(timePlanContainer).setName(
-                texts?.weekPlanCompactMode ??
-                    lang.settings_general_week_plan_compact_mode,
+                texts?.timePlanEnabled ?? lang.settings_general_time_plan_enabled,
             ),
-            lang.settings_general_week_plan_compact_mode_desc,
+            lang.settings_general_time_plan_enabled_desc,
             showDescriptions,
         ).addToggle((toggle) =>
             toggle
-                .setValue(state.general.weekPlanCompactMode)
-                .onChange((enabled) => handlers.setWeekPlanCompactMode(enabled)),
+                .setValue(
+                    state.general.dayPlanEnabled && state.general.weekPlanEnabled,
+                )
+                .onChange((enabled) => handlers.setTimePlanEnabled?.(enabled)),
         );
+    }
 
+    if (state.general.weekPlanEnabled) {
         new Setting(timePlanContainer)
             .setName(texts?.weekStart ?? '周计划起始日')
             .addDropdown(
@@ -315,26 +289,4 @@ export const renderMandalaCoreSettings = ({
                 ),
         );
     }
-
-    createMaybeDescriptionSetting(
-        new Setting(timePlanContainer).setName(
-            texts?.dayPlanDateHeadingApplyMode ??
-                lang.settings_general_day_plan_date_heading_apply_mode,
-        ),
-        lang.settings_general_day_plan_date_heading_apply_mode_desc,
-        showDescriptions,
-    ).addDropdown((dropdown) =>
-        dropdown
-            .addOptions({
-                immediate:
-                    lang.settings_general_day_plan_date_heading_apply_mode_immediate,
-                manual: lang.settings_general_day_plan_date_heading_apply_mode_manual,
-            } satisfies Record<DayPlanDateHeadingApplyMode, string>)
-            .setValue(state.general.dayPlanDateHeadingApplyMode)
-            .onChange((value) =>
-                handlers.setDayPlanDateHeadingApplyMode(
-                    value as DayPlanDateHeadingApplyMode,
-                ),
-            ),
-    );
 };

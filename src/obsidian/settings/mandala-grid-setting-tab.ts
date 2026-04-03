@@ -62,14 +62,11 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                 general: {
                     dayPlanEnabled: settings.general.dayPlanEnabled,
                     weekPlanEnabled: settings.general.weekPlanEnabled,
-                    weekPlanCompactMode: settings.general.weekPlanCompactMode,
                     weekStart: settings.general.weekStart,
                     dayPlanDateHeadingFormat:
                         settings.general.dayPlanDateHeadingFormat,
                     dayPlanDateHeadingCustomTemplate:
                         settings.general.dayPlanDateHeadingCustomTemplate,
-                    dayPlanDateHeadingApplyMode:
-                        settings.general.dayPlanDateHeadingApplyMode,
                 },
             },
             createGroupContainer: (parentEl, title) =>
@@ -100,24 +97,16 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                         payload: { depth },
                     });
                 },
-                setDayPlanEnabled: (enabled) => {
+                setTimePlanEnabled: (enabled) => {
                     this.plugin.settings.dispatch({
                         type: 'settings/general/set-day-plan-enabled',
                         payload: { enabled },
                     });
-                },
-                setWeekPlanEnabled: (enabled) => {
                     this.plugin.settings.dispatch({
                         type: 'settings/general/set-week-plan-enabled',
                         payload: { enabled },
                     });
                     this.display();
-                },
-                setWeekPlanCompactMode: (enabled) => {
-                    this.plugin.settings.dispatch({
-                        type: 'settings/general/set-week-plan-compact-mode',
-                        payload: { enabled },
-                    });
                 },
                 setWeekStart: (weekStart) => {
                     this.plugin.settings.dispatch({
@@ -136,12 +125,6 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                     this.plugin.settings.dispatch({
                         type: 'settings/general/set-day-plan-date-heading-custom-template',
                         payload: { template },
-                    });
-                },
-                setDayPlanDateHeadingApplyMode: (mode) => {
-                    this.plugin.settings.dispatch({
-                        type: 'settings/general/set-day-plan-date-heading-apply-mode',
-                        payload: { mode },
                     });
                 },
             },

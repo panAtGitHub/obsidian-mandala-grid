@@ -11,6 +11,7 @@ export const lang = {
 
     // create document
     cmd_create_new_document: '新建九宫格文件',
+    cmd_create_day_plan_document: '日计划创建',
     cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
     cmd_open_current_file_mandala_settings: '九宫格：当前文件设置',
     cmd_write_current_core_day_plan_slots_to_yaml:
@@ -345,6 +346,9 @@ export const lang = {
     settings_general_day_plan_enabled: '启用「日计划」功能',
     settings_general_day_plan_enabled_desc:
         '关闭后，会移除命令面板中所有与「日计划」相关的命令。',
+    settings_general_time_plan_enabled: '启用时间计划（日计划+周计划）',
+    settings_general_time_plan_enabled_desc:
+        '关闭后，会停用日计划与周计划相关功能，并隐藏对应创建入口。',
     settings_general_week_plan_enabled: '启用「周计划」功能',
     settings_general_week_plan_enabled_desc:
         '关闭后，会隐藏 7×9 周计划视图及其相关设置。',

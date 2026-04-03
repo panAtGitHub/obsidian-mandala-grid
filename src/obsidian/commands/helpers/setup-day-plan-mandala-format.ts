@@ -312,7 +312,10 @@ const ensureMandalaView = async (plugin: MandalaGrid, file: TFile) => {
     return leaf;
 };
 
-export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
+export const setupDayPlanMandalaFormat = async (
+    plugin: MandalaGrid,
+    targetFile?: TFile,
+) => {
     if (isSettingUpDayPlan) {
         new Notice('正在生成年计划数据，请先不要使用。');
         return;
@@ -321,7 +324,7 @@ export const setupDayPlanMandalaFormat = async (plugin: MandalaGrid) => {
     const processingNotice = new Notice('正在生成年计划数据，请先不要使用。', 0);
     try {
     const startMs = performance.now();
-    const file = getActiveFile(plugin);
+    const file = targetFile ?? getActiveFile(plugin);
     if (!file) {
         new Notice('未找到当前文件。');
         return;
