@@ -5,6 +5,15 @@
     gap: 12px;
 }
 
+/* Ensure plugin settings content can always scroll inside Obsidian settings modal. */
+.mod-settings .vertical-tab-content-container .mandala-plugin-settings {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+}
+
 .mandala-plugin-settings .setting-item-heading {
     margin-bottom: 4px;
 }
