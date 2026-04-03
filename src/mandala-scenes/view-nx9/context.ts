@@ -3,7 +3,10 @@ import {
     buildMandalaTopologyIndex,
     getSectionCore,
 } from 'src/mandala-display/logic/mandala-topology';
-import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/mandala-settings/state/settings-type';
+import {
+    DEFAULT_NX9_ROWS_PER_PAGE,
+    SectionRangeLimit,
+} from 'src/mandala-settings/state/settings-type';
 import type { Content } from 'src/mandala-document/state/document-state-type';
 
 export type Nx9CellPosition = { row: number; col: number };
@@ -118,7 +121,7 @@ export const collectEffectiveNx9CoreSections = ({
 
 export const buildNx9Rows = (
     effectiveCoreSections: string[],
-    coreSectionMax: number | null = null,
+    coreSectionMax: SectionRangeLimit = 'unlimited',
 ): Nx9RowModel[] => {
     const rows: Nx9RowModel[] = effectiveCoreSections.map((coreSection) => ({
         kind: 'real-core-row',
@@ -131,7 +134,8 @@ export const buildNx9Rows = (
             : 1,
     );
     const canCreateNextCore =
-        coreSectionMax === null || Number(nextCoreSection) <= coreSectionMax;
+        coreSectionMax === 'unlimited' ||
+        Number(nextCoreSection) <= coreSectionMax;
     if (canCreateNextCore) {
         rows.push({
             kind: 'ghost-next-core-row',
@@ -224,7 +228,7 @@ export const resolveNx9Context = ({
     rowsPerPage: number | null | undefined;
     activeSection: string | null | undefined;
     activeCell?: Nx9ActiveCell | null | undefined;
-    coreSectionMax?: number | null | undefined;
+    coreSectionMax?: SectionRangeLimit | undefined;
 }): Nx9Context => {
     const structureContext = resolveNx9StructureContext({
         sectionIdMap,
@@ -251,7 +255,7 @@ export const resolveNx9StructureContext = ({
     documentContent: Content;
     rowsPerPage: number | null | undefined;
     activeSection: string | null | undefined;
-    coreSectionMax?: number | null | undefined;
+    coreSectionMax?: SectionRangeLimit | undefined;
 }): Nx9StructureContext => {
     const normalizedRowsPerPage = normalizeNx9RowsPerPage(rowsPerPage);
     const coreSections = collectNx9CoreSections(sectionIdMap);
@@ -260,7 +264,10 @@ export const resolveNx9StructureContext = ({
         documentContent,
         activeSection,
     });
-    const rows = buildNx9Rows(effectiveCoreSections, coreSectionMax ?? null);
+    const rows = buildNx9Rows(
+        effectiveCoreSections,
+        coreSectionMax ?? 'unlimited',
+    );
     const totalPages = getNx9TotalPages(rows.length, normalizedRowsPerPage);
 
     return {

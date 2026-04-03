@@ -126,8 +126,8 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         whiteThemeMode: false,
         mandalaEmbedDebug: false,
         hiddenVerticalToolbarButtons: [],
-        coreSectionMax: null,
-        subgridMaxDepth: null,
+        coreSectionMax: 'unlimited',
+        subgridMaxDepth: 'unlimited',
     },
     general: {
         linkPaneType: 'tab',

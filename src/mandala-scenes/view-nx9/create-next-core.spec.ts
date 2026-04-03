@@ -44,7 +44,7 @@ describe('nx9/create-next-core', () => {
         const view = {
             mandalaActiveCellNx9: null,
             getEffectiveMandalaSettings: () => ({
-                view: { coreSectionMax: null },
+                view: { coreSectionMax: 'unlimited' },
             }),
             documentStore: {
                 getValue: () => documentState,
@@ -123,7 +123,7 @@ describe('nx9/create-next-core', () => {
         const view = {
             mandalaActiveCellNx9: null,
             getEffectiveMandalaSettings: () => ({
-                view: { coreSectionMax: null },
+                view: { coreSectionMax: 'unlimited' },
             }),
             documentStore: {
                 getValue: () => documentState,

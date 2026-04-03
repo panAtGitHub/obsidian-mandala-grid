@@ -27,7 +27,7 @@ export const createNextNx9Core = (
 ) => {
     const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
     if (
-        coreSectionMax !== null &&
+        coreSectionMax !== 'unlimited' &&
         Number(nextCoreSection) > coreSectionMax
     ) {
         new Notice(lang.notice_core_section_limit_reached);

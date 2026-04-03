@@ -7,6 +7,7 @@ import {
 import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
+    SectionRangeLimit,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
 import type { EffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
@@ -16,8 +17,8 @@ export type MandalaCoreSettingsState = EffectiveMandalaSettings;
 export type MandalaCoreSettingsHandlers = {
     setEnable9x9View: (enabled: boolean) => void;
     setEnableNx9View: (enabled: boolean) => void;
-    setCoreSectionMax: (max: number | null) => void;
-    setSubgridMaxDepth: (depth: number | null) => void;
+    setCoreSectionMax: (max: SectionRangeLimit) => void;
+    setSubgridMaxDepth: (depth: SectionRangeLimit) => void;
     setDayPlanEnabled: (enabled: boolean) => void;
     setWeekPlanEnabled: (enabled: boolean) => void;
     setWeekPlanCompactMode: (enabled: boolean) => void;
@@ -137,12 +138,12 @@ export const renderMandalaCoreSettings = ({
     const updateRangeHints = () => {
         const coreText =
             coreSectionError ??
-            (currentCoreSectionMax === null
+            (currentCoreSectionMax === 'unlimited'
                 ? `实时提示：${lang.settings_global_range_input_empty}`
                 : `实时提示：当前仅允许核心编号 1 ~ ${currentCoreSectionMax}。`);
         const depthText =
             subgridDepthError ??
-            (currentSubgridMaxDepth === null
+            (currentSubgridMaxDepth === 'unlimited'
                 ? `实时提示：${lang.settings_global_range_input_empty}`
                 : `实时提示：当前最大层级 = ${currentSubgridMaxDepth}，最大 section 可到 ${resolveMaxSectionExample(currentSubgridMaxDepth)}。`);
         coreSectionSetting.setDesc(coreText);
@@ -155,12 +156,12 @@ export const renderMandalaCoreSettings = ({
             );
         }
         previewCoreEl?.setText(
-            currentCoreSectionMax === null
+            currentCoreSectionMax === 'unlimited'
                 ? '核心范围：1 ~ n（不设上限）'
                 : `核心范围：1 ~ ${currentCoreSectionMax}`,
         );
         previewDepthEl?.setText(
-            currentSubgridMaxDepth === null
+            currentSubgridMaxDepth === 'unlimited'
                 ? '子九宫层级：n 层（不设上限）'
                 : `子九宫层级：${currentSubgridMaxDepth} 层（含核心层）`,
         );
@@ -174,7 +175,9 @@ export const renderMandalaCoreSettings = ({
         text
             .setPlaceholder('留空表示不限')
             .setValue(
-                currentCoreSectionMax === null ? '' : String(currentCoreSectionMax),
+                currentCoreSectionMax === 'unlimited'
+                    ? ''
+                    : String(currentCoreSectionMax),
             )
             .onChange((value) => {
                 const parsed = parsePositiveIntegerInput(value);
@@ -194,7 +197,9 @@ export const renderMandalaCoreSettings = ({
         text
             .setPlaceholder('留空表示不限')
             .setValue(
-                currentSubgridMaxDepth === null ? '' : String(currentSubgridMaxDepth),
+                currentSubgridMaxDepth === 'unlimited'
+                    ? ''
+                    : String(currentSubgridMaxDepth),
             )
             .onChange((value) => {
                 const parsed = parsePositiveIntegerInput(value);

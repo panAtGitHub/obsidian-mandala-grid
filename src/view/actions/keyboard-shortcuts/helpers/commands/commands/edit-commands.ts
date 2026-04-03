@@ -21,7 +21,7 @@ export const editCommands = () => {
         const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
         const targetCore = Number(parts[0]);
         if (
-            coreSectionMax !== null &&
+            coreSectionMax !== 'unlimited' &&
             Number.isInteger(targetCore) &&
             targetCore > coreSectionMax
         ) {

@@ -6,13 +6,13 @@ import {
 } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 const mockView = (props: {
-    subgridMaxDepth: number | null;
+    subgridMaxDepth: number | 'unlimited';
     enable9x9View: boolean;
 }) =>
     ({
         getEffectiveMandalaSettings: () => ({
             view: {
-                coreSectionMax: null,
+                coreSectionMax: 'unlimited',
                 subgridMaxDepth: props.subgridMaxDepth,
                 enable9x9View: props.enable9x9View,
                 enableNx9View: true,
@@ -34,7 +34,7 @@ describe('view-3x3/subgrid-depth', () => {
         expect(
             resolveThreeByThreeMaxDepth(
                 mockView({
-                    subgridMaxDepth: null,
+                    subgridMaxDepth: 'unlimited',
                     enable9x9View: false,
                 }),
             ),

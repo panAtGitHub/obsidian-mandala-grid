@@ -104,7 +104,7 @@ describe('mandala-frontmatter-settings', () => {
         expect(effective.view.enableNx9View).toBe(
             globalSettings.view.enableNx9View,
         );
-        expect(effective.view.coreSectionMax).toBeNull();
+        expect(effective.view.coreSectionMax).toBe('unlimited');
         expect(effective.view.subgridMaxDepth).toBe(2);
         expect(effective.general.weekPlanEnabled).toBe(false);
         expect(effective.general.dayPlanDateHeadingApplyMode).toBe(

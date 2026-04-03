@@ -11,6 +11,7 @@ import {
     MandalaMode,
     MandalaSectionColorAssignments,
     LinkPaneType,
+    SectionRangeLimit,
     ViewType,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
@@ -353,11 +354,11 @@ export type SettingsActions =
       }
     | {
           type: 'settings/view/set-core-section-max';
-          payload: { max: number | null };
+          payload: { max: SectionRangeLimit };
       }
     | {
           type: 'settings/view/set-subgrid-max-depth';
-          payload: { depth: number | null };
+          payload: { depth: SectionRangeLimit };
       }
     | {
           type: 'settings/view/toggle-9x9-view';

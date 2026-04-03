@@ -4,7 +4,7 @@ const getSectionDepth = (section: string) => section.split('.').length;
 
 export const resolveThreeByThreeMaxDepth = (view: MandalaView) => {
     const viewSettings = view.getEffectiveMandalaSettings().view;
-    if (viewSettings.subgridMaxDepth === null) {
+    if (viewSettings.subgridMaxDepth === 'unlimited') {
         return Number.POSITIVE_INFINITY;
     }
     return viewSettings.subgridMaxDepth;

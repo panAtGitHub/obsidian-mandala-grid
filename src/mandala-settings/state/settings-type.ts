@@ -80,6 +80,7 @@ export type DayPlanDateHeadingFormat =
     | 'en-short'
     | 'custom';
 export type DayPlanDateHeadingApplyMode = 'immediate' | 'manual';
+export type SectionRangeLimit = number | 'unlimited';
 export type ContextMenuCopyLinkVariant =
     | 'block-plain'
     | 'block-embed'
@@ -156,8 +157,8 @@ export type Settings = {
         whiteThemeMode: boolean;
         mandalaEmbedDebug: boolean;
         hiddenVerticalToolbarButtons: ToolbarButton[];
-        coreSectionMax: number | null;
-        subgridMaxDepth: number | null;
+        coreSectionMax: SectionRangeLimit;
+        subgridMaxDepth: SectionRangeLimit;
     };
     general: {
         linkPaneType: LinkPaneType;

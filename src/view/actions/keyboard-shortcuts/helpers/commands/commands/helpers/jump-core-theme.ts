@@ -38,7 +38,7 @@ export const jumpCoreTheme = (
 
         const nextCore = String(coreNumber + 1);
         const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
-        if (coreSectionMax !== null && coreNumber + 1 > coreSectionMax) {
+        if (coreSectionMax !== 'unlimited' && coreNumber + 1 > coreSectionMax) {
             new Notice(lang.notice_core_section_limit_reached);
             return;
         }

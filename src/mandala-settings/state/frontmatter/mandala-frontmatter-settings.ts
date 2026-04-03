@@ -2,6 +2,7 @@ import { parseYaml } from 'obsidian';
 import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
+    SectionRangeLimit,
     Settings,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
@@ -12,8 +13,8 @@ export type MandalaFrontmatterSettings = {
     view?: {
         enable9x9View?: boolean;
         enableNx9View?: boolean;
-        coreSectionMax?: number | null;
-        subgridMaxDepth?: number | null;
+        coreSectionMax?: SectionRangeLimit;
+        subgridMaxDepth?: SectionRangeLimit;
     };
     general?: {
         dayPlanEnabled?: boolean;
@@ -30,8 +31,8 @@ export type EffectiveMandalaSettings = {
     view: {
         enable9x9View: boolean;
         enableNx9View: boolean;
-        coreSectionMax: number | null;
-        subgridMaxDepth: number | null;
+        coreSectionMax: SectionRangeLimit;
+        subgridMaxDepth: SectionRangeLimit;
     };
     general: {
         dayPlanEnabled: boolean;
@@ -64,8 +65,8 @@ const isDayPlanDateHeadingApplyMode = (
 ): value is DayPlanDateHeadingApplyMode =>
     value === 'immediate' || value === 'manual';
 
-const toNullablePositiveInteger = (value: unknown) => {
-    if (value === null) return null;
+const toRangeLimit = (value: unknown): SectionRangeLimit | undefined => {
+    if (value === null || value === 'unlimited') return 'unlimited';
     if (
         typeof value === 'number' &&
         Number.isInteger(value) &&
@@ -106,11 +107,11 @@ export const parseMandalaFrontmatterSettings = (
     if (typeof viewRaw?.enableNx9View === 'boolean') {
         view.enableNx9View = viewRaw.enableNx9View;
     }
-    const coreSectionMax = toNullablePositiveInteger(viewRaw?.coreSectionMax);
+    const coreSectionMax = toRangeLimit(viewRaw?.coreSectionMax);
     if (coreSectionMax !== undefined) {
         view.coreSectionMax = coreSectionMax;
     }
-    const subgridMaxDepth = toNullablePositiveInteger(viewRaw?.subgridMaxDepth);
+    const subgridMaxDepth = toRangeLimit(viewRaw?.subgridMaxDepth);
     if (subgridMaxDepth !== undefined) {
         view.subgridMaxDepth = subgridMaxDepth;
     }
@@ -160,10 +161,10 @@ export const resolveEffectiveMandalaSettings = (
             enableNx9View:
                 overrides.view?.enableNx9View ?? settings.view.enableNx9View,
             coreSectionMax: hasViewOverride('coreSectionMax')
-                ? (overrides.view?.coreSectionMax ?? null)
+                ? (overrides.view?.coreSectionMax ?? 'unlimited')
                 : settings.view.coreSectionMax,
             subgridMaxDepth: hasViewOverride('subgridMaxDepth')
-                ? (overrides.view?.subgridMaxDepth ?? null)
+                ? (overrides.view?.subgridMaxDepth ?? 'unlimited')
                 : settings.view.subgridMaxDepth,
         },
         general: {

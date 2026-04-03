@@ -393,24 +393,32 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     const legacyInfiniteNesting = legacyViewSettings.enable3x3InfiniteNesting;
     if (
         typeof legacyViewSettings.subgridMaxDepth !== 'number' &&
-        legacyViewSettings.subgridMaxDepth !== null
+        legacyViewSettings.subgridMaxDepth !== null &&
+        legacyViewSettings.subgridMaxDepth !== 'unlimited'
     ) {
         if (typeof legacyInfiniteNesting === 'boolean') {
             legacyViewSettings.subgridMaxDepth = legacyInfiniteNesting
-                ? null
+                ? 'unlimited'
                 : ((legacyViewSettings.enable9x9View as boolean | undefined) ??
                     true)
                   ? 3
                   : 2;
         } else {
-            legacyViewSettings.subgridMaxDepth = null;
+            legacyViewSettings.subgridMaxDepth = 'unlimited';
         }
+    }
+    if (legacyViewSettings.subgridMaxDepth === null) {
+        legacyViewSettings.subgridMaxDepth = 'unlimited';
     }
     if (
         typeof legacyViewSettings.coreSectionMax !== 'number' &&
-        legacyViewSettings.coreSectionMax !== null
+        legacyViewSettings.coreSectionMax !== null &&
+        legacyViewSettings.coreSectionMax !== 'unlimited'
     ) {
-        legacyViewSettings.coreSectionMax = null;
+        legacyViewSettings.coreSectionMax = 'unlimited';
+    }
+    if (legacyViewSettings.coreSectionMax === null) {
+        legacyViewSettings.coreSectionMax = 'unlimited';
     }
     if (typeof (viewSettings as Record<string, unknown>).enable9x9View !== 'boolean') {
         (viewSettings as Record<string, unknown>).enable9x9View = true;

@@ -40,7 +40,7 @@ export const Features3x3 = (
             text
                 .setPlaceholder('留空表示不限')
                 .setValue(
-                    settingsState.view.coreSectionMax === null
+                    settingsState.view.coreSectionMax === 'unlimited'
                         ? ''
                         : String(settingsState.view.coreSectionMax),
                 )
@@ -61,7 +61,7 @@ export const Features3x3 = (
             text
                 .setPlaceholder('留空表示不限')
                 .setValue(
-                    settingsState.view.subgridMaxDepth === null
+                    settingsState.view.subgridMaxDepth === 'unlimited'
                         ? ''
                         : String(settingsState.view.subgridMaxDepth),
                 )

@@ -50,7 +50,7 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
         const nextTheme = String(Number(currentTheme) + 1);
         const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
         if (
-            coreSectionMax !== null &&
+            coreSectionMax !== 'unlimited' &&
             Number(currentTheme) + 1 > coreSectionMax
         ) {
             new Notice(lang.notice_core_section_limit_reached);
