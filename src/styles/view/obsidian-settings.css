@@ -2,7 +2,7 @@
 .mandala-file-settings {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
 }
 
 .mandala-plugin-settings {
@@ -15,53 +15,121 @@
 
 .mandala-settings-drawer {
     border: 1px solid var(--background-modifier-border);
-    border-radius: 12px;
+    border-radius: 18px;
     background: color-mix(
         in srgb,
-        var(--background-primary) 88%,
+        var(--background-primary) 92%,
         var(--background-secondary)
     );
+    padding: 12px;
     overflow: hidden;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .mandala-settings-drawer__summary {
     cursor: pointer;
     list-style: none;
-    font-size: 16px;
-    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 19px;
+    font-weight: 800;
     color: var(--text-normal);
-    padding: 12px 14px;
-    border-bottom: 1px solid transparent;
+    padding: 10px 14px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        color 140ms ease;
+}
+
+.mandala-settings-drawer__summary::after {
+    content: '⌄';
+    flex: 0 0 auto;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--text-muted);
+    transition:
+        transform 140ms ease,
+        color 140ms ease;
 }
 
 .mandala-settings-drawer[open] > .mandala-settings-drawer__summary {
-    border-bottom-color: var(--background-modifier-border);
+    color: var(--text-accent);
+    border-color: color-mix(
+        in srgb,
+        var(--background-modifier-border) 72%,
+        transparent
+    );
     background: color-mix(
         in srgb,
-        var(--background-secondary) 82%,
+        var(--background-secondary) 78%,
         var(--background-primary)
     );
 }
 
+.mandala-settings-drawer[open] > .mandala-settings-drawer__summary::after {
+    color: var(--text-accent);
+    transform: rotate(180deg);
+}
+
 .mandala-settings-drawer__summary::-webkit-details-marker {
-    margin-right: 6px;
+    display: none;
 }
 
 .mandala-settings-drawer__content {
-    padding: 8px;
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid
+        color-mix(in srgb, var(--background-modifier-border) 80%, transparent);
+    border-radius: 16px;
+    background: color-mix(
+        in srgb,
+        var(--background-primary) 96%,
+        var(--background-secondary)
+    );
+    max-height: min(58vh, 680px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable both-edges;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-muted) 72%, transparent)
+        transparent;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mandala-settings-drawer__content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mandala-settings-drawer__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.mandala-settings-drawer__content::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-muted) 58%, transparent);
+}
+
+.mandala-settings-drawer__content:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--text-muted) 78%, transparent);
 }
 
 .mandala-settings-drawer__content .setting-item {
     border: none;
-    border-radius: 10px;
+    border-radius: 14px;
     background: var(--background-primary);
-    padding: 10px 12px;
-    margin: 6px 0;
+    padding: 12px 14px;
+    margin: 8px 0;
     min-height: auto;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     border-top: none !important;
     border-bottom: none !important;
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--background-modifier-border) 54%, transparent);
 }
 
 .mandala-settings-drawer__content .setting-item:first-child {
