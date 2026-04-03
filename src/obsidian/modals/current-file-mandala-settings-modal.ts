@@ -68,6 +68,11 @@ class CurrentFileMandalaSettingsModal extends Modal {
         this.contentEl.empty();
     }
 
+    private getScrollContainer() {
+        return (this.contentEl.closest('.modal-content') ??
+            this.contentEl) as HTMLElement;
+    }
+
     private createFoldCard(parentEl: HTMLElement, title: string, key: string) {
         const opened = this.groupOpenState.get(key) ?? true;
         return createSettingsFoldCard({
@@ -80,8 +85,12 @@ class CurrentFileMandalaSettingsModal extends Modal {
         }).contentEl;
     }
 
-    private render() {
+    private render({
+        preserveScroll = false,
+    }: { preserveScroll?: boolean } = {}) {
         const { contentEl } = this;
+        const scrollContainer = this.getScrollContainer();
+        const scrollTop = preserveScroll ? scrollContainer.scrollTop : 0;
         contentEl.empty();
         const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
             this.view.documentStore.getValue().file.frontmatter,
@@ -130,7 +139,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 },
                 setDayPlanDateHeadingFormat: (format) => {
                     this.state.general.dayPlanDateHeadingFormat = format;
-                    this.render();
+                    this.render({ preserveScroll: true });
                 },
                 setDayPlanDateHeadingCustomTemplate: (template) => {
                     this.state.general.dayPlanDateHeadingCustomTemplate =
@@ -183,6 +192,12 @@ class CurrentFileMandalaSettingsModal extends Modal {
         saveButton.addEventListener('click', () => {
             void this.save();
         });
+
+        if (preserveScroll) {
+            requestAnimationFrame(() => {
+                this.getScrollContainer().scrollTop = scrollTop;
+            });
+        }
     }
 
     private async save() {
