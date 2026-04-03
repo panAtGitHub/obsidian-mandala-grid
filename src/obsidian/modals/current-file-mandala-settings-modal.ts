@@ -83,6 +83,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
     private render() {
         const { contentEl } = this;
         contentEl.empty();
+        const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
+            this.view.documentStore.getValue().file.frontmatter,
+        );
 
         contentEl.createDiv({
             cls: 'mandala-file-settings__note',
@@ -93,6 +96,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
             parentEl: contentEl,
             state: this.state,
             showTimePlanEnabledToggle: false,
+            showTimePlanSection: isDayPlanDedicated,
             createGroupContainer: (parentEl, title, group) =>
                 this.createFoldCard(parentEl, title, group),
             showDescriptions: false,
@@ -135,9 +139,6 @@ class CurrentFileMandalaSettingsModal extends Modal {
             },
         });
 
-        const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
-            this.view.documentStore.getValue().file.frontmatter,
-        );
         if (isDayPlanDedicated) {
             const actionsContainer = this.createFoldCard(
                 contentEl,
