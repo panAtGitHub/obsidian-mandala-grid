@@ -14,22 +14,11 @@
 }
 
 .mandala-settings-card {
-    border: 1px solid
-        color-mix(in srgb, var(--background-modifier-border) 82%, transparent);
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--background-primary) 96%, white 4%),
-        color-mix(
-            in srgb,
-            var(--background-primary) 92%,
-            var(--background-secondary)
-        )
-    );
+    border: none;
+    background: transparent;
     border-radius: 18px;
-    padding: 12px 16px 14px;
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.75) inset,
-        0 10px 24px rgba(15, 23, 42, 0.04);
+    padding: 0;
+    box-shadow: none;
 }
 
 .mandala-settings-card__header {
@@ -38,13 +27,14 @@
     justify-content: space-between;
     gap: 12px;
     width: 100%;
-    padding: 8px 10px;
+    padding: 10px 8px 6px;
     border: none;
     background: transparent;
     color: inherit;
     cursor: pointer;
     text-align: left;
     border-radius: 10px;
+    box-shadow: none;
 }
 
 .mandala-settings-card__header:focus-visible {
@@ -74,11 +64,23 @@
 
 .mandala-settings-card__content {
     display: none;
-    padding: 8px 0 2px;
-    margin-top: 4px;
-    border: none;
-    border-radius: 0;
-    background: transparent;
+    padding: 14px;
+    margin-top: 8px;
+    border: 1px solid
+        color-mix(in srgb, var(--background-modifier-border) 76%, transparent);
+    border-radius: 18px;
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--background-primary) 97%, white 3%),
+        color-mix(
+            in srgb,
+            var(--background-primary) 92%,
+            var(--background-secondary)
+        )
+    );
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        0 10px 24px rgba(15, 23, 42, 0.04);
 }
 
 .mandala-settings-card__content.is-open {
@@ -87,15 +89,15 @@
 
 .mandala-settings-card__content .setting-item {
     border: 1px solid
-        color-mix(in srgb, var(--background-modifier-border) 76%, transparent);
+        color-mix(in srgb, var(--background-modifier-border) 68%, transparent);
     border-radius: 16px;
     background: color-mix(in srgb, var(--background-primary) 97%, white 3%);
     padding: 12px 14px;
-    margin: 12px 0;
+    margin: 10px 0;
     min-height: auto;
     gap: 10px;
     border-top: 1px solid
-        color-mix(in srgb, var(--background-modifier-border) 76%, transparent) !important;
+        color-mix(in srgb, var(--background-modifier-border) 68%, transparent) !important;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.7) inset,
         0 6px 16px rgba(15, 23, 42, 0.03);
