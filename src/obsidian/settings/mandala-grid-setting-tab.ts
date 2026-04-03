@@ -45,10 +45,6 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
         containerEl.addClass('mandala-plugin-settings');
-        const scrollHost = containerEl.closest('.vertical-tab-content');
-        if (scrollHost instanceof HTMLElement) {
-            scrollHost.addClass('mandala-plugin-settings-scroll-host');
-        }
 
         new Setting(containerEl)
             .setName(lang.settings_plugin_title)
