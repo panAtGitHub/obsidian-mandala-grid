@@ -45,13 +45,18 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
         containerEl.addClass('mandala-plugin-settings');
+        containerEl.style.height = '100%';
 
-        new Setting(containerEl)
+        const scrollRoot = containerEl.createDiv({
+            cls: 'mandala-plugin-settings__scroll-root',
+        });
+
+        new Setting(scrollRoot)
             .setName(lang.settings_plugin_title)
             .setHeading();
         const settings = this.plugin.settings.getValue();
         renderMandalaCoreSettings({
-            parentEl: containerEl,
+            parentEl: scrollRoot,
             state: {
                 view: {
                     enable9x9View: settings.view.enable9x9View,
