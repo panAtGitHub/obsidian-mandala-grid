@@ -3,9 +3,14 @@ import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
+import { createSettingsFoldCard } from 'src/obsidian/settings/create-settings-fold-card';
 
 export class MandalaGridSettingTab extends PluginSettingTab {
     plugin: MandalaGrid;
+    private readonly groupOpenState = new Map<string, boolean>([
+        ['global-view', false],
+        ['time-plan', false],
+    ]);
 
     constructor(app: MandalaGrid['app'], plugin: MandalaGrid) {
         super(app, plugin);
@@ -31,14 +36,16 @@ export class MandalaGridSettingTab extends PluginSettingTab {
         }
     }
 
-    private createDrawer(parent: HTMLElement, title: string) {
-        const details = parent.createEl('details');
-        details.addClass('mandala-settings-drawer');
-        details.open = false;
-        details
-            .createEl('summary', { text: title })
-            .addClass('mandala-settings-drawer__summary');
-        return details.createDiv({ cls: 'mandala-settings-drawer__content' });
+    private createFoldCard(parent: HTMLElement, title: string, key: string) {
+        const opened = this.groupOpenState.get(key) ?? false;
+        return createSettingsFoldCard({
+            parentEl: parent,
+            title,
+            opened,
+            onToggle: (nextOpen) => {
+                this.groupOpenState.set(key, nextOpen);
+            },
+        }).contentEl;
     }
 
     display(): void {
@@ -72,8 +79,8 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                         settings.general.dayPlanDateHeadingApplyMode,
                 },
             },
-            createGroupContainer: (parentEl, title) =>
-                this.createDrawer(parentEl, title),
+            createGroupContainer: (parentEl, title, group) =>
+                this.createFoldCard(parentEl, title, group),
             showDescriptions: true,
             handlers: {
                 setEnable9x9View: () => {

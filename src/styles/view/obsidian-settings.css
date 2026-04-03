@@ -2,7 +2,7 @@
 .mandala-file-settings {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .mandala-plugin-settings {
@@ -13,155 +13,111 @@
     margin-bottom: 4px;
 }
 
-.mandala-settings-drawer {
+.mandala-settings-card {
     border: 1px solid var(--background-modifier-border);
-    border-radius: 18px;
-    background: color-mix(
-        in srgb,
-        var(--background-primary) 92%,
-        var(--background-secondary)
-    );
-    padding: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    background: var(--background-primary);
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-.mandala-settings-drawer__summary {
-    cursor: pointer;
-    list-style: none;
+.mandala-settings-card__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    font-size: 19px;
-    font-weight: 800;
-    color: var(--text-normal);
-    padding: 10px 14px;
-    border: 1px solid transparent;
-    border-radius: 14px;
-    transition:
-        background-color 140ms ease,
-        border-color 140ms ease,
-        color 140ms ease;
+    width: 100%;
+    padding: 6px 8px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 10px;
 }
 
-.mandala-settings-drawer__summary::after {
-    content: '⌄';
+.mandala-settings-card__header:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.mandala-settings-card__title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--text-accent);
+}
+
+.mandala-settings-card__chevron {
     flex: 0 0 auto;
     font-size: 20px;
     line-height: 1;
-    color: var(--text-muted);
-    transition:
-        transform 140ms ease,
-        color 140ms ease;
+    color: var(--text-accent);
+    transition: transform 140ms ease;
 }
 
-.mandala-settings-drawer[open] > .mandala-settings-drawer__summary {
-    color: var(--text-accent);
-    border-color: color-mix(
-        in srgb,
-        var(--background-modifier-border) 72%,
-        transparent
-    );
-    background: color-mix(
-        in srgb,
-        var(--background-secondary) 78%,
-        var(--background-primary)
-    );
-}
-
-.mandala-settings-drawer[open] > .mandala-settings-drawer__summary::after {
-    color: var(--text-accent);
+.mandala-settings-card.is-open .mandala-settings-card__chevron {
     transform: rotate(180deg);
 }
 
-.mandala-settings-drawer__summary::-webkit-details-marker {
+.mandala-settings-card__content {
     display: none;
-}
-
-.mandala-settings-drawer__content {
-    margin-top: 10px;
-    padding: 12px 14px;
-    border: 1px solid
-        color-mix(in srgb, var(--background-modifier-border) 80%, transparent);
-    border-radius: 16px;
+    padding: 10px 12px;
+    margin-top: 6px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 12px;
     background: color-mix(
         in srgb,
-        var(--background-primary) 96%,
+        var(--background-primary) 94%,
         var(--background-secondary)
     );
-    max-height: min(58vh, 680px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-gutter: stable both-edges;
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--text-muted) 72%, transparent)
-        transparent;
-    -webkit-overflow-scrolling: touch;
 }
 
-.mandala-settings-drawer__content::-webkit-scrollbar {
-    width: 8px;
+.mandala-settings-card__content.is-open {
+    display: block;
 }
 
-.mandala-settings-drawer__content::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.mandala-settings-drawer__content::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--text-muted) 58%, transparent);
-}
-
-.mandala-settings-drawer__content:hover::-webkit-scrollbar-thumb {
-    background: color-mix(in srgb, var(--text-muted) 78%, transparent);
-}
-
-.mandala-settings-drawer__content .setting-item {
-    border: none;
-    border-radius: 14px;
+.mandala-settings-card__content .setting-item {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 12px;
     background: var(--background-primary);
     padding: 12px 14px;
-    margin: 8px 0;
+    margin: 10px 0;
     min-height: auto;
-    align-items: flex-start;
     gap: 10px;
-    border-top: none !important;
-    border-bottom: none !important;
-    box-shadow: inset 0 0 0 1px
-        color-mix(in srgb, var(--background-modifier-border) 54%, transparent);
+    border-top: 1px solid var(--background-modifier-border) !important;
 }
 
-.mandala-settings-drawer__content .setting-item:first-child {
+.mandala-settings-card__content .setting-item:first-child {
     margin-top: 0;
 }
 
-.mandala-settings-drawer__content .setting-item:last-child {
+.mandala-settings-card__content .setting-item:last-child {
     margin-bottom: 0;
 }
 
-.mandala-settings-drawer__content .setting-item-name {
+.mandala-settings-card__content .setting-item-name {
     font-size: 14px;
     font-weight: 600;
     line-height: 1.35;
 }
 
-.mandala-settings-drawer__content .setting-item-description {
+.mandala-settings-card__content .setting-item-description {
     margin-top: 4px;
     font-size: 12px;
     color: var(--text-muted);
 }
 
-.mandala-settings-drawer__content .setting-item-description:empty {
+.mandala-settings-card__content .setting-item-description:empty {
     display: none;
     margin-top: 0;
 }
 
-.mandala-settings-drawer__content .setting-item-info {
+.mandala-settings-card__content .setting-item-info {
     margin-right: 10px;
 }
 
-.mandala-settings-drawer__content .setting-item-control button {
+.mandala-settings-card__content .setting-item-control button {
     min-width: 64px;
 }
 
@@ -184,6 +140,11 @@
     font-weight: 700;
     color: var(--text-normal);
     margin-bottom: 4px;
+}
+
+.mandala-file-settings-modal .modal-content {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 .mandala-file-settings-modal .modal-title {

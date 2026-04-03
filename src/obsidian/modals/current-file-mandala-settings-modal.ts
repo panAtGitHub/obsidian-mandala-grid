@@ -11,6 +11,7 @@ import { lang } from 'src/lang/lang';
 import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 import { isDayPlanDedicatedFrontmatter } from 'src/mandala-display/logic/day-plan';
+import { createSettingsFoldCard } from 'src/obsidian/settings/create-settings-fold-card';
 
 type LocalFileSettings = EffectiveMandalaSettings;
 
@@ -24,14 +25,15 @@ const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
             subgridMaxDepth: effective.view.subgridMaxDepth,
         },
         general: {
-                dayPlanEnabled: effective.general.dayPlanEnabled,
-                weekPlanEnabled: effective.general.weekPlanEnabled,
-                weekPlanCompactMode: effective.general.weekPlanCompactMode,
-                weekStart: effective.general.weekStart,
-                dayPlanDateHeadingFormat: effective.general.dayPlanDateHeadingFormat,
-                dayPlanDateHeadingCustomTemplate:
-                    effective.general.dayPlanDateHeadingCustomTemplate,
-                dayPlanDateHeadingApplyMode:
+            dayPlanEnabled: effective.general.dayPlanEnabled,
+            weekPlanEnabled: effective.general.weekPlanEnabled,
+            weekPlanCompactMode: effective.general.weekPlanCompactMode,
+            weekStart: effective.general.weekStart,
+            dayPlanDateHeadingFormat:
+                effective.general.dayPlanDateHeadingFormat,
+            dayPlanDateHeadingCustomTemplate:
+                effective.general.dayPlanDateHeadingCustomTemplate,
+            dayPlanDateHeadingApplyMode:
                 effective.general.dayPlanDateHeadingApplyMode,
         },
     };
@@ -44,6 +46,11 @@ export const openCurrentFileMandalaSettingsModal = (view: MandalaView) => {
 
 class CurrentFileMandalaSettingsModal extends Modal {
     private state: LocalFileSettings;
+    private readonly groupOpenState = new Map<string, boolean>([
+        ['global-view', true],
+        ['time-plan', true],
+        ['actions', true],
+    ]);
 
     constructor(private readonly view: MandalaView) {
         super(view.plugin.app);
@@ -61,6 +68,18 @@ class CurrentFileMandalaSettingsModal extends Modal {
         this.contentEl.empty();
     }
 
+    private createFoldCard(parentEl: HTMLElement, title: string, key: string) {
+        const opened = this.groupOpenState.get(key) ?? true;
+        return createSettingsFoldCard({
+            parentEl,
+            title,
+            opened,
+            onToggle: (nextOpen) => {
+                this.groupOpenState.set(key, nextOpen);
+            },
+        }).contentEl;
+    }
+
     private render() {
         const { contentEl } = this;
         contentEl.empty();
@@ -74,17 +93,8 @@ class CurrentFileMandalaSettingsModal extends Modal {
             parentEl: contentEl,
             state: this.state,
             showTimePlanEnabledToggle: false,
-            createGroupContainer: (parentEl, title) => {
-                const details = parentEl.createEl('details');
-                details.addClass('mandala-settings-drawer');
-                details.open = true;
-                details
-                    .createEl('summary', { text: title })
-                    .addClass('mandala-settings-drawer__summary');
-                return details.createDiv({
-                    cls: 'mandala-settings-drawer__content',
-                });
-            },
+            createGroupContainer: (parentEl, title, group) =>
+                this.createFoldCard(parentEl, title, group),
             showDescriptions: false,
             texts: {
                 sectionGlobalView: '当前文件视图覆盖',
@@ -119,7 +129,8 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     this.render();
                 },
                 setDayPlanDateHeadingCustomTemplate: (template) => {
-                    this.state.general.dayPlanDateHeadingCustomTemplate = template;
+                    this.state.general.dayPlanDateHeadingCustomTemplate =
+                        template;
                 },
             },
         });
@@ -128,21 +139,19 @@ class CurrentFileMandalaSettingsModal extends Modal {
             this.view.documentStore.getValue().file.frontmatter,
         );
         if (isDayPlanDedicated) {
-            const actionsDetails = contentEl.createEl('details');
-            actionsDetails.addClass('mandala-settings-drawer');
-            actionsDetails.open = true;
-            actionsDetails
-                .createEl('summary', { text: '日计划维护' })
-                .addClass('mandala-settings-drawer__summary');
-            const actionsContainer = actionsDetails.createDiv({
-                cls: 'mandala-settings-drawer__content',
-            });
+            const actionsContainer = this.createFoldCard(
+                contentEl,
+                '日计划维护',
+                'actions',
+            );
 
             new Setting(actionsContainer)
                 .setName(lang.cmd_refresh_day_plan_date_headings)
                 .addButton((button) =>
                     button.setButtonText('执行').onClick(() => {
-                        void refreshCurrentDayPlanDateHeadings(this.view.plugin);
+                        void refreshCurrentDayPlanDateHeadings(
+                            this.view.plugin,
+                        );
                     }),
                 );
 
@@ -150,7 +159,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 .setName(lang.cmd_write_current_core_day_plan_slots_to_yaml)
                 .addButton((button) =>
                     button.setButtonText('执行').onClick(() => {
-                        void writeCurrentCoreDayPlanSlotsToYaml(this.view.plugin);
+                        void writeCurrentCoreDayPlanSlotsToYaml(
+                            this.view.plugin,
+                        );
                     }),
                 );
         }
@@ -207,7 +218,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
             },
         );
 
-        const latest = await this.view.plugin.app.vault.cachedRead(this.view.file);
+        const latest = await this.view.plugin.app.vault.cachedRead(
+            this.view.file,
+        );
         const { frontmatter } = extractFrontmatter(latest);
         updateFrontmatter(this.view, frontmatter);
         this.view.ensureCompatibleMandalaMode(frontmatter);
