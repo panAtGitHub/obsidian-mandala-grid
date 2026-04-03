@@ -63,7 +63,11 @@ export const refreshDayPlanDateHeadingsInMarkdown = (
             buildCenterDateHeading(date, settings),
         );
         if (nextContent === currentContent) continue;
-        nextMarkdown = replaceSectionContent(nextMarkdown, section, nextContent);
+        nextMarkdown = replaceSectionContent(
+            nextMarkdown,
+            section,
+            nextContent,
+        );
         changed = true;
     }
 
@@ -81,17 +85,25 @@ const replaceFirstNonEmptyLine = (content: string, nextHeading: string) => {
     return lines.join('\n');
 };
 
-export const refreshCurrentDayPlanDateHeadings = async (plugin: MandalaGrid) => {
+export const refreshCurrentDayPlanDateHeadings = async (
+    plugin: MandalaGrid,
+    options: { notify?: boolean } = {},
+) => {
+    const { notify = true } = options;
     const file = getActiveFile(plugin);
     if (!file) {
-        new Notice('未找到当前文件。');
+        if (notify) {
+            new Notice('未找到当前文件。');
+        }
         return;
     }
 
     const markdown = await plugin.app.vault.read(file);
     const plan = parseDayPlanFromMarkdown(markdown);
     if (!plan) {
-        new Notice(lang.notice_day_plan_not_active_file);
+        if (notify) {
+            new Notice(lang.notice_day_plan_not_active_file);
+        }
         return;
     }
 
@@ -120,9 +132,11 @@ export const refreshCurrentDayPlanDateHeadings = async (plugin: MandalaGrid) => 
         dayPlan.center_date_h2 = todayHeading;
     });
 
-    new Notice(
-        refreshed.changed
-            ? lang.notice_day_plan_date_headings_refreshed
-            : lang.notice_day_plan_date_headings_already_latest,
-    );
+    if (notify) {
+        new Notice(
+            refreshed.changed
+                ? lang.notice_day_plan_date_headings_refreshed
+                : lang.notice_day_plan_date_headings_already_latest,
+        );
+    }
 };

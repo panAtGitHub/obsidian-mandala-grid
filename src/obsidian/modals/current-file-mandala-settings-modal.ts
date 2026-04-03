@@ -156,16 +156,6 @@ class CurrentFileMandalaSettingsModal extends Modal {
             );
 
             new Setting(actionsContainer)
-                .setName(lang.cmd_refresh_day_plan_date_headings)
-                .addButton((button) =>
-                    button.setButtonText('执行').onClick(() => {
-                        void refreshCurrentDayPlanDateHeadings(
-                            this.view.plugin,
-                        );
-                    }),
-                );
-
-            new Setting(actionsContainer)
                 .setName(lang.cmd_write_current_core_day_plan_slots_to_yaml)
                 .addButton((button) =>
                     button.setButtonText('执行').onClick(() => {
@@ -205,6 +195,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
             new Notice('未找到当前文件。');
             return;
         }
+        const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
+            this.view.documentStore.getValue().file.frontmatter,
+        );
 
         await this.view.plugin.app.fileManager.processFrontMatter(
             this.view.file,
@@ -233,6 +226,12 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 };
             },
         );
+
+        if (isDayPlanDedicated) {
+            await refreshCurrentDayPlanDateHeadings(this.view.plugin, {
+                notify: false,
+            });
+        }
 
         const latest = await this.view.plugin.app.vault.cachedRead(
             this.view.file,
