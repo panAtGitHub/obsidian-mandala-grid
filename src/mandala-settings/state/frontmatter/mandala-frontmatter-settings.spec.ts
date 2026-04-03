@@ -12,11 +12,23 @@ vi.mock('obsidian', () => ({
                 mandala_settings: {
                     view: {
                         enable9x9View: false,
+                        coreSectionMax: null,
+                        subgridMaxDepth: 2,
                     },
                     general: {
                         weekPlanEnabled: false,
                         dayPlanDateHeadingFormat: 'custom',
                         dayPlanDateHeadingCustomTemplate: '## {date}',
+                    },
+                },
+            };
+        }
+        if (input.includes('coreSectionMax:')) {
+            return {
+                mandala_settings: {
+                    view: {
+                        coreSectionMax: null,
+                        subgridMaxDepth: 2,
                     },
                 },
             };
@@ -74,6 +86,7 @@ describe('mandala-frontmatter-settings', () => {
 
     test('resolves effective settings by merging frontmatter overrides with global defaults', () => {
         const globalSettings = DEFAULT_SETTINGS();
+        globalSettings.view.coreSectionMax = 1;
         const effective = resolveEffectiveMandalaSettings(
             globalSettings,
             [
@@ -81,6 +94,8 @@ describe('mandala-frontmatter-settings', () => {
                 'mandala_settings:',
                 '  view:',
                 '    enable9x9View: false',
+                '    coreSectionMax:',
+                '    subgridMaxDepth: 2',
                 '---',
             ].join('\n'),
         );
@@ -89,6 +104,8 @@ describe('mandala-frontmatter-settings', () => {
         expect(effective.view.enableNx9View).toBe(
             globalSettings.view.enableNx9View,
         );
+        expect(effective.view.coreSectionMax).toBeNull();
+        expect(effective.view.subgridMaxDepth).toBe(2);
         expect(effective.general.weekPlanEnabled).toBe(false);
         expect(effective.general.dayPlanDateHeadingApplyMode).toBe(
             globalSettings.general.dayPlanDateHeadingApplyMode,

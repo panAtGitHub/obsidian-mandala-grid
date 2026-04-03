@@ -150,16 +150,21 @@ export const resolveEffectiveMandalaSettings = (
     frontmatter: string,
 ): EffectiveMandalaSettings => {
     const overrides = parseMandalaFrontmatterSettings(frontmatter);
+    const hasViewOverride = <K extends keyof NonNullable<MandalaFrontmatterSettings['view']>>(
+        key: K,
+    ) => !!overrides.view && key in overrides.view;
     return {
         view: {
             enable9x9View:
                 overrides.view?.enable9x9View ?? settings.view.enable9x9View,
             enableNx9View:
                 overrides.view?.enableNx9View ?? settings.view.enableNx9View,
-            coreSectionMax:
-                overrides.view?.coreSectionMax ?? settings.view.coreSectionMax,
-            subgridMaxDepth:
-                overrides.view?.subgridMaxDepth ?? settings.view.subgridMaxDepth,
+            coreSectionMax: hasViewOverride('coreSectionMax')
+                ? (overrides.view?.coreSectionMax ?? null)
+                : settings.view.coreSectionMax,
+            subgridMaxDepth: hasViewOverride('subgridMaxDepth')
+                ? (overrides.view?.subgridMaxDepth ?? null)
+                : settings.view.subgridMaxDepth,
         },
         general: {
             dayPlanEnabled:
