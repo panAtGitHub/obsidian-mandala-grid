@@ -261,6 +261,9 @@ export const renderMandalaCoreSettings = ({
     }
 
     if (!timePlanContainer) return;
+    const isTimePlanEnabled =
+        state.general.dayPlanEnabled && state.general.weekPlanEnabled;
+    if (!isTimePlanEnabled) return;
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
