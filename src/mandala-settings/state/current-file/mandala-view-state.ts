@@ -7,6 +7,8 @@ import {
 import {
     DEFAULT_NX9_ROWS_PER_PAGE,
 } from 'src/mandala-settings/state/settings-type';
+import type { PersistMandalaViewStateAction } from 'src/mandala-settings/state/settings-store-actions';
+import type { Settings } from 'src/mandala-settings/state/settings-type';
 import {
     getMandalaWeekAnchorDate,
 } from 'src/mandala-scenes/shared/scene-runtime';
@@ -92,6 +94,22 @@ export const syncCurrentMandalaDetailSidebarVisibility = (
         },
     });
 };
+
+export const createNewFileMandalaViewStateAction = (
+    path: string,
+    settings: Settings,
+): PersistMandalaViewStateAction => ({
+    type: 'settings/documents/persist-mandala-view-state',
+    payload: {
+        path,
+        gridOrientation: settings.view.mandalaGridOrientation,
+        selectedLayoutId: null,
+        lastActiveSection: null,
+        subgridTheme: null,
+        showDetailSidebarDesktop: false,
+        showDetailSidebarMobile: false,
+    },
+});
 
 export const persistCurrentMandalaViewState = (
     view: MandalaView,

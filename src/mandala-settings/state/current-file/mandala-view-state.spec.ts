@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Platform } from 'obsidian';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import {
+    createNewFileMandalaViewStateAction,
     persistCurrentMandalaViewState,
     syncCurrentMandalaDetailSidebarVisibility,
 } from 'src/mandala-settings/state/current-file/mandala-view-state';
@@ -173,6 +174,27 @@ describe('persistCurrentMandalaViewState', () => {
 
         expect(action.type).toBe('settings/documents/persist-mandala-view-state');
         expect(action.payload.showDetailSidebarDesktop).toBe(true);
+    });
+});
+
+describe('createNewFileMandalaViewStateAction', () => {
+    it('builds a file-level default action with the detail sidebar closed', () => {
+        const settings = DEFAULT_SETTINGS();
+
+        expect(
+            createNewFileMandalaViewStateAction('plans/day-plan.md', settings),
+        ).toEqual({
+            type: 'settings/documents/persist-mandala-view-state',
+            payload: {
+                path: 'plans/day-plan.md',
+                gridOrientation: 'left-to-right',
+                selectedLayoutId: null,
+                lastActiveSection: null,
+                subgridTheme: null,
+                showDetailSidebarDesktop: false,
+                showDetailSidebarMobile: false,
+            },
+        });
     });
 });
 

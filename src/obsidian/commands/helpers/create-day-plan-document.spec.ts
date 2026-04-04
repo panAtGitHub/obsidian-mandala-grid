@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
     getActiveFile: vi.fn(),
     createNewFile: vi.fn(),
     setupDayPlanMandalaFormat: vi.fn(),
-    setMandalaDetailSidebarClosedForFile: vi.fn(),
+    createNewFileMandalaViewStateAction: vi.fn(),
     onPluginError: vi.fn(),
 }));
 
@@ -22,10 +22,10 @@ vi.mock('src/obsidian/commands/helpers/setup-day-plan-mandala-format', () => ({
 }));
 
 vi.mock(
-    'src/obsidian/events/workspace/effects/set-mandala-detail-sidebar-closed-for-file',
+    'src/mandala-settings/state/current-file/mandala-view-state',
     () => ({
-        setMandalaDetailSidebarClosedForFile:
-            mocks.setMandalaDetailSidebarClosedForFile,
+        createNewFileMandalaViewStateAction:
+            mocks.createNewFileMandalaViewStateAction,
     }),
 );
 
@@ -38,7 +38,7 @@ describe('createDayPlanDocument', () => {
         mocks.getActiveFile.mockReset();
         mocks.createNewFile.mockReset();
         mocks.setupDayPlanMandalaFormat.mockReset();
-        mocks.setMandalaDetailSidebarClosedForFile.mockReset();
+        mocks.createNewFileMandalaViewStateAction.mockReset();
         mocks.onPluginError.mockReset();
     });
 
@@ -46,15 +46,24 @@ describe('createDayPlanDocument', () => {
         const folder = { path: 'projects/a' };
         const activeFile = { parent: folder };
         const createdFile = { path: 'projects/a/Day Plan.md' };
+        const initialViewStateAction = { type: 'settings/documents/persist-mandala-view-state' };
+        const dispatch = vi.fn();
         const plugin = {
             app: {
                 vault: {
                     getRoot: vi.fn(),
                 },
             },
+            settings: {
+                getValue: vi.fn(() => ({ view: { mandalaGridOrientation: 'left-to-right' } })),
+                dispatch,
+            },
         };
         mocks.getActiveFile.mockReturnValue(activeFile);
         mocks.createNewFile.mockResolvedValue(createdFile);
+        mocks.createNewFileMandalaViewStateAction.mockReturnValue(
+            initialViewStateAction,
+        );
 
         await createDayPlanDocument(plugin as never);
 
@@ -66,8 +75,12 @@ describe('createDayPlanDocument', () => {
             'Day Plan',
         );
         expect(
-            mocks.setMandalaDetailSidebarClosedForFile,
-        ).toHaveBeenCalledWith(plugin, createdFile.path);
+            mocks.createNewFileMandalaViewStateAction,
+        ).toHaveBeenCalledWith(
+            createdFile.path,
+            plugin.settings.getValue(),
+        );
+        expect(dispatch).toHaveBeenCalledWith(initialViewStateAction);
         expect(mocks.setupDayPlanMandalaFormat).toHaveBeenCalledWith(
             plugin,
             createdFile,
@@ -78,15 +91,24 @@ describe('createDayPlanDocument', () => {
     it('uses vault root when there is no active file', async () => {
         const root = { path: '' };
         const createdFile = { path: '/Day Plan.md' };
+        const initialViewStateAction = { type: 'settings/documents/persist-mandala-view-state' };
+        const dispatch = vi.fn();
         const plugin = {
             app: {
                 vault: {
                     getRoot: vi.fn(() => root),
                 },
             },
+            settings: {
+                getValue: vi.fn(() => ({ view: { mandalaGridOrientation: 'left-to-right' } })),
+                dispatch,
+            },
         };
         mocks.getActiveFile.mockReturnValue(null);
         mocks.createNewFile.mockResolvedValue(createdFile);
+        mocks.createNewFileMandalaViewStateAction.mockReturnValue(
+            initialViewStateAction,
+        );
 
         await createDayPlanDocument(plugin as never);
 
@@ -97,8 +119,12 @@ describe('createDayPlanDocument', () => {
             'Day Plan',
         );
         expect(
-            mocks.setMandalaDetailSidebarClosedForFile,
-        ).toHaveBeenCalledWith(plugin, createdFile.path);
+            mocks.createNewFileMandalaViewStateAction,
+        ).toHaveBeenCalledWith(
+            createdFile.path,
+            plugin.settings.getValue(),
+        );
+        expect(dispatch).toHaveBeenCalledWith(initialViewStateAction);
         expect(mocks.setupDayPlanMandalaFormat).toHaveBeenCalledWith(
             plugin,
             createdFile,
