@@ -5,6 +5,7 @@ export type DayPlanSlotsSyncMode =
     | 'all-existing'
     | 'today-and-future'
     | 'template-only';
+export type DayPlanSlotsInputResult = string[] | 'back' | null;
 
 export const openDayPlanConfirmModal = (
     plugin: MandalaGrid,
@@ -42,7 +43,7 @@ export const openDayPlanSlotsInputModal = (
     plugin: MandalaGrid,
     initialSlots: string[],
 ) =>
-    new Promise<string[] | null>((resolve) => {
+    new Promise<DayPlanSlotsInputResult>((resolve) => {
         const modal = new DayPlanSlotsInputModal(plugin, initialSlots, resolve);
         modal.open();
     });
@@ -139,15 +140,18 @@ class DayPlanYearInputModal extends Modal {
             });
 
         new Setting(contentEl).addButton((button) => {
-            button.setButtonText('确认').setCta().onClick(() => {
-                const year = Number(this.year);
-                if (!Number.isInteger(year) || year < 1900 || year > 9999) {
-                    new Notice('请输入合法年份。');
-                    return;
-                }
-                this.resolveOnce(year);
-                this.close();
-            });
+            button
+                .setButtonText('确认')
+                .setCta()
+                .onClick(() => {
+                    const year = Number(this.year);
+                    if (!Number.isInteger(year) || year < 1900 || year > 9999) {
+                        new Notice('请输入合法年份。');
+                        return;
+                    }
+                    this.resolveOnce(year);
+                    this.close();
+                });
         });
 
         new Setting(contentEl).addButton((button) => {
@@ -177,10 +181,13 @@ class DayPlanSlotsInputModal extends Modal {
     constructor(
         plugin: MandalaGrid,
         initialSlots: string[],
-        private resolve: (value: string[] | null) => void,
+        private resolve: (value: DayPlanSlotsInputResult) => void,
     ) {
         super(plugin.app);
-        this.values = Array.from({ length: 8 }, (_, index) => initialSlots[index] ?? '');
+        this.values = Array.from(
+            { length: 8 },
+            (_, index) => initialSlots[index] ?? '',
+        );
     }
 
     onOpen() {
@@ -190,14 +197,12 @@ class DayPlanSlotsInputModal extends Modal {
 
         for (let i = 0; i < 8; i += 1) {
             const slotIndex = i;
-            new Setting(contentEl)
-                .setName(`格子 ${i + 1}`)
-                .addText((text) => {
-                    text.setValue(this.values[i] ?? '');
-                    text.onChange((value) => {
-                        this.values[slotIndex] = value.trim();
-                    });
+            new Setting(contentEl).setName(`格子 ${i + 1}`).addText((text) => {
+                text.setValue(this.values[i] ?? '');
+                text.onChange((value) => {
+                    this.values[slotIndex] = value.trim();
                 });
+            });
         }
 
         contentEl.createEl('p', {
@@ -205,20 +210,25 @@ class DayPlanSlotsInputModal extends Modal {
         });
 
         new Setting(contentEl).addButton((button) => {
-            button.setButtonText('确认').setCta().onClick(() => {
-                const hasEmpty = this.values.some((value) => value.trim().length === 0);
-                if (hasEmpty) {
-                    new Notice('请填写完整的 8 个格子标题。');
-                    return;
-                }
-                this.resolveOnce([...this.values]);
-                this.close();
-            });
+            button
+                .setButtonText('确认')
+                .setCta()
+                .onClick(() => {
+                    const hasEmpty = this.values.some(
+                        (value) => value.trim().length === 0,
+                    );
+                    if (hasEmpty) {
+                        new Notice('请填写完整的 8 个格子标题。');
+                        return;
+                    }
+                    this.resolveOnce([...this.values]);
+                    this.close();
+                });
         });
 
         new Setting(contentEl).addButton((button) => {
             button.setButtonText('取消').onClick(() => {
-                this.resolveOnce(null);
+                this.resolveOnce('back');
                 this.close();
             });
         });
@@ -229,7 +239,7 @@ class DayPlanSlotsInputModal extends Modal {
         this.contentEl.empty();
     }
 
-    private resolveOnce(value: string[] | null) {
+    private resolveOnce(value: DayPlanSlotsInputResult) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
@@ -259,10 +269,13 @@ class DayPlanSlotsSyncModeModal extends Modal {
             .setName('替换所有已存在日期的格子标题')
             .setDesc('会覆盖所有已存在 section 的标题行，正文内容不变。')
             .addButton((button) => {
-                button.setButtonText('全部替换').setCta().onClick(() => {
-                    this.resolveOnce('all-existing');
-                    this.close();
-                });
+                button
+                    .setButtonText('全部替换')
+                    .setCta()
+                    .onClick(() => {
+                        this.resolveOnce('all-existing');
+                        this.close();
+                    });
             });
 
         new Setting(contentEl)
@@ -334,10 +347,13 @@ class DayPlanDailyOnlyModal extends Modal {
             });
 
         new Setting(contentEl).addButton((button) => {
-            button.setButtonText('确认').setCta().onClick(() => {
-                this.resolveOnce(this.enabled);
-                this.close();
-            });
+            button
+                .setButtonText('确认')
+                .setCta()
+                .onClick(() => {
+                    this.resolveOnce(this.enabled);
+                    this.close();
+                });
         });
 
         new Setting(contentEl).addButton((button) => {

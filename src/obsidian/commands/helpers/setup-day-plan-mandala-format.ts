@@ -118,35 +118,38 @@ const chooseSlots = async (
         (slot, index) => `${index + 1}. ${slot}`,
     ).join('\n');
 
-    const useRecommended = await openDayPlanConfirmModal(plugin, {
-        title: '是否采用本插件推荐的日计划模板？',
-        message:
-            '推荐模板如下：\n' +
-            recommendedTemplatePreview +
-            '\n\n若不采用推荐模板，将进入 8 行手动输入。',
-        confirmText: '使用推荐模板',
-        cancelText: '手动输入',
-    });
+    while (true) {
+        const useRecommended = await openDayPlanConfirmModal(plugin, {
+            title: '是否采用本插件推荐的日计划模板？',
+            message:
+                '推荐模板如下：\n' +
+                recommendedTemplatePreview +
+                '\n\n若不采用推荐模板，将进入 8 行手动输入。',
+            confirmText: '使用推荐模板',
+            cancelText: '手动输入',
+        });
 
-    if (useRecommended) {
-        return [...DAY_PLAN_DEFAULT_SLOT_TITLES];
+        if (useRecommended) {
+            return [...DAY_PLAN_DEFAULT_SLOT_TITLES];
+        }
+
+        const manual = await openDayPlanSlotsInputModal(plugin, initialSlots);
+        if (manual === 'back') {
+            continue;
+        }
+        if (!manual) return null;
+        if (!allSlotsFilled(manual)) {
+            new Notice('请填写完整的 8 个格子标题。');
+            return null;
+        }
+
+        return manual.map((slot) => normalizeSlotTitle(slot));
     }
-
-    const manual = await openDayPlanSlotsInputModal(plugin, initialSlots);
-    if (!manual) return null;
-    if (!allSlotsFilled(manual)) {
-        new Notice('请填写完整的 8 个格子标题。');
-        return null;
-    }
-
-    return manual.map((slot) => normalizeSlotTitle(slot));
 };
 
 const getPlanDayFromToday = (planYear: number) => {
     const today = getTodayInfo();
-    const normalized = new Date(
-        Date.UTC(planYear, today.month - 1, today.day),
-    );
+    const normalized = new Date(Date.UTC(planYear, today.month - 1, today.day));
     const month = normalized.getUTCMonth() + 1;
     const day = normalized.getUTCDate();
     return dayOfYearFromDate(planYear, month, day);
@@ -265,10 +268,7 @@ const buildDayPlanFrontmatter = (
     return `---\n${nextLines.join('\n')}\n---\n`;
 };
 
-const applyTodaySlotsForYear = (
-    body: string,
-    planYear: number,
-) => {
+const applyTodaySlotsForYear = (body: string, planYear: number) => {
     const day = getPlanDayFromToday(planYear);
     let nextBody = ensureSectionChildren(body, String(day), 8);
 
@@ -321,151 +321,158 @@ export const setupDayPlanMandalaFormat = async (
         return;
     }
     isSettingUpDayPlan = true;
-    const processingNotice = new Notice('正在生成年计划数据，请先不要使用。', 0);
+    const processingNotice = new Notice(
+        '正在生成年计划数据，请先不要使用。',
+        0,
+    );
     try {
-    const startMs = performance.now();
-    const file = targetFile ?? getActiveFile(plugin);
-    if (!file) {
-        new Notice('未找到当前文件。');
-        return;
-    }
+        const startMs = performance.now();
+        const file = targetFile ?? getActiveFile(plugin);
+        if (!file) {
+            new Notice('未找到当前文件。');
+            return;
+        }
 
-    if (file.extension !== 'md') {
-        new Notice('仅支持 Markdown 文件。');
-        return;
-    }
+        if (file.extension !== 'md') {
+            new Notice('仅支持 Markdown 文件。');
+            return;
+        }
 
-    let content = await plugin.app.vault.read(file);
-    const analysis = analyzeMandalaContent(content);
-    const conversionMode = getConversionMode(analysis);
-    if (conversionMode) {
-        content = convertToMandalaMarkdown(content, conversionMode);
-        await plugin.app.vault.modify(file, content);
-    }
+        let content = await plugin.app.vault.read(file);
+        const analysis = analyzeMandalaContent(content);
+        const conversionMode = getConversionMode(analysis);
+        if (conversionMode) {
+            content = convertToMandalaMarkdown(content, conversionMode);
+            await plugin.app.vault.modify(file, content);
+        }
 
-    const latest = await plugin.app.vault.read(file);
-    const { body, frontmatter } = extractFrontmatter(latest);
-    const existingPlan = parseDayPlanFrontmatter(frontmatter);
+        const latest = await plugin.app.vault.read(file);
+        const { body, frontmatter } = extractFrontmatter(latest);
+        const existingPlan = parseDayPlanFrontmatter(frontmatter);
 
-    const selectedYear = await openDayPlanYearInputModal(
-        plugin,
-        getTodayInfo().year,
-    );
-    if (!selectedYear) return;
-
-    const dailyOnly3x3 = await openDayPlanDailyOnlyModal(
-        plugin,
-        existingPlan?.daily_only_3x3 ?? true,
-    );
-    if (dailyOnly3x3 === null) return;
-
-    const existingYear = Number(existingPlan?.year);
-    if (
-        existingPlan?.enabled === true &&
-        Number.isInteger(existingYear) &&
-        existingYear !== selectedYear
-    ) {
-        new Notice('请另存新文件作为新的年计划。');
-        return;
-    }
-
-    const planSlotsFromYaml = slotsRecordToArray(
-        existingPlan?.slots,
-    );
-
-    const todaySection = String(getPlanDayFromToday(selectedYear));
-    const sectionSlots = Array.from({ length: 8 }, (_, index) => {
-        const section = `${todaySection}.${index + 1}`;
-        const sectionContent = getSectionContent(body, section) ?? '';
-        const firstLine =
-            sectionContent
-                .split('\n')
-                .find((line) => line.trim().length > 0) ?? '';
-        return normalizeSlotTitle(firstLine);
-    });
-
-    const initialSlots = allSlotsFilled(planSlotsFromYaml)
-        ? planSlotsFromYaml
-        : allSlotsFilled(sectionSlots)
-          ? sectionSlots
-          : Array.from({ length: 8 }, () => '');
-
-    const slots = await chooseSlots(plugin, initialSlots);
-    if (!slots) return;
-    const dateHeadingSettings = getDateHeadingSettings(plugin, frontmatter);
-
-    let nextBody = body;
-    let firstRun = !(existingPlan?.enabled === true);
-
-    if (firstRun) {
-        const generationStartMs = performance.now();
-        nextBody = await createYearPlanBodyAsync(
-            selectedYear,
-            Number(todaySection),
-            slots,
-            dateHeadingSettings,
-            (done, total) => {
-                new Notice(`正在生成：${done}/${total}`, 800);
-            },
+        const selectedYear = await openDayPlanYearInputModal(
+            plugin,
+            getTodayInfo().year,
         );
-        logger.debug('[perf][day-plan-setup] generate-year-body', {
-            file: file.path,
-            year: selectedYear,
-            costMs: Number((performance.now() - generationStartMs).toFixed(2)),
+        if (!selectedYear) return;
+
+        const dailyOnly3x3 = await openDayPlanDailyOnlyModal(
+            plugin,
+            existingPlan?.daily_only_3x3 ?? true,
+        );
+        if (dailyOnly3x3 === null) return;
+
+        const existingYear = Number(existingPlan?.year);
+        if (
+            existingPlan?.enabled === true &&
+            Number.isInteger(existingYear) &&
+            existingYear !== selectedYear
+        ) {
+            new Notice('请另存新文件作为新的年计划。');
+            return;
+        }
+
+        const planSlotsFromYaml = slotsRecordToArray(existingPlan?.slots);
+
+        const todaySection = String(getPlanDayFromToday(selectedYear));
+        const sectionSlots = Array.from({ length: 8 }, (_, index) => {
+            const section = `${todaySection}.${index + 1}`;
+            const sectionContent = getSectionContent(body, section) ?? '';
+            const firstLine =
+                sectionContent
+                    .split('\n')
+                    .find((line) => line.trim().length > 0) ?? '';
+            return normalizeSlotTitle(firstLine);
         });
-    } else {
-        const todayApplied = applyTodaySlotsForYear(nextBody, selectedYear);
-        nextBody = todayApplied.body;
 
-        if (todayApplied.hasAnySlotContent) {
-            const shouldOverwriteAll = await openDayPlanConfirmModal(plugin, {
-                title: '是否一次性覆盖 8 个格子的标题？',
-                message: '确认后将统一覆盖当天 section 的 8 个标题行。',
-                confirmText: '一次性覆盖',
-                cancelText: '取消',
-            });
-            if (!shouldOverwriteAll) return;
-        }
+        const initialSlots = allSlotsFilled(planSlotsFromYaml)
+            ? planSlotsFromYaml
+            : allSlotsFilled(sectionSlots)
+              ? sectionSlots
+              : Array.from({ length: 8 }, () => '');
 
-        for (let i = 0; i < 8; i += 1) {
-            const section = `${todayApplied.day}.${i + 1}`;
-            const currentContent = getSectionContent(nextBody, section) ?? '';
-            nextBody = replaceSectionContent(
-                nextBody,
-                section,
-                upsertSlotHeading(currentContent, slots[i]),
+        const slots = await chooseSlots(plugin, initialSlots);
+        if (!slots) return;
+        const dateHeadingSettings = getDateHeadingSettings(plugin, frontmatter);
+
+        let nextBody = body;
+        let firstRun = !(existingPlan?.enabled === true);
+
+        if (firstRun) {
+            const generationStartMs = performance.now();
+            nextBody = await createYearPlanBodyAsync(
+                selectedYear,
+                Number(todaySection),
+                slots,
+                dateHeadingSettings,
+                (done, total) => {
+                    new Notice(`正在生成：${done}/${total}`, 800);
+                },
             );
+            logger.debug('[perf][day-plan-setup] generate-year-body', {
+                file: file.path,
+                year: selectedYear,
+                costMs: Number(
+                    (performance.now() - generationStartMs).toFixed(2),
+                ),
+            });
+        } else {
+            const todayApplied = applyTodaySlotsForYear(nextBody, selectedYear);
+            nextBody = todayApplied.body;
+
+            if (todayApplied.hasAnySlotContent) {
+                const shouldOverwriteAll = await openDayPlanConfirmModal(
+                    plugin,
+                    {
+                        title: '是否一次性覆盖 8 个格子的标题？',
+                        message: '确认后将统一覆盖当天 section 的 8 个标题行。',
+                        confirmText: '一次性覆盖',
+                        cancelText: '取消',
+                    },
+                );
+                if (!shouldOverwriteAll) return;
+            }
+
+            for (let i = 0; i < 8; i += 1) {
+                const section = `${todayApplied.day}.${i + 1}`;
+                const currentContent =
+                    getSectionContent(nextBody, section) ?? '';
+                nextBody = replaceSectionContent(
+                    nextBody,
+                    section,
+                    upsertSlotHeading(currentContent, slots[i]),
+                );
+            }
         }
-    }
 
-    const nextFrontmatter = buildDayPlanFrontmatter(frontmatter, {
-        year: selectedYear,
-        dailyOnly3x3,
-        centerDateH2: buildCenterDateHeading(
-            getTodayIsoDate(),
-            dateHeadingSettings,
-        ),
-        slots,
-    });
-    const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);
-    const writeStartMs = performance.now();
-    await plugin.app.vault.modify(file, nextContent);
-    logger.debug('[perf][day-plan-setup] write-markdown', {
-        file: file.path,
-        costMs: Number((performance.now() - writeStartMs).toFixed(2)),
-    });
+        const nextFrontmatter = buildDayPlanFrontmatter(frontmatter, {
+            year: selectedYear,
+            dailyOnly3x3,
+            centerDateH2: buildCenterDateHeading(
+                getTodayIsoDate(),
+                dateHeadingSettings,
+            ),
+            slots,
+        });
+        const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);
+        const writeStartMs = performance.now();
+        await plugin.app.vault.modify(file, nextContent);
+        logger.debug('[perf][day-plan-setup] write-markdown', {
+            file: file.path,
+            costMs: Number((performance.now() - writeStartMs).toFixed(2)),
+        });
 
-    await ensureMandalaView(plugin, file);
-    const latestAfterFrontmatter = await plugin.app.vault.read(file);
-    refreshMandalaViewData(plugin, file, latestAfterFrontmatter);
-    logger.debug('[perf][day-plan-setup] total', {
-        file: file.path,
-        firstRun,
-        year: selectedYear,
-        costMs: Number((performance.now() - startMs).toFixed(2)),
-    });
+        await ensureMandalaView(plugin, file);
+        const latestAfterFrontmatter = await plugin.app.vault.read(file);
+        refreshMandalaViewData(plugin, file, latestAfterFrontmatter);
+        logger.debug('[perf][day-plan-setup] total', {
+            file: file.path,
+            firstRun,
+            year: selectedYear,
+            costMs: Number((performance.now() - startMs).toFixed(2)),
+        });
 
-    new Notice('已设置为年计划日计划格式。');
+        new Notice('已设置为年计划日计划格式。');
     } finally {
         processingNotice.hide();
         isSettingUpDayPlan = false;
