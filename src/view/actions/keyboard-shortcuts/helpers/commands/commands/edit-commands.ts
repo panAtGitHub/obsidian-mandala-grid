@@ -3,54 +3,14 @@ import { cancelChanges } from 'src/view/actions/keyboard-shortcuts/helpers/comma
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { MandalaView } from 'src/view/view';
-import { Notice, Platform } from 'obsidian';
+import { Platform } from 'obsidian';
 import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
 import { resolveNx9Context } from 'src/mandala-scenes/view-nx9/context';
 import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import { toggleCellPreviewDialog } from 'src/mandala-interaction/helpers/cell-preview-dialog';
-import { lang } from 'src/lang/lang';
+import { ensureNodeForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
 
 export const editCommands = () => {
-    const ensureNodeForSection = (view: MandalaView, section: string) => {
-        const docState = view.documentStore.getValue();
-        const existing = docState.sections.section_id[section];
-        if (existing) return existing;
-
-        const parts = section.split('.');
-        if (parts.length === 0) return null;
-        const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
-        const targetCore = Number(parts[0]);
-        if (
-            coreSectionMax !== 'unlimited' &&
-            Number.isInteger(targetCore) &&
-            targetCore > coreSectionMax
-        ) {
-            new Notice(lang.notice_core_section_limit_reached);
-            return null;
-        }
-
-        view.documentStore.dispatch({
-            type: 'document/mandala/ensure-core-theme',
-            payload: { theme: parts[0] },
-        });
-
-        let updated = view.documentStore.getValue();
-        for (let depth = 1; depth < parts.length; depth++) {
-            const parentSection = parts.slice(0, depth).join('.');
-            const parentId = updated.sections.section_id[parentSection];
-            if (!parentId) break;
-            view.documentStore.dispatch({
-                type: 'document/mandala/ensure-children',
-                payload: { parentNodeId: parentId, count: 8 },
-            });
-            updated = view.documentStore.getValue();
-        }
-
-        return (
-            view.documentStore.getValue().sections.section_id[section] || null
-        );
-    };
-
     return [
         {
             name: 'toggle_cell_preview_dialog',

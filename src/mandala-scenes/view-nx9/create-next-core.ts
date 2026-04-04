@@ -1,7 +1,7 @@
 import { Notice } from 'obsidian';
 import { isEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
-import { lang } from 'src/lang/lang';
 import type { MandalaView } from 'src/view/view';
+import { ensureNodeForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
 import {
     resolveNx9Context,
     type Nx9CellWithPage,
@@ -26,13 +26,6 @@ export const createNextNx9Core = (
     nextCoreSection: string,
 ) => {
     const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
-    if (
-        coreSectionMax !== 'unlimited' &&
-        Number(nextCoreSection) > coreSectionMax
-    ) {
-        new Notice(lang.notice_core_section_limit_reached);
-        return false;
-    }
 
     const previousCoreNumber = Number(nextCoreSection) - 1;
     if (previousCoreNumber >= 1) {
@@ -52,14 +45,9 @@ export const createNextNx9Core = (
         }
     }
 
-    view.documentStore.dispatch({
-        type: 'document/mandala/ensure-core-theme',
-        payload: { theme: nextCoreSection },
-    });
-
-    const documentState = view.documentStore.getValue();
-    const nextNodeId = documentState.sections.section_id[nextCoreSection];
+    const nextNodeId = ensureNodeForSection(view, nextCoreSection);
     if (!nextNodeId) return false;
+    const documentState = view.documentStore.getValue();
 
     const context = resolveNx9Context({
         sectionIdMap: documentState.sections.section_id,

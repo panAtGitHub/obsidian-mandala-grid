@@ -1,6 +1,5 @@
 import { MandalaView } from 'src/view/view';
 import { Notice } from 'obsidian';
-import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
 import {
     parseDayPlanFrontmatter,
     shiftHotWindowToCore,
@@ -14,6 +13,7 @@ import {
     canExpandThreeByThreeChildren,
 } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 import { lang } from 'src/lang/lang';
+import { ensureChildrenForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
 
 export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     if (view.mandalaMode !== '3x3') return;
@@ -72,6 +72,7 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
             )
         )
             return;
+        ensureChildrenForSection(view, nextTheme);
 
         const nextNodeId =
             view.documentStore.getValue().sections.section_id[nextTheme];
@@ -88,26 +89,14 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
         return;
     }
 
-    const childGroup = findChildGroup(
-        docState.document.columns,
-        nodeId,
-    );
-    const childCount = childGroup?.nodes.length ?? 0;
-
-    if (childCount < 8 && canExpandThreeByThreeChildren(view, section)) {
-        if (childCount === 0) {
-            const content =
-                docState.document.content[nodeId]?.content ?? '';
-            if (!content.trim()) {
-                new Notice('请先填写内容，再展开九宫格');
-                return;
-            }
+    if (canExpandThreeByThreeChildren(view, section)) {
+        const content = docState.document.content[nodeId]?.content ?? '';
+        if (!content.trim()) {
+            new Notice('请先填写内容，再展开九宫格');
+            return;
         }
 
-        view.documentStore.dispatch({
-            type: 'document/mandala/ensure-children',
-            payload: { parentNodeId: nodeId, count: 8 },
-        });
+        ensureChildrenForSection(view, section);
     }
 
     view.viewStore.dispatch({

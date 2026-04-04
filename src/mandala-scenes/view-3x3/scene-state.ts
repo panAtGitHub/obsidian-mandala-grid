@@ -6,6 +6,7 @@ import {
 } from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import type { MandalaView } from 'src/view/view';
+import { ensureChildrenForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
 import {
     assemble3x3CellViewModels,
     type Assemble3x3CellViewModelsArgs,
@@ -39,7 +40,6 @@ export const syncThreeByThreeSubgridState = ({
         mode === '3x3' &&
         subgridTheme &&
         canExpandThreeByThreeChildren(view, subgridTheme) &&
-        !subgridTheme.includes('.') &&
         documentState.meta.isMandala
     ) {
         const themeNodeId = sectionToNodeId[subgridTheme];
@@ -50,10 +50,7 @@ export const syncThreeByThreeSubgridState = ({
             );
             const childCount = childGroup?.nodes.length ?? 0;
             if (childCount < 8) {
-                view.documentStore.dispatch({
-                    type: 'document/mandala/ensure-children',
-                    payload: { parentNodeId: themeNodeId, count: 8 },
-                });
+                ensureChildrenForSection(view, subgridTheme);
             }
         }
     }
