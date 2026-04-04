@@ -2,7 +2,7 @@ export const lang = {
     // open
     ocm_open_in_editor: '用普通md视图打开',
     ocm_open_in_mandala: '用九宫格插件打开',
-    cmd_toggle_mandala_view: '切换九宫格视图',
+    cmd_toggle_mandala_view: '切换九宫格视图与普通 md 视图',
     card_btn_reveal_in_editor: 'Reveal in editor',
     error_parent_not_found: (full: string) =>
         `Could not find the parent section of ${full}`,
@@ -10,15 +10,15 @@ export const lang = {
     error_save_empty_data: "Can't save empty data",
 
     // create document
-    cmd_create_new_document: '新建九宫格文件',
-    cmd_create_day_plan_document: '日计划创建',
+    cmd_create_new_document: '新建普通九宫格文件',
+    cmd_create_day_plan_document: '新建「日计划」九宫格文件',
     cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
-    cmd_open_current_file_mandala_settings: '九宫格：当前文件设置',
+    cmd_open_current_file_mandala_settings: '更改当前九宫格文件设置',
     cmd_write_current_core_day_plan_slots_to_yaml:
         '将当前核心九宫的 8 个标题写回「日计划」模板',
     cmd_refresh_day_plan_date_headings: '按当前设置刷新日计划日期标题',
-    cmd_open_export_mode: '打开导出模式',
-    cmd_export_perf_snapshot: '导出性能快照',
+    cmd_open_export_mode: '导出九宫格 pdf 或图片格式',
+    cmd_export_perf_snapshot: '导出性能快照（仅调适用）',
     ocm_new_document: '新建九宫格文档',
 
     // add sections
@@ -322,7 +322,8 @@ export const lang = {
 
     // day/week plan settings
     settings_day_week_plan: '日/周计划',
-    settings_section_global_view: '全局视图（针对新建的九宫格 md 文件做默认设置）',
+    settings_section_global_view:
+        '全局视图（针对新建的九宫格 md 文件做默认设置）',
     settings_section_time_plan:
         '时间计划（打开本设置后，可通过命令面板新建「日计划九宫格」）',
     settings_day_week_plan_redirect:
