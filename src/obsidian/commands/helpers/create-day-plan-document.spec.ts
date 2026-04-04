@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
     getActiveFile: vi.fn(),
     createNewFile: vi.fn(),
     setupDayPlanMandalaFormat: vi.fn(),
+    setMandalaDetailSidebarClosedForFile: vi.fn(),
     onPluginError: vi.fn(),
 }));
 
@@ -20,6 +21,14 @@ vi.mock('src/obsidian/commands/helpers/setup-day-plan-mandala-format', () => ({
     setupDayPlanMandalaFormat: mocks.setupDayPlanMandalaFormat,
 }));
 
+vi.mock(
+    'src/obsidian/events/workspace/effects/set-mandala-detail-sidebar-closed-for-file',
+    () => ({
+        setMandalaDetailSidebarClosedForFile:
+            mocks.setMandalaDetailSidebarClosedForFile,
+    }),
+);
+
 vi.mock('src/shared/store/on-plugin-error', () => ({
     onPluginError: mocks.onPluginError,
 }));
@@ -29,6 +38,7 @@ describe('createDayPlanDocument', () => {
         mocks.getActiveFile.mockReset();
         mocks.createNewFile.mockReset();
         mocks.setupDayPlanMandalaFormat.mockReset();
+        mocks.setMandalaDetailSidebarClosedForFile.mockReset();
         mocks.onPluginError.mockReset();
     });
 
@@ -55,6 +65,9 @@ describe('createDayPlanDocument', () => {
             expect.any(String),
             'Day Plan',
         );
+        expect(
+            mocks.setMandalaDetailSidebarClosedForFile,
+        ).toHaveBeenCalledWith(plugin, createdFile.path);
         expect(mocks.setupDayPlanMandalaFormat).toHaveBeenCalledWith(
             plugin,
             createdFile,
@@ -83,6 +96,9 @@ describe('createDayPlanDocument', () => {
             expect.any(String),
             'Day Plan',
         );
+        expect(
+            mocks.setMandalaDetailSidebarClosedForFile,
+        ).toHaveBeenCalledWith(plugin, createdFile.path);
         expect(mocks.setupDayPlanMandalaFormat).toHaveBeenCalledWith(
             plugin,
             createdFile,

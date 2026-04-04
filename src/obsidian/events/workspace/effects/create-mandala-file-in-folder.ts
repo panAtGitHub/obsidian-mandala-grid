@@ -5,6 +5,7 @@ import { openFileInMandalaGrid } from 'src/obsidian/events/workspace/effects/ope
 import { createMandalaMarkdownTemplate } from 'src/mandala-display/logic/create-mandala-markdown-template';
 import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { lang } from 'src/lang/lang';
+import { setMandalaDetailSidebarClosedForFile } from 'src/obsidian/events/workspace/effects/set-mandala-detail-sidebar-closed-for-file';
 
 export const createMandalaGridFileInFolder = async (
     plugin: MandalaGrid,
@@ -18,6 +19,7 @@ export const createMandalaGridFileInFolder = async (
             'Mandala',
         );
         if (newFile) {
+            setMandalaDetailSidebarClosedForFile(plugin, newFile.path);
             await openFileInMandalaGrid(plugin, newFile, 'tab');
         }
     } catch (e) {

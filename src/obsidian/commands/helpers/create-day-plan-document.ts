@@ -6,6 +6,7 @@ import { createNewFile } from 'src/obsidian/events/workspace/effects/create-new-
 import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { lang } from 'src/lang/lang';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
+import { setMandalaDetailSidebarClosedForFile } from 'src/obsidian/events/workspace/effects/set-mandala-detail-sidebar-closed-for-file';
 
 export const createDayPlanDocument = async (plugin: MandalaGrid) => {
     try {
@@ -25,6 +26,7 @@ export const createDayPlanDocument = async (plugin: MandalaGrid) => {
             'Day Plan',
         );
         if (!newFile) return;
+        setMandalaDetailSidebarClosedForFile(plugin, newFile.path);
         await setupDayPlanMandalaFormat(plugin, newFile);
     } catch (e) {
         onPluginError(e, 'command', lang.cmd_create_day_plan_document);
