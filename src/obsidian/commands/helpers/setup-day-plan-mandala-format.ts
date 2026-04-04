@@ -41,6 +41,7 @@ import {
     openDayPlanYearInputModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
 import { logger } from 'src/shared/helpers/logger';
+import { applyDayPlanSlotTitles } from 'src/obsidian/commands/helpers/apply-day-plan-slot-titles';
 
 const MANDALA_KEY = 'mandala';
 let isSettingUpDayPlan = false;
@@ -416,6 +417,11 @@ export const setupDayPlanMandalaFormat = async (
                     (performance.now() - generationStartMs).toFixed(2),
                 ),
             });
+            nextBody = applyDayPlanSlotTitles(
+                nextBody,
+                ['1', todaySection],
+                slots,
+            );
         } else {
             const todayApplied = applyTodaySlotsForYear(nextBody, selectedYear);
             nextBody = todayApplied.body;
