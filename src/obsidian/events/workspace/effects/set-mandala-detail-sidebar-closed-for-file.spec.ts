@@ -6,6 +6,11 @@ describe('setMandalaDetailSidebarClosedForFile', () => {
         const dispatch = vi.fn();
         const plugin = {
             settings: {
+                getValue: () => ({
+                    view: {
+                        mandalaGridOrientation: 'left-to-right',
+                    },
+                }),
                 dispatch,
             },
         };
@@ -19,7 +24,7 @@ describe('setMandalaDetailSidebarClosedForFile', () => {
             type: 'settings/documents/persist-mandala-view-state',
             payload: {
                 path: 'plans/day-plan.md',
-                gridOrientation: null,
+                gridOrientation: 'left-to-right',
                 selectedLayoutId: null,
                 lastActiveSection: null,
                 subgridTheme: null,

@@ -4,11 +4,12 @@ export const setMandalaDetailSidebarClosedForFile = (
     plugin: MandalaGrid,
     path: string,
 ) => {
+    const settings = plugin.settings.getValue();
     plugin.settings.dispatch({
         type: 'settings/documents/persist-mandala-view-state',
         payload: {
             path,
-            gridOrientation: null,
+            gridOrientation: settings.view.mandalaGridOrientation,
             selectedLayoutId: null,
             lastActiveSection: null,
             subgridTheme: null,
