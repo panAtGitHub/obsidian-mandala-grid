@@ -227,18 +227,18 @@ class CurrentFileMandalaSettingsModal extends Modal {
             },
         );
 
-        if (isDayPlanDedicated) {
-            await refreshCurrentDayPlanDateHeadings(this.view.plugin, {
-                notify: false,
-            });
-        }
-
         const latest = await this.view.plugin.app.vault.cachedRead(
             this.view.file,
         );
         const { frontmatter } = extractFrontmatter(latest);
         updateFrontmatter(this.view, frontmatter);
         this.view.ensureCompatibleMandalaMode(frontmatter);
+
+        if (isDayPlanDedicated) {
+            await refreshCurrentDayPlanDateHeadings(this.view.plugin, {
+                notify: false,
+            });
+        }
 
         new Notice('当前文件九宫设置已保存到 YAML。');
         this.close();
