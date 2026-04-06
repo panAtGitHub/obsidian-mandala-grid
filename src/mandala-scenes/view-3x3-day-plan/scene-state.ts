@@ -29,11 +29,6 @@ export const syncThreeByThreeDayPlanSceneState = ({
 }) => {
     const dayPlanTodayTargetSection =
         resolveThreeByThreeDayPlanTodayTargetSection(dayPlanTodayNavigation);
-    const allowSubgridExpansion = !(
-        dayPlan &&
-        dayPlan.daily_only_3x3 &&
-        subgridTheme?.includes('.')
-    );
 
     syncThreeByThreeSubgridState({
         view,
@@ -41,7 +36,7 @@ export const syncThreeByThreeDayPlanSceneState = ({
         subgridTheme,
         documentState,
         sectionToNodeId,
-        allowSubgridExpansion,
+        allowSubgridExpansion: true,
     });
 
     return dayPlanTodayTargetSection;

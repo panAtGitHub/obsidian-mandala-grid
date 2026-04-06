@@ -33,12 +33,12 @@ import {
     getSectionContent,
     replaceSectionContent,
 } from 'src/mandala-display/logic/day-plan-sections';
-import { openMandalaTemplateSelectModal } from 'src/obsidian/modals/mandala-templates-modal';
 import { parseMandalaTemplates } from 'src/mandala-display/logic/mandala-templates';
 import {
+    DayPlanDailySetupValue,
     DayPlanDisplayOptions,
     openDayPlanConfirmModal,
-    openDayPlanDailyOnlyModal,
+    openDayPlanDailySetupModal,
     openDayPlanDisplayOptionsModal,
     openDayPlanSlotsInputModal,
     openDayPlanYearInputModal,
@@ -94,74 +94,23 @@ const readTemplatesFromSettings = async (plugin: MandalaGrid) => {
     }
 };
 
-type ChooseSlotsResult =
-    | { action: 'next'; slots: string[] }
-    | { action: 'back' }
-    | { action: 'cancel' };
-
-const chooseSlots = async (
-    plugin: MandalaGrid,
-    initialSlots: string[],
-): Promise<ChooseSlotsResult> => {
-    const templates = await readTemplatesFromSettings(plugin);
-    if (templates.length > 0) {
-        const useTemplate = await openDayPlanConfirmModal(plugin, {
-            title: '使用模板配置 8 个格子？',
-            message: '检测到已配置的九宫格模板文件，是否从模板中选择一组？',
-            confirmText: '选择模板',
-            cancelText: '不用模板',
-        });
-
-        if (useTemplate) {
-            const selected = await openMandalaTemplateSelectModal(
-                plugin,
-                templates,
-            );
-            if (selected) {
-                return {
-                    action: 'next',
-                    slots: selected.slots.map((slot) => normalizeSlotTitle(slot)),
-                };
-            }
-            return { action: 'cancel' };
-        }
+const resolveSlotsFromDailySetup = (
+    setup: DayPlanDailySetupValue,
+    templates: Awaited<ReturnType<typeof readTemplatesFromSettings>>,
+) => {
+    if (setup.slotsSource === 'recommended') {
+        return [...DAY_PLAN_DEFAULT_SLOT_TITLES];
     }
-
-    const recommendedTemplatePreview = DAY_PLAN_DEFAULT_SLOT_TITLES.map(
-        (slot, index) => `${index + 1}. ${slot}`,
-    ).join('\n');
-
-    const useRecommended = await openDayPlanConfirmModal(plugin, {
-        title: '是否采用本插件推荐的日计划模板？',
-        message:
-            '推荐模板如下：\n' +
-            recommendedTemplatePreview +
-            '\n\n若不采用推荐模板，将进入 8 行手动输入。',
-        confirmText: '使用推荐模板',
-        cancelText: '手动输入',
-    });
-
-    if (useRecommended) {
-        return {
-            action: 'next',
-            slots: [...DAY_PLAN_DEFAULT_SLOT_TITLES],
-        };
+    if (setup.slotsSource === 'template') {
+        const template =
+            templates[
+                setup.templateIndex === null ? -1 : setup.templateIndex
+            ] ?? null;
+        return template
+            ? template.slots.map((slot) => normalizeSlotTitle(slot))
+            : [...DAY_PLAN_DEFAULT_SLOT_TITLES];
     }
-
-    const manual = await openDayPlanSlotsInputModal(plugin, initialSlots, {
-        primaryText: '完成',
-    });
-    if (manual.action === 'back') return { action: 'back' };
-    if (manual.action === 'cancel') return { action: 'cancel' };
-    if (!allSlotsFilled(manual.value)) {
-        new Notice('请填写完整的 8 个格子标题。');
-        return { action: 'cancel' };
-    }
-
-    return {
-        action: 'next',
-        slots: manual.value.map((slot) => normalizeSlotTitle(slot)),
-    };
+    return null;
 };
 
 const getPlanDayFromToday = (planYear: number) => {
@@ -253,11 +202,103 @@ const getTopLevelKey = (line: string) => {
 const quoteYamlString = (value: string) =>
     `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
+const getLineIndent = (line: string) => line.match(/^ */)?.[0].length ?? 0;
+
+const isIndentedYamlKey = (line: string, indent: number, key: string) =>
+    new RegExp(`^ {${indent}}${key}\\s*:`).test(line);
+
+const findTopLevelBlockEnd = (lines: string[], startIndex: number) => {
+    for (let i = startIndex + 1; i < lines.length; i += 1) {
+        if (getTopLevelKey(lines[i] ?? '') !== null) {
+            return i;
+        }
+    }
+    return lines.length;
+};
+
+const findNestedBlockEnd = (
+    lines: string[],
+    startIndex: number,
+    parentEnd: number,
+    indent: number,
+) => {
+    for (let i = startIndex + 1; i < parentEnd; i += 1) {
+        const line = lines[i] ?? '';
+        if (!line.trim()) continue;
+        if (getLineIndent(line) <= indent) {
+            return i;
+        }
+    }
+    return parentEnd;
+};
+
+const ensureDayPlanViewSettingsInFrontmatter = (lines: string[]) => {
+    const nextLines = [...lines];
+    const settingsIndex = nextLines.findIndex((line) =>
+        isIndentedYamlKey(line, 0, 'mandala_settings'),
+    );
+
+    if (settingsIndex === -1) {
+        nextLines.push('mandala_settings:');
+        nextLines.push('  view:');
+        nextLines.push('    enable9x9View: false');
+        nextLines.push('    subgridMaxDepth: 2');
+        return nextLines;
+    }
+
+    const settingsEnd = findTopLevelBlockEnd(nextLines, settingsIndex);
+    const viewIndex = nextLines.findIndex(
+        (line, index) =>
+            index > settingsIndex &&
+            index < settingsEnd &&
+            isIndentedYamlKey(line, 2, 'view'),
+    );
+
+    if (viewIndex === -1) {
+        nextLines.splice(
+            settingsEnd,
+            0,
+            '  view:',
+            '    enable9x9View: false',
+            '    subgridMaxDepth: 2',
+        );
+        return nextLines;
+    }
+
+    const viewEnd = findNestedBlockEnd(nextLines, viewIndex, settingsEnd, 2);
+    const enable9x9Index = nextLines.findIndex(
+        (line, index) =>
+            index > viewIndex &&
+            index < viewEnd &&
+            isIndentedYamlKey(line, 4, 'enable9x9View'),
+    );
+
+    if (enable9x9Index !== -1) {
+        nextLines[enable9x9Index] = '    enable9x9View: false';
+    } else {
+        nextLines.splice(viewEnd, 0, '    enable9x9View: false');
+    }
+
+    const nextViewEnd = findNestedBlockEnd(nextLines, viewIndex, settingsEnd, 2);
+    const subgridMaxDepthIndex = nextLines.findIndex(
+        (line, index) =>
+            index > viewIndex &&
+            index < nextViewEnd &&
+            isIndentedYamlKey(line, 4, 'subgridMaxDepth'),
+    );
+    if (subgridMaxDepthIndex !== -1) {
+        nextLines[subgridMaxDepthIndex] = '    subgridMaxDepth: 2';
+        return nextLines;
+    }
+
+    nextLines.splice(nextViewEnd, 0, '    subgridMaxDepth: 2');
+    return nextLines;
+};
+
 const buildDayPlanFrontmatter = (
     baseFrontmatter: string,
     dayPlan: {
         year: number;
-        dailyOnly3x3: boolean;
         centerDateH2: string;
         slots: string[];
     },
@@ -288,18 +329,18 @@ const buildDayPlanFrontmatter = (
         kept.pop();
     }
 
+    const mergedSettingsLines = ensureDayPlanViewSettingsInFrontmatter(kept);
     const slotLines = dayPlan.slots.map(
         (value, index) =>
             `    "${index + 1}": ${quoteYamlString(normalizeSlotTitle(value))}`,
     );
 
     const nextLines = [
-        ...kept,
+        ...mergedSettingsLines,
         `${MANDALA_KEY}: true`,
         `${DAY_PLAN_FRONTMATTER_KEY}:`,
         '  enabled: true',
         `  year: ${dayPlan.year}`,
-        `  daily_only_3x3: ${dayPlan.dailyOnly3x3 ? 'true' : 'false'}`,
         `  center_date_h2: ${quoteYamlString(dayPlan.centerDateH2)}`,
         '  slots:',
         ...slotLines,
@@ -418,10 +459,15 @@ export const setupDayPlanMandalaFormat = async (
                   : Array.from({ length: 8 }, () => '');
         };
 
+        const templates = await readTemplatesFromSettings(plugin);
+
         let wizardStep: 'year' | 'display' | 'daily' | 'slots' = 'year';
         let selectedYear = getTodayInfo().year;
         let displayOptions = initialDisplayOptions;
-        let dailyOnly3x3 = existingPlan?.daily_only_3x3 ?? true;
+        let dailySetup: DayPlanDailySetupValue = {
+            slotsSource: 'recommended',
+            templateIndex: templates.length > 0 ? 0 : null,
+        };
         let slots: string[] | null = null;
 
         while (!slots) {
@@ -461,30 +507,46 @@ export const setupDayPlanMandalaFormat = async (
             }
 
             if (wizardStep === 'daily') {
-                const result = await openDayPlanDailyOnlyModal(
+                const result = await openDayPlanDailySetupModal(
                     plugin,
-                    dailyOnly3x3,
+                    dailySetup,
+                    templates,
                 );
                 if (result.action === 'cancel') return false;
                 if (result.action === 'back') {
                     wizardStep = 'display';
                     continue;
                 }
-                dailyOnly3x3 = result.value;
+                dailySetup = result.value;
+                const resolvedSlots = resolveSlotsFromDailySetup(
+                    dailySetup,
+                    templates,
+                );
+                if (resolvedSlots) {
+                    slots = resolvedSlots;
+                    continue;
+                }
                 wizardStep = 'slots';
                 continue;
             }
 
-            const slotResult = await chooseSlots(
+            const manual = await openDayPlanSlotsInputModal(
                 plugin,
                 resolveInitialSlots(selectedYear),
+                {
+                    primaryText: '完成',
+                },
             );
-            if (slotResult.action === 'cancel') return false;
-            if (slotResult.action === 'back') {
+            if (manual.action === 'cancel') return false;
+            if (manual.action === 'back') {
                 wizardStep = 'daily';
                 continue;
             }
-            slots = slotResult.slots;
+            if (!allSlotsFilled(manual.value)) {
+                new Notice('请填写完整的 8 个格子标题。');
+                return false;
+            }
+            slots = manual.value.map((slot) => normalizeSlotTitle(slot));
         }
 
         const todaySection = String(getPlanDayFromToday(selectedYear));
@@ -552,7 +614,6 @@ export const setupDayPlanMandalaFormat = async (
 
         const nextFrontmatter = buildDayPlanFrontmatter(frontmatter, {
             year: selectedYear,
-            dailyOnly3x3,
             centerDateH2: buildCenterDateHeading(
                 getTodayIsoDate(),
                 dateHeadingSettings,

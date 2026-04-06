@@ -1,4 +1,5 @@
 import { parseYaml } from 'obsidian';
+import { resolveLegacyDayPlanSubgridMaxDepthOverride } from 'src/mandala-display/logic/day-plan';
 import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
@@ -44,6 +45,34 @@ export type EffectiveMandalaSettings = {
         dayPlanDateHeadingApplyMode: DayPlanDateHeadingApplyMode;
     };
 };
+
+export const buildNewFileMandalaFrontmatterSettings = (
+    settings: Settings,
+    options: { dayPlan: boolean },
+): MandalaFrontmatterSettings => ({
+    view: {
+        enable9x9View: options.dayPlan ? false : settings.view.enable9x9View,
+        enableNx9View: settings.view.enableNx9View,
+        coreSectionMax: settings.view.coreSectionMax,
+        subgridMaxDepth: options.dayPlan ? 2 : settings.view.subgridMaxDepth,
+    },
+    ...(options.dayPlan
+        ? {
+              general: {
+                  dayPlanEnabled: settings.general.dayPlanEnabled,
+                  weekPlanEnabled: settings.general.weekPlanEnabled,
+                  weekPlanCompactMode: settings.general.weekPlanCompactMode,
+                  weekStart: settings.general.weekStart,
+                  dayPlanDateHeadingFormat:
+                      settings.general.dayPlanDateHeadingFormat,
+                  dayPlanDateHeadingCustomTemplate:
+                      settings.general.dayPlanDateHeadingCustomTemplate,
+                  dayPlanDateHeadingApplyMode:
+                      settings.general.dayPlanDateHeadingApplyMode,
+              },
+          }
+        : {}),
+});
 
 const toRecord = (input: unknown): Record<string, unknown> | null =>
     input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
@@ -151,6 +180,8 @@ export const resolveEffectiveMandalaSettings = (
     frontmatter: string,
 ): EffectiveMandalaSettings => {
     const overrides = parseMandalaFrontmatterSettings(frontmatter);
+    const legacyDayPlanSubgridMaxDepth =
+        resolveLegacyDayPlanSubgridMaxDepthOverride(frontmatter);
     const hasViewOverride = <K extends keyof NonNullable<MandalaFrontmatterSettings['view']>>(
         key: K,
     ) => !!overrides.view && key in overrides.view;
@@ -165,7 +196,7 @@ export const resolveEffectiveMandalaSettings = (
                 : settings.view.coreSectionMax,
             subgridMaxDepth: hasViewOverride('subgridMaxDepth')
                 ? (overrides.view?.subgridMaxDepth ?? 'unlimited')
-                : settings.view.subgridMaxDepth,
+                : (legacyDayPlanSubgridMaxDepth ?? settings.view.subgridMaxDepth),
         },
         general: {
             dayPlanEnabled:

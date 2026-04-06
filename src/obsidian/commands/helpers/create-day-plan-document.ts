@@ -7,6 +7,10 @@ import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { lang } from 'src/lang/lang';
 import { setupDayPlanMandalaFormat } from 'src/obsidian/commands/helpers/setup-day-plan-mandala-format';
 import { createNewFileMandalaViewStateAction } from 'src/mandala-settings/state/current-file/mandala-view-state';
+import {
+    buildNewFileMandalaFrontmatterSettings,
+    MANDALA_FRONTMATTER_SETTINGS_KEY,
+} from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 
 export const createDayPlanDocument = async (plugin: MandalaGrid) => {
     try {
@@ -26,6 +30,14 @@ export const createDayPlanDocument = async (plugin: MandalaGrid) => {
             'Day Plan',
         );
         if (!newFile) return;
+        await plugin.app.fileManager.processFrontMatter(newFile, (frontmatter) => {
+            const record = frontmatter as Record<string, unknown>;
+            record[MANDALA_FRONTMATTER_SETTINGS_KEY] =
+                buildNewFileMandalaFrontmatterSettings(
+                    plugin.settings.getValue(),
+                    { dayPlan: true },
+                );
+        });
         plugin.settings.dispatch(
             createNewFileMandalaViewStateAction(
                 newFile.path,

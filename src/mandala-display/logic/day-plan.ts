@@ -1,6 +1,7 @@
 import type {
     DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
+    SectionRangeLimit,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
 
@@ -9,13 +10,13 @@ export const DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE = '## {date} {cn}';
 
 export const DAY_PLAN_DEFAULT_SLOT_TITLES = [
     '接收太阳的能量，开心一天',
-    '09-12',
-    '12-14',
-    '14-16',
-    '16-18',
-    '18-19',
-    '19-21',
-    '睡觉准备',
+    '9-12 深度工作',
+    '12-14 充电休整',
+    '14-17 沟通琐事',
+    '17-19 收尾协同',
+    '19-21 自由探索',
+    '习惯打卡',
+    '今日惊喜 / 复盘 / 感恩',
 ] as const;
 
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -38,7 +39,6 @@ export const DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS: DayPlanDateHeadingSettings 
 export type DayPlanFrontmatter = {
     enabled: boolean;
     year: number;
-    daily_only_3x3: boolean;
     center_date_h2?: string;
     slots: Record<string, string>;
 };
@@ -46,6 +46,15 @@ export type DayPlanFrontmatter = {
 export type DayPlanFrontmatterParseResult = {
     mandalaEnabled: boolean;
     dayPlan: DayPlanFrontmatter | null;
+};
+
+type ParsedDayPlanFrontmatterFields = {
+    mandalaEnabled: boolean;
+    enabled: boolean;
+    year: number | null;
+    legacyDailyOnly3x3: boolean;
+    centerDateH2?: string;
+    slots: Record<string, unknown>;
 };
 
 let cachedDayPlanFrontmatter = '';
@@ -274,6 +283,19 @@ export const getWeekIsoDates = (
     );
 };
 
+export const getWeekIndexInPlanYear = (
+    anchorDate: string,
+    weekStart: WeekStart = 'monday',
+) => {
+    const planYear = Number(anchorDate.slice(0, 4));
+    const firstDayOfYear = `${planYear}-01-01`;
+    const firstWeekStart = getStartOfWeekIsoDate(firstDayOfYear, weekStart);
+    const currentWeekStart = getStartOfWeekIsoDate(anchorDate, weekStart);
+    const firstTime = new Date(`${firstWeekStart}T00:00:00Z`).getTime();
+    const currentTime = new Date(`${currentWeekStart}T00:00:00Z`).getTime();
+    return Math.floor((currentTime - firstTime) / 604800000) + 1;
+};
+
 export type WeekPlanRow = {
     date: string;
     coreSection: string | null;
@@ -469,12 +491,18 @@ export const slotsRecordToArray = (slots: Record<string, unknown> | null | undef
 export const allSlotsFilled = (slots: string[]) =>
     slots.length === 8 && slots.every((slot) => normalizeSlotTitle(slot).length > 0);
 
-const parseDayPlanFrontmatterWithMandalaUncached = (
+const parseDayPlanFrontmatterFields = (
     frontmatter: string,
-): DayPlanFrontmatterParseResult => {
+): ParsedDayPlanFrontmatterFields => {
     const stripped = stripFrontmatterMarkers(frontmatter);
     if (!stripped) {
-        return { mandalaEnabled: false, dayPlan: null };
+        return {
+            mandalaEnabled: false,
+            enabled: false,
+            year: null,
+            legacyDailyOnly3x3: true,
+            slots: {},
+        };
     }
     const mandalaMatch = stripped.match(/^mandala\s*:\s*(.*)$/m);
     const mandalaEnabled = mandalaMatch
@@ -547,20 +575,42 @@ const parseDayPlanFrontmatterWithMandalaUncached = (
         }
     }
 
-    if (!mandalaEnabled || !enabled) {
-        return { mandalaEnabled, dayPlan: null };
-    }
-    if (!year || year < 1900 || year > 9999) {
-        return { mandalaEnabled, dayPlan: null };
-    }
     return {
         mandalaEnabled,
+        enabled,
+        year,
+        legacyDailyOnly3x3: dailyOnly3x3,
+        centerDateH2,
+        slots,
+    };
+};
+
+export const resolveLegacyDayPlanSubgridMaxDepthOverride = (
+    frontmatter: string,
+): SectionRangeLimit | undefined => {
+    const parsed = parseDayPlanFrontmatterFields(frontmatter);
+    if (!parsed.mandalaEnabled || !parsed.enabled) return undefined;
+    if (!parsed.year || parsed.year < 1900 || parsed.year > 9999) return undefined;
+    return parsed.legacyDailyOnly3x3 ? 2 : undefined;
+};
+
+const parseDayPlanFrontmatterWithMandalaUncached = (
+    frontmatter: string,
+): DayPlanFrontmatterParseResult => {
+    const parsed = parseDayPlanFrontmatterFields(frontmatter);
+    if (!parsed.mandalaEnabled || !parsed.enabled) {
+        return { mandalaEnabled: parsed.mandalaEnabled, dayPlan: null };
+    }
+    if (!parsed.year || parsed.year < 1900 || parsed.year > 9999) {
+        return { mandalaEnabled: parsed.mandalaEnabled, dayPlan: null };
+    }
+    return {
+        mandalaEnabled: parsed.mandalaEnabled,
         dayPlan: {
             enabled: true,
-            year,
-            daily_only_3x3: dailyOnly3x3,
-            center_date_h2: centerDateH2,
-            slots: toSlotsRecord(slotsRecordToArray(slots)),
+            year: parsed.year,
+            center_date_h2: parsed.centerDateH2,
+            slots: toSlotsRecord(slotsRecordToArray(parsed.slots)),
         },
     };
 };

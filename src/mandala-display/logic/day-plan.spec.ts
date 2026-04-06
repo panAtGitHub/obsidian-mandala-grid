@@ -15,6 +15,7 @@ import {
     getEnglishFullWeekdayLabel,
     getEnglishShortWeekdayLabel,
     getHotCoreSections,
+    getWeekIndexInPlanYear,
     getStartOfWeekIsoDate,
     getWeekIsoDates,
     hasValidCenterDateHeading,
@@ -59,6 +60,12 @@ describe('day-plan helpers', () => {
         expect(dayOfYearFromDate(2026, 2, 10)).toBe(41);
         expect(dateFromDayOfYear(2026, 41)).toBe('2026-02-10');
         expect(dateFromDayOfYear(2024, 60)).toBe('2024-02-29');
+    });
+
+    it('calculates the week index in plan year from anchor date', () => {
+        expect(getWeekIndexInPlanYear('2026-01-01', 'monday')).toBe(1);
+        expect(getWeekIndexInPlanYear('2026-04-06', 'monday')).toBe(15);
+        expect(getWeekIndexInPlanYear('2026-04-06', 'sunday')).toBe(15);
     });
 
     it('maps today to section in matching plan year', () => {
@@ -202,7 +209,7 @@ describe('day-plan helpers', () => {
         });
     });
 
-    it('parses daily_only_3x3 as true when missing', () => {
+    it('parses day-plan frontmatter without requiring daily_only_3x3', () => {
         const frontmatter =
             '---\n' +
             'mandala: true\n' +
@@ -221,30 +228,7 @@ describe('day-plan helpers', () => {
             '---\n';
         const parsed = parseDayPlanFrontmatter(frontmatter);
         expect(parsed).not.toBeNull();
-        expect(parsed?.daily_only_3x3).toBe(true);
-    });
-
-    it('parses daily_only_3x3 as false when explicitly set', () => {
-        const frontmatter =
-            '---\n' +
-            'mandala: true\n' +
-            'mandala_plan:\n' +
-            '  enabled: true\n' +
-            '  year: 2026\n' +
-            '  daily_only_3x3: false\n' +
-            '  slots:\n' +
-            '    "1": "a"\n' +
-            '    "2": "b"\n' +
-            '    "3": "c"\n' +
-            '    "4": "d"\n' +
-            '    "5": "e"\n' +
-            '    "6": "f"\n' +
-            '    "7": "g"\n' +
-            '    "8": "h"\n' +
-            '---\n';
-        const parsed = parseDayPlanFrontmatter(frontmatter);
-        expect(parsed).not.toBeNull();
-        expect(parsed?.daily_only_3x3).toBe(false);
+        expect(parsed?.year).toBe(2026);
     });
 
     it('requires mandala: true before enabling day-plan parsing', () => {

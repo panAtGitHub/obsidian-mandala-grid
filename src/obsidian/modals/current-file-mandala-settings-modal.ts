@@ -203,14 +203,16 @@ class CurrentFileMandalaSettingsModal extends Modal {
             this.view.file,
             (frontmatter) => {
                 const record = frontmatter as Record<string, unknown>;
-                record[MANDALA_FRONTMATTER_SETTINGS_KEY] = {
+                const nextSettings: Record<string, unknown> = {
                     view: {
                         enable9x9View: this.state.view.enable9x9View,
                         enableNx9View: this.state.view.enableNx9View,
                         coreSectionMax: this.state.view.coreSectionMax,
                         subgridMaxDepth: this.state.view.subgridMaxDepth,
                     },
-                    general: {
+                };
+                if (isDayPlanDedicated) {
+                    nextSettings.general = {
                         dayPlanEnabled: this.state.general.dayPlanEnabled,
                         weekPlanEnabled: this.state.general.weekPlanEnabled,
                         weekPlanCompactMode:
@@ -222,8 +224,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
                             this.state.general.dayPlanDateHeadingCustomTemplate,
                         dayPlanDateHeadingApplyMode:
                             this.state.general.dayPlanDateHeadingApplyMode,
-                    },
-                };
+                    };
+                }
+                record[MANDALA_FRONTMATTER_SETTINGS_KEY] = nextSettings;
             },
         );
 

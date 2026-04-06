@@ -9,7 +9,10 @@
     } from 'lucide-svelte';
     import { derived } from 'src/shared/store/derived';
     import { openNx9RowsPerPageModal } from 'src/obsidian/modals/nx9-rows-per-page-modal';
-    import { addDaysIsoDate } from 'src/mandala-display/logic/day-plan';
+    import {
+        addDaysIsoDate,
+        getWeekIndexInPlanYear,
+    } from 'src/mandala-display/logic/day-plan';
     import {
         resolveMandalaSceneKey,
         type MandalaSceneKey,
@@ -19,6 +22,7 @@
         WeekPlanEnabledStore,
         Nx9RowsPerPageStore,
         Show9x9TitleOnlyStore,
+        WeekStartStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import Button from 'src/shared/ui/button.svelte';
@@ -33,6 +37,7 @@
     const weekPlanEnabled = WeekPlanEnabledStore(view);
     const nx9RowsPerPage = Nx9RowsPerPageStore(view);
     const show9x9TitleOnly = Show9x9TitleOnlyStore(view);
+    const weekStart = WeekStartStore(view);
     const documentState = derived(view.documentStore, (state) => state);
     const activeNodeId = derived(
         view.viewStore,
@@ -71,6 +76,10 @@
                       view.getEffectiveMandalaSettings().view.coreSectionMax,
               })
             : null;
+    $: currentWeekLabel =
+        $weekAnchorDate && sceneKey.variant === 'week-7x9'
+            ? `第${getWeekIndexInPlanYear($weekAnchorDate, $weekStart)}周`
+            : '本周';
 
     const toggleMandalaMode = () => {
         view.cycleMandalaMode();
@@ -172,12 +181,15 @@
                     <ChevronLeft class="svg-icon" size="18" />
                 </Button>
                 <Button
-                    classes="topbar-button"
-                    label="本周"
+                    classes="topbar-button toolbar-center__week-button"
+                    label={currentWeekLabel}
                     on:click={goToThisWeek}
                     tooltipPosition="bottom"
                 >
                     <CalendarDays class="svg-icon" size="18" />
+                    <span class="toolbar-center__week-label">
+                        {currentWeekLabel}
+                    </span>
                 </Button>
                 <Button
                     classes="topbar-button"
@@ -246,6 +258,22 @@
     :global(.toolbar-center__text) {
         min-width: 56px;
         font-size: 12px;
+    }
+
+    :global(.toolbar-center__week-button) {
+        width: auto !important;
+        min-width: 34px;
+        gap: 6px;
+        padding-inline: 10px;
+        line-height: 1;
+    }
+
+    .toolbar-center__week-label {
+        display: inline-flex;
+        align-items: center;
+        font-size: 12px;
+        line-height: 1;
+        white-space: nowrap;
     }
 
     :global(.is-mobile) .lock-toggle-container {

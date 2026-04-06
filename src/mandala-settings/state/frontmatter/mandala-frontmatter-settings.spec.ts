@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import {
+    buildNewFileMandalaFrontmatterSettings,
     parseMandalaFrontmatterSettings,
     resolveEffectiveMandalaSettings,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
@@ -110,5 +111,31 @@ describe('mandala-frontmatter-settings', () => {
         expect(effective.general.dayPlanDateHeadingApplyMode).toBe(
             globalSettings.general.dayPlanDateHeadingApplyMode,
         );
+    });
+
+    test('uses depth 2 for new day-plan files', () => {
+        const built = buildNewFileMandalaFrontmatterSettings(DEFAULT_SETTINGS(), {
+            dayPlan: true,
+        });
+
+        expect(built.view?.enable9x9View).toBe(false);
+        expect(built.view?.subgridMaxDepth).toBe(2);
+    });
+
+    test('maps legacy daily_only_3x3 to depth 2 when no view override exists', () => {
+        const effective = resolveEffectiveMandalaSettings(
+            DEFAULT_SETTINGS(),
+            [
+                '---',
+                'mandala: true',
+                'mandala_plan:',
+                '  enabled: true',
+                '  year: 2026',
+                '  daily_only_3x3: true',
+                '---',
+            ].join('\n'),
+        );
+
+        expect(effective.view.subgridMaxDepth).toBe(2);
     });
 });

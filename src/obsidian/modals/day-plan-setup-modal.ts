@@ -1,5 +1,10 @@
 import { Modal, Notice, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
+import { DAY_PLAN_DEFAULT_SLOT_TITLES } from 'src/mandala-display/logic/day-plan';
+import {
+    formatTemplatePreview,
+    type MandalaTemplate,
+} from 'src/mandala-display/logic/mandala-templates';
 import type {
     DayPlanDateHeadingFormat,
     WeekStart,
@@ -12,6 +17,11 @@ export type DayPlanSlotsSyncMode =
 export type DayPlanDisplayOptions = {
     weekStart: WeekStart;
     dateHeadingFormat: DayPlanDateHeadingFormat;
+};
+export type DayPlanSlotsSource = 'template' | 'recommended' | 'manual';
+export type DayPlanDailySetupValue = {
+    slotsSource: DayPlanSlotsSource;
+    templateIndex: number | null;
 };
 
 export type DayPlanWizardStepResult<T> =
@@ -45,12 +55,31 @@ export const openDayPlanYearInputModal = (
         modal.open();
     });
 
-export const openDayPlanDailyOnlyModal = (
+export const openDayPlanDisplayOptionsModal = (
     plugin: MandalaGrid,
-    initialValue: boolean,
+    initialValue: DayPlanDisplayOptions,
 ) =>
-    new Promise<DayPlanWizardStepResult<boolean>>((resolve) => {
-        const modal = new DayPlanDailyOnlyModal(plugin, initialValue, resolve);
+    new Promise<DayPlanWizardStepResult<DayPlanDisplayOptions>>((resolve) => {
+        const modal = new DayPlanDisplayOptionsModal(
+            plugin,
+            initialValue,
+            resolve,
+        );
+        modal.open();
+    });
+
+export const openDayPlanDailySetupModal = (
+    plugin: MandalaGrid,
+    initialValue: DayPlanDailySetupValue,
+    templates: MandalaTemplate[],
+) =>
+    new Promise<DayPlanWizardStepResult<DayPlanDailySetupValue>>((resolve) => {
+        const modal = new DayPlanDailySetupModal(
+            plugin,
+            initialValue,
+            templates,
+            resolve,
+        );
         modal.open();
     });
 
@@ -72,19 +101,6 @@ export const openDayPlanSlotsInputModal = (
 export const openDayPlanSlotsSyncModeModal = (plugin: MandalaGrid) =>
     new Promise<DayPlanSlotsSyncMode | null>((resolve) => {
         const modal = new DayPlanSlotsSyncModeModal(plugin, resolve);
-        modal.open();
-    });
-
-export const openDayPlanDisplayOptionsModal = (
-    plugin: MandalaGrid,
-    initialValue: DayPlanDisplayOptions,
-) =>
-    new Promise<DayPlanWizardStepResult<DayPlanDisplayOptions>>((resolve) => {
-        const modal = new DayPlanDisplayOptionsModal(
-            plugin,
-            initialValue,
-            resolve,
-        );
         modal.open();
     });
 
@@ -160,10 +176,10 @@ class DayPlanYearInputModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('一，确认「年份」');
+        this.setTitle('一，「年计划」设置页');
 
         new Setting(contentEl)
-            .setName('年份：')
+            .setName('1）确认「年份」')
             .setDesc('默认为「今年」，可输入其他年份。')
             .addText((text) => {
                 text.setPlaceholder('2026');
@@ -204,6 +220,282 @@ class DayPlanYearInputModal extends Modal {
     }
 }
 
+class DayPlanDisplayOptionsModal extends Modal {
+    private resolved = false;
+    private weekStart: WeekStart;
+    private dateHeadingFormat: Exclude<DayPlanDateHeadingFormat, 'custom'>;
+
+    constructor(
+        plugin: MandalaGrid,
+        initialValue: DayPlanDisplayOptions,
+        private resolve: (
+            value: DayPlanWizardStepResult<DayPlanDisplayOptions>,
+        ) => void,
+    ) {
+        super(plugin.app);
+        this.weekStart = initialValue.weekStart;
+        this.dateHeadingFormat = normalizeDateHeadingFormat(
+            initialValue.dateHeadingFormat,
+        );
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        this.setTitle('二，「周计划」设置页');
+        const sampleDate = new Date();
+
+        const weekStartSetting = new Setting(contentEl)
+            .setName('1）确认「周计划」起始日')
+            .setDesc('每周的第一天从「周一」或「周日」开始。')
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOptions({
+                        monday: '周一',
+                        sunday: '周日',
+                    } satisfies Record<WeekStart, string>)
+                    .setValue(this.weekStart)
+                    .onChange((value) => {
+                        this.weekStart = value as WeekStart;
+                        renderPreview();
+                    });
+            });
+        const weekPreviewEl = createPreviewPill(weekStartSetting.descEl);
+
+        const dateHeadingSetting = new Setting(contentEl)
+            .setName('2）日期标题格式')
+            .setDesc('可选项：选择日期标题的显示样式')
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOptions({
+                        'date-only': '仅日期',
+                        'zh-full': '日期 + 周一到周日',
+                        'zh-short': '日期 + 一到日',
+                        'en-short': '日期 + Mon~Sun',
+                    } satisfies Record<
+                        Exclude<DayPlanDateHeadingFormat, 'custom'>,
+                        string
+                    >)
+                    .setValue(this.dateHeadingFormat)
+                    .onChange((value) => {
+                        this.dateHeadingFormat =
+                            value as Exclude<DayPlanDateHeadingFormat, 'custom'>;
+                        renderPreview();
+                    });
+            });
+        const headingPreviewEl = createPreviewPill(dateHeadingSetting.descEl);
+        const renderPreview = () => {
+            weekPreviewEl.setText(`预览：${buildWeekStartPreview(this.weekStart)}`);
+            headingPreviewEl.setText(
+                `预览：${buildDateHeadingPreview(sampleDate, this.dateHeadingFormat)}`,
+            );
+        };
+        renderPreview();
+
+        appendWizardNote(contentEl);
+        appendWizardActions(contentEl, {
+            primaryText: '下一步',
+            onPrimary: () => {
+                this.resolveOnce({
+                    action: 'next',
+                    value: {
+                        weekStart: this.weekStart,
+                        dateHeadingFormat: this.dateHeadingFormat,
+                    },
+                });
+                this.close();
+            },
+            onBack: () => {
+                this.resolveOnce({ action: 'back' });
+                this.close();
+            },
+            onCancel: () => {
+                this.resolveOnce({ action: 'cancel' });
+                this.close();
+            },
+        });
+    }
+
+    onClose() {
+        this.resolveOnce({ action: 'cancel' });
+        this.contentEl.empty();
+    }
+
+    private resolveOnce(value: DayPlanWizardStepResult<DayPlanDisplayOptions>) {
+        if (this.resolved) return;
+        this.resolved = true;
+        this.resolve(value);
+    }
+}
+
+class DayPlanDailySetupModal extends Modal {
+    private resolved = false;
+    private slotsSource: DayPlanSlotsSource;
+    private templateIndex: number | null;
+
+    constructor(
+        plugin: MandalaGrid,
+        initialValue: DayPlanDailySetupValue,
+        private templates: MandalaTemplate[],
+        private resolve: (
+            value: DayPlanWizardStepResult<DayPlanDailySetupValue>,
+        ) => void,
+    ) {
+        super(plugin.app);
+        this.slotsSource = normalizeSlotsSource(
+            initialValue.slotsSource,
+            templates.length,
+        );
+        this.templateIndex = normalizeTemplateIndex(
+            initialValue.templateIndex,
+            templates.length,
+        );
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        this.setTitle('三，「日计划」设置页');
+
+        const structureSetting = new Setting(contentEl)
+            .setName('1）「日计划」视图页')
+            .setDesc('提示：每日计划默认为 3x3 九宫格视图，不展开更深层的子九宫；默认关闭9x9视图。');
+
+        const sourceOptions: Record<string, string> = {};
+        if (this.templates.length > 0) {
+            sourceOptions.template = '使用已配置模板';
+        }
+        sourceOptions.recommended = '使用插件推荐模板';
+        sourceOptions.manual = '手动输入 8 个标题';
+
+        const sourceSetting = new Setting(contentEl)
+            .setName('2）8 格标题来源')
+            .setDesc('在这里决定 8 个格子的标题从哪里来。')
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOptions(sourceOptions)
+                    .setValue(this.slotsSource)
+                    .onChange((value) => {
+                        this.slotsSource = normalizeSlotsSource(
+                            value as DayPlanSlotsSource,
+                            this.templates.length,
+                        );
+                        renderPreview();
+                    });
+            });
+        const sourceDetailEl = sourceSetting.descEl.createDiv({
+            cls: 'mandala-day-plan-wizard__preview-card',
+        });
+        sourceDetailEl.setCssProps({
+            'margin-top': '8px',
+            padding: '10px 12px',
+            'border-radius': '12px',
+            border: '1px solid var(--background-modifier-border)',
+            'background-color': 'var(--background-secondary)',
+            'white-space': 'pre-wrap',
+            'font-size': 'var(--font-ui-smaller)',
+            'line-height': '1.6',
+        });
+
+        const templateSetting = new Setting(contentEl)
+            .setName('模板名称')
+            .setDesc('已配置模板来源时，可直接在这里切换模板。')
+            .addDropdown((dropdown) => {
+                this.templates.forEach((template, index) => {
+                    dropdown.addOption(String(index), template.name);
+                });
+                dropdown
+                    .setValue(String(this.templateIndex ?? 0))
+                    .onChange((value) => {
+                        const nextIndex = Number(value);
+                        this.templateIndex = Number.isInteger(nextIndex)
+                            ? nextIndex
+                            : 0;
+                        renderPreview();
+                    });
+            });
+        const templatePreviewEl = templateSetting.descEl.createDiv({
+            cls: 'mandala-day-plan-wizard__preview-card',
+        });
+        templatePreviewEl.setCssProps({
+            'margin-top': '8px',
+            padding: '10px 12px',
+            'border-radius': '12px',
+            border: '1px solid var(--background-modifier-border)',
+            'background-color': 'var(--background-secondary)',
+            'white-space': 'pre-wrap',
+            'font-size': 'var(--font-ui-smaller)',
+            'line-height': '1.6',
+        });
+
+        const renderPreview = () => {
+            if (this.slotsSource === 'template') {
+                sourceDetailEl.style.display = 'none';
+                templateSetting.settingEl.style.display = '';
+                const activeTemplate =
+                    this.templates[this.templateIndex ?? 0] ?? null;
+                templatePreviewEl.setText(
+                    activeTemplate
+                        ? formatTemplatePreview(activeTemplate)
+                        : '未找到可用模板。',
+                );
+                return;
+            }
+
+            templateSetting.settingEl.style.display = 'none';
+            if (this.slotsSource === 'recommended') {
+                sourceDetailEl.style.display = '';
+                sourceDetailEl.setText(
+                    formatSlotsPreview(DAY_PLAN_DEFAULT_SLOT_TITLES),
+                );
+                templatePreviewEl.empty();
+                return;
+            }
+
+            sourceDetailEl.style.display = '';
+            sourceDetailEl.setText(
+                '将进入手动填写页，你可以逐个设置 8 个格子的标题。',
+            );
+            templatePreviewEl.empty();
+        };
+        renderPreview();
+
+        appendWizardNote(contentEl);
+        appendWizardActions(contentEl, {
+            primaryText: '下一步',
+            onPrimary: () => {
+                this.resolveOnce({
+                    action: 'next',
+                    value: {
+                        slotsSource: this.slotsSource,
+                        templateIndex: this.templateIndex,
+                    },
+                });
+                this.close();
+            },
+            onBack: () => {
+                this.resolveOnce({ action: 'back' });
+                this.close();
+            },
+            onCancel: () => {
+                this.resolveOnce({ action: 'cancel' });
+                this.close();
+            },
+        });
+    }
+
+    onClose() {
+        this.resolveOnce({ action: 'cancel' });
+        this.contentEl.empty();
+    }
+
+    private resolveOnce(value: DayPlanWizardStepResult<DayPlanDailySetupValue>) {
+        if (this.resolved) return;
+        this.resolved = true;
+        this.resolve(value);
+    }
+}
+
 class DayPlanSlotsInputModal extends Modal {
     private resolved = false;
     private values: string[];
@@ -224,7 +516,7 @@ class DayPlanSlotsInputModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('输入 8 个格子标题');
+        this.setTitle('四，「日计划模板」设置页');
 
         for (let i = 0; i < 8; i += 1) {
             const slotIndex = i;
@@ -349,161 +641,113 @@ class DayPlanSlotsSyncModeModal extends Modal {
     }
 }
 
-class DayPlanDisplayOptionsModal extends Modal {
-    private resolved = false;
-    private weekStart: WeekStart;
-    private dateHeadingFormat: DayPlanDateHeadingFormat;
-
-    constructor(
-        plugin: MandalaGrid,
-        initialValue: DayPlanDisplayOptions,
-        private resolve: (
-            value: DayPlanWizardStepResult<DayPlanDisplayOptions>,
-        ) => void,
-    ) {
-        super(plugin.app);
-        this.weekStart = initialValue.weekStart;
-        this.dateHeadingFormat = initialValue.dateHeadingFormat;
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        this.setTitle('二，「周计划」设置');
-
-        new Setting(contentEl)
-            .setName('「周计划」起始日')
-            .setDesc('周视图中一周从周一或周日开始。')
-            .addDropdown((dropdown) => {
-                dropdown
-                    .addOptions({
-                        monday: '周一开始',
-                        sunday: '周日开始',
-                    } satisfies Record<WeekStart, string>)
-                    .setValue(this.weekStart)
-                    .onChange((value) => {
-                        this.weekStart = value as WeekStart;
-                    });
-            });
-
-        new Setting(contentEl)
-            .setName('日计划日期标题格式')
-            .setDesc('控制如“## 2026-03-16 …”这类日期标题的显示格式。')
-            .addDropdown((dropdown) => {
-                dropdown
-                    .addOptions({
-                        'date-only': '仅日期',
-                        'zh-full': '日期 + 周一到周日',
-                        'zh-short': '日期 + 一到日',
-                        'en-short': 'Date + mon~sun',
-                        custom: '自定义模板',
-                    } satisfies Record<DayPlanDateHeadingFormat, string>)
-                    .setValue(this.dateHeadingFormat)
-                    .onChange((value) => {
-                        this.dateHeadingFormat =
-                            value as DayPlanDateHeadingFormat;
-                    });
-            });
-
-        appendWizardNote(contentEl);
-        appendWizardActions(contentEl, {
-            primaryText: '下一步',
-            onPrimary: () => {
-                this.resolveOnce({
-                    action: 'next',
-                    value: {
-                        weekStart: this.weekStart,
-                        dateHeadingFormat: this.dateHeadingFormat,
-                    },
-                });
-                this.close();
-            },
-            onBack: () => {
-                this.resolveOnce({ action: 'back' });
-                this.close();
-            },
-            onCancel: () => {
-                this.resolveOnce({ action: 'cancel' });
-                this.close();
-            },
-        });
-    }
-
-    onClose() {
-        this.resolveOnce({ action: 'cancel' });
-        this.contentEl.empty();
-    }
-
-    private resolveOnce(value: DayPlanWizardStepResult<DayPlanDisplayOptions>) {
-        if (this.resolved) return;
-        this.resolved = true;
-        this.resolve(value);
-    }
-}
-
-class DayPlanDailyOnlyModal extends Modal {
-    private resolved = false;
-    private enabled: boolean;
-
-    constructor(
-        plugin: MandalaGrid,
-        initialValue: boolean,
-        private resolve: (value: DayPlanWizardStepResult<boolean>) => void,
-    ) {
-        super(plugin.app);
-        this.enabled = initialValue;
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        this.setTitle('每日仅九宫格设置');
-
-        new Setting(contentEl)
-            .setName('推荐：每日仅九宫格（不展开子九宫）')
-            .setDesc('开启后将不再创建如 1.1.1 这类更深层子九宫。')
-            .addToggle((toggle) => {
-                toggle.setValue(this.enabled);
-                toggle.onChange((value) => {
-                    this.enabled = value;
-                });
-            });
-
-        appendWizardNote(contentEl);
-        appendWizardActions(contentEl, {
-            primaryText: '下一步',
-            onPrimary: () => {
-                this.resolveOnce({ action: 'next', value: this.enabled });
-                this.close();
-            },
-            onBack: () => {
-                this.resolveOnce({ action: 'back' });
-                this.close();
-            },
-            onCancel: () => {
-                this.resolveOnce({ action: 'cancel' });
-                this.close();
-            },
-        });
-    }
-
-    onClose() {
-        this.resolveOnce({ action: 'cancel' });
-        this.contentEl.empty();
-    }
-
-    private resolveOnce(value: DayPlanWizardStepResult<boolean>) {
-        if (this.resolved) return;
-        this.resolved = true;
-        this.resolve(value);
-    }
-}
-
 const appendWizardNote = (contentEl: HTMLElement) => {
     contentEl.createEl('p', {
         cls: 'mandala-day-plan-wizard__note',
         text: DAY_PLAN_WIZARD_NOTE,
     });
+};
+
+const formatIsoDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const weekdayIndexMonday = (date: Date) => (date.getDay() + 6) % 7;
+
+const WEEKDAY_ZH_SHORT = ['一', '二', '三', '四', '五', '六', '日'] as const;
+const WEEKDAY_ZH_FULL = [
+    '周一',
+    '周二',
+    '周三',
+    '周四',
+    '周五',
+    '周六',
+    '周日',
+] as const;
+const WEEKDAY_EN_SHORT = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+] as const;
+
+const buildDateHeadingPreview = (
+    date: Date,
+    format: Exclude<DayPlanDateHeadingFormat, 'custom'>,
+) => {
+    const iso = formatIsoDate(date);
+    const weekday = weekdayIndexMonday(date);
+    switch (format) {
+        case 'date-only':
+            return `## ${iso}`;
+        case 'zh-full':
+            return `## ${iso} ${WEEKDAY_ZH_FULL[weekday]}`;
+        case 'zh-short':
+            return `## ${iso} ${WEEKDAY_ZH_SHORT[weekday]}`;
+        case 'en-short':
+            return `## ${iso} ${WEEKDAY_EN_SHORT[weekday]}`;
+    }
+};
+
+const buildWeekStartPreview = (weekStart: WeekStart) => {
+    const mondayStart = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const sundayStart = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return (weekStart === 'monday' ? mondayStart : sundayStart).join(' | ');
+};
+
+const normalizeDateHeadingFormat = (
+    format: DayPlanDateHeadingFormat,
+): Exclude<DayPlanDateHeadingFormat, 'custom'> => {
+    if (format === 'custom') {
+        return 'zh-full';
+    }
+    return format;
+};
+
+const normalizeSlotsSource = (
+    source: DayPlanSlotsSource,
+    templateCount: number,
+): DayPlanSlotsSource => {
+    if (source === 'template' && templateCount === 0) {
+        return 'recommended';
+    }
+    return source;
+};
+
+const normalizeTemplateIndex = (index: number | null, templateCount: number) => {
+    if (templateCount === 0) {
+        return null;
+    }
+    if (index === null || index < 0 || index >= templateCount) {
+        return 0;
+    }
+    return index;
+};
+
+const formatSlotsPreview = (slots: readonly string[]) =>
+    slots.map((slot, index) => `${index + 1}. ${slot}`).join('\n');
+
+const createPreviewPill = (parent: HTMLElement) => {
+    const pill = parent.createDiv({ cls: 'mandala-day-plan-wizard__preview-pill' });
+    pill.setCssProps({
+        display: 'flex',
+        'align-items': 'center',
+        width: 'fit-content',
+        'max-width': '100%',
+        'margin-top': '8px',
+        padding: '6px 12px',
+        'border-radius': '999px',
+        border: '1px solid var(--background-modifier-border)',
+        'background-color': 'var(--background-secondary)',
+        'font-size': 'var(--font-ui-smaller)',
+    });
+    return pill;
 };
 
 const appendWizardActions = (
@@ -516,6 +760,8 @@ const appendWizardActions = (
     },
 ) => {
     const row = new Setting(contentEl);
+    row.settingEl.style.borderTop = 'none';
+    row.settingEl.style.paddingTop = '0';
     if (options.onBack) {
         const onBack = options.onBack;
         row.addButton((button) => {

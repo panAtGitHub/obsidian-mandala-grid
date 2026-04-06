@@ -36,11 +36,6 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
             view.getEffectiveMandalaSettings().general.weekStart,
         );
     }
-    if (dayPlan && dayPlan.daily_only_3x3 && section.includes('.')) {
-        new Notice('已启用“每日仅九宫格”，不再展开子九宫。');
-        return;
-    }
-
     if (section === currentTheme && !currentTheme.includes('.')) {
         const content = docState.document.content[nodeId]?.content ?? '';
         if (!content.trim()) {
