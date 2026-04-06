@@ -82,6 +82,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
             createGroupContainer: (parentEl, title, group) =>
                 this.createFoldCard(parentEl, title, group),
             showDescriptions: true,
+            showTimePlanDefaults: false,
             handlers: {
                 setEnable9x9View: () => {
                     this.plugin.settings.dispatch({

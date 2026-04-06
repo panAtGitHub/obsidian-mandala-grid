@@ -36,6 +36,7 @@ type RenderMandalaCoreSettingsOptions = {
     showDescriptions: boolean;
     showTimePlanEnabledToggle?: boolean;
     showTimePlanSection?: boolean;
+    showTimePlanDefaults?: boolean;
     texts?: Partial<{
         sectionGlobalView: string;
         sectionTimePlan: string;
@@ -70,6 +71,7 @@ export const renderMandalaCoreSettings = ({
     showDescriptions,
     showTimePlanEnabledToggle = true,
     showTimePlanSection = true,
+    showTimePlanDefaults = true,
     texts,
 }: RenderMandalaCoreSettingsOptions) => {
     const globalViewContainer = createGroupContainer(
@@ -244,7 +246,13 @@ export const renderMandalaCoreSettings = ({
         );
     }
 
-    if (timePlanContainer && state.general.weekPlanEnabled) {
+    if (!timePlanContainer) return;
+    const isTimePlanEnabled =
+        state.general.dayPlanEnabled && state.general.weekPlanEnabled;
+    if (!isTimePlanEnabled) return;
+    if (!showTimePlanDefaults) return;
+
+    if (state.general.weekPlanEnabled) {
         new Setting(timePlanContainer)
             .setName(texts?.weekStart ?? '周计划起始日')
             .addDropdown((dropdown) =>
@@ -259,11 +267,6 @@ export const renderMandalaCoreSettings = ({
                     ),
             );
     }
-
-    if (!timePlanContainer) return;
-    const isTimePlanEnabled =
-        state.general.dayPlanEnabled && state.general.weekPlanEnabled;
-    if (!isTimePlanEnabled) return;
 
     createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
