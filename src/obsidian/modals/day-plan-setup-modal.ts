@@ -9,11 +9,18 @@ export type DayPlanSlotsSyncMode =
     | 'all-existing'
     | 'today-and-future'
     | 'template-only';
-export type DayPlanSlotsInputResult = string[] | 'back' | null;
 export type DayPlanDisplayOptions = {
     weekStart: WeekStart;
     dateHeadingFormat: DayPlanDateHeadingFormat;
 };
+
+export type DayPlanWizardStepResult<T> =
+    | { action: 'next'; value: T }
+    | { action: 'back' }
+    | { action: 'cancel' };
+
+const DAY_PLAN_WIZARD_NOTE =
+    '备注：创建后仍可在当前文件设置中调整这些参数。';
 
 export const openDayPlanConfirmModal = (
     plugin: MandalaGrid,
@@ -33,7 +40,7 @@ export const openDayPlanYearInputModal = (
     plugin: MandalaGrid,
     initialYear: number,
 ) =>
-    new Promise<number | null>((resolve) => {
+    new Promise<DayPlanWizardStepResult<number>>((resolve) => {
         const modal = new DayPlanYearInputModal(plugin, initialYear, resolve);
         modal.open();
     });
@@ -42,7 +49,7 @@ export const openDayPlanDailyOnlyModal = (
     plugin: MandalaGrid,
     initialValue: boolean,
 ) =>
-    new Promise<boolean | null>((resolve) => {
+    new Promise<DayPlanWizardStepResult<boolean>>((resolve) => {
         const modal = new DayPlanDailyOnlyModal(plugin, initialValue, resolve);
         modal.open();
     });
@@ -50,9 +57,15 @@ export const openDayPlanDailyOnlyModal = (
 export const openDayPlanSlotsInputModal = (
     plugin: MandalaGrid,
     initialSlots: string[],
+    options: { primaryText?: string } = {},
 ) =>
-    new Promise<DayPlanSlotsInputResult>((resolve) => {
-        const modal = new DayPlanSlotsInputModal(plugin, initialSlots, resolve);
+    new Promise<DayPlanWizardStepResult<string[]>>((resolve) => {
+        const modal = new DayPlanSlotsInputModal(
+            plugin,
+            initialSlots,
+            options,
+            resolve,
+        );
         modal.open();
     });
 
@@ -66,7 +79,7 @@ export const openDayPlanDisplayOptionsModal = (
     plugin: MandalaGrid,
     initialValue: DayPlanDisplayOptions,
 ) =>
-    new Promise<DayPlanDisplayOptions | null>((resolve) => {
+    new Promise<DayPlanWizardStepResult<DayPlanDisplayOptions>>((resolve) => {
         const modal = new DayPlanDisplayOptionsModal(
             plugin,
             initialValue,
@@ -138,7 +151,7 @@ class DayPlanYearInputModal extends Modal {
     constructor(
         plugin: MandalaGrid,
         initialYear: number,
-        private resolve: (value: number | null) => void,
+        private resolve: (value: DayPlanWizardStepResult<number>) => void,
     ) {
         super(plugin.app);
         this.year = String(initialYear);
@@ -160,35 +173,31 @@ class DayPlanYearInputModal extends Modal {
                 });
             });
 
-        new Setting(contentEl).addButton((button) => {
-            button
-                .setButtonText('确认')
-                .setCta()
-                .onClick(() => {
-                    const year = Number(this.year);
-                    if (!Number.isInteger(year) || year < 1900 || year > 9999) {
-                        new Notice('请输入合法年份。');
-                        return;
-                    }
-                    this.resolveOnce(year);
-                    this.close();
-                });
-        });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
-                this.resolveOnce(null);
+        appendWizardNote(contentEl);
+        appendWizardActions(contentEl, {
+            primaryText: '下一步',
+            onPrimary: () => {
+                const year = Number(this.year);
+                if (!Number.isInteger(year) || year < 1900 || year > 9999) {
+                    new Notice('请输入合法年份。');
+                    return;
+                }
+                this.resolveOnce({ action: 'next', value: year });
                 this.close();
-            });
+            },
+            onCancel: () => {
+                this.resolveOnce({ action: 'cancel' });
+                this.close();
+            },
         });
     }
 
     onClose() {
-        this.resolveOnce(null);
+        this.resolveOnce({ action: 'cancel' });
         this.contentEl.empty();
     }
 
-    private resolveOnce(value: number | null) {
+    private resolveOnce(value: DayPlanWizardStepResult<number>) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
@@ -202,7 +211,8 @@ class DayPlanSlotsInputModal extends Modal {
     constructor(
         plugin: MandalaGrid,
         initialSlots: string[],
-        private resolve: (value: DayPlanSlotsInputResult) => void,
+        private options: { primaryText?: string },
+        private resolve: (value: DayPlanWizardStepResult<string[]>) => void,
     ) {
         super(plugin.app);
         this.values = Array.from(
@@ -230,37 +240,37 @@ class DayPlanSlotsInputModal extends Modal {
             text: '提示：后续可在 YAML 区修改，修改后可再次运行命令同步到卡片标题。',
         });
 
-        new Setting(contentEl).addButton((button) => {
-            button
-                .setButtonText('确认')
-                .setCta()
-                .onClick(() => {
-                    const hasEmpty = this.values.some(
-                        (value) => value.trim().length === 0,
-                    );
-                    if (hasEmpty) {
-                        new Notice('请填写完整的 8 个格子标题。');
-                        return;
-                    }
-                    this.resolveOnce([...this.values]);
-                    this.close();
-                });
-        });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
-                this.resolveOnce('back');
+        appendWizardNote(contentEl);
+        appendWizardActions(contentEl, {
+            primaryText: this.options.primaryText ?? '完成',
+            onPrimary: () => {
+                const hasEmpty = this.values.some(
+                    (value) => value.trim().length === 0,
+                );
+                if (hasEmpty) {
+                    new Notice('请填写完整的 8 个格子标题。');
+                    return;
+                }
+                this.resolveOnce({ action: 'next', value: [...this.values] });
                 this.close();
-            });
+            },
+            onBack: () => {
+                this.resolveOnce({ action: 'back' });
+                this.close();
+            },
+            onCancel: () => {
+                this.resolveOnce({ action: 'cancel' });
+                this.close();
+            },
         });
     }
 
     onClose() {
-        this.resolveOnce(null);
+        this.resolveOnce({ action: 'cancel' });
         this.contentEl.empty();
     }
 
-    private resolveOnce(value: DayPlanSlotsInputResult) {
+    private resolveOnce(value: DayPlanWizardStepResult<string[]>) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
@@ -347,7 +357,9 @@ class DayPlanDisplayOptionsModal extends Modal {
     constructor(
         plugin: MandalaGrid,
         initialValue: DayPlanDisplayOptions,
-        private resolve: (value: DayPlanDisplayOptions | null) => void,
+        private resolve: (
+            value: DayPlanWizardStepResult<DayPlanDisplayOptions>,
+        ) => void,
     ) {
         super(plugin.app);
         this.weekStart = initialValue.weekStart;
@@ -393,33 +405,36 @@ class DayPlanDisplayOptionsModal extends Modal {
                     });
             });
 
-        new Setting(contentEl).addButton((button) => {
-            button
-                .setButtonText('确认')
-                .setCta()
-                .onClick(() => {
-                    this.resolveOnce({
+        appendWizardNote(contentEl);
+        appendWizardActions(contentEl, {
+            primaryText: '下一步',
+            onPrimary: () => {
+                this.resolveOnce({
+                    action: 'next',
+                    value: {
                         weekStart: this.weekStart,
                         dateHeadingFormat: this.dateHeadingFormat,
-                    });
-                    this.close();
+                    },
                 });
-        });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
-                this.resolveOnce(null);
                 this.close();
-            });
+            },
+            onBack: () => {
+                this.resolveOnce({ action: 'back' });
+                this.close();
+            },
+            onCancel: () => {
+                this.resolveOnce({ action: 'cancel' });
+                this.close();
+            },
         });
     }
 
     onClose() {
-        this.resolveOnce(null);
+        this.resolveOnce({ action: 'cancel' });
         this.contentEl.empty();
     }
 
-    private resolveOnce(value: DayPlanDisplayOptions | null) {
+    private resolveOnce(value: DayPlanWizardStepResult<DayPlanDisplayOptions>) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
@@ -433,7 +448,7 @@ class DayPlanDailyOnlyModal extends Modal {
     constructor(
         plugin: MandalaGrid,
         initialValue: boolean,
-        private resolve: (value: boolean | null) => void,
+        private resolve: (value: DayPlanWizardStepResult<boolean>) => void,
     ) {
         super(plugin.app);
         this.enabled = initialValue;
@@ -454,32 +469,66 @@ class DayPlanDailyOnlyModal extends Modal {
                 });
             });
 
-        new Setting(contentEl).addButton((button) => {
-            button
-                .setButtonText('确认')
-                .setCta()
-                .onClick(() => {
-                    this.resolveOnce(this.enabled);
-                    this.close();
-                });
-        });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
-                this.resolveOnce(null);
+        appendWizardNote(contentEl);
+        appendWizardActions(contentEl, {
+            primaryText: '下一步',
+            onPrimary: () => {
+                this.resolveOnce({ action: 'next', value: this.enabled });
                 this.close();
-            });
+            },
+            onBack: () => {
+                this.resolveOnce({ action: 'back' });
+                this.close();
+            },
+            onCancel: () => {
+                this.resolveOnce({ action: 'cancel' });
+                this.close();
+            },
         });
     }
 
     onClose() {
-        this.resolveOnce(null);
+        this.resolveOnce({ action: 'cancel' });
         this.contentEl.empty();
     }
 
-    private resolveOnce(value: boolean | null) {
+    private resolveOnce(value: DayPlanWizardStepResult<boolean>) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
     }
 }
+
+const appendWizardNote = (contentEl: HTMLElement) => {
+    contentEl.createEl('p', {
+        cls: 'mandala-day-plan-wizard__note',
+        text: DAY_PLAN_WIZARD_NOTE,
+    });
+};
+
+const appendWizardActions = (
+    contentEl: HTMLElement,
+    options: {
+        primaryText: string;
+        onPrimary: () => void;
+        onBack?: () => void;
+        onCancel: () => void;
+    },
+) => {
+    const row = new Setting(contentEl);
+    if (options.onBack) {
+        const onBack = options.onBack;
+        row.addButton((button) => {
+            button.setButtonText('上一步').onClick(() => onBack());
+        });
+    }
+    row.addButton((button) => {
+        button
+            .setButtonText(options.primaryText)
+            .setCta()
+            .onClick(options.onPrimary);
+    });
+    row.addButton((button) => {
+        button.setButtonText('取消').onClick(options.onCancel);
+    });
+};

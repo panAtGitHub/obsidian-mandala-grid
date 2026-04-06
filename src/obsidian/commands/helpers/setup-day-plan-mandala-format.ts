@@ -36,6 +36,7 @@ import {
 import { openMandalaTemplateSelectModal } from 'src/obsidian/modals/mandala-templates-modal';
 import { parseMandalaTemplates } from 'src/mandala-display/logic/mandala-templates';
 import {
+    DayPlanDisplayOptions,
     openDayPlanConfirmModal,
     openDayPlanDailyOnlyModal,
     openDayPlanDisplayOptionsModal,
@@ -93,10 +94,15 @@ const readTemplatesFromSettings = async (plugin: MandalaGrid) => {
     }
 };
 
+type ChooseSlotsResult =
+    | { action: 'next'; slots: string[] }
+    | { action: 'back' }
+    | { action: 'cancel' };
+
 const chooseSlots = async (
     plugin: MandalaGrid,
     initialSlots: string[],
-): Promise<string[] | null> => {
+): Promise<ChooseSlotsResult> => {
     const templates = await readTemplatesFromSettings(plugin);
     if (templates.length > 0) {
         const useTemplate = await openDayPlanConfirmModal(plugin, {
@@ -112,8 +118,12 @@ const chooseSlots = async (
                 templates,
             );
             if (selected) {
-                return selected.slots.map((slot) => normalizeSlotTitle(slot));
+                return {
+                    action: 'next',
+                    slots: selected.slots.map((slot) => normalizeSlotTitle(slot)),
+                };
             }
+            return { action: 'cancel' };
         }
     }
 
@@ -121,33 +131,37 @@ const chooseSlots = async (
         (slot, index) => `${index + 1}. ${slot}`,
     ).join('\n');
 
-    while (true) {
-        const useRecommended = await openDayPlanConfirmModal(plugin, {
-            title: '是否采用本插件推荐的日计划模板？',
-            message:
-                '推荐模板如下：\n' +
-                recommendedTemplatePreview +
-                '\n\n若不采用推荐模板，将进入 8 行手动输入。',
-            confirmText: '使用推荐模板',
-            cancelText: '手动输入',
-        });
+    const useRecommended = await openDayPlanConfirmModal(plugin, {
+        title: '是否采用本插件推荐的日计划模板？',
+        message:
+            '推荐模板如下：\n' +
+            recommendedTemplatePreview +
+            '\n\n若不采用推荐模板，将进入 8 行手动输入。',
+        confirmText: '使用推荐模板',
+        cancelText: '手动输入',
+    });
 
-        if (useRecommended) {
-            return [...DAY_PLAN_DEFAULT_SLOT_TITLES];
-        }
-
-        const manual = await openDayPlanSlotsInputModal(plugin, initialSlots);
-        if (manual === 'back') {
-            continue;
-        }
-        if (!manual) return null;
-        if (!allSlotsFilled(manual)) {
-            new Notice('请填写完整的 8 个格子标题。');
-            return null;
-        }
-
-        return manual.map((slot) => normalizeSlotTitle(slot));
+    if (useRecommended) {
+        return {
+            action: 'next',
+            slots: [...DAY_PLAN_DEFAULT_SLOT_TITLES],
+        };
     }
+
+    const manual = await openDayPlanSlotsInputModal(plugin, initialSlots, {
+        primaryText: '完成',
+    });
+    if (manual.action === 'back') return { action: 'back' };
+    if (manual.action === 'cancel') return { action: 'cancel' };
+    if (!allSlotsFilled(manual.value)) {
+        new Notice('请填写完整的 8 个格子标题。');
+        return { action: 'cancel' };
+    }
+
+    return {
+        action: 'next',
+        slots: manual.value.map((slot) => normalizeSlotTitle(slot)),
+    };
 };
 
 const getPlanDayFromToday = (planYear: number) => {
@@ -380,55 +394,100 @@ export const setupDayPlanMandalaFormat = async (
             frontmatter,
         );
 
-        const selectedYear = await openDayPlanYearInputModal(
-            plugin,
-            getTodayInfo().year,
-        );
-        if (!selectedYear) return;
-
-        const displayOptions = await openDayPlanDisplayOptionsModal(plugin, {
+        const existingYear = Number(existingPlan?.year);
+        const planSlotsFromYaml = slotsRecordToArray(existingPlan?.slots);
+        const initialDisplayOptions: DayPlanDisplayOptions = {
             weekStart: effectiveSettings.general.weekStart,
             dateHeadingFormat: effectiveSettings.general.dayPlanDateHeadingFormat,
-        });
-        if (!displayOptions) return;
+        };
+        const resolveInitialSlots = (selectedYear: number) => {
+            const todaySection = String(getPlanDayFromToday(selectedYear));
+            const sectionSlots = Array.from({ length: 8 }, (_, index) => {
+                const section = `${todaySection}.${index + 1}`;
+                const sectionContent = getSectionContent(body, section) ?? '';
+                const firstLine =
+                    sectionContent
+                        .split('\n')
+                        .find((line) => line.trim().length > 0) ?? '';
+                return normalizeSlotTitle(firstLine);
+            });
+            return allSlotsFilled(planSlotsFromYaml)
+                ? planSlotsFromYaml
+                : allSlotsFilled(sectionSlots)
+                  ? sectionSlots
+                  : Array.from({ length: 8 }, () => '');
+        };
 
-        const dailyOnly3x3 = await openDayPlanDailyOnlyModal(
-            plugin,
-            existingPlan?.daily_only_3x3 ?? true,
-        );
-        if (dailyOnly3x3 === null) return;
+        let wizardStep: 'year' | 'display' | 'daily' | 'slots' = 'year';
+        let selectedYear = getTodayInfo().year;
+        let displayOptions = initialDisplayOptions;
+        let dailyOnly3x3 = existingPlan?.daily_only_3x3 ?? true;
+        let slots: string[] | null = null;
 
-        const existingYear = Number(existingPlan?.year);
-        if (
-            existingPlan?.enabled === true &&
-            Number.isInteger(existingYear) &&
-            existingYear !== selectedYear
-        ) {
-            new Notice('请另存新文件作为新的年计划。');
-            return;
+        while (!slots) {
+            if (wizardStep === 'year') {
+                const result = await openDayPlanYearInputModal(
+                    plugin,
+                    selectedYear,
+                );
+                if (result.action === 'cancel') return;
+                if (result.action === 'back') continue;
+                selectedYear = result.value;
+                if (
+                    existingPlan?.enabled === true &&
+                    Number.isInteger(existingYear) &&
+                    existingYear !== selectedYear
+                ) {
+                    new Notice('请另存新文件作为新的年计划。');
+                    continue;
+                }
+                wizardStep = 'display';
+                continue;
+            }
+
+            if (wizardStep === 'display') {
+                const result = await openDayPlanDisplayOptionsModal(plugin, {
+                    weekStart: displayOptions.weekStart,
+                    dateHeadingFormat: displayOptions.dateHeadingFormat,
+                });
+                if (result.action === 'cancel') return;
+                if (result.action === 'back') {
+                    wizardStep = 'year';
+                    continue;
+                }
+                displayOptions = result.value;
+                wizardStep = 'daily';
+                continue;
+            }
+
+            if (wizardStep === 'daily') {
+                const result = await openDayPlanDailyOnlyModal(
+                    plugin,
+                    dailyOnly3x3,
+                );
+                if (result.action === 'cancel') return;
+                if (result.action === 'back') {
+                    wizardStep = 'display';
+                    continue;
+                }
+                dailyOnly3x3 = result.value;
+                wizardStep = 'slots';
+                continue;
+            }
+
+            const slotResult = await chooseSlots(
+                plugin,
+                resolveInitialSlots(selectedYear),
+            );
+            if (slotResult.action === 'cancel') return;
+            if (slotResult.action === 'back') {
+                wizardStep = 'daily';
+                continue;
+            }
+            slots = slotResult.slots;
         }
 
-        const planSlotsFromYaml = slotsRecordToArray(existingPlan?.slots);
-
         const todaySection = String(getPlanDayFromToday(selectedYear));
-        const sectionSlots = Array.from({ length: 8 }, (_, index) => {
-            const section = `${todaySection}.${index + 1}`;
-            const sectionContent = getSectionContent(body, section) ?? '';
-            const firstLine =
-                sectionContent
-                    .split('\n')
-                    .find((line) => line.trim().length > 0) ?? '';
-            return normalizeSlotTitle(firstLine);
-        });
-
-        const initialSlots = allSlotsFilled(planSlotsFromYaml)
-            ? planSlotsFromYaml
-            : allSlotsFilled(sectionSlots)
-              ? sectionSlots
-              : Array.from({ length: 8 }, () => '');
-
-        const slots = await chooseSlots(plugin, initialSlots);
-        if (!slots) return;
         const dateHeadingSettings = getDayPlanDateHeadingSettings({
             format: displayOptions.dateHeadingFormat,
             customTemplate:
