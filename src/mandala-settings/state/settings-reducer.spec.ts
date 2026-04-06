@@ -236,6 +236,7 @@ describe('settingsReducer custom grid layouts', () => {
 
     test('cycles mandala modes through 3x3, 9x9 and nx9', () => {
         const settings = DEFAULT_SETTINGS();
+        settings.view.enable9x9View = true;
 
         settingsReducer(settings, {
             type: 'settings/view/mandala/toggle-mode',
@@ -255,6 +256,7 @@ describe('settingsReducer custom grid layouts', () => {
 
     test('cycles mandala modes independently of week plan setting', () => {
         const settings = DEFAULT_SETTINGS();
+        settings.view.enable9x9View = true;
         settings.general.weekPlanEnabled = false;
 
         settingsReducer(settings, {
@@ -308,6 +310,7 @@ describe('settingsReducer custom grid layouts', () => {
 
     test('toggles 9x9 and nx9 global view switches independently', () => {
         const settings = DEFAULT_SETTINGS();
+        settings.view.enable9x9View = true;
 
         settingsReducer(settings, {
             type: 'settings/view/toggle-9x9-view',

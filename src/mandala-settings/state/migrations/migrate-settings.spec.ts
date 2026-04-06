@@ -83,7 +83,7 @@ describe('migrateSettings', () => {
 
         migrateSettings(settings);
 
-        expect(settings.view.enable9x9View).toBe(true);
+        expect(settings.view.enable9x9View).toBe(false);
         expect(settings.view.enableNx9View).toBe(true);
     });
 

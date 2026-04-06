@@ -421,7 +421,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         legacyViewSettings.coreSectionMax = 'unlimited';
     }
     if (typeof (viewSettings as Record<string, unknown>).enable9x9View !== 'boolean') {
-        (viewSettings as Record<string, unknown>).enable9x9View = true;
+        (viewSettings as Record<string, unknown>).enable9x9View = false;
     }
     if (typeof (viewSettings as Record<string, unknown>).enableNx9View !== 'boolean') {
         (viewSettings as Record<string, unknown>).enableNx9View = true;

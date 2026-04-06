@@ -120,7 +120,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         },
         mobileEditFontSizeOffset: 0,
         show9x9TitleOnly: false,
-        enable9x9View: true,
+        enable9x9View: false,
         enableNx9View: true,
         squareLayout: false,
         whiteThemeMode: false,

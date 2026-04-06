@@ -34,6 +34,7 @@ type RenderMandalaCoreSettingsOptions = {
         group: 'global-view' | 'time-plan',
     ) => HTMLElement;
     showDescriptions: boolean;
+    showViewPresets?: boolean;
     showTimePlanEnabledToggle?: boolean;
     showTimePlanSection?: boolean;
     showTimePlanDefaults?: boolean;
@@ -52,6 +53,88 @@ type RenderMandalaCoreSettingsOptions = {
     }>;
 };
 
+type GlobalViewPresetId =
+    | 'single-81'
+    | 'multi-81'
+    | 'multi-3x3'
+    | 'single-infinite'
+    | 'multi-infinite'
+    | 'custom';
+
+type GlobalViewPreset = {
+    id: GlobalViewPresetId;
+    label: string;
+    view: {
+        enable9x9View: boolean;
+        enableNx9View: boolean;
+        coreSectionMax: SectionRangeLimit;
+        subgridMaxDepth: SectionRangeLimit;
+    };
+};
+
+const GLOBAL_VIEW_PRESETS: GlobalViewPreset[] = [
+    {
+        id: 'single-81',
+        label: '一页81宫格',
+        view: {
+            enable9x9View: true,
+            enableNx9View: false,
+            coreSectionMax: 1,
+            subgridMaxDepth: 3,
+        },
+    },
+    {
+        id: 'multi-81',
+        label: 'n页81宫格',
+        view: {
+            enable9x9View: true,
+            enableNx9View: true,
+            coreSectionMax: 'unlimited',
+            subgridMaxDepth: 3,
+        },
+    },
+    {
+        id: 'multi-3x3',
+        label: 'n页九宫格',
+        view: {
+            enable9x9View: false,
+            enableNx9View: true,
+            coreSectionMax: 'unlimited',
+            subgridMaxDepth: 2,
+        },
+    },
+    {
+        id: 'single-infinite',
+        label: '一页无限九宫格',
+        view: {
+            enable9x9View: false,
+            enableNx9View: false,
+            coreSectionMax: 1,
+            subgridMaxDepth: 'unlimited',
+        },
+    },
+    {
+        id: 'multi-infinite',
+        label: 'n页无限九宫格',
+        view: {
+            enable9x9View: false,
+            enableNx9View: true,
+            coreSectionMax: 'unlimited',
+            subgridMaxDepth: 'unlimited',
+        },
+    },
+    {
+        id: 'custom',
+        label: '自定义',
+        view: {
+            enable9x9View: false,
+            enableNx9View: true,
+            coreSectionMax: 'unlimited',
+            subgridMaxDepth: 'unlimited',
+        },
+    },
+];
+
 const createMaybeDescriptionSetting = (
     setting: Setting,
     description: string | null,
@@ -63,12 +146,41 @@ const createMaybeDescriptionSetting = (
     return setting;
 };
 
+const viewPresetMatches = (
+    preset: GlobalViewPreset,
+    value: {
+        enable9x9View: boolean;
+        enableNx9View: boolean;
+        coreSectionMax: SectionRangeLimit;
+        subgridMaxDepth: SectionRangeLimit;
+    },
+) =>
+    preset.view.enable9x9View === value.enable9x9View &&
+    preset.view.enableNx9View === value.enableNx9View &&
+    preset.view.coreSectionMax === value.coreSectionMax &&
+    preset.view.subgridMaxDepth === value.subgridMaxDepth;
+
+const resolveGlobalViewPresetId = (value: {
+    enable9x9View: boolean;
+    enableNx9View: boolean;
+    coreSectionMax: SectionRangeLimit;
+    subgridMaxDepth: SectionRangeLimit;
+}): GlobalViewPresetId =>
+    GLOBAL_VIEW_PRESETS.find(
+        (preset) =>
+            preset.id !== 'custom' && viewPresetMatches(preset, value),
+    )?.id ?? 'custom';
+
+const toRangeInputValue = (value: SectionRangeLimit) =>
+    value === 'unlimited' ? '' : String(value);
+
 export const renderMandalaCoreSettings = ({
     parentEl,
     state,
     handlers,
     createGroupContainer,
     showDescriptions,
+    showViewPresets = false,
     showTimePlanEnabledToggle = true,
     showTimePlanSection = true,
     showTimePlanDefaults = true,
@@ -87,26 +199,176 @@ export const renderMandalaCoreSettings = ({
           )
         : null;
 
-    new Setting(globalViewContainer)
-        .setName(texts?.enable9x9View ?? lang.settings_global_enable_9x9_view)
-        .addToggle((toggle) =>
-            toggle
-                .setValue(state.view.enable9x9View)
-                .onChange((enabled) => handlers.setEnable9x9View(enabled)),
-        );
-
-    new Setting(globalViewContainer)
-        .setName(texts?.enableNx9View ?? lang.settings_global_enable_nx9_view)
-        .addToggle((toggle) =>
-            toggle
-                .setValue(state.view.enableNx9View)
-                .onChange((enabled) => handlers.setEnableNx9View(enabled)),
-        );
-
+    let currentEnable9x9View = state.view.enable9x9View;
+    let currentEnableNx9View = state.view.enableNx9View;
     let currentCoreSectionMax = state.view.coreSectionMax;
     let currentSubgridMaxDepth = state.view.subgridMaxDepth;
     let coreSectionError: string | null = null;
     let subgridDepthError: string | null = null;
+    let currentPresetId: GlobalViewPresetId = resolveGlobalViewPresetId({
+        enable9x9View: currentEnable9x9View,
+        enableNx9View: currentEnableNx9View,
+        coreSectionMax: currentCoreSectionMax,
+        subgridMaxDepth: currentSubgridMaxDepth,
+    });
+    let applyingPreset = false;
+
+    let enable9x9Toggle:
+        | {
+              setValue: (value: boolean) => unknown;
+          }
+        | undefined;
+    let enableNx9Toggle:
+        | {
+              setValue: (value: boolean) => unknown;
+          }
+        | undefined;
+    let coreSectionInput:
+        | {
+              setValue: (value: string) => unknown;
+          }
+        | undefined;
+    let subgridDepthInput:
+        | {
+              setValue: (value: string) => unknown;
+          }
+        | undefined;
+    const presetButtons = new Map<GlobalViewPresetId, HTMLButtonElement>();
+
+    const syncPresetButtons = () => {
+        presetButtons.forEach((button, presetId) => {
+            const selected = presetId === currentPresetId;
+            const label = button.dataset.label ?? '';
+            button.setText(`${selected ? '●' : '○'} ${label}`);
+            button.setCssProps({
+                border: selected
+                    ? '1px solid var(--interactive-accent)'
+                    : '1px solid var(--background-modifier-border)',
+                'background-color': selected
+                    ? 'color-mix(in srgb, var(--interactive-accent) 12%, var(--background-secondary))'
+                    : 'var(--background-secondary)',
+                color: selected ? 'var(--text-normal)' : 'var(--text-muted)',
+            });
+        });
+    };
+
+    const syncPresetFromCurrentValues = () => {
+        currentPresetId = resolveGlobalViewPresetId({
+            enable9x9View: currentEnable9x9View,
+            enableNx9View: currentEnableNx9View,
+            coreSectionMax: currentCoreSectionMax,
+            subgridMaxDepth: currentSubgridMaxDepth,
+        });
+        syncPresetButtons();
+    };
+
+    const applyPreset = (presetId: GlobalViewPresetId) => {
+        const preset = GLOBAL_VIEW_PRESETS.find((item) => item.id === presetId);
+        if (!preset || preset.id === 'custom') return;
+
+        applyingPreset = true;
+        currentEnable9x9View = preset.view.enable9x9View;
+        currentEnableNx9View = preset.view.enableNx9View;
+        currentCoreSectionMax = preset.view.coreSectionMax;
+        currentSubgridMaxDepth = preset.view.subgridMaxDepth;
+        coreSectionError = null;
+        subgridDepthError = null;
+
+        state.view.enable9x9View = currentEnable9x9View;
+        state.view.enableNx9View = currentEnableNx9View;
+        handlers.setEnable9x9View(currentEnable9x9View);
+        handlers.setEnableNx9View(currentEnableNx9View);
+        handlers.setCoreSectionMax(currentCoreSectionMax);
+        handlers.setSubgridMaxDepth(currentSubgridMaxDepth);
+
+        enable9x9Toggle?.setValue(currentEnable9x9View);
+        enableNx9Toggle?.setValue(currentEnableNx9View);
+        coreSectionInput?.setValue(toRangeInputValue(currentCoreSectionMax));
+        subgridDepthInput?.setValue(toRangeInputValue(currentSubgridMaxDepth));
+
+        currentPresetId = preset.id;
+        updateRangeHints();
+        syncPresetButtons();
+        applyingPreset = false;
+    };
+
+    if (showViewPresets) {
+        const presetSection = globalViewContainer.createDiv({
+            cls: 'mandala-settings-view-presets',
+        });
+        presetSection.setCssProps({
+            'margin-bottom': showDescriptions ? '8px' : '4px',
+        });
+        presetSection.createDiv({ text: '预设模式' }).setCssProps({
+            'font-size': 'var(--font-ui-medium)',
+            'font-weight': 'var(--font-semibold)',
+            'margin-bottom': '8px',
+        });
+        const presetGrid = presetSection.createDiv({
+            cls: 'mandala-settings-view-presets__grid',
+        });
+        presetGrid.setCssProps({
+            display: 'grid',
+            'grid-template-columns': 'repeat(3, minmax(0, 1fr))',
+            gap: '6px 8px',
+            'margin-bottom': showDescriptions ? '6px' : '2px',
+        });
+
+        GLOBAL_VIEW_PRESETS.forEach((preset) => {
+            const button = presetGrid.createEl('button', {
+                cls: 'mod-muted',
+                attr: { type: 'button' },
+            });
+            button.dataset.label = preset.label;
+            button.setCssProps({
+                'text-align': 'left',
+                padding: '8px 10px',
+                'border-radius': '12px',
+                'font-size': 'var(--font-ui-small)',
+                'font-weight': 'var(--font-medium)',
+                'line-height': '1.2',
+                margin: '0',
+            });
+            button.addEventListener('click', () => applyPreset(preset.id));
+            presetButtons.set(preset.id, button);
+        });
+
+        if (showDescriptions) {
+            presetSection.createDiv({
+                text: '提示：选择预设后，下方参数会自动联动；若手动修改参数，预设自动切换为「自定义」。',
+            }).setCssProps({
+                'font-size': 'var(--font-ui-smaller)',
+                color: 'var(--text-muted)',
+                'line-height': '1.45',
+            });
+        }
+
+        syncPresetButtons();
+    }
+
+    new Setting(globalViewContainer)
+        .setName(texts?.enable9x9View ?? lang.settings_global_enable_9x9_view)
+        .addToggle((toggle) => {
+            enable9x9Toggle = toggle;
+            toggle.setValue(currentEnable9x9View).onChange((enabled) => {
+                currentEnable9x9View = enabled;
+                state.view.enable9x9View = enabled;
+                handlers.setEnable9x9View(enabled);
+                if (!applyingPreset) syncPresetFromCurrentValues();
+            });
+        });
+
+    new Setting(globalViewContainer)
+        .setName(texts?.enableNx9View ?? lang.settings_global_enable_nx9_view)
+        .addToggle((toggle) => {
+            enableNx9Toggle = toggle;
+            toggle.setValue(currentEnableNx9View).onChange((enabled) => {
+                currentEnableNx9View = enabled;
+                state.view.enableNx9View = enabled;
+                handlers.setEnableNx9View(enabled);
+                if (!applyingPreset) syncPresetFromCurrentValues();
+            });
+        });
 
     const coreSectionSetting = new Setting(globalViewContainer).setName(
         texts?.coreSectionMax ?? lang.settings_global_core_section_max,
@@ -177,14 +439,10 @@ export const renderMandalaCoreSettings = ({
         );
     };
 
-    coreSectionSetting.addText((text) =>
-        text
-            .setPlaceholder('留空表示不限')
-            .setValue(
-                currentCoreSectionMax === 'unlimited'
-                    ? ''
-                    : String(currentCoreSectionMax),
-            )
+    coreSectionSetting.addText((text) => {
+        coreSectionInput = text;
+        text.setPlaceholder('留空表示不限')
+            .setValue(toRangeInputValue(currentCoreSectionMax))
             .onChange((value) => {
                 const parsed = parsePositiveIntegerInput(value);
                 if (!parsed.valid) {
@@ -196,17 +454,14 @@ export const renderMandalaCoreSettings = ({
                 currentCoreSectionMax = parsed.value;
                 handlers.setCoreSectionMax(parsed.value);
                 updateRangeHints();
-            }),
-    );
+                if (!applyingPreset) syncPresetFromCurrentValues();
+            });
+    });
 
-    subgridDepthSetting.addText((text) =>
-        text
-            .setPlaceholder('留空表示不限')
-            .setValue(
-                currentSubgridMaxDepth === 'unlimited'
-                    ? ''
-                    : String(currentSubgridMaxDepth),
-            )
+    subgridDepthSetting.addText((text) => {
+        subgridDepthInput = text;
+        text.setPlaceholder('留空表示不限')
+            .setValue(toRangeInputValue(currentSubgridMaxDepth))
             .onChange((value) => {
                 const parsed = parsePositiveIntegerInput(value);
                 if (!parsed.valid) {
@@ -219,8 +474,9 @@ export const renderMandalaCoreSettings = ({
                 currentSubgridMaxDepth = parsed.value;
                 handlers.setSubgridMaxDepth(parsed.value);
                 updateRangeHints();
-            }),
-    );
+                if (!applyingPreset) syncPresetFromCurrentValues();
+            });
+    });
 
     updateRangeHints();
 
