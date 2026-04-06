@@ -13,6 +13,7 @@ import {
 } from 'src/mandala-display/logic/mandala-conversion';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import { MANDALA_FRONTMATTER_SETTINGS_KEY } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import {
     allSlotsFilled,
     buildCenterDateHeading,
@@ -37,6 +38,7 @@ import { parseMandalaTemplates } from 'src/mandala-display/logic/mandala-templat
 import {
     openDayPlanConfirmModal,
     openDayPlanDailyOnlyModal,
+    openDayPlanDisplayOptionsModal,
     openDayPlanSlotsInputModal,
     openDayPlanYearInputModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
@@ -156,15 +158,38 @@ const getPlanDayFromToday = (planYear: number) => {
     return dayOfYearFromDate(planYear, month, day);
 };
 
-const getDateHeadingSettings = (plugin: MandalaGrid, frontmatter: string) => {
-    const effective = resolveEffectiveMandalaSettings(
-        plugin.settings.getValue(),
-        frontmatter,
-    );
-    return getDayPlanDateHeadingSettings({
-        format: effective.general.dayPlanDateHeadingFormat,
-        customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
-        applyMode: effective.general.dayPlanDateHeadingApplyMode,
+const persistDayPlanDisplayOptions = async (
+    plugin: MandalaGrid,
+    file: TFile,
+    options: {
+        weekStart: 'monday' | 'sunday';
+        dateHeadingFormat:
+            | 'date-only'
+            | 'zh-full'
+            | 'zh-short'
+            | 'en-short'
+            | 'custom';
+        dateHeadingCustomTemplate: string;
+    },
+) => {
+    await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
+        const record = frontmatter as Record<string, unknown>;
+        const rawSettings = record[MANDALA_FRONTMATTER_SETTINGS_KEY];
+        const rootSettings =
+            rawSettings && typeof rawSettings === 'object'
+                ? (rawSettings as Record<string, unknown>)
+                : {};
+        const rawGeneral = rootSettings.general;
+        const general =
+            rawGeneral && typeof rawGeneral === 'object'
+                ? (rawGeneral as Record<string, unknown>)
+                : {};
+        general.weekStart = options.weekStart;
+        general.dayPlanDateHeadingFormat = options.dateHeadingFormat;
+        general.dayPlanDateHeadingCustomTemplate =
+            options.dateHeadingCustomTemplate;
+        rootSettings.general = general;
+        record[MANDALA_FRONTMATTER_SETTINGS_KEY] = rootSettings;
     });
 };
 
@@ -172,7 +197,7 @@ const createYearPlanBodyAsync = async (
     planYear: number,
     todaySection: number,
     slots: string[],
-    dateHeadingSettings: ReturnType<typeof getDateHeadingSettings>,
+    dateHeadingSettings: ReturnType<typeof getDayPlanDateHeadingSettings>,
     onProgress: (done: number, total: number) => void,
 ) => {
     const totalDays = daysInYear(planYear);
@@ -350,12 +375,22 @@ export const setupDayPlanMandalaFormat = async (
         const latest = await plugin.app.vault.read(file);
         const { body, frontmatter } = extractFrontmatter(latest);
         const existingPlan = parseDayPlanFrontmatter(frontmatter);
+        const effectiveSettings = resolveEffectiveMandalaSettings(
+            plugin.settings.getValue(),
+            frontmatter,
+        );
 
         const selectedYear = await openDayPlanYearInputModal(
             plugin,
             getTodayInfo().year,
         );
         if (!selectedYear) return;
+
+        const displayOptions = await openDayPlanDisplayOptionsModal(plugin, {
+            weekStart: effectiveSettings.general.weekStart,
+            dateHeadingFormat: effectiveSettings.general.dayPlanDateHeadingFormat,
+        });
+        if (!displayOptions) return;
 
         const dailyOnly3x3 = await openDayPlanDailyOnlyModal(
             plugin,
@@ -394,7 +429,12 @@ export const setupDayPlanMandalaFormat = async (
 
         const slots = await chooseSlots(plugin, initialSlots);
         if (!slots) return;
-        const dateHeadingSettings = getDateHeadingSettings(plugin, frontmatter);
+        const dateHeadingSettings = getDayPlanDateHeadingSettings({
+            format: displayOptions.dateHeadingFormat,
+            customTemplate:
+                effectiveSettings.general.dayPlanDateHeadingCustomTemplate,
+            applyMode: effectiveSettings.general.dayPlanDateHeadingApplyMode,
+        });
 
         let nextBody = body;
         let firstRun = !(existingPlan?.enabled === true);
@@ -463,6 +503,12 @@ export const setupDayPlanMandalaFormat = async (
         const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);
         const writeStartMs = performance.now();
         await plugin.app.vault.modify(file, nextContent);
+        await persistDayPlanDisplayOptions(plugin, file, {
+            weekStart: displayOptions.weekStart,
+            dateHeadingFormat: displayOptions.dateHeadingFormat,
+            dateHeadingCustomTemplate:
+                effectiveSettings.general.dayPlanDateHeadingCustomTemplate,
+        });
         logger.debug('[perf][day-plan-setup] write-markdown', {
             file: file.path,
             costMs: Number((performance.now() - writeStartMs).toFixed(2)),

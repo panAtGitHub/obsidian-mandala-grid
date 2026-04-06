@@ -1,11 +1,19 @@
 import { Modal, Notice, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
+import type {
+    DayPlanDateHeadingFormat,
+    WeekStart,
+} from 'src/mandala-settings/state/settings-type';
 
 export type DayPlanSlotsSyncMode =
     | 'all-existing'
     | 'today-and-future'
     | 'template-only';
 export type DayPlanSlotsInputResult = string[] | 'back' | null;
+export type DayPlanDisplayOptions = {
+    weekStart: WeekStart;
+    dateHeadingFormat: DayPlanDateHeadingFormat;
+};
 
 export const openDayPlanConfirmModal = (
     plugin: MandalaGrid,
@@ -51,6 +59,19 @@ export const openDayPlanSlotsInputModal = (
 export const openDayPlanSlotsSyncModeModal = (plugin: MandalaGrid) =>
     new Promise<DayPlanSlotsSyncMode | null>((resolve) => {
         const modal = new DayPlanSlotsSyncModeModal(plugin, resolve);
+        modal.open();
+    });
+
+export const openDayPlanDisplayOptionsModal = (
+    plugin: MandalaGrid,
+    initialValue: DayPlanDisplayOptions,
+) =>
+    new Promise<DayPlanDisplayOptions | null>((resolve) => {
+        const modal = new DayPlanDisplayOptionsModal(
+            plugin,
+            initialValue,
+            resolve,
+        );
         modal.open();
     });
 
@@ -312,6 +333,93 @@ class DayPlanSlotsSyncModeModal extends Modal {
     }
 
     private resolveOnce(value: DayPlanSlotsSyncMode | null) {
+        if (this.resolved) return;
+        this.resolved = true;
+        this.resolve(value);
+    }
+}
+
+class DayPlanDisplayOptionsModal extends Modal {
+    private resolved = false;
+    private weekStart: WeekStart;
+    private dateHeadingFormat: DayPlanDateHeadingFormat;
+
+    constructor(
+        plugin: MandalaGrid,
+        initialValue: DayPlanDisplayOptions,
+        private resolve: (value: DayPlanDisplayOptions | null) => void,
+    ) {
+        super(plugin.app);
+        this.weekStart = initialValue.weekStart;
+        this.dateHeadingFormat = initialValue.dateHeadingFormat;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        this.setTitle('日/周显示参数');
+
+        new Setting(contentEl)
+            .setName('周计划起始日')
+            .setDesc('周视图中一周从周一或周日开始。')
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOptions({
+                        monday: '周一开始',
+                        sunday: '周日开始',
+                    } satisfies Record<WeekStart, string>)
+                    .setValue(this.weekStart)
+                    .onChange((value) => {
+                        this.weekStart = value as WeekStart;
+                    });
+            });
+
+        new Setting(contentEl)
+            .setName('日计划日期标题格式')
+            .setDesc('控制如“## 2026-03-16 …”这类日期标题的显示格式。')
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOptions({
+                        'date-only': '仅日期',
+                        'zh-full': '日期 + 周一到周日',
+                        'zh-short': '日期 + 一到日',
+                        'en-short': 'Date + mon~sun',
+                        custom: '自定义模板',
+                    } satisfies Record<DayPlanDateHeadingFormat, string>)
+                    .setValue(this.dateHeadingFormat)
+                    .onChange((value) => {
+                        this.dateHeadingFormat =
+                            value as DayPlanDateHeadingFormat;
+                    });
+            });
+
+        new Setting(contentEl).addButton((button) => {
+            button
+                .setButtonText('确认')
+                .setCta()
+                .onClick(() => {
+                    this.resolveOnce({
+                        weekStart: this.weekStart,
+                        dateHeadingFormat: this.dateHeadingFormat,
+                    });
+                    this.close();
+                });
+        });
+
+        new Setting(contentEl).addButton((button) => {
+            button.setButtonText('取消').onClick(() => {
+                this.resolveOnce(null);
+                this.close();
+            });
+        });
+    }
+
+    onClose() {
+        this.resolveOnce(null);
+        this.contentEl.empty();
+    }
+
+    private resolveOnce(value: DayPlanDisplayOptions | null) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
