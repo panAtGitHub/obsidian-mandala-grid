@@ -64,6 +64,7 @@ describe('createDayPlanDocument', () => {
         mocks.createNewFileMandalaViewStateAction.mockReturnValue(
             initialViewStateAction,
         );
+        mocks.setupDayPlanMandalaFormat.mockResolvedValue(true);
 
         await createDayPlanDocument(plugin as never);
 
@@ -109,6 +110,7 @@ describe('createDayPlanDocument', () => {
         mocks.createNewFileMandalaViewStateAction.mockReturnValue(
             initialViewStateAction,
         );
+        mocks.setupDayPlanMandalaFormat.mockResolvedValue(true);
 
         await createDayPlanDocument(plugin as never);
 
@@ -129,5 +131,46 @@ describe('createDayPlanDocument', () => {
             plugin,
             createdFile,
         );
+    });
+
+    it('deletes created file when setup is canceled', async () => {
+        const folder = { path: 'projects/a' };
+        const activeFile = { parent: folder };
+        const createdFile = { path: 'projects/a/Day Plan.md' };
+        const initialViewStateAction = {
+            type: 'settings/documents/persist-mandala-view-state',
+        };
+        const dispatch = vi.fn();
+        const deleteFile = vi.fn();
+        const plugin = {
+            app: {
+                vault: {
+                    getRoot: vi.fn(),
+                    delete: deleteFile,
+                },
+            },
+            settings: {
+                getValue: vi.fn(() => ({
+                    view: { mandalaGridOrientation: 'left-to-right' },
+                })),
+                dispatch,
+            },
+        };
+        mocks.getActiveFile.mockReturnValue(activeFile);
+        mocks.createNewFile.mockResolvedValue(createdFile);
+        mocks.createNewFileMandalaViewStateAction.mockReturnValue(
+            initialViewStateAction,
+        );
+        mocks.setupDayPlanMandalaFormat.mockResolvedValue(false);
+
+        await createDayPlanDocument(plugin as never);
+
+        expect(deleteFile).toHaveBeenCalledWith(createdFile);
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'settings/documents/delete-document-preferences',
+            payload: {
+                path: createdFile.path,
+            },
+        });
     });
 });

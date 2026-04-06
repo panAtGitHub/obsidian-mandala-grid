@@ -358,7 +358,7 @@ export const setupDayPlanMandalaFormat = async (
 ) => {
     if (isSettingUpDayPlan) {
         new Notice('正在生成年计划数据，请先不要使用。');
-        return;
+        return false;
     }
     isSettingUpDayPlan = true;
     const processingNotice = new Notice(
@@ -370,12 +370,12 @@ export const setupDayPlanMandalaFormat = async (
         const file = targetFile ?? getActiveFile(plugin);
         if (!file) {
             new Notice('未找到当前文件。');
-            return;
+            return false;
         }
 
         if (file.extension !== 'md') {
             new Notice('仅支持 Markdown 文件。');
-            return;
+            return false;
         }
 
         let content = await plugin.app.vault.read(file);
@@ -430,7 +430,7 @@ export const setupDayPlanMandalaFormat = async (
                     plugin,
                     selectedYear,
                 );
-                if (result.action === 'cancel') return;
+                if (result.action === 'cancel') return false;
                 if (result.action === 'back') continue;
                 selectedYear = result.value;
                 if (
@@ -450,7 +450,7 @@ export const setupDayPlanMandalaFormat = async (
                     weekStart: displayOptions.weekStart,
                     dateHeadingFormat: displayOptions.dateHeadingFormat,
                 });
-                if (result.action === 'cancel') return;
+                if (result.action === 'cancel') return false;
                 if (result.action === 'back') {
                     wizardStep = 'year';
                     continue;
@@ -465,7 +465,7 @@ export const setupDayPlanMandalaFormat = async (
                     plugin,
                     dailyOnly3x3,
                 );
-                if (result.action === 'cancel') return;
+                if (result.action === 'cancel') return false;
                 if (result.action === 'back') {
                     wizardStep = 'display';
                     continue;
@@ -479,7 +479,7 @@ export const setupDayPlanMandalaFormat = async (
                 plugin,
                 resolveInitialSlots(selectedYear),
             );
-            if (slotResult.action === 'cancel') return;
+            if (slotResult.action === 'cancel') return false;
             if (slotResult.action === 'back') {
                 wizardStep = 'daily';
                 continue;
@@ -535,7 +535,7 @@ export const setupDayPlanMandalaFormat = async (
                         cancelText: '取消',
                     },
                 );
-                if (!shouldOverwriteAll) return;
+                if (!shouldOverwriteAll) return false;
             }
 
             for (let i = 0; i < 8; i += 1) {
@@ -584,6 +584,7 @@ export const setupDayPlanMandalaFormat = async (
         });
 
         new Notice('已设置为年计划日计划格式。');
+        return true;
     } finally {
         processingNotice.hide();
         isSettingUpDayPlan = false;

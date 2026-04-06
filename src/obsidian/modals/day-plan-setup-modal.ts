@@ -160,11 +160,11 @@ class DayPlanYearInputModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('确认年计划年份');
+        this.setTitle('一，确认「年份」');
 
         new Setting(contentEl)
-            .setName('年份')
-            .setDesc('默认取今天年份，可改为其他年份。')
+            .setName('年份：')
+            .setDesc('默认为「今年」，可输入其他年份。')
             .addText((text) => {
                 text.setPlaceholder('2026');
                 text.setValue(this.year);
@@ -369,10 +369,10 @@ class DayPlanDisplayOptionsModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('日/周显示参数');
+        this.setTitle('二，「周计划」设置');
 
         new Setting(contentEl)
-            .setName('周计划起始日')
+            .setName('「周计划」起始日')
             .setDesc('周视图中一周从周一或周日开始。')
             .addDropdown((dropdown) => {
                 dropdown
