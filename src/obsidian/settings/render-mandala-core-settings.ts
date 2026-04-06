@@ -38,6 +38,7 @@ type RenderMandalaCoreSettingsOptions = {
     showTimePlanEnabledToggle?: boolean;
     showTimePlanSection?: boolean;
     showTimePlanDefaults?: boolean;
+    renderTimePlanFooter?: (containerEl: HTMLElement) => void;
     texts?: Partial<{
         sectionGlobalView: string;
         sectionTimePlan: string;
@@ -184,6 +185,7 @@ export const renderMandalaCoreSettings = ({
     showTimePlanEnabledToggle = true,
     showTimePlanSection = true,
     showTimePlanDefaults = true,
+    renderTimePlanFooter,
     texts,
 }: RenderMandalaCoreSettingsOptions) => {
     const globalViewContainer = createGroupContainer(
@@ -569,4 +571,6 @@ export const renderMandalaCoreSettings = ({
                 ),
         );
     }
+
+    renderTimePlanFooter?.(timePlanContainer);
 };

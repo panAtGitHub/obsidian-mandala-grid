@@ -1,4 +1,4 @@
-import { Modal, Notice, Setting } from 'obsidian';
+import { Modal, Notice } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
 import {
     type EffectiveMandalaSettings,
@@ -7,9 +7,11 @@ import {
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
-import { lang } from 'src/lang/lang';
 import { refreshCurrentDayPlanDateHeadings } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
-import { writeCurrentCoreDayPlanSlotsToYaml } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
+import {
+    getCurrentCoreDayPlanTemplateMismatch,
+    writeCurrentCoreDayPlanSlotsToYamlForView,
+} from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
 import { isDayPlanDedicatedFrontmatter } from 'src/mandala-display/logic/day-plan';
 import { createSettingsFoldCard } from 'src/obsidian/settings/create-settings-fold-card';
 
@@ -46,10 +48,10 @@ export const openCurrentFileMandalaSettingsModal = (view: MandalaView) => {
 
 class CurrentFileMandalaSettingsModal extends Modal {
     private state: LocalFileSettings;
+    private dismissedTemplateMismatchCore: string | null = null;
     private readonly groupOpenState = new Map<string, boolean>([
         ['global-view', true],
         ['time-plan', true],
-        ['actions', true],
     ]);
 
     constructor(private readonly view: MandalaView) {
@@ -69,8 +71,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
     }
 
     private getScrollContainer() {
-        return (this.contentEl.closest('.modal-content') ??
-            this.contentEl) as HTMLElement;
+        return this.contentEl.closest('.modal-content') ?? this.contentEl;
     }
 
     private createFoldCard(parentEl: HTMLElement, title: string, key: string) {
@@ -95,10 +96,21 @@ class CurrentFileMandalaSettingsModal extends Modal {
         const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
             this.view.documentStore.getValue().file.frontmatter,
         );
+        const templateMismatch = isDayPlanDedicated
+            ? getCurrentCoreDayPlanTemplateMismatch(this.view)
+            : null;
+        if (
+            templateMismatch &&
+            this.dismissedTemplateMismatchCore !== templateMismatch.core
+        ) {
+            this.dismissedTemplateMismatchCore = null;
+        }
 
         contentEl.createDiv({
             cls: 'mandala-file-settings__note',
-            text: '仅影响当前 md 文件，保存到 YAML 的 mandala_settings。',
+            text: isDayPlanDedicated
+                ? '仅影响当前 md 文件。视图设置保存到 YAML 的 mandala_settings；日计划模板会写回当前文件的 YAML。'
+                : '仅影响当前 md 文件，保存到 YAML 的 mandala_settings。',
         });
 
         renderMandalaCoreSettings({
@@ -106,6 +118,61 @@ class CurrentFileMandalaSettingsModal extends Modal {
             state: this.state,
             showTimePlanEnabledToggle: false,
             showTimePlanSection: isDayPlanDedicated,
+            renderTimePlanFooter: (containerEl) => {
+                if (!templateMismatch) return;
+                if (this.dismissedTemplateMismatchCore === templateMismatch.core) {
+                    return;
+                }
+
+                const promptCard = containerEl.createDiv({
+                    cls: 'mandala-file-settings__template-sync-card',
+                });
+                promptCard.createDiv({
+                    cls: 'mandala-file-settings__template-sync-title',
+                    text: '检测到当前核心 8 格标题与 YAML 模板不一致',
+                });
+                promptCard.createDiv({
+                    cls: 'mandala-file-settings__template-sync-core',
+                    text: `当前核心：${templateMismatch.core}`,
+                });
+                promptCard.createDiv({
+                    cls: 'mandala-file-settings__template-sync-text',
+                    text: '差异提示：当前核心九宫的 8 个标题已被修改，但尚未写回当前文件模板。',
+                });
+                promptCard.createDiv({
+                    cls: 'mandala-file-settings__template-sync-text',
+                    text: '如果你希望后续日期继续沿用这组 8 格标题，可写回 YAML 以便复用。',
+                });
+
+                const actionsEl = promptCard.createDiv({
+                    cls: 'mandala-file-settings__template-sync-actions',
+                });
+                const writeButton = actionsEl.createEl('button', {
+                    text: '写回当前模板',
+                    cls: 'mod-cta',
+                });
+                writeButton.addEventListener('click', () => {
+                    void (async () => {
+                        const written =
+                            await writeCurrentCoreDayPlanSlotsToYamlForView(
+                                this.view.plugin,
+                                this.view,
+                            );
+                        if (!written) return;
+                        this.dismissedTemplateMismatchCore = null;
+                        this.render({ preserveScroll: true });
+                    })();
+                });
+
+                const dismissButton = actionsEl.createEl('button', {
+                    text: '暂不处理',
+                    cls: 'mod-muted',
+                });
+                dismissButton.addEventListener('click', () => {
+                    this.dismissedTemplateMismatchCore = templateMismatch.core;
+                    this.render({ preserveScroll: true });
+                });
+            },
             createGroupContainer: (parentEl, title, group) =>
                 this.createFoldCard(parentEl, title, group),
             showDescriptions: false,
@@ -147,24 +214,6 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 },
             },
         });
-
-        if (isDayPlanDedicated) {
-            const actionsContainer = this.createFoldCard(
-                contentEl,
-                '日计划维护',
-                'actions',
-            );
-
-            new Setting(actionsContainer)
-                .setName(lang.cmd_write_current_core_day_plan_slots_to_yaml)
-                .addButton((button) =>
-                    button.setButtonText('执行').onClick(() => {
-                        void writeCurrentCoreDayPlanSlotsToYaml(
-                            this.view.plugin,
-                        );
-                    }),
-                );
-        }
 
         const footerActions = contentEl.createDiv({
             cls: 'mandala-file-settings__actions',

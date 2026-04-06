@@ -183,3 +183,47 @@
     gap: 8px;
     padding: 8px 0 2px;
 }
+
+.mandala-file-settings__template-sync-card {
+    margin: 10px 0 0;
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid
+        color-mix(in srgb, var(--interactive-accent) 28%, var(--background-modifier-border));
+    background: color-mix(
+        in srgb,
+        var(--interactive-accent) 6%,
+        var(--background-primary)
+    );
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 6px 16px rgba(15, 23, 42, 0.03);
+}
+
+.mandala-file-settings__template-sync-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text-normal);
+}
+
+.mandala-file-settings__template-sync-core {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.mandala-file-settings__template-sync-text {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.mandala-file-settings__template-sync-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
