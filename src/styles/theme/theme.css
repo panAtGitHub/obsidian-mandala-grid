@@ -247,6 +247,34 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
         max-height: 100% !important;
         aspect-ratio: 1 / 1 !important;
     }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.mandala-white-theme
+        .mandala-card-grid
+        > .mandala-card-grid__cell.is-top-edge {
+        border-top-width: 1px !important;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.mandala-white-theme
+        .mandala-card-grid
+        > .mandala-card-grid__cell.is-left-edge {
+        border-left-width: 1px !important;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.mandala-white-theme
+        .mandala-card-grid
+        > .mandala-card-grid__cell.is-right-edge {
+        border-right-width: 1px !important;
+    }
+
+    body.mandala-print-export
+        .mandala-pdf-export-layer.mandala-white-theme
+        .mandala-card-grid
+        > .mandala-card-grid__cell.is-bottom-edge {
+        border-bottom-width: 1px !important;
+    }
 }
 
 .mandala-pdf-export-layer {
