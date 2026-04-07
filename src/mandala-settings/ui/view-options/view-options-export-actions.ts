@@ -398,6 +398,7 @@ export const createViewOptionsExportActions = ({
                 '--mandala-border-color',
             );
             const sourceRoot = source.closest<HTMLElement>('.mandala-root');
+            const printSource = sourceRoot ?? source;
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
             layer.classList.add('mandala-a4-mode');
@@ -444,7 +445,7 @@ export const createViewOptionsExportActions = ({
                 ).getPropertyValue('--background-primary'),
             });
 
-            const clone = source.cloneNode(true) as HTMLElement;
+            const clone = printSource.cloneNode(true) as HTMLElement;
             if (
                 getWhiteThemeMode() &&
                 !clone.classList.contains('mandala-white-theme')
@@ -457,6 +458,8 @@ export const createViewOptionsExportActions = ({
                 left: '0',
                 top: '0',
                 position: 'static',
+                width: 'auto',
+                height: 'auto',
                 boxSizing: 'border-box',
             });
 
