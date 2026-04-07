@@ -2,6 +2,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { exportCurrentViewPdf } from 'src/mandala-settings/ui/view-options/export/pdf-export';
+import type { LastExportPreset } from 'src/mandala-settings/state/settings-type';
 
 const mocks = vi.hoisted(() => ({
     Notice: vi.fn(),
@@ -44,6 +45,24 @@ const createView = () => {
     };
 };
 
+const createExportPreset = (): LastExportPreset => ({
+    exportMode: 'pdf-a4',
+    includeSidebar: false,
+    a4Orientation: 'landscape',
+    backgroundMode: 'custom',
+    sectionColorOpacity: 100,
+    borderOpacity: 100,
+    gridHighlightColor: '#418cff',
+    gridHighlightWidth: 2,
+    whiteThemeMode: true,
+    squareLayout: false,
+    fontSize3x3: 16,
+    fontSize9x9: 11,
+    fontSize7x9: 11,
+    fontSizeSidebar: 16,
+    headingsFontSizeEm: 1.8,
+});
+
 describe('exportCurrentViewPdf', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
@@ -68,9 +87,8 @@ describe('exportCurrentViewPdf', () => {
 
     it('prints from a temporary normal-flow host and cleans up after success', async () => {
         const { view, root } = createView();
-        const createCurrentExportPreset = vi.fn(() => ({
-            exportMode: 'pdf-a4',
-        }));
+        const exportPreset = createExportPreset();
+        const createCurrentExportPreset = vi.fn(() => exportPreset);
         const persistLastExportPreset = vi.fn();
         const closeExportMode = vi.fn();
         const showSaveDialog = vi.fn().mockResolvedValue({
@@ -154,11 +172,9 @@ describe('exportCurrentViewPdf', () => {
             Uint8Array.from([1, 2, 3]),
             expect.any(Function),
         );
-        expect(persistLastExportPreset).toHaveBeenCalledWith({
-            exportMode: 'pdf-a4',
-        });
+        expect(persistLastExportPreset).toHaveBeenCalledWith(exportPreset);
         expect(closeExportMode).toHaveBeenCalledTimes(1);
-        expect(capturedHost?.parentElement).toBeNull();
+        expect(document.body.querySelector('.mandala-pdf-print-host')).toBeNull();
         expect(document.body.classList.contains('mandala-print-export')).toBe(
             false,
         );
@@ -178,7 +194,7 @@ describe('exportCurrentViewPdf', () => {
         await exportCurrentViewPdf({
             view: { contentEl, containerEl } as never,
             a4Mode: true,
-            createCurrentExportPreset: vi.fn(() => ({ exportMode: 'pdf-a4' })),
+            createCurrentExportPreset: vi.fn(() => createExportPreset()),
             persistLastExportPreset: vi.fn(),
             closeExportMode,
         });
