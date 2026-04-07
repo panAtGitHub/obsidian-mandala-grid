@@ -13,7 +13,7 @@ vi.mock('src/mandala-display/logic/mandala-grid', () => ({
 import { tryMandala9x9Navigation } from 'src/mandala-interaction/keyboard/try-mandala-9x9-navigation';
 
 describe('tryMandala9x9Navigation', () => {
-    it('stores the canonical destination cell instead of leaving focus on a duplicated alias cell', () => {
+    it('advances using the concrete grid coordinate and keeps movement continuity', () => {
         const dispatch = vi.fn();
         const recordPerfAfterNextPaint = vi.fn();
         let activeCell: { row: number; col: number } | null = {
@@ -22,7 +22,7 @@ describe('tryMandala9x9Navigation', () => {
         };
 
         mocks.sectionAtCell9x9.mockReturnValue('1.2');
-        mocks.posOfSection9x9.mockReturnValue({ row: 1, col: 4 });
+        mocks.posOfSection9x9.mockReturnValue({ row: 4, col: 1 });
 
         const view = {
             mandalaMode: '9x9',
@@ -75,14 +75,14 @@ describe('tryMandala9x9Navigation', () => {
         const handled = tryMandala9x9Navigation(view, 'right');
 
         expect(handled).toBe(true);
-        expect(activeCell).toEqual({ row: 1, col: 4 });
+        expect(activeCell).toEqual({ row: 4, col: 2 });
         expect(dispatch).not.toHaveBeenCalled();
         expect(recordPerfAfterNextPaint).toHaveBeenCalledWith(
             'interaction.9x9.navigate',
             expect.any(Number),
             expect.objectContaining({
-                to_row: 1,
-                to_col: 4,
+                to_row: 4,
+                to_col: 2,
             }),
         );
     });

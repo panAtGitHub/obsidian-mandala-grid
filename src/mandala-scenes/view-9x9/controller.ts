@@ -1,3 +1,5 @@
+import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
+import { getSectionCore } from 'src/mandala-display/logic/mandala-topology';
 import type {
     NineByNineSceneProjection,
     SceneController,
@@ -8,6 +10,7 @@ import { resolveCanonicalActiveCell9x9 } from 'src/mandala-interaction/helpers/r
 
 const syncNineByNineSceneState = (context: SceneRootContext) => {
     const section = context.idToSection[context.ui.activeNodeId ?? ''];
+    const baseTheme = getSectionCore(section) ?? '1';
     if (!section) {
         if (context.view.mandalaActiveCell9x9) {
             setActiveCell9x9(context.view, null);
@@ -33,7 +36,14 @@ const syncNineByNineSceneState = (context: SceneRootContext) => {
         return;
     }
 
-    if (cell.row !== canonicalCell.row || cell.col !== canonicalCell.col) {
+    const mappedSection = sectionAtCell9x9(
+        cell.row,
+        cell.col,
+        context.settings.selectedLayoutId,
+        baseTheme,
+        context.settings.customLayouts,
+    );
+    if (!mappedSection || mappedSection !== section) {
         setActiveCell9x9(context.view, canonicalCell);
     }
 };

@@ -20,7 +20,6 @@
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
     import { setActiveCell9x9 } from 'src/mandala-interaction/helpers/set-active-cell-9x9';
-    import { resolveCanonicalActiveCell9x9 } from 'src/mandala-interaction/helpers/resolve-canonical-active-cell-9x9';
     import {
         buildMandalaTopologyIndex,
         type MandalaTopologyIndex,
@@ -316,18 +315,10 @@
     };
 
     const activateSummaryCell = (cell: SimpleSummaryCellModel) => {
-        setActiveCell9x9(
-            view,
-            resolveCanonicalActiveCell9x9({
-                section: cell.section,
-                selectedLayoutId: $layoutSnapshot.selectedLayoutId,
-                customLayouts: $layoutSnapshot.customLayouts,
-                fallbackCell: {
-                    row: cell.row,
-                    col: cell.col,
-                },
-            }),
-        );
+        setActiveCell9x9(view, {
+            row: cell.row,
+            col: cell.col,
+        });
     };
 </script>
 

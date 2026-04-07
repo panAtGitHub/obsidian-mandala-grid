@@ -569,4 +569,39 @@ describe('scene-controllers', () => {
             col: 4,
         });
     });
+
+    it('keeps the current 9x9 cell when it already maps to the active section', () => {
+        const controller = createNineByNineController();
+        mocks.sectionAtCell9x9.mockReturnValue('1.2');
+        const context = createContext({
+            sceneKey: {
+                viewKind: '9x9',
+                variant: 'default',
+            },
+            committedSceneKey: {
+                viewKind: '9x9',
+                variant: 'default',
+            },
+            idToSection: { 'node-1': '1.2' },
+            ui: {
+                ...createContext().ui,
+                activeNodeId: 'node-1',
+                activeSection: '1.2',
+                activeCoreSection: '1',
+            },
+            view: {
+                mandalaActiveCell9x9: {
+                    row: 4,
+                    col: 1,
+                },
+                viewStore: {
+                    dispatch: vi.fn(),
+                },
+            } as never,
+        });
+
+        controller.resolveProjection(context);
+
+        expect(mocks.setActiveCell9x9).not.toHaveBeenCalled();
+    });
 });
