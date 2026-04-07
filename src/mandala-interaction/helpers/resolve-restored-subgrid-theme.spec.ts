@@ -23,18 +23,20 @@ describe('resolveRestoredSubgridTheme', () => {
                 existingSections: new Set(['1', '4', '4.7']),
                 persistedSubgridTheme: '4',
                 lastActiveSection: '4.7',
+                subgridMaxDepth: 3,
             }),
         ).toBe('4');
     });
 
-    it('falls back to the parent theme of the last active section', () => {
+    it('falls back to the nearest valid center theme of the last active section', () => {
         expect(
             resolveRestoredSubgridTheme({
                 existingSections: new Set(['1', '4', '4.7']),
                 persistedSubgridTheme: null,
                 lastActiveSection: '4.7',
+                subgridMaxDepth: 3,
             }),
-        ).toBe('4');
+        ).toBe('4.7');
     });
 
     it('returns root when neither persisted nor derived themes are valid', () => {
@@ -43,6 +45,18 @@ describe('resolveRestoredSubgridTheme', () => {
                 existingSections: new Set(['1', '5']),
                 persistedSubgridTheme: '4',
                 lastActiveSection: '4.7',
+                subgridMaxDepth: 3,
+            }),
+        ).toBe('1');
+    });
+
+    it('resets to root when the persisted theme exists but is too deep to stay a center', () => {
+        expect(
+            resolveRestoredSubgridTheme({
+                existingSections: new Set(['1', '4', '4.7']),
+                persistedSubgridTheme: '4.7',
+                lastActiveSection: '4.7.2',
+                subgridMaxDepth: 2,
             }),
         ).toBe('1');
     });

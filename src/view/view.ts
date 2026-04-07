@@ -99,6 +99,7 @@ import {
     resolveNx9PageNavigationTarget,
 } from 'src/mandala-scenes/view-nx9/context';
 import { resolveCompatibleMandalaMode } from 'src/mandala-interaction/helpers/resolve-compatible-mandala-mode';
+import { resolveNearestThreeByThreeCenterTheme } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 import {
     resolveEffectiveMandalaSettings,
     type EffectiveMandalaSettings,
@@ -309,8 +310,7 @@ export class MandalaView extends TextFileView {
         const profile = resolveMandalaProfile(frontmatter);
         const effective = this.getEffectiveMandalaSettings();
         return (
-            effective.general.weekPlanEnabled &&
-            profile?.kind === 'day-plan'
+            effective.general.weekPlanEnabled && profile?.kind === 'day-plan'
         );
     }
 
@@ -368,7 +368,8 @@ export class MandalaView extends TextFileView {
             rowsPerPage: this.getCurrentNx9RowsPerPage(),
             activeSection,
             activeCell: this.mandalaActiveCellNx9,
-            coreSectionMax: this.getEffectiveMandalaSettings().view.coreSectionMax,
+            coreSectionMax:
+                this.getEffectiveMandalaSettings().view.coreSectionMax,
         });
         const targetPage =
             direction === 'prev'
@@ -488,7 +489,8 @@ export class MandalaView extends TextFileView {
                 currentMode: nextModeRaw,
                 canUse9x9Mode: this.canUse9x9Mode(),
                 canUseNx9Mode: this.canUseNx9Mode(),
-            }) ?? nextModeRaw);
+            }) ??
+                nextModeRaw);
         if (nextMode && nextMode !== this.mandalaMode) {
             this.viewStore.dispatch({
                 type: 'view/mandala/mode/set',
@@ -1035,6 +1037,8 @@ export class MandalaView extends TextFileView {
                 persistedSubgridTheme:
                     persistedMandalaViewState?.subgridTheme ?? null,
                 lastActiveSection: nextActiveSection ?? null,
+                subgridMaxDepth:
+                    this.getEffectiveMandalaSettings().view.subgridMaxDepth,
             });
             this.restoreMandalaUiState(filePath, fallbackSubgridTheme);
         }
@@ -1252,10 +1256,14 @@ export class MandalaView extends TextFileView {
             }
 
             this.focusMandalaSectionTimer = null;
+            const theme = resolveNearestThreeByThreeCenterTheme(
+                this,
+                targetSection,
+            );
             this.viewStore.batch(() => {
                 this.viewStore.dispatch({
                     type: 'view/mandala/subgrid/enter',
-                    payload: { theme: targetSection },
+                    payload: { theme },
                 });
                 this.viewStore.dispatch({
                     type: 'view/set-active-node/focus-section',
@@ -1420,8 +1428,7 @@ export class MandalaView extends TextFileView {
         const section =
             this.documentStore.getValue().sections.id_section[nodeId];
         if (!section) return;
-        const parts = section.split('.');
-        const theme = parts.length > 1 ? parts.slice(0, -1).join('.') : section;
+        const theme = resolveNearestThreeByThreeCenterTheme(this, section);
         this.viewStore.dispatch({
             type: 'view/mandala/subgrid/enter',
             payload: { theme },
@@ -1495,9 +1502,7 @@ export class MandalaView extends TextFileView {
             return null;
         }
         const maybeMode = (state as { mandalaMode?: unknown }).mandalaMode;
-        return maybeMode === '3x3' ||
-            maybeMode === '9x9' ||
-            maybeMode === 'nx9'
+        return maybeMode === '3x3' || maybeMode === '9x9' || maybeMode === 'nx9'
             ? maybeMode
             : null;
     }

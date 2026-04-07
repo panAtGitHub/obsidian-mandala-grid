@@ -1,3 +1,10 @@
+import type { SectionRangeLimit } from 'src/mandala-settings/state/settings-type';
+import {
+    canUseThreeByThreeThemeAsCenterForMaxDepth,
+    resolveNearestThreeByThreeCenterThemeForMaxDepth,
+    resolveThreeByThreeMaxDepthValue,
+} from 'src/mandala-scenes/view-3x3/subgrid-depth';
+
 const isExistingSection = (
     existingSections: Set<string>,
     section: string | null,
@@ -19,16 +26,31 @@ export const resolveRestoredSubgridTheme = ({
     existingSections,
     persistedSubgridTheme,
     lastActiveSection,
+    subgridMaxDepth,
 }: {
     existingSections: Set<string>;
     persistedSubgridTheme: string | null;
     lastActiveSection: string | null;
+    subgridMaxDepth: SectionRangeLimit;
 }) => {
+    const maxDepth = resolveThreeByThreeMaxDepthValue(subgridMaxDepth);
+
     if (isExistingSection(existingSections, persistedSubgridTheme)) {
-        return persistedSubgridTheme ?? '1';
+        if (
+            canUseThreeByThreeThemeAsCenterForMaxDepth(
+                persistedSubgridTheme ?? '1',
+                maxDepth,
+            )
+        ) {
+            return persistedSubgridTheme ?? '1';
+        }
+        return '1';
     }
 
-    const derivedTheme = deriveSubgridThemeFromSection(lastActiveSection);
+    const derivedTheme = resolveNearestThreeByThreeCenterThemeForMaxDepth(
+        lastActiveSection,
+        maxDepth,
+    );
     if (isExistingSection(existingSections, derivedTheme)) {
         return derivedTheme;
     }

@@ -20,6 +20,7 @@
         enterSubgridForNode,
         exitCurrentSubgrid,
     } from 'src/mandala-interaction/helpers/mobile-navigation';
+    import { canUseThreeByThreeThemeAsCenter } from 'src/mandala-scenes/view-3x3/subgrid-depth';
     import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
     import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
     import { resolveDayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
@@ -87,6 +88,8 @@
     $: canExitSubgrid = Boolean($subgridTheme && $subgridTheme !== '1');
     $: canEnterSubgrid =
         !!$activeNodeId &&
+        !!activeSection &&
+        canUseThreeByThreeThemeAsCenter(view, activeSection) &&
         !(
             $subgridTheme &&
             $subgridTheme.includes('.') &&
@@ -245,9 +248,7 @@
                                 bind:this={editorContainer}
                                 class="sidebar-editor-container"
                             >
-                                <InlineEditor
-                                    nodeId={$activeNodeId}
-                                />
+                                <InlineEditor nodeId={$activeNodeId} />
                             </div>
                         {:else if $detailSidebarPreviewMode === 'source'}
                             <SourcePreview

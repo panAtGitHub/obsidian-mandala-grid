@@ -2,10 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveSceneCompatibilityActions } from 'src/mandala-scenes/shared/scene-compatibility-logic';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 
-const createDocumentState = (
-    frontmatter = '',
-    isMandala = true,
-) =>
+const createDocumentState = (frontmatter = '', isMandala = true) =>
     ({
         file: { frontmatter },
         meta: { isMandala },
@@ -24,6 +21,7 @@ describe('scene-compatibility-logic', () => {
             documentState: createDocumentState('mandala: true\n'),
             weekPlanEnabled: false,
             isMobile: false,
+            threeByThreeMaxDepth: Number.POSITIVE_INFINITY,
         });
 
         expect(actions.shouldEnsureCompatibleMode).toBe(true);
@@ -42,6 +40,28 @@ describe('scene-compatibility-logic', () => {
             documentState: createDocumentState('mandala: true\n'),
             weekPlanEnabled: true,
             isMobile: false,
+            threeByThreeMaxDepth: 3,
+        });
+
+        expect(actions.shouldEnterDefaultSubgrid).toBe(true);
+        expect(actions.shouldEnsureCompatibleMode).toBe(false);
+    });
+
+    it('requests default subgrid when a 3x3 theme still exists but is too deep to remain a center', () => {
+        const actions = resolveSceneCompatibilityActions({
+            sceneKey: {
+                viewKind: '3x3',
+                variant: 'default',
+            },
+            dayPlanEnabled: false,
+            subgridTheme: '1.2.2',
+            sectionToNodeId: {
+                '1.2.2': 'node-1-2-2',
+            },
+            documentState: createDocumentState('mandala: true\n'),
+            weekPlanEnabled: true,
+            isMobile: false,
+            threeByThreeMaxDepth: 3,
         });
 
         expect(actions.shouldEnterDefaultSubgrid).toBe(true);

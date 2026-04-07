@@ -2,6 +2,8 @@ import { describe, expect, test } from 'vitest';
 import type { MandalaView } from 'src/view/view';
 import {
     canEnterThreeByThreeTheme,
+    canUseThreeByThreeThemeAsCenter,
+    resolveNearestThreeByThreeCenterTheme,
     resolveThreeByThreeMaxDepth,
 } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
@@ -46,17 +48,24 @@ describe('view-3x3/subgrid-depth', () => {
             enable9x9View: false,
         });
         expect(resolveThreeByThreeMaxDepth(view)).toBe(2);
-        expect(canEnterThreeByThreeTheme(view, '1.1')).toBe(true);
+        expect(canUseThreeByThreeThemeAsCenter(view, '1.1')).toBe(false);
+        expect(canEnterThreeByThreeTheme(view, '2')).toBe(true);
         expect(canEnterThreeByThreeTheme(view, '1.1.1')).toBe(false);
     });
 
-    test('limits to 1.1.1~1.8.8 when max depth is 3', () => {
+    test('keeps visible depth and center depth separate when max depth is 3', () => {
         const view = mockView({
             subgridMaxDepth: 3,
             enable9x9View: true,
         });
         expect(resolveThreeByThreeMaxDepth(view)).toBe(3);
-        expect(canEnterThreeByThreeTheme(view, '1.1.1')).toBe(true);
+        expect(canUseThreeByThreeThemeAsCenter(view, '1.1.1')).toBe(false);
         expect(canEnterThreeByThreeTheme(view, '1.1.1.1')).toBe(false);
+        expect(resolveNearestThreeByThreeCenterTheme(view, '1.2.2')).toBe(
+            '1.2',
+        );
+        expect(resolveNearestThreeByThreeCenterTheme(view, '1.2.2.3')).toBe(
+            '1.2',
+        );
     });
 });

@@ -4,14 +4,11 @@ import {
     layoutIdToOrientation,
     resolveDocumentMandalaLayoutId,
 } from 'src/mandala-display/logic/grid-layout';
-import {
-    DEFAULT_NX9_ROWS_PER_PAGE,
-} from 'src/mandala-settings/state/settings-type';
+import { DEFAULT_NX9_ROWS_PER_PAGE } from 'src/mandala-settings/state/settings-type';
 import type { PersistMandalaViewStateAction } from 'src/mandala-settings/state/settings-store-actions';
 import type { Settings } from 'src/mandala-settings/state/settings-type';
-import {
-    getMandalaWeekAnchorDate,
-} from 'src/mandala-scenes/shared/scene-runtime';
+import { getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
+import { canUseThreeByThreeThemeAsCenter } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 import type { FocusTarget, ViewState } from 'src/stores/view/view-state-type';
 import type { MandalaView } from 'src/view/view';
 
@@ -83,7 +80,9 @@ export const syncCurrentMandalaDetailSidebarVisibility = (
         view,
         settings,
     );
-    if (view.viewStore.getValue().ui.mandala.showDetailSidebar === nextVisible) {
+    if (
+        view.viewStore.getValue().ui.mandala.showDetailSidebar === nextVisible
+    ) {
         return;
     }
     view.viewStore.dispatch({
@@ -166,8 +165,9 @@ export const persistCurrentMandalaViewState = (
     if (
         (currentMandalaViewState?.selectedLayoutId ?? null) ===
             selectedLayoutId &&
-        JSON.stringify(currentMandalaViewState?.selectedCustomLayout ?? null) ===
-            JSON.stringify(selectedCustomLayout ?? null) &&
+        JSON.stringify(
+            currentMandalaViewState?.selectedCustomLayout ?? null,
+        ) === JSON.stringify(selectedCustomLayout ?? null) &&
         currentMandalaViewState?.gridOrientation === gridOrientation &&
         (currentMandalaViewState?.lastActiveSection ?? null) ===
             lastActiveSection &&
@@ -201,7 +201,14 @@ export const restoreMandalaUiState = (
     nextState: MandalaUiStateSnapshot | undefined,
     fallbackSubgridTheme = '1',
 ) => {
-    const subgridTheme = nextState?.subgridTheme ?? fallbackSubgridTheme;
+    const requestedSubgridTheme =
+        nextState?.subgridTheme ?? fallbackSubgridTheme;
+    const subgridTheme = canUseThreeByThreeThemeAsCenter(
+        view,
+        requestedSubgridTheme,
+    )
+        ? requestedSubgridTheme
+        : '1';
     const focusTarget = nextState?.focusTarget ?? null;
     const weekAnchorDate = nextState?.weekAnchorDate ?? null;
 

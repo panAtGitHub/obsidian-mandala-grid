@@ -1,23 +1,24 @@
 import type { MandalaView } from 'src/view/view';
 import type { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import { logger } from 'src/shared/helpers/logger';
+import { resolveNearestThreeByThreeCenterTheme } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 /**
  * Mandala 搜索结果类型
  */
 export interface MandalaSearchResult {
-    section: string;           // 例如 "3.1.1"
-    nodeId: string;            // 对应的 node ID
-    contentPreview: string;    // 匹配内容预览
-    matchScore: number;        // Fuse.js 匹配分数
+    section: string; // 例如 "3.1.1"
+    nodeId: string; // 对应的 node ID
+    contentPreview: string; // 匹配内容预览
+    matchScore: number; // Fuse.js 匹配分数
 }
 
 /**
  * Section 解析结果
  */
 interface ParsedSection {
-    parent: string | null;  // 父级 section，如果是根节点则为 null
-    self: string;           // 当前 section
+    parent: string | null; // 父级 section，如果是根节点则为 null
+    self: string; // 当前 section
 }
 
 /**
@@ -45,12 +46,12 @@ export function parseSection(section: string): ParsedSection {
  * @param view MandalaView 实例
  */
 export function previewSearchResult(section: string, view: MandalaView): void {
-    const { parent, self } = parseSection(section);
+    const { self } = parseSection(section);
     const nodeId = view.documentStore.getValue().sections.section_id[self];
 
     if (!nodeId) return;
 
-    const theme = parent ?? self ?? '1';
+    const theme = resolveNearestThreeByThreeCenterTheme(view, self);
     // 1. 设置 subgrid theme
     view.viewStore.dispatch({
         type: 'view/mandala/subgrid/enter',
@@ -60,7 +61,7 @@ export function previewSearchResult(section: string, view: MandalaView): void {
     // 2. 激活目标节点（使用 mouse-silent 不记录历史）
     view.viewStore.dispatch({
         type: 'view/set-active-node/mouse-silent',
-        payload: { id: nodeId }
+        payload: { id: nodeId },
     });
 }
 
@@ -69,8 +70,11 @@ export function previewSearchResult(section: string, view: MandalaView): void {
  * @param section 目标 section（例如 "3.1.1"）
  * @param view MandalaView 实例
  */
-export function navigateToSearchResult(section: string, view: MandalaView): void {
-    const { parent, self } = parseSection(section);
+export function navigateToSearchResult(
+    section: string,
+    view: MandalaView,
+): void {
+    const { self } = parseSection(section);
     const nodeId = view.documentStore.getValue().sections.section_id[self];
 
     if (!nodeId) {
@@ -78,7 +82,7 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
         return;
     }
 
-    const theme = parent ?? self ?? '1';
+    const theme = resolveNearestThreeByThreeCenterTheme(view, self);
     // 1. 设置 subgrid theme
     view.viewStore.dispatch({
         type: 'view/mandala/subgrid/enter',
@@ -88,7 +92,7 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
     // 2. 激活目标节点（使用 search 类型表明是搜索触发）
     view.viewStore.dispatch({
         type: 'view/set-active-node/search',
-        payload: { id: nodeId }
+        payload: { id: nodeId },
     });
 
     // 注意：不自动关闭搜索结果（根据用户选择）
@@ -100,7 +104,7 @@ export function navigateToSearchResult(section: string, view: MandalaView): void
  * @returns 按 section 层级排序的搜索结果数组
  */
 export function convertToMandalaResults(
-    fuseResults: Map<string, NodeSearchResult>
+    fuseResults: Map<string, NodeSearchResult>,
 ): MandalaSearchResult[] {
     const results: MandalaSearchResult[] = [];
 
@@ -113,7 +117,7 @@ export function convertToMandalaResults(
             section,
             nodeId,
             contentPreview: extractPreview(fuseResult.item.content),
-            matchScore: fuseResult.score || 0
+            matchScore: fuseResult.score || 0,
         });
     }
 
@@ -133,5 +137,7 @@ export function convertToMandalaResults(
 export function extractPreview(content: string, maxLength = 60): string {
     // 去除换行符和多余空格
     const cleaned = content.replace(/\s+/g, ' ').trim();
-    return cleaned.slice(0, maxLength) + (cleaned.length > maxLength ? '...' : '');
+    return (
+        cleaned.slice(0, maxLength) + (cleaned.length > maxLength ? '...' : '')
+    );
 }

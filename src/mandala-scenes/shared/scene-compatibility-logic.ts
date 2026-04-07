@@ -3,6 +3,7 @@ import {
     type MandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
+import { canUseThreeByThreeThemeAsCenterForMaxDepth } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 export type ResolveSceneCompatibilityActionsArgs = {
     sceneKey: MandalaSceneKey;
@@ -12,6 +13,7 @@ export type ResolveSceneCompatibilityActionsArgs = {
     documentState: DocumentState;
     weekPlanEnabled: boolean;
     isMobile: boolean;
+    threeByThreeMaxDepth: number;
 };
 
 export type SceneCompatibilityActions = {
@@ -27,6 +29,7 @@ export const resolveSceneCompatibilityActions = ({
     documentState,
     weekPlanEnabled,
     isMobile,
+    threeByThreeMaxDepth,
 }: ResolveSceneCompatibilityActionsArgs): SceneCompatibilityActions => {
     const profile = resolveMandalaProfile(documentState.file.frontmatter);
     const canUseWeekVariant =
@@ -41,7 +44,11 @@ export const resolveSceneCompatibilityActions = ({
         (sceneKey.viewKind === '3x3' &&
             !!subgridTheme &&
             subgridTheme !== '1' &&
-            !sectionToNodeId[subgridTheme]);
+            (!sectionToNodeId[subgridTheme] ||
+                !canUseThreeByThreeThemeAsCenterForMaxDepth(
+                    subgridTheme,
+                    threeByThreeMaxDepth,
+                )));
 
     const shouldEnsureCompatibleMode =
         (sceneKey.viewKind === 'nx9' &&

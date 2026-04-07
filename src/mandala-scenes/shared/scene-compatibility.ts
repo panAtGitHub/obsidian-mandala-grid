@@ -4,16 +4,21 @@ import {
     resolveSceneCompatibilityActions,
     type ResolveSceneCompatibilityActionsArgs,
 } from 'src/mandala-scenes/shared/scene-compatibility-logic';
+import { resolveThreeByThreeMaxDepth } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 
 export const ensureSceneCompatibility = (
     view: MandalaView,
-    args: Omit<ResolveSceneCompatibilityActionsArgs, 'weekPlanEnabled' | 'isMobile'>,
+    args: Omit<
+        ResolveSceneCompatibilityActionsArgs,
+        'weekPlanEnabled' | 'isMobile' | 'threeByThreeMaxDepth'
+    >,
 ) => {
     const effective = view.getEffectiveMandalaSettings();
     const actions = resolveSceneCompatibilityActions({
         ...args,
         weekPlanEnabled: effective.general.weekPlanEnabled,
         isMobile: Platform.isMobile,
+        threeByThreeMaxDepth: resolveThreeByThreeMaxDepth(view),
     });
 
     if (actions.shouldEnterDefaultSubgrid) {

@@ -11,6 +11,7 @@ import {
 import {
     canEnterThreeByThreeTheme,
     canExpandThreeByThreeChildren,
+    resolveNearestThreeByThreeCenterTheme,
 } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 import { lang } from 'src/lang/lang';
 import { ensureChildrenForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
@@ -27,7 +28,8 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
         new Notice('当前设置下已达到 3×3 子九宫层级上限。');
         return;
     }
-    const currentTheme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
+    const currentTheme =
+        view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
     const dayPlan = parseDayPlanFrontmatter(docState.file.frontmatter);
     if (dayPlan) {
         view.dayPlanHotCores = shiftHotWindowToCore(
@@ -43,7 +45,8 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
             return;
         }
         const nextTheme = String(Number(currentTheme) + 1);
-        const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+        const coreSectionMax =
+            view.getEffectiveMandalaSettings().view.coreSectionMax;
         if (
             coreSectionMax !== 'unlimited' &&
             Number(currentTheme) + 1 > coreSectionMax
@@ -100,7 +103,9 @@ export const enterSubgridForNode = (view: MandalaView, nodeId: string) => {
     });
     view.viewStore.dispatch({
         type: 'view/mandala/subgrid/enter',
-        payload: { theme: section },
+        payload: {
+            theme: resolveNearestThreeByThreeCenterTheme(view, section),
+        },
     });
 };
 
@@ -152,7 +157,11 @@ export const exitCurrentSubgrid = (view: MandalaView) => {
     }
 };
 
-export const isGridCenter = (view: MandalaView, nodeId: string, section: string) => {
+export const isGridCenter = (
+    view: MandalaView,
+    nodeId: string,
+    section: string,
+) => {
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme;
     // 如果没有子主题前缀，则 '1' 是中心；如果有，则 section === theme 是中心
     return section === (theme ?? '1');
