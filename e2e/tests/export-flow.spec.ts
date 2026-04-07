@@ -70,7 +70,11 @@ test('runs the real PDF export flow from the view options modal', async () => {
             }
         ).__mandalaOriginalRequire = originalRequire;
 
-        window.require = (module: string) => {
+        (
+            window as Window & {
+                require?: (module: string) => unknown;
+            }
+        ).require = ((module: string) => {
             if (module === 'electron') {
                 return {
                     dialog: {
@@ -155,7 +159,7 @@ test('runs the real PDF export flow from the view options modal', async () => {
             }
 
             return originalRequire(module);
-        };
+        }) as typeof originalRequire;
     });
 
     await page.getByRole('button', { name: '视图选项' }).click();
