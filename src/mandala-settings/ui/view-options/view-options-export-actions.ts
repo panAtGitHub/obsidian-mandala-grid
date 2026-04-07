@@ -4,6 +4,16 @@ import type { LastExportPreset } from 'src/mandala-settings/state/settings-type'
 import type { MandalaView } from 'src/view/view';
 
 type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
+const A4_PAGE_SIZE_MICRONS = {
+    portrait: {
+        width: 210000,
+        height: 297000,
+    },
+    landscape: {
+        width: 297000,
+        height: 210000,
+    },
+} as const;
 
 type ElectronDialog = {
     dialog?: {
@@ -382,6 +392,9 @@ export const createViewOptionsExportActions = ({
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const defaultName = `mandala-${timestamp}.pdf`;
         const isLandscape = getA4Orientation() === 'landscape';
+        const pageSize = isLandscape
+            ? A4_PAGE_SIZE_MICRONS.landscape
+            : A4_PAGE_SIZE_MICRONS.portrait;
 
         const createPrintLayer = (
             source: HTMLElement,
@@ -477,8 +490,8 @@ export const createViewOptionsExportActions = ({
             );
             await withPrintTarget(printLayer.layer, async () => {
                 const pdfData = await printToPDF({
-                    pageSize: 'A4',
-                    landscape: isLandscape,
+                    pageSize,
+                    landscape: false,
                     printBackground: true,
                     marginsType: 1,
                 });
