@@ -10,6 +10,7 @@
 @import url('view/hotkeys.css');
 @import url('view/context-menu.css');
 @import url('view/card-grid.css');
+@import url('../mandala-settings/ui/view-options/export/export-print.css');
 @import url('./helpers.css');
 @import url('markers/mandala-embed.css');
 @import url('./layout/columns.css');
