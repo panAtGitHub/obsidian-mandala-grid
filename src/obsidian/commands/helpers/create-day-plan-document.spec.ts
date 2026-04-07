@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDayPlanDocument } from 'src/obsidian/commands/helpers/create-day-plan-document';
+import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
+import type { Settings } from 'src/mandala-settings/state/settings-type';
 
 const mocks = vi.hoisted(() => ({
     getActiveFile: vi.fn(),
@@ -34,6 +36,8 @@ vi.mock('src/shared/store/on-plugin-error', () => ({
 }));
 
 describe('createDayPlanDocument', () => {
+    const createSettings = (): Settings => DEFAULT_SETTINGS();
+
     beforeEach(() => {
         mocks.getActiveFile.mockReset();
         mocks.createNewFile.mockReset();
@@ -46,16 +50,32 @@ describe('createDayPlanDocument', () => {
         const folder = { path: 'projects/a' };
         const activeFile = { parent: folder };
         const createdFile = { path: 'projects/a/Day Plan.md' };
-        const initialViewStateAction = { type: 'settings/documents/persist-mandala-view-state' };
+        const initialViewStateAction = {
+            type: 'settings/documents/persist-mandala-view-state',
+        };
         const dispatch = vi.fn();
+        const settingsValue = createSettings();
+        const processFrontMatter = vi.fn(
+            async (
+                _file: { path: string },
+                callback: (frontmatter: Record<string, unknown>) => void,
+            ) => {
+            const frontmatter = {};
+            callback(frontmatter);
+            },
+        );
         const plugin = {
             app: {
+                fileManager: {
+                    processFrontMatter,
+                    trashFile: vi.fn(),
+                },
                 vault: {
                     getRoot: vi.fn(),
                 },
             },
             settings: {
-                getValue: vi.fn(() => ({ view: { mandalaGridOrientation: 'left-to-right' } })),
+                getValue: vi.fn(() => settingsValue),
                 dispatch,
             },
         };
@@ -79,12 +99,16 @@ describe('createDayPlanDocument', () => {
             mocks.createNewFileMandalaViewStateAction,
         ).toHaveBeenCalledWith(
             createdFile.path,
-            plugin.settings.getValue(),
+            settingsValue,
         );
         expect(dispatch).toHaveBeenCalledWith(initialViewStateAction);
         expect(mocks.setupDayPlanMandalaFormat).toHaveBeenCalledWith(
             plugin,
             createdFile,
+        );
+        expect(processFrontMatter).toHaveBeenCalledWith(
+            createdFile,
+            expect.any(Function),
         );
         expect(mocks.onPluginError).not.toHaveBeenCalled();
     });
@@ -92,16 +116,32 @@ describe('createDayPlanDocument', () => {
     it('uses vault root when there is no active file', async () => {
         const root = { path: '' };
         const createdFile = { path: '/Day Plan.md' };
-        const initialViewStateAction = { type: 'settings/documents/persist-mandala-view-state' };
+        const initialViewStateAction = {
+            type: 'settings/documents/persist-mandala-view-state',
+        };
         const dispatch = vi.fn();
+        const settingsValue = createSettings();
+        const processFrontMatter = vi.fn(
+            async (
+                _file: { path: string },
+                callback: (frontmatter: Record<string, unknown>) => void,
+            ) => {
+            const frontmatter = {};
+            callback(frontmatter);
+            },
+        );
         const plugin = {
             app: {
+                fileManager: {
+                    processFrontMatter,
+                    trashFile: vi.fn(),
+                },
                 vault: {
                     getRoot: vi.fn(() => root),
                 },
             },
             settings: {
-                getValue: vi.fn(() => ({ view: { mandalaGridOrientation: 'left-to-right' } })),
+                getValue: vi.fn(() => settingsValue),
                 dispatch,
             },
         };
@@ -124,16 +164,20 @@ describe('createDayPlanDocument', () => {
             mocks.createNewFileMandalaViewStateAction,
         ).toHaveBeenCalledWith(
             createdFile.path,
-            plugin.settings.getValue(),
+            settingsValue,
         );
         expect(dispatch).toHaveBeenCalledWith(initialViewStateAction);
         expect(mocks.setupDayPlanMandalaFormat).toHaveBeenCalledWith(
             plugin,
             createdFile,
         );
+        expect(processFrontMatter).toHaveBeenCalledWith(
+            createdFile,
+            expect.any(Function),
+        );
     });
 
-    it('deletes created file when setup is canceled', async () => {
+    it('trashes the created file when setup is canceled', async () => {
         const folder = { path: 'projects/a' };
         const activeFile = { parent: folder };
         const createdFile = { path: 'projects/a/Day Plan.md' };
@@ -141,18 +185,29 @@ describe('createDayPlanDocument', () => {
             type: 'settings/documents/persist-mandala-view-state',
         };
         const dispatch = vi.fn();
-        const deleteFile = vi.fn();
+        const settingsValue = createSettings();
+        const trashFile = vi.fn();
+        const processFrontMatter = vi.fn(
+            async (
+                _file: { path: string },
+                callback: (frontmatter: Record<string, unknown>) => void,
+            ) => {
+            const frontmatter = {};
+            callback(frontmatter);
+            },
+        );
         const plugin = {
             app: {
+                fileManager: {
+                    processFrontMatter,
+                    trashFile,
+                },
                 vault: {
                     getRoot: vi.fn(),
-                    delete: deleteFile,
                 },
             },
             settings: {
-                getValue: vi.fn(() => ({
-                    view: { mandalaGridOrientation: 'left-to-right' },
-                })),
+                getValue: vi.fn(() => settingsValue),
                 dispatch,
             },
         };
@@ -165,7 +220,15 @@ describe('createDayPlanDocument', () => {
 
         await createDayPlanDocument(plugin as never);
 
-        expect(deleteFile).toHaveBeenCalledWith(createdFile);
+        expect(processFrontMatter).toHaveBeenCalledWith(
+            createdFile,
+            expect.any(Function),
+        );
+        expect(trashFile).toHaveBeenCalledWith(createdFile);
+        expect(mocks.createNewFileMandalaViewStateAction).toHaveBeenCalledWith(
+            createdFile.path,
+            settingsValue,
+        );
         expect(dispatch).toHaveBeenCalledWith({
             type: 'settings/documents/delete-document-preferences',
             payload: {

@@ -101,6 +101,25 @@ const createArgs = () => ({
 });
 
 describe('root-controller', () => {
+    const createView = () =>
+        ({
+            plugin: {
+                settings: {
+                    getValue: () => ({
+                        general: {
+                            weekPlanEnabled: true,
+                        },
+                    }),
+                },
+            },
+            getEffectiveMandalaSettings: () => ({
+                general: {
+                    weekPlanEnabled: true,
+                },
+            }),
+            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
+        }) as never;
+
     beforeEach(() => {
         mocks.resolveProjection.mockReset();
         mocks.ensureSceneCompatibility.mockReset();
@@ -141,18 +160,7 @@ describe('root-controller', () => {
     });
 
     it('reuses the same root context object for stable inputs', () => {
-        const view = {
-            plugin: {
-                settings: {
-                    getValue: () => ({
-                        general: {
-                            weekPlanEnabled: true,
-                        },
-                    }),
-                },
-            },
-            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
-        } as never;
+        const view = createView();
         const controller = createSceneRootController(view);
         const args = createArgs();
 
@@ -165,18 +173,7 @@ describe('root-controller', () => {
     });
 
     it('memoizes projection resolution for the same root context', () => {
-        const view = {
-            plugin: {
-                settings: {
-                    getValue: () => ({
-                        general: {
-                            weekPlanEnabled: true,
-                        },
-                    }),
-                },
-            },
-            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
-        } as never;
+        const view = createView();
         const controller = createSceneRootController(view);
         const context = controller.buildContext(createArgs());
 
@@ -191,18 +188,7 @@ describe('root-controller', () => {
     });
 
     it('reuses derived display data when only the theme snapshot changes', () => {
-        const view = {
-            plugin: {
-                settings: {
-                    getValue: () => ({
-                        general: {
-                            weekPlanEnabled: true,
-                        },
-                    }),
-                },
-            },
-            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
-        } as never;
+        const view = createView();
         const controller = createSceneRootController(view);
         const args = createArgs();
         const first = controller.buildContext(args);
@@ -226,18 +212,7 @@ describe('root-controller', () => {
     });
 
     it('only refreshes the week grid style when compact mode changes', () => {
-        const view = {
-            plugin: {
-                settings: {
-                    getValue: () => ({
-                        general: {
-                            weekPlanEnabled: true,
-                        },
-                    }),
-                },
-            },
-            flushSceneSyncTrace: mocks.flushSceneSyncTrace,
-        } as never;
+        const view = createView();
         const controller = createSceneRootController(view);
         const args = createArgs();
         const first = controller.buildContext(args);
