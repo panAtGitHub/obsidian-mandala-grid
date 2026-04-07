@@ -79,7 +79,6 @@ export type DayPlanDateHeadingFormat =
     | 'zh-full'
     | 'en-short'
     | 'custom';
-export type DayPlanDateHeadingApplyMode = 'immediate' | 'manual';
 export type SectionRangeLimit = number | 'unlimited';
 export type ContextMenuCopyLinkVariant =
     | 'block-plain'
@@ -169,6 +168,5 @@ export type Settings = {
         weekStart: WeekStart;
         dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
         dayPlanDateHeadingCustomTemplate: string;
-        dayPlanDateHeadingApplyMode: DayPlanDateHeadingApplyMode;
     };
 };

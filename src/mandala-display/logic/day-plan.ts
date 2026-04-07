@@ -1,5 +1,4 @@
 import type {
-    DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     SectionRangeLimit,
     WeekStart,
@@ -26,14 +25,12 @@ export const DAY_PLAN_H2_DATE_PATTERN =
 export type DayPlanDateHeadingSettings = {
     format: DayPlanDateHeadingFormat;
     customTemplate: string;
-    applyMode: DayPlanDateHeadingApplyMode;
 };
 
 export const DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS: DayPlanDateHeadingSettings =
     {
         format: 'zh-short',
         customTemplate: DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
-        applyMode: 'manual',
     };
 
 export type DayPlanFrontmatter = {
@@ -200,8 +197,6 @@ export const getDayPlanDateHeadingSettings = (
     customTemplate:
         value?.customTemplate ??
         DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.customTemplate,
-    // Keep compatibility with persisted settings while enforcing manual-only behavior.
-    applyMode: DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS.applyMode,
 });
 
 export const getHotCoreSections = (

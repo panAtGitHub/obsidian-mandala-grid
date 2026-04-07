@@ -783,18 +783,6 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         store.general.dayPlanDateHeadingCustomTemplate =
             action.payload.template;
     },
-    'settings/general/set-day-plan-date-heading-apply-mode': (
-        store,
-        action,
-    ) => {
-        if (
-            action.type !==
-            'settings/general/set-day-plan-date-heading-apply-mode'
-        ) {
-            return;
-        }
-        store.general.dayPlanDateHeadingApplyMode = action.payload.mode;
-    },
 };
 
 const updateState = (store: Settings, action: SettingsActions) => {

@@ -554,7 +554,6 @@ export const setupDayPlanMandalaFormat = async (
             format: displayOptions.dateHeadingFormat,
             customTemplate:
                 effectiveSettings.general.dayPlanDateHeadingCustomTemplate,
-            applyMode: effectiveSettings.general.dayPlanDateHeadingApplyMode,
         });
 
         let nextBody = body;

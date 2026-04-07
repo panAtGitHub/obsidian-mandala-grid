@@ -115,7 +115,6 @@ export const refreshCurrentDayPlanDateHeadings = async (
     const settings = getDayPlanDateHeadingSettings({
         format: effective.general.dayPlanDateHeadingFormat,
         customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
-        applyMode: effective.general.dayPlanDateHeadingApplyMode,
     });
     const refreshed = refreshDayPlanDateHeadingsInMarkdown(markdown, settings);
     if (refreshed.changed) {

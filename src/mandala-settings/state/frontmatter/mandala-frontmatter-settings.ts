@@ -1,7 +1,6 @@
 import { parseYaml } from 'obsidian';
 import { resolveLegacyDayPlanSubgridMaxDepthOverride } from 'src/mandala-display/logic/day-plan';
 import type {
-    DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     SectionRangeLimit,
     Settings,
@@ -24,7 +23,6 @@ export type MandalaFrontmatterSettings = {
         weekStart?: WeekStart;
         dayPlanDateHeadingFormat?: DayPlanDateHeadingFormat;
         dayPlanDateHeadingCustomTemplate?: string;
-        dayPlanDateHeadingApplyMode?: DayPlanDateHeadingApplyMode;
     };
 };
 
@@ -42,7 +40,6 @@ export type EffectiveMandalaSettings = {
         weekStart: WeekStart;
         dayPlanDateHeadingFormat: DayPlanDateHeadingFormat;
         dayPlanDateHeadingCustomTemplate: string;
-        dayPlanDateHeadingApplyMode: DayPlanDateHeadingApplyMode;
     };
 };
 
@@ -67,8 +64,6 @@ export const buildNewFileMandalaFrontmatterSettings = (
                       settings.general.dayPlanDateHeadingFormat,
                   dayPlanDateHeadingCustomTemplate:
                       settings.general.dayPlanDateHeadingCustomTemplate,
-                  dayPlanDateHeadingApplyMode:
-                      settings.general.dayPlanDateHeadingApplyMode,
               },
           }
         : {}),
@@ -88,11 +83,6 @@ const isDayPlanDateHeadingFormat = (
     value === 'zh-short' ||
     value === 'en-short' ||
     value === 'custom';
-
-const isDayPlanDateHeadingApplyMode = (
-    value: unknown,
-): value is DayPlanDateHeadingApplyMode =>
-    value === 'immediate' || value === 'manual';
 
 const toRangeLimit = (value: unknown): SectionRangeLimit | undefined => {
     if (value === null || value === 'unlimited') return 'unlimited';
@@ -165,9 +155,6 @@ export const parseMandalaFrontmatterSettings = (
         general.dayPlanDateHeadingCustomTemplate =
             generalRaw.dayPlanDateHeadingCustomTemplate;
     }
-    if (isDayPlanDateHeadingApplyMode(generalRaw?.dayPlanDateHeadingApplyMode)) {
-        general.dayPlanDateHeadingApplyMode = generalRaw.dayPlanDateHeadingApplyMode;
-    }
 
     return {
         ...(Object.keys(view).length > 0 ? { view } : {}),
@@ -214,9 +201,6 @@ export const resolveEffectiveMandalaSettings = (
             dayPlanDateHeadingCustomTemplate:
                 overrides.general?.dayPlanDateHeadingCustomTemplate ??
                 settings.general.dayPlanDateHeadingCustomTemplate,
-            dayPlanDateHeadingApplyMode:
-                overrides.general?.dayPlanDateHeadingApplyMode ??
-                settings.general.dayPlanDateHeadingApplyMode,
         },
     };
 };

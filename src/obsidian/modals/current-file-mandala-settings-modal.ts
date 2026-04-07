@@ -35,8 +35,6 @@ const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
                 effective.general.dayPlanDateHeadingFormat,
             dayPlanDateHeadingCustomTemplate:
                 effective.general.dayPlanDateHeadingCustomTemplate,
-            dayPlanDateHeadingApplyMode:
-                effective.general.dayPlanDateHeadingApplyMode,
         },
     };
 };
@@ -271,8 +269,6 @@ class CurrentFileMandalaSettingsModal extends Modal {
                             this.state.general.dayPlanDateHeadingFormat,
                         dayPlanDateHeadingCustomTemplate:
                             this.state.general.dayPlanDateHeadingCustomTemplate,
-                        dayPlanDateHeadingApplyMode:
-                            this.state.general.dayPlanDateHeadingApplyMode,
                     };
                 }
                 record[MANDALA_FRONTMATTER_SETTINGS_KEY] = nextSettings;

@@ -336,12 +336,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (typeof generalSettings.dayPlanDateHeadingCustomTemplate !== 'string') {
         generalSettings.dayPlanDateHeadingCustomTemplate = '## {date} {cn}';
     }
-    if (
-        generalSettings.dayPlanDateHeadingApplyMode !== 'immediate' &&
-        generalSettings.dayPlanDateHeadingApplyMode !== 'manual'
-    ) {
-        generalSettings.dayPlanDateHeadingApplyMode = 'manual';
-    }
+    delete generalSettings.dayPlanDateHeadingApplyMode;
     if (typeof viewSettings.mandalaFontSize7x9Desktop !== 'number') {
         viewSettings.mandalaFontSize7x9Desktop = 11;
     }

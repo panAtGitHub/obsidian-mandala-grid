@@ -220,18 +220,10 @@ describe('settingsReducer custom grid layouts', () => {
                 template: '## {date} {zh}',
             },
         });
-        settingsReducer(settings, {
-            type: 'settings/general/set-day-plan-date-heading-apply-mode',
-            payload: {
-                mode: 'immediate',
-            },
-        });
-
         expect(settings.general.dayPlanDateHeadingFormat).toBe('custom');
         expect(settings.general.dayPlanDateHeadingCustomTemplate).toBe(
             '## {date} {zh}',
         );
-        expect(settings.general.dayPlanDateHeadingApplyMode).toBe('immediate');
     });
 
     test('cycles mandala modes through 3x3, 9x9 and nx9', () => {

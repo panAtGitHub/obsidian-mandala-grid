@@ -1,7 +1,6 @@
 import {
     ContextMenuCopyLinkVariant,
     CustomHotkeys,
-    DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     DetailSidebarPreviewMode,
     DocumentPreferences,
@@ -278,12 +277,6 @@ export type SettingsActions =
           type: 'settings/general/set-day-plan-date-heading-custom-template';
           payload: {
               template: string;
-          };
-      }
-    | {
-          type: 'settings/general/set-day-plan-date-heading-apply-mode';
-          payload: {
-              mode: DayPlanDateHeadingApplyMode;
           };
       }
     | {

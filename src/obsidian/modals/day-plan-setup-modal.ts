@@ -1,6 +1,9 @@
 import { Modal, Notice, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
-import { DAY_PLAN_DEFAULT_SLOT_TITLES } from 'src/mandala-display/logic/day-plan';
+import {
+    buildCenterDateHeading,
+    DAY_PLAN_DEFAULT_SLOT_TITLES,
+} from 'src/mandala-display/logic/day-plan';
 import {
     formatTemplatePreview,
     type MandalaTemplate,
@@ -357,7 +360,7 @@ class DayPlanDailySetupModal extends Modal {
         contentEl.empty();
         this.setTitle('三，「日计划」设置页');
 
-        const structureSetting = new Setting(contentEl)
+        new Setting(contentEl)
             .setName('1）「日计划」视图页')
             .setDesc('提示：每日计划默认为 3x3 九宫格视图，不展开更深层的子九宫；默认关闭9x9视图。');
 
@@ -428,10 +431,19 @@ class DayPlanDailySetupModal extends Modal {
             'line-height': '1.6',
         });
 
+        const setElementDisplay = (
+            element: HTMLElement,
+            display: '' | 'none',
+        ) => {
+            element.setCssProps({
+                display,
+            });
+        };
+
         const renderPreview = () => {
             if (this.slotsSource === 'template') {
-                sourceDetailEl.style.display = 'none';
-                templateSetting.settingEl.style.display = '';
+                setElementDisplay(sourceDetailEl, 'none');
+                setElementDisplay(templateSetting.settingEl, '');
                 const activeTemplate =
                     this.templates[this.templateIndex ?? 0] ?? null;
                 templatePreviewEl.setText(
@@ -442,9 +454,9 @@ class DayPlanDailySetupModal extends Modal {
                 return;
             }
 
-            templateSetting.settingEl.style.display = 'none';
+            setElementDisplay(templateSetting.settingEl, 'none');
             if (this.slotsSource === 'recommended') {
-                sourceDetailEl.style.display = '';
+                setElementDisplay(sourceDetailEl, '');
                 sourceDetailEl.setText(
                     formatSlotsPreview(DAY_PLAN_DEFAULT_SLOT_TITLES),
                 );
@@ -452,7 +464,7 @@ class DayPlanDailySetupModal extends Modal {
                 return;
             }
 
-            sourceDetailEl.style.display = '';
+            setElementDisplay(sourceDetailEl, '');
             sourceDetailEl.setText(
                 '将进入手动填写页，你可以逐个设置 8 个格子的标题。',
             );
@@ -655,45 +667,13 @@ const formatIsoDate = (date: Date) => {
     return `${year}-${month}-${day}`;
 };
 
-const weekdayIndexMonday = (date: Date) => (date.getDay() + 6) % 7;
-
-const WEEKDAY_ZH_SHORT = ['一', '二', '三', '四', '五', '六', '日'] as const;
-const WEEKDAY_ZH_FULL = [
-    '周一',
-    '周二',
-    '周三',
-    '周四',
-    '周五',
-    '周六',
-    '周日',
-] as const;
-const WEEKDAY_EN_SHORT = [
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-    'Sun',
-] as const;
-
 const buildDateHeadingPreview = (
     date: Date,
     format: Exclude<DayPlanDateHeadingFormat, 'custom'>,
-) => {
-    const iso = formatIsoDate(date);
-    const weekday = weekdayIndexMonday(date);
-    switch (format) {
-        case 'date-only':
-            return `## ${iso}`;
-        case 'zh-full':
-            return `## ${iso} ${WEEKDAY_ZH_FULL[weekday]}`;
-        case 'zh-short':
-            return `## ${iso} ${WEEKDAY_ZH_SHORT[weekday]}`;
-        case 'en-short':
-            return `## ${iso} ${WEEKDAY_EN_SHORT[weekday]}`;
-    }
-};
+) =>
+    buildCenterDateHeading(formatIsoDate(date), {
+        format,
+    });
 
 const buildWeekStartPreview = (weekStart: WeekStart) => {
     const mondayStart = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
@@ -760,8 +740,10 @@ const appendWizardActions = (
     },
 ) => {
     const row = new Setting(contentEl);
-    row.settingEl.style.borderTop = 'none';
-    row.settingEl.style.paddingTop = '0';
+    row.settingEl.setCssProps({
+        'border-top': 'none',
+        'padding-top': '0',
+    });
     if (options.onBack) {
         const onBack = options.onBack;
         row.addButton((button) => {

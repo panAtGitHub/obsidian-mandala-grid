@@ -75,8 +75,6 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                         settings.general.dayPlanDateHeadingFormat,
                     dayPlanDateHeadingCustomTemplate:
                         settings.general.dayPlanDateHeadingCustomTemplate,
-                    dayPlanDateHeadingApplyMode:
-                        settings.general.dayPlanDateHeadingApplyMode,
                 },
             },
             createGroupContainer: (parentEl, title, group) =>

@@ -138,6 +138,5 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         weekStart: 'monday',
         dayPlanDateHeadingFormat: 'zh-short',
         dayPlanDateHeadingCustomTemplate: '## {date} {cn}',
-        dayPlanDateHeadingApplyMode: 'manual',
     },
 });

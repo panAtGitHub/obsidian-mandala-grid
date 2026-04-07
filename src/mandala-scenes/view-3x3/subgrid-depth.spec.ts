@@ -24,7 +24,6 @@ const mockView = (props: {
                 weekStart: 'monday',
                 dayPlanDateHeadingFormat: 'zh-short',
                 dayPlanDateHeadingCustomTemplate: '## {date} {cn}',
-                dayPlanDateHeadingApplyMode: 'manual',
             },
         }),
     }) as unknown as MandalaView;

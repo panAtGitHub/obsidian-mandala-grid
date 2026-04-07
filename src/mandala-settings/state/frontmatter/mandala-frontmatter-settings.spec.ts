@@ -108,9 +108,6 @@ describe('mandala-frontmatter-settings', () => {
         expect(effective.view.coreSectionMax).toBe('unlimited');
         expect(effective.view.subgridMaxDepth).toBe(2);
         expect(effective.general.weekPlanEnabled).toBe(false);
-        expect(effective.general.dayPlanDateHeadingApplyMode).toBe(
-            globalSettings.general.dayPlanDateHeadingApplyMode,
-        );
     });
 
     test('uses depth 2 for new day-plan files', () => {

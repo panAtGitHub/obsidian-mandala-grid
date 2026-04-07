@@ -170,13 +170,7 @@ describe('day-plan helpers', () => {
         ).toEqual({
             format: 'custom',
             customTemplate: DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE,
-            applyMode: 'manual',
         });
-        expect(
-            getDayPlanDateHeadingSettings({
-                applyMode: 'immediate',
-            }).applyMode,
-        ).toBe('manual');
     });
 
     it('upserts slot heading and keeps body', () => {

@@ -12,7 +12,6 @@ export const lang = {
     // create document
     cmd_create_new_document: '新建普通九宫格文件',
     cmd_create_day_plan_document: '新建「日计划」九宫格文件',
-    cmd_set_day_plan_mandala_format: '设置当前九宫格文件为「日计划」模式',
     cmd_open_current_file_mandala_settings: '更改当前九宫格文件设置',
     cmd_write_current_core_day_plan_slots_to_yaml:
         '将当前核心九宫的 8 个标题写回「日计划」模板',
@@ -368,12 +367,6 @@ export const lang = {
         '日计划日期标题自定义模板',
     settings_general_day_plan_date_heading_custom_template_desc:
         '支持 {date} {cn} {zh} {en} {en_full} {en_cap}。例如：## {date} {zh}',
-    settings_general_day_plan_date_heading_apply_mode: '日计划日期标题生效时机',
-    settings_general_day_plan_date_heading_apply_mode_desc:
-        '立即生效会在自动同步入口更新当前文档；手动生效需运行刷新命令。',
-    settings_general_day_plan_date_heading_apply_mode_immediate: '立即生效',
-    settings_general_day_plan_date_heading_apply_mode_manual:
-        '手动运行命令生效',
     settings_display_day_plan_today_button: '日计划“回到今天”按钮',
     day_plan_today_button_label: '回到今天',
     notice_day_plan_date_headings_refreshed: '已按当前设置刷新日计划日期标题。',

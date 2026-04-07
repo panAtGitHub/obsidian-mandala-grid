@@ -15,21 +15,14 @@ import {
     syncDayPlanTitlesBySections,
     syncDayPlanTitlesInMarkdown,
 } from 'src/mandala-display/logic/sync-day-plan-titles';
-import { refreshDayPlanDateHeadingsInMarkdown } from 'src/obsidian/commands/helpers/refresh-day-plan-date-headings';
 import {
-    buildCenterDateHeading,
-    DAY_PLAN_FRONTMATTER_KEY,
     dayOfYearFromDate,
-    getDayPlanDateHeadingSettings,
     parseDayPlanFromMarkdown,
 } from 'src/mandala-display/logic/day-plan';
 import {
     DayPlanSlotsSyncMode,
     openDayPlanSlotsSyncModeModal,
 } from 'src/obsidian/modals/day-plan-setup-modal';
-import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
-import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
-
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 
 const refreshMandalaViewData = (
@@ -47,26 +40,6 @@ const refreshMandalaViewData = (
             maybeTextView.setViewData(content);
         }
     }, 50);
-};
-
-const getTodayIsoDate = () => {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${now.getFullYear()}-${month}-${day}`;
-};
-
-const getDateHeadingSettings = (plugin: MandalaGrid, markdown: string) => {
-    const { frontmatter } = extractFrontmatter(markdown);
-    const effective = resolveEffectiveMandalaSettings(
-        plugin.settings.getValue(),
-        frontmatter,
-    );
-    return getDayPlanDateHeadingSettings({
-        format: effective.general.dayPlanDateHeadingFormat,
-        customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
-        applyMode: effective.general.dayPlanDateHeadingApplyMode,
-    });
 };
 
 const splitSectionsToBatches = (sections: string[], batchSize: number) => {
@@ -187,31 +160,6 @@ const syncDayPlanTitlesByUserChoice = async (
     return todayAndFutureResult;
 };
 
-const syncDayPlanCenterDateHeadingWithToday = async (
-    plugin: MandalaGrid,
-    file: TFile,
-    content: string,
-) => {
-    const plan = parseDayPlanFromMarkdown(content);
-    if (!plan || plan.enabled !== true) return false;
-    const dateHeadingSettings = getDateHeadingSettings(plugin, content);
-    if (dateHeadingSettings.applyMode === 'manual') return false;
-    const todayHeading = buildCenterDateHeading(
-        getTodayIsoDate(),
-        dateHeadingSettings,
-    );
-    if (plan.center_date_h2 === todayHeading) return false;
-    await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        const record = frontmatter as Record<string, unknown>;
-        const raw = record[DAY_PLAN_FRONTMATTER_KEY];
-        if (!raw || typeof raw !== 'object') return;
-        const dayPlan = raw as Record<string, unknown>;
-        if (dayPlan.enabled !== true) return;
-        dayPlan.center_date_h2 = todayHeading;
-    });
-    return true;
-};
-
 export const toggleFileViewType = async (
     plugin: MandalaGrid,
     file: TFile,
@@ -259,24 +207,9 @@ export const toggleFileViewType = async (
             nextContent,
         );
         nextContent = syncResult.markdown;
-        const dateHeadingSettings = getDateHeadingSettings(plugin, nextContent);
-        if (dateHeadingSettings.applyMode === 'immediate') {
-            nextContent = refreshDayPlanDateHeadingsInMarkdown(
-                nextContent,
-                dateHeadingSettings,
-            ).markdown;
-        }
         const contentChangedOnEnter = nextContent !== content;
         if (contentChangedOnEnter) {
             await plugin.app.vault.modify(file, nextContent);
-        }
-        const centerDateUpdated = await syncDayPlanCenterDateHeadingWithToday(
-            plugin,
-            file,
-            nextContent,
-        );
-        if (centerDateUpdated) {
-            nextContent = await plugin.app.vault.read(file);
         }
     }
     toggleObsidianViewType(plugin, fileLeaf, newViewType);

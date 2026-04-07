@@ -21,7 +21,6 @@ describe('refreshDayPlanDateHeadingsInMarkdown', () => {
             markdown,
             getDayPlanDateHeadingSettings({
                 format: 'zh-full',
-                applyMode: 'manual',
             }),
         );
 

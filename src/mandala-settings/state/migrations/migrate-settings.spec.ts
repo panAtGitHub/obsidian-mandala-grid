@@ -308,7 +308,7 @@ describe('migrateSettings', () => {
         expect(settings.general.dayPlanDateHeadingCustomTemplate).toBe(
             '## {date} {cn}',
         );
-        expect(settings.general.dayPlanDateHeadingApplyMode).toBe('manual');
+        expect('dayPlanDateHeadingApplyMode' in settings.general).toBe(false);
     });
 
     test('adds default weekStart when missing', () => {

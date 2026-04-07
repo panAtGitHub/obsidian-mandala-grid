@@ -27,8 +27,6 @@ const getDateHeadingSettings = (view: MandalaView) =>
         format: view.getEffectiveMandalaSettings().general.dayPlanDateHeadingFormat,
         customTemplate:
             view.getEffectiveMandalaSettings().general.dayPlanDateHeadingCustomTemplate,
-        applyMode:
-            view.getEffectiveMandalaSettings().general.dayPlanDateHeadingApplyMode,
     });
 
 export const shouldApplyDayPlanSlotTemplate = (content: string) => {

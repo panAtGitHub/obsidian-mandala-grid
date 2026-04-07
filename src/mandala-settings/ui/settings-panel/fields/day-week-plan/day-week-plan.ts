@@ -2,7 +2,6 @@ import { SettingsStore } from 'src/main';
 import { Setting } from 'obsidian';
 import { lang } from 'src/lang/lang';
 import {
-    DayPlanDateHeadingApplyMode,
     DayPlanDateHeadingFormat,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
@@ -89,31 +88,6 @@ export const DayWeekPlanSettings = (
                         });
                 });
         }
-
-        // Apply mode
-        new Setting(element)
-            .setName(lang.settings_general_day_plan_date_heading_apply_mode)
-            .setDesc(
-                lang.settings_general_day_plan_date_heading_apply_mode_desc,
-            )
-            .addDropdown((cb) => {
-                cb.addOptions({
-                    immediate:
-                        lang.settings_general_day_plan_date_heading_apply_mode_immediate,
-                    manual:
-                        lang.settings_general_day_plan_date_heading_apply_mode_manual,
-                } satisfies Record<DayPlanDateHeadingApplyMode, string>)
-                    .setValue(settingsState.general.dayPlanDateHeadingApplyMode)
-                    .onChange((value) => {
-                        settingsStore.dispatch({
-                            type: 'settings/general/set-day-plan-date-heading-apply-mode',
-                            payload: {
-                                mode: value as DayPlanDateHeadingApplyMode,
-                            },
-                        });
-                    });
-            });
-
         // Today button desktop
         new Setting(element)
             .setName(lang.settings_display_day_plan_today_button + '（PC）')
