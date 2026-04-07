@@ -17,6 +17,8 @@ const mocks = vi.hoisted(() => ({
     runtimeResolveCells: vi.fn(),
     setActiveCellNx9Week7x9: vi.fn(),
     setActiveCell9x9: vi.fn(),
+    posOfSection9x9: vi.fn(),
+    sectionAtCell9x9: vi.fn(),
 }));
 
 vi.mock('src/mandala-scenes/view-3x3/build-scene-projection', () => ({
@@ -78,8 +80,8 @@ vi.mock('src/mandala-interaction/helpers/set-active-cell-9x9', () => ({
 }));
 
 vi.mock('src/mandala-display/logic/mandala-grid', () => ({
-    posOfSection9x9: vi.fn(),
-    sectionAtCell9x9: vi.fn(),
+    posOfSection9x9: mocks.posOfSection9x9,
+    sectionAtCell9x9: mocks.sectionAtCell9x9,
 }));
 
 import { createThreeByThreeController } from 'src/mandala-scenes/view-3x3/controller';
@@ -235,6 +237,8 @@ describe('scene-controllers', () => {
         mocks.runtimeResolveCells.mockReset();
         mocks.setActiveCellNx9Week7x9.mockReset();
         mocks.setActiveCell9x9.mockReset();
+        mocks.posOfSection9x9.mockReset();
+        mocks.sectionAtCell9x9.mockReset();
 
         mocks.buildThreeByThreeProjectionProps.mockReturnValue({
             layoutKind: '3x3',
@@ -319,6 +323,8 @@ describe('scene-controllers', () => {
                 props,
             }),
         );
+        mocks.posOfSection9x9.mockReturnValue({ row: 1, col: 4 });
+        mocks.sectionAtCell9x9.mockReturnValue('1');
     });
 
     it('memoizes the 3x3 controller projection around a stable core state', () => {
@@ -521,6 +527,46 @@ describe('scene-controllers', () => {
 
         expect(first).toBe(second);
         expect(first.rendererKind).toBe('9x9-layout');
-        expect(mocks.setActiveCell9x9).not.toHaveBeenCalled();
+        expect(mocks.setActiveCell9x9).toHaveBeenCalledWith(context.view, {
+            row: 1,
+            col: 4,
+        });
+    });
+
+    it('re-canonicalizes duplicated 9x9 active cells back to the unique focus cell', () => {
+        const controller = createNineByNineController();
+        const context = createContext({
+            sceneKey: {
+                viewKind: '9x9',
+                variant: 'default',
+            },
+            committedSceneKey: {
+                viewKind: '9x9',
+                variant: 'default',
+            },
+            idToSection: { 'node-1': '1.2' },
+            ui: {
+                ...createContext().ui,
+                activeNodeId: 'node-1',
+                activeSection: '1.2',
+                activeCoreSection: '1',
+            },
+            view: {
+                mandalaActiveCell9x9: {
+                    row: 4,
+                    col: 1,
+                },
+                viewStore: {
+                    dispatch: vi.fn(),
+                },
+            } as never,
+        });
+
+        controller.resolveProjection(context);
+
+        expect(mocks.setActiveCell9x9).toHaveBeenCalledWith(context.view, {
+            row: 1,
+            col: 4,
+        });
     });
 });
