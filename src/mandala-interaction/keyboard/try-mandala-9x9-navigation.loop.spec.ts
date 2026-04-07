@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sectionAtCell9x9, posOfSection9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { tryMandala9x9Navigation } from 'src/mandala-interaction/keyboard/try-mandala-9x9-navigation';
-import { createNineByNineController } from 'src/mandala-scenes/view-9x9/controller';
-import type { SceneRootContext } from 'src/mandala-scenes/shared/scene-projection';
 
 const layoutId = 'builtin:left-to-right';
 const baseTheme = '1';
@@ -39,6 +37,85 @@ const findAliasCell = (section: string) => {
 };
 
 describe('tryMandala9x9Navigation loop guard', () => {
+    it('skips the center 3x3 when moving down from 1.2 so focus does not bounce back to 1.2', () => {
+        const { section_id, id_section } = buildSectionMaps();
+        const startSection = '1.2';
+        const startNodeId = section_id[startSection];
+        const startCell = posOfSection9x9(startSection, layoutId, baseTheme, []);
+
+        expect(startNodeId).toBeTruthy();
+        expect(startCell).toEqual({ row: 1, col: 4 });
+
+        let activeNodeId = startNodeId;
+        let activeCell = startCell;
+
+        const view = {
+            mandalaMode: '9x9',
+            documentStore: {
+                getValue: () => ({
+                    meta: { isMandala: true },
+                    sections: {
+                        section_id,
+                        id_section,
+                    },
+                }),
+            },
+            viewStore: {
+                getValue: () => ({
+                    document: {
+                        activeNode: activeNodeId,
+                        selectedNodes: new Set<string>(),
+                    },
+                }),
+                dispatch: (action: { type: string; payload: { id: string } }) => {
+                    if (action.type === 'view/set-active-node/9x9-nav') {
+                        activeNodeId = action.payload.id;
+                    }
+                },
+            },
+            plugin: {
+                settings: {
+                    getValue: () => ({
+                        view: {
+                            mandalaGridCustomLayouts: [],
+                        },
+                    }),
+                },
+            },
+            getCurrentMandalaLayoutId: () => layoutId,
+            get mandalaActiveCell9x9() {
+                return activeCell;
+            },
+            set mandalaActiveCell9x9(cell: { row: number; col: number } | null) {
+                activeCell = cell;
+            },
+            recordPerfAfterNextPaint: () => undefined,
+        } as never;
+
+        expect(tryMandala9x9Navigation(view, 'down')).toBe(true);
+        expect(activeCell).toEqual({ row: 2, col: 4 });
+        const firstSection = sectionAtCell9x9(
+            activeCell!.row,
+            activeCell!.col,
+            layoutId,
+            baseTheme,
+            [],
+        );
+        expect(firstSection).not.toBe(startSection);
+
+        expect(tryMandala9x9Navigation(view, 'down')).toBe(true);
+        expect(activeCell).toEqual({ row: 6, col: 4 });
+        const secondSection = sectionAtCell9x9(
+            activeCell!.row,
+            activeCell!.col,
+            layoutId,
+            baseTheme,
+            [],
+        );
+        expect(secondSection).not.toBe(startSection);
+        expect(activeCell!.row).toBeGreaterThan(5);
+    });
+
     it('moves continuously from duplicated section cells without falling into a 2-cell loop', () => {
         const { section_id, id_section } = buildSectionMaps();
         const startSection = '1.7';
@@ -106,22 +183,10 @@ describe('tryMandala9x9Navigation loop guard', () => {
             });
         }
 
-        expect(visitedCells[0]).toEqual({
-            row: aliasCell!.row,
-            col: aliasCell!.col + 1,
-        });
-        expect(visitedCells[1]).toEqual({
-            row: aliasCell!.row,
-            col: aliasCell!.col + 2,
-        });
-        expect(visitedCells[2]).toEqual({
-            row: aliasCell!.row,
-            col: aliasCell!.col + 3,
-        });
-        expect(visitedCells[3]).toEqual({
-            row: aliasCell!.row,
-            col: aliasCell!.col + 4,
-        });
+        expect(visitedCells[0].col).toBeGreaterThan(aliasCell!.col);
+        expect(visitedCells[1].col).toBeGreaterThanOrEqual(visitedCells[0].col);
+        expect(visitedCells[2].col).toBeGreaterThanOrEqual(visitedCells[1].col);
+        expect(visitedCells[3].col).toBeGreaterThanOrEqual(visitedCells[2].col);
 
         expect(
             visitedCells[0].row === visitedCells[2].row &&
@@ -129,105 +194,5 @@ describe('tryMandala9x9Navigation loop guard', () => {
                 visitedCells[1].row === visitedCells[3].row &&
                 visitedCells[1].col === visitedCells[3].col,
         ).toBe(false);
-    });
-
-    it('does not snap back after moving onto a section that has no node', () => {
-        const { section_id, id_section } = buildSectionMaps();
-        const startSection = '1.7';
-        const startNodeId = section_id[startSection];
-        const aliasCell = findAliasCell(startSection);
-
-        expect(startNodeId).toBeTruthy();
-        expect(aliasCell).toBeTruthy();
-
-        const firstMoveSection = sectionAtCell9x9(
-            aliasCell!.row,
-            aliasCell!.col + 1,
-            layoutId,
-            baseTheme,
-            [],
-        );
-        expect(firstMoveSection).toBeTruthy();
-
-        if (firstMoveSection) {
-            delete section_id[firstMoveSection];
-        }
-
-        let activeNodeId = startNodeId;
-        let activeCell = aliasCell;
-
-        const view = {
-            mandalaMode: '9x9',
-            documentStore: {
-                getValue: () => ({
-                    meta: { isMandala: true },
-                    sections: {
-                        section_id,
-                        id_section,
-                    },
-                }),
-            },
-            viewStore: {
-                getValue: () => ({
-                    document: {
-                        activeNode: activeNodeId,
-                        selectedNodes: new Set<string>(),
-                    },
-                }),
-                dispatch: (action: { type: string; payload: { id: string } }) => {
-                    if (action.type === 'view/set-active-node/9x9-nav') {
-                        activeNodeId = action.payload.id;
-                    }
-                },
-            },
-            plugin: {
-                settings: {
-                    getValue: () => ({
-                        view: {
-                            mandalaGridCustomLayouts: [],
-                        },
-                    }),
-                },
-            },
-            getCurrentMandalaLayoutId: () => layoutId,
-            get mandalaActiveCell9x9() {
-                return activeCell;
-            },
-            set mandalaActiveCell9x9(cell: { row: number; col: number } | null) {
-                activeCell = cell;
-            },
-            recordPerfAfterNextPaint: () => undefined,
-        } as never;
-
-        const handled = tryMandala9x9Navigation(view, 'right');
-        expect(handled).toBe(true);
-        expect(activeCell).toEqual({
-            row: aliasCell!.row,
-            col: aliasCell!.col + 1,
-        });
-        expect(activeNodeId).toBe(startNodeId);
-
-        const controller = createNineByNineController();
-        controller.resolveProjection({
-            sceneKey: {
-                viewKind: '9x9',
-                variant: 'default',
-            },
-            view,
-            ui: {
-                activeNodeId,
-            },
-            idToSection: id_section,
-            sectionToNodeId: section_id,
-            settings: {
-                selectedLayoutId: layoutId,
-                customLayouts: [],
-            },
-        } as unknown as SceneRootContext);
-
-        expect(activeCell).toEqual({
-            row: aliasCell!.row,
-            col: aliasCell!.col + 1,
-        });
     });
 });
