@@ -157,15 +157,6 @@ const WEEKDAY_LABELS_ZH = [
     '周六',
     '周日',
 ] as const;
-const WEEKDAY_LABELS_EN_SHORT = [
-    'mon',
-    'tue',
-    'wed',
-    'thu',
-    'fri',
-    'sat',
-    'sun',
-] as const;
 const WEEKDAY_LABELS_EN_FULL = [
     'Monday',
     'Tuesday',
@@ -246,7 +237,7 @@ export const getChineseFullWeekdayLabel = (date: string): string => {
 
 export const getEnglishShortWeekdayLabel = (date: string): string => {
     const weekday = resolveWeekdayIndex(date);
-    return WEEKDAY_LABELS_EN_SHORT[weekday];
+    return WEEKDAY_LABELS_EN_CAP[weekday];
 };
 
 export const getEnglishFullWeekdayLabel = (date: string): string => {

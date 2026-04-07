@@ -361,7 +361,7 @@ export const lang = {
     settings_general_day_plan_date_heading_format_date_only: '仅日期',
     settings_general_day_plan_date_heading_format_zh_full: '日期 + 周一至周日',
     settings_general_day_plan_date_heading_format_zh_short: '日期 + 一至日',
-    settings_general_day_plan_date_heading_format_en_short: '日期 + mon至sun',
+    settings_general_day_plan_date_heading_format_en_short: '日期 + Mon~Sun',
     settings_general_day_plan_date_heading_format_custom: '日期 + 自定义',
     settings_general_day_plan_date_heading_custom_template:
         '日计划日期标题自定义模板',

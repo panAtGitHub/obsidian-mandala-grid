@@ -103,7 +103,7 @@ describe('day-plan helpers', () => {
     it('builds center heading with chinese weekday', () => {
         expect(getChineseWeekdayLabel('2026-03-16')).toBe('一');
         expect(getChineseFullWeekdayLabel('2026-03-16')).toBe('周一');
-        expect(getEnglishShortWeekdayLabel('2026-03-16')).toBe('mon');
+        expect(getEnglishShortWeekdayLabel('2026-03-16')).toBe('Mon');
         expect(getEnglishCapitalizedWeekdayLabel('2026-03-16')).toBe('Mon');
         expect(getEnglishFullWeekdayLabel('2026-03-16')).toBe('Monday');
         expect(buildCenterDateHeading('2026-03-16')).toBe('## 2026-03-16 一');
@@ -129,7 +129,7 @@ describe('day-plan helpers', () => {
             buildCenterDateHeading('2026-03-16', {
                 format: 'en-short',
             }),
-        ).toBe('## 2026-03-16 mon');
+        ).toBe('## 2026-03-16 Mon');
     });
 
     it('renders custom templates and falls back safely', () => {

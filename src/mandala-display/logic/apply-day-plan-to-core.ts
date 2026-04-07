@@ -75,7 +75,7 @@ export const resolveNextDayPlanDate = (
         };
     }
     if (config.valid === false) {
-        new Notice('日计划配置无效，请重新运行“设置成「日计划」九宫格格式”。');
+        new Notice('日计划配置无效，请检查当前文件 YAML 中的 mandala_plan 配置。');
         return {
             enabled: true,
             blocked: true,
@@ -135,7 +135,7 @@ export const applyDayPlanToCore = (
     const config = getDayPlanConfig(view.documentStore.getValue().file.frontmatter);
     if (config.valid === null) return true;
     if (config.valid === false) {
-        new Notice('日计划配置无效，请重新运行“设置成「日计划」九宫格格式”。');
+        new Notice('日计划配置无效，请检查当前文件 YAML 中的 mandala_plan 配置。');
         return false;
     }
     if (!view.dayPlanHotCores.has(nextCore)) {
