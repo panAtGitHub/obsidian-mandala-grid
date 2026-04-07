@@ -604,4 +604,42 @@ describe('scene-controllers', () => {
 
         expect(mocks.setActiveCell9x9).not.toHaveBeenCalled();
     });
+
+    it('keeps the current 9x9 cell when mapped section has no node yet', () => {
+        const controller = createNineByNineController();
+        mocks.sectionAtCell9x9.mockReturnValue('1.7.2');
+        const context = createContext({
+            sceneKey: {
+                viewKind: '9x9',
+                variant: 'default',
+            },
+            committedSceneKey: {
+                viewKind: '9x9',
+                variant: 'default',
+            },
+            idToSection: { 'node-1': '1.7' },
+            sectionToNodeId: {
+                '1.7': 'node-1',
+            },
+            ui: {
+                ...createContext().ui,
+                activeNodeId: 'node-1',
+                activeSection: '1.7',
+                activeCoreSection: '1',
+            },
+            view: {
+                mandalaActiveCell9x9: {
+                    row: 4,
+                    col: 5,
+                },
+                viewStore: {
+                    dispatch: vi.fn(),
+                },
+            } as never,
+        });
+
+        controller.resolveProjection(context);
+
+        expect(mocks.setActiveCell9x9).not.toHaveBeenCalled();
+    });
 });

@@ -43,7 +43,19 @@ const syncNineByNineSceneState = (context: SceneRootContext) => {
         baseTheme,
         context.settings.customLayouts,
     );
-    if (!mappedSection || mappedSection !== section) {
+    if (!mappedSection) {
+        setActiveCell9x9(context.view, canonicalCell);
+        return;
+    }
+
+    // Allow focus to stay on empty sections during keyboard roaming.
+    // In that case activeNode intentionally remains unchanged.
+    const mappedNodeId = context.sectionToNodeId[mappedSection];
+    if (!mappedNodeId) {
+        return;
+    }
+
+    if (mappedSection !== section) {
         setActiveCell9x9(context.view, canonicalCell);
     }
 };
