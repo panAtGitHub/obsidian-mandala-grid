@@ -4,7 +4,6 @@ TypeScript + Svelte 的 Obsidian 插件。
 
 -   源码目录：`src/`
 -   单元测试：Vitest（`src/**/*.spec.ts`）
--   端到端测试：Playwright（`e2e/**`，`playwright.config.ts`），通过 Electron 启动 Obsidian
 -   路径别名：`src/*`（见 `tsconfig.json` 与 `vite.config.mjs`）
 
 ## 包管理器
@@ -24,7 +23,6 @@ TypeScript + Svelte 的 Obsidian 插件。
 -   Lint：`npm run lint`（运行 `eslint src`）
 -   单元测试：`npm test`（运行 `vitest run`）
 -   单元测试（watch）：`npm run test:watch`（运行 `vitest`）
--   E2E 测试：`npm run test:e2e`（运行 `playwright test`）
 
 ## 运行单个测试
 
@@ -32,27 +30,6 @@ TypeScript + Svelte 的 Obsidian 插件。
 
 -   单文件：`npm test -- src/helpers/test-helpers/compare-documents.spec.ts`
 -   按测试名过滤：`npm test -- -t "should be equal"`
-
-### Playwright（E2E）
-
--   单文件：`npm run test:e2e -- e2e/tests/text-area.spec.ts`
--   按用例标题过滤：`npm run test:e2e -- --grep "card hotkeys"`
-
-## E2E 前置条件
-
-E2E 通过 Playwright 的 Electron 启动器（`electron.launch`）启动 Obsidian，需要提供 Obsidian 可执行文件路径。
-
--   设置 `OBSIDIAN_EXECUTABLE_PATH`（推荐写入 `.env`，该文件已被 `.gitignore` 忽略）
--   `playwright.config.ts` 会调用 `dotenv.config()`，因此会自动加载 `.env`
--   相关代码：`e2e/helpers/getters/obsidian/load-obsidian.ts`
-
-`.env` 示例：
-
-```
-OBSIDIAN_EXECUTABLE_PATH=/absolute/path/to/Obsidian
-```
-
-如果 Playwright 驱动/浏览器缺失，可执行：`npx playwright install`。
 
 ## 版本管理
 
@@ -117,7 +94,6 @@ ESLint 配置：`.eslintrc`
 -   函数/变量：**camelCase**
 -   常量：需要时使用 **SCREAMING_SNAKE_CASE**
 -   单元测试：与源码相邻的 `*.spec.ts`
--   E2E 测试：`e2e/tests/*.spec.ts`
 
 ## 错误处理与日志
 
@@ -144,7 +120,7 @@ ESLint 配置：`.eslintrc`
 
 -   优先小而精的改动（尽量小的补丁）
 -   贴合当前模块既有模式（store/reducer、view、helpers 等）
--   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test` 和/或 `npm run test:e2e`
+-   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test`
 -   **强制交付动作（每次写完都要执行，不可省略）**：只要本次会话产生了代码改动，必须在结束前执行 `commit + build + sync`
 -   默认交付流程（完成代码改动后）：
     1. `git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`

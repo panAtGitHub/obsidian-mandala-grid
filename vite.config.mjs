@@ -5,11 +5,11 @@ const configMain = defineConfig({
     test: {
         threads: true,
         environment: 'node',
-        exclude: ['temp/**', "node_modules/**","e2e/**"],
+        exclude: ['temp/**', 'node_modules/**'],
         alias: {
             'src': path.resolve('./src'),
-            'obsidian': path.resolve('./src/shared/test-helpers/obsidian-mock.ts')
-        }
+            'obsidian': path.resolve('./src/shared/test-helpers/obsidian-mock.ts'),
+        },
     },
 });
 

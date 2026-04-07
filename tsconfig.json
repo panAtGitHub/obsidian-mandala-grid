@@ -29,9 +29,7 @@
 	},
 	"include": [
 		"src/**/*.ts",
-		"src/**/*.d.ts",
-		"e2e/**/*.ts",
-		"playwright.config.ts"
+		"src/**/*.d.ts"
 	],
 	"exclude": ["temp","node_modules"]
 }

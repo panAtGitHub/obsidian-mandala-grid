@@ -7,7 +7,6 @@ import svelteParser from 'svelte-eslint-parser';
 import globals from 'globals';
 
 const SRC_TS_FILES = ['src/**/*.{ts,tsx,mts,cts}'];
-const TOOLING_TS_FILES = ['e2e/**/*.ts', 'playwright.config.ts'];
 const TOOLING_MJS_FILES = ['esbuild.config.mjs', 'version-bump.mjs', 'scripts/**/*.mjs'];
 const SVELTE_FILES = ['**/*.svelte'];
 
@@ -25,37 +24,6 @@ export default defineConfig([
             parser: tsparser,
             parserOptions: {
                 project: './tsconfig.json',
-            },
-            globals: {
-                ...globals.browser,
-                ...globals.node,
-                activeWindow: 'readonly',
-                activeDocument: 'readonly',
-            },
-        },
-        plugins: {
-            '@typescript-eslint': tseslint.plugin,
-        },
-        rules: {
-            'no-unused-vars': 'off',
-            '@typescript-eslint/no-unused-vars': [
-                'error',
-                {
-                    argsIgnorePattern: '^_',
-                    varsIgnorePattern: '^_',
-                    caughtErrorsIgnorePattern: '^_',
-                },
-            ],
-            'no-console': 'error',
-        },
-    },
-    {
-        files: TOOLING_TS_FILES,
-        languageOptions: {
-            parser: tsparser,
-            parserOptions: {
-                project: './tsconfig.json',
-                sourceType: 'module',
             },
             globals: {
                 ...globals.browser,
