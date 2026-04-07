@@ -27,7 +27,13 @@ type ElectronDialog = {
                     pageSize: string | { width: number; height: number };
                     landscape?: boolean;
                     printBackground?: boolean;
-                    marginsType?: number;
+                    margins?: {
+                        marginType?: 'default' | 'none' | 'printableArea' | 'custom';
+                        top?: number;
+                        bottom?: number;
+                        left?: number;
+                        right?: number;
+                    };
                 }) => Promise<Uint8Array>;
             };
         };
@@ -392,7 +398,6 @@ export const createViewOptionsExportActions = ({
                 '--mandala-border-color',
             );
             const sourceRoot = source.closest<HTMLElement>('.mandala-root');
-            const printSource = sourceRoot ?? source;
             const layer = document.createElement('div');
             layer.className = 'mandala-pdf-export-layer';
             layer.classList.add('mandala-a4-mode');
@@ -439,7 +444,7 @@ export const createViewOptionsExportActions = ({
                 ).getPropertyValue('--background-primary'),
             });
 
-            const clone = printSource.cloneNode(true) as HTMLElement;
+            const clone = source.cloneNode(true) as HTMLElement;
             if (
                 getWhiteThemeMode() &&
                 !clone.classList.contains('mandala-white-theme')
@@ -452,8 +457,6 @@ export const createViewOptionsExportActions = ({
                 left: '0',
                 top: '0',
                 position: 'static',
-                width: '100%',
-                height: '100%',
                 boxSizing: 'border-box',
             });
 
@@ -480,7 +483,9 @@ export const createViewOptionsExportActions = ({
                     pageSize: 'A4',
                     landscape: isLandscape,
                     printBackground: true,
-                    marginsType: 1,
+                    margins: {
+                        marginType: 'none',
+                    },
                 });
                 const result = await dialog.showSaveDialog({
                     title: '导出 PDF',
