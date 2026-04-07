@@ -416,11 +416,11 @@ export class MandalaView extends TextFileView {
             mode === 'nx9' &&
             !this.getEffectiveMandalaSettings().view.enableNx9View
         ) {
-            new Notice('nx9 视图已在插件设置中关闭。');
+            new Notice('当前 nx9 视图已在插件设置中关闭。');
             return false;
         }
         if (mode === 'nx9' && !this.canUseNx9Mode()) {
-            new Notice('Nx9 视图仅支持桌面端的 mandala 文件。');
+            new Notice('当前 nx9 视图仅支持桌面端的 mandala 文件。');
             return false;
         }
         this.viewStore.dispatch({

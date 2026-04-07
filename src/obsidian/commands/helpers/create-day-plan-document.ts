@@ -46,7 +46,7 @@ export const createDayPlanDocument = async (plugin: MandalaGrid) => {
         );
         const completed = await setupDayPlanMandalaFormat(plugin, newFile);
         if (!completed) {
-            await plugin.app.vault.delete(newFile);
+            await plugin.app.fileManager.trashFile(newFile);
             plugin.settings.dispatch({
                 type: 'settings/documents/delete-document-preferences',
                 payload: {

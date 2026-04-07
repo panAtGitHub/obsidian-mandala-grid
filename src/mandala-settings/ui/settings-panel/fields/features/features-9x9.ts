@@ -13,7 +13,7 @@ export const Features9x9 = (
         .addToggle((cb) => {
             cb.setValue(
                 settingsState.view.show9x9ParallelNavButtonsDesktop ?? true,
-            ).onChange((enabled) => {
+            ).onChange((_enabled) => {
                 settingsStore.dispatch({
                     type: 'settings/view/toggle-9x9-parallel-nav-buttons-desktop',
                 });
@@ -25,7 +25,7 @@ export const Features9x9 = (
         .addToggle((cb) => {
             cb.setValue(
                 settingsState.view.show9x9ParallelNavButtonsMobile ?? true,
-            ).onChange((enabled) => {
+            ).onChange((_enabled) => {
                 settingsStore.dispatch({
                     type: 'settings/view/toggle-9x9-parallel-nav-buttons-mobile',
                 });
@@ -36,7 +36,7 @@ export const Features9x9 = (
         .setName(lang.settings_features_9x9_title_only)
         .addToggle((cb) => {
             cb.setValue(settingsState.view.show9x9TitleOnly).onChange(
-                (enabled) => {
+                (_enabled) => {
                     settingsStore.dispatch({
                         type: 'settings/view/toggle-9x9-title-only',
                     });

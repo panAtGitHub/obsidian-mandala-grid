@@ -19,7 +19,7 @@ export const FeaturesGeneral = (
         .setName(lang.settings_features_hidden_card_info)
         .addToggle((cb) => {
             cb.setValue(settingsState.view.showHiddenCardInfo).onChange(
-                (enabled) => {
+                (_enabled) => {
                     settingsStore.dispatch({
                         type: 'settings/view/toggle-hidden-card-info',
                     });
@@ -32,7 +32,7 @@ export const FeaturesGeneral = (
         .addToggle((cb) => {
             cb.setValue(
                 settingsState.view.showCellQuickPreviewDialogDesktop ?? true,
-            ).onChange((enabled) => {
+            ).onChange((_enabled) => {
                 settingsStore.dispatch({
                     type: 'settings/view/toggle-cell-quick-preview-dialog-desktop',
                 });
@@ -44,7 +44,7 @@ export const FeaturesGeneral = (
         .addToggle((cb) => {
             cb.setValue(
                 settingsState.view.showCellQuickPreviewDialogMobile ?? false,
-            ).onChange((enabled) => {
+            ).onChange((_enabled) => {
                 settingsStore.dispatch({
                     type: 'settings/view/toggle-cell-quick-preview-dialog-mobile',
                 });

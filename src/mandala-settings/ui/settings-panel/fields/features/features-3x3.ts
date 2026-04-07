@@ -14,7 +14,7 @@ export const Features3x3 = (
         .addToggle((cb) => {
             cb.setValue(
                 settingsState.view.show3x3SubgridNavButtonsDesktop ?? true,
-            ).onChange((enabled) => {
+            ).onChange((_enabled) => {
                 settingsStore.dispatch({
                     type: 'settings/view/toggle-3x3-subgrid-nav-buttons-desktop',
                 });
@@ -26,7 +26,7 @@ export const Features3x3 = (
         .addToggle((cb) => {
             cb.setValue(
                 settingsState.view.show3x3SubgridNavButtonsMobile ?? true,
-            ).onChange((enabled) => {
+            ).onChange((_enabled) => {
                 settingsStore.dispatch({
                     type: 'settings/view/toggle-3x3-subgrid-nav-buttons-mobile',
                 });

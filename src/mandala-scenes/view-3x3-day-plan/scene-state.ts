@@ -16,7 +16,7 @@ export const syncThreeByThreeDayPlanSceneState = ({
     subgridTheme,
     documentState,
     sectionToNodeId,
-    dayPlan,
+    dayPlan: _dayPlan,
     dayPlanTodayNavigation,
 }: {
     view: MandalaView;
