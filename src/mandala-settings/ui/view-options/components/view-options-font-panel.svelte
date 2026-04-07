@@ -167,7 +167,7 @@
 
             {#if weekPlanEnabled}
                 <div class="view-options-menu__row">
-                    <span>7x9视图：</span>
+                    <span>nx9视图：</span>
                     <div class="view-options-menu__range">
                         <button
                             class="view-options-menu__range-step"
@@ -218,7 +218,7 @@
             {/if}
 
             <div class="view-options-menu__row">
-                <span>侧边栏：</span>
+                <span>右侧详情栏：</span>
                 <div class="view-options-menu__range">
                     <button
                         class="view-options-menu__range-step"
