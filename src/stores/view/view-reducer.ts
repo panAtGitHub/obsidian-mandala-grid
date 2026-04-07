@@ -511,13 +511,25 @@ const updateDocumentState = (
     context: MandalaGridDocument,
 ) => {
     const activeNode = state.document.activeNode;
+    const previousFocusTarget = state.ui.mandala.focusTarget;
     const handler = handlers[action.type];
     if (handler) {
         handler(state, action, context);
     }
 
     if (activeNode !== state.document.activeNode) {
-        syncNodeFocusTarget(state);
+        const preserveSceneCellFocus =
+            previousFocusTarget?.kind === 'cell' &&
+            (action.type === 'view/set-active-node/mouse' ||
+                action.type === 'view/set-active-node/mouse-silent' ||
+                action.type === 'view/set-active-node/9x9-nav' ||
+                action.type === 'view/set-active-node/nx9-nav');
+        if (preserveSceneCellFocus) {
+            setFocusTarget(state, previousFocusTarget);
+            syncSceneCellCachesFromFocusTarget(state);
+        } else {
+            syncNodeFocusTarget(state);
+        }
         updateActiveBranch(state.document, context.columns, false);
     }
 };
