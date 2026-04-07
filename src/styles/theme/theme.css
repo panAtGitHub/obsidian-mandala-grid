@@ -150,6 +150,22 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
 /* 打印样式 - 仅移除工具栏,保留侧边栏和格子布局 */
 @media print {
 
+    @page mandala-a4-portrait {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    @page mandala-a4-landscape {
+        size: A4 landscape;
+        margin: 0;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
     /* 隐藏工具栏 */
     .mandala-topbar {
         display: none !important;
@@ -197,8 +213,15 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
         top: 0;
         left: 0;
         display: block !important;
-        width: auto !important;
-        height: auto !important;
+    }
+
+    body.mandala-print-export .mandala-print-target.mandala-a4-mode {
+        page: mandala-a4-portrait;
+    }
+
+    body.mandala-print-export
+        .mandala-print-target.mandala-a4-mode.mandala-a4-landscape {
+        page: mandala-a4-landscape;
     }
 
     body.mandala-print-export .mandala-detail-sidebar {
@@ -206,22 +229,17 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
     }
 
     body.mandala-print-export .mandala-scroll {
-        margin: 0 !important;
         overflow: visible !important;
     }
 
-    body.mandala-print-export .mandala-pdf-export-layer {
-        display: block;
-    }
-
     body.mandala-print-export
-        .mandala-pdf-export-layer.is-desktop-square-layout
+        .mandala-print-target.is-desktop-square-layout
         .parallel-nav-button {
         display: none !important;
     }
 
     body.mandala-print-export
-        .mandala-pdf-export-layer.is-desktop-square-layout
+        .mandala-print-target.is-desktop-square-layout
         .mandala-scroll {
         display: flex !important;
         align-items: center !important;
@@ -229,7 +247,7 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
     }
 
     body.mandala-print-export
-        .mandala-pdf-export-layer.is-desktop-square-layout
+        .mandala-print-target.is-desktop-square-layout
         .simple-9x9-shell {
         display: flex !important;
         align-items: center !important;
@@ -239,7 +257,7 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
     }
 
     body.mandala-print-export
-        .mandala-pdf-export-layer.is-desktop-square-layout
+        .mandala-print-target.is-desktop-square-layout
         .simple-9x9-grid {
         width: auto !important;
         height: auto !important;
@@ -248,8 +266,4 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
         aspect-ratio: 1 / 1 !important;
     }
 
-}
-
-.mandala-pdf-export-layer {
-    display: none;
 }

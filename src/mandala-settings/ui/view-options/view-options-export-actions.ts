@@ -27,6 +27,7 @@ type ElectronDialog = {
                     pageSize: string | { width: number; height: number };
                     landscape?: boolean;
                     printBackground?: boolean;
+                    preferCSSPageSize?: boolean;
                     margins?: {
                         marginType?: 'default' | 'none' | 'printableArea' | 'custom';
                         top?: number;
@@ -144,9 +145,6 @@ export const createViewOptionsExportActions = ({
     getIncludeSidebarInPngScreen,
     getWhiteThemeMode,
     getSquareLayout,
-    getBorderOpacity,
-    getGridHighlightWidth,
-    getGridHighlightColor,
     getA4Mode,
     getA4Orientation,
     createCurrentExportPreset,
@@ -359,7 +357,7 @@ export const createViewOptionsExportActions = ({
 
         const loadingNotice = new Notice('正在导出 PDF...', 0);
         const target = view.contentEl.querySelector<HTMLElement>(
-            '.mandala-scroll',
+            '.mandala-root',
         );
         if (!target) {
             loadingNotice.hide();
@@ -389,103 +387,13 @@ export const createViewOptionsExportActions = ({
         const defaultName = `mandala-${timestamp}.pdf`;
         const isLandscape = getA4Orientation() === 'landscape';
 
-        const createPrintLayer = (
-            source: HTMLElement,
-            orientation: 'portrait' | 'landscape',
-        ) => {
-            const computed = getComputedStyle(source);
-            const borderColor = computed.getPropertyValue(
-                '--mandala-border-color',
-            );
-            const sourceRoot = source.closest<HTMLElement>('.mandala-root');
-            const printSource = sourceRoot ?? source;
-            const layer = document.createElement('div');
-            layer.className = 'mandala-pdf-export-layer';
-            layer.classList.add('mandala-a4-mode');
-            if (orientation === 'landscape') {
-                layer.classList.add('mandala-a4-landscape');
-            }
-            if (getSquareLayout()) {
-                layer.classList.add('is-desktop-square-layout');
-            }
-            if (sourceRoot) {
-                sourceRoot.classList.forEach((className) => {
-                    if (className === 'mandala-root') return;
-                    layer.classList.add(className);
-                });
-            }
-            const cssVars = collectCssVariables([
-                document.documentElement,
-                view.containerEl,
-                sourceRoot ?? source,
-                source,
-            ]);
-            applyCssVariables(layer, cssVars);
-            applyInlineStyles(layer, {
-                ['--mandala-border-opacity' as keyof CSSStyleDeclaration]: `${getBorderOpacity()}%`,
-                ['--mandala-grid-highlight-width' as keyof CSSStyleDeclaration]: `${getGridHighlightWidth()}px`,
-            });
-            if (getGridHighlightColor().trim().length > 0) {
-                applyInlineStyles(layer, {
-                    ['--mandala-grid-highlight-color' as keyof CSSStyleDeclaration]:
-                        getGridHighlightColor(),
-                });
-            }
-            if (borderColor.trim().length > 0) {
-                applyInlineStyles(layer, {
-                    ['--mandala-border-color' as keyof CSSStyleDeclaration]:
-                        borderColor,
-                });
-            }
-            applyInlineStyles(layer, {
-                display: 'block',
-                boxSizing: 'border-box',
-                background: getComputedStyle(
-                    document.documentElement,
-                ).getPropertyValue('--background-primary'),
-            });
-
-            const clone = printSource.cloneNode(true) as HTMLElement;
-            if (
-                getWhiteThemeMode() &&
-                !clone.classList.contains('mandala-white-theme')
-            ) {
-                clone.classList.add('mandala-white-theme');
-            }
-            applyInlineStyles(clone, {
-                margin: '0',
-                transform: 'none',
-                left: '0',
-                top: '0',
-                position: 'static',
-                width: 'auto',
-                height: 'auto',
-                boxSizing: 'border-box',
-            });
-
-            layer.appendChild(clone);
-            document.body.appendChild(layer);
-            document.body.classList.add('mandala-print-export');
-
-            return {
-                layer,
-                cleanup: () => {
-                    document.body.classList.remove('mandala-print-export');
-                    layer.remove();
-                },
-            };
-        };
-
         try {
-            const printLayer = createPrintLayer(
-                target,
-                isLandscape ? 'landscape' : 'portrait',
-            );
-            await withPrintTarget(printLayer.layer, async () => {
+            await withPrintTarget(target, async () => {
                 const pdfData = await printToPDF({
                     pageSize: 'A4',
                     landscape: isLandscape,
                     printBackground: true,
+                    preferCSSPageSize: true,
                     margins: {
                         marginType: 'none',
                     },
@@ -520,7 +428,6 @@ export const createViewOptionsExportActions = ({
                     });
                 }
             });
-            printLayer.cleanup();
         } catch {
             new Notice('导出失败，请稍后再试。');
         } finally {
