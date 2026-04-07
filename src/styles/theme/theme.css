@@ -171,12 +171,6 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
         padding: var(--mandala-a4-margin) !important;
     }
 
-    /* 交给 Electron 的 printToPDF pageSize 决定纸张方向，避免这里把横向 A4 覆盖回默认纵向。 */
-    @page {
-        size: auto;
-        margin: 0;
-    }
-
     /* 防止格子内容分页断裂 */
     .mandala-card {
         page-break-inside: avoid;
