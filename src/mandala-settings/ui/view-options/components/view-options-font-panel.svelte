@@ -3,6 +3,12 @@
 
     export let isMobile = false;
     export let show = false;
+    export let showTrigger = true;
+    export let panelTitle = '';
+    export let panelDescription = '';
+    export let gridSectionTitle = '';
+    export let headingsSectionTitle =
+        '标题字体大小（em）（可理解为正文字体的放大倍数）';
 
     export let fontSize3x3 = 16;
     export let fontSize9x9 = 11;
@@ -40,30 +46,39 @@
     export let stepHeadingsFontSize: (current: number, delta: number) => void;
     export let updateHeadingsFontSize: (event: Event) => void;
     export let resetHeadingsFontSize: () => void;
+
+    let resolvedPanelTitle = '';
+    let resolvedPanelDescription = '';
+    let resolvedGridSectionTitle = '';
+
+    $: resolvedPanelTitle = panelTitle || `字体设置（${isMobile ? '手机端' : 'PC端'}）`;
+    $: resolvedPanelDescription =
+        panelDescription ||
+        `对 3x3 视图、9x9 视图、周计划视图、侧边栏${showCellQuickPreviewDialog ? '、快速预览浮层' : ''} 字体进行调整`;
+    $: resolvedGridSectionTitle =
+        gridSectionTitle || `格子字体大小（${isMobile ? '手机端' : 'PC端'}）`;
 </script>
 
-<button class="view-options-menu__item" on:click={toggle}>
-    <div class="view-options-menu__icon">
-        <Type class="view-options-menu__icon-svg" size={18} />
-    </div>
-    <div class="view-options-menu__content">
-        <div class="view-options-menu__label">
-            字体设置（{isMobile ? '手机端' : 'PC端'}）
+{#if showTrigger}
+    <button class="view-options-menu__item" on:click={toggle}>
+        <div class="view-options-menu__icon">
+            <Type class="view-options-menu__icon-svg" size={18} />
         </div>
-        <div class="view-options-menu__desc">
-            对 3x3 视图、9x9 视图、周计划视图、侧边栏
-            {showCellQuickPreviewDialog ? '、快速预览浮层' : ''}
-            字体进行调整
+        <div class="view-options-menu__content">
+            <div class="view-options-menu__label">
+                {resolvedPanelTitle}
+            </div>
+            <div class="view-options-menu__desc">
+                {resolvedPanelDescription}
+            </div>
         </div>
-    </div>
-</button>
+    </button>
+{/if}
 
 {#if show}
     <div class="view-options-menu__submenu">
         <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">
-                格子字体大小（{isMobile ? '手机端' : 'PC端'}）
-            </div>
+            <div class="view-options-menu__subsection-title">{resolvedGridSectionTitle}</div>
 
             <div class="view-options-menu__row">
                 <span>3x3视图：</span>
@@ -328,7 +343,7 @@
 
         <div class="view-options-menu__subsection">
             <div class="view-options-menu__subsection-title">
-                标题字体大小（em）（可理解为正文字体的放大倍数）
+                {headingsSectionTitle}
             </div>
             <div class="view-options-menu__row">
                 <span>H1</span>

@@ -373,6 +373,11 @@ export type SettingsActions =
                   gridHighlightWidth?: number;
                   whiteThemeMode: boolean;
                   squareLayout: boolean;
+                  fontSize3x3: number;
+                  fontSize9x9: number;
+                  fontSize7x9: number;
+                  fontSizeSidebar: number;
+                  headingsFontSizeEm: number;
               } | null;
           };
       };

@@ -320,6 +320,7 @@
     let showImmersiveOptions = false;
     let showPanoramaOptions = false;
     let showExportStyleDetails = false;
+    let showExportFontDetails = false;
 
     const toggleImmersiveOptions = () => {
         if ($whiteThemeMode) return;
@@ -566,11 +567,17 @@
         whiteThemeMode: boolean;
         squareLayout: boolean;
         showMandalaDetailSidebar: boolean;
+        fontSize3x3: number;
+        fontSize9x9: number;
+        fontSize7x9: number;
+        fontSizeSidebar: number;
+        headingsFontSizeEm: number;
     };
 
     let exportSessionSnapshot: PrintConfig | null = null;
     let isInExportSession = false;
     let exportEditPanelProps: Record<string, unknown> = {};
+    let exportFontPanelProps: Record<string, unknown> = {};
 
     const capturePrintConfig = (): PrintConfig => {
         return {
@@ -585,6 +592,11 @@
             whiteThemeMode: $whiteThemeMode,
             squareLayout: $squareLayout,
             showMandalaDetailSidebar: $showMandalaDetailSidebar,
+            fontSize3x3: $fontSize3x3,
+            fontSize9x9: $fontSize9x9,
+            fontSize7x9: $fontSize7x9,
+            fontSizeSidebar: $fontSizeSidebar,
+            headingsFontSizeEm: $headingsFontSizeEm,
         };
     };
 
@@ -606,6 +618,11 @@
         updateGridHighlightWidthValue(config.gridHighlightWidth);
         updateSquareLayout(config.squareLayout);
         updateMandalaDetailSidebar(config.showMandalaDetailSidebar);
+        updateFontSize3x3Value(config.fontSize3x3);
+        updateFontSize9x9Value(config.fontSize9x9);
+        updateFontSize7x9Value(config.fontSize7x9);
+        updateFontSizeSidebarValue(config.fontSizeSidebar);
+        updateHeadingsFontSizeValue(config.headingsFontSizeEm);
         view.plugin.settings.dispatch({
             type: 'settings/view/mandala/set-a4-orientation',
             payload: { orientation: config.a4Orientation },
@@ -647,6 +664,12 @@
                 DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
             whiteThemeMode: preset.whiteThemeMode,
             squareLayout: preset.squareLayout,
+            fontSize3x3: preset.fontSize3x3 ?? $fontSize3x3,
+            fontSize9x9: preset.fontSize9x9 ?? $fontSize9x9,
+            fontSize7x9: preset.fontSize7x9 ?? $fontSize7x9,
+            fontSizeSidebar: preset.fontSizeSidebar ?? $fontSizeSidebar,
+            headingsFontSizeEm:
+                preset.headingsFontSizeEm ?? $headingsFontSizeEm,
             showMandalaDetailSidebar:
                 preset.exportMode === 'png-screen'
                     ? preset.includeSidebar
@@ -666,6 +689,11 @@
             gridHighlightWidth: $gridHighlightWidth,
             whiteThemeMode: $whiteThemeMode,
             squareLayout: $squareLayout,
+            fontSize3x3: $fontSize3x3,
+            fontSize9x9: $fontSize9x9,
+            fontSize7x9: $fontSize7x9,
+            fontSizeSidebar: $fontSizeSidebar,
+            headingsFontSizeEm: $headingsFontSizeEm,
         };
     };
 
@@ -810,6 +838,44 @@
         resetCardsGap,
         selectGridLayout,
         openCustomLayoutModal,
+    };
+    $: exportFontPanelProps = {
+        isMobile,
+        show: true,
+        showTrigger: false,
+        panelTitle: `导出字体设置（${isMobile ? '手机端' : 'PC端'}）`,
+        panelDescription:
+            '仅本次导出会话生效，可分别调整 3x3、9x9、nx9、右侧详情栏与标题字号',
+        gridSectionTitle: `格子字体大小（导出 / ${isMobile ? '手机端' : 'PC端'}）`,
+        headingsSectionTitle:
+            '标题字体大小（导出，em，可理解为正文字体的放大倍数）',
+        fontSize3x3: $fontSize3x3,
+        fontSize9x9: $fontSize9x9,
+        fontSize7x9: $fontSize7x9,
+        fontSizeSidebar: $fontSizeSidebar,
+        fontSizeCellPreview: $fontSizeCellPreview,
+        headingsFontSizeEm: $headingsFontSizeEm,
+        weekPlanEnabled: $weekPlanEnabled,
+        showCellQuickPreviewDialog: false,
+        toggle: () => undefined,
+        stepFontSize3x3,
+        updateFontSize3x3,
+        resetFontSize3x3,
+        stepFontSize9x9,
+        updateFontSize9x9,
+        resetFontSize9x9,
+        stepFontSize7x9,
+        updateFontSize7x9,
+        resetFontSize7x9,
+        stepFontSizeSidebar,
+        updateFontSizeSidebar,
+        resetFontSizeSidebar,
+        stepFontSizeCellPreview,
+        updateFontSizeCellPreview,
+        resetFontSizeCellPreview,
+        stepHeadingsFontSize,
+        updateHeadingsFontSize,
+        resetHeadingsFontSize,
     };
 
     const getVisibleViewport = () => {
@@ -1196,9 +1262,9 @@
     on:touchend={() => exportModalState.stopDrag()}
 />
 
-<ExportModeModal
-    open={isExportModeModalOpen}
-    {isMobile}
+    <ExportModeModal
+        open={isExportModeModalOpen}
+        {isMobile}
     inlineStyle={exportModalInlineStyle}
     {exportMode}
     {exportModeLabel}
@@ -1208,12 +1274,14 @@
     {appearanceBackgroundLabel}
     {appearanceOrientationLabel}
     {includeSidebarInPngScreen}
-    a4Orientation={$a4Orientation}
-    {showExportStyleDetails}
-    squareLayout={$squareLayout}
-    editPanelProps={exportEditPanelProps}
-    canApplyLastExportPreset={Boolean($lastExportPresetStore)}
-    {exportActionLabel}
+        a4Orientation={$a4Orientation}
+        {showExportStyleDetails}
+        {showExportFontDetails}
+        squareLayout={$squareLayout}
+        editPanelProps={exportEditPanelProps}
+        fontPanelProps={exportFontPanelProps}
+        canApplyLastExportPreset={Boolean($lastExportPresetStore)}
+        {exportActionLabel}
     onClose={closeExportMode}
     onStartDrag={(event) =>
         exportModalState.startDrag(event, isExportModeModalOpen)}
@@ -1222,6 +1290,8 @@
     onUpdateA4Orientation={_updateA4Orientation}
     onToggleStyleDetails={() =>
         (showExportStyleDetails = !showExportStyleDetails)}
+    onToggleFontDetails={() =>
+        (showExportFontDetails = !showExportFontDetails)}
     onApplyLastExportPreset={applyLastExportPreset}
     onExportCurrentFile={exportCurrentFile}
 />

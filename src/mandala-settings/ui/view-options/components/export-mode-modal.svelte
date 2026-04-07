@@ -2,6 +2,7 @@
     import { X } from 'lucide-svelte';
     import Portal from 'src/shared/ui/portal.svelte';
     import ViewOptionsEditPanel from './view-options-edit-panel.svelte';
+    import ViewOptionsFontPanel from './view-options-font-panel.svelte';
 
     export type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
 
@@ -18,8 +19,10 @@
     export let includeSidebarInPngScreen = true;
     export let a4Orientation: 'portrait' | 'landscape' = 'portrait';
     export let showExportStyleDetails = false;
+    export let showExportFontDetails = false;
     export let squareLayout = false;
     export let editPanelProps: Record<string, unknown> = {};
+    export let fontPanelProps: Record<string, unknown> = {};
     export let canApplyLastExportPreset = false;
     export let exportActionLabel = '导出文件';
 
@@ -29,6 +32,7 @@
     export let onToggleIncludeSidebar: () => void;
     export let onUpdateA4Orientation: (event: Event) => void;
     export let onToggleStyleDetails: () => void;
+    export let onToggleFontDetails: () => void;
     export let onApplyLastExportPreset: () => void;
     export let onExportCurrentFile: () => Promise<void>;
 </script>
@@ -162,6 +166,22 @@
                     {#if showExportStyleDetails}
                         <div class="export-style-panel">
                             <ViewOptionsEditPanel {...editPanelProps} />
+                        </div>
+                    {/if}
+                    <div class="export-style-header">
+                        <div class="view-options-menu__subsection-title">
+                            4. 字体设置
+                        </div>
+                        <button
+                            class="export-style-toggle"
+                            on:click={onToggleFontDetails}
+                        >
+                            {showExportFontDetails ? '收起' : '展开'}
+                        </button>
+                    </div>
+                    {#if showExportFontDetails}
+                        <div class="export-style-panel">
+                            <ViewOptionsFontPanel {...fontPanelProps} />
                         </div>
                     {/if}
                     <div class="export-secondary-row">
