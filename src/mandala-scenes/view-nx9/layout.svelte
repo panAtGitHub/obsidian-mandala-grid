@@ -322,7 +322,7 @@
 
     .nx9-cell.is-clickable,
     .nx9-cell--future-row-active {
-        cursor: pointer;
+        cursor: default;
     }
 
     .nx9-cell--desktop-card {
