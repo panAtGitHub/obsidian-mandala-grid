@@ -223,6 +223,49 @@
                                 </button>
                             </div>
                         </label>
+                        <label class="view-options-menu__row">
+                            <span>网格间距</span>
+                            <div class="view-options-menu__range">
+                                <button
+                                    class="view-options-menu__range-step"
+                                    type="button"
+                                    on:click={() => stepCardsGap(cardsGap, -2)}
+                                >
+                                    -
+                                </button>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="20"
+                                    step="2"
+                                    value={cardsGap}
+                                    on:input={updateCardsGap}
+                                />
+                                <button
+                                    class="view-options-menu__range-step"
+                                    type="button"
+                                    on:click={() => stepCardsGap(cardsGap, 2)}
+                                >
+                                    +
+                                </button>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="20"
+                                    step="2"
+                                    value={cardsGap}
+                                    on:change={updateCardsGap}
+                                />
+                                <button
+                                    class="view-options-menu__reset"
+                                    type="button"
+                                    on:click={resetCardsGap}
+                                    aria-label="重置为默认"
+                                >
+                                    <RotateCcw size={14} />
+                                </button>
+                            </div>
+                        </label>
                     </div>
                 </div>
             {/if}
@@ -432,49 +475,6 @@
                     <span>正方形布局</span>
                 </label>
             </div>
-            <label class="view-options-menu__row">
-                <span>网格间距</span>
-                <div class="view-options-menu__range">
-                    <button
-                        class="view-options-menu__range-step"
-                        type="button"
-                        on:click={() => stepCardsGap(cardsGap, -2)}
-                    >
-                        -
-                    </button>
-                    <input
-                        type="range"
-                        min="0"
-                        max="20"
-                        step="2"
-                        value={cardsGap}
-                        on:input={updateCardsGap}
-                    />
-                    <button
-                        class="view-options-menu__range-step"
-                        type="button"
-                        on:click={() => stepCardsGap(cardsGap, 2)}
-                    >
-                        +
-                    </button>
-                    <input
-                        type="number"
-                        min="0"
-                        max="20"
-                        step="2"
-                        value={cardsGap}
-                        on:change={updateCardsGap}
-                    />
-                    <button
-                        class="view-options-menu__reset"
-                        type="button"
-                        on:click={resetCardsGap}
-                        aria-label="重置为默认"
-                    >
-                        <RotateCcw size={14} />
-                    </button>
-                </div>
-            </label>
         </div>
 
         <ViewOptionsGridLayoutPanel
