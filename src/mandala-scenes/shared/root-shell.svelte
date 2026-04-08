@@ -487,7 +487,7 @@
         :global(.mandala-card.node-border--selected)::before {
         content: '';
         position: absolute;
-        inset: 0;
+        inset: 1px;
         z-index: 2;
         border: 1px solid var(--text-normal);
         pointer-events: none;
@@ -520,7 +520,7 @@
         :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
-        inset: 2px;
+        inset: 3px;
         z-index: 3;
         border: var(--mandala-grid-highlight-width, 2px) solid
             var(--mandala-grid-highlight-color, var(--mandala-color-selection));
