@@ -473,6 +473,28 @@
         position: relative;
     }
 
+    .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
+        :global(.mandala-card.active-node)::before,
+    .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
+        :global(.mandala-card.node-border--selected)::before,
+    .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
+        :global(.mandala-card.active-node)::before,
+    .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
+        :global(.mandala-card.node-border--selected)::before,
+    .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
+        :global(.mandala-card.active-node)::before,
+    .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
+        :global(.mandala-card.node-border--selected)::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        border: 1px solid var(--text-normal);
+        pointer-events: none;
+        box-sizing: border-box;
+        border-radius: 0;
+    }
+
     .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--3
         :global(.mandala-card.node-border--selected)::after,
@@ -499,7 +521,7 @@
         content: '';
         position: absolute;
         inset: 2px;
-        z-index: 2;
+        z-index: 3;
         border: var(--mandala-grid-highlight-width, 2px) solid
             var(--mandala-grid-highlight-color, var(--mandala-color-selection));
         pointer-events: none;
