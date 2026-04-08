@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { prepareSaveSections } from 'src/mandala-document/engine/prepare-save-sections';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
 
@@ -197,5 +198,99 @@ describe('document/mandala/clear-empty-subgrids', () => {
         expect(state.document.columns[0]?.groups[0]?.nodes).toEqual(['n1']);
         expect(state.document.content.n2).toBeUndefined();
         expect(state.document.content.n3).toBeUndefined();
+    });
+
+    it('removes only the exited subgrid descendants so later saves omit their markers', () => {
+        const state = defaultDocumentState();
+        state.meta.mandalaV2.enabled = true;
+        state.sections.section_id = {
+            '1': 'n1',
+            '1.2': 'n12',
+            '1.2.1': 'n121',
+            '1.2.2': 'n122',
+            '1.2.3': 'n123',
+            '1.2.4': 'n124',
+            '1.2.5': 'n125',
+            '1.2.6': 'n126',
+            '1.2.7': 'n127',
+            '1.2.8': 'n128',
+            '2': 'n2',
+        };
+        state.sections.id_section = {
+            n1: '1',
+            n12: '1.2',
+            n121: '1.2.1',
+            n122: '1.2.2',
+            n123: '1.2.3',
+            n124: '1.2.4',
+            n125: '1.2.5',
+            n126: '1.2.6',
+            n127: '1.2.7',
+            n128: '1.2.8',
+            n2: '2',
+        };
+        state.document.columns = [
+            {
+                id: 'c0',
+                groups: [{ parentId: 'root', nodes: ['n1', 'n2'] }],
+            },
+            {
+                id: 'c1',
+                groups: [{ parentId: 'n1', nodes: ['n12'] }],
+            },
+            {
+                id: 'c2',
+                groups: [
+                    {
+                        parentId: 'n12',
+                        nodes: [
+                            'n121',
+                            'n122',
+                            'n123',
+                            'n124',
+                            'n125',
+                            'n126',
+                            'n127',
+                            'n128',
+                        ],
+                    },
+                ],
+            },
+        ];
+        state.document.content = {
+            n1: { content: 'Root' },
+            n12: { content: '60-69岁' },
+            n121: { content: '' },
+            n122: { content: '' },
+            n123: { content: '' },
+            n124: { content: '' },
+            n125: { content: '' },
+            n126: { content: '' },
+            n127: { content: '' },
+            n128: { content: '' },
+            n2: { content: 'Keep' },
+        };
+
+        documentReducer(state, {
+            type: 'document/mandala/clear-empty-subgrids',
+            payload: {
+                parentIds: ['n12'],
+                rootNodeIds: [],
+                activeNodeId: 'n12',
+            },
+        });
+
+        const prepared = prepareSaveSections(state.document, state.sections);
+
+        expect(state.sections.section_id['1.2.1']).toBeUndefined();
+        expect(state.sections.section_id['1.2.8']).toBeUndefined();
+        expect(state.sections.section_id['1.2']).toBe('n12');
+        expect(state.document.content.n121).toBeUndefined();
+        expect(state.document.columns[2]?.groups).toEqual([]);
+        expect(prepared.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+            '1.2',
+            '2',
+        ]);
     });
 });

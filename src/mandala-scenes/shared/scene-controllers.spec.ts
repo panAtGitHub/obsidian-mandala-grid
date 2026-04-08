@@ -391,6 +391,13 @@ describe('scene-controllers', () => {
         expect(
             mocks.buildThreeByThreeDayPlanProjectionProps,
         ).toHaveBeenCalledTimes(1);
+        expect(mocks.buildThreeByThreeDayPlanProjectionProps).toHaveBeenCalledWith(
+            expect.objectContaining({
+                enterSubgridFromButton: core.enterSubgridFromButton,
+                exitSubgridFromButton: core.exitSubgridFromButton,
+                onMobileCardDoubleClick: core.onMobileCardDoubleClick,
+            }),
+        );
         expect(projection.props.layoutKind).toBe('3x3-day-plan');
     });
 

@@ -318,6 +318,74 @@ describe('mandala-v2 save prepare', () => {
         expect(result.stats.blockedParentCount).toBe(1);
     });
 
+    it('serializes all eight child sections once any subgrid slot has content', () => {
+        const sections = {
+            section_id: {
+                '1': 'n1',
+                '1.1': 'n11',
+                '1.2': 'n12',
+                '1.3': 'n13',
+                '1.4': 'n14',
+                '1.5': 'n15',
+                '1.6': 'n16',
+                '1.7': 'n17',
+                '1.8': 'n18',
+            },
+            id_section: {
+                n1: '1',
+                n11: '1.1',
+                n12: '1.2',
+                n13: '1.3',
+                n14: '1.4',
+                n15: '1.5',
+                n16: '1.6',
+                n17: '1.7',
+                n18: '1.8',
+            },
+        };
+        const document = {
+            content: {
+                n1: { content: 'Root' },
+                n11: { content: '' },
+                n12: { content: '' },
+                n13: { content: '' },
+                n14: { content: 'Task' },
+                n15: { content: '' },
+                n16: { content: '' },
+                n17: { content: '' },
+                n18: { content: '' },
+            },
+        };
+
+        const prepared = prepareSaveSections(document, sections);
+        const markdown = serializeSections(prepared.sections);
+        const parsed = parseSections(markdown);
+
+        expect(prepared.blockedReasons).toEqual([]);
+        expect(prepared.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+            '1.1',
+            '1.2',
+            '1.3',
+            '1.4',
+            '1.5',
+            '1.6',
+            '1.7',
+            '1.8',
+        ]);
+        expect(parsed.sections.map((section) => section.id)).toEqual([
+            '1',
+            '1.1',
+            '1.2',
+            '1.3',
+            '1.4',
+            '1.5',
+            '1.6',
+            '1.7',
+            '1.8',
+        ]);
+    });
+
     it('prunes trailing empty core sections after subgrid cleanup', () => {
         const sections = {
             section_id: {
