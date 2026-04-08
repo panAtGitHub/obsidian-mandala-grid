@@ -146,12 +146,12 @@ export const registerMandalaSection = (
 export const registerMandalaChildSections = (
     state: DocumentState,
     parentNodeId: string,
-    createdNodeIds: string[],
+    childNodeIds: string[],
     options: MutateOptions = {},
 ) => {
-    if (createdNodeIds.length === 0) return;
+    if (childNodeIds.length === 0) return 0;
     const parentSection = state.sections.id_section[parentNodeId];
-    if (!parentSection) return;
+    if (!parentSection) return 0;
 
     const usedSlots = new Set<number>();
     const parentDepth = parentSection.split('.').length;
@@ -165,7 +165,9 @@ export const registerMandalaChildSections = (
     }
 
     let slotCursor = 1;
-    for (const nodeId of createdNodeIds) {
+    let registeredCount = 0;
+    for (const nodeId of childNodeIds) {
+        if (state.sections.id_section[nodeId]) continue;
         while (slotCursor <= 8 && usedSlots.has(slotCursor)) {
             slotCursor += 1;
         }
@@ -175,11 +177,14 @@ export const registerMandalaChildSections = (
         state.sections.id_section[nodeId] = sectionId;
         usedSlots.add(slotCursor);
         slotCursor += 1;
+        registeredCount += 1;
     }
 
-    if (options.commit ?? true) {
+    if (registeredCount > 0 && (options.commit ?? true)) {
         rebuildMandalaV2MetaFromSections(state);
     }
+
+    return registeredCount;
 };
 
 export const removeMandalaDescendantSectionsByParents = (

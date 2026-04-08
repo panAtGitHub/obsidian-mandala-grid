@@ -18,6 +18,7 @@ import { refreshGroupParentIds } from 'src/mandala-document/state/reducers/meta/
 import { NO_UPDATE } from 'src/shared/store/store';
 import { deleteChildNodes } from 'src/mandala-document/tree-utils/delete/delete-child-nodes';
 import { deleteNodeById } from 'src/mandala-document/tree-utils/delete/delete-node-by-id';
+import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
 import {
     ensureMandalaChildren,
     ensureMandalaCoreTheme,
@@ -162,13 +163,17 @@ const updateDocumentState = (
             action.payload.parentNodeId,
             8,
         );
-        if (createdNodes.length === 0) return NO_UPDATE;
-        registerMandalaChildSections(
+        const childGroup = findChildGroup(
+            state.document.columns,
+            action.payload.parentNodeId,
+        );
+        const registeredCount = registerMandalaChildSections(
             state,
             action.payload.parentNodeId,
-            createdNodes,
+            childGroup?.nodes ?? createdNodes,
             { commit: false },
         );
+        if (createdNodes.length === 0 && registeredCount === 0) return NO_UPDATE;
         needsMandalaV2MetaRebuild = true;
 
         newActiveNodeId = action.payload.parentNodeId;
@@ -182,10 +187,17 @@ const updateDocumentState = (
                 existingNodeId,
                 8,
             );
-            registerMandalaChildSections(state, existingNodeId, createdNodes, {
-                commit: false,
-            });
-            needsMandalaV2MetaRebuild = createdNodes.length > 0;
+            const childGroup = findChildGroup(state.document.columns, existingNodeId);
+            const registeredCount = registerMandalaChildSections(
+                state,
+                existingNodeId,
+                childGroup?.nodes ?? createdNodes,
+                {
+                    commit: false,
+                },
+            );
+            needsMandalaV2MetaRebuild =
+                createdNodes.length > 0 || registeredCount > 0;
             newActiveNodeId = existingNodeId;
             affectedNodeId = existingNodeId;
         } else {
@@ -196,9 +208,15 @@ const updateDocumentState = (
                 nodeId,
                 8,
             );
-            registerMandalaChildSections(state, nodeId, createdNodes, {
-                commit: false,
-            });
+            const childGroup = findChildGroup(state.document.columns, nodeId);
+            registerMandalaChildSections(
+                state,
+                nodeId,
+                childGroup?.nodes ?? createdNodes,
+                {
+                    commit: false,
+                },
+            );
             needsMandalaV2MetaRebuild = true;
             newActiveNodeId = nodeId;
             affectedNodeId = null;

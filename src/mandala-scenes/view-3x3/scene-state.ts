@@ -20,6 +20,18 @@ export const resolveThreeByThreeTheme = (
 export const buildThreeByThreeCells = (args: Assemble3x3CellViewModelsArgs) =>
     assemble3x3CellViewModels(args);
 
+const hasAllThreeByThreeChildSections = (
+    theme: string,
+    sectionToNodeId: Record<string, string | undefined>,
+) => {
+    for (let slot = 1; slot <= 8; slot += 1) {
+        if (!sectionToNodeId[`${theme}.${slot}`]) {
+            return false;
+        }
+    }
+    return true;
+};
+
 export const syncThreeByThreeSubgridState = ({
     view,
     mode,
@@ -49,7 +61,11 @@ export const syncThreeByThreeSubgridState = ({
                 themeNodeId,
             );
             const childCount = childGroup?.nodes.length ?? 0;
-            if (childCount < 8) {
+            const missingChildSections = !hasAllThreeByThreeChildSections(
+                subgridTheme,
+                sectionToNodeId,
+            );
+            if (childCount < 8 || missingChildSections) {
                 ensureChildrenForSection(view, subgridTheme);
             }
         }

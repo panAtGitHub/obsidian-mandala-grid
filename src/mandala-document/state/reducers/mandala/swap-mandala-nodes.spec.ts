@@ -293,4 +293,82 @@ describe('document/mandala/clear-empty-subgrids', () => {
             '2',
         ]);
     });
+
+    it('repairs missing child section mappings for an already materialized subgrid', () => {
+        const state = defaultDocumentState();
+        state.meta.mandalaV2.enabled = true;
+        state.sections.section_id = {
+            '1': 'n1',
+            '1.2': 'n12',
+        };
+        state.sections.id_section = {
+            n1: '1',
+            n12: '1.2',
+        };
+        state.document.columns = [
+            {
+                id: 'c0',
+                groups: [{ parentId: 'root', nodes: ['n1'] }],
+            },
+            {
+                id: 'c1',
+                groups: [{ parentId: 'n1', nodes: ['n12'] }],
+            },
+            {
+                id: 'c2',
+                groups: [
+                    {
+                        parentId: 'n12',
+                        nodes: [
+                            'n121',
+                            'n122',
+                            'n123',
+                            'n124',
+                            'n125',
+                            'n126',
+                            'n127',
+                            'n128',
+                        ],
+                    },
+                ],
+            },
+        ];
+        state.document.content = {
+            n1: { content: 'Root' },
+            n12: { content: 'Center' },
+            n121: { content: '' },
+            n122: { content: '' },
+            n123: { content: '' },
+            n124: { content: '' },
+            n125: { content: '' },
+            n126: { content: '' },
+            n127: { content: '' },
+            n128: { content: '' },
+        };
+
+        documentReducer(state, {
+            type: 'document/mandala/ensure-children',
+            payload: {
+                parentNodeId: 'n12',
+                count: 8,
+            },
+        });
+
+        expect(state.sections.section_id).toEqual({
+            '1': 'n1',
+            '1.2': 'n12',
+            '1.2.1': 'n121',
+            '1.2.2': 'n122',
+            '1.2.3': 'n123',
+            '1.2.4': 'n124',
+            '1.2.5': 'n125',
+            '1.2.6': 'n126',
+            '1.2.7': 'n127',
+            '1.2.8': 'n128',
+        });
+        expect(state.sections.id_section.n128).toBe('1.2.8');
+        expect(state.meta.mandalaV2.parentToChildrenSlots['1.2'][8]).toBe(
+            '1.2.8',
+        );
+    });
 });
