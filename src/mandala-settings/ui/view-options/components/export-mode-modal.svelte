@@ -17,6 +17,7 @@
     export let appearanceBackgroundLabel = '';
     export let appearanceOrientationLabel = '';
     export let includeSidebarInPngScreen = true;
+    export let showGridHighlight = true;
     export let a4Orientation: 'portrait' | 'landscape' = 'portrait';
     export let showExportStyleDetails = false;
     export let showExportFontDetails = false;
@@ -30,6 +31,7 @@
     export let onStartDrag: (event: MouseEvent | TouchEvent) => void;
     export let onSetExportMode: (mode: ExportMode) => void;
     export let onToggleIncludeSidebar: () => void;
+    export let onToggleShowGridHighlight: () => void;
     export let onUpdateA4Orientation: (event: Event) => void;
     export let onToggleStyleDetails: () => void;
     export let onToggleFontDetails: () => void;
@@ -152,6 +154,16 @@
                                 : '当前为自适应布局，按格子范围导出长方形。'}
                         </div>
                     {/if}
+                    <div class="view-options-menu__row">
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="checkbox"
+                                checked={showGridHighlight}
+                                on:change={onToggleShowGridHighlight}
+                            />
+                            <span>显示高亮框</span>
+                        </label>
+                    </div>
                     <div class="export-style-header">
                         <div class="view-options-menu__subsection-title">
                             3. 外观样式

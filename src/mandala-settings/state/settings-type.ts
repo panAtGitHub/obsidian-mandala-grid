@@ -50,6 +50,7 @@ export type MandalaExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
 export type LastExportPreset = {
     exportMode: MandalaExportMode;
     includeSidebar: boolean;
+    showGridHighlight?: boolean;
     a4Orientation: 'portrait' | 'landscape';
     backgroundMode: 'none' | 'custom' | 'gray';
     sectionColorOpacity: number;

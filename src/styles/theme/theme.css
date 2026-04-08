@@ -92,3 +92,30 @@
 .mandala-white-theme .node-border--search-match {
     border-left-color: var(--background-modifier-border);
 }
+
+body.mandala-export-hide-highlight .mandala-white-theme .node-border--selected,
+body.mandala-export-hide-highlight
+    .mandala-white-theme
+    .mandala-card.active-node {
+    outline: none !important;
+}
+
+body.mandala-export-hide-highlight .mandala-card-grid__cell.is-active-cell,
+body.mandala-export-hide-highlight .mandala-card-grid__cell.is-active-node {
+    outline: none !important;
+}
+
+body.mandala-export-hide-highlight
+    .mandala-a4-mode
+    .mandala-card.active-node::after,
+body.mandala-export-hide-highlight
+    .mandala-a4-mode
+    .mandala-card.node-border--selected::after,
+body.mandala-export-hide-highlight
+    .mandala-white-theme
+    .mandala-card.active-node::after,
+body.mandala-export-hide-highlight
+    .mandala-white-theme
+    .mandala-card.node-border--selected::after {
+    content: none !important;
+}

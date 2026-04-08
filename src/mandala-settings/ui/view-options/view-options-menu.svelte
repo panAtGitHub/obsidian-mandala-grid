@@ -251,6 +251,8 @@
     let appearanceShapeLabel = '形状：自适应';
     let appearanceBackgroundLabel = '背景：无背景';
     let appearanceOrientationLabel = '方位：从左到右';
+    let showGridHighlightInExport = true;
+    const EXPORT_HIDE_HIGHLIGHT_CLASS = 'mandala-export-hide-highlight';
 
     const setExportMode = (mode: ExportMode) => {
         exportMode = mode;
@@ -266,6 +268,10 @@
     const toggleIncludeSidebarInPngScreen = () => {
         includeSidebarInPngScreen = !includeSidebarInPngScreen;
         updateMandalaDetailSidebar(includeSidebarInPngScreen);
+    };
+
+    const toggleShowGridHighlightInExport = () => {
+        showGridHighlightInExport = !showGridHighlightInExport;
     };
 
     $: exportModeLabel =
@@ -558,6 +564,7 @@
     type PrintConfig = {
         exportMode: ExportMode;
         includeSidebarInPngScreen: boolean;
+        showGridHighlightInExport: boolean;
         a4Orientation: 'portrait' | 'landscape';
         backgroundMode: 'none' | 'custom' | 'gray';
         sectionColorOpacity: number;
@@ -579,10 +586,16 @@
     let exportEditPanelProps: Record<string, unknown> = {};
     let exportFontPanelProps: Record<string, unknown> = {};
 
+    $: document.body.classList.toggle(
+        EXPORT_HIDE_HIGHLIGHT_CLASS,
+        isInExportSession && !showGridHighlightInExport,
+    );
+
     const capturePrintConfig = (): PrintConfig => {
         return {
             exportMode,
             includeSidebarInPngScreen,
+            showGridHighlightInExport,
             a4Orientation: $a4Orientation,
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
@@ -603,6 +616,7 @@
     const applyPrintConfig = (config: PrintConfig) => {
         setExportMode(config.exportMode);
         includeSidebarInPngScreen = config.includeSidebarInPngScreen;
+        showGridHighlightInExport = config.showGridHighlightInExport;
         updateWhiteThemeMode(config.whiteThemeMode);
         updateBackgroundMode(config.backgroundMode);
         updateSectionColorOpacityValue(config.sectionColorOpacity);
@@ -654,6 +668,7 @@
         applyPrintConfig({
             exportMode: preset.exportMode,
             includeSidebarInPngScreen: preset.includeSidebar,
+            showGridHighlightInExport: preset.showGridHighlight ?? true,
             a4Orientation: preset.a4Orientation,
             backgroundMode: preset.backgroundMode,
             sectionColorOpacity: preset.sectionColorOpacity,
@@ -681,6 +696,7 @@
         return {
             exportMode,
             includeSidebar: includeSidebarInPngScreen,
+            showGridHighlight: showGridHighlightInExport,
             a4Orientation: $a4Orientation,
             backgroundMode: $backgroundMode,
             sectionColorOpacity: $sectionColorOpacity,
@@ -1014,6 +1030,7 @@
     });
 
     onDestroy(() => {
+        document.body.classList.remove(EXPORT_HIDE_HIGHLIGHT_CLASS);
         detachListeners();
         if ($exportModeModalViewId === view.id) {
             closeExportModeModal();
@@ -1270,6 +1287,7 @@
     {appearanceBackgroundLabel}
     {appearanceOrientationLabel}
     {includeSidebarInPngScreen}
+    showGridHighlight={showGridHighlightInExport}
         a4Orientation={$a4Orientation}
         {showExportStyleDetails}
         {showExportFontDetails}
@@ -1283,6 +1301,7 @@
         exportModalState.startDrag(event, isExportModeModalOpen)}
     onSetExportMode={setExportMode}
     onToggleIncludeSidebar={toggleIncludeSidebarInPngScreen}
+    onToggleShowGridHighlight={toggleShowGridHighlightInExport}
     onUpdateA4Orientation={_updateA4Orientation}
     onToggleStyleDetails={() =>
         (showExportStyleDetails = !showExportStyleDetails)}
