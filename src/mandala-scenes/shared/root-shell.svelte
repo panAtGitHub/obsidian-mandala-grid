@@ -499,6 +499,7 @@
         content: '';
         position: absolute;
         inset: 2px;
+        z-index: 2;
         border: var(--mandala-grid-highlight-width, 2px) solid
             var(--mandala-grid-highlight-color, var(--mandala-color-selection));
         pointer-events: none;
