@@ -1,12 +1,12 @@
 import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
-import {
-    enterSubgridForNode,
-    exitCurrentSubgrid,
-    isGridCenter,
-} from 'src/mandala-interaction/helpers/mobile-navigation';
+import { isGridCenter } from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import type { MandalaView } from 'src/view/view';
 import { ensureChildrenForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
+import {
+    enterThreeByThreeSubgrid,
+    exitThreeByThreeSubgrid,
+} from 'src/mandala-scenes/view-3x3/subgrid-lifecycle';
 import {
     assemble3x3CellViewModels,
     type Assemble3x3CellViewModelsArgs,
@@ -84,7 +84,7 @@ export const enterThreeByThreeSubgridFromButton = (
     nodeId: string,
 ) => {
     event.stopPropagation();
-    enterSubgridForNode(view, nodeId);
+    enterThreeByThreeSubgrid(view, nodeId);
 };
 
 export const exitThreeByThreeSubgridFromButton = (
@@ -92,7 +92,7 @@ export const exitThreeByThreeSubgridFromButton = (
     event: MouseEvent,
 ) => {
     event.stopPropagation();
-    exitCurrentSubgrid(view);
+    exitThreeByThreeSubgrid(view);
 };
 
 export const handleThreeByThreeMobileCardDoubleClick = (
@@ -103,10 +103,10 @@ export const handleThreeByThreeMobileCardDoubleClick = (
 ) => {
     event.stopPropagation();
     if (isGridCenter(view, nodeId, displaySection)) {
-        exitCurrentSubgrid(view);
+        exitThreeByThreeSubgrid(view);
         return;
     }
-    enterSubgridForNode(view, nodeId);
+    enterThreeByThreeSubgrid(view, nodeId);
 };
 
 export const getThreeByThreeUpButtonLabel = (theme: string) =>
