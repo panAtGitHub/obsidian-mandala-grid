@@ -90,8 +90,15 @@ export const buildSceneInputSnapshots = ({
     pinnedSections,
     pinnedStamp,
 }: SceneInputRuntimeOptions) => {
+    const mandalaRevision = documentState.meta.mandalaV2.revision;
+    const mandalaContentRevision = documentState.meta.mandalaV2.contentRevision;
+    const sectionIdMap = documentState.sections.section_id;
+    const documentContent = documentState.document.content;
     const cacheKey = [
-        resolveObjectKey(documentState),
+        mandalaRevision,
+        mandalaContentRevision,
+        resolveObjectKey(sectionIdMap),
+        resolveObjectKey(documentContent),
         resolveObjectKey(sectionColors),
         sectionColorOpacity,
         backgroundMode,

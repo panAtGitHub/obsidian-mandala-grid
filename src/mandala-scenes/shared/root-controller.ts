@@ -79,18 +79,30 @@ type SceneDerivedDisplay = Pick<
     'dayPlan' | 'dayPlanTodayNavigation' | 'weekContext' | 'topology' | 'gridStyles'
 >;
 
+type DocumentCacheRefs = {
+    frontmatter: string;
+    revision: number;
+    contentRevision: number;
+    sectionToNodeId: DocumentState['sections']['section_id'];
+    idToSection: DocumentState['sections']['id_section'];
+    documentContent: DocumentState['document']['content'];
+};
+
 export const createSceneRootController = (view: MandalaView) => {
     const cleanSceneCaches = createSceneCacheCleaner();
     const controllerRegistry = createSceneControllerRegistry(view);
     let cachedFacts: SceneFacts | null = null;
     let cachedFactsArgs:
-        | Pick<BuildSceneRootContextArgs, 'documentState' | 'activeNodeId' | 'mode'>
+        | (Pick<BuildSceneRootContextArgs, 'activeNodeId' | 'mode'> &
+              Pick<
+                  DocumentCacheRefs,
+                  'frontmatter' | 'sectionToNodeId' | 'idToSection'
+              >)
         | null = null;
     let cachedSnapshots: SceneSnapshots | null = null;
     let cachedSnapshotArgs:
-        | Pick<
+        | (Pick<
               BuildSceneRootContextArgs,
-              | 'documentState'
               | 'sectionColors'
               | 'sectionColorOpacity'
               | 'backgroundMode'
@@ -102,7 +114,14 @@ export const createSceneRootController = (view: MandalaView) => {
               | 'selectedStamp'
               | 'pinnedSections'
               | 'pinnedStamp'
-          >
+          > &
+              Pick<
+                  DocumentCacheRefs,
+                  | 'revision'
+                  | 'contentRevision'
+                  | 'sectionToNodeId'
+                  | 'documentContent'
+              >)
         | null = null;
     let cachedDerivedDisplay: SceneDerivedDisplay | null = null;
     let cachedDerivedArgs:
@@ -137,19 +156,32 @@ export const createSceneRootController = (view: MandalaView) => {
     let cachedProjectionContext: SceneRootContext | null = null;
     let cachedProjection: SceneProjection | null = null;
 
+    const resolveDocumentCacheRefs = (
+        args: BuildSceneRootContextArgs,
+    ): DocumentCacheRefs => ({
+        frontmatter: args.documentState.file.frontmatter,
+        revision: args.documentState.meta.mandalaV2.revision,
+        contentRevision: args.documentState.meta.mandalaV2.contentRevision,
+        sectionToNodeId: args.documentState.sections.section_id,
+        idToSection: args.documentState.sections.id_section,
+        documentContent: args.documentState.document.content,
+    });
+
     const resolveSceneFacts = (args: BuildSceneRootContextArgs) => {
+        const documentRefs = resolveDocumentCacheRefs(args);
         if (
             cachedFacts &&
             cachedFactsArgs &&
-            cachedFactsArgs.documentState === args.documentState &&
+            cachedFactsArgs.frontmatter === documentRefs.frontmatter &&
+            cachedFactsArgs.sectionToNodeId === documentRefs.sectionToNodeId &&
+            cachedFactsArgs.idToSection === documentRefs.idToSection &&
             cachedFactsArgs.activeNodeId === args.activeNodeId &&
             cachedFactsArgs.mode === args.mode
         ) {
             return cachedFacts;
         }
 
-        const sectionToNodeId = args.documentState.sections.section_id;
-        const idToSection = args.documentState.sections.id_section;
+        const { frontmatter, sectionToNodeId, idToSection } = documentRefs;
         const activeSection = args.activeNodeId
             ? idToSection[args.activeNodeId] ?? null
             : null;
@@ -157,7 +189,7 @@ export const createSceneRootController = (view: MandalaView) => {
         const effective = view.getEffectiveMandalaSettings();
         const nextFacts = {
             sceneKey: resolveMandalaSceneKey({
-                frontmatter: args.documentState.file.frontmatter,
+                frontmatter,
                 viewKind: args.mode,
                 weekPlanEnabled: effective.general.weekPlanEnabled,
             }),
@@ -167,7 +199,9 @@ export const createSceneRootController = (view: MandalaView) => {
             activeCoreSection,
         };
         cachedFactsArgs = {
-            documentState: args.documentState,
+            frontmatter,
+            sectionToNodeId,
+            idToSection,
             activeNodeId: args.activeNodeId,
             mode: args.mode,
         };
@@ -176,10 +210,15 @@ export const createSceneRootController = (view: MandalaView) => {
     };
 
     const resolveSceneSnapshots = (args: BuildSceneRootContextArgs) => {
+        const documentRefs = resolveDocumentCacheRefs(args);
         if (
             cachedSnapshots &&
             cachedSnapshotArgs &&
-            cachedSnapshotArgs.documentState === args.documentState &&
+            cachedSnapshotArgs.revision === documentRefs.revision &&
+            cachedSnapshotArgs.contentRevision ===
+                documentRefs.contentRevision &&
+            cachedSnapshotArgs.sectionToNodeId === documentRefs.sectionToNodeId &&
+            cachedSnapshotArgs.documentContent === documentRefs.documentContent &&
             cachedSnapshotArgs.sectionColors === args.sectionColors &&
             cachedSnapshotArgs.sectionColorOpacity === args.sectionColorOpacity &&
             cachedSnapshotArgs.backgroundMode === args.backgroundMode &&
@@ -210,7 +249,10 @@ export const createSceneRootController = (view: MandalaView) => {
             pinnedStamp: args.pinnedStamp,
         });
         cachedSnapshotArgs = {
-            documentState: args.documentState,
+            revision: documentRefs.revision,
+            contentRevision: documentRefs.contentRevision,
+            sectionToNodeId: documentRefs.sectionToNodeId,
+            documentContent: documentRefs.documentContent,
             sectionColors: args.sectionColors,
             sectionColorOpacity: args.sectionColorOpacity,
             backgroundMode: args.backgroundMode,
