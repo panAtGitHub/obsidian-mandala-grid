@@ -21,12 +21,16 @@ const createTestView = ({
     isMobile = false,
     showDetailSidebar = false,
     currentPreferences = {},
+    globalDesktopSidebar = false,
+    globalMobileSidebar = false,
     subgridMaxDepth = 'unlimited' as number | 'unlimited',
 }: {
     path?: string;
     isMobile?: boolean;
     showDetailSidebar?: boolean;
     currentPreferences?: Partial<Settings['documents'][string]['mandalaView']>;
+    globalDesktopSidebar?: boolean;
+    globalMobileSidebar?: boolean;
     subgridMaxDepth?: number | 'unlimited';
 } = {}) => {
     Platform.isMobile = isMobile;
@@ -35,6 +39,8 @@ const createTestView = ({
     const dispatch = vi.fn<[PersistMandalaViewStateAction], void>();
     const viewDispatch = vi.fn<[ViewDispatchAction], void>();
     const settings = DEFAULT_SETTINGS();
+    settings.view.showMandalaDetailSidebarDesktop = globalDesktopSidebar;
+    settings.view.showMandalaDetailSidebarMobile = globalMobileSidebar;
     settings.documents[path] = {
         viewType: 'mandala-grid',
         activeSection: null,
@@ -264,6 +270,27 @@ describe('syncCurrentMandalaDetailSidebarVisibility', () => {
         syncCurrentMandalaDetailSidebarVisibility(view);
 
         expect(viewDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not fall back to global sidebar visibility when file state is missing', () => {
+        const { view, viewDispatch } = createTestView({
+            path: 'c.md',
+            showDetailSidebar: true,
+            currentPreferences: {
+                showDetailSidebarDesktop: null,
+            },
+            globalDesktopSidebar: true,
+        });
+
+        syncCurrentMandalaDetailSidebarVisibility(view);
+
+        expect(viewDispatch).toHaveBeenCalledWith({
+            type: 'view/mandala/detail-sidebar/set',
+            payload: {
+                open: false,
+                persistInDocument: false,
+            },
+        });
     });
 });
 

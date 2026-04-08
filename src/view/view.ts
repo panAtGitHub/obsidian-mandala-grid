@@ -477,7 +477,6 @@ export class MandalaView extends TextFileView {
         return {
             ...super.getState(),
             mandalaMode: this.mandalaMode,
-            showDetailSidebar: this.isMandalaDetailSidebarVisible(),
         };
     }
 
@@ -495,20 +494,6 @@ export class MandalaView extends TextFileView {
             this.viewStore.dispatch({
                 type: 'view/mandala/mode/set',
                 payload: { mode: nextMode },
-            });
-        }
-        const nextShowDetailSidebar =
-            this.readMandalaDetailSidebarVisibilityFromState(state);
-        if (
-            nextShowDetailSidebar !== null &&
-            nextShowDetailSidebar !== this.isMandalaDetailSidebarVisible()
-        ) {
-            this.viewStore.dispatch({
-                type: 'view/mandala/detail-sidebar/set',
-                payload: {
-                    open: nextShowDetailSidebar,
-                    persistInDocument: false,
-                },
             });
         }
         await super.setState(state, result);
@@ -1505,17 +1490,6 @@ export class MandalaView extends TextFileView {
         return maybeMode === '3x3' || maybeMode === '9x9' || maybeMode === 'nx9'
             ? maybeMode
             : null;
-    }
-
-    private readMandalaDetailSidebarVisibilityFromState(
-        state: unknown,
-    ): boolean | null {
-        if (!state || typeof state !== 'object') {
-            return null;
-        }
-        const maybeVisibility = (state as { showDetailSidebar?: unknown })
-            .showDetailSidebar;
-        return typeof maybeVisibility === 'boolean' ? maybeVisibility : null;
     }
 
     private scrollHeadingIntoView(

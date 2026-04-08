@@ -66,10 +66,8 @@ export const resolveInitialMandalaDetailSidebarVisible = (
     const path = view.getCurrentFilePath();
     const persisted = path ? settings.documents[path]?.mandalaView : null;
     return Platform.isMobile
-        ? persisted?.showDetailSidebarMobile ??
-              settings.view.showMandalaDetailSidebarMobile
-        : persisted?.showDetailSidebarDesktop ??
-              settings.view.showMandalaDetailSidebarDesktop;
+        ? persisted?.showDetailSidebarMobile ?? false
+        : persisted?.showDetailSidebarDesktop ?? false;
 };
 
 export const syncCurrentMandalaDetailSidebarVisibility = (
