@@ -416,13 +416,13 @@
     }
 
     .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
-        :global(.mandala-card),
+        :global(.mandala-card-grid__cell--card > .mandala-card),
     .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
-        :global(.mandala-card),
+        :global(.mandala-card-grid__cell--card > .mandala-card),
     .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
-        :global(.mandala-card) {
-        border: 1px solid var(--text-normal) !important;
-        border-left-width: 1px !important;
+        :global(.mandala-card-grid__cell--card > .mandala-card) {
+        border: 2px solid #000 !important;
+        border-left-width: 2px !important;
         border-radius: 0 !important;
         box-shadow: none !important;
     }
@@ -452,15 +452,12 @@
         border-left-color: transparent !important;
     }
 
-    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-a4-mode.mandala-root--3
-        :global(.mandala-card.node-border--selected),
-    .mandala-a4-mode.mandala-root--nx9 :global(.mandala-card.active-node),
+        :global(.mandala-card-grid__cell--card > .mandala-card.active-node),
     .mandala-a4-mode.mandala-root--nx9
-        :global(.mandala-card.node-border--selected),
-    .mandala-a4-mode.mandala-root--week :global(.mandala-card.active-node),
+        :global(.mandala-card-grid__cell--card > .mandala-card.active-node),
     .mandala-a4-mode.mandala-root--week
-        :global(.mandala-card.node-border--selected),
+        :global(.mandala-card-grid__cell--card > .mandala-card.active-node),
     .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
     .mandala-white-theme.mandala-root--3
         :global(.mandala-card.node-border--selected),
@@ -473,39 +470,12 @@
         position: relative;
     }
 
-    .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
-        :global(.mandala-card.active-node)::before,
-    .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
-        :global(.mandala-card.node-border--selected)::before,
-    .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
-        :global(.mandala-card.active-node)::before,
-    .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
-        :global(.mandala-card.node-border--selected)::before,
-    .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
-        :global(.mandala-card.active-node)::before,
-    .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
-        :global(.mandala-card.node-border--selected)::before {
-        content: '';
-        position: absolute;
-        inset: 1px;
-        z-index: 2;
-        border: 1px solid var(--text-normal);
-        pointer-events: none;
-        box-sizing: border-box;
-        border-radius: 0;
-    }
-
-    .mandala-a4-mode.mandala-root--3 :global(.mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--3
-        :global(.mandala-card.node-border--selected)::after,
+        :global(.mandala-card-grid__cell--card > .mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--nx9
-        :global(.mandala-card.active-node)::after,
-    .mandala-a4-mode.mandala-root--nx9
-        :global(.mandala-card.node-border--selected)::after,
+        :global(.mandala-card-grid__cell--card > .mandala-card.active-node)::after,
     .mandala-a4-mode.mandala-root--week
-        :global(.mandala-card.active-node)::after,
-    .mandala-a4-mode.mandala-root--week
-        :global(.mandala-card.node-border--selected)::after,
+        :global(.mandala-card-grid__cell--card > .mandala-card.active-node)::after,
     .mandala-white-theme.mandala-root--3
         :global(.mandala-card.active-node)::after,
     .mandala-white-theme.mandala-root--3
@@ -520,7 +490,7 @@
         :global(.mandala-card.node-border--selected)::after {
         content: '';
         position: absolute;
-        inset: 3px;
+        inset: 2px;
         z-index: 3;
         border: var(--mandala-grid-highlight-width, 2px) solid
             var(--mandala-grid-highlight-color, var(--mandala-color-selection));
