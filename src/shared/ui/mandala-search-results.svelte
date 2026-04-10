@@ -12,6 +12,7 @@
     
     const view = getView();
     const SEARCH_INPUT_SELECTOR = '.search-input-wrapper';
+    const SEARCH_INPUT_EDITABLE_SELECTOR = '.search-input-element';
     const SEARCH_RESULTS_SELECTOR = '.mandala-search-results';
     
     // 当前选中的索引（-1 表示无选中）
@@ -176,10 +177,11 @@
             return;
         }
         if (target.closest('.mandala-search-results')) return;
-        if (target.closest(SEARCH_INPUT_SELECTOR)) {
+        if (target.closest(SEARCH_INPUT_EDITABLE_SELECTOR)) {
             deactivateKeyboardNavigation();
             return;
         }
+        if (target.closest(SEARCH_INPUT_SELECTOR)) return;
         deactivateKeyboardNavigation();
     }
     
