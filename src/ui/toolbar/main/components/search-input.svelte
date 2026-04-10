@@ -54,13 +54,13 @@
         });
     };
     
+    const shouldAllowKeyToBubble = (key: string) =>
+        key === 'Escape' || key === 'Tab';
+
     // 阻止搜索框内的按键触发全局快捷键
     const onKeyDown = (e: KeyboardEvent) => {
-        // 允许少数几个特殊键通过（用于退出搜索等）
-        const allowedKeys = ['Escape', 'Tab'];
-        
-        if (allowedKeys.includes(e.key)) {
-            return; // 允许这些键冒泡
+        if (shouldAllowKeyToBubble(e.key)) {
+            return;
         }
         
         // 移动端：不要因为 Enter/确定 而把焦点转到列表（否则键盘会收起）。
@@ -92,6 +92,14 @@
         // - 特殊键（Backspace 等）
         e.stopPropagation();
     };
+
+    const onKeyUpCapture = (e: KeyboardEvent) => {
+        if (shouldAllowKeyToBubble(e.key)) {
+            return;
+        }
+
+        e.stopPropagation();
+    };
 </script>
 
 <div class="search-input-wrapper search-input-container">
@@ -103,7 +111,8 @@
         on:compositionstart={onCompositionStart}
         on:compositionupdate={onCompositionUpdate}
         on:compositionend={onCompositionEnd}
-        on:keydown={onKeyDown}
+        on:keydown|capture={onKeyDown}
+        on:keyup|capture={onKeyUpCapture}
         placeholder="search"
         spellcheck="false"
         type="search"
