@@ -35,7 +35,7 @@ describe('shared/grid-style', () => {
         });
     });
 
-    it('enables compact density without changing the shared detached surface behavior', () => {
+    it('enables compact density without changing the shared detached card behavior', () => {
         expect(
             resolveCardGridStyle({
                 whiteThemeMode: false,
@@ -46,7 +46,7 @@ describe('shared/grid-style', () => {
             selectionStyle: 'node-active',
             cellDisplayPolicy: {
                 density: 'compact',
-                scrollbarMode: 'hidden',
+                scrollbarMode: 'selected-hover',
                 hoverBehavior: 'none',
                 inactiveSurfaceMode: 'detached',
             },

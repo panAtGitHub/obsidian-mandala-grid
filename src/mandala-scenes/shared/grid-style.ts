@@ -53,7 +53,6 @@ export const resolveCardGridStyle = ({
             ...(compactMode
                 ? {
                       density: 'compact' as const,
-                      scrollbarMode: 'hidden' as const,
                   }
                 : {}),
         },
