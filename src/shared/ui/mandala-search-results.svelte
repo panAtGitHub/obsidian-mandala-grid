@@ -117,16 +117,15 @@
         if (!keyboardNavigationActive || results.length === 0) return;
         const target = e.target;
         if (target instanceof HTMLElement) {
-            const isInSearchUi =
-                !!target.closest(SEARCH_RESULTS_SELECTOR) ||
-                !!target.closest(SEARCH_INPUT_SELECTOR);
-            const isEditableTarget =
-                target.localName === 'input' ||
-                target.localName === 'textarea' ||
-                target.isContentEditable ||
-                target.getAttribute('contenteditable') === '' ||
-                target.getAttribute('contenteditable') === 'true';
-            if (!isInSearchUi || isEditableTarget) {
+            const isSearchInputTarget = !!target.closest(SEARCH_INPUT_SELECTOR);
+            const isEditableSearchInputTarget =
+                isSearchInputTarget &&
+                (target.localName === 'input' ||
+                    target.localName === 'textarea' ||
+                    target.isContentEditable ||
+                    target.getAttribute('contenteditable') === '' ||
+                    target.getAttribute('contenteditable') === 'true');
+            if (isEditableSearchInputTarget) {
                 deactivateKeyboardNavigation();
                 return;
             }
