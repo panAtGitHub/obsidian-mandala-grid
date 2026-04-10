@@ -14,6 +14,7 @@ import { resetSelectionState } from 'src/stores/view/reducers/document/helpers/r
 import { navigateActiveNode } from 'src/stores/view/reducers/ui/navigate-active-node';
 import { setActivePinnedNode } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
 import { toggleShowAllNodes } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
+import { toggleSearchSectionSortOrder } from 'src/stores/view/reducers/search/toggle-search-section-sort-order';
 import { resetPendingConfirmation } from 'src/stores/view/reducers/document/reset-pending-confirmation';
 import { MandalaGridDocument } from 'src/mandala-document/state/document-state-type';
 import { selectAllNodes } from 'src/stores/view/reducers/selection/select-all-nodes';
@@ -194,6 +195,10 @@ const handlers: Record<string, ViewActionHandler> = {
     'view/search/toggle-input': (state, action) => {
         if (action.type !== 'view/search/toggle-input') return;
         toggleSearchInput(state);
+    },
+    'view/search/toggle-section-sort-order': (state, action) => {
+        if (action.type !== 'view/search/toggle-section-sort-order') return;
+        toggleSearchSectionSortOrder(state);
     },
     'view/hotkeys/toggle-modal': (state, action) => {
         if (action.type !== 'view/hotkeys/toggle-modal') return;

@@ -39,7 +39,10 @@
             if (!$search.results || $search.results.size === 0) {
                 return [];
             }
-            return convertToMandalaResults($search.results);
+            return convertToMandalaResults(
+                $search.results,
+                $search.sectionSortOrder,
+            );
         }
     );
 

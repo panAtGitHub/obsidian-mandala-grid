@@ -152,6 +152,8 @@ export const lang = {
     tlb_search_toggle: 'Toggle search input',
     tlb_search_show_all_nodes: 'Show all sections',
     tlb_search_fuzzy_search: 'Fuzzy search',
+    tlb_search_sort_section_asc: 'Section sort: ascending',
+    tlb_search_sort_section_desc: 'Section sort: descending',
     tlb_search_previous_result: 'Previous result',
     tlb_search_next_result: 'Next result',
     tlb_search_clear: '清除',

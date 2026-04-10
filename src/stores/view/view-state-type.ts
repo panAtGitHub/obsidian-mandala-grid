@@ -44,6 +44,8 @@ export type FocusTarget =
           col: number;
           page?: number;
       };
+export type SearchSectionSortOrder = 'asc' | 'desc';
+
 export type ViewState = {
     search: {
         query: string;
@@ -52,6 +54,7 @@ export type ViewState = {
         showInput: boolean;
         fuzzySearch: boolean;
         showAllNodes: boolean;
+        sectionSortOrder: SearchSectionSortOrder;
     };
     ui: {
         controls: {

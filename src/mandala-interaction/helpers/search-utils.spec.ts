@@ -151,6 +151,9 @@ describe('search-utils', () => {
             '100',
             '100.3',
         ]);
+        expect(
+            convertToMandalaResults(results, 'desc').map((result) => result.section),
+        ).toEqual(['100.3', '100', '99', '89.4']);
     });
 
     it('compares nested section ids numerically', () => {

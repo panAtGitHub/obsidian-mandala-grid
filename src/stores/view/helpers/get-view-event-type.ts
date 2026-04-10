@@ -17,6 +17,7 @@ const eventTypesDictionary: Partial<Record<ActionType, ViewEventType>> = {
     'view/search/set-query': { search: true },
     'view/search/set-results': { search: true },
     'view/search/toggle-input': { search: true },
+    'view/search/toggle-section-sort-order': { search: true },
     'view/set-active-node/document': { activeNode: true },
     'view/set-active-node/mouse': { activeNode: true },
     'view/set-active-node/mouse-silent': { activeNode: true },

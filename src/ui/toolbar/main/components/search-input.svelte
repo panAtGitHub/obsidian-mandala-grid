@@ -1,7 +1,7 @@
 <script lang="ts">
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { searchStore } from 'src/stores/view/derived/search-store';
-    import { Text } from 'lucide-svelte';
+    import { ArrowUpDown, Text } from 'lucide-svelte';
     import { lang } from 'src/lang/lang';
     import { Platform } from 'obsidian';
 
@@ -94,6 +94,22 @@
         value={$search.query}
     />
     <div
+        aria-label={$search.sectionSortOrder === 'asc'
+            ? lang.tlb_search_sort_section_asc
+            : lang.tlb_search_sort_section_desc}
+        class={'input-right-decorator clickable-icon search-sort-toggle' +
+            ($search.sectionSortOrder === 'desc' ? ' is-active' : '')}
+        on:click={() => {
+            viewStore.dispatch({
+                type: 'view/search/toggle-section-sort-order',
+            });
+        }}
+        style="right: 49px;"
+    >
+        <ArrowUpDown class="svg-icon" />
+    </div>
+
+    <div
         aria-label={lang.tlb_search_clear}
         class="search-input-clear-button"
         on:click={() => {
@@ -104,7 +120,7 @@
                 },
             });
         }}
-        style={'right: 49px; top: -1px;'+($search.query ? '' : ' display: none;')}
+        style={'right: 94px; top: -1px;'+($search.query ? '' : ' display: none;')}
     ></div>
 
     <div
@@ -131,7 +147,7 @@
 <style>
     .search-input-element {
         height: 34px;
-        padding-right: 74px !important;
+        padding-right: 120px !important;
         padding-left: 12px;
         min-width: 250px;
     }

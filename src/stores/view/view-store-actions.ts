@@ -8,6 +8,7 @@ import { ToggleFuzzySearchAction } from 'src/stores/view/reducers/search/toggle-
 import { NodeNavigationAction } from 'src/stores/view/reducers/ui/navigate-active-node';
 import { SetActivePinnedNodeAction } from 'src/stores/view/reducers/pinned-cards/set-active-pinned-node';
 import { ToggleShowAllNodesAction } from 'src/stores/view/reducers/search/toggle-show-all-nodes';
+import { ToggleSearchSectionSortOrderAction } from 'src/stores/view/reducers/search/toggle-search-section-sort-order';
 import { LeftSidebarTab } from 'src/mandala-settings/state/settings-type';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { SelectAllNodesAction } from 'src/stores/view/reducers/selection/select-all-nodes';
@@ -82,7 +83,8 @@ export type SearchAction =
     | SetSearchResultsAction
     | ToggleSearchInputAction
     | ToggleFuzzySearchAction
-    | ToggleShowAllNodesAction;
+    | ToggleShowAllNodesAction
+    | ToggleSearchSectionSortOrderAction;
 
 export type ViewUIAction =
     | ToggleHelpSidebarAction

@@ -13,6 +13,8 @@ export interface MandalaSearchResult {
     matchScore: number; // Fuse.js 匹配分数
 }
 
+export type SearchResultSortOrder = 'asc' | 'desc';
+
 /**
  * Section 解析结果
  */
@@ -105,6 +107,7 @@ export function navigateToSearchResult(
  */
 export function convertToMandalaResults(
     fuseResults: Map<string, NodeSearchResult>,
+    sortOrder: SearchResultSortOrder = 'asc',
 ): MandalaSearchResult[] {
     const results: MandalaSearchResult[] = [];
 
@@ -121,7 +124,10 @@ export function convertToMandalaResults(
         });
     }
 
-    return results.sort((a, b) => compareSectionIds(a.section, b.section));
+    return results.sort((a, b) => {
+        const result = compareSectionIds(a.section, b.section);
+        return sortOrder === 'asc' ? result : -result;
+    });
 }
 
 export function compareSectionIds(a: string, b: string): number {

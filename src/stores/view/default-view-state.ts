@@ -12,6 +12,7 @@ export const defaultViewState = (
         showInput: false,
         fuzzySearch: true,
         showAllNodes: true,
+        sectionSortOrder: 'asc',
     },
     ui: {
         controls: {
