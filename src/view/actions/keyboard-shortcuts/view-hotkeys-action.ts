@@ -18,6 +18,10 @@ export const viewHotkeysAction = (
     const state = {
         shift: false,
     };
+    const tryRunEditingHotkeyCommand = (event: KeyboardEvent) => {
+        if (!isEditing(view)) return false;
+        return tryRunHotkeyCommand(event);
+    };
     const isReadonlyPreviewDialogTarget = (target: HTMLElement | null) =>
         Boolean(target?.closest('[data-cell-preview-dialog="readonly"]'));
     const isAllowedPreviewDialogCommand = (name: string) =>
@@ -52,6 +56,9 @@ export const viewHotkeysAction = (
     let scopeHandler: KeymapEventHandler | null = null;
     if (view.scope) {
         scopeHandler = view.scope.register(null, null, (event) => {
+            if (tryRunEditingHotkeyCommand(event)) {
+                return false;
+            }
             if (!shouldHandleViewHotkey(event)) {
                 return;
             }
@@ -62,6 +69,10 @@ export const viewHotkeysAction = (
     }
 
     const keyboardEventHandler = (event: KeyboardEvent) => {
+        if (!scopeHandler && tryRunEditingHotkeyCommand(event)) {
+            return;
+        }
+
         if (!scopeHandler && tryRunHotkeyCommand(event)) {
             return;
         }
