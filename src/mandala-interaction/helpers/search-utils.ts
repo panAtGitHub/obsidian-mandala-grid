@@ -121,13 +121,24 @@ export function convertToMandalaResults(
         });
     }
 
-    // 按 section 层级排序（先浅后深，同级按字母序）
-    return results.sort((a, b) => {
-        const depthA = a.section.split('.').length;
-        const depthB = b.section.split('.').length;
-        if (depthA !== depthB) return depthA - depthB;
-        return a.section.localeCompare(b.section);
-    });
+    return results.sort((a, b) => compareSectionIds(a.section, b.section));
+}
+
+export function compareSectionIds(a: string, b: string): number {
+    const left = a.split('.').map((part) => Number.parseInt(part, 10));
+    const right = b.split('.').map((part) => Number.parseInt(part, 10));
+    const length = Math.max(left.length, right.length);
+
+    for (let index = 0; index < length; index += 1) {
+        const leftPart = left[index];
+        const rightPart = right[index];
+
+        if (leftPart === undefined) return -1;
+        if (rightPart === undefined) return 1;
+        if (leftPart !== rightPart) return leftPart - rightPart;
+    }
+
+    return a.localeCompare(b);
 }
 
 /**

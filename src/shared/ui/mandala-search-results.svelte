@@ -16,6 +16,7 @@
     // 当前选中的索引（-1 表示无选中）
     let selectedIndex = -1;
     let keyboardNavigationActive = false;
+    let selectedIndexForScroll = -1;
     
     // Hover 预览的延迟定时器
     let hoverTimer: ReturnType<typeof setTimeout> | null = null;
@@ -26,12 +27,37 @@
         selectedIndex = results.length - 1;
     }
     
+    // 列表元素引用
+    let listElement: HTMLElement;
+    let itemElements: Array<HTMLElement | undefined> = [];
+
+    function scrollSelectedItemIntoView() {
+        if (selectedIndex < 0) return;
+        const selectedElement = itemElements[selectedIndex];
+        if (!selectedElement) return;
+        selectedElement.scrollIntoView({
+            block: 'nearest',
+            inline: 'nearest',
+        });
+    }
+
+    function updateSelectedIndex(index: number) {
+        selectedIndex = index;
+        if (selectedIndex === selectedIndexForScroll) return;
+        selectedIndexForScroll = selectedIndex;
+        requestAnimationFrame(() => {
+            scrollSelectedItemIntoView();
+        });
+    }
+
+    $: itemElements.length = results.length;
+
     // 处理鼠标悬停（延迟 200ms）
     function handleHover(index: number) {
         if (hoverTimer) clearTimeout(hoverTimer);
         
         hoverTimer = setTimeout(() => {
-            selectedIndex = index;
+            updateSelectedIndex(index);
             previewSearchResult(results[index].section, view);
             // Hover 时不需要保持焦点，因为焦点可能在其他地方
         }, 200);
@@ -47,7 +73,7 @@
     
     // 处理点击（确认选择）
     function handleClick(result: MandalaSearchResult, index: number) {
-        selectedIndex = index;
+        updateSelectedIndex(index);
         previewSearchResult(result.section, view);
 
         if (deferNavigation) {
@@ -59,9 +85,6 @@
         // 确认后关闭搜索框，焦点自然转到格子
         view.viewStore.dispatch({ type: 'view/search/toggle-input' });
     }
-    
-    // 列表元素引用
-    let listElement: HTMLElement;
     
     // 预览并保持焦点在列表
     function previewAndKeepFocus(section: string) {
@@ -85,7 +108,7 @@
         activateKeyboardNavigation();
         if (selectedIndex >= 0) return;
 
-        selectedIndex = 0;
+        updateSelectedIndex(0);
         previewSearchResult(results[0].section, view);
     }
     
@@ -106,12 +129,12 @@
         }
 
         if (e.key === 'ArrowDown') {
-            selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+            updateSelectedIndex(Math.min(selectedIndex + 1, results.length - 1));
             if (selectedIndex >= 0) {
                 previewAndKeepFocus(results[selectedIndex].section);
             }
         } else if (e.key === 'ArrowUp') {
-            selectedIndex = Math.max(selectedIndex - 1, 0);
+            updateSelectedIndex(Math.max(selectedIndex - 1, 0));
             if (selectedIndex >= 0) {
                 previewAndKeepFocus(results[selectedIndex].section);
             }
@@ -172,6 +195,7 @@
             <div 
                 class="search-result-item"
                 class:selected={selectedIndex === index}
+                bind:this={itemElements[index]}
                 on:mouseenter={() => handleHover(index)}
                 on:mouseleave={handleMouseLeave}
                 on:click={() => handleClick(result, index)}

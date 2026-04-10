@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+    compareSectionIds,
+    convertToMandalaResults,
     navigateToSearchResult,
     previewSearchResult,
 } from 'src/mandala-interaction/helpers/search-utils';
@@ -105,5 +107,55 @@ describe('search-utils', () => {
                 },
             ],
         ]);
+    });
+
+    it('sorts search results by numeric section order', () => {
+        const results = new Map([
+            [
+                '100',
+                {
+                    item: { sectionId: '100', nodeId: 'node-100', content: '100' },
+                    score: 0,
+                    refIndex: 0,
+                },
+            ],
+            [
+                '89.4',
+                {
+                    item: { sectionId: '89.4', nodeId: 'node-89-4', content: '89.4' },
+                    score: 0,
+                    refIndex: 1,
+                },
+            ],
+            [
+                '99',
+                {
+                    item: { sectionId: '99', nodeId: 'node-99', content: '99' },
+                    score: 0,
+                    refIndex: 2,
+                },
+            ],
+            [
+                '100.3',
+                {
+                    item: { sectionId: '100.3', nodeId: 'node-100-3', content: '100.3' },
+                    score: 0,
+                    refIndex: 3,
+                },
+            ],
+        ]);
+
+        expect(convertToMandalaResults(results).map((result) => result.section)).toEqual([
+            '89.4',
+            '99',
+            '100',
+            '100.3',
+        ]);
+    });
+
+    it('compares nested section ids numerically', () => {
+        expect(compareSectionIds('42.8', '100.3')).toBeLessThan(0);
+        expect(compareSectionIds('100', '99')).toBeGreaterThan(0);
+        expect(compareSectionIds('100', '100.3')).toBeLessThan(0);
     });
 });
