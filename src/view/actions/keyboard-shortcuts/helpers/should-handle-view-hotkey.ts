@@ -1,8 +1,27 @@
 const HOTKEY_EXCLUDED_SELECTOR = '.mandala-search-results';
 
+const resolveEventTarget = (event: KeyboardEvent): HTMLElement | null => {
+    const directTarget = event.target;
+    if (directTarget instanceof HTMLElement) {
+        return directTarget;
+    }
+
+    const path = event.composedPath();
+    const pathTarget = path.find(
+        (value): value is HTMLElement => value instanceof HTMLElement,
+    );
+    if (pathTarget) {
+        return pathTarget;
+    }
+
+    return document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+};
+
 export const shouldHandleViewHotkey = (event: KeyboardEvent): boolean => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) return true;
+    const target = resolveEventTarget(event);
+    if (!target) return true;
 
     if (
         target.localName === 'input' ||

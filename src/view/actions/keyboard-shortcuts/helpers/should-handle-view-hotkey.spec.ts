@@ -38,4 +38,22 @@ describe('shouldHandleViewHotkey', () => {
 
         expect(shouldHandleViewHotkey(createKeyboardEvent(div))).toBe(true);
     });
+
+    it('falls back to document.activeElement when event target is not an element', () => {
+        const list = document.createElement('div');
+        list.className = 'mandala-search-results';
+        list.tabIndex = -1;
+        document.body.appendChild(list);
+        list.focus();
+
+        const event = new KeyboardEvent('keydown', {
+            key: 'ArrowDown',
+            bubbles: true,
+        });
+        Object.defineProperty(event, 'target', { value: window });
+
+        expect(shouldHandleViewHotkey(event)).toBe(false);
+
+        list.remove();
+    });
 });

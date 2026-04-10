@@ -81,17 +81,23 @@
     // 键盘导航
     function handleKeyDown(e: KeyboardEvent) {
         if (results.length === 0) return;
-        
-        if (e.key === 'ArrowDown') {
+
+        if (
+            e.key === 'ArrowLeft' ||
+            e.key === 'ArrowRight' ||
+            e.key === 'ArrowDown' ||
+            e.key === 'ArrowUp'
+        ) {
             e.preventDefault();
             e.stopPropagation();
+        }
+
+        if (e.key === 'ArrowDown') {
             selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
             if (selectedIndex >= 0) {
                 previewAndKeepFocus(results[selectedIndex].section);
             }
         } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            e.stopPropagation();
             selectedIndex = Math.max(selectedIndex - 1, 0);
             if (selectedIndex >= 0) {
                 previewAndKeepFocus(results[selectedIndex].section);
