@@ -56,4 +56,21 @@ describe('shouldHandleViewHotkey', () => {
 
         list.remove();
     });
+
+    it('returns false when search results keyboard navigation mode is active', () => {
+        const list = document.createElement('div');
+        list.className = 'mandala-search-results';
+        list.dataset.keyboardNavigationActive = 'true';
+        document.body.appendChild(list);
+
+        const event = new KeyboardEvent('keydown', {
+            key: 'ArrowDown',
+            bubbles: true,
+        });
+        Object.defineProperty(event, 'target', { value: document.body });
+
+        expect(shouldHandleViewHotkey(event)).toBe(false);
+
+        list.remove();
+    });
 });

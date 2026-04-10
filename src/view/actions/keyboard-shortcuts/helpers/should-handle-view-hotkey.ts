@@ -1,4 +1,6 @@
 const HOTKEY_EXCLUDED_SELECTOR = '.mandala-search-results';
+const ACTIVE_SEARCH_NAVIGATION_SELECTOR =
+    '.mandala-search-results[data-keyboard-navigation-active="true"]';
 
 const resolveEventTarget = (event: KeyboardEvent): HTMLElement | null => {
     const directTarget = event.target;
@@ -20,6 +22,10 @@ const resolveEventTarget = (event: KeyboardEvent): HTMLElement | null => {
 };
 
 export const shouldHandleViewHotkey = (event: KeyboardEvent): boolean => {
+    if (document.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR)) {
+        return false;
+    }
+
     const target = resolveEventTarget(event);
     if (!target) return true;
 

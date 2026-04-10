@@ -11,9 +11,11 @@
     export let layout: 'dropdown' | 'list' = 'dropdown';
     
     const view = getView();
+    const SEARCH_INPUT_SELECTOR = '.search-input-wrapper';
     
     // 当前选中的索引（-1 表示无选中）
     let selectedIndex = -1;
+    let keyboardNavigationActive = false;
     
     // Hover 预览的延迟定时器
     let hoverTimer: ReturnType<typeof setTimeout> | null = null;
@@ -70,23 +72,34 @@
         });
     }
 
+    function activateKeyboardNavigation() {
+        keyboardNavigationActive = true;
+    }
+
+    function deactivateKeyboardNavigation() {
+        keyboardNavigationActive = false;
+    }
+
     function handleFocus() {
         if (results.length === 0) return;
+        activateKeyboardNavigation();
         if (selectedIndex >= 0) return;
 
         selectedIndex = 0;
         previewSearchResult(results[0].section, view);
     }
     
-    // 键盘导航
-    function handleKeyDown(e: KeyboardEvent) {
-        if (results.length === 0) return;
+    function handleNavigationKey(e: KeyboardEvent) {
+        if (!keyboardNavigationActive || results.length === 0) return;
 
         if (
             e.key === 'ArrowLeft' ||
             e.key === 'ArrowRight' ||
             e.key === 'ArrowDown' ||
-            e.key === 'ArrowUp'
+            e.key === 'ArrowUp' ||
+            e.key === 'Enter' ||
+            e.key === 'Escape' ||
+            e.key === ' '
         ) {
             e.preventDefault();
             e.stopPropagation();
@@ -103,20 +116,42 @@
                 previewAndKeepFocus(results[selectedIndex].section);
             }
         } else if (e.key === 'Enter' && selectedIndex >= 0) {
-            e.preventDefault();
-            e.stopPropagation();
+            deactivateKeyboardNavigation();
             handleClick(results[selectedIndex], selectedIndex);
         } else if (e.key === 'Escape') {
             // Esc 退出搜索
-            e.preventDefault();
-            e.stopPropagation();
+            deactivateKeyboardNavigation();
             view.viewStore.dispatch({ type: 'view/search/toggle-input' });
         }
     }
+
+    function handleWindowKeyDown(e: KeyboardEvent) {
+        handleNavigationKey(e);
+    }
+
+    function handleWindowPointerDown(e: PointerEvent) {
+        if (!keyboardNavigationActive) return;
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) {
+            deactivateKeyboardNavigation();
+            return;
+        }
+        if (target.closest('.mandala-search-results')) return;
+        if (target.closest(SEARCH_INPUT_SELECTOR)) {
+            deactivateKeyboardNavigation();
+            return;
+        }
+        deactivateKeyboardNavigation();
+    }
     
     // 清理定时器
+    window.addEventListener('keydown', handleWindowKeyDown, true);
+    window.addEventListener('pointerdown', handleWindowPointerDown, true);
+
     onDestroy(() => {
         if (hoverTimer) clearTimeout(hoverTimer);
+        window.removeEventListener('keydown', handleWindowKeyDown, true);
+        window.removeEventListener('pointerdown', handleWindowPointerDown, true);
     });
 </script>
 
@@ -124,8 +159,8 @@
     class="mandala-search-results"
     class:inFlow={layout === 'list'}
     bind:this={listElement}
+    data-keyboard-navigation-active={keyboardNavigationActive ? 'true' : 'false'}
     on:focus={handleFocus}
-    on:keydown={handleKeyDown}
     role="listbox"
     tabindex="-1"
 >
