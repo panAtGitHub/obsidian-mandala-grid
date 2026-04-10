@@ -54,26 +54,17 @@
         });
     };
     
-    const shouldAllowKeyToBubble = (key: string) =>
-        key === 'Escape' || key === 'Tab';
-
-    // 阻止搜索框内的按键触发全局快捷键
+    // 搜索框只处理自身交互；主视图热键隔离由 view hotkeys 域统一决定。
     const onKeyDown = (e: KeyboardEvent) => {
-        if (shouldAllowKeyToBubble(e.key)) {
-            return;
-        }
-        
         // 移动端：不要因为 Enter/确定 而把焦点转到列表（否则键盘会收起）。
         if (Platform.isMobile && e.key === 'Enter') {
             e.preventDefault();
-            e.stopPropagation();
             return;
         }
 
         // 桌面端：Enter 键将焦点转移到搜索结果列表，方便键盘导航
         if (!Platform.isMobile && e.key === 'Enter' && $search.results.size > 0) {
             e.preventDefault();
-            e.stopPropagation();
             
             // 等待下一帧，确保 DOM 已更新
             setTimeout(() => {
@@ -84,21 +75,6 @@
             }, 0);
             return;
         }
-        
-        // 阻止所有其他按键冒泡，包括：
-        // - 字母键（j、k 等，可能触发导航快捷键）
-        // - 方向键
-        // - 数字键
-        // - 特殊键（Backspace 等）
-        e.stopPropagation();
-    };
-
-    const onKeyUpCapture = (e: KeyboardEvent) => {
-        if (shouldAllowKeyToBubble(e.key)) {
-            return;
-        }
-
-        e.stopPropagation();
     };
 </script>
 
@@ -111,8 +87,7 @@
         on:compositionstart={onCompositionStart}
         on:compositionupdate={onCompositionUpdate}
         on:compositionend={onCompositionEnd}
-        on:keydown|capture={onKeyDown}
-        on:keyup|capture={onKeyUpCapture}
+        on:keydown={onKeyDown}
         placeholder="search"
         spellcheck="false"
         type="search"

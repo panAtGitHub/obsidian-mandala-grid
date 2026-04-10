@@ -5,6 +5,7 @@ import { handleEscapeKey } from 'src/view/actions/on-escape/helpers/handle-escap
 import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { isEditing } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/is-editing';
 import { KeymapEventHandler } from 'obsidian';
+import { shouldHandleViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/should-handle-view-hotkey';
 
 export const viewHotkeysAction = (
     target: HTMLElement,
@@ -51,6 +52,9 @@ export const viewHotkeysAction = (
     let scopeHandler: KeymapEventHandler | null = null;
     if (view.scope) {
         scopeHandler = view.scope.register(null, null, (event) => {
+            if (!shouldHandleViewHotkey(event)) {
+                return;
+            }
             if (tryRunHotkeyCommand(event)) {
                 return false;
             }
@@ -69,6 +73,9 @@ export const viewHotkeysAction = (
         }
 
         const targetEl = event.target as HTMLElement;
+        if (!shouldHandleViewHotkey(event)) {
+            return;
+        }
         const readonlyPreviewDialog = isReadonlyPreviewDialogTarget(targetEl);
         if (readonlyPreviewDialog) {
             const command = viewHotkeys.current[eventToString(event)];
@@ -79,16 +86,6 @@ export const viewHotkeysAction = (
             event.stopPropagation();
             return;
         }
-
-        // 仅在没有匹配到命令时拦截输入控件
-        if (
-            targetEl.localName === 'input' ||
-            targetEl.localName === 'textarea' ||
-            targetEl.isContentEditable ||
-            // 搜索结果列表（或其子元素）获得焦点时，跳过全局快捷键
-            targetEl.closest('.mandala-search-results')
-        )
-            return;
         if (event.shiftKey !== state.shift) {
             state.shift = event.shiftKey;
             view.viewStore.dispatch({
