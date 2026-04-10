@@ -85,4 +85,8 @@
     .nx9-cell--desktop-card {
         --mandala-card-font-size: var(--nx9-font-size);
     }
+
+    .nx9-cell.is-clickable {
+        cursor: default;
+    }
 </style>
