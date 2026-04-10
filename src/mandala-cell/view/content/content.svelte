@@ -27,6 +27,11 @@
     const showHiddenCardInfo = cellRuntime.showHiddenCardInfo;
     const markdownPreview = cellRuntime.markdownPreviewAction;
     const doubleTapDetector = createMobileDoubleTapDetector();
+    let effectiveScrollbarMode: CellScrollbarMode = scrollbarMode;
+    $: effectiveScrollbarMode =
+        isMobilePlatform || scrollbarMode === 'hidden'
+            ? scrollbarMode
+            : 'interaction';
 
     const enableEditModeAtCursor = (e: MouseEvent) => {
         const content = get(cellRuntime.contentForNode(nodeId));
@@ -121,7 +126,7 @@
 <CellScrollbar />
 
 <div
-    class={`lng-prev markdown-preview-view markdown-preview-section markdown-rendered cell-scrollbar-mode--${scrollbarMode}`}
+    class={`lng-prev markdown-preview-view markdown-preview-section markdown-rendered cell-scrollbar-mode--${effectiveScrollbarMode}`}
     class:lng-prev--fill={fillContent}
     class:lng-prev--compact={density === 'compact'}
     on:click={handleClick}
@@ -129,7 +134,10 @@
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
     use:markdownPreview={nodeId}
-    use:hideIdleScrollbar={{ mode: scrollbarMode, enabled: idleScrollbarEnabled }}
+    use:hideIdleScrollbar={{
+        mode: effectiveScrollbarMode,
+        enabled: idleScrollbarEnabled,
+    }}
 ></div>
 
 <style>

@@ -26,7 +26,7 @@ describe('hideIdleScrollbar', () => {
         document.body.innerHTML = '';
     });
 
-    it('reveals on pointer enter and hides on pointer leave when delay is 0', () => {
+    it('reveals only after scrolling interaction and hides after the idle delay', () => {
         const { target, enabled } = setupTarget();
         const action = hideIdleScrollbar(target, {
             mode: 'interaction',
@@ -37,9 +37,15 @@ describe('hideIdleScrollbar', () => {
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
 
         target.dispatchEvent(new Event('pointerenter'));
+        expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
+
+        target.dispatchEvent(new Event('wheel'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
 
-        target.dispatchEvent(new Event('pointerleave'));
+        vi.advanceTimersByTime(399);
+        expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
+
+        vi.advanceTimersByTime(1);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
 
         action.destroy();
@@ -55,10 +61,14 @@ describe('hideIdleScrollbar', () => {
         target.dispatchEvent(new Event('wheel'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
 
-        target.dispatchEvent(new Event('pointermove'));
+        vi.advanceTimersByTime(250);
+        target.dispatchEvent(new Event('scroll'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
 
-        target.dispatchEvent(new Event('pointerleave'));
+        vi.advanceTimersByTime(250);
+        expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
+
+        vi.advanceTimersByTime(150);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
         action.destroy();
     });
@@ -72,7 +82,7 @@ describe('hideIdleScrollbar', () => {
 
         target.dispatchEvent(new Event('scroll'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
-        target.dispatchEvent(new Event('pointerleave'));
+        vi.advanceTimersByTime(400);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
 
         action.destroy();
@@ -86,7 +96,8 @@ describe('hideIdleScrollbar', () => {
         });
 
         target.dispatchEvent(new Event('pointerenter'));
-        target.dispatchEvent(new Event('pointerleave'));
+        target.dispatchEvent(new Event('wheel'));
+        vi.advanceTimersByTime(400);
 
         expect(target.classList.contains('mandala-idle-scrollbar')).toBe(false);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
@@ -101,15 +112,15 @@ describe('hideIdleScrollbar', () => {
             enabled,
         });
 
-        target.dispatchEvent(new Event('touchstart'));
+        target.dispatchEvent(new Event('wheel'));
         expect(target.classList.contains('is-scrollbar-visible')).toBe(true);
 
         action.destroy();
         expect(target.classList.contains('mandala-idle-scrollbar')).toBe(false);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
 
-        target.dispatchEvent(new Event('pointerenter'));
-        target.dispatchEvent(new Event('pointerleave'));
+        target.dispatchEvent(new Event('wheel'));
+        vi.advanceTimersByTime(400);
         expect(target.classList.contains('is-scrollbar-visible')).toBe(false);
     });
 });

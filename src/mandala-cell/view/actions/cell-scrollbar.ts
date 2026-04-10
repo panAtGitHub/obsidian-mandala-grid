@@ -3,19 +3,11 @@ import {
     type CellScrollbarMode,
 } from 'src/mandala-cell/model/cell-scrollbar-mode';
 
-const IDLE_HIDE_MS = 0;
+const IDLE_HIDE_MS = 400;
 const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
 
-const INTERACTION_EVENTS = [
-    'pointerenter',
-    'pointermove',
-    'wheel',
-    'scroll',
-    'touchstart',
-    'touchmove',
-] as const;
-const EXIT_EVENTS = ['pointerleave', 'touchend', 'touchcancel'] as const;
+const REVEAL_EVENTS = ['wheel', 'scroll'] as const;
 
 type HideIdleScrollbarOptions = {
     mode?: CellScrollbarMode;
@@ -84,29 +76,15 @@ export const hideIdleScrollbar = (
         scheduleHide();
     };
 
-    const onExit = () => {
-        if (hasIdleDelay) {
-            scheduleHide();
-            return;
-        }
-        hideScrollbar();
-    };
-
-    INTERACTION_EVENTS.forEach((eventName) => {
+    REVEAL_EVENTS.forEach((eventName) => {
         element.addEventListener(eventName, revealScrollbar, { passive: true });
-    });
-    EXIT_EVENTS.forEach((eventName) => {
-        element.addEventListener(eventName, onExit, { passive: true });
     });
 
     return {
         destroy: () => {
             clearHideTimer();
-            INTERACTION_EVENTS.forEach((eventName) => {
+            REVEAL_EVENTS.forEach((eventName) => {
                 element.removeEventListener(eventName, revealScrollbar);
-            });
-            EXIT_EVENTS.forEach((eventName) => {
-                element.removeEventListener(eventName, onExit);
             });
             element.classList.remove(IDLE_SCROLLBAR_CLASS);
             element.classList.remove(SCROLLBAR_VISIBLE_CLASS);
