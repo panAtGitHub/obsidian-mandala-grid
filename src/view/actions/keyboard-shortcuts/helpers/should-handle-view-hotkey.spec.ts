@@ -73,4 +73,19 @@ describe('shouldHandleViewHotkey', () => {
 
         list.remove();
     });
+
+    it('still returns false for editable targets when search navigation mode is active', () => {
+        const list = document.createElement('div');
+        list.className = 'mandala-search-results';
+        list.dataset.keyboardNavigationActive = 'true';
+        document.body.appendChild(list);
+
+        const editor = document.createElement('textarea');
+        document.body.appendChild(editor);
+
+        expect(shouldHandleViewHotkey(createKeyboardEvent(editor))).toBe(false);
+
+        editor.remove();
+        list.remove();
+    });
 });

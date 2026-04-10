@@ -2,6 +2,13 @@ const HOTKEY_EXCLUDED_SELECTOR = '.mandala-search-results';
 const ACTIVE_SEARCH_NAVIGATION_SELECTOR =
     '.mandala-search-results[data-keyboard-navigation-active="true"]';
 
+const isEditableTarget = (target: HTMLElement) =>
+    target.localName === 'input' ||
+    target.localName === 'textarea' ||
+    target.isContentEditable ||
+    target.getAttribute('contenteditable') === '' ||
+    target.getAttribute('contenteditable') === 'true';
+
 const resolveEventTarget = (event: KeyboardEvent): HTMLElement | null => {
     const directTarget = event.target;
     if (directTarget instanceof HTMLElement) {
@@ -22,20 +29,16 @@ const resolveEventTarget = (event: KeyboardEvent): HTMLElement | null => {
 };
 
 export const shouldHandleViewHotkey = (event: KeyboardEvent): boolean => {
-    if (document.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR)) {
+    const target = resolveEventTarget(event);
+    if (!target) {
+        return !document.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR);
+    }
+
+    if (isEditableTarget(target)) {
         return false;
     }
 
-    const target = resolveEventTarget(event);
-    if (!target) return true;
-
-    if (
-        target.localName === 'input' ||
-        target.localName === 'textarea' ||
-        target.isContentEditable ||
-        target.getAttribute('contenteditable') === '' ||
-        target.getAttribute('contenteditable') === 'true'
-    ) {
+    if (document.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR)) {
         return false;
     }
 

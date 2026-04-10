@@ -12,6 +12,7 @@
     
     const view = getView();
     const SEARCH_INPUT_SELECTOR = '.search-input-wrapper';
+    const SEARCH_RESULTS_SELECTOR = '.mandala-search-results';
     
     // 当前选中的索引（-1 表示无选中）
     let selectedIndex = -1;
@@ -114,6 +115,22 @@
     
     function handleNavigationKey(e: KeyboardEvent) {
         if (!keyboardNavigationActive || results.length === 0) return;
+        const target = e.target;
+        if (target instanceof HTMLElement) {
+            const isInSearchUi =
+                !!target.closest(SEARCH_RESULTS_SELECTOR) ||
+                !!target.closest(SEARCH_INPUT_SELECTOR);
+            const isEditableTarget =
+                target.localName === 'input' ||
+                target.localName === 'textarea' ||
+                target.isContentEditable ||
+                target.getAttribute('contenteditable') === '' ||
+                target.getAttribute('contenteditable') === 'true';
+            if (!isInSearchUi || isEditableTarget) {
+                deactivateKeyboardNavigation();
+                return;
+            }
+        }
 
         if (
             e.key === 'ArrowLeft' ||
