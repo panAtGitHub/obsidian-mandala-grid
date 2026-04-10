@@ -149,7 +149,8 @@
         box-sizing: border-box;
 
         font-size: var(--font-text-size);
-        padding: 6px 6px 10px 12px;
+        padding: 6px var(--mandala-idle-scrollbar-size, 8px) 10px
+            var(--mandala-idle-scrollbar-size, 8px);
         color-scheme: light;
     }
 
@@ -160,7 +161,8 @@
     }
 
     .lng-prev--compact {
-        padding: 2px 2px 3px 4px;
+        padding: 2px var(--mandala-idle-scrollbar-size, 8px) 3px
+            var(--mandala-idle-scrollbar-size, 8px);
         line-height: 1.12;
         --p-spacing: 0px;
     }

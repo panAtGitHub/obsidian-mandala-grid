@@ -1,6 +1,6 @@
 <style>
     :global(.mandala-idle-scrollbar) {
-        --mandala-idle-scrollbar-size: 8px;
+        --mandala-idle-scrollbar-size: 6px;
         overflow-y: auto;
         overflow-x: hidden;
         scrollbar-gutter: stable;

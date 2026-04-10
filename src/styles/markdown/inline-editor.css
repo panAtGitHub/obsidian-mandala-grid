@@ -29,9 +29,9 @@
     }
 
     & .cm-editor .cm-scroller {
-        padding: 6px !important;
+        padding: 6px var(--mandala-idle-scrollbar-size, 6px) !important;
         padding-bottom: 20px !important;
-        padding-left: 12px !important;
+        padding-left: var(--mandala-idle-scrollbar-size, 6px) !important;
         scrollbar-width: thin;
     }
 
