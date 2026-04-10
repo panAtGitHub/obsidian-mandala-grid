@@ -17,6 +17,12 @@
     
     // Hover 预览的延迟定时器
     let hoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+    $: if (results.length === 0) {
+        selectedIndex = -1;
+    } else if (selectedIndex >= results.length) {
+        selectedIndex = results.length - 1;
+    }
     
     // 处理鼠标悬停（延迟 200ms）
     function handleHover(index: number) {
@@ -63,6 +69,14 @@
             if (listElement) listElement.focus();
         });
     }
+
+    function handleFocus() {
+        if (results.length === 0) return;
+        if (selectedIndex >= 0) return;
+
+        selectedIndex = 0;
+        previewSearchResult(results[0].section, view);
+    }
     
     // 键盘导航
     function handleKeyDown(e: KeyboardEvent) {
@@ -104,6 +118,7 @@
     class="mandala-search-results"
     class:inFlow={layout === 'list'}
     bind:this={listElement}
+    on:focus={handleFocus}
     on:keydown={handleKeyDown}
     role="listbox"
     tabindex="-1"
@@ -121,7 +136,7 @@
                 on:click={() => handleClick(result, index)}
                 role="option"
                 aria-selected={selectedIndex === index}
-                tabindex="0"
+                tabindex="-1"
             >
                 <div class="section-path">{result.section}</div>
                 <div class="content-preview">{result.contentPreview}</div>
