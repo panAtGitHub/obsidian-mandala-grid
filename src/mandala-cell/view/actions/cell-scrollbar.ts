@@ -8,6 +8,7 @@ const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
 const SCROLLBAR_HAS_OVERFLOW_CLASS = 'has-overlay-scrollbar';
 const MIN_THUMB_SIZE = 24;
+const SCROLL_REVEAL_WINDOW_MS = 900;
 
 type HideIdleScrollbarOptions = {
     mode?: CellScrollbarMode;
@@ -42,6 +43,8 @@ export const hideIdleScrollbar = (
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     const hasIdleDelay = IDLE_HIDE_MS > 0;
     let rafHandle: number | null = null;
+    let pointerInside = false;
+    let lastDirectScrollAt = 0;
     element.classList.add(IDLE_SCROLLBAR_CLASS);
 
     const clearHideTimer = () => {
@@ -105,12 +108,27 @@ export const hideIdleScrollbar = (
 
     const handleScroll = () => {
         scheduleOverlayMetrics();
-        revealScrollbar();
+        if (
+            element.classList.contains(SCROLLBAR_VISIBLE_CLASS) ||
+            pointerInside ||
+            Date.now() - lastDirectScrollAt <= SCROLL_REVEAL_WINDOW_MS
+        ) {
+            revealScrollbar();
+        }
     };
 
     const handleWheel = () => {
+        lastDirectScrollAt = Date.now();
         revealScrollbar();
         scheduleOverlayMetrics();
+    };
+
+    const handlePointerEnter = () => {
+        pointerInside = true;
+    };
+
+    const handlePointerLeave = () => {
+        pointerInside = false;
     };
 
     const resizeObserver = new ResizeObserver(() => {
@@ -129,6 +147,12 @@ export const hideIdleScrollbar = (
 
     element.addEventListener('scroll', handleScroll, { passive: true });
     element.addEventListener('wheel', handleWheel, { passive: true });
+    element.addEventListener('pointerenter', handlePointerEnter, {
+        passive: true,
+    });
+    element.addEventListener('pointerleave', handlePointerLeave, {
+        passive: true,
+    });
     scheduleOverlayMetrics();
 
     return {
@@ -141,6 +165,8 @@ export const hideIdleScrollbar = (
             mutationObserver.disconnect();
             element.removeEventListener('scroll', handleScroll);
             element.removeEventListener('wheel', handleWheel);
+            element.removeEventListener('pointerenter', handlePointerEnter);
+            element.removeEventListener('pointerleave', handlePointerLeave);
             element.classList.remove(IDLE_SCROLLBAR_CLASS);
             element.classList.remove(SCROLLBAR_VISIBLE_CLASS);
             element.classList.remove(SCROLLBAR_HAS_OVERFLOW_CLASS);
