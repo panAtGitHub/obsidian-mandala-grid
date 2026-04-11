@@ -6,8 +6,6 @@ import {
 const IDLE_HIDE_MS = 1200;
 const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
-const SCROLLBAR_HAS_OVERFLOW_CLASS = 'has-overlay-scrollbar';
-const MIN_THUMB_SIZE = 24;
 const SCROLL_REVEAL_WINDOW_MS = 900;
 
 type HideIdleScrollbarOptions = {
@@ -42,7 +40,6 @@ export const hideIdleScrollbar = (
 
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     const hasIdleDelay = IDLE_HIDE_MS > 0;
-    let rafHandle: number | null = null;
     let pointerInside = false;
     let lastDirectScrollAt = 0;
     element.classList.add(IDLE_SCROLLBAR_CLASS);
@@ -70,44 +67,7 @@ export const hideIdleScrollbar = (
         scheduleHide();
     };
 
-    const updateOverlayMetrics = () => {
-        rafHandle = null;
-        const { clientHeight, scrollHeight, scrollTop } = element;
-        const hasOverflow = scrollHeight - clientHeight > 1;
-        element.classList.toggle(SCROLLBAR_HAS_OVERFLOW_CLASS, hasOverflow);
-
-        if (!hasOverflow) {
-            element.style.setProperty('--mandala-overlay-scrollbar-thumb-height', '0px');
-            element.style.setProperty('--mandala-overlay-scrollbar-thumb-offset', '0px');
-            hideScrollbar();
-            return;
-        }
-
-        const thumbHeight = Math.max(
-            MIN_THUMB_SIZE,
-            Math.round((clientHeight * clientHeight) / scrollHeight),
-        );
-        const maxOffset = Math.max(clientHeight - thumbHeight, 0);
-        const maxScrollTop = Math.max(scrollHeight - clientHeight, 1);
-        const thumbOffset = Math.round((scrollTop / maxScrollTop) * maxOffset);
-
-        element.style.setProperty(
-            '--mandala-overlay-scrollbar-thumb-height',
-            `${thumbHeight}px`,
-        );
-        element.style.setProperty(
-            '--mandala-overlay-scrollbar-thumb-offset',
-            `${thumbOffset}px`,
-        );
-    };
-
-    const scheduleOverlayMetrics = () => {
-        if (rafHandle !== null) return;
-        rafHandle = requestAnimationFrame(updateOverlayMetrics);
-    };
-
     const handleScroll = () => {
-        scheduleOverlayMetrics();
         if (
             element.classList.contains(SCROLLBAR_VISIBLE_CLASS) ||
             pointerInside ||
@@ -120,13 +80,11 @@ export const hideIdleScrollbar = (
     const handleWheel = () => {
         lastDirectScrollAt = Date.now();
         revealScrollbar();
-        scheduleOverlayMetrics();
     };
 
     const handleTouchMove = () => {
         lastDirectScrollAt = Date.now();
         revealScrollbar();
-        scheduleOverlayMetrics();
     };
 
     const handlePointerEnter = () => {
@@ -137,20 +95,6 @@ export const hideIdleScrollbar = (
         pointerInside = false;
     };
 
-    const resizeObserver = new ResizeObserver(() => {
-        scheduleOverlayMetrics();
-    });
-    const mutationObserver = new MutationObserver(() => {
-        scheduleOverlayMetrics();
-    });
-
-    resizeObserver.observe(element);
-    mutationObserver.observe(element, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-    });
-
     element.addEventListener('scroll', handleScroll, { passive: true });
     element.addEventListener('wheel', handleWheel, { passive: true });
     element.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -160,16 +104,9 @@ export const hideIdleScrollbar = (
     element.addEventListener('pointerleave', handlePointerLeave, {
         passive: true,
     });
-    scheduleOverlayMetrics();
-
     return {
         destroy: () => {
             clearHideTimer();
-            if (rafHandle !== null) {
-                cancelAnimationFrame(rafHandle);
-            }
-            resizeObserver.disconnect();
-            mutationObserver.disconnect();
             element.removeEventListener('scroll', handleScroll);
             element.removeEventListener('wheel', handleWheel);
             element.removeEventListener('touchmove', handleTouchMove);
@@ -177,9 +114,6 @@ export const hideIdleScrollbar = (
             element.removeEventListener('pointerleave', handlePointerLeave);
             element.classList.remove(IDLE_SCROLLBAR_CLASS);
             element.classList.remove(SCROLLBAR_VISIBLE_CLASS);
-            element.classList.remove(SCROLLBAR_HAS_OVERFLOW_CLASS);
-            element.style.removeProperty('--mandala-overlay-scrollbar-thumb-height');
-            element.style.removeProperty('--mandala-overlay-scrollbar-thumb-offset');
         },
     };
 };
