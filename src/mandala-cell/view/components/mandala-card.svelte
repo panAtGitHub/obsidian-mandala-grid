@@ -237,6 +237,9 @@
         background-color: var(--background-primary);
         --scrollbar-thumb-bg: var(--color-base-30);
         --scrollbar-active-thumb-bg: var(--color-base-40);
+        --mandala-overlay-scrollbar-track-base: var(--background-modifier-hover);
+        --mandala-overlay-scrollbar-thumb-base: var(--text-muted);
+        --mandala-overlay-scrollbar-thumb-hover-base: var(--text-normal);
     }
 
     .mandala-card--overflow-hidden {
@@ -280,6 +283,24 @@
     :global(.mandala-white-theme) .mandala-card.active-node {
         outline: 2px solid var(--interactive-accent);
         outline-offset: 0;
+    }
+
+    .mandala-card.active-node {
+        --mandala-overlay-scrollbar-track-base: color-mix(
+            in srgb,
+            var(--background-modifier-border) 85%,
+            transparent
+        );
+        --mandala-overlay-scrollbar-thumb-base: color-mix(
+            in srgb,
+            var(--color-base-70) 78%,
+            transparent
+        );
+        --mandala-overlay-scrollbar-thumb-hover-base: color-mix(
+            in srgb,
+            var(--color-base-100) 82%,
+            transparent
+        );
     }
 
     :global(.mandala-a4-mode)

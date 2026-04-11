@@ -47,12 +47,20 @@
     :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover) {
         --mandala-overlay-scrollbar-track-color: color-mix(
             in srgb,
-            var(--background-modifier-hover) 45%,
+            var(
+                    --mandala-overlay-scrollbar-track-base,
+                    var(--background-modifier-hover)
+                )
+                45%,
             transparent
         );
         --mandala-overlay-scrollbar-thumb-color: color-mix(
             in srgb,
-            var(--text-muted) 70%,
+            var(
+                    --mandala-overlay-scrollbar-thumb-base,
+                    var(--text-muted)
+                )
+                70%,
             transparent
         );
     }
@@ -61,7 +69,11 @@
     :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover:hover) {
         --mandala-overlay-scrollbar-thumb-color: color-mix(
             in srgb,
-            var(--text-normal) 70%,
+            var(
+                    --mandala-overlay-scrollbar-thumb-hover-base,
+                    var(--text-normal)
+                )
+                70%,
             transparent
         );
     }
