@@ -1,22 +1,14 @@
 <script lang="ts">
     import { get } from 'svelte/store';
-    import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
-    import CellScrollbar from 'src/mandala-cell/view/style/cell-scrollbar.svelte';
-    import {
-        DEFAULT_CELL_SCROLLBAR_MODE,
-        type CellScrollbarMode,
-    } from 'src/mandala-cell/model/cell-scrollbar-mode';
     import { createMobileDoubleTapDetector } from 'src/mandala-interaction/helpers/mobile-double-tap';
     import { getCellRuntime } from 'src/view/context';
     import { getCursorPosition } from 'src/mandala-cell/viewmodel/content-event-handlers/get-cursor-position';
 
     export let nodeId: string;
     export let hideBuiltInHiddenInfo = false;
-    export let scrollbarMode: CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE;
     export let fillContent = false;
     export let density: 'normal' | 'compact' = 'normal';
     export let isMobilePlatform = false;
-    export let idleScrollbarEnabled = true;
     export let activateNode: (event: MouseEvent) => void = () => {};
     export let enableEditMode: () => void = () => {};
     export let onMobilePreviewDoubleTapEdit:
@@ -118,11 +110,8 @@
     };
 
 </script>
-
-<CellScrollbar />
-
 <div
-    class={`lng-prev markdown-preview-section markdown-rendered cell-scrollbar-mode--${scrollbarMode}`}
+    class="lng-prev markdown-preview-section markdown-rendered"
     class:lng-prev--fill={fillContent}
     class:lng-prev--compact={density === 'compact'}
     on:click={handleClick}
@@ -130,10 +119,6 @@
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
     use:markdownPreview={nodeId}
-    use:hideIdleScrollbar={{
-        mode: scrollbarMode,
-        enabled: idleScrollbarEnabled,
-    }}
 ></div>
 
 <style>
@@ -146,11 +131,20 @@
         position: relative;
 
         font-size: var(--font-text-size);
-        --mandala-content-left-inset: var(--mandala-idle-scrollbar-size, 6px);
-        --mandala-content-right-inset: var(--mandala-idle-scrollbar-size, 6px);
+        --mandala-content-left-inset: 6px;
+        --mandala-content-right-inset: 6px;
         padding: 6px var(--mandala-content-right-inset) 10px
             var(--mandala-content-left-inset);
         color-scheme: light;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .lng-prev::-webkit-scrollbar {
+        width: 0;
+        height: 0;
     }
 
     .lng-prev--fill {

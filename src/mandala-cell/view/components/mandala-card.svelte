@@ -59,7 +59,6 @@
     let fillContent = false;
     let contentDensity: 'normal' | 'compact' = 'normal';
     let cardOverflowMode: 'visible' | 'hidden' = displayPolicy.cardOverflowMode;
-    let scrollbarMode = displayPolicy.scrollbarMode;
     let hoverElevationEnabled = true;
     let detachInactiveSurface = false;
     let suppressHoverSurfaceEffect = false;
@@ -74,7 +73,6 @@
     $: fillContent = displayPolicy.contentLayout === 'fill';
     $: contentDensity = displayPolicy.density;
     $: cardOverflowMode = displayPolicy.cardOverflowMode;
-    $: scrollbarMode = displayPolicy.scrollbarMode;
     $: hoverElevationEnabled = displayPolicy.hoverBehavior === 'elevated';
     $: suppressHoverSurfaceEffect = displayPolicy.hoverBehavior === 'none';
     $: detachInactiveSurface =
@@ -198,7 +196,6 @@
             hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}
             fontSizeOffset={isMobile ? $localFontSize - 16 : 0}
             absoluteFontSize={isMobile ? $localFontSize : undefined}
-            {scrollbarMode}
             {fillContent}
             density={contentDensity}
             isMobilePlatform={isMobile}
