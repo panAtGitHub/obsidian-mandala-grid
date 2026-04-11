@@ -3,7 +3,7 @@ import {
     type CellScrollbarMode,
 } from 'src/mandala-cell/model/cell-scrollbar-mode';
 
-const IDLE_HIDE_MS = 900;
+const IDLE_HIDE_MS = 1200;
 const IDLE_SCROLLBAR_CLASS = 'mandala-idle-scrollbar';
 const SCROLLBAR_VISIBLE_CLASS = 'is-scrollbar-visible';
 const SCROLLBAR_HAS_OVERFLOW_CLASS = 'has-overlay-scrollbar';

@@ -18,46 +18,77 @@
     const isMobilePlatform = cellRuntime.isMobilePlatform;
 
     const attachInlineEditorScrollbar = (element: HTMLElement) => {
-        let scroller: HTMLElement | null = null;
-        let scrollerCleanup: { destroy?: () => void } | null = null;
+        const activeScrollables = new Map<
+            HTMLElement,
+            { destroy?: () => void }
+        >();
 
-        const detachScroller = () => {
-            scrollerCleanup?.destroy?.();
-            scrollerCleanup = null;
-            scroller?.classList.remove('cell-scrollbar-mode--interaction');
-            scroller = null;
+        const detachScrollable = (target: HTMLElement) => {
+            activeScrollables.get(target)?.destroy?.();
+            activeScrollables.delete(target);
+            target.classList.remove('cell-scrollbar-mode--interaction');
         };
 
-        const attachScroller = (nextScroller: HTMLElement | null) => {
-            if (nextScroller === scroller) return;
-            detachScroller();
-            if (!nextScroller || isMobilePlatform) return;
-            scroller = nextScroller;
-            scroller.classList.add('cell-scrollbar-mode--interaction');
-            scrollerCleanup = hideIdleScrollbar(scroller, {
-                mode: 'interaction',
-                enabled: true,
-            });
+        const attachScrollable = (target: HTMLElement) => {
+            if (activeScrollables.has(target) || isMobilePlatform) return;
+            target.classList.add('cell-scrollbar-mode--interaction');
+            activeScrollables.set(
+                target,
+                hideIdleScrollbar(target, {
+                    mode: 'interaction',
+                    enabled: true,
+                }),
+            );
         };
 
-        const syncScroller = () => {
-            attachScroller(element.querySelector('.cm-editor .cm-scroller'));
+        const syncScrollables = () => {
+            const nextScrollables = new Set<HTMLElement>();
+            const candidates = [
+                element,
+                ...Array.from(
+                    element.querySelectorAll<HTMLElement>(
+                        '.markdown-source-view, .view-content, .cm-editor .cm-scroller',
+                    ),
+                ),
+            ];
+
+            for (const candidate of candidates) {
+                const style = window.getComputedStyle(candidate);
+                const overflowY = style.overflowY;
+                const canScroll =
+                    overflowY === 'auto' ||
+                    overflowY === 'scroll' ||
+                    candidate.classList.contains('cm-scroller');
+                if (!canScroll) continue;
+                nextScrollables.add(candidate);
+                attachScrollable(candidate);
+            }
+
+            for (const existing of Array.from(activeScrollables.keys())) {
+                if (!nextScrollables.has(existing)) {
+                    detachScrollable(existing);
+                }
+            }
         };
 
         const observer = new MutationObserver(() => {
-            syncScroller();
+            syncScrollables();
         });
 
         observer.observe(element, {
             childList: true,
             subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style'],
         });
-        syncScroller();
+        syncScrollables();
 
         return {
             destroy: () => {
                 observer.disconnect();
-                detachScroller();
+                for (const target of Array.from(activeScrollables.keys())) {
+                    detachScrollable(target);
+                }
             },
         };
     };
