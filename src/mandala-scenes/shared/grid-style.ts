@@ -48,6 +48,7 @@ export const resolveCardGridStyle = ({
                 : defaultPolicy.sectionIndicatorVariant,
             preserveActiveBackground,
             contentLayout: 'fill',
+            cardOverflowMode: 'hidden',
             hoverBehavior: 'none',
             inactiveSurfaceMode: 'detached',
             ...(compactMode

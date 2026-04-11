@@ -14,6 +14,7 @@ describe('shared/grid-style', () => {
                 sectionIndicatorVariant: 'section-capsule',
                 preserveActiveBackground: false,
                 contentLayout: 'fill',
+                cardOverflowMode: 'hidden',
                 hoverBehavior: 'none',
                 inactiveSurfaceMode: 'detached',
             },
@@ -30,6 +31,7 @@ describe('shared/grid-style', () => {
             cellDisplayPolicy: {
                 sectionIndicatorVariant: 'plain-with-pin',
                 preserveActiveBackground: true,
+                cardOverflowMode: 'hidden',
                 inactiveSurfaceMode: 'detached',
             },
         });
@@ -46,6 +48,7 @@ describe('shared/grid-style', () => {
             selectionStyle: 'node-active',
             cellDisplayPolicy: {
                 density: 'compact',
+                cardOverflowMode: 'hidden',
                 scrollbarMode: 'interaction',
                 hoverBehavior: 'none',
                 inactiveSurfaceMode: 'detached',

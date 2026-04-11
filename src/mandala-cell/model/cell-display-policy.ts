@@ -12,6 +12,7 @@ export type CellDisplayPolicy = {
     hideBuiltInHiddenInfo: boolean;
     contentLayout: 'intrinsic' | 'fill';
     density: 'normal' | 'compact';
+    cardOverflowMode: 'visible' | 'hidden';
     scrollbarMode: CellScrollbarMode;
     hoverBehavior: 'elevated' | 'none';
     inactiveSurfaceMode: 'inline' | 'detached';

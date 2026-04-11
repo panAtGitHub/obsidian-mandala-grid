@@ -58,6 +58,7 @@
     let pinned = false;
     let fillContent = false;
     let contentDensity: 'normal' | 'compact' = 'normal';
+    let cardOverflowMode: 'visible' | 'hidden' = displayPolicy.cardOverflowMode;
     let scrollbarMode = displayPolicy.scrollbarMode;
     let hoverElevationEnabled = true;
     let detachInactiveSurface = false;
@@ -72,6 +73,7 @@
     $: hasSectionColor = !!viewModel.sectionColorContext;
     $: fillContent = displayPolicy.contentLayout === 'fill';
     $: contentDensity = displayPolicy.density;
+    $: cardOverflowMode = displayPolicy.cardOverflowMode;
     $: scrollbarMode = displayPolicy.scrollbarMode;
     $: hoverElevationEnabled = displayPolicy.hoverBehavior === 'elevated';
     $: suppressHoverSurfaceEffect = displayPolicy.hoverBehavior === 'none';
@@ -131,6 +133,9 @@
         active ? 'node-border--active' : undefined,
         detachInactiveSurface ? 'mandala-card--detached-inactive' : undefined,
         suppressHoverSurfaceEffect ? 'mandala-card--hover-static' : undefined,
+        cardOverflowMode === 'hidden'
+            ? 'mandala-card--overflow-hidden'
+            : 'mandala-card--overflow-visible',
     )}
     class:mandala-card--hover-elevation={hoverElevationEnabled}
     class:mandala-card--swap-source={isSwapSourceNode($swapState, nodeId)}
@@ -234,9 +239,7 @@
         --scrollbar-active-thumb-bg: var(--color-base-40);
     }
 
-    :global(.mandala-root--week) .mandala-card,
-    :global(.mandala-root--nx9) .mandala-card,
-    :global(.mandala-root--9) .mandala-card {
+    .mandala-card--overflow-hidden {
         overflow: hidden;
     }
 

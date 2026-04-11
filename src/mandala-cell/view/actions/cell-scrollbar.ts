@@ -123,6 +123,12 @@ export const hideIdleScrollbar = (
         scheduleOverlayMetrics();
     };
 
+    const handleTouchMove = () => {
+        lastDirectScrollAt = Date.now();
+        revealScrollbar();
+        scheduleOverlayMetrics();
+    };
+
     const handlePointerEnter = () => {
         pointerInside = true;
     };
@@ -147,6 +153,7 @@ export const hideIdleScrollbar = (
 
     element.addEventListener('scroll', handleScroll, { passive: true });
     element.addEventListener('wheel', handleWheel, { passive: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: true });
     element.addEventListener('pointerenter', handlePointerEnter, {
         passive: true,
     });
@@ -165,6 +172,7 @@ export const hideIdleScrollbar = (
             mutationObserver.disconnect();
             element.removeEventListener('scroll', handleScroll);
             element.removeEventListener('wheel', handleWheel);
+            element.removeEventListener('touchmove', handleTouchMove);
             element.removeEventListener('pointerenter', handlePointerEnter);
             element.removeEventListener('pointerleave', handlePointerLeave);
             element.classList.remove(IDLE_SCROLLBAR_CLASS);

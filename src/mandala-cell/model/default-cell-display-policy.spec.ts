@@ -9,6 +9,7 @@ describe('createDefaultCellDisplayPolicy', () => {
             hideBuiltInHiddenInfo: true,
             contentLayout: 'intrinsic',
             density: 'normal',
+            cardOverflowMode: 'visible',
             scrollbarMode: 'interaction',
             hoverBehavior: 'elevated',
             inactiveSurfaceMode: 'inline',
