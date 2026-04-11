@@ -126,7 +126,7 @@
 <CellScrollbar />
 
 <div
-    class={`lng-prev markdown-preview-view markdown-preview-section markdown-rendered cell-scrollbar-mode--${effectiveScrollbarMode}`}
+    class={`lng-prev markdown-preview-section markdown-rendered cell-scrollbar-mode--${effectiveScrollbarMode}`}
     class:lng-prev--fill={fillContent}
     class:lng-prev--compact={density === 'compact'}
     on:click={handleClick}
