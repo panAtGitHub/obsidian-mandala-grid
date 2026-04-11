@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { afterUpdate, onMount, tick } from 'svelte';
     import { get } from 'svelte/store';
     import { hideIdleScrollbar } from 'src/mandala-cell/view/actions/cell-scrollbar';
     import CellScrollbar from 'src/mandala-cell/view/style/cell-scrollbar.svelte';
@@ -27,11 +28,48 @@
     const showHiddenCardInfo = cellRuntime.showHiddenCardInfo;
     const markdownPreview = cellRuntime.markdownPreviewAction;
     const doubleTapDetector = createMobileDoubleTapDetector();
+    let contentEl: HTMLDivElement | null = null;
     let effectiveScrollbarMode: CellScrollbarMode = scrollbarMode;
+    let debugLayoutSummary = '';
     $: effectiveScrollbarMode =
         isMobilePlatform || scrollbarMode === 'hidden'
             ? scrollbarMode
             : 'interaction';
+
+    const formatRect = (rect: DOMRect | null) =>
+        rect
+            ? `${Math.round(rect.left)},${Math.round(rect.right)},${Math.round(rect.width)}`
+            : '-';
+
+    const updateDebugLayoutSummary = () => {
+        if (!contentEl) return;
+        const contentRect = contentEl.getBoundingClientRect();
+        const contentStyle = window.getComputedStyle(contentEl);
+        const firstChild = contentEl.firstElementChild as HTMLElement | null;
+        const firstChildRect = firstChild?.getBoundingClientRect() ?? null;
+        const cardBody = contentEl.closest('.mandala-card__body');
+        const meta = cardBody?.querySelector(
+            '.mandala-card-meta',
+        ) as HTMLElement | null;
+        const metaRect = meta?.getBoundingClientRect() ?? null;
+        const nextSummary = [
+            `pad L/R ${contentStyle.paddingLeft} ${contentStyle.paddingRight}`,
+            `content ${formatRect(contentRect)}`,
+            `child ${formatRect(firstChildRect)}`,
+            `meta ${formatRect(metaRect)}`,
+            `scroll ${contentEl.clientWidth}/${contentEl.scrollWidth}`,
+        ].join(' | ');
+        if (nextSummary !== debugLayoutSummary) {
+            debugLayoutSummary = nextSummary;
+        }
+    };
+
+    const scheduleDebugLayoutSummary = async () => {
+        await tick();
+        requestAnimationFrame(() => {
+            updateDebugLayoutSummary();
+        });
+    };
 
     const enableEditModeAtCursor = (e: MouseEvent) => {
         const content = get(cellRuntime.contentForNode(nodeId));
@@ -121,12 +159,22 @@
         // 避免双击同时触发外层卡片的双击处理，造成重复进入编辑与卡顿
         e.stopPropagation();
     };
+
+    onMount(() => {
+        void scheduleDebugLayoutSummary();
+    });
+
+    afterUpdate(() => {
+        void scheduleDebugLayoutSummary();
+    });
 </script>
 
 <CellScrollbar />
 
 <div
+    bind:this={contentEl}
     class={`lng-prev markdown-preview-section markdown-rendered cell-scrollbar-mode--${effectiveScrollbarMode}`}
+    data-debug-layout={debugLayoutSummary}
     class:lng-prev--fill={fillContent}
     class:lng-prev--compact={density === 'compact'}
     on:click={handleClick}
@@ -155,6 +203,24 @@
         padding: 6px var(--mandala-content-right-inset) 10px
             var(--mandala-content-left-inset);
         color-scheme: light;
+        background-image:
+            linear-gradient(
+                to right,
+                transparent 0,
+                transparent calc(var(--mandala-content-left-inset) - 1px),
+                rgba(255, 70, 70, 0.9) calc(var(--mandala-content-left-inset) - 1px),
+                rgba(255, 70, 70, 0.9) var(--mandala-content-left-inset),
+                transparent var(--mandala-content-left-inset),
+                transparent calc(100% - var(--mandala-content-right-inset)),
+                rgba(60, 120, 255, 0.9)
+                    calc(100% - var(--mandala-content-right-inset)),
+                rgba(60, 120, 255, 0.9)
+                    calc(100% - var(--mandala-content-right-inset) + 1px),
+                transparent
+                    calc(100% - var(--mandala-content-right-inset) + 1px),
+                transparent 100%
+            );
+        background-repeat: no-repeat;
     }
 
     .lng-prev--fill {
@@ -170,26 +236,24 @@
         --p-spacing: 0px;
     }
 
-    .lng-prev::before,
-    .lng-prev::after {
-        content: '';
+    .lng-prev[data-debug-layout]::after {
+        content: attr(data-debug-layout);
         position: absolute;
-        top: 0;
+        left: 0;
+        right: 0;
         bottom: 0;
-        width: 1px;
+        z-index: 3;
+        display: block;
+        padding: 2px 4px;
+        font-family: var(--font-monospace);
+        font-size: 9px;
+        line-height: 1.25;
+        color: #14324d;
+        background: rgba(255, 247, 196, 0.92);
+        border: 1px solid rgba(20, 50, 77, 0.2);
         pointer-events: none;
-        opacity: 0.65;
-        z-index: 2;
-    }
-
-    .lng-prev::before {
-        left: var(--mandala-content-left-inset);
-        background: rgba(255, 70, 70, 0.9);
-    }
-
-    .lng-prev::after {
-        right: var(--mandala-content-right-inset);
-        background: rgba(60, 120, 255, 0.9);
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .lng-prev--compact > :global(*) {
