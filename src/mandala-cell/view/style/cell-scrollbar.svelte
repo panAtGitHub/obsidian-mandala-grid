@@ -1,46 +1,37 @@
 <style>
     :global(.mandala-idle-scrollbar) {
         --mandala-idle-scrollbar-size: 6px;
+        --mandala-overlay-scrollbar-track-color: transparent;
+        --mandala-overlay-scrollbar-thumb-color: transparent;
         overflow-y: auto;
         overflow-x: hidden;
         position: relative;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        background-image:
+            linear-gradient(
+                to bottom,
+                var(--mandala-overlay-scrollbar-track-color),
+                var(--mandala-overlay-scrollbar-track-color)
+            ),
+            linear-gradient(
+                to bottom,
+                var(--mandala-overlay-scrollbar-thumb-color),
+                var(--mandala-overlay-scrollbar-thumb-color)
+            );
+        background-repeat: no-repeat, no-repeat;
+        background-size:
+            var(--mandala-idle-scrollbar-size) 100%,
+            var(--mandala-idle-scrollbar-size)
+                var(--mandala-overlay-scrollbar-thumb-height, 0px);
+        background-position:
+            right top,
+            right var(--mandala-overlay-scrollbar-thumb-offset, 0px);
     }
 
     :global(.mandala-idle-scrollbar::-webkit-scrollbar) {
         width: 0;
         height: 0;
-    }
-
-    :global(.mandala-idle-scrollbar::before) {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: var(--mandala-idle-scrollbar-size);
-        height: 100%;
-        border-radius: 999px;
-        background: transparent;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 120ms ease;
-    }
-
-    :global(.mandala-idle-scrollbar::after) {
-        content: '';
-        position: absolute;
-        top: var(--mandala-overlay-scrollbar-thumb-offset, 0px);
-        right: 0;
-        width: var(--mandala-idle-scrollbar-size);
-        height: var(--mandala-overlay-scrollbar-thumb-height, 0px);
-        border-radius: 999px;
-        background: color-mix(in srgb, var(--text-muted) 70%, transparent);
-        pointer-events: none;
-        opacity: 0;
-        transition:
-            opacity 120ms ease,
-            background 120ms ease;
     }
 
     :global(.mandala-idle-scrollbar.cell-scrollbar-mode--hidden) {
@@ -52,19 +43,26 @@
         height: 0;
     }
 
-    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--interaction.is-scrollbar-visible::after),
-    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover::after) {
-        opacity: 1;
+    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--interaction.is-scrollbar-visible),
+    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover) {
+        --mandala-overlay-scrollbar-track-color: color-mix(
+            in srgb,
+            var(--background-modifier-hover) 45%,
+            transparent
+        );
+        --mandala-overlay-scrollbar-thumb-color: color-mix(
+            in srgb,
+            var(--text-muted) 70%,
+            transparent
+        );
     }
 
-    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--interaction.is-scrollbar-visible::before),
-    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover::before) {
-        opacity: 1;
-        background: color-mix(in srgb, var(--background-modifier-hover) 45%, transparent);
-    }
-
-    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--interaction.is-scrollbar-visible:hover::after),
-    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover:hover::after) {
-        background: color-mix(in srgb, var(--text-normal) 70%, transparent);
+    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--interaction.is-scrollbar-visible:hover),
+    :global(.mandala-idle-scrollbar.has-overlay-scrollbar.cell-scrollbar-mode--selected-hover:hover) {
+        --mandala-overlay-scrollbar-thumb-color: color-mix(
+            in srgb,
+            var(--text-normal) 70%,
+            transparent
+        );
     }
 </style>
