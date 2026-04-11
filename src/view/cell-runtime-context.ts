@@ -67,6 +67,7 @@ export type CellRuntimeContext = {
     createReadonlySourcePreviewView: (
         hostEl: HTMLElement,
     ) => Promise<InlineMarkdownView | null>;
+    getInlineEditorScrollHost: () => HTMLElement | null;
     setInlineCursor: (
         nodeId: string,
         cursor: { line: number; ch: number },
@@ -181,6 +182,7 @@ export const createCellRuntimeContext = (
         isGrabbing: () => isGrabbing(view),
         isMobilePlatform: Platform.isMobile,
         createReadonlySourcePreviewView,
+        getInlineEditorScrollHost: () => view.inlineEditor.getScrollHost(),
         setInlineCursor: (
             nodeId: string,
             cursor: { line: number; ch: number },

@@ -54,6 +54,10 @@ export class InlineEditor {
         return this.inlineView.editor;
     }
 
+    getScrollHost(): HTMLElement | null {
+        return this.containerEl?.querySelector('.cm-editor .cm-scroller') ?? null;
+    }
+
     deleteNodeCursor(nodeId: string) {
         this.cursorPositions.delete(nodeId);
     }

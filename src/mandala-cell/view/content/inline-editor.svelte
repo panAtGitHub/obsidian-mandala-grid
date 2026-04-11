@@ -17,79 +17,61 @@
     const loadInlineEditorAction = cellRuntime.loadInlineEditorAction;
     const expandableTextarea = cellRuntime.expandableTextareaAction;
     const isMobilePlatform = cellRuntime.isMobilePlatform;
+    const getInlineEditorScrollHost = cellRuntime.getInlineEditorScrollHost;
 
     const attachInlineEditorScrollbar = (element: HTMLElement) => {
-        const activeScrollables = new Map<
-            HTMLElement,
-            { destroy?: () => void }
-        >();
+        let destroyScrollbar: (() => void) | null = null;
+        let attachedHost: HTMLElement | null = null;
+        let rafHandle: number | null = null;
 
-        const detachScrollable = (target: HTMLElement) => {
-            activeScrollables.get(target)?.destroy?.();
-            activeScrollables.delete(target);
-            target.classList.remove('cell-scrollbar-mode--interaction');
+        const detachScrollable = () => {
+            destroyScrollbar?.();
+            destroyScrollbar = null;
+            attachedHost?.classList.remove('cell-scrollbar-mode--interaction');
+            attachedHost = null;
         };
 
-        const attachScrollable = (target: HTMLElement) => {
-            if (activeScrollables.has(target) || isMobilePlatform) return;
-            target.classList.add('cell-scrollbar-mode--interaction');
-            activeScrollables.set(
-                target,
-                hideIdleScrollbar(target, {
+        const attachScrollable = () => {
+            if (isMobilePlatform) return;
+            const scrollHost = getInlineEditorScrollHost();
+            if (!scrollHost || !element.contains(scrollHost)) {
+                return;
+            }
+            if (attachedHost === scrollHost) {
+                return;
+            }
+
+            detachScrollable();
+            scrollHost.classList.add('cell-scrollbar-mode--interaction');
+            destroyScrollbar =
+                hideIdleScrollbar(scrollHost, {
                     mode: 'interaction',
                     enabled: true,
-                }),
-            );
+                }).destroy ?? null;
+            attachedHost = scrollHost;
         };
 
-        const syncScrollables = () => {
-            const nextScrollables = new Set<HTMLElement>();
-            const candidates = [
-                element,
-                ...Array.from(
-                    element.querySelectorAll<HTMLElement>(
-                        '.markdown-source-view, .view-content, .cm-editor .cm-scroller',
-                    ),
-                ),
-            ];
-
-            for (const candidate of candidates) {
-                const style = window.getComputedStyle(candidate);
-                const overflowY = style.overflowY;
-                const canScroll =
-                    overflowY === 'auto' ||
-                    overflowY === 'scroll' ||
-                    candidate.classList.contains('cm-scroller');
-                if (!canScroll) continue;
-                nextScrollables.add(candidate);
-                attachScrollable(candidate);
+        const scheduleAttach = (attemptsLeft = 10) => {
+            if (rafHandle !== null) {
+                cancelAnimationFrame(rafHandle);
             }
-
-            for (const existing of Array.from(activeScrollables.keys())) {
-                if (!nextScrollables.has(existing)) {
-                    detachScrollable(existing);
+            rafHandle = requestAnimationFrame(() => {
+                rafHandle = null;
+                attachScrollable();
+                if (!attachedHost && attemptsLeft > 1) {
+                    scheduleAttach(attemptsLeft - 1);
                 }
-            }
+            });
         };
 
-        const observer = new MutationObserver(() => {
-            syncScrollables();
-        });
-
-        observer.observe(element, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['class', 'style'],
-        });
-        syncScrollables();
+        scheduleAttach();
 
         return {
             destroy: () => {
-                observer.disconnect();
-                for (const target of Array.from(activeScrollables.keys())) {
-                    detachScrollable(target);
+                if (rafHandle !== null) {
+                    cancelAnimationFrame(rafHandle);
                 }
+                detachScrollable();
             },
         };
     };
