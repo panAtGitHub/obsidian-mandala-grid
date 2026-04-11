@@ -46,7 +46,7 @@ describe('shared/grid-style', () => {
             selectionStyle: 'node-active',
             cellDisplayPolicy: {
                 density: 'compact',
-                scrollbarMode: 'selected-hover',
+                scrollbarMode: 'interaction',
                 hoverBehavior: 'none',
                 inactiveSurfaceMode: 'detached',
             },

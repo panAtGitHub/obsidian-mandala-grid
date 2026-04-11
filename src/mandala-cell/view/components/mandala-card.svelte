@@ -228,10 +228,16 @@
         );
         font-size: var(--font-text-size, 16px);
         line-height: 1.4;
-        overflow: var(--mandala-card-overflow, visible);
+        overflow: visible;
         background-color: var(--background-primary);
         --scrollbar-thumb-bg: var(--color-base-30);
         --scrollbar-active-thumb-bg: var(--color-base-40);
+    }
+
+    :global(.mandala-root--week) .mandala-card,
+    :global(.mandala-root--nx9) .mandala-card,
+    :global(.mandala-root--9) .mandala-card {
+        overflow: hidden;
     }
 
     .mandala-card--detached-inactive {
@@ -261,6 +267,24 @@
         min-width: 0;
         min-height: 0;
         height: 100%;
+    }
+
+    :global(.mandala-white-theme) .mandala-card.node-border--selected {
+        outline: 2px solid var(--mandala-white-outline);
+        outline-offset: 0;
+    }
+
+    :global(.mandala-white-theme) .mandala-card.active-node {
+        outline: 2px solid var(--interactive-accent);
+        outline-offset: 0;
+    }
+
+    :global(.mandala-a4-mode)
+        .mandala-card-grid__cell--card
+        > .mandala-card.active-node {
+        outline: var(--mandala-grid-highlight-width, 2px) solid
+            var(--mandala-grid-highlight-color, var(--mandala-color-selection));
+        outline-offset: 0;
     }
 
     :global(.mandala-view:not(.mandala-white-theme))

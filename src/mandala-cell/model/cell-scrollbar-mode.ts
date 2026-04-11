@@ -4,4 +4,4 @@ export type CellScrollbarMode =
     | 'hidden';
 
 export const DEFAULT_CELL_SCROLLBAR_MODE: CellScrollbarMode =
-    'selected-hover';
+    'interaction';

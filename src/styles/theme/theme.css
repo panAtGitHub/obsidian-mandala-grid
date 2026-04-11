@@ -54,13 +54,6 @@
 .mandala-white-theme .node-border--selected {
     border-left-width: 0;
     border-left-color: var(--background-modifier-border);
-    outline: 2px solid var(--mandala-white-outline);
-    outline-offset: 0;
-}
-
-.mandala-white-theme .mandala-card.active-node {
-    outline: 2px solid var(--interactive-accent);
-    outline-offset: 0;
 }
 
 .mandala-white-theme .mandala-card {
@@ -102,6 +95,14 @@ body.mandala-export-hide-highlight
 
 body.mandala-export-hide-highlight .mandala-card-grid__cell.is-active-cell,
 body.mandala-export-hide-highlight .mandala-card-grid__cell.is-active-node {
+    outline: none !important;
+}
+
+body.mandala-export-hide-highlight .mandala-a4-mode .mandala-card.active-node,
+body.mandala-export-hide-highlight .mandala-white-theme .node-border--selected,
+body.mandala-export-hide-highlight
+    .mandala-white-theme
+    .mandala-card.active-node {
     outline: none !important;
 }
 

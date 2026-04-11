@@ -11,7 +11,7 @@
     export let hideBuiltInHiddenInfo = false;
     export let fontSizeOffset: number | undefined;
     export let absoluteFontSize: number | undefined;
-    export let scrollbarMode: CellScrollbarMode = 'selected-hover';
+    export let scrollbarMode: CellScrollbarMode = 'interaction';
     export let fillContent = false;
     export let density: 'normal' | 'compact' = 'normal';
     export let isMobilePlatform = false;

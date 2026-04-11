@@ -9,7 +9,7 @@ describe('createDefaultCellDisplayPolicy', () => {
             hideBuiltInHiddenInfo: true,
             contentLayout: 'intrinsic',
             density: 'normal',
-            scrollbarMode: 'selected-hover',
+            scrollbarMode: 'interaction',
             hoverBehavior: 'elevated',
             inactiveSurfaceMode: 'inline',
         });

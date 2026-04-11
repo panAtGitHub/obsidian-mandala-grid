@@ -452,76 +452,25 @@
         border-left-color: transparent !important;
     }
 
-    .mandala-a4-mode.mandala-root--3
-        :global(.mandala-card-grid__cell--card > .mandala-card.active-node),
-    .mandala-a4-mode.mandala-root--nx9
-        :global(.mandala-card-grid__cell--card > .mandala-card.active-node),
-    .mandala-a4-mode.mandala-root--week
-        :global(.mandala-card-grid__cell--card > .mandala-card.active-node),
-    .mandala-white-theme.mandala-root--3 :global(.mandala-card.active-node),
-    .mandala-white-theme.mandala-root--3
-        :global(.mandala-card.node-border--selected),
-    .mandala-white-theme.mandala-root--nx9 :global(.mandala-card.active-node),
-    .mandala-white-theme.mandala-root--nx9
-        :global(.mandala-card.node-border--selected),
-    .mandala-white-theme.mandala-root--week :global(.mandala-card.active-node),
-    .mandala-white-theme.mandala-root--week
-        :global(.mandala-card.node-border--selected) {
-        position: relative;
-    }
-
-    .mandala-a4-mode.mandala-root--3
-        :global(.mandala-card-grid__cell--card > .mandala-card.active-node)::after,
-    .mandala-a4-mode.mandala-root--nx9
-        :global(.mandala-card-grid__cell--card > .mandala-card.active-node)::after,
-    .mandala-a4-mode.mandala-root--week
-        :global(.mandala-card-grid__cell--card > .mandala-card.active-node)::after,
-    .mandala-white-theme.mandala-root--3
-        :global(.mandala-card.active-node)::after,
-    .mandala-white-theme.mandala-root--3
-        :global(.mandala-card.node-border--selected)::after,
-    .mandala-white-theme.mandala-root--nx9
-        :global(.mandala-card.active-node)::after,
-    .mandala-white-theme.mandala-root--nx9
-        :global(.mandala-card.node-border--selected)::after,
-    .mandala-white-theme.mandala-root--week
-        :global(.mandala-card.active-node)::after,
-    .mandala-white-theme.mandala-root--week
-        :global(.mandala-card.node-border--selected)::after {
-        content: '';
-        position: absolute;
-        inset: 2px;
-        z-index: 3;
-        border: var(--mandala-grid-highlight-width, 2px) solid
-            var(--mandala-grid-highlight-color, var(--mandala-color-selection));
-        pointer-events: none;
-        box-sizing: border-box;
-        border-radius: 0;
-    }
-
     .mandala-root--3 {
         --mandala-card-height: 100%;
         --mandala-card-min-height: 0px;
-        --mandala-card-overflow: visible;
     }
 
     .mandala-root--week {
         --mandala-card-height: 100%;
         --mandala-card-min-height: 0px;
-        --mandala-card-overflow: hidden;
     }
 
     .mandala-root--nx9 {
         --mandala-card-height: 100%;
         --mandala-card-min-height: 0px;
-        --mandala-card-overflow: hidden;
     }
 
     .mandala-root--9 {
         --mandala-card-width: 100%;
         --mandala-card-height: 100%;
         --mandala-card-min-height: 0px;
-        --mandala-card-overflow: hidden;
     }
 
     .is-editing-mobile.mandala-root {
