@@ -3,7 +3,6 @@
         --mandala-idle-scrollbar-size: 6px;
         overflow-y: auto;
         overflow-x: hidden;
-        scrollbar-gutter: stable;
         scrollbar-width: thin;
         scrollbar-color: transparent transparent;
         --scrollbar-thumb-bg: transparent;
