@@ -11,6 +11,7 @@
     export let absoluteFontSize: number | undefined = undefined;
     export let disableAutoResize: boolean = false;
     export let fillContent = false;
+    export let density: 'normal' | 'compact' = 'normal';
 
     const cellRuntime = getCellRuntime();
     const loadInlineEditorAction = cellRuntime.loadInlineEditorAction;
@@ -99,7 +100,8 @@
 <div
     class={'editor-container' +
         (style ? ' apply-style-rule' : '') +
-        (fillContent ? ' editor-container--fill' : '')}
+        (fillContent ? ' editor-container--fill' : '') +
+        (density === 'compact' ? ' editor-container--compact' : '')}
     style="--local-font-size-offset: {absoluteFontSize ? 0 : fontSizeOffset}px; {absoluteFontSize ? `--font-text-size: ${absoluteFontSize}px; font-size: ${absoluteFontSize}px;` : ''}"
     use:loadInlineEditorAction={nodeId}
     use:expandableTextarea={!disableAutoResize}
@@ -115,6 +117,15 @@
         overflow: hidden;
         display: flex;
         box-sizing: border-box;
+        --mandala-editor-padding-y: 6px;
+        --mandala-editor-padding-bottom: 20px;
+        --mandala-editor-line-height: 1.4;
+    }
+
+    .editor-container--compact {
+        --mandala-editor-padding-y: 2px;
+        --mandala-editor-padding-bottom: 8px;
+        --mandala-editor-line-height: 1.12;
     }
 
     .editor-container--fill {

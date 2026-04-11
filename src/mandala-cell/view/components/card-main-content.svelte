@@ -30,6 +30,7 @@
         {fontSizeOffset}
         {absoluteFontSize}
         {fillContent}
+        {density}
     />
 {:else if showContent}
     <Content
