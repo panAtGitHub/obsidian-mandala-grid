@@ -259,6 +259,7 @@
                         {:else}
                             <Content
                                 nodeId={$activeNodeId}
+                                fillContent={true}
                                 isMobilePlatform={cellRuntime.isMobilePlatform}
                                 idleScrollbarEnabled={true}
                                 activateNode={activateSidebarPreviewNode}
