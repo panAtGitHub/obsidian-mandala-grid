@@ -36,7 +36,7 @@ describe('nx9-context-runtime', () => {
         expect(recordPerfEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidates the structure cache when content revision changes', () => {
+    it('reuses the structure context when content changes do not alter nx9 shape', () => {
         const runtime = createNx9ContextRuntime();
         const first = runtime.resolveStructureContext({
             documentSnapshot,
@@ -47,6 +47,52 @@ describe('nx9-context-runtime', () => {
             documentSnapshot: {
                 ...documentSnapshot,
                 contentRevision: 3,
+                documentContent: {
+                    ...documentSnapshot.documentContent,
+                    'node-1': { content: 'root 1 updated' },
+                },
+            },
+            rowsPerPage: 5,
+            activeSection: '1',
+        });
+
+        expect(second).toBe(first);
+    });
+
+    it('invalidates the structure cache when trailing empty cores visibility changes', () => {
+        const runtime = createNx9ContextRuntime();
+        const first = runtime.resolveStructureContext({
+            documentSnapshot: {
+                revision: 1,
+                contentRevision: 1,
+                sectionIdMap: {
+                    '1': 'node-1',
+                    '2': 'node-2',
+                    '3': 'node-3',
+                },
+                documentContent: {
+                    'node-1': { content: 'filled' },
+                    'node-2': { content: 'filled' },
+                    'node-3': { content: '' },
+                },
+            },
+            rowsPerPage: 5,
+            activeSection: '1',
+        });
+        const second = runtime.resolveStructureContext({
+            documentSnapshot: {
+                revision: 1,
+                contentRevision: 2,
+                sectionIdMap: {
+                    '1': 'node-1',
+                    '2': 'node-2',
+                    '3': 'node-3',
+                },
+                documentContent: {
+                    'node-1': { content: 'filled' },
+                    'node-2': { content: 'filled' },
+                    'node-3': { content: 'now visible' },
+                },
             },
             rowsPerPage: 5,
             activeSection: '1',

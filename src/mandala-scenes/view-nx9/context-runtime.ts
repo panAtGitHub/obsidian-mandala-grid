@@ -39,6 +39,10 @@ export const createNx9ContextRuntime = ({
     });
     const resolveObjectKey = createObjectIdentityKeyResolver();
     const structureKeyByContext = new WeakMap<Nx9StructureContext, string>();
+    const latestStructureByBaseKey = new Map<string, Nx9StructureContext>();
+
+    const resolveStructureShapeKey = (context: Nx9StructureContext) =>
+        context.effectiveCoreSections.join('|');
 
     const resolveStructureContext = ({
         documentSnapshot,
@@ -53,15 +57,17 @@ export const createNx9ContextRuntime = ({
             normalizeNx9VisibleSection(activeSection) ?? '';
         const structureActiveSection =
             normalizedActiveSection.split('.')[0] ?? normalizedActiveSection;
-        const key = [
+        const baseKey = [
             resolveObjectKey(documentSnapshot.sectionIdMap),
-            documentSnapshot.contentRevision,
             rowsPerPage,
             structureActiveSection,
         ].join('|');
-        const cached = structureCache.get(key);
+        const cacheKey = [baseKey, documentSnapshot.contentRevision].join('|');
+        const cached = structureCache.get(cacheKey);
         if (cached) {
-            structureKeyByContext.set(cached, key);
+            const shapeKey = resolveStructureShapeKey(cached);
+            structureKeyByContext.set(cached, `${baseKey}|${shapeKey}`);
+            latestStructureByBaseKey.set(baseKey, cached);
             return cached;
         }
 
@@ -72,15 +78,23 @@ export const createNx9ContextRuntime = ({
             rowsPerPage,
             activeSection,
         });
-        structureKeyByContext.set(value, key);
-        structureCache.set(key, value);
+        const previous = latestStructureByBaseKey.get(baseKey);
+        const nextShapeKey = resolveStructureShapeKey(value);
+        const finalValue =
+            previous &&
+            resolveStructureShapeKey(previous) === nextShapeKey
+                ? previous
+                : value;
+        structureKeyByContext.set(finalValue, `${baseKey}|${nextShapeKey}`);
+        latestStructureByBaseKey.set(baseKey, finalValue);
+        structureCache.set(cacheKey, finalValue);
         recordPerfEvent?.('trace.nx9.resolve-context', {
             total_ms: Number((performance.now() - startedAt).toFixed(2)),
             rows_per_page: rowsPerPage,
-            total_pages: value.totalPages,
+            total_pages: finalValue.totalPages,
             root_section: structureActiveSection || null,
         });
-        return value;
+        return finalValue;
     };
 
     const resolvePageContext = ({
