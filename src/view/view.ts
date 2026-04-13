@@ -104,6 +104,8 @@ import {
     resolveEffectiveMandalaSettings,
     type EffectiveMandalaSettings,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import { EditSessionService } from 'src/view/edit-session/edit-session-service';
+import type { EditSessionCommitPayload } from 'src/view/edit-session/edit-session-types';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -121,6 +123,7 @@ export class MandalaView extends TextFileView {
     viewStore: ViewStore;
     container: HTMLElement | null;
     inlineEditor: InlineEditor;
+    editSession: EditSessionService;
     documentSearch: DocumentSearch;
     alignBranch: AlignBranch;
     id: string;
@@ -179,6 +182,20 @@ export class MandalaView extends TextFileView {
         );
 
         this.id = id.view();
+        this.editSession = new EditSessionService(
+            (payload: EditSessionCommitPayload) => {
+                this.documentStore.dispatch({
+                    type: 'document/update-node-content',
+                    payload: {
+                        nodeId: payload.nodeId,
+                        content: payload.content,
+                    },
+                    context: {
+                        isInSidebar: payload.isInSidebar,
+                    },
+                });
+            },
+        );
         this.documentSearch = new DocumentSearch(this);
         this.alignBranch = new AlignBranch(this);
         this.persistSnapshotQueue = new PersistSnapshotQueue({
@@ -519,6 +536,8 @@ export class MandalaView extends TextFileView {
                 this.debouncedLoadDocumentToStore.cancel();
                 if (this.inlineEditor) {
                     this.inlineEditor.unloadNode();
+                } else {
+                    this.editSession.endSession('unload');
                 }
                 if (previousPath) {
                     void this.flushPendingPersistSnapshotsForTransition(
@@ -555,6 +574,8 @@ export class MandalaView extends TextFileView {
         this.debouncedLoadDocumentToStore.cancel();
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
+        } else {
+            this.editSession.endSession('unload');
         }
         const flushed =
             await this.flushPendingPersistSnapshotsForTransition('close-view');
@@ -589,6 +610,8 @@ export class MandalaView extends TextFileView {
         this.debouncedLoadDocumentToStore.cancel();
         if (this.inlineEditor) {
             this.inlineEditor.unloadNode();
+        } else {
+            this.editSession.endSession('unload');
         }
         void this.flushPendingPersistSnapshotsForTransition('clear-view');
         this.data = '';

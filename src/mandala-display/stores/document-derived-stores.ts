@@ -8,6 +8,8 @@ import {
 import { createPinnedSectionSet } from 'src/mandala-display/palette/section-colors';
 import { MandalaView } from 'src/view/view';
 import { buildSetStamp } from 'src/shared/helpers/build-set-stamp';
+import { EditSessionService } from 'src/view/edit-session/edit-session-service';
+import type { Subscriber } from 'src/shared/store/store';
 
 // 这一组都是“从 documentStore 派生出某一小块数据”的轻量 store。
 // 之前它们被拆在多个很小的文件里，不利于集中查看；
@@ -85,23 +87,89 @@ export const singleColumnNodesStore = (view: MandalaView) => {
     });
 };
 
-export const contentStore = (view: MandalaView, nodeId: string) => {
-    let nodeContent: Content[string];
-    let documentContent: Content;
+type ContentStoreDocumentState = {
+    document: {
+        content: Content;
+    };
+};
 
-    return derived(view.documentStore, (state) => {
-        if (
-            !nodeContent ||
-            documentContent !== state.document.content ||
-            nodeContent !== documentContent[nodeId]
-        ) {
-            documentContent = state.document.content;
-            nodeContent = documentContent[nodeId];
-            if (!nodeContent) return '';
+type ContentStoreView = {
+    documentStore: {
+        subscribe: (
+            run: Subscriber<ContentStoreDocumentState, unknown>,
+        ) => () => void;
+    };
+    editSession: EditSessionService;
+};
+
+export const contentStore = (view: ContentStoreView, nodeId: string) => {
+    let currentContent = '';
+    let documentContent: Content | undefined;
+    let projectionContent: string | null = null;
+    const subscribers = new Set<(value: string) => void>();
+    let unsubscribeDocument: (() => void) | null = null;
+    let unsubscribeProjection: (() => void) | null = null;
+
+    const resolveCommittedContent = (content: Content | undefined) =>
+        content?.[nodeId]?.content ?? '';
+
+    const resolveNextContent = () =>
+        projectionContent ?? resolveCommittedContent(documentContent);
+
+    const emit = () => {
+        const nextContent = resolveNextContent();
+        if (nextContent === currentContent) return;
+        currentContent = nextContent;
+        for (const subscriber of subscribers) {
+            subscriber(currentContent);
         }
+    };
 
-        return nodeContent.content;
-    });
+    const ensureSubscriptions = () => {
+        if (!unsubscribeDocument) {
+            unsubscribeDocument = view.documentStore.subscribe((state) => {
+                documentContent = state.document.content;
+                emit();
+            });
+        }
+        if (!unsubscribeProjection) {
+            unsubscribeProjection = view.editSession.projectionStore.subscribe(
+                (projection) => {
+                    projectionContent =
+                        projection?.nodeId === nodeId
+                            ? projection.content
+                            : null;
+                    emit();
+                },
+            );
+        }
+    };
+
+    const teardown = () => {
+        unsubscribeDocument?.();
+        unsubscribeDocument = null;
+        unsubscribeProjection?.();
+        unsubscribeProjection = null;
+        documentContent = undefined;
+        projectionContent = null;
+    };
+
+    return {
+        subscribe: (run: (value: string) => void) => {
+            subscribers.add(run);
+            ensureSubscriptions();
+            const initialContent = resolveNextContent();
+            currentContent = initialContent;
+            run(initialContent);
+
+            return () => {
+                subscribers.delete(run);
+                if (subscribers.size === 0) {
+                    teardown();
+                }
+            };
+        },
+    };
 };
 
 export const documentContentStore = (view: MandalaView) => {

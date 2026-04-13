@@ -28,6 +28,7 @@ export class InlineEditor {
     #mounting: Promise<void> = Promise.resolve();
     private subscriptions: Set<() => void> = new Set();
     private cursorPositions: Map<string, EditorPosition> = new Map();
+    private suppressEditorEvents = false;
 
     constructor(private view: MandalaView) {}
 
@@ -63,7 +64,12 @@ export class InlineEditor {
     }
 
     setContent(content: string) {
-        this.inlineView.mandalaSetViewData(content, true);
+        this.suppressEditorEvents = true;
+        try {
+            this.inlineView.mandalaSetViewData(content, true);
+        } finally {
+            this.suppressEditorEvents = false;
+        }
     }
 
     loadNode(target: HTMLElement, nodeId: string) {
@@ -80,6 +86,8 @@ export class InlineEditor {
         const content =
             this.view.documentStore.getValue().document.content[nodeId]
                 ?.content ?? '';
+        const isInSidebar = this.view.viewStore.getValue().document.editing.isInSidebar;
+        this.view.editSession.startSession(nodeId, isInSidebar, content);
         this.setContent(content);
 
         target.append(this.containerEl);
@@ -90,6 +98,7 @@ export class InlineEditor {
             vimEnterInsertMode(this.view.plugin, this.inlineView);
         }
         this.target.addEventListener('focusin', this.setActiveEditor);
+        this.target.addEventListener('focusout', this.handleEditorFocusOut);
         this.setActiveEditor();
 
         this.nodeId = nodeId;
@@ -142,9 +151,11 @@ export class InlineEditor {
         const currentNodeId = this.nodeId;
         if (nodeId && nodeId !== currentNodeId) return;
         if (currentNodeId && !discardChanges) {
-            this.saveContent();
+            this.commitContent('disable-edit');
             const cursor = this.getCursor();
             this.cursorPositions.set(currentNodeId, cursor);
+        } else if (currentNodeId && discardChanges) {
+            this.view.editSession.endSession('disable-edit', true);
         }
         this.nodeId = null;
         if (this.target) {
@@ -154,6 +165,7 @@ export class InlineEditor {
             workspace.activeEditor = null;
             workspace._activeEditor = null;
             this.target.removeEventListener('focusin', this.setActiveEditor);
+            this.target.removeEventListener('focusout', this.handleEditorFocusOut);
             this.target.empty();
             this.target = null;
         }
@@ -179,7 +191,7 @@ export class InlineEditor {
             },
         } as never) as InlineMarkdownView;
         this.inlineView.save = noopSave;
-        this.inlineView.requestSave = this.invokeAndDeleteOnChangeSubscriptions;
+        this.inlineView.requestSave = this.handleRequestSave;
         const boundSetViewData = this.inlineView.setViewData.bind(
             this.inlineView,
         ) as MarkdownView['setViewData'];
@@ -231,6 +243,20 @@ export class InlineEditor {
             }
     };
 
+    private handleRequestSave = (_clear?: boolean): void => {
+        if (!this.nodeId || this.suppressEditorEvents) return;
+        this.view.editSession.updateBuffer(this.getContent());
+        this.invokeAndDeleteOnChangeSubscriptions();
+    };
+
+    private handleEditorFocusOut = (event: FocusEvent) => {
+        if (!this.target || !this.nodeId) return;
+        const nextTarget = event.relatedTarget as Node | null;
+        if (nextTarget && this.target.contains(nextTarget)) return;
+        this.view.editSession.updateBuffer(this.getContent());
+        this.view.editSession.commit('blur');
+    };
+
     private setCursor(cursor: EditorPosition) {
         this.inlineView.editor.setCursor(cursor);
     }
@@ -244,21 +270,11 @@ export class InlineEditor {
         unlockFile(this.view);
     }
 
-    private saveContent = () => {
+    private commitContent = (reason: 'save' | 'disable-edit' | 'unload') => {
         const nodeId = this.nodeId;
         if (!nodeId) return;
-        const content = this.getContent();
-        const viewState = this.view.viewStore.getValue();
-        this.view.documentStore.dispatch({
-            type: 'document/update-node-content',
-            payload: {
-                nodeId: nodeId,
-                content: content,
-            },
-            context: {
-                isInSidebar: viewState.document.editing.isInSidebar,
-            },
-        });
+        this.view.editSession.updateBuffer(this.getContent());
+        this.view.editSession.endSession(reason);
     };
 
     fixVimWhenZooming = () => {
