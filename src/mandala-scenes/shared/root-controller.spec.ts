@@ -98,6 +98,7 @@ const createArgs = () => ({
     isMobilePopupEditing: false,
     isMobileFullScreenSearch: false,
     mode: '3x3' as const,
+    draftProjection: null,
 });
 
 describe('root-controller', () => {
@@ -227,5 +228,27 @@ describe('root-controller', () => {
         expect(second.gridStyles.threeByThree).toBe(first.gridStyles.threeByThree);
         expect(second.gridStyles.nx9).toBe(first.gridStyles.nx9);
         expect(second.gridStyles.week).not.toBe(first.gridStyles.week);
+    });
+
+    it('keeps document and topology caches stable when draftProjection changes', () => {
+        const view = createView();
+        const controller = createSceneRootController(view);
+        const args = createArgs();
+        const first = controller.buildContext(args);
+        const nextDraftProjection = {
+            nodeId: 'node-1',
+            content: 'draft',
+            revision: 1,
+        };
+        const second = controller.buildContext({
+            ...args,
+            draftProjection: nextDraftProjection,
+        });
+
+        expect(second.documentSnapshot).toBe(first.documentSnapshot);
+        expect(second.topology).toBe(first.topology);
+        expect(second.sectionToNodeId).toBe(first.sectionToNodeId);
+        expect(second.idToSection).toBe(first.idToSection);
+        expect(second.draftProjection).toEqual(nextDraftProjection);
     });
 });

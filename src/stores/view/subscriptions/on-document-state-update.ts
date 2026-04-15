@@ -130,7 +130,11 @@ export const onDocumentStateUpdate = (
     }
 
     if (e.content || structuralChange) {
-        if (view.isActive) focusContainer(view);
+        const context = 'context' in action ? action.context : undefined;
+        const shouldRefocus = context?.suppressRefocus !== true;
+        if (view.isActive && shouldRefocus) {
+            focusContainer(view);
+        }
     }
 
     const pinnedNodesUpdate =

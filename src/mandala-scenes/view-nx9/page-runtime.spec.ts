@@ -99,6 +99,7 @@ describe('nx9-page-runtime', () => {
                 showDetailSidebar: false,
                 whiteThemeMode: false,
             },
+            draftProjection: null,
         });
 
         runtime.resolveRuntimeRows({
@@ -123,6 +124,7 @@ describe('nx9-page-runtime', () => {
                 showDetailSidebar: false,
                 whiteThemeMode: false,
             },
+            draftProjection: null,
         });
 
         expect(
@@ -178,6 +180,7 @@ describe('nx9-page-runtime', () => {
             gridStyle: nx9GridStyle,
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 0 },
+            draftProjection: null,
         });
 
         const page1Frame = runtime.resolvePageFrame({
@@ -205,6 +208,7 @@ describe('nx9-page-runtime', () => {
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 0 },
             displaySnapshot,
+            draftProjection: null,
         });
         const secondRows = runtime.resolveRuntimeRows({
             page: 1,
@@ -214,6 +218,7 @@ describe('nx9-page-runtime', () => {
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 0 },
             displaySnapshot,
+            draftProjection: null,
         });
 
         expect(secondRows).toBe(firstRows);
@@ -270,6 +275,7 @@ describe('nx9-page-runtime', () => {
             gridStyle: nx9GridStyle,
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 0 },
+            draftProjection: null,
         });
 
         runtime.prewarmPages({
@@ -285,6 +291,7 @@ describe('nx9-page-runtime', () => {
             gridStyle: nx9GridStyle,
             interactionSnapshot,
             activeCell: { row: 0, col: 0, page: 1 },
+            draftProjection: null,
         });
 
         const rebuiltPage0Frame = runtime.resolvePageFrame({
@@ -294,5 +301,167 @@ describe('nx9-page-runtime', () => {
         });
 
         expect(rebuiltPage0Frame).not.toBe(originalPage0Frame);
+    });
+
+    it('patches draft content without triggering full ui apply', () => {
+        const recordPerfEvent = vi.fn();
+        const runtime = createNx9PageRuntime({ recordPerfEvent });
+        const context = createContext(0);
+        const pageFrame = runtime.resolvePageFrame({
+            page: 0,
+            context,
+            sectionIdMap: { '1': 'node-1', '1.1': 'node-1-1' },
+        });
+        const pageIndex = runtime.resolvePageIndex({ page: 0, pageFrame });
+        const staticRows = runtime.resolveStaticRows({
+            page: 0,
+            context,
+            pageFrame,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 0,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            gridStyle: nx9GridStyle,
+            hydratedNodeIds: new Set(['node-1', 'node-1-1']),
+        });
+        const interactionSnapshot = {
+            activeNodeId: 'node-1',
+            editingState: { activeNodeId: null, isInSidebar: false },
+            selectedNodes: new Set<string>(),
+            showDetailSidebar: false,
+            selectedStamp: '',
+            pinnedSections: new Set<string>(),
+            pinnedStamp: '',
+        };
+        const displaySnapshot = {
+            sectionColors: {},
+            sectionColorOpacity: 0,
+            backgroundMode: 'none' as const,
+            showDetailSidebar: false,
+            whiteThemeMode: false,
+        };
+
+        const previousRows = runtime.resolveRuntimeRows({
+            page: 0,
+            staticRows,
+            pageIndex,
+            context,
+            interactionSnapshot,
+            activeCell: { row: 0, col: 0, page: 0 },
+            displaySnapshot,
+            draftProjection: null,
+        });
+        const fullApplyCount = recordPerfEvent.mock.calls.filter(
+            ([eventName]) => eventName === 'trace.nx9.apply-ui-full',
+        ).length;
+
+        const nextRows = runtime.resolveRuntimeRows({
+            page: 0,
+            staticRows,
+            pageIndex,
+            context,
+            interactionSnapshot,
+            activeCell: { row: 0, col: 0, page: 0 },
+            displaySnapshot,
+            draftProjection: {
+                nodeId: 'node-1',
+                content: 'draft content',
+                revision: 1,
+            },
+        });
+
+        const previousRow = previousRows[0] as Array<{
+            cardViewModel: { contentOverride?: string };
+        }>;
+        const nextRow = nextRows[0] as Array<{
+            cardViewModel: { contentOverride?: string };
+        }>;
+
+        expect(nextRows).not.toBe(previousRows);
+        expect(nextRow).not.toBe(previousRow);
+        expect(nextRow[0]).not.toBe(previousRow[0]);
+        expect(nextRow[1]).toBe(previousRow[1]);
+        expect(nextRow[0].cardViewModel.contentOverride).toBe('draft content');
+        expect(
+            recordPerfEvent.mock.calls.some(
+                ([eventName]) => eventName === 'trace.nx9.patch-draft-state',
+            ),
+        ).toBe(true);
+        expect(
+            recordPerfEvent.mock.calls.filter(
+                ([eventName]) => eventName === 'trace.nx9.apply-ui-full',
+            ).length,
+        ).toBe(fullApplyCount);
+    });
+
+    it('keeps runtime rows reference when draft node is outside current page', () => {
+        const runtime = createNx9PageRuntime();
+        const context = createContext(1);
+        const pageFrame = runtime.resolvePageFrame({
+            page: 1,
+            context,
+            sectionIdMap: { '2': 'node-2', '2.1': 'node-2-1' },
+        });
+        const pageIndex = runtime.resolvePageIndex({ page: 1, pageFrame });
+        const staticRows = runtime.resolveStaticRows({
+            page: 1,
+            context,
+            pageFrame,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 0,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            gridStyle: nx9GridStyle,
+            hydratedNodeIds: new Set(['node-2', 'node-2-1']),
+        });
+        const interactionSnapshot = {
+            activeNodeId: 'node-2',
+            editingState: { activeNodeId: null, isInSidebar: false },
+            selectedNodes: new Set<string>(),
+            showDetailSidebar: false,
+            selectedStamp: '',
+            pinnedSections: new Set<string>(),
+            pinnedStamp: '',
+        };
+        const displaySnapshot = {
+            sectionColors: {},
+            sectionColorOpacity: 0,
+            backgroundMode: 'none' as const,
+            showDetailSidebar: false,
+            whiteThemeMode: false,
+        };
+
+        const previousRows = runtime.resolveRuntimeRows({
+            page: 1,
+            staticRows,
+            pageIndex,
+            context,
+            interactionSnapshot,
+            activeCell: { row: 0, col: 0, page: 1 },
+            displaySnapshot,
+            draftProjection: null,
+        });
+        const nextRows = runtime.resolveRuntimeRows({
+            page: 1,
+            staticRows,
+            pageIndex,
+            context,
+            interactionSnapshot,
+            activeCell: { row: 0, col: 0, page: 1 },
+            displaySnapshot,
+            draftProjection: {
+                nodeId: 'node-1',
+                content: 'off-page draft',
+                revision: 1,
+            },
+        });
+
+        expect(nextRows).toBe(previousRows);
     });
 });

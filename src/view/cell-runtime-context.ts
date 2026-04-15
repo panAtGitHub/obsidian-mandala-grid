@@ -16,6 +16,7 @@ import type { MandalaSwapInteractionState } from 'src/mandala-interaction/helper
 import { createExpandableTextareaAction } from 'src/view/actions/inline-editor/expandable-textarea-action';
 import { createLoadInlineEditorAction } from 'src/view/actions/inline-editor/load-inline-editor';
 import { createViewMarkdownPreviewAction } from 'src/view/actions/markdown-preview/markdown-preview-action';
+import type { MarkdownPreviewSource } from 'src/view/actions/markdown-preview/markdown-preview-action';
 import { isMacLike } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key';
 import { handleLinks } from 'src/view/helpers/handle-links/handle-links';
 import { isGrabbing } from 'src/view/helpers/is-grabbing';
@@ -27,9 +28,9 @@ export type PreviewDialogSnapshot = {
     nodeId: string | null;
 };
 
-type NodeAction = (
+type NodeAction<T = string> = (
     element: HTMLElement,
-    value: string,
+    value: T,
 ) =>
     | void
     | {
@@ -73,7 +74,7 @@ export type CellRuntimeContext = {
     ) => void;
     loadInlineEditorAction: NodeAction;
     expandableTextareaAction: BooleanAction;
-    markdownPreviewAction: NodeAction;
+    markdownPreviewAction: NodeAction<MarkdownPreviewSource>;
 };
 
 export const createCellRuntimeContext = (

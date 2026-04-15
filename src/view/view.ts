@@ -192,6 +192,8 @@ export class MandalaView extends TextFileView {
                     },
                     context: {
                         isInSidebar: payload.isInSidebar,
+                        commitReason: payload.reason,
+                        suppressRefocus: payload.suppressRefocus,
                     },
                 });
             },
@@ -535,7 +537,11 @@ export class MandalaView extends TextFileView {
             if (changingFile) {
                 this.debouncedLoadDocumentToStore.cancel();
                 if (this.inlineEditor) {
-                    this.inlineEditor.unloadNode();
+                    this.inlineEditor.unloadNodeWithReason(
+                        undefined,
+                        false,
+                        'unload',
+                    );
                 } else {
                     this.editSession.endSession('unload');
                 }
@@ -573,7 +579,7 @@ export class MandalaView extends TextFileView {
         this.cancelFirstRenderProbe();
         this.debouncedLoadDocumentToStore.cancel();
         if (this.inlineEditor) {
-            this.inlineEditor.unloadNode();
+            this.inlineEditor.unloadNodeWithReason(undefined, false, 'unload');
         } else {
             this.editSession.endSession('unload');
         }
@@ -609,7 +615,7 @@ export class MandalaView extends TextFileView {
     clear(): void {
         this.debouncedLoadDocumentToStore.cancel();
         if (this.inlineEditor) {
-            this.inlineEditor.unloadNode();
+            this.inlineEditor.unloadNodeWithReason(undefined, false, 'unload');
         } else {
             this.editSession.endSession('unload');
         }

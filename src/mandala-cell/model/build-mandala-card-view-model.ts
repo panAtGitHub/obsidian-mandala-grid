@@ -13,6 +13,7 @@ export const buildMandalaCardViewModel = ({
     style,
     sectionColorContext,
     displayPolicy,
+    contentOverride,
 }: BuildMandalaCardViewModelOptions): MandalaCardViewModel => ({
     nodeId,
     section,
@@ -20,4 +21,5 @@ export const buildMandalaCardViewModel = ({
     style,
     sectionColorContext,
     displayPolicy,
+    contentOverride,
 });

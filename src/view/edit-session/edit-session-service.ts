@@ -1,7 +1,7 @@
 import { derived, get, writable, type Readable } from 'svelte/store';
 import { createTrailingTimer } from 'src/view/edit-session/edit-session-timers';
 import type {
-    DraftProjectionSnapshot,
+    EditSessionProjectionSnapshot,
     EditSessionCommitPayload,
     EditSessionCommitReason,
     EditSessionState,
@@ -23,7 +23,7 @@ export class EditSessionService {
     private readonly projectionTimer: ReturnType<typeof createTrailingTimer>;
     private readonly commitTimer: ReturnType<typeof createTrailingTimer>;
     readonly stateStore: Readable<EditSessionState>;
-    readonly projectionStore: Readable<DraftProjectionSnapshot | null>;
+    readonly projectionStore: Readable<EditSessionProjectionSnapshot | null>;
 
     constructor(
         private readonly onCommit: (payload: EditSessionCommitPayload) => void,
@@ -99,6 +99,28 @@ export class EditSessionService {
         this.commitTimer.schedule(() => this.commit('idle'));
     }
 
+    requestSave() {
+        this.commit('save');
+    }
+
+    requestBlurCommit() {
+        this.commit('blur');
+    }
+
+    switchNode(nextNodeId: string, isInSidebar: boolean, initialContent: string) {
+        const current = get(this.state);
+        if (
+            current.activeNodeId === nextNodeId &&
+            current.isInSidebar === isInSidebar
+        ) {
+            return;
+        }
+        if (current.activeNodeId && current.dirty) {
+            this.commit('switch-node');
+        }
+        this.startSession(nextNodeId, isInSidebar, initialContent);
+    }
+
     flushProjection() {
         const current = get(this.state);
         if (!current.activeNodeId || !current.dirty) return;
@@ -130,6 +152,7 @@ export class EditSessionService {
             content: latest.bufferContent,
             isInSidebar: latest.isInSidebar,
             reason,
+            suppressRefocus: reason === 'blur',
         });
         this.state.update((state) => ({
             ...state,
@@ -153,10 +176,8 @@ export class EditSessionService {
         }));
     }
 
-    endSession(reason: EditSessionCommitReason, discardChanges = false) {
-        if (discardChanges) {
-            this.cancel();
-        } else {
+    endSession(reason: EditSessionCommitReason) {
+        if (reason === 'disable-edit' || reason === 'unload') {
             this.commit(reason);
         }
         this.projectionTimer.cancel();

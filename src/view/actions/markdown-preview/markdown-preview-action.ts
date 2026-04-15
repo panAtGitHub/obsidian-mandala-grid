@@ -11,11 +11,26 @@ type MarkdownPreviewRuntime = {
     contentForNode: (nodeId: string) => Readable<string>;
 };
 
+export type MarkdownPreviewSource =
+    | string
+    | {
+          nodeId: string;
+          contentOverride?: string;
+      };
+
+const normalizeSource = (source: MarkdownPreviewSource) =>
+    typeof source === 'string'
+        ? { nodeId: source, contentOverride: undefined }
+        : {
+              nodeId: source.nodeId,
+              contentOverride: source.contentOverride,
+          };
+
 export const createMarkdownPreviewAction = (
     runtime: MarkdownPreviewRuntime,
 ) => {
-    return (element: HTMLElement, nodeId: string) => {
-        let currentNodeId = nodeId;
+    return (element: HTMLElement, source: MarkdownPreviewSource) => {
+        let currentSource = normalizeSource(source);
         let unsubscribe: () => void;
 
         const render = (content: string) => {
@@ -35,21 +50,32 @@ export const createMarkdownPreviewAction = (
             });
         };
 
-        const subscribeToContent = (id: string) => {
+        const subscribeToContent = (nextSource: ReturnType<typeof normalizeSource>) => {
+            if (nextSource.contentOverride !== undefined) {
+                void render(nextSource.contentOverride);
+                return () => undefined;
+            }
+            const id = nextSource.nodeId;
             const $content = runtime.contentForNode(id);
             return $content.subscribe((nextContent) => {
                 void render(nextContent);
             });
         };
 
-        unsubscribe = subscribeToContent(currentNodeId);
+        unsubscribe = subscribeToContent(currentSource);
 
         return {
-            update: (nextNodeId: string) => {
-                if (nextNodeId === currentNodeId) return;
+            update: (nextSource: MarkdownPreviewSource) => {
+                const normalizedNext = normalizeSource(nextSource);
+                if (
+                    normalizedNext.nodeId === currentSource.nodeId &&
+                    normalizedNext.contentOverride === currentSource.contentOverride
+                ) {
+                    return;
+                }
                 unsubscribe();
-                currentNodeId = nextNodeId;
-                unsubscribe = subscribeToContent(currentNodeId);
+                currentSource = normalizedNext;
+                unsubscribe = subscribeToContent(currentSource);
             },
             destroy: () => {
                 unsubscribe();

@@ -74,9 +74,7 @@ export class InlineEditor {
 
     loadNode(target: HTMLElement, nodeId: string) {
         if (!this.view.file) return;
-        if (this.nodeId) {
-            this.unloadNode();
-        }
+        const currentNodeId = this.nodeId;
 
         let resolve = () => {};
         this.#mounting = new Promise((_resolve) => {
@@ -87,7 +85,17 @@ export class InlineEditor {
             this.view.documentStore.getValue().document.content[nodeId]
                 ?.content ?? '';
         const isInSidebar = this.view.viewStore.getValue().document.editing.isInSidebar;
-        this.view.editSession.startSession(nodeId, isInSidebar, content);
+
+        if (currentNodeId && currentNodeId !== nodeId) {
+            this.view.editSession.updateBuffer(this.getContent());
+            this.view.editSession.switchNode(nodeId, isInSidebar, content);
+            const cursor = this.getCursor();
+            this.cursorPositions.set(currentNodeId, cursor);
+            this.detachTarget();
+        } else if (!currentNodeId) {
+            this.view.editSession.startSession(nodeId, isInSidebar, content);
+        }
+
         this.setContent(content);
 
         target.append(this.containerEl);
@@ -148,27 +156,26 @@ export class InlineEditor {
     };
 
     unloadNode(nodeId?: string, discardChanges = false) {
+        this.unloadNodeWithReason(nodeId, discardChanges, 'disable-edit');
+    }
+
+    unloadNodeWithReason(
+        nodeId: string | undefined,
+        discardChanges: boolean,
+        reason: 'disable-edit' | 'unload',
+    ) {
         const currentNodeId = this.nodeId;
         if (nodeId && nodeId !== currentNodeId) return;
-        if (currentNodeId && !discardChanges) {
-            this.commitContent('disable-edit');
+        if (currentNodeId && discardChanges) {
+            this.view.editSession.cancel();
+        } else if (currentNodeId) {
+            this.view.editSession.updateBuffer(this.getContent());
+            this.view.editSession.endSession(reason);
             const cursor = this.getCursor();
             this.cursorPositions.set(currentNodeId, cursor);
-        } else if (currentNodeId && discardChanges) {
-            this.view.editSession.endSession('disable-edit', true);
         }
         this.nodeId = null;
-        if (this.target) {
-            const workspace = this.view.plugin.app.workspace as typeof this.view.plugin.app.workspace & {
-                _activeEditor?: InlineMarkdownView | null;
-            };
-            workspace.activeEditor = null;
-            workspace._activeEditor = null;
-            this.target.removeEventListener('focusin', this.setActiveEditor);
-            this.target.removeEventListener('focusout', this.handleEditorFocusOut);
-            this.target.empty();
-            this.target = null;
-        }
+        this.detachTarget();
         for (const subscription of this.subscriptions) {
             subscription();
             this.subscriptions.delete(subscription);
@@ -246,6 +253,7 @@ export class InlineEditor {
     private handleRequestSave = (_clear?: boolean): void => {
         if (!this.nodeId || this.suppressEditorEvents) return;
         this.view.editSession.updateBuffer(this.getContent());
+        this.view.editSession.requestSave();
         this.invokeAndDeleteOnChangeSubscriptions();
     };
 
@@ -254,7 +262,7 @@ export class InlineEditor {
         const nextTarget = event.relatedTarget as Node | null;
         if (nextTarget && this.target.contains(nextTarget)) return;
         this.view.editSession.updateBuffer(this.getContent());
-        this.view.editSession.commit('blur');
+        this.view.editSession.requestBlurCommit();
     };
 
     private setCursor(cursor: EditorPosition) {
@@ -270,12 +278,25 @@ export class InlineEditor {
         unlockFile(this.view);
     }
 
-    private commitContent = (reason: 'save' | 'disable-edit' | 'unload') => {
-        const nodeId = this.nodeId;
-        if (!nodeId) return;
+    requestSave() {
+        if (!this.nodeId || this.suppressEditorEvents) return;
         this.view.editSession.updateBuffer(this.getContent());
-        this.view.editSession.endSession(reason);
-    };
+        this.view.editSession.requestSave();
+        this.invokeAndDeleteOnChangeSubscriptions();
+    }
+
+    private detachTarget() {
+        if (!this.target) return;
+        const workspace = this.view.plugin.app.workspace as typeof this.view.plugin.app.workspace & {
+            _activeEditor?: InlineMarkdownView | null;
+        };
+        workspace.activeEditor = null;
+        workspace._activeEditor = null;
+        this.target.removeEventListener('focusin', this.setActiveEditor);
+        this.target.removeEventListener('focusout', this.handleEditorFocusOut);
+        this.target.empty();
+        this.target = null;
+    }
 
     fixVimWhenZooming = () => {
         const viewState = this.view.viewStore.getValue();

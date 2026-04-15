@@ -5,6 +5,7 @@
 
     export let nodeId: string;
     export let style: NodeStyle | undefined;
+    export let contentOverride: string | undefined = undefined;
     export let showInlineEditor = false;
     export let showContent = true;
     export let hideBuiltInHiddenInfo = false;
@@ -33,6 +34,7 @@
 {:else if showContent}
     <Content
         {nodeId}
+        {contentOverride}
         {hideBuiltInHiddenInfo}
         {fillContent}
         {density}

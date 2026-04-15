@@ -101,6 +101,7 @@ export const createNx9Controller = (): SceneController => {
     let cachedActiveSection: string | null = null;
     let cachedActiveCoreSection: string | null = null;
     let cachedActiveCell: SceneRootContext['ui']['nx9ActiveCell'] | null = null;
+    let cachedDraftProjection: SceneRootContext['draftProjection'] | null = null;
     let cachedSceneKeyId = '';
 
     return {
@@ -119,7 +120,8 @@ export const createNx9Controller = (): SceneController => {
                 cachedRowsPerPage === context.settings.nx9RowsPerPage &&
                 cachedActiveSection === context.ui.activeSection &&
                 cachedActiveCoreSection === context.ui.activeCoreSection &&
-                cachedActiveCell === context.ui.nx9ActiveCell
+                cachedActiveCell === context.ui.nx9ActiveCell &&
+                cachedDraftProjection === context.draftProjection
             ) {
                 return cachedProjection;
             }
@@ -134,6 +136,7 @@ export const createNx9Controller = (): SceneController => {
                 activeSection: context.ui.activeSection,
                 activeCoreSection: context.ui.activeCoreSection,
                 activeCell: context.ui.nx9ActiveCell,
+                draftProjection: context.draftProjection,
             });
             cachedSceneKeyId = nextSceneKeyId;
             cachedDocumentSnapshot = context.documentSnapshot;
@@ -145,6 +148,7 @@ export const createNx9Controller = (): SceneController => {
             cachedActiveSection = context.ui.activeSection;
             cachedActiveCoreSection = context.ui.activeCoreSection;
             cachedActiveCell = context.ui.nx9ActiveCell;
+            cachedDraftProjection = context.draftProjection;
             return cachedProjection;
         },
     };

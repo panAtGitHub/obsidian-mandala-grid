@@ -4,6 +4,7 @@ import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type {
     Nx9SceneProjection,
     SceneCardInteractionSnapshot,
+    SceneDraftProjectionSnapshot,
     SceneDisplaySnapshot,
     SceneDocumentSnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
@@ -18,6 +19,7 @@ export const buildNx9SceneProjectionProps = ({
     activeSection,
     activeCoreSection,
     activeCell,
+    draftProjection,
 }: {
     documentSnapshot: SceneDocumentSnapshot;
     themeSnapshot: MandalaThemeSnapshot;
@@ -28,6 +30,7 @@ export const buildNx9SceneProjectionProps = ({
     activeSection: string | null;
     activeCoreSection: string | null;
     activeCell: { row: number; col: number; page?: number } | null;
+    draftProjection: SceneDraftProjectionSnapshot | null;
 }): Nx9SceneProjection['props'] => ({
     layoutKind: 'nx9',
     output: {},
@@ -41,6 +44,7 @@ export const buildNx9SceneProjectionProps = ({
         activeSection,
         activeCoreSection,
         activeCell,
+        draftProjection,
     },
 });
 
@@ -58,6 +62,7 @@ export const buildNx9SceneProjection = (
               activeSection: string | null;
               activeCoreSection: string | null;
               activeCell: { row: number; col: number; page?: number } | null;
+              draftProjection: SceneDraftProjectionSnapshot | null;
           },
 ): Nx9SceneProjection => {
     const normalizedProps: Nx9SceneProjection['props'] =
@@ -76,6 +81,7 @@ export const buildNx9SceneProjection = (
                       activeSection: props.activeSection,
                       activeCoreSection: props.activeCoreSection,
                       activeCell: props.activeCell,
+                      draftProjection: props.draftProjection,
                   },
               };
 

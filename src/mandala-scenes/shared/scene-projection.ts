@@ -51,6 +51,12 @@ export type SceneEditingSnapshot = {
     isInSidebar: boolean;
 };
 
+export type SceneDraftProjectionSnapshot = {
+    nodeId: string;
+    content: string;
+    revision: number;
+};
+
 export type SceneCardInteractionSnapshot = SceneCardInteractionDescriptor & {
     selectedStamp: string;
     pinnedStamp: string;
@@ -115,6 +121,7 @@ export type Nx9SceneProjection = {
             activeSection: string | null;
             activeCoreSection: string | null;
             activeCell: { row: number; col: number; page?: number } | null;
+            draftProjection: SceneDraftProjectionSnapshot | null;
         };
     };
 };
@@ -213,6 +220,7 @@ export type SceneRootContext = {
     settings: SceneRootSettings;
     ui: SceneRootUiState;
     lifecycle: SceneLifecycle;
+    draftProjection: SceneDraftProjectionSnapshot | null;
 };
 
 export type SceneController = {

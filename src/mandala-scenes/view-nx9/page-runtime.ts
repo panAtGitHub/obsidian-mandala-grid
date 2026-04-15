@@ -3,6 +3,7 @@ import {
     assembleNx9PageFrame,
     buildNx9PageIndex,
     buildNx9PageStaticRows,
+    patchNx9DraftProjectionState,
     patchNx9ActiveInteractionState,
     type Nx9GhostRowViewModel,
     type Nx9InteractionSnapshot,
@@ -17,6 +18,7 @@ import type { Nx9PageContext } from 'src/mandala-scenes/view-nx9/context';
 import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type {
     SceneCardInteractionSnapshot,
+    SceneDraftProjectionSnapshot,
     SceneDisplaySnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
 
@@ -43,6 +45,7 @@ export const createNx9PageRuntime = ({
     type RuntimeRowsCacheEntry = {
         staticRows: Nx9StaticRowViewModel[];
         interaction: Nx9InteractionSnapshot;
+        draftProjection: SceneDraftProjectionSnapshot | null;
         value: Nx9RowViewModel[];
     };
 
@@ -241,6 +244,14 @@ export const createNx9PageRuntime = ({
         a.pinnedStamp === b.pinnedStamp &&
         a.showDetailSidebar === b.showDetailSidebar;
 
+    const sameDraftProjection = (
+        a: SceneDraftProjectionSnapshot | null,
+        b: SceneDraftProjectionSnapshot | null,
+    ) =>
+        a?.nodeId === b?.nodeId &&
+        a?.revision === b?.revision &&
+        a?.content === b?.content;
+
     const canPatchActiveInteractionState = (
         previousInteraction: Nx9InteractionSnapshot,
         nextInteraction: Nx9InteractionSnapshot,
@@ -271,6 +282,7 @@ export const createNx9PageRuntime = ({
         interactionSnapshot,
         activeCell,
         displaySnapshot,
+        draftProjection,
     }: {
         page: number;
         staticRows: Nx9StaticRowViewModel[];
@@ -279,6 +291,7 @@ export const createNx9PageRuntime = ({
         interactionSnapshot: SceneCardInteractionSnapshot;
         activeCell: { row: number; col: number; page?: number } | null;
         displaySnapshot: SceneDisplaySnapshot;
+        draftProjection: SceneDraftProjectionSnapshot | null;
     }) => {
         const entry = getPageCacheEntry(page);
         const interaction = buildInteractionSnapshot({
@@ -293,13 +306,39 @@ export const createNx9PageRuntime = ({
 
         if (
             runtimeCache &&
-            sameInteractionSnapshot(runtimeCache.interaction, interaction)
+            sameInteractionSnapshot(runtimeCache.interaction, interaction) &&
+            sameDraftProjection(runtimeCache.draftProjection, draftProjection)
         ) {
             return runtimeCache.value;
         }
 
         if (
             runtimeCache &&
+            sameInteractionSnapshot(runtimeCache.interaction, interaction) &&
+            !sameDraftProjection(runtimeCache.draftProjection, draftProjection)
+        ) {
+            const startedAt = performance.now();
+            const patched = patchNx9DraftProjectionState({
+                rows: runtimeCache.value,
+                staticRows,
+                pageIndex,
+                previousDraftProjection: runtimeCache.draftProjection,
+                nextDraftProjection: draftProjection,
+            });
+            runtimeCache.draftProjection = draftProjection;
+            runtimeCache.value = patched.rows;
+            recordPerfEvent?.('trace.nx9.patch-draft-state', {
+                total_ms: Number((performance.now() - startedAt).toFixed(2)),
+                changed_row_count: patched.changedRowCount,
+                changed_cell_count: patched.changedCellCount,
+                page,
+            });
+            return patched.rows;
+        }
+
+        if (
+            runtimeCache &&
+            sameDraftProjection(runtimeCache.draftProjection, draftProjection) &&
             canPatchActiveInteractionState(
                 runtimeCache.interaction,
                 interaction,
@@ -332,14 +371,17 @@ export const createNx9PageRuntime = ({
             displaySnapshot,
             interactionSnapshot,
             activeCell,
+            draftProjection,
         });
         if (runtimeCache) {
             runtimeCache.interaction = interaction;
+            runtimeCache.draftProjection = draftProjection;
             runtimeCache.value = value;
         } else {
             entry.runtimeRowsCache.push({
                 staticRows,
                 interaction,
+                draftProjection,
                 value,
             });
         }
@@ -358,6 +400,7 @@ export const createNx9PageRuntime = ({
         gridStyle,
         interactionSnapshot,
         activeCell,
+        draftProjection,
     }: {
         pages: Array<{
             page: number;
@@ -369,6 +412,7 @@ export const createNx9PageRuntime = ({
         gridStyle: ResolvedGridStyle;
         interactionSnapshot: SceneCardInteractionSnapshot;
         activeCell: { row: number; col: number; page?: number } | null;
+        draftProjection: SceneDraftProjectionSnapshot | null;
     }) => {
         const hotPages = new Set<number>();
 
@@ -399,6 +443,7 @@ export const createNx9PageRuntime = ({
                 interactionSnapshot,
                 activeCell,
                 displaySnapshot,
+                draftProjection,
             });
         }
 

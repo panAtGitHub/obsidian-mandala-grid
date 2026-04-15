@@ -77,6 +77,7 @@
         view.viewStore,
         (state) => state.document.editing,
     );
+    const draftProjection = view.editSession.projectionStore;
     const subgridTheme = derived(
         view.viewStore,
         (state) => state.ui.mandala.subgridTheme,
@@ -104,7 +105,7 @@
 
     const handleSave = () => {
         if ($editingState.activeNodeId) {
-            view.inlineEditor.unloadNode($editingState.activeNodeId, false);
+            view.inlineEditor.requestSave();
             view.viewStore.dispatch({
                 type: 'view/editor/disable-main-editor',
             });
@@ -155,6 +156,7 @@
             isMobilePopupEditing: false,
             isMobileFullScreenSearch: Platform.isMobile && $search.showInput,
             mode: $mode,
+            draftProjection: $draftProjection,
         });
         sceneProjection = rootController.resolveProjection(sceneRootContext);
     }

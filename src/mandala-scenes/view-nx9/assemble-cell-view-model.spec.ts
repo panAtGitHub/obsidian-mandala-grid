@@ -5,6 +5,7 @@ import {
     buildNx9StaticCardCellDescriptors,
     buildNx9PageIndex,
     buildNx9PageStaticRows,
+    patchNx9DraftProjectionState,
     patchNx9ActiveInteractionState,
     type Nx9InteractionSnapshot,
     type Nx9PageFrameRowViewModel,
@@ -298,5 +299,106 @@ describe('nx9/assemble-cell-view-model', () => {
         expect(descriptors[0].seed.descriptor.displayPolicy).toMatchObject({
             inactiveSurfaceMode: 'detached',
         });
+    });
+
+    it('patches only the affected draft cell and keeps other references stable', () => {
+        const { context, staticRows, pageIndex } = createFixture();
+        const rows = applyNx9PageInteractionState({
+            context,
+            staticRows,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 100,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                showDetailSidebar: false,
+                selectedStamp: '',
+                pinnedSections: new Set(),
+                pinnedStamp: '',
+            },
+            activeCell: { row: 0, col: 0, page: 0 },
+            draftProjection: null,
+        });
+
+        const previousRow0 = rows[0] as Nx9RealCellViewModel[];
+        const previousRow1 = rows[1] as Nx9RealCellViewModel[];
+        const patched = patchNx9DraftProjectionState({
+            rows,
+            staticRows,
+            pageIndex,
+            previousDraftProjection: null,
+            nextDraftProjection: {
+                nodeId: 'node-1',
+                content: 'draft-1',
+                revision: 1,
+            },
+        });
+        const nextRows = patched.rows;
+        const nextRow0 = nextRows[0] as Nx9RealCellViewModel[];
+        const nextRow1 = nextRows[1] as Nx9RealCellViewModel[];
+
+        expect(nextRows).not.toBe(rows);
+        expect(nextRow0).not.toBe(previousRow0);
+        expect(nextRow1).toBe(previousRow1);
+        expect(nextRow0[0]).not.toBe(previousRow0[0]);
+        expect(nextRow0[1]).toBe(previousRow0[1]);
+        expect(nextRow0[0].cardViewModel?.contentOverride).toBe('draft-1');
+    });
+
+    it('patches previous and next draft nodes when switching draft target', () => {
+        const { context, staticRows, pageIndex } = createFixture();
+        const rows = applyNx9PageInteractionState({
+            context,
+            staticRows,
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 100,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set(),
+                showDetailSidebar: false,
+                selectedStamp: '',
+                pinnedSections: new Set(),
+                pinnedStamp: '',
+            },
+            activeCell: { row: 0, col: 0, page: 0 },
+            draftProjection: {
+                nodeId: 'node-1',
+                content: 'draft-1',
+                revision: 1,
+            },
+        });
+
+        const patched = patchNx9DraftProjectionState({
+            rows,
+            staticRows,
+            pageIndex,
+            previousDraftProjection: {
+                nodeId: 'node-1',
+                content: 'draft-1',
+                revision: 1,
+            },
+            nextDraftProjection: {
+                nodeId: 'node-2',
+                content: '',
+                revision: 2,
+            },
+        });
+        const nextRow0 = patched.rows[0] as Nx9RealCellViewModel[];
+        const nextRow1 = patched.rows[1] as Nx9RealCellViewModel[];
+
+        expect(nextRow0[0].cardViewModel?.contentOverride).toBe(undefined);
+        expect(nextRow1[0].cardViewModel?.contentOverride).toBe('');
     });
 });

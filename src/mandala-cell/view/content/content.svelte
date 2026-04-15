@@ -5,6 +5,7 @@
     import { getCursorPosition } from 'src/mandala-cell/viewmodel/content-event-handlers/get-cursor-position';
 
     export let nodeId: string;
+    export let contentOverride: string | undefined = undefined;
     export let hideBuiltInHiddenInfo = false;
     export let fillContent = false;
     export let density: 'normal' | 'compact' = 'normal';
@@ -21,7 +22,10 @@
     const doubleTapDetector = createMobileDoubleTapDetector();
 
     const enableEditModeAtCursor = (e: MouseEvent) => {
-        const content = get(cellRuntime.contentForNode(nodeId));
+        const content =
+            contentOverride !== undefined
+                ? contentOverride
+                : get(cellRuntime.contentForNode(nodeId));
         const cursor = getCursorPosition(content, e);
         activateNode(e);
         if (cursor) {
@@ -118,7 +122,11 @@
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
-    use:markdownPreview={nodeId}
+    use:markdownPreview={
+        contentOverride !== undefined
+            ? { nodeId, contentOverride }
+            : nodeId
+    }
 ></div>
 
 <style>

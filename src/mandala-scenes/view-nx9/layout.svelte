@@ -31,6 +31,7 @@
         isRealNx9Row,
     } from 'src/mandala-scenes/view-nx9/page-runtime';
     import { createNx9SelectionRuntime } from 'src/mandala-scenes/view-nx9/selection-runtime';
+    import type { SceneDraftProjectionSnapshot } from 'src/mandala-scenes/shared/scene-projection';
 
     const view = getView();
     const contextRuntime = createNx9ContextRuntime({
@@ -115,6 +116,7 @@
     export let activeCoreSection: string | null = null;
     export let activeCell: { row: number; col: number; page?: number } | null =
         null;
+    export let draftProjection: SceneDraftProjectionSnapshot | null = null;
 
     const resolveHotPages = (page: number, totalPages: number) =>
         [page - 1, page, page + 1].filter(
@@ -195,6 +197,7 @@
         gridStyle,
         interactionSnapshot,
         activeCell,
+        draftProjection,
     });
     $: staticRows = pageRuntime.resolveStaticRows({
         page: currentPage,
@@ -212,6 +215,7 @@
         interactionSnapshot,
         activeCell,
         displaySnapshot,
+        draftProjection,
     });
 
 </script>

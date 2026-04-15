@@ -1,6 +1,7 @@
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import {
     buildSceneCardCellList,
+    buildSceneCardViewModel,
     buildSceneCardUiState,
     createSceneCardCellSeed,
     createInactiveSceneCardUiState,
@@ -16,6 +17,7 @@ import type {
 } from 'src/mandala-scenes/view-nx9/context';
 import type {
     SceneCardInteractionSnapshot,
+    SceneDraftProjectionSnapshot,
     SceneDisplaySnapshot,
     SceneEditingSnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
@@ -37,6 +39,7 @@ type SharedInteractiveNx9RowsOptions = {
     displaySnapshot: SceneDisplaySnapshot;
     interactionSnapshot: SceneCardInteractionSnapshot;
     activeCell: { row: number; col: number; page?: number } | null;
+    draftProjection?: SceneDraftProjectionSnapshot | null;
 };
 
 type AssembleNx9RowsOptions = SharedStaticNx9RowsOptions &
@@ -148,6 +151,20 @@ type PatchNx9ActiveInteractionStateResult = {
     changedCellCount: number;
 };
 
+type PatchNx9DraftProjectionStateOptions = {
+    rows: Nx9RowViewModel[];
+    staticRows: Nx9StaticRowViewModel[];
+    pageIndex: Nx9PageIndex;
+    previousDraftProjection: SceneDraftProjectionSnapshot | null;
+    nextDraftProjection: SceneDraftProjectionSnapshot | null;
+};
+
+type PatchNx9DraftProjectionStateResult = {
+    rows: Nx9RowViewModel[];
+    changedRowCount: number;
+    changedCellCount: number;
+};
+
 const cellPositionKey = (row: number, col: number) => `${row}:${col}`;
 
 const normalizeActiveCell = (
@@ -172,6 +189,11 @@ const isActiveCell = (
     activeCell.row === row &&
     activeCell.col === col &&
     activeCell.page === currentPage;
+
+const resolveContentOverride = (
+    draftProjection: SceneDraftProjectionSnapshot | null | undefined,
+    nodeId: string | null,
+) => (draftProjection?.nodeId === nodeId ? draftProjection.content : undefined);
 
 const createRealCellFrameViewModel = ({
     context,
@@ -402,6 +424,7 @@ export const applyNx9PageInteractionState = ({
     displaySnapshot,
     interactionSnapshot,
     activeCell,
+    draftProjection,
 }: SharedInteractiveNx9RowsOptions & {
     staticRows: Nx9StaticRowViewModel[];
 }): Nx9RowViewModel[] => {
@@ -441,6 +464,17 @@ export const applyNx9PageInteractionState = ({
                       ...interaction,
                   })
                 : createInactiveSceneCardUiState();
+            const nextContentOverride = resolveContentOverride(
+                draftProjection,
+                cell.nodeId,
+            );
+            const nextCardViewModel =
+                cell.cardViewModel?.contentOverride === nextContentOverride
+                    ? cell.cardViewModel
+                    : buildSceneCardViewModel({
+                          ...cell.seed.descriptor,
+                          contentOverride: nextContentOverride,
+                      });
 
             return {
                 ...cell,
@@ -454,6 +488,7 @@ export const applyNx9PageInteractionState = ({
                     !normalizedActiveCell &&
                     !!cell.nodeId &&
                     cell.nodeId === interactionSnapshot.activeNodeId,
+                cardViewModel: nextCardViewModel,
                 cardUiState: nextCardUiState,
             };
         });
@@ -648,6 +683,98 @@ export const patchNx9ActiveInteractionState = ({
     };
 };
 
+export const patchNx9DraftProjectionState = ({
+    rows,
+    staticRows,
+    pageIndex,
+    previousDraftProjection,
+    nextDraftProjection,
+}: PatchNx9DraftProjectionStateOptions): PatchNx9DraftProjectionStateResult => {
+    const affectedNodeIds = new Set<string>();
+    if (previousDraftProjection?.nodeId) {
+        affectedNodeIds.add(previousDraftProjection.nodeId);
+    }
+    if (nextDraftProjection?.nodeId) {
+        affectedNodeIds.add(nextDraftProjection.nodeId);
+    }
+    if (affectedNodeIds.size === 0) {
+        return {
+            rows,
+            changedRowCount: 0,
+            changedCellCount: 0,
+        };
+    }
+
+    const rowToCols = new Map<number, Set<number>>();
+    for (const nodeId of affectedNodeIds) {
+        const entry = pageIndex.positionByNodeId[nodeId];
+        if (!entry) continue;
+        const cols = rowToCols.get(entry.row) ?? new Set<number>();
+        cols.add(entry.col);
+        rowToCols.set(entry.row, cols);
+    }
+    if (rowToCols.size === 0) {
+        return {
+            rows,
+            changedRowCount: 0,
+            changedCellCount: 0,
+        };
+    }
+
+    const nextRows = rows.slice();
+    let changedRowCount = 0;
+    let changedCellCount = 0;
+
+    for (const [rowIndex, cols] of rowToCols) {
+        const previousRow = rows[rowIndex];
+        const staticRow = staticRows[rowIndex];
+        if (!Array.isArray(previousRow) || !Array.isArray(staticRow)) {
+            continue;
+        }
+
+        const nextRow = previousRow.slice();
+        let rowChanged = false;
+        for (const col of cols) {
+            const previousCell = previousRow[col];
+            const staticCell = staticRow[col];
+            if (!previousCell || !staticCell || !staticCell.nodeId) continue;
+
+            const nextContentOverride = resolveContentOverride(
+                nextDraftProjection,
+                staticCell.nodeId,
+            );
+            if (
+                previousCell.cardViewModel?.contentOverride ===
+                nextContentOverride
+            ) {
+                continue;
+            }
+
+            const nextCardViewModel = buildSceneCardViewModel({
+                ...staticCell.seed.descriptor,
+                contentOverride: nextContentOverride,
+            });
+            nextRow[col] = {
+                ...previousCell,
+                cardViewModel: nextCardViewModel,
+            };
+            rowChanged = true;
+            changedCellCount += 1;
+        }
+
+        if (rowChanged) {
+            nextRows[rowIndex] = nextRow;
+            changedRowCount += 1;
+        }
+    }
+
+    return {
+        rows: changedRowCount > 0 ? nextRows : rows,
+        changedRowCount,
+        changedCellCount,
+    };
+};
+
 export const assembleNx9Rows = (
     options: AssembleNx9RowsOptions,
 ): Nx9RowViewModel[] => {
@@ -669,5 +796,6 @@ export const assembleNx9Rows = (
         displaySnapshot: options.displaySnapshot,
         interactionSnapshot: options.interactionSnapshot,
         activeCell: options.activeCell,
+        draftProjection: options.draftProjection,
     });
 };

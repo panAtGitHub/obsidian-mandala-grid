@@ -1,6 +1,14 @@
 import { Content } from 'src/mandala-document/state/document-state-type';
 import { logger } from 'src/shared/helpers/logger';
 
+export type DocumentContentCommitReason =
+    | 'idle'
+    | 'save'
+    | 'blur'
+    | 'switch-node'
+    | 'unload'
+    | 'disable-edit';
+
 export type SetNodeContentAction = {
     type: 'document/update-node-content';
     payload: {
@@ -9,6 +17,8 @@ export type SetNodeContentAction = {
     };
     context: {
         isInSidebar: boolean;
+        commitReason?: DocumentContentCommitReason;
+        suppressRefocus?: boolean;
     };
 };
 
@@ -22,6 +32,8 @@ export type SetMultipleNodeContentAction = {
     };
     context: {
         isInSidebar: boolean;
+        commitReason?: DocumentContentCommitReason;
+        suppressRefocus?: boolean;
     };
 };
 

@@ -26,6 +26,7 @@ import type {
 } from 'src/mandala-settings/state/settings-type';
 import type { MandalaMode } from 'src/mandala-settings/state/settings-type';
 import type { MandalaView } from 'src/view/view';
+import type { SceneDraftProjectionSnapshot } from 'src/mandala-scenes/shared/scene-projection';
 
 type BuildSceneRootContextArgs = {
     documentState: DocumentState;
@@ -59,6 +60,7 @@ type BuildSceneRootContextArgs = {
     isMobilePopupEditing: boolean;
     isMobileFullScreenSearch: boolean;
     mode: MandalaMode;
+    draftProjection?: SceneDraftProjectionSnapshot | null;
 };
 
 type SceneFacts = {
@@ -151,6 +153,7 @@ export const createSceneRootController = (view: MandalaView) => {
               showDayPlanTodayButton: boolean;
               show3x3SubgridNavButtons: boolean;
               uiKey: string;
+                            draftProjectionKey: string;
           }
         | null = null;
     let cachedProjectionContext: SceneRootContext | null = null;
@@ -247,6 +250,7 @@ export const createSceneRootController = (view: MandalaView) => {
             selectedStamp: args.selectedStamp,
             pinnedSections: args.pinnedSections,
             pinnedStamp: args.pinnedStamp,
+            draftProjection: args.draftProjection ?? null,
         });
         cachedSnapshotArgs = {
             revision: documentRefs.revision,
@@ -346,6 +350,10 @@ export const createSceneRootController = (view: MandalaView) => {
             args.isMobilePopupEditing ? 'mobile-editor' : 'no-mobile-editor',
             args.isMobileFullScreenSearch ? 'mobile-search' : 'no-mobile-search',
         ].join('|');
+        const draftProjection = args.draftProjection ?? null;
+        const draftProjectionKey = draftProjection
+            ? `${draftProjection.nodeId}|${draftProjection.revision}|${draftProjection.content}`
+            : '';
         if (
             cachedContext &&
             cachedContextDeps &&
@@ -364,7 +372,8 @@ export const createSceneRootController = (view: MandalaView) => {
                 args.showDayPlanTodayButton &&
             cachedContextDeps.show3x3SubgridNavButtons ===
                 args.show3x3SubgridNavButtons &&
-            cachedContextDeps.uiKey === uiKey
+            cachedContextDeps.uiKey === uiKey &&
+            cachedContextDeps.draftProjectionKey === draftProjectionKey
         ) {
             return cachedContext;
         }
@@ -424,6 +433,7 @@ export const createSceneRootController = (view: MandalaView) => {
                         mode: facts.sceneKey.viewKind,
                     }),
             },
+            draftProjection,
         };
 
         cachedContext = nextContext;
@@ -442,6 +452,7 @@ export const createSceneRootController = (view: MandalaView) => {
             showDayPlanTodayButton: args.showDayPlanTodayButton,
             show3x3SubgridNavButtons: args.show3x3SubgridNavButtons,
             uiKey,
+            draftProjectionKey,
         };
         return nextContext;
     };

@@ -8,6 +8,7 @@ import {
     createBoundedCache,
     createObjectIdentityKeyResolver,
 } from 'src/shared/helpers/bounded-cache';
+import type { SceneDraftProjectionSnapshot } from 'src/mandala-scenes/shared/scene-projection';
 
 type SceneInputRuntimeOptions = {
     documentState: DocumentState;
@@ -25,6 +26,7 @@ type SceneInputRuntimeOptions = {
     selectedStamp: string;
     pinnedSections: Set<string>;
     pinnedStamp: string;
+    draftProjection?: SceneDraftProjectionSnapshot | null;
 };
 
 type SceneInputRuntimeCacheEntry = SceneInputRuntimeOptions & {

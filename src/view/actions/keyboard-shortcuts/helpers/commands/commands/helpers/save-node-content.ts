@@ -2,7 +2,7 @@ import { MandalaView } from 'src/view/view';
 
 export const saveNodeContent = (view: MandalaView, modKey = false) => {
     if (view.inlineEditor.nodeId) {
-        view.inlineEditor.unloadNode();
+        view.inlineEditor.requestSave();
         const isInSidebar =
             view.viewStore.getValue().document.editing.isInSidebar;
         if (isInSidebar) {

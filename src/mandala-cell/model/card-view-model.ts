@@ -32,4 +32,5 @@ export type MandalaThemeSnapshot = {
 export type MandalaCardViewModel = SharedCardViewModel & {
     nodeId: string;
     section: string;
+    contentOverride?: string;
 };

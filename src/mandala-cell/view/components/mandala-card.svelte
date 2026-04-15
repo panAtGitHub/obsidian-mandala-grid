@@ -191,6 +191,7 @@
         <CardMainContent
             {nodeId}
             style={nodeStyle}
+            contentOverride={viewModel.contentOverride}
             showInlineEditor={renderModel.showInlineEditor}
             showContent={renderModel.showContent}
             hideBuiltInHiddenInfo={renderModel.hideBuiltInHiddenInfo}

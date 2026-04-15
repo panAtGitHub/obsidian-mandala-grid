@@ -6,11 +6,13 @@ export type EditSessionCommitReason =
     | 'unload'
     | 'disable-edit';
 
-export type DraftProjectionSnapshot = {
+export type EditSessionProjectionSnapshot = {
     nodeId: string;
     content: string;
     revision: number;
 };
+
+export type DraftProjectionSnapshot = EditSessionProjectionSnapshot;
 
 export type EditSessionState = {
     activeNodeId: string | null;
@@ -28,4 +30,5 @@ export type EditSessionCommitPayload = {
     content: string;
     isInSidebar: boolean;
     reason: EditSessionCommitReason;
+    suppressRefocus: boolean;
 };

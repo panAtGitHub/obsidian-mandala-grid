@@ -23,6 +23,7 @@ export type SceneCardCellDescriptor = {
     contentEnabled: boolean;
     sectionColorContext: CellSectionColorContext | null;
     displayPolicy: CellDisplayPolicy;
+    contentOverride?: string;
 };
 
 export type SceneCardCellSeed = {
@@ -65,6 +66,7 @@ export const buildSceneCardViewModel = (
               style: undefined,
               sectionColorContext: descriptor.sectionColorContext,
               displayPolicy: descriptor.displayPolicy,
+                            contentOverride: descriptor.contentOverride,
           })
         : null;
 
@@ -153,6 +155,7 @@ export const createSceneCardCellSeed = ({
     contentEnabled,
     sectionColorContext,
     displayPolicy,
+    contentOverride,
 }: {
     key: string;
     section: string;
@@ -160,6 +163,7 @@ export const createSceneCardCellSeed = ({
     contentEnabled: boolean;
     sectionColorContext: CellSectionColorContext | null;
     displayPolicy: CellDisplayPolicy;
+    contentOverride?: string;
 }): SceneCardCellSeed => ({
     frame: {
         key,
@@ -172,5 +176,6 @@ export const createSceneCardCellSeed = ({
         contentEnabled,
         sectionColorContext,
         displayPolicy,
+        contentOverride,
     },
 });

@@ -48,6 +48,7 @@ describe('build-nx9-scene-projection', () => {
                 activeSection: null,
                 activeCoreSection: null,
                 activeCell: null,
+                draftProjection: null,
             }).layoutMeta.gridStyle,
         ).toMatchObject({
             selectionStyle: 'node-active',
@@ -95,6 +96,7 @@ describe('build-nx9-scene-projection', () => {
                 activeSection: '1.2',
                 activeCoreSection: '1',
                 activeCell: { row: 1, col: 2, page: 0 },
+                draftProjection: null,
             }),
         ).toEqual({
             layoutKind: 'nx9',
@@ -135,8 +137,57 @@ describe('build-nx9-scene-projection', () => {
                 activeSection: '1.2',
                 activeCoreSection: '1',
                 activeCell: { row: 1, col: 2, page: 0 },
+                draftProjection: null,
             },
         });
+    });
+
+    it('passes draft projection through layout metadata', () => {
+        const draftProjection = {
+            nodeId: 'node-1',
+            content: 'draft content',
+            revision: 7,
+        };
+        const projection = buildNx9SceneProjectionProps({
+            documentSnapshot: {
+                revision: 1,
+                contentRevision: 2,
+                sectionIdMap: { '1': 'node-1' },
+                documentContent: { 'node-1': { content: 'hello' } },
+            },
+            themeSnapshot: {
+                themeTone: 'light',
+                themeUnderlayColor: '#fff',
+                activeThemeUnderlayColor: '#eee',
+            },
+            gridStyle: nx9GridStyle,
+            rowsPerPage: 5,
+            displaySnapshot: {
+                sectionColors: { '1': '#111' },
+                sectionColorOpacity: 60,
+                backgroundMode: 'custom',
+                showDetailSidebar: true,
+                whiteThemeMode: false,
+            },
+            interactionSnapshot: {
+                activeNodeId: 'node-1',
+                editingState: {
+                    activeNodeId: 'node-1',
+                    isInSidebar: false,
+                },
+                selectedNodes: new Set(['node-1']),
+                showDetailSidebar: true,
+                selectedStamp: 'node-1',
+                pinnedSections: new Set(['1']),
+                pinnedStamp: '1',
+            },
+            activeSection: '1.2',
+            activeCoreSection: '1',
+            activeCell: { row: 1, col: 2, page: 0 },
+            draftProjection,
+        });
+
+        expect(projection.layoutMeta.draftProjection).toEqual(draftProjection);
     });
 
     it('wraps nx9 default scenes as a dedicated projection', () => {
@@ -180,6 +231,7 @@ describe('build-nx9-scene-projection', () => {
                 activeSection: '1.2',
                 activeCoreSection: '1',
                 activeCell: { row: 1, col: 2, page: 0 },
+                draftProjection: null,
             }),
         ).toEqual({
             sceneKey: {
@@ -226,6 +278,7 @@ describe('build-nx9-scene-projection', () => {
                     activeSection: '1.2',
                     activeCoreSection: '1',
                     activeCell: { row: 1, col: 2, page: 0 },
+                    draftProjection: null,
                 },
             },
         });

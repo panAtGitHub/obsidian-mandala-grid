@@ -153,6 +153,7 @@ const defaultProjection = (
                           activeSection: '1.2',
                           activeCoreSection: '1',
                           activeCell: { row: 1, col: 2, page: 0 },
+                          draftProjection: null,
                       },
                   },
               };
