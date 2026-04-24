@@ -2,24 +2,26 @@
     import { onDestroy } from 'svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import type { MandalaSearchResult } from 'src/mandala-interaction/helpers/search-utils';
-    import { navigateToSearchResult, previewSearchResult } from 'src/mandala-interaction/helpers/search-utils';
-    
+    import {
+        navigateToSearchResult,
+        previewSearchResult,
+    } from 'src/mandala-interaction/helpers/search-utils';
+
     export let results: MandalaSearchResult[];
     export let deferNavigation = false;
     export let onSelect: ((_result: MandalaSearchResult) => void) | undefined =
         undefined;
     export let layout: 'dropdown' | 'list' = 'dropdown';
-    
+
     const view = getView();
     const SEARCH_INPUT_SELECTOR = '.search-input-wrapper';
     const SEARCH_INPUT_EDITABLE_SELECTOR = '.search-input-element';
-    const SEARCH_RESULTS_SELECTOR = '.mandala-search-results';
-    
+
     // 当前选中的索引（-1 表示无选中）
     let selectedIndex = -1;
     let keyboardNavigationActive = false;
     let selectedIndexForScroll = -1;
-    
+
     // Hover 预览的延迟定时器
     let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -28,7 +30,7 @@
     } else if (selectedIndex >= results.length) {
         selectedIndex = results.length - 1;
     }
-    
+
     // 列表元素引用
     let listElement: HTMLElement;
     let itemElements: Array<HTMLElement | undefined> = [];
@@ -57,14 +59,14 @@
     // 处理鼠标悬停（延迟 200ms）
     function handleHover(index: number) {
         if (hoverTimer) clearTimeout(hoverTimer);
-        
+
         hoverTimer = setTimeout(() => {
             updateSelectedIndex(index);
             previewSearchResult(results[index].section, view);
             // Hover 时不需要保持焦点，因为焦点可能在其他地方
         }, 200);
     }
-    
+
     // 处理鼠标离开（清除延迟）
     function handleMouseLeave() {
         if (hoverTimer) {
@@ -72,7 +74,7 @@
             hoverTimer = null;
         }
     }
-    
+
     // 处理点击（确认选择）
     function handleClick(result: MandalaSearchResult, index: number) {
         updateSelectedIndex(index);
@@ -87,7 +89,7 @@
         // 确认后关闭搜索框，焦点自然转到格子
         view.viewStore.dispatch({ type: 'view/search/toggle-input' });
     }
-    
+
     // 预览并保持焦点在列表
     function previewAndKeepFocus(section: string) {
         previewSearchResult(section, view);
@@ -113,7 +115,7 @@
         updateSelectedIndex(0);
         previewSearchResult(results[0].section, view);
     }
-    
+
     function handleNavigationKey(e: KeyboardEvent) {
         if (!keyboardNavigationActive || results.length === 0) return;
         const target = e.target;
@@ -146,7 +148,9 @@
         }
 
         if (e.key === 'ArrowDown') {
-            updateSelectedIndex(Math.min(selectedIndex + 1, results.length - 1));
+            updateSelectedIndex(
+                Math.min(selectedIndex + 1, results.length - 1),
+            );
             if (selectedIndex >= 0) {
                 previewAndKeepFocus(results[selectedIndex].section);
             }
@@ -184,7 +188,7 @@
         if (target.closest(SEARCH_INPUT_SELECTOR)) return;
         deactivateKeyboardNavigation();
     }
-    
+
     // 清理定时器
     window.addEventListener('keydown', handleWindowKeyDown, true);
     window.addEventListener('pointerdown', handleWindowPointerDown, true);
@@ -192,7 +196,11 @@
     onDestroy(() => {
         if (hoverTimer) clearTimeout(hoverTimer);
         window.removeEventListener('keydown', handleWindowKeyDown, true);
-        window.removeEventListener('pointerdown', handleWindowPointerDown, true);
+        window.removeEventListener(
+            'pointerdown',
+            handleWindowPointerDown,
+            true,
+        );
     });
 </script>
 
@@ -200,7 +208,9 @@
     class="mandala-search-results"
     class:inFlow={layout === 'list'}
     bind:this={listElement}
-    data-keyboard-navigation-active={keyboardNavigationActive ? 'true' : 'false'}
+    data-keyboard-navigation-active={keyboardNavigationActive
+        ? 'true'
+        : 'false'}
     on:focus={handleFocus}
     role="listbox"
     tabindex="-1"
@@ -210,7 +220,7 @@
     {:else}
         <div class="results-count">{results.length} 个结果</div>
         {#each results as result, index (result.nodeId)}
-            <div 
+            <div
                 class="search-result-item"
                 class:selected={selectedIndex === index}
                 bind:this={itemElements[index]}
@@ -251,7 +261,7 @@
         max-height: none;
         z-index: auto;
     }
-    
+
     .results-count {
         padding: 8px 12px;
         font-size: 11px;
@@ -259,33 +269,33 @@
         border-bottom: 1px solid var(--background-modifier-border);
         background: var(--background-secondary);
     }
-    
+
     .no-results {
         padding: 16px 12px;
         text-align: center;
         font-size: 13px;
         color: var(--text-muted);
     }
-    
+
     .search-result-item {
         padding: 10px 12px;
         cursor: pointer;
         border-bottom: 1px solid var(--background-modifier-border);
         transition: background-color 0.1s ease;
     }
-    
+
     .search-result-item:last-child {
         border-bottom: none;
     }
-    
+
     .search-result-item:hover {
         background: var(--background-modifier-hover);
     }
-    
+
     .search-result-item:active {
         background: var(--background-modifier-active-hover);
     }
-    
+
     .section-path {
         font-size: 13px;
         font-weight: 600;
@@ -293,7 +303,7 @@
         margin-bottom: 4px;
         font-family: var(--font-monospace);
     }
-    
+
     .content-preview {
         font-size: 12px;
         color: var(--text-muted);
@@ -302,7 +312,7 @@
         white-space: nowrap;
         line-height: 1.4;
     }
-    
+
     /* 选中状态样式 */
     .search-result-item.selected {
         background: var(--background-modifier-hover);
@@ -317,15 +327,15 @@
             margin-top: 8px;
             max-height: 60vh;
         }
-        
+
         .search-result-item {
             padding: 12px;
         }
-        
+
         .section-path {
             font-size: 14px;
         }
-        
+
         .content-preview {
             font-size: 13px;
         }

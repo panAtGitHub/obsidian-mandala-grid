@@ -9,10 +9,7 @@
     } from 'lucide-svelte';
     import { derived } from 'src/shared/store/derived';
     import { openNx9RowsPerPageModal } from 'src/obsidian/modals/nx9-rows-per-page-modal';
-    import {
-        addDaysIsoDate,
-        getWeekIndexInPlanYear,
-    } from 'src/mandala-display/logic/day-plan';
+    import { getWeekIndexInPlanYear } from 'src/mandala-display/logic/day-plan';
     import {
         resolveMandalaSceneKey,
         type MandalaSceneKey,
@@ -31,6 +28,10 @@
         getMandalaActiveCellNx9,
         getMandalaWeekAnchorDate,
     } from 'src/mandala-scenes/shared/scene-runtime';
+    import {
+        navigateMandalaWeek,
+        setMandalaWeekAnchorDate,
+    } from 'src/view/helpers/navigate-mandala-week';
 
     const view = getView();
     const mode = MandalaModeStore(view);
@@ -43,13 +44,11 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
-    const weekAnchorDate = derived(
-        view.viewStore,
-        (state) => getMandalaWeekAnchorDate(state),
+    const weekAnchorDate = derived(view.viewStore, (state) =>
+        getMandalaWeekAnchorDate(state),
     );
-    const activeCellNx9 = derived(
-        view.viewStore,
-        (state) => getMandalaActiveCellNx9(state),
+    const activeCellNx9 = derived(view.viewStore, (state) =>
+        getMandalaActiveCellNx9(state),
     );
     let sceneKey: MandalaSceneKey = {
         viewKind: '3x3',
@@ -91,29 +90,16 @@
         });
     };
 
-    const setWeekAnchorDate = (date: string) => {
-        view.viewStore.dispatch({
-            type: 'view/mandala/week-anchor-date/set',
-            payload: { date },
-        });
-        view.viewStore.dispatch({
-            type: 'view/mandala/week-active-cell/set',
-            payload: { cell: null },
-        });
-    };
-
     const goToPreviousWeek = () => {
-        if (!$weekAnchorDate) return;
-        setWeekAnchorDate(addDaysIsoDate($weekAnchorDate, -7));
+        navigateMandalaWeek(view, 'prev');
     };
 
     const goToNextWeek = () => {
-        if (!$weekAnchorDate) return;
-        setWeekAnchorDate(addDaysIsoDate($weekAnchorDate, 7));
+        navigateMandalaWeek(view, 'next');
     };
 
     const goToThisWeek = () => {
-        setWeekAnchorDate(new Date().toISOString().slice(0, 10));
+        setMandalaWeekAnchorDate(view, new Date().toISOString().slice(0, 10));
     };
 
     const goToPreviousNx9Page = () => {

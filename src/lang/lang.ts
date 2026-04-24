@@ -380,6 +380,8 @@ export const lang = {
     // hotkeys
     hk_enter_subgrid: '进入子九宫',
     hk_exit_subgrid: '退出子九宫',
+    hk_navigate_next_view_unit: '下一个视图单元',
+    hk_navigate_prev_view_unit: '上一个视图单元',
     hk_jump_core_next: '跳到下一个核心九宫',
     hk_jump_core_prev: '跳到上一个核心九宫',
     hk_toggle_detail_sidebar: '切换右侧侧边栏',

@@ -7,7 +7,7 @@ import {
     enterSubgridForNode,
     exitCurrentSubgrid,
 } from 'src/mandala-interaction/helpers/mobile-navigation';
-import { jumpCoreTheme } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/jump-core-theme';
+import { navigateSharedViewUnit } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/navigate-shared-view-unit';
 
 export type HotkeyEditorState = 'editor-on' | 'editor-off' | 'both';
 export type HotkeyPreferences = {
@@ -199,7 +199,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
             callback: (view, e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                jumpCoreTheme(view, 'down');
+                navigateSharedViewUnit(view, 'next');
             },
             hotkeys: [
                 {
@@ -214,7 +214,7 @@ export const defaultViewHotkeys = (): DefaultViewCommand[] => {
             callback: (view, e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                jumpCoreTheme(view, 'up');
+                navigateSharedViewUnit(view, 'prev');
             },
             hotkeys: [
                 {
