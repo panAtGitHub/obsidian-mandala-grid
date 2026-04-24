@@ -5,6 +5,7 @@ import { hotkeysLang } from 'src/lang/hotkeys-lang';
 import {
     defaultViewHotkeys,
     StatefulViewCommand,
+    StatefulViewHotkey,
 } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import {
     updateViewHotkeysDictionary,
@@ -40,7 +41,7 @@ describe('defaultViewHotkeys shared navigation commands', () => {
         );
         expect(command).toBeDefined();
 
-        const hotkey = {
+        const hotkey: StatefulViewHotkey = {
             ...command!.hotkeys[0],
             key: 'x',
             modifiers: ['Alt'],
