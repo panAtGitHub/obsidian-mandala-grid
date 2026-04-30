@@ -68,14 +68,15 @@ export class MarkdownRenderChild extends Component {
     }
 }
 export class MarkdownRenderer {
-    static async render(
+    static render(
         _app: App,
         markdown: string,
         el: HTMLElement,
         _sourcePath: string,
         _component: Component,
-    ) {
+    ): Promise<void> {
         el.textContent = markdown;
+        return Promise.resolve();
     }
 }
 

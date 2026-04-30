@@ -56,12 +56,13 @@ describe('createDayPlanDocument', () => {
         const dispatch = vi.fn();
         const settingsValue = createSettings();
         const processFrontMatter = vi.fn(
-            async (
+            (
                 _file: { path: string },
                 callback: (frontmatter: Record<string, unknown>) => void,
             ) => {
-            const frontmatter = {};
-            callback(frontmatter);
+                const frontmatter = {};
+                callback(frontmatter);
+                return Promise.resolve();
             },
         );
         const plugin = {
@@ -122,12 +123,13 @@ describe('createDayPlanDocument', () => {
         const dispatch = vi.fn();
         const settingsValue = createSettings();
         const processFrontMatter = vi.fn(
-            async (
+            (
                 _file: { path: string },
                 callback: (frontmatter: Record<string, unknown>) => void,
             ) => {
-            const frontmatter = {};
-            callback(frontmatter);
+                const frontmatter = {};
+                callback(frontmatter);
+                return Promise.resolve();
             },
         );
         const plugin = {
@@ -188,12 +190,13 @@ describe('createDayPlanDocument', () => {
         const settingsValue = createSettings();
         const trashFile = vi.fn();
         const processFrontMatter = vi.fn(
-            async (
+            (
                 _file: { path: string },
                 callback: (frontmatter: Record<string, unknown>) => void,
             ) => {
-            const frontmatter = {};
-            callback(frontmatter);
+                const frontmatter = {};
+                callback(frontmatter);
+                return Promise.resolve();
             },
         );
         const plugin = {

@@ -3,7 +3,7 @@ import { ensureChildrenForSection, ensureNodeForSection } from 'src/mandala-inte
 
 const noticeMock = vi.fn();
 
-vi.mock('obsidian', async () => ({
+vi.mock('obsidian', () => ({
     Notice: function Notice(message: string) {
         noticeMock(message);
     },

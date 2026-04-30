@@ -19,11 +19,13 @@ describe('PerfRecorder exportSnapshot', () => {
 
         const result = await recorder.exportSnapshot({
             directoryPath: PERF_EXPORT_DIR,
-            ensureFolderRecursive: async (path) => {
+            ensureFolderRecursive: (path) => {
                 ensuredPaths.push(path);
+                return Promise.resolve();
             },
-            writeFile: async (path, data) => {
+            writeFile: (path, data) => {
                 writtenFiles.set(path, data);
+                return Promise.resolve();
             },
             exportedAt: new Date(2026, 2, 23, 1, 2, 3),
         });
@@ -66,11 +68,12 @@ describe('PerfRecorder exportSnapshot', () => {
         await expect(
             recorder.exportSnapshot({
                 directoryPath: PERF_EXPORT_DIR,
-                ensureFolderRecursive: async () => undefined,
-                writeFile: async (path) => {
+                ensureFolderRecursive: () => Promise.resolve(),
+                writeFile: (path) => {
                     if (path.endsWith('latest.json')) {
-                        throw new Error('disk busy');
+                        return Promise.reject(new Error('disk busy'));
                     }
+                    return Promise.resolve();
                 },
                 exportedAt: new Date(2026, 2, 23, 1, 2, 4),
             }),
@@ -88,14 +91,15 @@ describe('PerfRecorder exportSnapshot', () => {
         });
         const writtenFiles = new Map<string, string>();
 
-        const writeFile = async (path: string, data: string) => {
+        const writeFile = (path: string, data: string) => {
             writtenFiles.set(path, data);
+            return Promise.resolve();
         };
 
         recorder.record('event-1', { value: 1 });
         await recorder.exportSnapshot({
             directoryPath: PERF_EXPORT_DIR,
-            ensureFolderRecursive: async () => undefined,
+            ensureFolderRecursive: () => Promise.resolve(),
             writeFile,
             exportedAt: new Date(2026, 2, 23, 1, 2, 3),
         });
@@ -103,7 +107,7 @@ describe('PerfRecorder exportSnapshot', () => {
         recorder.record('event-2', { value: 2 });
         await recorder.exportSnapshot({
             directoryPath: PERF_EXPORT_DIR,
-            ensureFolderRecursive: async () => undefined,
+            ensureFolderRecursive: () => Promise.resolve(),
             writeFile,
             exportedAt: new Date(2026, 2, 23, 1, 2, 5),
         });

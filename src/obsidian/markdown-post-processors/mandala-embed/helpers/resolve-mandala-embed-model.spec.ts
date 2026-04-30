@@ -78,7 +78,7 @@ describe('resolveMandalaEmbedModel', () => {
                     getFileCache: vi.fn(() => ({})),
                 },
                 vault: {
-                    cachedRead: vi.fn(async () => buildMandalaMarkdown()),
+                    cachedRead: vi.fn(() => Promise.resolve(buildMandalaMarkdown())),
                 },
             },
             settings: {
@@ -118,7 +118,7 @@ describe('resolveMandalaEmbedModel', () => {
                     getFileCache: vi.fn(() => ({})),
                 },
                 vault: {
-                    cachedRead: vi.fn(async () => buildMandalaMarkdown()),
+                    cachedRead: vi.fn(() => Promise.resolve(buildMandalaMarkdown())),
                 },
             },
             settings: {
@@ -153,7 +153,7 @@ describe('resolveMandalaEmbedModel', () => {
                     getFileCache: vi.fn(() => ({})),
                 },
                 vault: {
-                    cachedRead: vi.fn(async () => buildMandalaMarkdown()),
+                    cachedRead: vi.fn(() => Promise.resolve(buildMandalaMarkdown())),
                 },
             },
             settings: {

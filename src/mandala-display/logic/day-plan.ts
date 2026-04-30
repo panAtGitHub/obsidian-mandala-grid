@@ -302,7 +302,7 @@ export const mapWeekPlanRows = (
                 inPlanYear: false,
             };
         }
-        const [_, month, day] = date.split('-').map(Number);
+        const [, month, day] = date.split('-').map(Number);
         return {
             date,
             coreSection: String(dayOfYearFromDate(planYear, month, day)),

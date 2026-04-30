@@ -8,7 +8,7 @@ import {
 
 const createController = () => ({
     isConnected: vi.fn(() => true),
-    refreshManagedModel: vi.fn(async () => undefined),
+    refreshManagedModel: vi.fn(() => Promise.resolve(undefined)),
 });
 
 afterEach(() => {

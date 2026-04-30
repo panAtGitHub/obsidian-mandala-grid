@@ -78,7 +78,7 @@ const createPlugin = ({
                 getFileCache: vi.fn(() => null),
             },
             vault: {
-                cachedRead: vi.fn(async () => ''),
+                cachedRead: vi.fn(() => Promise.resolve('')),
             },
             workspace: {
                 openLinkText: vi.fn(),
@@ -432,13 +432,14 @@ describe('createMandalaSourceEmbedExtension', () => {
         let gridContent = '初始内容';
         const { root } = mountWidget({
             targetFile,
-            loadResolvedModel: async () => ({
-                target: {
-                    file: targetFile,
-                    centerHeading: '一页纸工具',
-                },
-                model: createGridModel(gridContent),
-            }),
+            loadResolvedModel: () =>
+                Promise.resolve({
+                    target: {
+                        file: targetFile,
+                        centerHeading: '一页纸工具',
+                    },
+                    model: createGridModel(gridContent),
+                }),
         });
 
         await waitForAssertion(() => {
@@ -463,13 +464,14 @@ describe('createMandalaSourceEmbedExtension', () => {
         const targetFile = createMarkdownFile('写作，一页纸工具.md');
         const { root } = mountWidget({
             targetFile,
-            loadResolvedModel: async () => ({
-                target: {
-                    file: targetFile,
-                    centerHeading: '一页纸工具',
-                },
-                model: createGridModel('稳定内容'),
-            }),
+            loadResolvedModel: () =>
+                Promise.resolve({
+                    target: {
+                        file: targetFile,
+                        centerHeading: '一页纸工具',
+                    },
+                    model: createGridModel('稳定内容'),
+                }),
         });
 
         await waitForAssertion(() => {
@@ -490,16 +492,18 @@ describe('createMandalaSourceEmbedExtension', () => {
         let isResolvable = true;
         const { root } = mountWidget({
             targetFile,
-            loadResolvedModel: async () =>
-                isResolvable
-                    ? {
-                          target: {
-                              file: targetFile,
-                              centerHeading: '一页纸工具',
-                          },
-                          model: createGridModel('初始内容'),
-                      }
-                    : null,
+            loadResolvedModel: () =>
+                Promise.resolve(
+                    isResolvable
+                        ? {
+                              target: {
+                                  file: targetFile,
+                                  centerHeading: '一页纸工具',
+                              },
+                              model: createGridModel('初始内容'),
+                          }
+                        : null,
+                ),
         });
 
         await waitForAssertion(() => {

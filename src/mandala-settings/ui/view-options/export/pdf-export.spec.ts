@@ -104,7 +104,7 @@ describe('exportCurrentViewPdf', () => {
         );
         let capturedHost: HTMLElement | null = null;
         let capturedClone: HTMLElement | null = null;
-        const printToPDF = vi.fn().mockImplementation(async (_options) => {
+        const printToPDF = vi.fn().mockImplementation((_options) => {
             capturedHost = document.body.querySelector('.mandala-pdf-print-host');
             capturedClone =
                 capturedHost?.querySelector<HTMLElement>('.mandala-root') ?? null;
@@ -124,7 +124,7 @@ describe('exportCurrentViewPdf', () => {
             expect(capturedClone?.style.width).toBe('auto');
             expect(capturedClone?.style.height).toBe('auto');
 
-            return Uint8Array.from([1, 2, 3]);
+            return Promise.resolve(Uint8Array.from([1, 2, 3]));
         });
 
         (

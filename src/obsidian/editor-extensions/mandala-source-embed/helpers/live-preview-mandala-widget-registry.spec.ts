@@ -13,7 +13,7 @@ const createWidget = (
     refreshManaged: ReturnType<typeof vi.fn>;
 } => ({
     isConnected: () => connected,
-    refreshManaged: vi.fn(async () => undefined),
+    refreshManaged: vi.fn(() => Promise.resolve(undefined)),
 });
 
 afterEach(() => {
