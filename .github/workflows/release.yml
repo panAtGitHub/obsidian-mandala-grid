@@ -4,31 +4,71 @@ on:
     push:
         tags:
             - "*"
+        workflow_dispatch:
+                inputs:
+                        tag:
+                                description: Existing tag to release
+                                required: true
+                                type: string
+
+permissions:
+        contents: write
 
 jobs:
     build:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v3
+                        - name: Resolve release target
+                            id: release-target
+                            run: |
+                                    if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+                                        tag="${{ github.event.inputs.tag }}"
+                                        ref="refs/tags/${tag}"
+                                    else
+                                        tag="${GITHUB_REF#refs/tags/}"
+                                        ref="${GITHUB_REF}"
+                                    fi
+
+                                    echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+                                    echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+
+                        - uses: actions/checkout@v4
+                            with:
+                                    ref: ${{ steps.release-target.outputs.ref }}
 
             - name: Use Node.js
-              uses: actions/setup-node@v3
+                            uses: actions/setup-node@v4
               with:
                   node-version: "18.x"
+                                    cache: npm
 
             - name: Build plugin
               run: |
-                  npm install
+                                    npm ci
                   npm run build
 
-            - name: Create release
+                        - name: Create or update release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                                    RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
               run: |
-                  tag="${GITHUB_REF#refs/tags/}"
-                  
-                  gh release create "$tag" \
-                    --title="$tag" \
-                    --draft \
-                    manifest.json temp/vault/.obsidian/plugins/mandala-grid-dev/main.js temp/vault/.obsidian/plugins/mandala-grid-dev/styles.css
+                                    tag="$RELEASE_TAG"
+                                    assets=(
+                                        manifest.json
+                                        temp/vault/.obsidian/plugins/mandala-grid-dev/main.js
+                                        temp/vault/.obsidian/plugins/mandala-grid-dev/styles.css
+                                    )
+
+                                    for asset in "${assets[@]}"; do
+                                        test -f "$asset"
+                                    done
+
+                                    if gh release view "$tag" >/dev/null 2>&1; then
+                                        gh release upload "$tag" "${assets[@]}" --clobber
+                                    else
+                                        gh release create "$tag" \
+                                            --title="$tag" \
+                                            --draft \
+                                            "${assets[@]}"
+                                    fi
