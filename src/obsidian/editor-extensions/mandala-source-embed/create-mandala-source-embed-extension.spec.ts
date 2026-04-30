@@ -68,13 +68,13 @@ Object.defineProperty(window, 'ResizeObserver', {
     value: ResizeObserverMock,
 });
 
-const createPlugin = ({
-    targets = new Map<string, TFile>(),
-} = {}) =>
+const createPlugin = ({ targets = new Map<string, TFile>() } = {}) =>
     ({
         app: {
             metadataCache: {
-                getFirstLinkpathDest: vi.fn((path: string) => targets.get(path) ?? null),
+                getFirstLinkpathDest: vi.fn(
+                    (path: string) => targets.get(path) ?? null,
+                ),
                 getFileCache: vi.fn(() => null),
             },
             vault: {
@@ -160,8 +160,9 @@ const waitForAssertion = async (assertion: () => void) => {
 
 const mockMarkdownRenderer = () => {
     vi.spyOn(MarkdownRenderer, 'render').mockImplementation(
-        async (_app, markdown, element) => {
+        (_app, markdown, element) => {
             element.setText(markdown);
+            return Promise.resolve();
         },
     );
 };
@@ -369,7 +370,9 @@ describe('createMandalaSourceEmbedExtension', () => {
     });
 
     it('keeps the widget when the caret moves to a different line', () => {
-        const doc = ['![[写作，一页纸工具#一页纸工具|$]]', '下一行', ''].join('\n');
+        const doc = ['![[写作，一页纸工具#一页纸工具|$]]', '下一行', ''].join(
+            '\n',
+        );
         const nextLineAnchor = doc.indexOf('下一行');
         const { view } = mountEditor({
             doc,
@@ -383,9 +386,12 @@ describe('createMandalaSourceEmbedExtension', () => {
     });
 
     it('hides the widget when the caret is at the start of the embed line', () => {
-        const doc = ['上一行', '![[写作，一页纸工具#一页纸工具|$]]', '下一行', ''].join(
-            '\n',
-        );
+        const doc = [
+            '上一行',
+            '![[写作，一页纸工具#一页纸工具|$]]',
+            '下一行',
+            '',
+        ].join('\n');
         const embedStart = doc.indexOf('![[写作，一页纸工具#一页纸工具|$]]');
         const { view } = mountEditor({
             doc,
@@ -517,7 +523,9 @@ describe('createMandalaSourceEmbedExtension', () => {
         await refreshLivePreviewMandalaWidgetsByTargetPaths([targetFile.path]);
 
         await waitForAssertion(() => {
-            expect(root.textContent).toContain('![[写作，一页纸工具#一页纸工具|$]]');
+            expect(root.textContent).toContain(
+                '![[写作，一页纸工具#一页纸工具|$]]',
+            );
         });
 
         expect(root).toBe(widgetRoot);
