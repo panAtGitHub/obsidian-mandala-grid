@@ -23,7 +23,7 @@ jobs:
                             id: release-target
                             run: |
                                     if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-                                        tag="${{ github.event.inputs.tag }}"
+                                        tag="${{ inputs.tag }}"
                                         ref="refs/tags/${tag}"
                                     else
                                         tag="${GITHUB_REF#refs/tags/}"
@@ -37,22 +37,22 @@ jobs:
                             with:
                                     ref: ${{ steps.release-target.outputs.ref }}
 
-            - name: Use Node.js
+                        - name: Use Node.js
                             uses: actions/setup-node@v4
-              with:
-                  node-version: "18.x"
+                            with:
+                                    node-version: "18.x"
                                     cache: npm
 
-            - name: Build plugin
-              run: |
+                        - name: Build plugin
+                            run: |
                                     npm ci
-                  npm run build
+                                    npm run build
 
                         - name: Create or update release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                            env:
+                                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                                     RELEASE_TAG: ${{ steps.release-target.outputs.tag }}
-              run: |
+                            run: |
                                     tag="$RELEASE_TAG"
                                     assets=(
                                         manifest.json
