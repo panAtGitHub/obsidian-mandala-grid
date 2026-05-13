@@ -2,7 +2,7 @@ import { MandalaView } from 'src/view/view';
 import { Platform } from 'obsidian';
 
 export const focusContainer = (view: MandalaView) => {
-    setTimeout(() => {
+    window.setTimeout(() => {
         if (view.container) {
             const isEditing = Boolean(view.inlineEditor.nodeId);
             const isEditingOnMobile = Platform.isMobile && isEditing;

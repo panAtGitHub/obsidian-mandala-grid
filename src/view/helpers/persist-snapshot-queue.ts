@@ -10,7 +10,7 @@ type PersistSnapshotQueueOptions = {
 
 export class PersistSnapshotQueue {
     private readonly pendingSnapshots = new Map<string, string>();
-    private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
+    private readonly timers = new Map<string, number>();
     private readonly inflightFlushes = new Map<string, Promise<void>>();
 
     constructor(private readonly options: PersistSnapshotQueueOptions) {}
@@ -20,7 +20,7 @@ export class PersistSnapshotQueue {
         this.clearTimer(path);
         this.timers.set(
             path,
-            globalThis.setTimeout(() => {
+            window.setTimeout(() => {
                 this.timers.delete(path);
                 void this.flush(path).catch(() => undefined);
             }, this.options.delayMs),
@@ -29,7 +29,8 @@ export class PersistSnapshotQueue {
 
     async flush(path: string) {
         this.clearTimer(path);
-        const previousFlush = this.inflightFlushes.get(path) ?? Promise.resolve();
+        const previousFlush =
+            this.inflightFlushes.get(path) ?? Promise.resolve();
 
         let trackedFlush: Promise<void>;
         trackedFlush = previousFlush
@@ -87,7 +88,7 @@ export class PersistSnapshotQueue {
     private clearTimer(path: string) {
         const timer = this.timers.get(path);
         if (timer) {
-            globalThis.clearTimeout(timer);
+            window.clearTimeout(timer);
             this.timers.delete(path);
         }
     }

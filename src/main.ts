@@ -24,7 +24,10 @@ import { pluginReducer } from 'src/stores/plugin/plugin-reducer';
 import { DefaultPluginState } from 'src/stores/plugin/default-plugin-state';
 import { StatusBar } from 'src/obsidian/status-bar/status-bar';
 import { onPluginError } from 'src/shared/store/on-plugin-error';
-import { customIcons, loadCustomIcons } from 'src/shared/helpers/load-custom-icons';
+import {
+    customIcons,
+    loadCustomIcons,
+} from 'src/shared/helpers/load-custom-icons';
 import { migrateSettings } from 'src/mandala-settings/state/migrations/migrate-settings';
 import { toggleFileViewType } from 'src/obsidian/events/workspace/effects/toggle-file-view-type';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
@@ -62,10 +65,9 @@ export default class MandalaGrid extends Plugin {
     store: PluginStore;
     statusBar: StatusBar;
     perfRecorder!: PerfRecorder;
-    private timeoutReferences: Set<ReturnType<typeof setTimeout>> = new Set();
-    private saveSettingsTimeout: ReturnType<typeof setTimeout> | null = null;
-    private refreshMandalaEmbedTimeout: ReturnType<typeof setTimeout> | null =
-        null;
+    private timeoutReferences: Set<number> = new Set();
+    private saveSettingsTimeout: number | null = null;
+    private refreshMandalaEmbedTimeout: number | null = null;
     private isSavingSettings = false;
     private hasPendingSettingsSave = false;
     private pendingMandalaEmbedRefreshAll = false;
@@ -208,10 +210,10 @@ export default class MandalaGrid extends Plugin {
         }
 
         if (this.refreshMandalaEmbedTimeout) {
-            clearTimeout(this.refreshMandalaEmbedTimeout);
+            window.clearTimeout(this.refreshMandalaEmbedTimeout);
         }
 
-        this.refreshMandalaEmbedTimeout = setTimeout(() => {
+        this.refreshMandalaEmbedTimeout = window.setTimeout(() => {
             this.refreshMandalaEmbedTimeout = null;
             const refreshStartedMs = performance.now();
             const forceAllRefresh = this.pendingMandalaEmbedRefreshAll;
@@ -313,9 +315,9 @@ export default class MandalaGrid extends Plugin {
     private queueSettingsSave(delay_ms: number = 250) {
         this.hasPendingSettingsSave = true;
         if (this.saveSettingsTimeout) {
-            clearTimeout(this.saveSettingsTimeout);
+            window.clearTimeout(this.saveSettingsTimeout);
         }
-        this.saveSettingsTimeout = setTimeout(() => {
+        this.saveSettingsTimeout = window.setTimeout(() => {
             this.saveSettingsTimeout = null;
             void this.saveSettings();
         }, delay_ms);
@@ -336,7 +338,7 @@ export default class MandalaGrid extends Plugin {
         );
     }
 
-    registerTimeout(timeout: ReturnType<typeof setTimeout>) {
+    registerTimeout(timeout: number) {
         this.timeoutReferences.add(timeout);
     }
 
@@ -376,18 +378,18 @@ export default class MandalaGrid extends Plugin {
         super.onunload();
         this.statusBar?.clear();
         if (this.saveSettingsTimeout) {
-            clearTimeout(this.saveSettingsTimeout);
+            window.clearTimeout(this.saveSettingsTimeout);
             this.saveSettingsTimeout = null;
         }
         if (this.refreshMandalaEmbedTimeout) {
-            clearTimeout(this.refreshMandalaEmbedTimeout);
+            window.clearTimeout(this.refreshMandalaEmbedTimeout);
             this.refreshMandalaEmbedTimeout = null;
         }
         if (this.hasPendingSettingsSave) {
             void this.saveSettings();
         }
         for (const timeout of this.timeoutReferences) {
-            clearTimeout(timeout);
+            window.clearTimeout(timeout);
         }
         statusBarWorker.terminate();
     }

@@ -10,6 +10,7 @@ import type {
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
 import type { EffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 export type MandalaCoreSettingsState = EffectiveMandalaSettings;
 
@@ -168,8 +169,7 @@ const resolveGlobalViewPresetId = (value: {
     subgridMaxDepth: SectionRangeLimit;
 }): GlobalViewPresetId =>
     GLOBAL_VIEW_PRESETS.find(
-        (preset) =>
-            preset.id !== 'custom' && viewPresetMatches(preset, value),
+        (preset) => preset.id !== 'custom' && viewPresetMatches(preset, value),
     )?.id ?? 'custom';
 
 const toRangeInputValue = (value: SectionRangeLimit) =>
@@ -242,7 +242,7 @@ export const renderMandalaCoreSettings = ({
             const selected = presetId === currentPresetId;
             const label = button.dataset.label ?? '';
             button.setText(`${selected ? '●' : '○'} ${label}`);
-            button.setCssProps({
+            applyCssProps(button, {
                 border: selected
                     ? '1px solid var(--interactive-accent)'
                     : '1px solid var(--background-modifier-border)',
@@ -298,10 +298,11 @@ export const renderMandalaCoreSettings = ({
         const presetSection = globalViewContainer.createDiv({
             cls: 'mandala-settings-view-presets',
         });
-        presetSection.setCssProps({
+        applyCssProps(presetSection, {
             'margin-bottom': showDescriptions ? '8px' : '4px',
         });
-        presetSection.createDiv({ text: '预设模式' }).setCssProps({
+        const presetTitle = presetSection.createDiv({ text: '预设模式' });
+        applyCssProps(presetTitle, {
             'font-size': 'var(--font-ui-medium)',
             'font-weight': 'var(--font-semibold)',
             'margin-bottom': '8px',
@@ -309,7 +310,7 @@ export const renderMandalaCoreSettings = ({
         const presetGrid = presetSection.createDiv({
             cls: 'mandala-settings-view-presets__grid',
         });
-        presetGrid.setCssProps({
+        applyCssProps(presetGrid, {
             display: 'grid',
             'grid-template-columns': 'repeat(3, minmax(0, 1fr))',
             gap: '6px 8px',
@@ -322,7 +323,7 @@ export const renderMandalaCoreSettings = ({
                 attr: { type: 'button' },
             });
             button.dataset.label = preset.label;
-            button.setCssProps({
+            applyCssProps(button, {
                 'text-align': 'left',
                 padding: '8px 10px',
                 'border-radius': '12px',
@@ -336,9 +337,10 @@ export const renderMandalaCoreSettings = ({
         });
 
         if (showDescriptions) {
-            presetSection.createDiv({
+            const presetHint = presetSection.createDiv({
                 text: '提示：选择预设后，下方参数会自动联动；若手动修改参数，预设自动切换为「自定义」。',
-            }).setCssProps({
+            });
+            applyCssProps(presetHint, {
                 'font-size': 'var(--font-ui-smaller)',
                 color: 'var(--text-muted)',
                 'line-height': '1.45',

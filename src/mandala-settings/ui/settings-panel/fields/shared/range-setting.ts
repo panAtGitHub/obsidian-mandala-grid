@@ -7,6 +7,7 @@ import {
 } from 'obsidian';
 import { lang } from 'src/lang/lang';
 import { Settings } from 'src/mandala-settings/state/settings-type';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 export type RangeInputProps = {
     label: string;
@@ -61,7 +62,7 @@ export const RangeSetting = (
         .addText((cb) => {
             textInput = cb;
             cb.inputEl.type = 'number';
-            cb.inputEl.setCssProps({
+            applyCssProps(cb.inputEl, {
                 width: '60px',
                 'margin-left': '12px',
             });

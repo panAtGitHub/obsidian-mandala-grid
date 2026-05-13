@@ -1,4 +1,5 @@
 import { toPng } from 'html-to-image';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 export const applyInlineStyles = (
     element: HTMLElement,
@@ -26,19 +27,19 @@ export const applyCssVariables = (
     element: HTMLElement,
     vars: Record<string, string>,
 ) => {
-    element.setCssProps(vars);
+    applyCssProps(element, vars);
 };
 
 export const withPrintTarget = (
     target: HTMLElement,
     callback: () => Promise<void>,
 ) => {
-    document.body.classList.add('mandala-print-export');
-    document.body.classList.add('mandala-export-hide-controls');
+    activeDocument.body.classList.add('mandala-print-export');
+    activeDocument.body.classList.add('mandala-export-hide-controls');
     target.classList.add('mandala-print-target');
     return callback().finally(() => {
-        document.body.classList.remove('mandala-print-export');
-        document.body.classList.remove('mandala-export-hide-controls');
+        activeDocument.body.classList.remove('mandala-print-export');
+        activeDocument.body.classList.remove('mandala-export-hide-controls');
         target.classList.remove('mandala-print-target');
     });
 };
@@ -46,11 +47,11 @@ export const withPrintTarget = (
 export const withExportControlsHidden = async (
     callback: () => Promise<void>,
 ) => {
-    document.body.classList.add('mandala-export-hide-controls');
+    activeDocument.body.classList.add('mandala-export-hide-controls');
     try {
         await callback();
     } finally {
-        document.body.classList.remove('mandala-export-hide-controls');
+        activeDocument.body.classList.remove('mandala-export-hide-controls');
     }
 };
 
@@ -63,7 +64,7 @@ export const renderToPNGDataUrl = async (
     },
 ) => {
     const backgroundColor = getComputedStyle(
-        document.documentElement,
+        activeDocument.documentElement,
     ).getPropertyValue('--background-primary');
     const safeBackground =
         backgroundColor && backgroundColor.trim().length > 0

@@ -1,3 +1,5 @@
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
+
 type LongPressOptions = {
     suppressTextSelectionPredicate?: (e: TouchEvent) => boolean;
 };
@@ -9,7 +11,7 @@ export const onLongPress = (
     options?: LongPressOptions,
 ) => {
     const state: {
-        timer: ReturnType<typeof setTimeout> | null;
+        timer: number | null;
         longPress: boolean;
         previousBodyUserSelect: string | null;
         previousBodyWebkitUserSelect: string | null;
@@ -31,18 +33,16 @@ export const onLongPress = (
     const restoreUserSelect = () => {
         if (!options?.suppressTextSelectionPredicate) return;
         if (state.previousBodyUserSelect === null) return;
-        document.body.setCssProps({
+        applyCssProps(activeDocument.body, {
             'user-select': state.previousBodyUserSelect,
             '-webkit-user-select': state.previousBodyWebkitUserSelect ?? '',
-            '-webkit-touch-callout':
-                state.previousBodyWebkitTouchCallout ?? '',
+            '-webkit-touch-callout': state.previousBodyWebkitTouchCallout ?? '',
         });
-        const html = document.documentElement;
-        html.setCssProps({
+        const html = activeDocument.documentElement;
+        applyCssProps(html, {
             'user-select': state.previousHtmlUserSelect ?? '',
             '-webkit-user-select': state.previousHtmlWebkitUserSelect ?? '',
-            '-webkit-touch-callout':
-                state.previousHtmlWebkitTouchCallout ?? '',
+            '-webkit-touch-callout': state.previousHtmlWebkitTouchCallout ?? '',
         });
         state.previousBodyUserSelect = null;
         state.previousBodyWebkitUserSelect = null;
@@ -69,37 +69,40 @@ export const onLongPress = (
         }
         clearSelection();
         restoreUserSelect();
-        if (state.timer) clearTimeout(state.timer);
+        if (state.timer) window.clearTimeout(state.timer);
     };
 
     const onTouchStart = (e: TouchEvent) => {
-        if (state.timer) clearTimeout(state.timer);
+        if (state.timer) window.clearTimeout(state.timer);
         if (options?.suppressTextSelectionPredicate?.(e)) {
-            state.previousBodyUserSelect = document.body.style.userSelect || '';
+            state.previousBodyUserSelect =
+                activeDocument.body.style.userSelect || '';
             state.previousBodyWebkitUserSelect =
-                document.body.style.getPropertyValue('-webkit-user-select') ||
-                '';
+                activeDocument.body.style.getPropertyValue(
+                    '-webkit-user-select',
+                ) || '';
             state.previousBodyWebkitTouchCallout =
-                document.body.style.getPropertyValue('-webkit-touch-callout') ||
-                '';
-            const html = document.documentElement;
+                activeDocument.body.style.getPropertyValue(
+                    '-webkit-touch-callout',
+                ) || '';
+            const html = activeDocument.documentElement;
             state.previousHtmlUserSelect = html.style.userSelect || '';
             state.previousHtmlWebkitUserSelect =
                 html.style.getPropertyValue('-webkit-user-select') || '';
             state.previousHtmlWebkitTouchCallout =
                 html.style.getPropertyValue('-webkit-touch-callout') || '';
-            document.body.setCssProps({
+            applyCssProps(activeDocument.body, {
                 'user-select': 'none',
                 '-webkit-user-select': 'none',
                 '-webkit-touch-callout': 'none',
             });
-            html.setCssProps({
+            applyCssProps(html, {
                 'user-select': 'none',
                 '-webkit-user-select': 'none',
                 '-webkit-touch-callout': 'none',
             });
         }
-        state.timer = setTimeout(() => {
+        state.timer = window.setTimeout(() => {
             state.longPress = true;
             clearSelection();
             callback(e);

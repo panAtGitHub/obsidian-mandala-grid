@@ -101,7 +101,7 @@ export const exportCurrentViewPng = async ({
         }
 
         loadingNotice.hide();
-        const link = document.createElement('a');
+        const link = activeDocument.createElement('a');
         link.href = dataUrl;
         link.download = defaultName;
         link.click();
@@ -123,12 +123,12 @@ export const exportCurrentViewPng = async ({
         const tx = (canvasSize - sourceWidth * scale) / 2;
         const ty = (canvasSize - sourceHeight * scale) / 2;
         const cssVars = collectCssVariables([
-            document.documentElement,
+            activeDocument.documentElement,
             view.containerEl,
             source,
         ]);
 
-        const wrapper = document.createElement('div');
+        const wrapper = activeDocument.createElement('div');
         applyCssVariables(wrapper, cssVars);
         if (borderColor.trim().length > 0) {
             applyInlineStyles(wrapper, {
@@ -146,7 +146,7 @@ export const exportCurrentViewPng = async ({
             pointerEvents: 'none',
             overflow: 'hidden',
             background: getComputedStyle(
-                document.documentElement,
+                activeDocument.documentElement,
             ).getPropertyValue('--background-primary'),
             boxSizing: 'border-box',
         });
@@ -168,7 +168,7 @@ export const exportCurrentViewPng = async ({
         });
 
         wrapper.appendChild(clone);
-        document.body.appendChild(wrapper);
+        activeDocument.body.appendChild(wrapper);
 
         return {
             element: wrapper,
@@ -185,7 +185,9 @@ export const exportCurrentViewPng = async ({
         if (!includeSidebarInPngScreen) {
             return view.contentEl.querySelector<HTMLElement>('.mandala-scroll');
         }
-        return view.contentEl.querySelector<HTMLElement>('.mandala-content-wrapper');
+        return view.contentEl.querySelector<HTMLElement>(
+            '.mandala-content-wrapper',
+        );
     };
 
     const target = getExportTarget();

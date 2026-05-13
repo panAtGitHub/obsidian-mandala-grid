@@ -23,8 +23,8 @@ export const createViewOptionsExportModalState = ({
     };
 
     const getExportModalSafeTop = () => {
-        const rootStyles = getComputedStyle(document.documentElement);
-        const bodyStyles = getComputedStyle(document.body);
+        const rootStyles = getComputedStyle(activeDocument.documentElement);
+        const bodyStyles = getComputedStyle(activeDocument.body);
         const headerHeight = Math.max(
             readCssLengthVar(rootStyles, '--header-height'),
             readCssLengthVar(bodyStyles, '--header-height'),
@@ -50,7 +50,7 @@ export const createViewOptionsExportModalState = ({
     };
 
     const getPointer = (event: MouseEvent | TouchEvent) => {
-        if (event instanceof MouseEvent) {
+        if (event.instanceOf(MouseEvent)) {
             return { x: event.clientX, y: event.clientY };
         }
         if (event.touches.length > 0) {
@@ -68,7 +68,10 @@ export const createViewOptionsExportModalState = ({
             const initialWidth = Math.min(420, window.innerWidth - 24);
             const initialTop = getExportModalSafeTop();
             position.set(
-                clampPosition(window.innerWidth - initialWidth - 16, initialTop),
+                clampPosition(
+                    window.innerWidth - initialWidth - 16,
+                    initialTop,
+                ),
             );
             dragOffset.set(null);
             dragCandidate.set(null);
@@ -92,12 +95,16 @@ export const createViewOptionsExportModalState = ({
             isExportModeModalOpen: boolean,
         ) {
             if (isMobile || !isExportModeModalOpen) return;
-            if (event instanceof MouseEvent && event.button !== 0) return;
+            if (event.instanceOf(MouseEvent) && event.button !== 0) return;
             const target = event.target;
-            if (!(target instanceof HTMLElement)) return;
+            if (!(target instanceof Node) || !target.instanceOf(HTMLElement)) {
+                return;
+            }
             if (target.closest('.view-options-menu__close')) return;
             const modal = target.closest('.export-mode-modal');
-            if (!(modal instanceof HTMLElement)) return;
+            if (!(modal instanceof Node) || !modal.instanceOf(HTMLElement)) {
+                return;
+            }
             const pointer = getPointer(event);
             if (!pointer) return;
 
@@ -113,7 +120,7 @@ export const createViewOptionsExportModalState = ({
             isExportModeModalOpen: boolean,
         ) {
             if (isMobile || !isExportModeModalOpen) return;
-            if (event instanceof MouseEvent && event.buttons !== 1) return;
+            if (event.instanceOf(MouseEvent) && event.buttons !== 1) return;
             const pointer = getPointer(event);
             if (!pointer) return;
 

@@ -47,7 +47,7 @@ export const copyLinkToHeading = async (
     const isEditing = Boolean(viewState.document.editing.activeNodeId);
     if (isEditing) {
         saveNodeContent(view);
-        setTimeout(() => {
+        window.setTimeout(() => {
             void copyLinkToHeading(view, activeNode, options);
         }, 100);
         return;

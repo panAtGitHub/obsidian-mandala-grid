@@ -19,16 +19,13 @@ type ExportCurrentViewPdfArgs = {
     closeExportMode: () => void;
 };
 
-const createPdfPrintHost = (
-    sourceRoot: HTMLElement,
-    view: MandalaView,
-) => {
+const createPdfPrintHost = (sourceRoot: HTMLElement, view: MandalaView) => {
     const sourceView = sourceRoot.closest<HTMLElement>('.mandala-view');
-    const host = document.createElement('div');
+    const host = activeDocument.createElement('div');
     host.className = 'mandala-pdf-print-host';
 
     const cssVars = collectCssVariables([
-        document.documentElement,
+        activeDocument.documentElement,
         view.containerEl,
         sourceView ?? sourceRoot,
         sourceRoot,
@@ -38,7 +35,7 @@ const createPdfPrintHost = (
         display: 'block',
         boxSizing: 'border-box',
         background: getComputedStyle(
-            document.documentElement,
+            activeDocument.documentElement,
         ).getPropertyValue('--background-primary'),
     });
 
@@ -55,7 +52,7 @@ const createPdfPrintHost = (
     });
 
     host.appendChild(clone);
-    document.body.appendChild(host);
+    activeDocument.body.appendChild(host);
 
     return {
         host,
@@ -77,7 +74,8 @@ export const exportCurrentViewPdf = async ({
     }
 
     const loadingNotice = new Notice('正在导出 PDF...', 0);
-    const sourceRoot = view.contentEl.querySelector<HTMLElement>('.mandala-root');
+    const sourceRoot =
+        view.contentEl.querySelector<HTMLElement>('.mandala-root');
     if (!sourceRoot) {
         loadingNotice.hide();
         new Notice('未找到可导出的视图区域。');

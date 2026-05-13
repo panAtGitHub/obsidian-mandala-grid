@@ -6,6 +6,7 @@ import {
     normalizeCharsCount,
     StatusSummary,
 } from 'src/obsidian/status-bar/helpers/status-bar-summary';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 const STATUS_BAR_UPDATE_DELAY_MS = 120;
 
@@ -31,7 +32,7 @@ export class StatusBar {
             // numberOfChildren: this.container.createDiv(),
             documentProgress: this.container.createDiv(),
         };
-        this.elements.numberOfCards.setCssProps({ 'margin-right': '5px' });
+        applyCssProps(this.elements.numberOfCards, { 'margin-right': '5px' });
         // this.elements.numberOfChildren.style.marginRight = '5px';
         this.elements.documentProgress.ariaLabel =
             'Progress through the document';
@@ -74,13 +75,16 @@ export class StatusBar {
 
         const activeNode = view.viewStore.getValue().document.activeNode;
         const activeText =
-            view.documentStore.getValue().document.content[activeNode]?.content ?? '';
+            view.documentStore.getValue().document.content[activeNode]
+                ?.content ?? '';
         const nextSummary: StatusSummary = {
             ...cached,
             currentSectionChars: normalizeCharsCount(activeText),
         };
         this.summaryByPath.set(path, nextSummary);
-        this.elements.documentProgress.setText(formatStatusBarText(nextSummary));
+        this.elements.documentProgress.setText(
+            formatStatusBarText(nextSummary),
+        );
     };
 
     scheduleSummaryRefresh = (view: MandalaView) => {
@@ -117,5 +121,5 @@ export class StatusBar {
         if (requestId !== this.refreshRequestId) return;
         this.summaryByPath.set(path, result);
         this.elements.documentProgress.setText(formatStatusBarText(result));
-    };
+    }
 }

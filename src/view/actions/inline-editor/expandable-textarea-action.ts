@@ -1,3 +1,5 @@
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
+
 const deletionKeys = new Set(['Backspace', 'Delete', 'x', ' ']);
 
 type ExpandableTextareaRuntime = {
@@ -19,15 +21,15 @@ export const createAdjustHeight = (
         }
 
         if (!x) return;
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             const scrollHeight = x.scrollHeight;
             const scrollHeightChange =
                 scrollHeight > 100 && scrollHeight !== previousScrollHeight;
             if (scrollHeightChange || (e && deletionKeys.has(e.key))) {
-                x.setCssProps({ height: 'auto' });
+                applyCssProps(x, { height: 'auto' });
                 previousScrollHeight = x.scrollHeight;
-                el.setCssProps({ height: previousScrollHeight + 'px' });
-                x.setCssProps({ height: '' });
+                applyCssProps(el, { height: previousScrollHeight + 'px' });
+                applyCssProps(x, { height: '' });
                 if (
                     !runtime.isEditingInSidebar() &&
                     runtime.shouldLimitCardHeight() &&

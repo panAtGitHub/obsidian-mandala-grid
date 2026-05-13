@@ -3,11 +3,11 @@ export const delay = async (
     signal?: AbortSignal,
 ): Promise<void> => {
     return new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve(), milliseconds);
+        const timeout = window.setTimeout(() => resolve(), milliseconds);
 
         if (signal) {
             signal.addEventListener('abort', () => {
-                clearTimeout(timeout);
+                window.clearTimeout(timeout);
                 resolve();
             });
         }

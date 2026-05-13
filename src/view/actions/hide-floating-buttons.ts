@@ -3,10 +3,10 @@ const toggleHideButtons = (element: HTMLElement, hide: boolean) => {
 };
 
 export const hideFloatingButtons = (element: HTMLElement) => {
-    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    let timeoutHandle: number | null = null;
     let hidden = false;
     const delayedHideButtons = () => {
-        timeoutHandle = setTimeout(() => {
+        timeoutHandle = window.setTimeout(() => {
             if (!hidden) {
                 toggleHideButtons(element, true);
                 hidden = true;
@@ -15,7 +15,7 @@ export const hideFloatingButtons = (element: HTMLElement) => {
     };
 
     const resetHideButtons = () => {
-        if (timeoutHandle) clearTimeout(timeoutHandle);
+        if (timeoutHandle) window.clearTimeout(timeoutHandle);
         if (hidden) {
             toggleHideButtons(element, false);
             hidden = false;

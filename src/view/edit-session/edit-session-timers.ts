@@ -5,12 +5,12 @@ type TrailingTimer = {
 };
 
 export const createTrailingTimer = (delayMs: number): TrailingTimer => {
-    let handle: ReturnType<typeof globalThis.setTimeout> | null = null;
+    let handle: number | null = null;
     let pending: (() => void) | null = null;
 
     const cancel = () => {
         if (handle !== null) {
-            globalThis.clearTimeout(handle);
+            window.clearTimeout(handle);
             handle = null;
         }
         pending = null;
@@ -20,9 +20,9 @@ export const createTrailingTimer = (delayMs: number): TrailingTimer => {
         schedule: (callback) => {
             pending = callback;
             if (handle !== null) {
-                globalThis.clearTimeout(handle);
+                window.clearTimeout(handle);
             }
-            handle = globalThis.setTimeout(() => {
+            handle = window.setTimeout(() => {
                 handle = null;
                 const next = pending;
                 pending = null;
@@ -31,7 +31,7 @@ export const createTrailingTimer = (delayMs: number): TrailingTimer => {
         },
         flush: () => {
             if (handle !== null) {
-                globalThis.clearTimeout(handle);
+                window.clearTimeout(handle);
                 handle = null;
             }
             const next = pending;

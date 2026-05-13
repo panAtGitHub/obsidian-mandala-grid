@@ -12,6 +12,7 @@ import type {
     DayPlanDateHeadingFormat,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 export type DayPlanSlotsSyncMode =
     | 'all-existing'
@@ -32,8 +33,7 @@ export type DayPlanWizardStepResult<T> =
     | { action: 'back' }
     | { action: 'cancel' };
 
-const DAY_PLAN_WIZARD_NOTE =
-    '备注：创建后仍可在当前文件设置中调整这些参数。';
+const DAY_PLAN_WIZARD_NOTE = '备注：创建后仍可在当前文件设置中调整这些参数。';
 
 export const openDayPlanConfirmModal = (
     plugin: MandalaGrid,
@@ -127,9 +127,10 @@ class DayPlanConfirmModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         this.setTitle(this.options.title);
-        contentEl
-            .createEl('p', { text: this.options.message })
-            .setCssProps({ 'white-space': 'pre-wrap' });
+        const messageEl = contentEl.createEl('p', {
+            text: this.options.message,
+        });
+        applyCssProps(messageEl, { 'white-space': 'pre-wrap' });
 
         new Setting(contentEl).addButton((button) => {
             button
@@ -281,14 +282,18 @@ class DayPlanDisplayOptionsModal extends Modal {
                     >)
                     .setValue(this.dateHeadingFormat)
                     .onChange((value) => {
-                        this.dateHeadingFormat =
-                            value as Exclude<DayPlanDateHeadingFormat, 'custom'>;
+                        this.dateHeadingFormat = value as Exclude<
+                            DayPlanDateHeadingFormat,
+                            'custom'
+                        >;
                         renderPreview();
                     });
             });
         const headingPreviewEl = createPreviewPill(dateHeadingSetting.descEl);
         const renderPreview = () => {
-            weekPreviewEl.setText(`预览：${buildWeekStartPreview(this.weekStart)}`);
+            weekPreviewEl.setText(
+                `预览：${buildWeekStartPreview(this.weekStart)}`,
+            );
             headingPreviewEl.setText(
                 `预览：${buildDateHeadingPreview(sampleDate, this.dateHeadingFormat)}`,
             );
@@ -362,7 +367,9 @@ class DayPlanDailySetupModal extends Modal {
 
         new Setting(contentEl)
             .setName('1）「日计划」视图页')
-            .setDesc('提示：每日计划默认为 3x3 九宫格视图，不展开更深层的子九宫；默认关闭9x9视图。');
+            .setDesc(
+                '提示：每日计划默认为 3x3 九宫格视图，不展开更深层的子九宫；默认关闭9x9视图。',
+            );
 
         const sourceOptions: Record<string, string> = {};
         if (this.templates.length > 0) {
@@ -389,7 +396,7 @@ class DayPlanDailySetupModal extends Modal {
         const sourceDetailEl = sourceSetting.descEl.createDiv({
             cls: 'mandala-day-plan-wizard__preview-card',
         });
-        sourceDetailEl.setCssProps({
+        applyCssProps(sourceDetailEl, {
             'margin-top': '8px',
             padding: '10px 12px',
             'border-radius': '12px',
@@ -420,7 +427,7 @@ class DayPlanDailySetupModal extends Modal {
         const templatePreviewEl = templateSetting.descEl.createDiv({
             cls: 'mandala-day-plan-wizard__preview-card',
         });
-        templatePreviewEl.setCssProps({
+        applyCssProps(templatePreviewEl, {
             'margin-top': '8px',
             padding: '10px 12px',
             'border-radius': '12px',
@@ -435,7 +442,7 @@ class DayPlanDailySetupModal extends Modal {
             element: HTMLElement,
             display: '' | 'none',
         ) => {
-            element.setCssProps({
+            applyCssProps(element, {
                 display,
             });
         };
@@ -501,7 +508,9 @@ class DayPlanDailySetupModal extends Modal {
         this.contentEl.empty();
     }
 
-    private resolveOnce(value: DayPlanWizardStepResult<DayPlanDailySetupValue>) {
+    private resolveOnce(
+        value: DayPlanWizardStepResult<DayPlanDailySetupValue>,
+    ) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);
@@ -676,8 +685,24 @@ const buildDateHeadingPreview = (
     });
 
 const buildWeekStartPreview = (weekStart: WeekStart) => {
-    const mondayStart = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    const sundayStart = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const mondayStart = [
+        '周一',
+        '周二',
+        '周三',
+        '周四',
+        '周五',
+        '周六',
+        '周日',
+    ];
+    const sundayStart = [
+        '周日',
+        '周一',
+        '周二',
+        '周三',
+        '周四',
+        '周五',
+        '周六',
+    ];
     return (weekStart === 'monday' ? mondayStart : sundayStart).join(' | ');
 };
 
@@ -700,7 +725,10 @@ const normalizeSlotsSource = (
     return source;
 };
 
-const normalizeTemplateIndex = (index: number | null, templateCount: number) => {
+const normalizeTemplateIndex = (
+    index: number | null,
+    templateCount: number,
+) => {
     if (templateCount === 0) {
         return null;
     }
@@ -714,8 +742,10 @@ const formatSlotsPreview = (slots: readonly string[]) =>
     slots.map((slot, index) => `${index + 1}. ${slot}`).join('\n');
 
 const createPreviewPill = (parent: HTMLElement) => {
-    const pill = parent.createDiv({ cls: 'mandala-day-plan-wizard__preview-pill' });
-    pill.setCssProps({
+    const pill = parent.createDiv({
+        cls: 'mandala-day-plan-wizard__preview-pill',
+    });
+    applyCssProps(pill, {
         display: 'flex',
         'align-items': 'center',
         width: 'fit-content',
@@ -740,7 +770,7 @@ const appendWizardActions = (
     },
 ) => {
     const row = new Setting(contentEl);
-    row.settingEl.setCssProps({
+    applyCssProps(row.settingEl, {
         'border-top': 'none',
         'padding-top': '0',
     });

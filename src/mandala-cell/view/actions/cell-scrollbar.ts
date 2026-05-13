@@ -28,7 +28,9 @@ const normalizeOptions = (
 
 export const hideIdleScrollbar = (
     element: HTMLElement,
-    options: HideIdleScrollbarOptions | CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE,
+    options:
+        | HideIdleScrollbarOptions
+        | CellScrollbarMode = DEFAULT_CELL_SCROLLBAR_MODE,
 ) => {
     const { mode, enabled } = normalizeOptions(options);
 
@@ -38,7 +40,7 @@ export const hideIdleScrollbar = (
         };
     }
 
-    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    let timeoutHandle: number | null = null;
     const hasIdleDelay = IDLE_HIDE_MS > 0;
     let pointerInside = false;
     let lastDirectScrollAt = 0;
@@ -46,7 +48,7 @@ export const hideIdleScrollbar = (
 
     const clearHideTimer = () => {
         if (!timeoutHandle) return;
-        clearTimeout(timeoutHandle);
+        window.clearTimeout(timeoutHandle);
         timeoutHandle = null;
     };
 
@@ -58,7 +60,7 @@ export const hideIdleScrollbar = (
         if (mode !== 'interaction') return;
         if (!hasIdleDelay) return;
         clearHideTimer();
-        timeoutHandle = setTimeout(hideScrollbar, IDLE_HIDE_MS);
+        timeoutHandle = window.setTimeout(hideScrollbar, IDLE_HIDE_MS);
     };
 
     const revealScrollbar = () => {

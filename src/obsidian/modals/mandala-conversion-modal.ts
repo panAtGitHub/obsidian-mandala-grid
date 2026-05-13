@@ -1,5 +1,6 @@
 import { Modal, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 export type MandalaConversionChoice = 'convert' | 'cancel';
 
@@ -36,18 +37,20 @@ class MandalaConversionModal extends Modal {
         const { title, message } = this.options;
         this.setTitle(title);
         contentEl.empty();
-        contentEl
-            .createEl('p', { text: message })
-            .setCssProps({ 'white-space': 'pre-wrap' });
+        const messageEl = contentEl.createEl('p', { text: message });
+        applyCssProps(messageEl, { 'white-space': 'pre-wrap' });
 
         const confirmText = this.options.confirmText ?? '转换';
         const cancelText = this.options.cancelText ?? '取消';
 
         new Setting(contentEl).addButton((button) => {
-            button.setButtonText(confirmText).setCta().onClick(() => {
-                this.resolveOnce('convert');
-                this.close();
-            });
+            button
+                .setButtonText(confirmText)
+                .setCta()
+                .onClick(() => {
+                    this.resolveOnce('convert');
+                    this.close();
+                });
         });
         new Setting(contentEl).addButton((button) => {
             button.setButtonText(cancelText).onClick(() => {

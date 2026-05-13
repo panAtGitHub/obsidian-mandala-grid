@@ -18,16 +18,22 @@ import { FeaturesGeneral } from 'src/mandala-settings/ui/settings-panel/fields/f
 import { DayWeekPlanSettings } from 'src/mandala-settings/ui/settings-panel/fields/day-week-plan/day-week-plan';
 import { MandalaView } from 'src/view/view';
 import { lang } from 'src/lang/lang';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
-export type SettingsTab = 'General' | 'Appearance' | 'Layout' | 'Features' | 'Day/Week Plan';
+export type SettingsTab =
+    | 'General'
+    | 'Appearance'
+    | 'Layout'
+    | 'Features'
+    | 'Day/Week Plan';
 type Tab = { element: HTMLDivElement; name: SettingsTab };
 
 const setVisibleTab = (tabs: Tab[], activeTab: SettingsTab) => {
     for (const tab of tabs) {
         if (tab.name === activeTab) {
-            tab.element.setCssProps({ visibility: 'visible' });
+            applyCssProps(tab.element, { visibility: 'visible' });
         } else {
-            tab.element.setCssProps({ visibility: 'hidden' });
+            applyCssProps(tab.element, { visibility: 'hidden' });
         }
     }
 };
@@ -120,7 +126,13 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     // ── Day/Week Plan Tab ──
     DayWeekPlanSettings(dayWeekPlanTab, settingsStore);
 
-    element.append(generalTab, appearanceTab, layoutTab, featuresTab, dayWeekPlanTab);
+    element.append(
+        generalTab,
+        appearanceTab,
+        layoutTab,
+        featuresTab,
+        dayWeekPlanTab,
+    );
 };
 
 export const renderSettings = (element: HTMLElement, tab: SettingsTab) => {

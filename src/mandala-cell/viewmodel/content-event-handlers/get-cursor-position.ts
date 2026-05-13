@@ -2,7 +2,7 @@ export const getCursorPosition = (
     markdownText: string,
     event: MouseEvent,
 ): { line: number; ch: number } | null => {
-    const docWithCaret = document as Document & {
+    const docWithCaret = activeDocument as Document & {
         caretPositionFromPoint?: (
             x: number,
             y: number,

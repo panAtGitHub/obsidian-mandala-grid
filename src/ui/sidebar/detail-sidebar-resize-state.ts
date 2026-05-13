@@ -1,4 +1,5 @@
 import { get, writable } from 'svelte/store';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 export const createDetailSidebarResizeState = ({
     isMobile,
@@ -23,7 +24,7 @@ export const createDetailSidebarResizeState = ({
         isResizing.set(false);
         contentEl?.removeEventListener('mousemove', onResize);
         contentEl?.removeEventListener('mouseup', stopResize);
-        document.body.setCssProps({ cursor: '' });
+        applyCssProps(activeDocument.body, { cursor: '' });
 
         const nextSize = Math.max(minSize, get(animatedSize));
         animatedSize.set(nextSize);
@@ -74,7 +75,7 @@ export const createDetailSidebarResizeState = ({
             startSize = get(animatedSize);
             options.contentEl.addEventListener('mousemove', onResize);
             options.contentEl.addEventListener('mouseup', stopResize);
-            document.body.setCssProps({
+            applyCssProps(activeDocument.body, {
                 cursor: options.isPortrait ? 'row-resize' : 'col-resize',
             });
             event.preventDefault();

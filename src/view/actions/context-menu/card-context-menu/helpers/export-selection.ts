@@ -15,7 +15,7 @@ export const exportSelection = async (
     const isEditing = Boolean(viewState.document.editing.activeNodeId);
     if (isEditing) {
         saveNodeContent(view);
-        setTimeout(() => {
+        window.setTimeout(() => {
             void exportSelection(view, includeSubItems);
         }, 100);
         return;

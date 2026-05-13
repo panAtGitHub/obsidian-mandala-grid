@@ -6,12 +6,12 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number,
 ): DebounceFunction<T> => {
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let timeoutId: number | null = null;
 
     return (...args: Parameters<T>) => {
-        if (timeoutId) clearTimeout(timeoutId);
+        if (timeoutId) window.clearTimeout(timeoutId);
 
-        timeoutId = setTimeout(() => {
+        timeoutId = window.setTimeout(() => {
             func(...args);
         }, delay);
     };

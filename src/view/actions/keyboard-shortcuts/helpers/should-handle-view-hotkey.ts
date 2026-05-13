@@ -11,34 +11,35 @@ const isEditableTarget = (target: HTMLElement) =>
 
 const resolveEventTarget = (event: KeyboardEvent): HTMLElement | null => {
     const directTarget = event.target;
-    if (directTarget instanceof HTMLElement) {
+    if (directTarget instanceof Node && directTarget.instanceOf(HTMLElement)) {
         return directTarget;
     }
 
     const path = event.composedPath();
     const pathTarget = path.find(
-        (value): value is HTMLElement => value instanceof HTMLElement,
+        (value): value is HTMLElement =>
+            value instanceof Node && value.instanceOf(HTMLElement),
     );
     if (pathTarget) {
         return pathTarget;
     }
 
-    return document.activeElement instanceof HTMLElement
-        ? document.activeElement
+    return activeDocument.activeElement?.instanceOf(HTMLElement)
+        ? activeDocument.activeElement
         : null;
 };
 
 export const shouldHandleViewHotkey = (event: KeyboardEvent): boolean => {
     const target = resolveEventTarget(event);
     if (!target) {
-        return !document.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR);
+        return !activeDocument.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR);
     }
 
     if (isEditableTarget(target)) {
         return false;
     }
 
-    if (document.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR)) {
+    if (activeDocument.querySelector(ACTIVE_SEARCH_NAVIGATION_SELECTOR)) {
         return false;
     }
 

@@ -5,13 +5,13 @@ import { getView } from 'src/mandala-scenes/shared/shell/context';
 
 export const scrollActivePinnedNode = (containerRef: HTMLElement) => {
     const view = getView();
-    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let timeout: number | null = null;
 
     const activePinnedCardStore = ActivePinnedCardStore(view);
     const activePinnedNodeSub = activePinnedCardStore.subscribe(
         (activeNodeId) => {
-            if (timeout) clearTimeout(timeout);
-            timeout = setTimeout(() => {
+            if (timeout) window.clearTimeout(timeout);
+            timeout = window.setTimeout(() => {
                 if (!containerRef) return;
                 if (!activeNodeId) return;
                 scrollCardIntoView(containerRef, activeNodeId);
@@ -21,8 +21,8 @@ export const scrollActivePinnedNode = (containerRef: HTMLElement) => {
 
     const pinnedNodesStore = PinnedNodesStore(view);
     const pinnedNodesSub = pinnedNodesStore.subscribe(() => {
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => {
+        if (timeout) window.clearTimeout(timeout);
+        timeout = window.setTimeout(() => {
             if (!containerRef) return;
             const activeNodeId =
                 view.viewStore.getValue().pinnedNodes.activeNode;

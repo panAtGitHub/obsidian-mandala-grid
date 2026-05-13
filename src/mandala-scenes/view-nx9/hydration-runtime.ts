@@ -1,9 +1,9 @@
-import { collectNx9HydratableNodeIds, type Nx9PageFrameRowViewModel } from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
+import {
+    collectNx9HydratableNodeIds,
+    type Nx9PageFrameRowViewModel,
+} from 'src/mandala-scenes/view-nx9/assemble-cell-view-model';
 
-type PerfLogger = (
-    eventName: string,
-    payload: Record<string, unknown>,
-) => void;
+type PerfLogger = (eventName: string, payload: Record<string, unknown>) => void;
 
 type FrameScheduler = (callback: () => void) => void;
 
@@ -38,7 +38,8 @@ export const resolveNx9FutureScale = (rowCount: number) =>
 
 export const createNx9HydrationRuntime = ({
     recordPerfEvent,
-    scheduleFrame = (callback) => requestAnimationFrame(() => callback()),
+    scheduleFrame = (callback) =>
+        window.requestAnimationFrame(() => callback()),
     onHydrationChange,
 }: {
     recordPerfEvent?: PerfLogger;

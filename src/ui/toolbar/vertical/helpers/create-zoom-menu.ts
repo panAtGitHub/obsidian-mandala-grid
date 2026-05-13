@@ -4,6 +4,7 @@ import { Menu, MenuItem } from 'obsidian';
 import { MandalaView } from 'src/view/view';
 import { fitDocumentHeightIntoView } from 'src/ui/toolbar/vertical/helpers/fit-document-height-into-view';
 import { fitBranchIntoView } from 'src/ui/toolbar/vertical/helpers/fit-branch-into-view';
+import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
 type State = {
     menuHeight: number;
@@ -113,7 +114,7 @@ export const createZoomMenu = (props: Props) => {
                 });
             }
         });
-        menuDom.setCssProps({ width: '220px' });
+        applyCssProps(menuDom, { width: '220px' });
     }
 
     if (menuDom && !props.state.menuHeight) {

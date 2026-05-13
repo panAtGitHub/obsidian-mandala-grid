@@ -20,6 +20,6 @@ const processStaleDocuments = (plugin: MandalaGrid) => {
 
 export const removeStaleDocuments = (plugin: MandalaGrid) => {
     plugin.registerTimeout(
-        setTimeout(() => processStaleDocuments(plugin), 1000 * 60 * 5),
+        window.setTimeout(() => processStaleDocuments(plugin), 1000 * 60 * 5),
     );
 };

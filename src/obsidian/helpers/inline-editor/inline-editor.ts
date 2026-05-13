@@ -84,7 +84,8 @@ export class InlineEditor {
         const content =
             this.view.documentStore.getValue().document.content[nodeId]
                 ?.content ?? '';
-        const isInSidebar = this.view.viewStore.getValue().document.editing.isInSidebar;
+        const isInSidebar =
+            this.view.viewStore.getValue().document.editing.isInSidebar;
 
         if (currentNodeId && currentNodeId !== nodeId) {
             this.view.editSession.updateBuffer(this.getContent());
@@ -113,12 +114,12 @@ export class InlineEditor {
         this.restoreCursor();
         this.lockFile();
         this.fixVimWhenZooming();
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             if (this.target === target && this.nodeId === nodeId) {
                 this.inlineView.editor.refresh();
             }
         });
-        setTimeout(() => resolve(), Math.max(16, content.length / 60));
+        window.setTimeout(() => resolve(), Math.max(16, content.length / 60));
     }
 
     focus = () => {
@@ -186,7 +187,7 @@ export class InlineEditor {
     async onload() {
         const workspace = this.view.plugin.app.workspace;
 
-        this.containerEl = document.createElement('div');
+        this.containerEl = activeDocument.createElement('div');
         this.containerEl.addClasses(['mandala-inline-editor']);
         this.inlineView = new MarkdownView({
             containerEl: this.containerEl,
@@ -235,7 +236,8 @@ export class InlineEditor {
     }
 
     private setActiveEditor = () => {
-        const workspace = this.view.plugin.app.workspace as typeof this.view.plugin.app.workspace & {
+        const workspace = this.view.plugin.app
+            .workspace as typeof this.view.plugin.app.workspace & {
             _activeEditor?: InlineMarkdownView | null;
         };
         workspace.activeEditor = this.inlineView;
@@ -287,7 +289,8 @@ export class InlineEditor {
 
     private detachTarget() {
         if (!this.target) return;
-        const workspace = this.view.plugin.app.workspace as typeof this.view.plugin.app.workspace & {
+        const workspace = this.view.plugin.app
+            .workspace as typeof this.view.plugin.app.workspace & {
             _activeEditor?: InlineMarkdownView | null;
         };
         workspace.activeEditor = null;

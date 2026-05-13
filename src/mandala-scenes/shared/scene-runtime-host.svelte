@@ -44,7 +44,7 @@
 
     const waitForNextPaint = () =>
         new Promise<void>((resolve) => {
-            requestAnimationFrame(() => resolve());
+            window.requestAnimationFrame(() => resolve());
         });
 
     const commitProjection = async () => {

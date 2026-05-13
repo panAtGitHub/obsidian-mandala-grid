@@ -31,9 +31,7 @@ export const createMobileEditorViewportController = () => {
         height.set(vv.height);
         offsetTop.set(vv.offsetTop);
         bottomInset.set(nextBottomInset);
-        keyboardFallback.set(
-            isFocused && !viewportReportedKeyboard ? 280 : 0,
-        );
+        keyboardFallback.set(isFocused && !viewportReportedKeyboard ? 280 : 0);
     };
 
     const getActiveCursorRect = (): DOMRect | null => {
@@ -74,7 +72,9 @@ export const createMobileEditorViewportController = () => {
         if (!cursorRect) return;
         const vv = window.visualViewport;
         const visibleTop = vv ? vv.offsetTop : 0;
-        const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+        const visibleBottom = vv
+            ? vv.offsetTop + vv.height
+            : window.innerHeight;
         const topLimit = visibleTop + 8;
         const bottomLimit = visibleBottom - 12;
         if (cursorRect.bottom > bottomLimit) {
@@ -104,7 +104,7 @@ export const createMobileEditorViewportController = () => {
         editorBodyEl.addEventListener('compositionend', onEditorActivity);
         editorBodyEl.addEventListener('touchend', onEditorActivity);
         editorBodyEl.addEventListener('click', onEditorActivity);
-        document.addEventListener('selectionchange', onEditorActivity);
+        activeDocument.addEventListener('selectionchange', onEditorActivity);
         window.visualViewport?.addEventListener('resize', onEditorActivity);
         window.visualViewport?.addEventListener('scroll', onEditorActivity);
         scheduleEnsureCursorVisible();
@@ -117,7 +117,10 @@ export const createMobileEditorViewportController = () => {
             );
             editorBodyEl?.removeEventListener('touchend', onEditorActivity);
             editorBodyEl?.removeEventListener('click', onEditorActivity);
-            document.removeEventListener('selectionchange', onEditorActivity);
+            activeDocument.removeEventListener(
+                'selectionchange',
+                onEditorActivity,
+            );
             window.visualViewport?.removeEventListener(
                 'resize',
                 onEditorActivity,
@@ -161,7 +164,10 @@ export const createMobileEditorViewportController = () => {
                 'scroll',
                 updateVisualViewport,
             );
-            window.removeEventListener('orientationchange', updateVisualViewport);
+            window.removeEventListener(
+                'orientationchange',
+                updateVisualViewport,
+            );
         },
         sync(nextIsEditing: boolean, nextEditorBodyEl: HTMLDivElement | null) {
             isEditing = nextIsEditing;
@@ -180,7 +186,9 @@ export const createMobileEditorViewportController = () => {
         },
         handleFocusOut() {
             window.setTimeout(() => {
-                isFocused = Boolean(editorBodyEl?.contains(document.activeElement));
+                isFocused = Boolean(
+                    editorBodyEl?.contains(activeDocument.activeElement),
+                );
                 updateVisualViewport();
             }, 0);
         },

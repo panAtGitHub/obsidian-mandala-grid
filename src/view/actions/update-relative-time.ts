@@ -1,7 +1,7 @@
 import { relativeTime } from 'src/shared/helpers/relative-time';
 
 export const updateRelativeTime = (element: HTMLElement) => {
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
         const children = Array.from(
             element.querySelectorAll<HTMLElement>('[data-created]'),
         );
@@ -17,7 +17,7 @@ export const updateRelativeTime = (element: HTMLElement) => {
     }, 30 * 1000);
     return {
         destroy: () => {
-            clearInterval(interval);
+            window.clearInterval(interval);
         },
     };
 };

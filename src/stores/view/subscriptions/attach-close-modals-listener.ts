@@ -19,7 +19,7 @@ export const attachCloseModalsListener = (view: MandalaView) => {
             /*controls.showHelpSidebar ||*/
             controls.showSettingsSidebar
         ) {
-            setTimeout(() => {
+            window.setTimeout(() => {
                 view.contentEl.addEventListener('click', listener);
             }, 0);
         }

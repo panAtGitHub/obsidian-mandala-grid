@@ -15,7 +15,7 @@ export const ejectDocument = async (view: MandalaView) => {
         const isEditing = Boolean(viewState.document.editing.activeNodeId);
         if (isEditing) {
             saveNodeContent(view);
-            setTimeout(() => {
+            window.setTimeout(() => {
                 void ejectDocument(view);
             }, 100);
             return;

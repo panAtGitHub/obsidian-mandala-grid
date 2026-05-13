@@ -7,7 +7,7 @@ export const toggleObsidianViewType = (
     leaf: WorkspaceLeaf,
     type: ViewType,
 ) => {
-    setTimeout(() => {
+    window.setTimeout(() => {
         void leaf.setViewState({
             type,
             popstate: true,
