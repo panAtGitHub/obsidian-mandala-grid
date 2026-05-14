@@ -231,6 +231,7 @@ src/mandala-scenes/view-xxx/
 
 - `src/mandala-scenes/` 负责“这个场景想用哪种格子策略”
 - `src/mandala-cell/` 负责“这种策略最终长成什么样”
+- 完成本目录代码改动后，回到仓库根执行 `npm run validate:official`，补跑官方本地校验链路。
 
 ---
 

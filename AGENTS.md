@@ -18,9 +18,15 @@ TypeScript + Svelte 的 Obsidian 插件。
     -   输出：`temp/vault/.obsidian/plugins/mandala-grid-dev/styles.css`
 -   生产构建：`npm run build`
     -   运行：`tsc -noEmit -skipLibCheck`
-    -   运行：`svelte-check --workspace src`
     -   运行：`node esbuild.config.mjs production`
+    -   运行：`node scripts/sync-manifest.mjs`
 -   Lint：`npm run lint`（运行 `eslint src`）
+-   官方源码审查：`npm run lint:review`
+-   官方发布侧校验：`npm run validate:release`
+    -   检查 `manifest.json` / `package.json` / `versions.json` 一致性
+    -   检查官方 manifest 字段规则、release 产物、release workflow 资产路径
+-   官方本地全链路校验：`npm run validate:official`
+    -   顺序执行：`npm run lint:review` -> `npm run build` -> `npm run validate:release`
 -   单元测试：`npm test`（运行 `vitest run`）
 -   单元测试（watch）：`npm run test:watch`（运行 `vitest`）
 
@@ -121,9 +127,11 @@ ESLint 配置：`.eslintrc`
 -   优先小而精的改动（尽量小的补丁）
 -   贴合当前模块既有模式（store/reducer、view、helpers 等）
 -   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test`
--   **强制交付动作（每次写完都要执行，不可省略）**：只要本次会话产生了代码改动，必须在结束前执行 `commit + build + sync`
+-   只要本次会话产生了代码改动，在收尾前必须额外执行一轮官方本地校验：`npm run validate:official`
+-   `npm run validate:official` 只覆盖仓库内可本地模拟的官方检查；社区 PR 模板、远端 GitHub Release 是否已创建等在线项不在本地脚本范围内
+-   **强制交付动作（每次写完都要执行，不可省略）**：只要本次会话产生了代码改动，必须在结束前执行 `commit + validate:official + sync`
 -   默认交付流程（完成代码改动后）：
     1. `git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`
-    2. `npm run build`
+    2. `npm run validate:official`
     3. `rsync -av --delete --exclude 'data.json' temp/vault/.obsidian/plugins/mandala-grid-dev/ "/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/"`
    -   提交信息要求：**每次提交必须包含中英文总结**，禁止使用固定的 `chore: update ...` 占位提交信息。

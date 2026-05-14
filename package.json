@@ -7,6 +7,8 @@
         "reload:plugin": "obsidian plugin:reload id=mandala-grid",
         "reload:plugin:wait": "node scripts/reload-plugin-after-delay.mjs",
         "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && node scripts/sync-manifest.mjs",
+        "validate:release": "node scripts/validate-release.mjs",
+        "validate:official": "npm run lint:review && npm run build && npm run validate:release",
         "sync:obsidian": "rsync -av --delete --exclude 'data.json' temp/vault/.obsidian/plugins/mandala-grid-dev/ \"/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/\"",
         "build:sync": "npm run build && npm run sync:obsidian",
         "version": "node version-bump.mjs && git add manifest.json versions.json",

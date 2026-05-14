@@ -9,6 +9,13 @@ import globals from 'globals';
 const SRC_TS_FILES = ['src/**/*.{ts,tsx,mts,cts}'];
 const TOOLING_MJS_FILES = ['esbuild.config.mjs', 'version-bump.mjs', 'scripts/**/*.mjs'];
 const REVIEW_EXCLUDED_TS_FILES = ['src/**/*.spec.ts', 'src/shared/test-helpers/**/*.ts'];
+const ACTIVE_DOC_FALSE_POSITIVE_FILES = [
+    'src/mandala-display/stores/document-derived-stores.ts',
+    'src/mandala-document/state/document-state-type.ts',
+    'src/mandala-document/state/reducers/load-document-from-file/load-document-from-file.ts',
+    'src/stores/view/view-state-type.ts',
+    'src/view/helpers/resolve-subpath-jump-node-id.ts',
+];
 const SVELTE_FILES = ['**/*.svelte'];
 const ESLINT_PROJECT = './tsconfig.eslint.json';
 const OBSIDIAN_RULES_OFF_FOR_TOOLING = Object.fromEntries(
@@ -65,6 +72,12 @@ export default defineConfig([
     {
         files: REVIEW_EXCLUDED_TS_FILES,
         rules: OBSIDIAN_RULES_OFF_FOR_TOOLING,
+    },
+    {
+        files: ACTIVE_DOC_FALSE_POSITIVE_FILES,
+        rules: {
+            'obsidianmd/prefer-active-doc': 'off',
+        },
     },
     {
         files: SVELTE_FILES,
