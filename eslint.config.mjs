@@ -9,6 +9,10 @@ import globals from 'globals';
 const SRC_TS_FILES = ['src/**/*.{ts,tsx,mts,cts}'];
 const TOOLING_MJS_FILES = ['esbuild.config.mjs', 'version-bump.mjs', 'scripts/**/*.mjs'];
 const SVELTE_FILES = ['**/*.svelte'];
+const ESLINT_PROJECT = './tsconfig.eslint.json';
+const OBSIDIAN_RULES_OFF_FOR_TOOLING = Object.fromEntries(
+    Object.keys(obsidianmd.rules).map((ruleName) => [`obsidianmd/${ruleName}`, 'off']),
+);
 
 export default defineConfig([
     {
@@ -23,7 +27,7 @@ export default defineConfig([
         languageOptions: {
             parser: tsparser,
             parserOptions: {
-                project: './tsconfig.json',
+                project: ESLINT_PROJECT,
             },
             globals: {
                 ...globals.browser,
@@ -55,6 +59,7 @@ export default defineConfig([
                 ...globals.node,
             },
         },
+        rules: OBSIDIAN_RULES_OFF_FOR_TOOLING,
     },
     {
         files: SVELTE_FILES,
@@ -62,6 +67,7 @@ export default defineConfig([
             parser: svelteParser,
             parserOptions: {
                 parser: tsparser,
+                project: ESLINT_PROJECT,
                 extraFileExtensions: ['.svelte'],
                 sourceType: 'module',
             },

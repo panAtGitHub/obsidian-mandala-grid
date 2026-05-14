@@ -36,7 +36,7 @@
         "esbuild-plugin-inline-worker": "0.1.1",
         "esbuild-svelte": "0.8.0",
         "eslint": "^9.39.2",
-        "eslint-plugin-obsidianmd": "^0.1.9",
+        "eslint-plugin-obsidianmd": "^0.3.0",
         "eslint-plugin-svelte": "^3.14.0",
         "husky": "8.0.3",
         "jsdom": "24.0.0",
