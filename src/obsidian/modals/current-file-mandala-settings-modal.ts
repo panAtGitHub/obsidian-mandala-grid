@@ -118,7 +118,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
             showTimePlanSection: isDayPlanDedicated,
             renderTimePlanFooter: (containerEl) => {
                 if (!templateMismatch) return;
-                if (this.dismissedTemplateMismatchCore === templateMismatch.core) {
+                if (
+                    this.dismissedTemplateMismatchCore === templateMismatch.core
+                ) {
                     return;
                 }
 
@@ -231,7 +233,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
         });
 
         if (preserveScroll) {
-            requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
                 this.getScrollContainer().scrollTop = scrollTop;
             });
         }

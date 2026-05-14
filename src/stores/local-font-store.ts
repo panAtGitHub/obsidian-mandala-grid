@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { Platform } from 'obsidian';
 
 const FONT_SIZE_KEY = 'mandala-device-local-font-size';
-const browserStorage = globalThis.localStorage;
+const browserStorage = window.localStorage;
 
 // 初始值检测：手机 12px，其他 16px
 const getInitialValue = () => {

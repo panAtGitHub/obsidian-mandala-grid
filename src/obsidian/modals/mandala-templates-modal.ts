@@ -24,7 +24,11 @@ export const openMandalaTemplateSelectModal = (
     templates: MandalaTemplate[],
 ) =>
     new Promise<MandalaTemplate | null>((resolve) => {
-        const modal = new MandalaTemplateSelectModal(plugin, templates, resolve);
+        const modal = new MandalaTemplateSelectModal(
+            plugin,
+            templates,
+            resolve,
+        );
         modal.open();
     });
 
@@ -50,13 +54,11 @@ class MandalaTemplateNameModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        new Setting(contentEl)
-            .setName('模板名称')
-            .addText((text) => {
-                text.onChange((value) => {
-                    this.name = value.trim();
-                });
+        new Setting(contentEl).setName('模板名称').addText((text) => {
+            text.onChange((value) => {
+                this.name = value.trim();
             });
+        });
 
         const actions = contentEl.createDiv({
             cls: 'mandala-templates-modal__actions',
@@ -216,7 +218,8 @@ class MandalaTemplatesFileModal extends Modal {
             this.plugin.settings.getValue().general.mandalaTemplatesFilePath;
         if (existingPath) {
             const lastSlash = existingPath.lastIndexOf('/');
-            folderPath = lastSlash === -1 ? '' : existingPath.slice(0, lastSlash);
+            folderPath =
+                lastSlash === -1 ? '' : existingPath.slice(0, lastSlash);
         }
 
         const folderSetting = new Setting(contentEl)
@@ -238,16 +241,14 @@ class MandalaTemplatesFileModal extends Modal {
             .filter((p) => p && p !== '/')
             .sort((a, b) => a.localeCompare(b));
 
-        const inputEl = folderSetting.controlEl.querySelector(
-            'input',
-        );
+        const inputEl = folderSetting.controlEl.querySelector('input');
 
         const ensureSuggestEl = () => {
             if (this.folderSuggestEl) return this.folderSuggestEl;
-            const el = document.createElement('div');
+            const el = activeDocument.createElement('div');
             el.className = 'mandala-folder-suggest-float';
             el.setAttribute('role', 'listbox');
-            document.body.appendChild(el);
+            activeDocument.body.appendChild(el);
             this.folderSuggestEl = el;
             return el;
         };
@@ -315,7 +316,8 @@ class MandalaTemplatesFileModal extends Modal {
         if (inputEl) {
             const onInput = () => renderSuggestions(inputEl.value);
             const onFocus = () => renderSuggestions(inputEl.value);
-            const onBlur = () => window.setTimeout(() => hideSuggestions(), 120);
+            const onBlur = () =>
+                window.setTimeout(() => hideSuggestions(), 120);
             const onWindowUpdate = () => positionSuggestEl();
             const onDocPointerDown = (e: Event) => {
                 const t = e.target as HTMLElement | null;
@@ -331,7 +333,11 @@ class MandalaTemplatesFileModal extends Modal {
             inputEl.addEventListener('blur', onBlur);
             window.addEventListener('resize', onWindowUpdate);
             window.addEventListener('scroll', onWindowUpdate, true);
-            document.addEventListener('pointerdown', onDocPointerDown, true);
+            activeDocument.addEventListener(
+                'pointerdown',
+                onDocPointerDown,
+                true,
+            );
 
             this.removeFolderSuggestListeners = () => {
                 inputEl.removeEventListener('input', onInput);
@@ -339,7 +345,7 @@ class MandalaTemplatesFileModal extends Modal {
                 inputEl.removeEventListener('blur', onBlur);
                 window.removeEventListener('resize', onWindowUpdate);
                 window.removeEventListener('scroll', onWindowUpdate, true);
-                document.removeEventListener(
+                activeDocument.removeEventListener(
                     'pointerdown',
                     onDocPointerDown,
                     true,
@@ -351,25 +357,28 @@ class MandalaTemplatesFileModal extends Modal {
             .setName('新建模板文件')
             .setDesc('文件名为 mandala-templates.md')
             .addButton((button) => {
-                button.setButtonText('新建').setCta().onClick(async () => {
-                    const folder = this.getFolderFromPath(folderPath);
-                    if (!folder) {
-                        new Notice('未找到该文件夹，请检查路径。');
-                        return;
-                    }
+                button
+                    .setButtonText('新建')
+                    .setCta()
+                    .onClick(async () => {
+                        const folder = this.getFolderFromPath(folderPath);
+                        if (!folder) {
+                            new Notice('未找到该文件夹，请检查路径。');
+                            return;
+                        }
 
-                    const existing = this.getTemplatesFileInFolder(folder);
-                    if (existing) {
-                        this.resolveOnce(existing);
+                        const existing = this.getTemplatesFileInFolder(folder);
+                        if (existing) {
+                            this.resolveOnce(existing);
+                            this.close();
+                            return;
+                        }
+
+                        const file = await this.createTemplateFile(folder);
+                        if (!file) return;
+                        this.resolveOnce(file);
                         this.close();
-                        return;
-                    }
-
-                    const file = await this.createTemplateFile(folder);
-                    if (!file) return;
-                    this.resolveOnce(file);
-                    this.close();
-                });
+                    });
             });
 
         new Setting(contentEl)
@@ -427,7 +436,8 @@ class MandalaTemplatesFileModal extends Modal {
     }
 
     private getTemplatesFileInFolder(folder: TFolder): TFile | null {
-        const folderPath = folder.path && folder.path !== '/' ? folder.path : '';
+        const folderPath =
+            folder.path && folder.path !== '/' ? folder.path : '';
         const filePath = folderPath
             ? `${folderPath}/mandala-templates.md`
             : 'mandala-templates.md';
@@ -437,7 +447,10 @@ class MandalaTemplatesFileModal extends Modal {
 }
 
 class MandalaTemplatesFileSuggestModal extends FuzzySuggestModal<TFile> {
-    constructor(app: MandalaGrid['app'], private onChoose: (file: TFile) => void) {
+    constructor(
+        app: MandalaGrid['app'],
+        private onChoose: (file: TFile) => void,
+    ) {
         super(app);
     }
 

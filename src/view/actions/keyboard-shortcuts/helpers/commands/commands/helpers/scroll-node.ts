@@ -16,7 +16,7 @@ export const scrollNode = (view: MandalaView, direction: AllDirections) => {
         const scrollPane = findNearestVerticalScrollPane(element, container);
         if (!scrollPane) return;
         const scrollTop = direction === 'up' ? STEP : -STEP;
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             scrollPane.scrollBy({
                 top: scrollTop,
                 behavior: 'smooth',
@@ -24,7 +24,7 @@ export const scrollNode = (view: MandalaView, direction: AllDirections) => {
         });
     } else {
         const scrollLeft = direction === 'left' ? STEP : -STEP;
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             container.scrollBy({
                 left: scrollLeft,
                 behavior: 'smooth',

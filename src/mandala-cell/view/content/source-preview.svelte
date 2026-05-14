@@ -135,7 +135,7 @@
         if (target instanceof HTMLElement) {
             target.blur();
         }
-        const activeEl = document.activeElement;
+        const activeEl = activeDocument.activeElement;
         if (activeEl instanceof HTMLElement) {
             activeEl.blur();
         }

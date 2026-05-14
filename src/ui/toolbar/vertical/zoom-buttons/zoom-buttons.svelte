@@ -23,15 +23,15 @@
         );
     }
 
-    let clearSavedZoomTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+    let clearSavedZoomTimeoutRef: ReturnType<typeof window.setTimeout> | null = null;
     const clearSavedZoomValue = () => {
-        if (clearSavedZoomTimeoutRef) clearTimeout(clearSavedZoomTimeoutRef);
+        if (clearSavedZoomTimeoutRef) window.clearTimeout(clearSavedZoomTimeoutRef);
         zoomValueBeforeReset = -1;
     };
     const saveZoomValue = () => {
         clearSavedZoomValue();
         zoomValueBeforeReset = get(zoomLevelStore(view));
-        clearSavedZoomTimeoutRef = setTimeout(() => {
+        clearSavedZoomTimeoutRef = window.setTimeout(() => {
             zoomValueBeforeReset = -1;
         }, 1000 * 120);
     };

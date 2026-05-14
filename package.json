@@ -14,7 +14,7 @@
         "test": "vitest run",
         "prepare": "husky install",
         "lint": "eslint src",
-        "lint:review": "eslint \"src/**/*.{ts,svelte}\" esbuild.config.mjs version-bump.mjs \"scripts/**/*.mjs\"",
+        "lint:review": "eslint \"src/**/*.{ts,svelte}\" --ignore-pattern \"**/*.spec.ts\" --ignore-pattern \"src/shared/test-helpers/**\"",
         "lint:fix": "eslint . --fix"
     },
     "keywords": [],

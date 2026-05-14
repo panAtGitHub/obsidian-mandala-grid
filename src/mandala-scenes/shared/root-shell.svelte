@@ -77,8 +77,8 @@
 
     const readSceneThemeSnapshot = (): MandalaThemeSnapshot => {
         return resolveSceneThemeSnapshot(
-            document.body,
-            window.getComputedStyle(document.body),
+            activeDocument.body,
+            window.getComputedStyle(activeDocument.body),
         );
     };
 
@@ -107,7 +107,7 @@
         bodyThemeObserver = new MutationObserver(() => {
             sceneThemeSnapshot = readSceneThemeSnapshot();
         });
-        bodyThemeObserver.observe(document.body, {
+        bodyThemeObserver.observe(activeDocument.body, {
             attributes: true,
             attributeFilter: ['class', 'style'],
         });

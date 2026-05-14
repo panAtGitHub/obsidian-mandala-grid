@@ -79,7 +79,8 @@ const getMandalaSourceEmbedEditAnchor = (from: number, to: number) =>
     to - from > 1 ? Math.min(from + 1, to - 1) : from;
 
 const getEstimatedHeightForSourceFile = (sourceFile: TFile) =>
-    estimatedHeightBySourcePath.get(sourceFile.path) ?? DEFAULT_ESTIMATED_HEIGHT;
+    estimatedHeightBySourcePath.get(sourceFile.path) ??
+    DEFAULT_ESTIMATED_HEIGHT;
 
 const rememberEstimatedHeightForSourceFile = (
     sourceFile: TFile,
@@ -133,7 +134,7 @@ export class MandalaSourceEmbedWidget
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const root = document.createElement('div');
+        const root = activeDocument.createElement('div');
         root.className = 'mandala-source-embed-widget';
         this.root = root;
         this.destroyed = false;
@@ -264,7 +265,8 @@ export class MandalaSourceEmbedWidget
                 plugin: this.plugin,
                 model: resolved.model,
                 sourcePath: resolved.target.file.path,
-                registerMarkdownChild: (child) => nextRenderScope.addChild(child),
+                registerMarkdownChild: (child) =>
+                    nextRenderScope.addChild(child),
                 isCanceled: () => !this.canApplyRefresh(generation, root),
             });
             if (!gridEl || !this.canApplyRefresh(generation, root)) {
@@ -337,7 +339,7 @@ export class MandalaSourceEmbedWidget
     }
 
     private renderFallback(root: HTMLElement) {
-        const code = document.createElement('code');
+        const code = activeDocument.createElement('code');
         code.className = 'mandala-source-embed-widget__fallback';
         code.textContent = this.original;
         root.replaceChildren(code);
@@ -465,7 +467,10 @@ const buildDecorations = (
 ) => {
     if (!sourceFile || candidates.length === 0) return Decoration.none;
 
-    const modelCache = new Map<string, Promise<ResolvedMandalaEmbedModel | null>>();
+    const modelCache = new Map<
+        string,
+        Promise<ResolvedMandalaEmbedModel | null>
+    >();
     const orientation = getMandalaEmbedOrientation(plugin);
     const refreshEpoch = plugin.getMandalaEmbedRefreshEpoch();
     const builder = new RangeSetBuilder<Decoration>();
@@ -554,7 +559,11 @@ export const createMandalaSourceEmbedExtension = (plugin: MandalaGrid) => {
             const livePreview =
                 state.field(editorLivePreviewField, false) === true;
             const sourceFile = resolveSourceFile(state);
-            const candidates = collectCandidates(state, livePreview, sourceFile);
+            const candidates = collectCandidates(
+                state,
+                livePreview,
+                sourceFile,
+            );
             const decorations = buildDecorations(
                 plugin,
                 state,

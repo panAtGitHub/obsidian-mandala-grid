@@ -71,7 +71,8 @@ const toggleTaskInSection = (
         const taskStateIndex = range.start + (match.index ?? 0) + marker.length;
         const nextTaskState = checked ? 'x' : ' ';
 
-        if (taskStateIndex < 0 || taskStateIndex >= markdown.length) return null;
+        if (taskStateIndex < 0 || taskStateIndex >= markdown.length)
+            return null;
         if (markdown[taskStateIndex] === nextTaskState) return markdown;
 
         return `${markdown.slice(0, taskStateIndex)}${nextTaskState}${markdown.slice(taskStateIndex + 1)}`;
@@ -122,7 +123,7 @@ const enableRenderedCheckboxes = (container: HTMLElement) => {
 
 const queryDirectChildByClass = (parent: HTMLElement, className: string) => {
     for (const child of Array.from(parent.children)) {
-        if (!(child instanceof HTMLElement)) continue;
+        if (!child.instanceOf(HTMLElement)) continue;
         if (child.classList.contains(className)) return child;
     }
     return null;
@@ -139,8 +140,9 @@ export class MandalaEmbedController {
     private releaseBodyHeightLock: (() => void) | null = null;
     private bodyHeightUnlockRaf = 0;
     private previewScrollRestoreRaf = 0;
-    private pendingPreviewScrollSnapshots: MarkdownPreviewScrollSnapshot[] | null =
-        null;
+    private pendingPreviewScrollSnapshots:
+        | MarkdownPreviewScrollSnapshot[]
+        | null = null;
     private observedBody: HTMLElement | null = null;
     private renderScope: MarkdownRenderChild | null = null;
 
@@ -156,7 +158,9 @@ export class MandalaEmbedController {
             this.handleBodyClick(event as MouseEvent);
         this.onBodyChangeBound = (event: Event) => this.handleBodyChange(event);
 
-        this.embedObserver = new MutationObserver(() => this.handleEmbedMutation());
+        this.embedObserver = new MutationObserver(() =>
+            this.handleEmbedMutation(),
+        );
         this.embedObserver.observe(this.embed, { childList: true });
     }
 
@@ -312,7 +316,9 @@ export class MandalaEmbedController {
         const section = cellEl.dataset.mandalaSection;
         if (!section) return;
 
-        const allItems = Array.from(markdownEl.querySelectorAll('.task-list-item'));
+        const allItems = Array.from(
+            markdownEl.querySelectorAll('.task-list-item'),
+        );
         const taskIndex = allItems.indexOf(listItem);
         if (taskIndex < 0) return;
 
@@ -344,7 +350,7 @@ export class MandalaEmbedController {
     private scheduleRender() {
         const generation = this.nextGeneration();
         this.cancelScheduledRender();
-        this.scheduledRaf = requestAnimationFrame(() => {
+        this.scheduledRaf = window.requestAnimationFrame(() => {
             this.scheduledRaf = null;
             void this.renderNow(generation);
         });
@@ -454,11 +460,11 @@ export class MandalaEmbedController {
         this.embed.classList.add('mandala-embed-debug');
 
         body.empty();
-        const panel = document.createElement('div');
+        const panel = activeDocument.createElement('div');
         panel.className = 'mandala-embed-debug-panel';
 
         for (const line of lines) {
-            const row = document.createElement('div');
+            const row = activeDocument.createElement('div');
             row.className = 'mandala-embed-debug-line';
             row.setText(line);
             panel.appendChild(row);
@@ -493,8 +499,9 @@ export class MandalaEmbedController {
 
     private queryMandalaHost() {
         for (const child of Array.from(this.embed.children)) {
-            if (!(child instanceof HTMLElement)) continue;
-            if (child.classList.contains(MANDALA_EMBED_HOST_CLASS)) return child;
+            if (!child.instanceOf(HTMLElement)) continue;
+            if (child.classList.contains(MANDALA_EMBED_HOST_CLASS))
+                return child;
         }
         return null;
     }
@@ -502,21 +509,21 @@ export class MandalaEmbedController {
     private getOrCreateHostLayout() {
         let host = this.queryMandalaHost();
         if (!host) {
-            host = document.createElement('div');
+            host = activeDocument.createElement('div');
             host.className = MANDALA_EMBED_HOST_CLASS;
             this.embed.appendChild(host);
         }
 
         let header = queryDirectChildByClass(host, MANDALA_EMBED_HEADER_CLASS);
         if (!header) {
-            header = document.createElement('div');
+            header = activeDocument.createElement('div');
             header.className = MANDALA_EMBED_HEADER_CLASS;
             host.appendChild(header);
         }
 
         let body = queryDirectChildByClass(host, MANDALA_EMBED_BODY_CLASS);
         if (!body) {
-            body = document.createElement('div');
+            body = activeDocument.createElement('div');
             body.className = MANDALA_EMBED_BODY_CLASS;
             host.appendChild(body);
         }
@@ -573,8 +580,8 @@ export class MandalaEmbedController {
     private scheduleBodyHeightUnlock(body: HTMLElement, generation: number) {
         if (!this.releaseBodyHeightLock) return;
 
-        this.bodyHeightUnlockRaf = requestAnimationFrame(() => {
-            this.bodyHeightUnlockRaf = requestAnimationFrame(() => {
+        this.bodyHeightUnlockRaf = window.requestAnimationFrame(() => {
+            this.bodyHeightUnlockRaf = window.requestAnimationFrame(() => {
                 this.bodyHeightUnlockRaf = 0;
                 if (generation !== this.generation) return;
                 if (!body.isConnected) return;
@@ -617,18 +624,20 @@ export class MandalaEmbedController {
         if (!snapshots || snapshots.length === 0) return;
 
         this.clearPendingPreviewScrollRestore();
-        this.previewScrollRestoreRaf = requestAnimationFrame(() => {
-            this.previewScrollRestoreRaf = requestAnimationFrame(() => {
-                this.previewScrollRestoreRaf = requestAnimationFrame(() => {
-                    this.previewScrollRestoreRaf = 0;
-                    if (generation !== this.generation) return;
+        this.previewScrollRestoreRaf = window.requestAnimationFrame(() => {
+            this.previewScrollRestoreRaf = window.requestAnimationFrame(() => {
+                this.previewScrollRestoreRaf = window.requestAnimationFrame(
+                    () => {
+                        this.previewScrollRestoreRaf = 0;
+                        if (generation !== this.generation) return;
 
-                    for (const { view, scroll } of snapshots) {
-                        if (!view.file) continue;
-                        if (view.getMode() !== 'preview') continue;
-                        view.previewMode.applyScroll(scroll);
-                    }
-                });
+                        for (const { view, scroll } of snapshots) {
+                            if (!view.file) continue;
+                            if (view.getMode() !== 'preview') continue;
+                            view.previewMode.applyScroll(scroll);
+                        }
+                    },
+                );
             });
         });
     }

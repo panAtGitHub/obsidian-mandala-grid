@@ -1,19 +1,37 @@
-const globalScope = globalThis as typeof globalThis & {
-    window?: typeof globalThis;
-    activeWindow?: typeof globalThis;
+const globalScope = globalThis as typeof window & {
+    window?: typeof window;
+    activeWindow?: typeof window;
     activeDocument?: Document;
 };
 
-if (!globalScope.window) {
-    globalScope.window = globalThis as unknown as typeof window;
+if (!Object.getOwnPropertyDescriptor(globalScope, 'window')) {
+    Object.defineProperty(globalScope, 'window', {
+        configurable: true,
+        enumerable: false,
+        get() {
+            return globalScope as unknown as typeof window;
+        },
+    });
 }
 
-if (!globalScope.activeWindow) {
-    globalScope.activeWindow = globalScope.window;
+if (!Object.getOwnPropertyDescriptor(globalScope, 'activeWindow')) {
+    Object.defineProperty(globalScope, 'activeWindow', {
+        configurable: true,
+        enumerable: false,
+        get() {
+            return globalScope.window;
+        },
+    });
 }
 
-if (!globalScope.activeDocument && typeof document !== 'undefined') {
-    globalScope.activeDocument = document;
+if (!Object.getOwnPropertyDescriptor(globalScope, 'activeDocument')) {
+    Object.defineProperty(globalScope, 'activeDocument', {
+        configurable: true,
+        enumerable: false,
+        get() {
+            return globalScope.window?.document;
+        },
+    });
 }
 
 const patchInstanceOf = <

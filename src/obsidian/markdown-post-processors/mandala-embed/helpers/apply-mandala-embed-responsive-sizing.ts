@@ -8,7 +8,8 @@ const MANDALA_EMBED_CONTENT_PADDING_BOTTOM_VAR =
 const MANDALA_EMBED_HEADER_PADDING_Y_VAR = '--mandala-embed-header-padding-y';
 const MANDALA_EMBED_HEADER_PADDING_X_VAR = '--mandala-embed-header-padding-x';
 const MANDALA_EMBED_HEADER_GAP_VAR = '--mandala-embed-header-gap';
-const MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR = '--mandala-embed-header-button-size';
+const MANDALA_EMBED_HEADER_BUTTON_SIZE_VAR =
+    '--mandala-embed-header-button-size';
 const MANDALA_EMBED_HEADER_ICON_SIZE_VAR = '--mandala-embed-header-icon-size';
 const MANDALA_EMBED_SECTION_FONT_SIZE_VAR = '--mandala-embed-section-font-size';
 const MANDALA_EMBED_LINE_HEIGHT_VAR = '--mandala-embed-line-height';
@@ -238,7 +239,7 @@ export const applyMandalaEmbedResponsiveSizing = ({
 
     const scheduleUpdate = () => {
         if (resizeRafId !== 0) cancelAnimationFrame(resizeRafId);
-        resizeRafId = requestAnimationFrame(() => {
+        resizeRafId = window.requestAnimationFrame(() => {
             resizeRafId = 0;
             update();
         });

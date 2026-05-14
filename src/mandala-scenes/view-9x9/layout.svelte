@@ -123,11 +123,11 @@
     }
 
     const syncThemeSnapshot = () => {
-        themeTone = document.body.classList.contains('theme-dark')
+        themeTone = activeDocument.body.classList.contains('theme-dark')
             ? 'dark'
             : 'light';
         themeUnderlayColor = window
-            .getComputedStyle(document.body)
+            .getComputedStyle(activeDocument.body)
             .getPropertyValue('--background-primary')
             .trim();
     };
@@ -287,7 +287,7 @@
         syncThemeSnapshot();
         updateBodyClamp();
         bodyThemeObserver = new MutationObserver(() => syncThemeSnapshot());
-        bodyThemeObserver.observe(document.body, {
+        bodyThemeObserver.observe(activeDocument.body, {
             attributes: true,
             attributeFilter: ['class', 'style'],
         });

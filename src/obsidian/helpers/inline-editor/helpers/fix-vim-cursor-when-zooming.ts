@@ -19,7 +19,7 @@ export const fixVimCursorWhenZooming = (view: MandalaView) => {
         ) as HTMLDivElement;
 
         if (!cursor) {
-            animationFrame = requestAnimationFrame(adjustCursorPosition);
+            animationFrame = window.requestAnimationFrame(adjustCursorPosition);
             return;
         }
 
@@ -42,10 +42,10 @@ export const fixVimCursorWhenZooming = (view: MandalaView) => {
             previousValues.lineHeight = parseFloat(cursor.style.lineHeight);
         }
 
-        animationFrame = requestAnimationFrame(adjustCursorPosition);
+        animationFrame = window.requestAnimationFrame(adjustCursorPosition);
     };
 
-    animationFrame = requestAnimationFrame(adjustCursorPosition);
+    animationFrame = window.requestAnimationFrame(adjustCursorPosition);
 
     return () => {
         cancelAnimationFrame(animationFrame);

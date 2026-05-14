@@ -187,11 +187,11 @@
     };
 
     const getThemeTone = (): ThemeTone =>
-        document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+        activeDocument.body.classList.contains('theme-dark') ? 'dark' : 'light';
 
     const getThemeUnderlayColor = () =>
         window
-            .getComputedStyle(document.body)
+            .getComputedStyle(activeDocument.body)
             .getPropertyValue('--background-primary')
             .trim();
 

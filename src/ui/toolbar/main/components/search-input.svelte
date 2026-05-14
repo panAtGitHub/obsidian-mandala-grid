@@ -67,8 +67,10 @@
             e.preventDefault();
             
             // 等待下一帧，确保 DOM 已更新
-            setTimeout(() => {
-                const resultsEl = document.querySelector('.mandala-search-results');
+            window.setTimeout(() => {
+                const resultsEl = activeDocument.querySelector(
+                    '.mandala-search-results',
+                );
                 if (resultsEl instanceof HTMLElement) {
                     resultsEl.focus();
                 }

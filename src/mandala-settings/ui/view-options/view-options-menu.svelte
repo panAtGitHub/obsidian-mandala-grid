@@ -586,7 +586,7 @@
     let exportEditPanelProps: Record<string, unknown> = {};
     let exportFontPanelProps: Record<string, unknown> = {};
 
-    $: document.body.classList.toggle(
+    $: activeDocument.body.classList.toggle(
         EXPORT_HIDE_HIGHLIGHT_CLASS,
         isInExportSession && !showGridHighlightInExport,
     );
@@ -950,7 +950,7 @@
 
     const handleViewportChange = () => {
         updateMobileBoundsStyle();
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             updateMobileBoundsStyle();
         });
     };
@@ -976,19 +976,19 @@
     const attachListeners = () => {
         if (listenersAttached) return;
         listenersAttached = true;
-        document.addEventListener('click', handleClickOutside);
+        activeDocument.addEventListener('click', handleClickOutside);
         window.addEventListener('resize', handleViewportChange);
         window.addEventListener('orientationchange', handleViewportChange);
         window.visualViewport?.addEventListener('resize', handleViewportChange);
         window.visualViewport?.addEventListener('scroll', handleViewportChange);
-        document.addEventListener('focusin', handleViewportChange, true);
+        activeDocument.addEventListener('focusin', handleViewportChange, true);
         handleViewportChange();
     };
 
     const detachListeners = () => {
         if (!listenersAttached) return;
         listenersAttached = false;
-        document.removeEventListener('click', handleClickOutside);
+        activeDocument.removeEventListener('click', handleClickOutside);
         window.removeEventListener('resize', handleViewportChange);
         window.removeEventListener('orientationchange', handleViewportChange);
         window.visualViewport?.removeEventListener(
@@ -999,13 +999,13 @@
             'scroll',
             handleViewportChange,
         );
-        document.removeEventListener('focusin', handleViewportChange, true);
+        activeDocument.removeEventListener('focusin', handleViewportChange, true);
         mobileBoundsStyle = '';
     };
 
     onMount(() => {
         if (show) {
-            setTimeout(() => {
+            window.setTimeout(() => {
                 if (show) {
                     attachListeners();
                 }
@@ -1018,7 +1018,7 @@
         previousShow = show;
 
         if (show) {
-            setTimeout(() => {
+            window.setTimeout(() => {
                 if (show) {
                     attachListeners();
                 }
@@ -1030,7 +1030,7 @@
     });
 
     onDestroy(() => {
-        document.body.classList.remove(EXPORT_HIDE_HIGHLIGHT_CLASS);
+        activeDocument.body.classList.remove(EXPORT_HIDE_HIGHLIGHT_CLASS);
         detachListeners();
         if ($exportModeModalViewId === view.id) {
             closeExportModeModal();

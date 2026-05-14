@@ -10,11 +10,14 @@ export const attachWheelScrollListener = (view: MandalaView) => {
             target.hasClass('lng-prev') || target.closest('.lng-prev');
         if (!targetIsACard) return;
 
-        const scrollPane = findNearestVerticalScrollPane(target, view.contentEl);
+        const scrollPane = findNearestVerticalScrollPane(
+            target,
+            view.contentEl,
+        );
         if (!scrollPane) return;
         evt.preventDefault();
         evt.stopPropagation();
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             scrollPane.scrollBy({
                 top: evt.deltaY * 2.5,
                 behavior: 'smooth',

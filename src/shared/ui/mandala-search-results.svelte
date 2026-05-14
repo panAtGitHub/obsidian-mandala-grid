@@ -23,7 +23,7 @@
     let selectedIndexForScroll = -1;
 
     // Hover 预览的延迟定时器
-    let hoverTimer: ReturnType<typeof setTimeout> | null = null;
+    let hoverTimer: ReturnType<typeof window.setTimeout> | null = null;
 
     $: if (results.length === 0) {
         selectedIndex = -1;
@@ -49,7 +49,7 @@
         selectedIndex = index;
         if (selectedIndex === selectedIndexForScroll) return;
         selectedIndexForScroll = selectedIndex;
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             scrollSelectedItemIntoView();
         });
     }
@@ -58,9 +58,9 @@
 
     // 处理鼠标悬停（延迟 200ms）
     function handleHover(index: number) {
-        if (hoverTimer) clearTimeout(hoverTimer);
+        if (hoverTimer) window.clearTimeout(hoverTimer);
 
-        hoverTimer = setTimeout(() => {
+        hoverTimer = window.setTimeout(() => {
             updateSelectedIndex(index);
             previewSearchResult(results[index].section, view);
             // Hover 时不需要保持焦点，因为焦点可能在其他地方
@@ -70,7 +70,7 @@
     // 处理鼠标离开（清除延迟）
     function handleMouseLeave() {
         if (hoverTimer) {
-            clearTimeout(hoverTimer);
+            window.clearTimeout(hoverTimer);
             hoverTimer = null;
         }
     }
@@ -94,7 +94,7 @@
     function previewAndKeepFocus(section: string) {
         previewSearchResult(section, view);
         // 预览后立即将焦点重新设置回列表
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             if (listElement) listElement.focus();
         });
     }
@@ -194,7 +194,7 @@
     window.addEventListener('pointerdown', handleWindowPointerDown, true);
 
     onDestroy(() => {
-        if (hoverTimer) clearTimeout(hoverTimer);
+        if (hoverTimer) window.clearTimeout(hoverTimer);
         window.removeEventListener('keydown', handleWindowKeyDown, true);
         window.removeEventListener(
             'pointerdown',

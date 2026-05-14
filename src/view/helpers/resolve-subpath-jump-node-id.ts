@@ -90,4 +90,6 @@ const isNodeAlive = (document: MandalaGridDocument, nodeId: string) =>
     findNodeColumn(document.columns, nodeId) >= 0;
 
 const normalizeHeadingText = (text: string) =>
-    stripHeading(text || '').trim().toLowerCase();
+    stripHeading(text || '')
+        .trim()
+        .toLowerCase();

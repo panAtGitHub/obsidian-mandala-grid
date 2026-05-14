@@ -1,7 +1,4 @@
-import {
-    ActiveBranch,
-    EditingState,
-} from 'src/stores/view/default-view-state';
+import { ActiveBranch, EditingState } from 'src/stores/view/default-view-state';
 import { ConflictingHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 import { NodeSearchResult } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import { type MandalaSceneVariant } from 'src/mandala-display/logic/mandala-profile';

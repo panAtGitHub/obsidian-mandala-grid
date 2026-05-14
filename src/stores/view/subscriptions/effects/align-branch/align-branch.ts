@@ -93,7 +93,7 @@ export class AlignBranch {
 
             const actions = createAlignBranchActions(context, event.action);
             if (!event.controller.signal.aborted) {
-                requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
                     runAlignBranchActions(
                         context,
                         actions,

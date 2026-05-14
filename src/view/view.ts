@@ -429,7 +429,7 @@ export class MandalaView extends TextFileView {
 
     setMandalaMode(mode: MandalaMode) {
         if (mode === '9x9' && !this.canUse9x9Mode()) {
-            new Notice('9x9 视图已在插件设置中关闭。');
+            new Notice('9X9 视图已在插件设置中关闭。');
             return false;
         }
         if (
@@ -1526,7 +1526,7 @@ export class MandalaView extends TextFileView {
         headingText: string,
         headingLevel?: number,
     ) {
-        setTimeout(() => {
+        window.setTimeout(() => {
             const card = this.container?.querySelector<HTMLElement>(
                 `#${nodeId}`,
             );

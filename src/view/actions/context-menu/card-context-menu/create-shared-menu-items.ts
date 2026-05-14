@@ -106,16 +106,16 @@ export const createSectionColorMenuItems = (
         {
             type: 'custom',
             render: (menu, container) => {
-                requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
                     const sectionColorMap = getSectionColorMap();
                     const sectionColorIndex =
                         createSectionColorIndex(sectionColorMap);
                     const activeColorKey = sectionColorIndex[section];
-                    const palette = document.createElement('div');
+                    const palette = activeDocument.createElement('div');
                     palette.className = 'mandala-color-palette';
 
                     for (const key of SECTION_COLOR_KEYS) {
-                        const button = document.createElement('button');
+                        const button = activeDocument.createElement('button');
                         button.type = 'button';
                         button.className = 'mandala-color-swatch';
                         if (activeColorKey === key) {

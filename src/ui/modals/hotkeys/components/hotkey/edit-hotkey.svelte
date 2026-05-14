@@ -80,7 +80,7 @@
                 type: isPrimary ? 'primary' : 'secondary',
             },
         });
-        setTimeout(() => {
+        window.setTimeout(() => {
             MOD = hotkey.modifiers.includes('Mod');
             ALT = hotkey.modifiers.includes('Alt');
             SHIFT = hotkey.modifiers.includes('Shift');

@@ -9,7 +9,7 @@ export const vimEnterInsertMode = (plugin: MandalaGrid, view: MarkdownView) => {
     if (config?.vimMode) {
         try {
             const appWindow = (
-                globalThis as {
+                window as {
                     activeWindow?: Window & {
                         CodeMirrorAdapter?: {
                             Vim?: { enterInsertMode: (cm: unknown) => void };

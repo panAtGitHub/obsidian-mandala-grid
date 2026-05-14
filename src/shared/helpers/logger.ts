@@ -6,7 +6,7 @@ type Logger = {
 };
 
 export const __dev__ = process.env.NODE_ENV === 'development';
-const runtimeConsole = globalThis['console'];
+const runtimeConsole = window['console'];
 
 const createLogger = (): Logger => {
     const debug = (...message: unknown[]) => {
