@@ -63,11 +63,7 @@
     let detachInactiveSurface = false;
     let suppressHoverSurfaceEffect = false;
 
-    $: ({
-        nodeId,
-        style: nodeStyle,
-        displayPolicy,
-    } = viewModel);
+    $: ({ nodeId, style: nodeStyle, displayPolicy } = viewModel);
     $: ({ active, selected, pinned } = uiState);
     $: hasSectionColor = !!viewModel.sectionColorContext;
     $: fillContent = displayPolicy.contentLayout === 'fill';
@@ -124,7 +120,11 @@
 <div
     class={clx(
         'mandala-card',
-        active ? 'active-node' : !detachInactiveSurface ? 'inactive-node' : undefined,
+        active
+            ? 'active-node'
+            : !detachInactiveSurface
+              ? 'inactive-node'
+              : undefined,
         hasSectionColor ? 'mandala-card--with-section-color' : undefined,
         selected ? 'node-border--selected' : undefined,
         pinned ? 'node-border--pinned' : undefined,
@@ -235,7 +235,9 @@
         background-color: var(--background-primary);
         --scrollbar-thumb-bg: var(--color-base-30);
         --scrollbar-active-thumb-bg: var(--color-base-40);
-        --mandala-overlay-scrollbar-track-base: var(--background-modifier-hover);
+        --mandala-overlay-scrollbar-track-base: var(
+            --background-modifier-hover
+        );
         --mandala-overlay-scrollbar-thumb-base: var(--text-muted);
         --mandala-overlay-scrollbar-thumb-hover-base: var(--text-normal);
     }
@@ -315,8 +317,8 @@
     }
 
     :global(.mandala-view:not(.mandala-white-theme))
-        .mandala-card--hover-static:hover {
-        box-shadow: none !important;
+        .mandala-card--hover-static.mandala-card--hover-static:hover {
+        box-shadow: none;
     }
 
     .mandala-card--swap-source {

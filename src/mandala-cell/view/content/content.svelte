@@ -12,9 +12,8 @@
     export let isMobilePlatform = false;
     export let activateNode: (event: MouseEvent) => void = () => {};
     export let enableEditMode: () => void = () => {};
-    export let onMobilePreviewDoubleTapEdit:
-        | ((nodeId: string) => void)
-        | null = null;
+    export let onMobilePreviewDoubleTapEdit: ((nodeId: string) => void) | null =
+        null;
 
     const cellRuntime = getCellRuntime();
     const showHiddenCardInfo = cellRuntime.showHiddenCardInfo;
@@ -36,7 +35,9 @@
 
     const isInteractiveTarget = (target: HTMLElement | null) =>
         Boolean(
-            target?.closest('a, button, input, textarea, select, [role="button"]'),
+            target?.closest(
+                'a, button, input, textarea, select, [role="button"]',
+            ),
         );
 
     const handleMobileTouchEnd = (e: TouchEvent) => {
@@ -112,8 +113,8 @@
         // 避免双击同时触发外层卡片的双击处理，造成重复进入编辑与卡顿
         e.stopPropagation();
     };
-
 </script>
+
 <div
     class="lng-prev markdown-preview-section markdown-rendered"
     class:lng-prev--fill={fillContent}
@@ -122,11 +123,9 @@
     on:touchend|capture={handleMobileTouchEnd}
     on:dblclick={handleDoubleClick}
     class:hide-hidden-info={hideBuiltInHiddenInfo || !$showHiddenCardInfo}
-    use:markdownPreview={
-        contentOverride !== undefined
-            ? { nodeId, contentOverride }
-            : nodeId
-    }
+    use:markdownPreview={contentOverride !== undefined
+        ? { nodeId, contentOverride }
+        : nodeId}
 ></div>
 
 <style>
@@ -168,25 +167,25 @@
         --p-spacing: 0px;
     }
 
-    .lng-prev--compact > :global(*) {
-        max-height: none !important;
-        overflow: visible !important;
+    .lng-prev--compact.lng-prev--compact > :global(*) {
+        max-height: none;
+        overflow: visible;
     }
 
-    .lng-prev--compact :global(p) {
-        margin-block-start: 0 !important;
-        margin-block-end: 0 !important;
+    .lng-prev--compact.lng-prev--compact :global(p) {
+        margin-block-start: 0;
+        margin-block-end: 0;
         line-height: 1.12;
     }
 
-    .lng-prev--compact :global(h1),
-    .lng-prev--compact :global(h2),
-    .lng-prev--compact :global(h3),
-    .lng-prev--compact :global(h4),
-    .lng-prev--compact :global(h5),
-    .lng-prev--compact :global(h6) {
-        margin-top: 0 !important;
-        margin-bottom: 1px !important;
+    .lng-prev--compact.lng-prev--compact :global(h1),
+    .lng-prev--compact.lng-prev--compact :global(h2),
+    .lng-prev--compact.lng-prev--compact :global(h3),
+    .lng-prev--compact.lng-prev--compact :global(h4),
+    .lng-prev--compact.lng-prev--compact :global(h5),
+    .lng-prev--compact.lng-prev--compact :global(h6) {
+        margin-top: 0;
+        margin-bottom: 1px;
         line-height: 1.08;
     }
 </style>

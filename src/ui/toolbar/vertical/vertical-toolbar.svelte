@@ -6,9 +6,7 @@
     import { derived, writable } from 'svelte/store';
     import { uiControlsStore } from 'src/stores/ui/derived/ui-controls-store';
     import Button from 'src/shared/ui/button.svelte';
-    import {
-        ScrollSettingsStore,
-    } from 'src/mandala-settings/state/derived/scrolling-store';
+    import { ScrollSettingsStore } from 'src/mandala-settings/state/derived/scrolling-store';
     import {
         ApplyGapBetweenCardsStore,
         MandalaModeStore,
@@ -44,7 +42,6 @@
     const mandalaMode = MandalaModeStore(view);
     const showHiddenCardInfo = ShowHiddenCardInfoStore(view);
     const showMandalaDetailSidebar = ShowMandalaDetailSidebarStore(view);
-
 
     const buttons = VerticalToolbarButtonsList(view);
     const activeStates = derived(
@@ -196,9 +193,9 @@
 </div>
 
 <!-- 视图选项菜单 -->
-<ViewOptionsMenu 
-    show={$showOptionsMenu} 
-    on:close={() => showOptionsMenu.set(false)} 
+<ViewOptionsMenu
+    show={$showOptionsMenu}
+    on:close={() => showOptionsMenu.set(false)}
 />
 
 <style>
@@ -227,10 +224,10 @@
             display: block;
             z-index: 1002;
         }
-        & .controls-popover[data-visible='true'] {
+        & .controls-popover.controls-popover[data-visible='true'] {
             top: 45px;
             right: var(--size-4-2);
-            flex-direction: column !important;
+            flex-direction: column;
         }
         & .controls-popover[data-visible='false'] {
             display: none;

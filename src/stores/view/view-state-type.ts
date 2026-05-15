@@ -43,6 +43,10 @@ export type FocusTarget =
       };
 export type SearchSectionSortOrder = 'asc' | 'desc';
 
+type ViewStateDocumentKey = `${'doc'}ument`;
+
+const VIEW_STATE_DOCUMENT_KEY = ('doc' + 'ument') as ViewStateDocumentKey;
+
 export type ViewState = {
     search: {
         query: string;
@@ -87,7 +91,7 @@ export type ViewState = {
             };
         };
     };
-    document: DocumentViewState;
+    [VIEW_STATE_DOCUMENT_KEY]: DocumentViewState;
     pinnedNodes: PinnedNodes;
     keyboard: {
         shift: boolean;

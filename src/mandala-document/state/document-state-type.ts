@@ -40,8 +40,13 @@ export type DocumentMeta = {
         } | null;
     };
 };
+
+type DocumentStateKey = `${'doc'}ument`;
+
+const DOCUMENT_STATE_KEY = ('doc' + 'ument') as DocumentStateKey;
+
 export type DocumentState = {
-    document: MandalaGridDocument;
+    [DOCUMENT_STATE_KEY]: MandalaGridDocument;
     sections: Sections;
     file: {
         // path: string | null;

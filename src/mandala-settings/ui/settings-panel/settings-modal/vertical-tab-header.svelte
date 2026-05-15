@@ -2,12 +2,17 @@
     import { SettingsTab } from 'src/mandala-settings/ui/settings-panel/renderers/render-settings';
     import { Platform } from 'obsidian';
 
-    export let setActiveTab : (tab: SettingsTab)=>void
-    export let activeTab: SettingsTab
-    const tabs: SettingsTab[] = ['General', 'Appearance', 'Layout', 'Features', 'Day/Week Plan']
+    export let setActiveTab: (tab: SettingsTab) => void;
+    export let activeTab: SettingsTab;
+    const tabs: SettingsTab[] = [
+        'General',
+        'Appearance',
+        'Layout',
+        'Features',
+        'Day/Week Plan',
+    ];
 
     const isMobile = Platform.isMobile;
-
 </script>
 
 <div class="mandala-vertical-tab-header" class:is-mobile={isMobile}>
@@ -47,12 +52,12 @@
             gap: 2px;
         }
 
-        & .vertical-tab-nav-item {
+        & .vertical-tab-nav-item.vertical-tab-nav-item {
             flex: 1;
             text-align: center;
             padding: 10px 12px; /* 进一步增加点击高度 */
             border-radius: var(--radius-s);
-            font-size: 17px !important; /* 解耦：固定像素值 */
+            font-size: 17px; /* 解耦：固定像素值 */
             cursor: pointer;
             transition: all 0.2s ease;
             color: var(--text-muted);
@@ -61,7 +66,7 @@
             &.is-active {
                 background-color: var(--background-primary);
                 color: var(--text-normal);
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
                 font-weight: var(--font-semibold);
             }
 

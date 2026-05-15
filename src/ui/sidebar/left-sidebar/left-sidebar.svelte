@@ -23,7 +23,6 @@
     const showSidebarStore = ShowLeftSidebarStore(view);
 
     const unsub = showSidebarStore.subscribe((show) => {
-
         if (show) {
             animatedSidebarWidth =
                 view.plugin.settings.getValue().view.leftSidebarWidth;
@@ -35,9 +34,10 @@
 
     onMount(() => {
         if (Platform.isMobile) {
-            const isShown = view.plugin.settings.getValue().view.showLeftSidebar;
+            const isShown =
+                view.plugin.settings.getValue().view.showLeftSidebar;
             if (isShown) {
-                 view.plugin.settings.dispatch({
+                view.plugin.settings.dispatch({
                     type: 'view/left-sidebar/toggle',
                 });
             }
@@ -96,7 +96,6 @@
     {#if $activeTab === 'pinned-cards'}
         <PinnedCards />
     {/if}
-
 </div>
 
 <style>
@@ -142,18 +141,12 @@
         }
     }
 
-    /*.sidebar {
-        & .active-node {
-            outline: 6px solid var(--background-active-parent) !important;
-        }
-    }*/
-
     :global(.is-mobile) .sidebar {
         position: absolute;
         left: 0;
         top: 0;
         bottom: 0;
-        height: 100% !important;
+        height: 100%;
         z-index: 2000;
         box-shadow: var(--shadow-l);
         border-right: 1px solid var(--background-modifier-border);

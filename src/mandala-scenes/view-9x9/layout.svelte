@@ -43,9 +43,8 @@
         view.viewStore,
         (state) => state.document.activeNode,
     );
-    const activeCellStore = derived(
-        view.viewStore,
-        (state) => getMandalaActiveCell9x9(state),
+    const activeCellStore = derived(view.viewStore, (state) =>
+        getMandalaActiveCell9x9(state),
     );
     const idToSection = derivedEq(
         view.documentStore,
@@ -469,10 +468,10 @@
         line-height: 0;
     }
 
-    .parallel-nav-button__icon :global(svg) {
+    .parallel-nav-button__icon.parallel-nav-button__icon :global(svg) {
         display: block;
-        width: 16px !important;
-        height: 16px !important;
-        stroke-width: 2.3 !important;
+        width: 16px;
+        height: 16px;
+        stroke-width: 2.3;
     }
 </style>

@@ -19,21 +19,23 @@
     & .inline-title,
     & .embedded-backlinks,
     & .cm-gutters {
-        display: none !important;
+        display: none;
     }
 
-    & .cm-editor,
+    & .cm-editor.cm-editor,
     & .cm-content,
     & .cm-line {
-        font-size: calc(var(--font-text-size, 16px) + var(--local-font-size-offset, 0px)) !important;
-        line-height: var(--mandala-editor-line-height, 1.4) !important;
+        font-size: calc(
+            var(--font-text-size, 16px) + var(--local-font-size-offset, 0px)
+        );
+        line-height: var(--mandala-editor-line-height, 1.4);
     }
 
-    & .cm-editor .cm-scroller {
+    & .cm-editor.cm-editor .cm-scroller {
         padding: var(--mandala-editor-padding-y, 6px)
-            6px !important;
-        padding-bottom: var(--mandala-editor-padding-bottom, 20px) !important;
-        padding-left: 6px !important;
+            6px;
+        padding-bottom: var(--mandala-editor-padding-bottom, 20px);
+        padding-left: 6px;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -44,7 +46,7 @@
     }
 
     & .cm-contentContainer div {
-        padding-bottom: 0 !important;
+        padding-bottom: 0;
     }
 
     --file-line-width: 100%;
@@ -52,11 +54,11 @@
 
 /* 移动端全屏模式下的编辑器特殊调整 */
 :global(.is-mobile) .is-floating-mobile .mandala-inline-editor {
-    height: 100% !important;
-    min-height: calc(100vh - 100px) !important;
+    height: 100%;
+    min-height: calc(100vh - 100px);
     background-color: var(--background-primary);
 }
 
 :global(.is-mobile) .is-floating-mobile .editor-container {
-    height: 100% !important;
+    height: 100%;
 }

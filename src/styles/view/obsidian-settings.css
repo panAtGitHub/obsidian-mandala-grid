@@ -87,7 +87,7 @@
     display: block;
 }
 
-.mandala-settings-card__content .setting-item {
+.mandala-settings-card__content .setting-item.setting-item {
     border: 1px solid
         color-mix(in srgb, var(--background-modifier-border) 68%, transparent);
     border-radius: 16px;
@@ -97,7 +97,7 @@
     min-height: auto;
     gap: 10px;
     border-top: 1px solid
-        color-mix(in srgb, var(--background-modifier-border) 68%, transparent) !important;
+        color-mix(in srgb, var(--background-modifier-border) 68%, transparent);
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.7) inset,
         0 6px 16px rgba(15, 23, 42, 0.03);

@@ -1,6 +1,6 @@
 {
     "name": "mandala-grid",
-    "version": "1.2.10",
+    "version": "1.2.11",
     "description": "Mandala grid (3×3 / 9×9) editor for Obsidian.",
     "scripts": {
         "dev": "node esbuild.config.mjs",
@@ -42,7 +42,6 @@
         "eslint-plugin-svelte": "^3.14.0",
         "husky": "8.0.3",
         "jsdom": "24.0.0",
-        "lint-staged": "13.3.0",
         "prettier": "3.2.5",
         "prettier-plugin-svelte": "3.2.2",
         "svelte": "4.2.12",

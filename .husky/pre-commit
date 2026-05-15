@@ -3,4 +3,4 @@
 
 npm run build
 npm test
-npx lint-staged
+node scripts/run-staged-checks.mjs

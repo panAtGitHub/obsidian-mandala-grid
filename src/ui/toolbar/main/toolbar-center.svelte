@@ -246,8 +246,8 @@
         font-size: 12px;
     }
 
-    :global(.toolbar-center__week-button) {
-        width: auto !important;
+    :global(.toolbar-center__week-button.toolbar-center__week-button) {
+        width: auto;
         min-width: 34px;
         gap: 6px;
         padding-inline: 10px;

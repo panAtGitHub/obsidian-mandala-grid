@@ -18,17 +18,17 @@
     const view = getView();
     const search = searchStore(view);
 
-    const isMandalaMode = svelteDerived(view.viewStore, () => view.mandalaMode !== null);
-    const mandalaSearchResults = svelteDerived(
-        [search],
-        ([$search]) => {
-            if (!$search.results || $search.results.size === 0) return [];
-            return convertToMandalaResults(
-                $search.results,
-                $search.sectionSortOrder,
-            );
-        },
+    const isMandalaMode = svelteDerived(
+        view.viewStore,
+        () => view.mandalaMode !== null,
     );
+    const mandalaSearchResults = svelteDerived([search], ([$search]) => {
+        if (!$search.results || $search.results.size === 0) return [];
+        return convertToMandalaResults(
+            $search.results,
+            $search.sectionSortOrder,
+        );
+    });
 
     let selectedIndex = -1;
     let pendingResult: MandalaSearchResult | null = null;
@@ -84,7 +84,6 @@
         selectedIndex = -1;
         pendingResult = null;
     }
-
 </script>
 
 <div
@@ -96,7 +95,10 @@
         <div class="mobile-search-header-row">
             <div class="mobile-search-header-spacer" aria-hidden="true"></div>
             <div class="mobile-search-title">搜索</div>
-            <button class="mobile-search-done" on:click|stopPropagation={onDone}>
+            <button
+                class="mobile-search-done"
+                on:click|stopPropagation={onDone}
+            >
                 完成
             </button>
         </div>
@@ -111,7 +113,9 @@
         {:else if $search.searching}
             <div class="mobile-search-hint">搜索中...</div>
         {:else if $isMandalaMode}
-            <div class="results-count">{($mandalaSearchResults ?? []).length} 个结果</div>
+            <div class="results-count">
+                {($mandalaSearchResults ?? []).length} 个结果
+            </div>
             {#if ($mandalaSearchResults ?? []).length === 0}
                 <div class="no-results">无匹配结果</div>
             {:else}
@@ -121,16 +125,21 @@
                             class="result-item"
                             class:is-selected={selectedIndex === index}
                             type="button"
-                            on:click|stopPropagation={() => selectResult(result, index)}
+                            on:click|stopPropagation={() =>
+                                selectResult(result, index)}
                         >
                             <div class="section-path">{result.section}</div>
-                            <div class="content-preview">{result.contentPreview}</div>
+                            <div class="content-preview">
+                                {result.contentPreview}
+                            </div>
                         </button>
                     {/each}
                 </div>
             {/if}
         {:else}
-            <SearchNavigationButtons results={Array.from($search.results.keys())} />
+            <SearchNavigationButtons
+                results={Array.from($search.results.keys())}
+            />
             {#if $search.results.size > 0}
                 <SearchActions />
             {/if}
@@ -245,7 +254,7 @@
         background: var(--background-primary);
     }
 
-    .result-item {
+    .result-item.result-item {
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -259,8 +268,8 @@
         background: transparent;
         border-bottom: 1px solid var(--background-modifier-border);
         cursor: pointer;
-        height: auto !important;
-        min-height: unset !important;
+        height: auto;
+        min-height: unset;
         line-height: normal;
         appearance: none;
         -webkit-appearance: none;

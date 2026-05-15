@@ -416,40 +416,40 @@
     }
 
     .mandala-a4-mode.mandala-root--3:not(.mandala-white-theme)
-        :global(.mandala-card-grid__cell--card > .mandala-card),
+        :global(.mandala-card-grid__cell--card > .mandala-card.mandala-card),
     .mandala-a4-mode.mandala-root--nx9:not(.mandala-white-theme)
-        :global(.mandala-card-grid__cell--card > .mandala-card),
+        :global(.mandala-card-grid__cell--card > .mandala-card.mandala-card),
     .mandala-a4-mode.mandala-root--week:not(.mandala-white-theme)
-        :global(.mandala-card-grid__cell--card > .mandala-card) {
-        border: 2px solid #000 !important;
-        border-left-width: 2px !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
+        :global(.mandala-card-grid__cell--card > .mandala-card.mandala-card) {
+        border: 2px solid #000000;
+        border-left-width: 2px;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card),
+        :global(.mandala-card.mandala-card),
     .mandala-root--nx9:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card),
+        :global(.mandala-card.mandala-card),
     .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card) {
-        border-left-width: 0 !important;
-        border-left-style: solid !important;
+        :global(.mandala-card.mandala-card) {
+        border-left-width: 0;
+        border-left-style: solid;
     }
 
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card.node-border--active),
+        :global(.mandala-card.mandala-card.node-border--active),
     .mandala-root--3:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card.node-border--selected),
+        :global(.mandala-card.mandala-card.node-border--selected),
     .mandala-root--nx9:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card.node-border--active),
+        :global(.mandala-card.mandala-card.node-border--active),
     .mandala-root--nx9:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card.node-border--selected),
+        :global(.mandala-card.mandala-card.node-border--selected),
     .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card.node-border--active),
+        :global(.mandala-card.mandala-card.node-border--active),
     .mandala-root--week:not(.mandala-white-theme):not(.mandala-a4-mode)
-        :global(.mandala-card.node-border--selected) {
-        border-left-color: transparent !important;
+        :global(.mandala-card.mandala-card.node-border--selected) {
+        border-left-color: transparent;
     }
 
     .mandala-root--3 {
@@ -474,7 +474,7 @@
     }
 
     .is-editing-mobile.mandala-root {
-        height: var(--vvh, 100dvh) !important;
-        overflow: hidden !important;
+        height: var(--vvh, 100dvh);
+        overflow: hidden;
     }
 </style>

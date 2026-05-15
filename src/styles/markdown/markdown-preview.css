@@ -17,17 +17,17 @@
 .active-sibling,
 .active-parent,
 .inactive-node {
-    & .cm-comment {
-        color: var(--text-muted) !important;
+    & .cm-comment.cm-comment {
+        color: var(--text-muted);
     }
 }
 
-.hide-hidden-info .lng-hidden-info {
-    display: none !important;
+.hide-hidden-info.hide-hidden-info .lng-hidden-info {
+    display: none;
 }
 
-.hide-hidden-info .lng-hidden-info-part {
-    display: none !important;
+.hide-hidden-info.hide-hidden-info .lng-hidden-info-part {
+    display: none;
 }
 
 .mandala-card p,

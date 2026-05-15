@@ -6,16 +6,17 @@
     --position-lr: -4px;
 }
 
-.mandala-floating-button {
+#columns-container .mandala-floating-button {
     width: var(--floating-button-width);
     height: var(--floating-button-height);
     position: absolute;
     box-shadow: none;
     border: none;
     transition: opacity 200ms;
-    padding: 4px !important;
+    padding: 4px;
     cursor: pointer;
     z-index: 10;
+    opacity: 0;
     & svg {
         width: 14px;
         height: 14px;
@@ -26,43 +27,31 @@
     cursor: not-allowed;
 }
 
-/* bg */
 .theme-light {
-    .mandala-floating-button {
-        color: #000 !important;
-        background-color: #ffffffee !important;
-    }
-}
-
-.theme-dark {
-    .mandala-floating-button {
-        color: #fff !important;
-        background-color: #bebebe30;
-    }
-    .active-node .mandala-floating-button {
-        color: #fff !important;
-        background-color: rgba(60, 60, 60, 0.3);
-    }
-}
-.collapse-button {
-    background-color: var(--background-active-parent) !important;
-}
-
-/* opacity */
-.theme-light{
     --opacity-inactive-node: 0.5;
     --opacity-active-node: 0.5;
     --opacity-active-button: 0.8;
+
+    #columns-container .mandala-floating-button {
+        color: #000000;
+        background-color: #ffffffee;
+    }
 }
+
 .theme-dark {
     --opacity-inactive-node: 0.6;
     --opacity-active-node: 0.4;
     --opacity-active-button: 0.8;
-}
 
+    #columns-container .mandala-floating-button {
+        color: #ffffff;
+        background-color: #bebebe30;
+    }
 
-.mandala-floating-button {
-    opacity: 0;
+    #columns-container .active-node .mandala-floating-button {
+        color: #ffffff;
+        background-color: rgba(60, 60, 60, 0.3);
+    }
 }
 
 .mandala-view:not(.mandala-white-theme) .mandala-card:hover .mandala-floating-button {
@@ -84,11 +73,15 @@
     opacity: var(--opacity-active-button);
 }
 
-.collapse-button {
-    opacity: 0.3 !important
+#columns-container .collapse-button {
+    background-color: var(--background-active-parent);
+    opacity: 0.3;
+    top: calc(50% - 10px);
+    left: -40px;
 }
-.collapse-button:hover {
-    opacity: 0.8 !important
+
+#columns-container .collapse-button:hover {
+    opacity: 0.8;
 }
 
 /* position */
@@ -121,14 +114,9 @@
     right: 8px;
 }
 
-.collapse-button {
-    top: calc(50% - 10px);
-    left: -40px;
-}
-
 /* misc */
-.delete-card-button:hover{
-    background-color:#ff7b4d !important;
-    color: #fff !important
+#columns-container .delete-card-button:hover {
+    background-color: #ff7b4d;
+    color: #ffffff;
 }
 

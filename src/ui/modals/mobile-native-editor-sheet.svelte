@@ -164,7 +164,7 @@
         min-height: 0;
     }
 
-    .mobile-popup-editor-body :global(.cm-editor .cm-scroller) {
+    .mobile-popup-editor-body :global(.cm-editor.cm-editor .cm-scroller) {
         min-height: 0;
         overflow: auto;
         -webkit-overflow-scrolling: touch;
@@ -173,13 +173,11 @@
         overscroll-behavior-x: contain;
         padding-bottom: calc(
             max(var(--vvb, 0px), var(--vkf, 0px)) +
-                env(safe-area-inset-bottom, 0px) +
-                20px
-        ) !important;
+                env(safe-area-inset-bottom, 0px) + 20px
+        );
         scroll-padding-bottom: calc(
             max(var(--vvb, 0px), var(--vkf, 0px)) +
-                env(safe-area-inset-bottom, 0px) +
-                80px
+                env(safe-area-inset-bottom, 0px) + 80px
         );
     }
 

@@ -21,7 +21,11 @@
         (style ? ' apply-style-rule' : '') +
         (fillContent ? ' editor-container--fill' : '') +
         (density === 'compact' ? ' editor-container--compact' : '')}
-    style="--local-font-size-offset: {absoluteFontSize ? 0 : fontSizeOffset}px; {absoluteFontSize ? `--font-text-size: ${absoluteFontSize}px; font-size: ${absoluteFontSize}px;` : ''}"
+    style="--local-font-size-offset: {absoluteFontSize
+        ? 0
+        : fontSizeOffset}px; {absoluteFontSize
+        ? `--font-text-size: ${absoluteFontSize}px; font-size: ${absoluteFontSize}px;`
+        : ''}"
     use:loadInlineEditorAction={nodeId}
     use:expandableTextarea={!disableAutoResize}
 ></div>
@@ -73,14 +77,14 @@
         box-sizing: border-box;
     }
 
-    .editor-container--fill :global(.cm-editor .cm-scroller) {
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
+    .editor-container--fill :global(.cm-editor.cm-editor .cm-scroller) {
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .apply-style-rule {
-        & .view-content {
-            background-color: transparent !important;
+        & .view-content.view-content {
+            background-color: transparent;
         }
     }
 </style>

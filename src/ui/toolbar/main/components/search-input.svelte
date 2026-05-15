@@ -8,7 +8,7 @@
     const view = getView();
     const viewStore = view.viewStore;
     const search = searchStore(view);
-    
+
     // 中文输入法状态标记
     let isComposing = false;
 
@@ -16,7 +16,9 @@
         isComposing = true;
     };
 
-    const onCompositionEnd = (e: Event & { currentTarget: EventTarget & HTMLInputElement }) => {
+    const onCompositionEnd = (
+        e: Event & { currentTarget: EventTarget & HTMLInputElement },
+    ) => {
         isComposing = false;
         // 中文输入完成后，立即触发搜索
         viewStore.dispatch({
@@ -40,12 +42,11 @@
     };
 
     const onInput = (
-         
         e: Event & { currentTarget: EventTarget & HTMLInputElement },
     ) => {
         // 如果正在使用输入法（如拼音），不触发搜索
         if (isComposing) return;
-        
+
         viewStore.dispatch({
             type: 'view/search/set-query',
             payload: {
@@ -53,7 +54,7 @@
             },
         });
     };
-    
+
     // 搜索框只处理自身交互；主视图热键隔离由 view hotkeys 域统一决定。
     const onKeyDown = (e: KeyboardEvent) => {
         // 移动端：不要因为 Enter/确定 而把焦点转到列表（否则键盘会收起）。
@@ -63,9 +64,13 @@
         }
 
         // 桌面端：Enter 键将焦点转移到搜索结果列表，方便键盘导航
-        if (!Platform.isMobile && e.key === 'Enter' && $search.results.size > 0) {
+        if (
+            !Platform.isMobile &&
+            e.key === 'Enter' &&
+            $search.results.size > 0
+        ) {
             e.preventDefault();
-            
+
             // 等待下一帧，确保 DOM 已更新
             window.setTimeout(() => {
                 const resultsEl = activeDocument.querySelector(
@@ -83,7 +88,10 @@
 <div class="search-input-wrapper search-input-container">
     <input
         autofocus={true}
-        class={"search-input search-input-element"+($search.query && $search.results.size===0 && !$search.searching?' no-results':'')}
+        class={'search-input search-input-element' +
+            ($search.query && $search.results.size === 0 && !$search.searching
+                ? ' no-results'
+                : '')}
         enterkeyhint="search"
         on:input={onInput}
         on:compositionstart={onCompositionStart}
@@ -122,7 +130,8 @@
                 },
             });
         }}
-        style={'right: 94px; top: -1px;'+($search.query ? '' : ' display: none;')}
+        style={'right: 94px; top: -1px;' +
+            ($search.query ? '' : ' display: none;')}
     ></div>
 
     <div
@@ -147,9 +156,9 @@
 </div>
 
 <style>
-    .search-input-element {
+    .search-input-element.search-input-element {
         height: 34px;
-        padding-right: 120px !important;
+        padding-right: 120px;
         padding-left: 12px;
         min-width: 250px;
     }
@@ -171,7 +180,7 @@
     .search-input-container::before {
         display: none;
     }
-    .no-results{
-        box-shadow: 0 0 0 2px var(--color-red) !important;
+    .no-results.no-results {
+        box-shadow: 0 0 0 2px var(--color-red);
     }
 </style>

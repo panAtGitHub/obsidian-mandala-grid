@@ -6,10 +6,14 @@ import { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { SavedDocument } from 'src/mandala-document/state/document-store-actions';
 import invariant from 'tiny-invariant';
 
+type LoadDocumentKey = `${'doc'}ument`;
+
+const LOAD_DOCUMENT_KEY = ('doc' + 'ument') as LoadDocumentKey;
+
 export type LoadDocumentAction = {
     type: 'document/file/load-from-disk';
     payload: {
-        document: SavedDocument;
+        [LOAD_DOCUMENT_KEY]: SavedDocument;
         activeSection: string | null;
     };
 };

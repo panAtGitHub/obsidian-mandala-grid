@@ -343,10 +343,10 @@
     }
 
     /* 当侧边栏关闭时，强制在移动端不占用 Flex 空间 */
-    .is-mobile.mandala-detail-sidebar[style*='display: none'] {
-        flex: 0 0 0px !important;
-        margin: 0 !important;
-        padding: 0 !important;
+    .is-mobile.mandala-detail-sidebar.is-mobile[style*='display: none'] {
+        flex: 0 0 0px;
+        margin: 0;
+        padding: 0;
     }
 
     .is-mobile.is-portrait.mandala-detail-sidebar {
@@ -449,36 +449,38 @@
     :global(.mandala-detail-sidebar .editor-container) {
         flex: 1 1 auto;
         min-height: 0;
-        height: 100% !important;
+        height: 100%;
         overflow: hidden;
-        background-color: transparent !important;
+        background-color: transparent;
     }
 
-    :global(.mandala-detail-sidebar .mandala-inline-editor) {
-        height: 100% !important;
-        min-height: 0 !important;
+    :global(
+            .mandala-detail-sidebar .mandala-inline-editor.mandala-inline-editor
+        ) {
+        height: 100%;
+        min-height: 0;
     }
 
-    :global(.mandala-detail-sidebar .cm-editor) {
-        height: 100% !important;
+    :global(.mandala-detail-sidebar .cm-editor.cm-editor) {
+        height: 100%;
     }
 
-    :global(.mandala-detail-sidebar .cm-editor .cm-scroller) {
-        overflow: auto !important;
+    :global(.mandala-detail-sidebar .cm-editor.cm-editor .cm-scroller) {
+        overflow: auto;
     }
 
-    :global(.mandala-detail-sidebar .view-content) {
-        background-color: transparent !important;
-        padding: 6px 6px 10px 12px !important; /* 匹配 Content.svelte 原生边距 */
+    :global(.mandala-detail-sidebar .view-content.view-content) {
+        background-color: transparent;
+        padding: 6px 6px 10px 12px; /* 匹配 Content.svelte 原生边距 */
     }
 
-    :global(.mandala-detail-sidebar .lng-prev) {
-        padding: 6px 6px 10px 12px !important; /* 匹配 Content.svelte 原生边距 */
-        background-color: transparent !important;
+    :global(.mandala-detail-sidebar .lng-prev.lng-prev) {
+        padding: 6px 6px 10px 12px; /* 匹配 Content.svelte 原生边距 */
+        background-color: transparent;
     }
 
     /* 消除侧边栏第一行元素（如标题）的多余顶部边距，实现视觉对齐 */
-    :global(.mandala-detail-sidebar .lng-prev > *:first-child) {
-        margin-top: 0 !important;
+    :global(.mandala-detail-sidebar .lng-prev > *:first-child:first-child) {
+        margin-top: 0;
     }
 </style>

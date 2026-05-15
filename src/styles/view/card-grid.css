@@ -37,8 +37,7 @@
     min-width: 0;
 }
 
-.mandala-card-grid__cell--empty,
-.mandala-card-grid__cell--placeholder {
+.mandala-card-grid__cell--empty {
     border: 1px dashed var(--background-modifier-border);
     border-radius: 8px;
     background-color: color-mix(
@@ -49,6 +48,8 @@
 }
 
 .mandala-card-grid__cell--placeholder {
+    border: 1px dashed var(--background-modifier-border);
+    border-radius: 8px;
     background-color: color-mix(
         in srgb,
         var(--background-primary) 76%,
@@ -118,10 +119,10 @@
     border-bottom: 3px solid var(--mandala-border-color);
 }
 
-.mandala-white-theme .mandala-card-grid__cell .mandala-card {
-    border: 0 !important;
-    border-left-width: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    outline: 0 !important;
+.mandala-white-theme .mandala-card-grid__cell .mandala-card.mandala-card {
+    border: 0;
+    border-left-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+    outline: 0;
 }

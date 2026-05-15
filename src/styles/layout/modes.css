@@ -35,21 +35,20 @@
     }
 
     & .active-node {
-        outline: 6px solid var(--background-active-parent) !important;
+        outline: 6px solid var(--background-active-parent);
     }
 }
 
 /* to prevent cards from wobbling when hovering over them */
 .mandala-view:not(.mandala-white-theme) #columns-container.zoom-enabled {
     * {
-        transition: none !important;
+        transition: none;
     }
-}
 
-.mandala-view:not(.mandala-white-theme) #columns-container.zoom-enabled {
-    .mandala-floating-button {
-        opacity: 0.5 !important;
+    .mandala-floating-button.mandala-floating-button {
+        opacity: 0.5;
     }
+
     .mandala-card:not(:hover) .mandala-floating-button:not(.collapse-button) {
         visibility: hidden;
     }
@@ -64,7 +63,7 @@
     }
 
     .inactive-node:not(.inactive-node-hover) {
-        opacity: var(--inactive-card-opacity) !important;
-        cursor: none !important;
+        opacity: var(--inactive-card-opacity);
+        cursor: none;
     }
 }

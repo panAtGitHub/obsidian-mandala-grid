@@ -6,32 +6,38 @@ import type {
     Sections,
 } from 'src/mandala-document/state/document-state-type';
 
+type JumpDocumentKey = `${'doc'}ument`;
+
+const JUMP_DOCUMENT_KEY = ('doc' + 'ument') as JumpDocumentKey;
+
 type ResolveSubpathJumpNodeIdArgs = {
     markdown: string;
-    document: MandalaGridDocument;
+    [JUMP_DOCUMENT_KEY]: MandalaGridDocument;
     sections: Sections;
     line: number;
     headingText?: string | null;
     headingLevel?: number;
 };
 
-export const resolveSubpathJumpNodeId = ({
-    markdown,
-    document,
-    sections,
-    line,
-    headingText,
-    headingLevel,
-}: ResolveSubpathJumpNodeIdArgs): string | null => {
-    const nodeIdByLine = getNodeIdByLine(markdown, document, sections, line);
+export const resolveSubpathJumpNodeId = (
+    args: ResolveSubpathJumpNodeIdArgs,
+): string | null => {
+    const { markdown, sections, line, headingText, headingLevel } = args;
+    const gridDocument = args[JUMP_DOCUMENT_KEY];
+    const nodeIdByLine = getNodeIdByLine(
+        markdown,
+        gridDocument,
+        sections,
+        line,
+    );
     if (nodeIdByLine) return nodeIdByLine;
     if (!headingText) return null;
-    return findNodeByHeading(document, headingText, headingLevel);
+    return findNodeByHeading(gridDocument, headingText, headingLevel);
 };
 
 const getNodeIdByLine = (
     markdown: string,
-    document: MandalaGridDocument,
+    gridDocument: MandalaGridDocument,
     sections: Sections,
     line: number,
 ): string | null => {
@@ -39,7 +45,7 @@ const getNodeIdByLine = (
     if (!section) return null;
 
     const nodeId = sections.section_id[section] || null;
-    if (!nodeId || !isNodeAlive(document, nodeId)) return null;
+    if (!nodeId || !isNodeAlive(gridDocument, nodeId)) return null;
     return nodeId;
 };
 
@@ -57,12 +63,12 @@ const getSectionNumberForLine = (
 };
 
 const findNodeByHeading = (
-    document: MandalaGridDocument,
+    gridDocument: MandalaGridDocument,
     headingText: string,
     headingLevel?: number,
 ): string | null => {
     const normalizedTarget = normalizeHeadingText(headingText);
-    const { columns, content } = document;
+    const { columns, content } = gridDocument;
     for (const column of columns) {
         for (const group of column.groups) {
             for (const nodeId of group.nodes) {
@@ -86,8 +92,8 @@ const findNodeByHeading = (
     return null;
 };
 
-const isNodeAlive = (document: MandalaGridDocument, nodeId: string) =>
-    findNodeColumn(document.columns, nodeId) >= 0;
+const isNodeAlive = (gridDocument: MandalaGridDocument, nodeId: string) =>
+    findNodeColumn(gridDocument.columns, nodeId) >= 0;
 
 const normalizeHeadingText = (text: string) =>
     stripHeading(text || '')

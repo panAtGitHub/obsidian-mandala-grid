@@ -1,53 +1,53 @@
-body.mandala-print-export .mandala-white-theme {
-    --background-container: #ffffff !important;
-    --background-primary: #ffffff !important;
-    --background-secondary: #f8f8f8 !important;
-    --background-modifier-border: #e0e0e0 !important;
-    --background-active-node: #ffffff !important;
-    --background-active-parent: #ffffff !important;
-    --color-active-node: #000000 !important;
-    --color-active-parent: #000000 !important;
-    --text-normal: #000000 !important;
-    --text-muted: #666666 !important;
+body.mandala-print-export.mandala-print-export .mandala-white-theme {
+    --background-container: #ffffff;
+    --background-primary: #ffffff;
+    --background-secondary: #f8f8f8;
+    --background-modifier-border: #e0e0e0;
+    --background-active-node: #ffffff;
+    --background-active-parent: #ffffff;
+    --color-active-node: #000000;
+    --color-active-parent: #000000;
+    --text-normal: #000000;
+    --text-muted: #666666;
 }
 
-.mandala-export-hide-controls .parallel-nav-button,
-.mandala-export-hide-controls .mandala-subgrid-controls,
-.mandala-export-hide-controls .mobile-day-plan-today-controls {
-    display: none !important;
+.mandala-export-hide-controls.mandala-export-hide-controls .parallel-nav-button,
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-subgrid-controls,
+.mandala-export-hide-controls.mandala-export-hide-controls .mobile-day-plan-today-controls {
+    display: none;
 }
 
-.mandala-export-hide-controls .mandala-scroll,
-.mandala-export-hide-controls .mandala-scroll *,
-body.mandala-print-export .mandala-scroll,
-body.mandala-print-export .mandala-scroll * {
-    scrollbar-width: auto !important;
-    scrollbar-color: transparent transparent !important;
-    -ms-overflow-style: auto !important;
-    --scrollbar-thumb-bg: transparent !important;
-    --scrollbar-active-thumb-bg: transparent !important;
-    --scrollbar-bg: transparent !important;
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll,
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll *,
+body.mandala-print-export.mandala-print-export .mandala-scroll,
+body.mandala-print-export.mandala-print-export .mandala-scroll * {
+    scrollbar-width: auto;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: auto;
+    --scrollbar-thumb-bg: transparent;
+    --scrollbar-active-thumb-bg: transparent;
+    --scrollbar-bg: transparent;
 }
 
-.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-thumb,
-.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-thumb,
-body.mandala-print-export .mandala-scroll::-webkit-scrollbar-thumb,
-body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-thumb {
-    background: transparent !important;
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-thumb,
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-thumb,
+body.mandala-print-export.mandala-print-export .mandala-scroll::-webkit-scrollbar-thumb,
+body.mandala-print-export.mandala-print-export .mandala-scroll *::-webkit-scrollbar-thumb {
+    background: transparent;
 }
 
-.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-track,
-.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-track,
-body.mandala-print-export .mandala-scroll::-webkit-scrollbar-track,
-body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-track {
-    background: transparent !important;
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-track,
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-track,
+body.mandala-print-export.mandala-print-export .mandala-scroll::-webkit-scrollbar-track,
+body.mandala-print-export.mandala-print-export .mandala-scroll *::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-corner,
-.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-corner,
-body.mandala-print-export .mandala-scroll::-webkit-scrollbar-corner,
-body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
-    background: transparent !important;
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll::-webkit-scrollbar-corner,
+.mandala-export-hide-controls.mandala-export-hide-controls .mandala-scroll *::-webkit-scrollbar-corner,
+body.mandala-print-export.mandala-print-export .mandala-scroll::-webkit-scrollbar-corner,
+body.mandala-print-export.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 @media print {
@@ -62,34 +62,37 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
     }
 
     html,
-    body {
-        margin: 0 !important;
-        padding: 0 !important;
+    body.mandala-print-export {
+        margin: 0;
+        padding: 0;
     }
 
-    body.mandala-print-export > :not(.mandala-pdf-print-host) {
-        display: none !important;
+    body.mandala-print-export.mandala-print-export
+        > :not(.mandala-pdf-print-host) {
+        display: none;
     }
 
-    body.mandala-print-export .mandala-pdf-print-host,
-    body.mandala-print-export .mandala-pdf-print-host * {
-        visibility: visible !important;
+    body.mandala-print-export.mandala-print-export .mandala-pdf-print-host,
+    body.mandala-print-export.mandala-print-export .mandala-pdf-print-host * {
+        visibility: visible;
     }
 
-    body.mandala-print-export .mandala-pdf-print-host {
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        position: static !important;
-        width: auto !important;
-        height: auto !important;
+    body.mandala-print-export.mandala-print-export .mandala-pdf-print-host {
+        display: block;
+        margin: 0;
+        padding: 0;
+        position: static;
+        width: auto;
+        height: auto;
         background: var(--background-primary);
         box-sizing: border-box;
     }
 
-    body.mandala-print-export .mandala-pdf-print-host .mandala-root {
+    body.mandala-print-export.mandala-print-export
+        .mandala-pdf-print-host
+        .mandala-root {
         page: mandala-a4-portrait;
-        margin: 0 !important;
+        margin: 0;
     }
 
     body.mandala-print-export
@@ -103,54 +106,53 @@ body.mandala-print-export .mandala-scroll *::-webkit-scrollbar-corner {
     body.mandala-print-export .parallel-nav-button,
     body.mandala-print-export .mandala-subgrid-controls,
     body.mandala-print-export .mobile-day-plan-today-controls {
-        display: none !important;
+        display: none;
     }
 
     body.mandala-print-export .mandala-scroll {
-        overflow: visible !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        overflow: visible;
+        padding: 0;
+        margin: 0;
     }
 
     body.mandala-print-export .mandala-root.mandala-a4-mode .mandala-scroll {
-        overflow: hidden !important;
-        padding: var(--mandala-a4-margin) !important;
+        overflow: hidden;
+        padding: var(--mandala-a4-margin);
     }
 
     body.mandala-print-export .mandala-card {
         page-break-inside: avoid;
-        break-inside: avoid;
-        box-shadow: none !important;
+        box-shadow: none;
     }
 
     body.mandala-print-export
         .mandala-pdf-print-host
         .mandala-root.is-desktop-square-layout
         .mandala-scroll {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     body.mandala-print-export
         .mandala-pdf-print-host
         .mandala-root.is-desktop-square-layout
         .simple-9x9-shell {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        height: 100% !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
     }
 
     body.mandala-print-export
         .mandala-pdf-print-host
         .mandala-root.is-desktop-square-layout
         .simple-9x9-grid {
-        width: auto !important;
-        height: auto !important;
-        max-width: 100% !important;
-        max-height: 100% !important;
-        aspect-ratio: 1 / 1 !important;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: 1 / 1;
     }
 }

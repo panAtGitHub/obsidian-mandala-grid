@@ -6,9 +6,8 @@
 
     export let nodeId: string;
     export let isMobilePlatform = false;
-    export let onMobilePreviewDoubleTapEdit:
-        | ((nodeId: string) => void)
-        | null = null;
+    export let onMobilePreviewDoubleTapEdit: ((nodeId: string) => void) | null =
+        null;
 
     const cellRuntime = getCellRuntime();
     const EDITABLE_NAV_KEYS = new Set([
@@ -97,7 +96,9 @@
 
     const isInteractiveTarget = (target: HTMLElement | null) =>
         Boolean(
-            target?.closest('a, button, input, textarea, select, [role="button"]'),
+            target?.closest(
+                'a, button, input, textarea, select, [role="button"]',
+            ),
         );
 
     const handleMobilePreviewTouchEnd = (event: TouchEvent) => {
@@ -201,8 +202,8 @@
         display: flex;
     }
 
-    :global(.mandala-inline-editor-readonly .cm-cursor),
-    :global(.mandala-inline-editor-readonly .cm-dropCursor) {
-        display: none !important;
+    :global(.mandala-inline-editor-readonly .cm-cursor.cm-cursor),
+    :global(.mandala-inline-editor-readonly .cm-dropCursor.cm-dropCursor) {
+        display: none;
     }
 </style>

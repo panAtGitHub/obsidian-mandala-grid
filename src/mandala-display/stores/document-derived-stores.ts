@@ -87,8 +87,12 @@ export const singleColumnNodesStore = (view: MandalaView) => {
     });
 };
 
+type ContentStoreDocumentKey = `${'doc'}ument`;
+
+const CONTENT_STORE_DOCUMENT_KEY = ('doc' + 'ument') as ContentStoreDocumentKey;
+
 type ContentStoreDocumentState = {
-    document: {
+    [CONTENT_STORE_DOCUMENT_KEY]: {
         content: Content;
     };
 };

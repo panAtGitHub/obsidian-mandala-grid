@@ -75,7 +75,8 @@
                           .mandalaGridCustomLayouts ?? [],
                   frontmatter: view.documentStore.getValue().file.frontmatter,
                   weekAnchorDate: getMandalaWeekAnchorDate($viewState),
-                  weekStart: view.getEffectiveMandalaSettings().general.weekStart,
+                  weekStart:
+                      view.getEffectiveMandalaSettings().general.weekStart,
               })
             : null;
     $: if (
@@ -336,23 +337,25 @@
         background: transparent;
     }
 
-    .cell-preview-dialog__body.is-editing :global(.cm-editor),
-    .cell-preview-dialog__body.is-editing :global(.cm-editor .cm-scroller) {
+    .cell-preview-dialog__body.is-editing :global(.cm-editor.cm-editor),
+    .cell-preview-dialog__body.is-editing
+        :global(.cm-editor.cm-editor .cm-scroller) {
         min-height: 100%;
         height: 100%;
-        background: transparent !important;
+        background: transparent;
     }
 
-    .cell-preview-dialog__body.is-editing :global(.cm-editor .cm-scroller) {
-        overflow: auto !important;
+    .cell-preview-dialog__body.is-editing
+        :global(.cm-editor.cm-editor .cm-scroller) {
+        overflow: auto;
     }
 
     .cell-preview-dialog__body.is-editing :global(.cm-content),
     .cell-preview-dialog__body.is-editing :global(.cm-gutters),
-    .cell-preview-dialog__body.is-editing :global(.view-content),
+    .cell-preview-dialog__body.is-editing :global(.view-content.view-content),
     .cell-preview-dialog__body.is-editing :global(.cm-activeLine),
     .cell-preview-dialog__body.is-editing :global(.cm-activeLineGutter) {
-        background: transparent !important;
+        background: transparent;
     }
 
     .cell-preview-dialog__footer {

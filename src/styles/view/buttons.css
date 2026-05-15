@@ -1,16 +1,16 @@
-.mandala-view-button {
-    width: 34px !important;
-    height: 34px !important;
-    padding: 8px !important;
+.mandala-view-button.mandala-view-button {
+    width: 34px;
+    height: 34px;
+    padding: 8px;
     font-size: inherit;
-    color: var(--icon-color) !important;
+    color: var(--icon-color);
     background-color: var(--interactive-normal);
     --icon-size: var(--icon-s);
     --icon-stroke: var(--icon-s-stroke-width);
     cursor: pointer;
     border-radius: 0;
     border: none;
-    box-shadow: none !important;
+    box-shadow: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -22,21 +22,17 @@
     }
 }
 
-.mandala-view-button:disabled {
-    cursor: not-allowed;
-}
-
 .mandala-view-button:hover {
     background-color: var(--interactive-hover);
 }
 
-.mandala-view-button:disabled {
+.mandala-view-button.mandala-view-button:disabled {
     cursor: not-allowed;
-    color: var(--color-base-40) !important;
+    color: var(--color-base-40);
 }
 
-.mandala-view-button[data-active='true'] {
-    color: var(--icon-color-active) !important;
+.mandala-view-button.mandala-view-button[data-active='true'] {
+    color: var(--icon-color-active);
 }
 
 .mandala-view-button[data-active='true'] svg {
@@ -55,14 +51,14 @@
     flex-direction: column;
 }
 
-.topbar-button {
-    width: 34px !important;
-    height: 34px !important;
-    padding: 8px !important;
+.topbar-button.topbar-button {
+    width: 34px;
+    height: 34px;
+    padding: 8px;
     border-radius: 10px;
     border: 1px solid var(--background-modifier-border);
     background: var(--background-primary);
-    box-shadow: var(--shadow-s) !important;
+    box-shadow: var(--shadow-s);
 }
 
 .topbar-button svg,
@@ -81,13 +77,13 @@
     gap: 6px;
 }
 
-.is-mobile .topbar-button {
-    width: 36px !important;
-    height: 36px !important;
+.is-mobile .topbar-button.topbar-button {
+    width: 36px;
+    height: 36px;
     border-radius: 12px;
     border: 1px solid var(--background-modifier-border);
     background: var(--background-primary);
-    box-shadow: var(--shadow-s) !important;
+    box-shadow: var(--shadow-s);
 }
 
 .is-mobile .topbar-mobile-popover {

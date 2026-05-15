@@ -1,4 +1,4 @@
-.mandala-modal {
+.mandala-modal.mandala-modal {
     max-width: var(--view-width);
     max-height: var(--view-height);
     overflow: auto;
@@ -14,7 +14,7 @@
 
     min-width: 165px;
     padding: var(--size-4-2);
-    --scrollbar-bg: initial !important;
+    --scrollbar-bg: initial;
 
     /* Highlight with shadow and border */
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -49,37 +49,37 @@
 
 /* 手机端设置页终极解耦样式 - 移除媒体查询限制，直接绑定 is-mobile 类 */
 .mandala-modal.is-mobile {
-    --font-text-size: 16px !important;
-    font-size: 16px !important;
+    --font-text-size: 16px;
+    font-size: 16px;
     z-index: 99999;
     inset: 0;
 }
 
-.mandala-modal.is-mobile .vertical-tab-nav-item {
-    font-size: 17px !important;
+.mandala-modal.is-mobile .vertical-tab-nav-item.vertical-tab-nav-item {
+    font-size: 17px;
     font-weight: 500;
 }
 
-.mandala-modal.is-mobile .mobile-modal-title {
-    font-size: 20px !important;
+.mandala-modal.is-mobile .mobile-modal-title.mobile-modal-title {
+    font-size: 20px;
     /* 锁定标题为 20px */
 }
 
-.mandala-modal.is-mobile .setting-item-name {
-    font-size: 17px !important;
-    font-weight: 600 !important;
-    color: var(--text-normal) !important;
+.mandala-modal.is-mobile .setting-item-name.setting-item-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-normal);
 }
 
-.mandala-modal.is-mobile .setting-item-description {
-    font-size: 13px !important;
-    color: var(--text-muted) !important;
-    line-height: 1.5 !important;
+.mandala-modal.is-mobile .setting-item-description.setting-item-description {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
 }
 
 .mandala-modal.is-mobile .setting-item-control input,
 .mandala-modal.is-mobile .setting-item-control select {
-    font-size: 16px !important;
+    font-size: 16px;
 }
 
 .mandala-modal--full-height {
@@ -120,8 +120,8 @@
     min-width: 0;
 }
 
-.mandala-modal-close-inline {
-    position: static !important;
+.mandala-modal .modal-close-button.mandala-modal-close-inline {
+    position: static;
     flex: 0 0 auto;
     width: 22px;
     height: 22px;

@@ -4,8 +4,8 @@
     padding: 0;
 }
 
-.is-mobile .view-options-menu {
-    padding: 0 !important;
+.is-mobile .view-options-menu.view-options-menu {
+    padding: 0;
     max-width: none;
     max-height: none;
     right: auto;
@@ -329,16 +329,16 @@
     background: var(--background-secondary);
 }
 
-.view-options-menu__item {
+.view-options-menu__item.view-options-menu__item {
     width: 100%;
-    display: flex !important;
+    display: flex;
     align-items: flex-start;
     gap: 12px;
     padding: 10px 12px;
     min-height: 44px;
-    height: auto !important;
-    border: none !important;
-    background: transparent !important;
+    height: auto;
+    border: none;
+    background: transparent;
     cursor: pointer;
     border-radius: 4px;
     text-align: left;

@@ -21,9 +21,7 @@
     $: metaClassName = clx(
         className,
         'mandala-card-meta',
-        variant === 'capsule'
-            ? 'mandala-card-meta--capsule-wrap'
-            : undefined,
+        variant === 'capsule' ? 'mandala-card-meta--capsule-wrap' : undefined,
         variant === 'background'
             ? 'mandala-card-meta--with-bg'
             : 'mandala-card-meta--without-bg',
@@ -35,7 +33,7 @@
 </script>
 
 <!-- ViewModel 给出最终展示模式后，这里只负责渲染对应的 meta 外观。 -->
-<div class={metaClassName} style={style}>
+<div class={metaClassName} {style}>
     {#if showPin}
         <span class="mandala-card-meta__pin" aria-hidden="true">
             <Pin size={10} strokeWidth={2.2} />
@@ -103,9 +101,11 @@
         opacity: 0.5;
     }
 
-    .mandala-card-meta--compact .mandala-card-meta__pin :global(svg) {
-        width: 9px !important;
-        height: 9px !important;
+    .mandala-card-meta--compact
+        .mandala-card-meta__pin.mandala-card-meta__pin
+        :global(svg) {
+        width: 9px;
+        height: 9px;
     }
 
     /* 深浅文字 tone 由 visual 层统一决定，胶囊和整块背景都直接消费。 */
