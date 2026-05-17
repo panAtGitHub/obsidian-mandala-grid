@@ -26,6 +26,22 @@
         display: none;
     }
 
+    & .markdown-source-view.markdown-source-view {
+        --file-line-width: 100%;
+        --file-margins: 0;
+    }
+
+    & .view-content.view-content,
+    & .cm-editor.cm-editor .cm-content,
+    & .cm-editor.cm-editor .cm-line {
+        padding: 0;
+    }
+
+    & .cm-editor.cm-editor .cm-sizer {
+        margin-inline: 0;
+        max-width: none;
+    }
+
     & .cm-editor.cm-editor,
     & .cm-content,
     & .cm-line {
@@ -51,6 +67,7 @@
     }
 
     --file-line-width: 100%;
+    --file-margins: 0;
 }
 
 /* 移动端全屏模式下的编辑器特殊调整 */
