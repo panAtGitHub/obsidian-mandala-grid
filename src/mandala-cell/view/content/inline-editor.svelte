@@ -17,7 +17,7 @@
 </script>
 
 <div
-    class={'editor-container' +
+    class={'editor-container mandala-card-editor' +
         (style ? ' apply-style-rule' : '') +
         (fillContent ? ' editor-container--fill' : '') +
         (density === 'compact' ? ' editor-container--compact' : '')}
@@ -40,12 +40,14 @@
         display: flex;
         box-sizing: border-box;
         --mandala-editor-padding-y: 6px;
+        --mandala-editor-padding-x: 6px;
         --mandala-editor-padding-bottom: 20px;
         --mandala-editor-line-height: 1.4;
     }
 
     .editor-container--compact {
         --mandala-editor-padding-y: 2px;
+        --mandala-editor-padding-x: 6px;
         --mandala-editor-padding-bottom: 8px;
         --mandala-editor-line-height: 1.12;
     }
