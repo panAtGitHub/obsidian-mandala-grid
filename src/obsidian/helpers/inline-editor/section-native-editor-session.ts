@@ -1,7 +1,17 @@
-import { MarkdownView, Notice, TFile, ViewState } from 'obsidian';
+import {
+    MarkdownView,
+    Notice,
+    TFile,
+    ViewState,
+    type EditorPosition,
+} from 'obsidian';
 import { logger } from 'src/shared/helpers/logger';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
+import {
+    resolveNodeEditorCommitContent,
+    resolveNodeEditorInitialPlacement,
+} from 'src/mandala-interaction/helpers/resolve-node-editor-initial-placement';
 import {
     applySectionPatch,
     getSectionContentBySection,
@@ -13,9 +23,13 @@ type SectionEditSession = {
     tempFilePath: string;
     sourceFilePath: string;
     section: string;
+    originalContent: string;
+    preparedContent: string;
+    cursorKey: string;
 };
 
 const sessionByTempFilePath = new Map<string, SectionEditSession>();
+const cursorBySectionKey = new Map<string, EditorPosition>();
 let isStartingSectionSession = false;
 let isSavingSectionSession = false;
 let isSweepingStaleSessions = false;
@@ -74,6 +88,9 @@ const getFileByPath = (view: MandalaView, path: string): TFile | null => {
 const getMarkdownView = (view: MandalaView) =>
     view.leaf.view instanceof MarkdownView ? view.leaf.view : null;
 
+const getSectionCursorKey = (sourceFilePath: string, section: string) =>
+    `${sourceFilePath}::${section}`;
+
 const wait = (ms: number) =>
     new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
@@ -112,10 +129,10 @@ const centerCursorLineInEditor = (markdownView: MarkdownView) => {
     scroller.scrollTop += lineMidY - scrollerMidY;
 };
 
-const setCursorToContentEnd = (markdownView: MarkdownView) => {
-    const line = markdownView.editor.lastLine();
-    const ch = markdownView.editor.getLine(line).length;
-    const target = { line, ch };
+const setCursorInEditor = (
+    markdownView: MarkdownView,
+    target: EditorPosition,
+) => {
     markdownView.editor.setCursor(target);
     markdownView.editor.scrollIntoView({ from: target, to: target }, true);
     markdownView.editor.focus();
@@ -159,7 +176,11 @@ const mergeTempFileToSource = async (
     const tempFile = getFileByPath(view, session.tempFilePath);
     const sourceFile = getFileByPath(view, session.sourceFilePath);
     if (!tempFile || !sourceFile) return;
-    const replacement = await view.app.vault.read(tempFile);
+    const replacement = resolveNodeEditorCommitContent({
+        currentContent: await view.app.vault.read(tempFile),
+        originalContent: session.originalContent,
+        preparedContent: session.preparedContent,
+    });
     const sourceMarkdown = await view.app.vault.read(sourceFile);
     const patched = applySectionPatch(
         sourceMarkdown,
@@ -253,7 +274,15 @@ const saveSectionAndReturn = async (view: MandalaView) => {
 
         // 点击保存时先等待一帧，尽量让输入法合成态提交到 editor state。
         await wait(32);
-        const replacement = markdownView.editor.getValue();
+        cursorBySectionKey.set(
+            session.cursorKey,
+            markdownView.editor.getCursor(),
+        );
+        const replacement = resolveNodeEditorCommitContent({
+            currentContent: markdownView.editor.getValue(),
+            originalContent: session.originalContent,
+            preparedContent: session.preparedContent,
+        });
         const sourceMarkdown = await view.app.vault.read(sourceFile);
         const patched = applySectionPatch(
             sourceMarkdown,
@@ -326,11 +355,25 @@ export const startSectionNativeEditorSession = async (
         await ensureFolderRecursive(view, SESSION_FOLDER);
         const safeSection = String(section).replace(/\./g, '-');
         const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}.md`;
-        const tempFile = await view.app.vault.create(tempPath, sectionContent);
+        const initialPlacement = resolveNodeEditorInitialPlacement({
+            content: sectionContent,
+            isDayPlanScene: view.getMandalaSceneKey().variant === 'day-plan',
+            historyCursor: cursorBySectionKey.get(
+                getSectionCursorKey(sourceFile.path, section),
+            ),
+        });
+        const tempFile = await view.app.vault.create(
+            tempPath,
+            initialPlacement.content,
+        );
+        const cursorKey = getSectionCursorKey(sourceFile.path, section);
         sessionByTempFilePath.set(tempPath, {
             tempFilePath: tempPath,
             sourceFilePath: sourceFile.path,
             section,
+            originalContent: sectionContent,
+            preparedContent: initialPlacement.content,
+            cursorKey,
         });
 
         await view.leaf.openFile(tempFile);
@@ -343,7 +386,7 @@ export const startSectionNativeEditorSession = async (
         for (let attempt = 0; attempt < 10; attempt++) {
             const liveView = getMarkdownView(view);
             if (liveView?.editor) {
-                setCursorToContentEnd(liveView);
+                setCursorInEditor(liveView, initialPlacement.cursor);
                 return;
             }
             await wait(24);

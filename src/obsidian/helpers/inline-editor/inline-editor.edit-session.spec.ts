@@ -5,12 +5,18 @@ vi.mock('obsidian', () => ({
     MarkdownView: class {},
 }));
 
-vi.mock('src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode', () => ({
-    vimEnterInsertMode: vi.fn(),
-}));
-vi.mock('src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming', () => ({
-    fixVimCursorWhenZooming: vi.fn(() => null),
-}));
+vi.mock(
+    'src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode',
+    () => ({
+        vimEnterInsertMode: vi.fn(),
+    }),
+);
+vi.mock(
+    'src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming',
+    () => ({
+        fixVimCursorWhenZooming: vi.fn(() => null),
+    }),
+);
 vi.mock('src/obsidian/helpers/inline-editor/helpers/lock-file', () => ({
     lockFile: vi.fn(),
 }));
@@ -22,6 +28,10 @@ import { InlineEditor } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
 type InlineEditorTestView = {
     file: object | null;
+    getMandalaSceneKey: () => {
+        viewKind: string;
+        variant: string;
+    };
     plugin: {
         app: {
             workspace: {
@@ -59,6 +69,10 @@ type InlineEditorTestView = {
 
 const createTestView = (): InlineEditorTestView => ({
     file: {},
+    getMandalaSceneKey: () => ({
+        viewKind: '3x3',
+        variant: 'default',
+    }),
     plugin: {
         app: {
             workspace: {
@@ -126,19 +140,24 @@ const attachEditorInternals = (
     value = 'content',
     cursor = { line: 0, ch: 0 },
 ) => {
+    let currentValue = value;
     const editorApi = {
-        getValue: vi.fn(() => value),
+        getValue: vi.fn(() => currentValue),
         getCursor: vi.fn(() => cursor),
         refresh: vi.fn(),
         focus: vi.fn(),
-        lastLine: vi.fn(() => 0),
-        getLine: vi.fn(() => value),
+        lastLine: vi.fn(() => currentValue.split('\n').length - 1),
+        getLine: vi.fn((line: number) => currentValue.split('\n')[line] ?? ''),
         setCursor: vi.fn(),
     };
 
+    const mandalaSetViewData = vi.fn((nextValue: string) => {
+        currentValue = nextValue;
+    });
+
     (editor as unknown as { inlineView: unknown }).inlineView = {
         editor: editorApi,
-        mandalaSetViewData: vi.fn(),
+        mandalaSetViewData,
     };
     (editor as unknown as { containerEl: unknown }).containerEl =
         createMockElement();
@@ -185,11 +204,9 @@ describe('inline-editor edit-session integration', () => {
             editor as unknown as {
                 handleEditorFocusOut: (event: FocusEvent) => void;
             }
-        ).handleEditorFocusOut(
-            {
-                relatedTarget: {},
-            } as FocusEvent,
-        );
+        ).handleEditorFocusOut({
+            relatedTarget: {},
+        } as FocusEvent);
 
         expect(view.editSession.updateBuffer).toHaveBeenCalledWith('blurred');
         expect(view.editSession.requestBlurCommit).toHaveBeenCalledTimes(1);
@@ -200,14 +217,16 @@ describe('inline-editor edit-session integration', () => {
         const view = createTestView();
         const editor = new InlineEditor(view as never);
         attachEditorInternals(editor, 'before-switch', { line: 2, ch: 1 });
-        (editor as unknown as { setContent: (content: string) => void }).setContent =
-            vi.fn();
+        (
+            editor as unknown as { setContent: (content: string) => void }
+        ).setContent = vi.fn();
         (editor as unknown as { focus: () => void }).focus = vi.fn();
         (editor as unknown as { restoreCursor: () => void }).restoreCursor =
             vi.fn();
         (editor as unknown as { lockFile: () => void }).lockFile = vi.fn();
-        (editor as unknown as { fixVimWhenZooming: () => void }).fixVimWhenZooming =
-            vi.fn();
+        (
+            editor as unknown as { fixVimWhenZooming: () => void }
+        ).fixVimWhenZooming = vi.fn();
 
         const previousTarget = createMockElement();
         const nextTarget = createMockElement();
@@ -226,7 +245,9 @@ describe('inline-editor edit-session integration', () => {
 
         editor.loadNode(nextTarget as unknown as HTMLElement, 'node-2');
 
-        expect(view.editSession.updateBuffer).toHaveBeenCalledWith('before-switch');
+        expect(view.editSession.updateBuffer).toHaveBeenCalledWith(
+            'before-switch',
+        );
         expect(view.editSession.switchNode).toHaveBeenCalledWith(
             'node-2',
             false,
@@ -234,6 +255,94 @@ describe('inline-editor edit-session integration', () => {
         );
         expect(view.editSession.endSession).not.toHaveBeenCalled();
         expect(editor.nodeId).toBe('node-2');
+    });
+
+    it('places the first day-plan edit cursor at the line below the heading when only a heading exists', () => {
+        const view = createTestView();
+        view.getMandalaSceneKey = () => ({
+            viewKind: '3x3',
+            variant: 'day-plan',
+        });
+        view.documentStore.getValue = () => ({
+            document: {
+                content: {
+                    'node-1': { content: '## 2026-02-10 二' },
+                    'node-2': { content: 'second' },
+                },
+            },
+        });
+
+        const editor = new InlineEditor(view as never);
+        const editorApi = attachEditorInternals(editor, '## 2026-02-10 二\n');
+        const target = createMockElement();
+
+        editor.loadNode(target as unknown as HTMLElement, 'node-1');
+
+        expect(
+            (
+                editor as unknown as {
+                    inlineView: {
+                        mandalaSetViewData: ReturnType<typeof vi.fn>;
+                    };
+                }
+            ).inlineView.mandalaSetViewData,
+        ).toHaveBeenCalledWith('## 2026-02-10 二\n', true);
+        expect(editorApi.setCursor).toHaveBeenCalledWith({ line: 1, ch: 0 });
+    });
+
+    it('places the first day-plan edit cursor at the body end when body text already exists', () => {
+        const view = createTestView();
+        view.getMandalaSceneKey = () => ({
+            viewKind: '3x3',
+            variant: 'day-plan',
+        });
+        view.documentStore.getValue = () => ({
+            document: {
+                content: {
+                    'node-1': { content: '## 2026-02-10 二\n正文\n' },
+                    'node-2': { content: 'second' },
+                },
+            },
+        });
+
+        const editor = new InlineEditor(view as never);
+        const editorApi = attachEditorInternals(
+            editor,
+            '## 2026-02-10 二\n正文\n',
+        );
+        const target = createMockElement();
+
+        editor.loadNode(target as unknown as HTMLElement, 'node-1');
+
+        expect(editorApi.setCursor).toHaveBeenCalledWith({ line: 1, ch: 2 });
+    });
+
+    it('keeps restoring the historical cursor for day-plan nodes', () => {
+        const view = createTestView();
+        view.getMandalaSceneKey = () => ({
+            viewKind: '3x3',
+            variant: 'day-plan',
+        });
+        view.documentStore.getValue = () => ({
+            document: {
+                content: {
+                    'node-1': { content: '## 2026-02-10 二\n正文' },
+                    'node-2': { content: 'second' },
+                },
+            },
+        });
+
+        const editor = new InlineEditor(view as never);
+        const editorApi = attachEditorInternals(
+            editor,
+            '## 2026-02-10 二\n正文',
+        );
+        const target = createMockElement();
+
+        editor.setNodeCursor('node-1', { line: 1, ch: 2 });
+        editor.loadNode(target as unknown as HTMLElement, 'node-1');
+
+        expect(editorApi.setCursor).toHaveBeenCalledWith({ line: 1, ch: 2 });
     });
 
     it('cancels session on discard unload and commits unload reason otherwise', () => {

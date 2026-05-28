@@ -1,4 +1,8 @@
 import { Editor, EditorPosition, MarkdownView, TFile } from 'obsidian';
+import {
+    resolveNodeEditorCommitContent,
+    resolveNodeEditorInitialPlacement,
+} from 'src/mandala-interaction/helpers/resolve-node-editor-initial-placement';
 import { MandalaView } from 'src/view/view';
 import { vimEnterInsertMode } from 'src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode';
 import { fixVimCursorWhenZooming } from 'src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming';
@@ -28,6 +32,11 @@ export class InlineEditor {
     #mounting: Promise<void> = Promise.resolve();
     private subscriptions: Set<() => void> = new Set();
     private cursorPositions: Map<string, EditorPosition> = new Map();
+    private currentInitialPlacement: {
+        nodeId: string;
+        originalContent: string;
+        preparedContent: string;
+    } | null = null;
     private suppressEditorEvents = false;
 
     constructor(private view: MandalaView) {}
@@ -44,7 +53,16 @@ export class InlineEditor {
     }
 
     getContent() {
-        return this.inlineView.editor.getValue();
+        const currentContent = this.inlineView.editor.getValue();
+        const placement = this.currentInitialPlacement;
+        if (!placement || placement.nodeId !== this.nodeId) {
+            return currentContent;
+        }
+        return resolveNodeEditorCommitContent({
+            currentContent,
+            originalContent: placement.originalContent,
+            preparedContent: placement.preparedContent,
+        });
     }
 
     getCursor() {
@@ -86,6 +104,12 @@ export class InlineEditor {
                 ?.content ?? '';
         const isInSidebar =
             this.view.viewStore.getValue().document.editing.isInSidebar;
+        const initialPlacement = resolveNodeEditorInitialPlacement({
+            content,
+            isDayPlanScene:
+                this.view.getMandalaSceneKey().variant === 'day-plan',
+            historyCursor: this.cursorPositions.get(nodeId),
+        });
 
         if (currentNodeId && currentNodeId !== nodeId) {
             this.view.editSession.updateBuffer(this.getContent());
@@ -97,7 +121,13 @@ export class InlineEditor {
             this.view.editSession.startSession(nodeId, isInSidebar, content);
         }
 
-        this.setContent(content);
+        this.currentInitialPlacement = {
+            nodeId,
+            originalContent: content,
+            preparedContent: initialPlacement.content,
+        };
+
+        this.setContent(initialPlacement.content);
 
         target.append(this.containerEl);
         this.inlineView.editor.refresh();
@@ -143,17 +173,23 @@ export class InlineEditor {
         return isLineInRange && isChInRange;
     };
     restoreCursor = () => {
-        const existingCursor = this.cursorPositions.get(this.nodeId!);
-        if (existingCursor && this.isCursorInRange(existingCursor)) {
-            this.setCursor(existingCursor);
-        } else {
-            const lastLine = this.inlineView.editor.lastLine();
-            const ch = this.inlineView.editor.getLine(lastLine).length;
-            this.setCursor({
-                line: lastLine,
-                ch: ch,
-            });
+        const placement = resolveNodeEditorInitialPlacement({
+            content: this.inlineView.editor.getValue(),
+            isDayPlanScene:
+                this.view.getMandalaSceneKey().variant === 'day-plan',
+            historyCursor: this.cursorPositions.get(this.nodeId!),
+        });
+        if (this.isCursorInRange(placement.cursor)) {
+            this.setCursor(placement.cursor);
+            return;
         }
+
+        const lastLine = this.inlineView.editor.lastLine();
+        const ch = this.inlineView.editor.getLine(lastLine).length;
+        this.setCursor({
+            line: lastLine,
+            ch,
+        });
     };
 
     unloadNode(nodeId?: string, discardChanges = false) {
@@ -176,6 +212,7 @@ export class InlineEditor {
             this.cursorPositions.set(currentNodeId, cursor);
         }
         this.nodeId = null;
+        this.currentInitialPlacement = null;
         this.detachTarget();
         for (const subscription of this.subscriptions) {
             subscription();
