@@ -401,4 +401,22 @@ describe('inline-editor edit-session integration', () => {
         expect(view.plugin.app.workspace.activeEditor).toBe(newerEditor);
         expect(view.plugin.app.workspace._activeEditor).toBe(newerEditor);
     });
+
+    it('ignores a queued focus after the target is unloaded', () => {
+        const frame: { current: (() => void) | null } = { current: null };
+        vi.stubGlobal('requestAnimationFrame', (callback: () => void) => {
+            frame.current = callback;
+            return 0;
+        });
+        const view = createTestView();
+        const editor = new InlineEditor(view as never);
+        const editorApi = attachEditorInternals(editor, 'content');
+        const target = createMockElement();
+
+        editor.loadNode(target as unknown as HTMLElement, 'node-1');
+        editor.unloadNode(undefined, true);
+        frame.current?.();
+
+        expect(editorApi.focus).toHaveBeenCalledTimes(1);
+    });
 });
