@@ -79,7 +79,7 @@ export const onDocumentStateUpdate = (
     if (type === 'document/file/load-from-disk') {
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
-        view.inlineEditor.unloadNode();
+        view.inlineEditor.unloadNode(undefined, true);
         loadPinnedNodesToDocument(view);
     }
 

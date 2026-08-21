@@ -30,6 +30,7 @@ export const showViewContextMenu = (
             icon: 'heading-1',
             action: () => {
                 saveNodeContent(view);
+                view.ensureFullHydrated?.('format-headings');
                 view.documentStore.dispatch({
                     type: 'document/format-headings',
                 });

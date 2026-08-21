@@ -24,21 +24,30 @@ vi.mock('src/stores/view/subscriptions/actions/set-active-node', () => ({
 vi.mock('src/stores/view/subscriptions/actions/persist-pinned-nodes', () => ({
     persistPinnedNodes: mocks.persistPinnedNodes,
 }));
-vi.mock('src/stores/view/subscriptions/actions/update-stale-active-pinned-node', () => ({
-    updateStaleActivePinnedNode: mocks.updateStaleActivePinnedNode,
-}));
+vi.mock(
+    'src/stores/view/subscriptions/actions/update-stale-active-pinned-node',
+    () => ({
+        updateStaleActivePinnedNode: mocks.updateStaleActivePinnedNode,
+    }),
+);
 vi.mock('src/stores/view/subscriptions/actions/set-active-pinned-node', () => ({
     setActivePinnedNode: mocks.setActivePinnedNode,
 }));
 vi.mock('src/stores/view/subscriptions/actions/update-selected-nodes', () => ({
     updateSelectedNodes: mocks.updateSelectedNodes,
 }));
-vi.mock('src/stores/view/subscriptions/actions/load-pinned-nodes-to-document', () => ({
-    loadPinnedNodesToDocument: mocks.loadPinnedNodesToDocument,
-}));
-vi.mock('src/stores/view/subscriptions/effects/document-sync/sync-swap-side-effects', () => ({
-    syncSwapSideEffects: mocks.syncSwapSideEffects,
-}));
+vi.mock(
+    'src/stores/view/subscriptions/actions/load-pinned-nodes-to-document',
+    () => ({
+        loadPinnedNodesToDocument: mocks.loadPinnedNodesToDocument,
+    }),
+);
+vi.mock(
+    'src/stores/view/subscriptions/effects/document-sync/sync-swap-side-effects',
+    () => ({
+        syncSwapSideEffects: mocks.syncSwapSideEffects,
+    }),
+);
 
 import { onDocumentStateUpdate } from 'src/stores/view/subscriptions/on-document-state-update';
 
@@ -188,5 +197,27 @@ describe('on-document-state-update', () => {
         expect(mocks.updateSearchResults).not.toHaveBeenCalled();
         expect(mocks.focusContainer).not.toHaveBeenCalled();
         expect(mocks.persistPinnedNodes).toHaveBeenCalledTimes(1);
+    });
+
+    it('discards the inline edit buffer before an external document reload', () => {
+        const view = createView();
+
+        onDocumentStateUpdate(view as never, {
+            type: 'document/file/load-from-disk',
+            payload: {
+                document: {
+                    data: '<!--section: 1-->external',
+                    frontmatter: '',
+                    position: null,
+                },
+                activeSection: null,
+            },
+        });
+
+        expect(view.inlineEditor.unloadNode).toHaveBeenCalledWith(
+            undefined,
+            true,
+        );
+        expect(mocks.loadPinnedNodesToDocument).toHaveBeenCalledTimes(1);
     });
 });

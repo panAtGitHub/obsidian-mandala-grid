@@ -480,6 +480,10 @@ export class MandalaView extends TextFileView {
         return this.materializeModeWorkingSet('nx9', null, page);
     }
 
+    materializeNineByNineWorkingSet() {
+        return this.materializeModeWorkingSet('9x9');
+    }
+
     materializeWeekPlanWorkingSet() {
         return this.materializeModeWorkingSet('nx9');
     }
@@ -610,6 +614,9 @@ export class MandalaView extends TextFileView {
 
     setCurrentNx9RowsPerPage(rowsPerPage: number) {
         setCurrentNx9RowsPerPageFromRuntimeState(this, rowsPerPage);
+        if (this.mandalaMode === 'nx9' && !this.isWeekPlanVariant()) {
+            this.materializeNx9Page(this.mandalaActiveCellNx9?.page ?? 0);
+        }
     }
 
     focusNx9Page(direction: 'prev' | 'next') {
@@ -808,10 +815,11 @@ export class MandalaView extends TextFileView {
                 if (this.inlineEditor) {
                     this.inlineEditor.unloadNodeWithReason(
                         undefined,
-                        false,
+                        true,
                         'unload',
                     );
                 } else {
+                    this.editSession.cancel();
                     this.editSession.endSession('unload');
                 }
                 this.viewStore.dispatch({

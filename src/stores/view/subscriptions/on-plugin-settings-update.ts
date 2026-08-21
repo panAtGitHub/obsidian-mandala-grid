@@ -68,4 +68,13 @@ export const onPluginSettingsUpdate = (
     if (view.isActive && type === 'settings/view/set-zoom-level') {
         focusContainer(view);
     }
+
+    const layoutChanged =
+        type === 'settings/view/mandala/select-grid-layout' ||
+        type === 'settings/view/mandala/create-custom-grid-layout' ||
+        type === 'settings/view/mandala/update-custom-grid-layout' ||
+        type === 'settings/view/mandala/delete-custom-grid-layout';
+    if (layoutChanged && view.mandalaMode === '9x9') {
+        view.materializeNineByNineWorkingSet();
+    }
 };

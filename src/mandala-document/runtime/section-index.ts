@@ -1,8 +1,5 @@
 import { createStableNodeId } from 'src/mandala-document/engine/build-state';
-import {
-    compareSectionIds,
-    parseSectionParts,
-} from 'src/mandala-document/engine/section-utils';
+import { parseSectionParts } from 'src/mandala-document/engine/section-utils';
 import {
     normalizeSectionContent,
     SECTION_MARKER_RE,
@@ -49,6 +46,18 @@ export type SectionIndex = {
 };
 
 const encoder = new TextEncoder();
+
+const compareSectionParts = (left: number[], right: number[]) => {
+    const max = Math.max(left.length, right.length);
+    for (let index = 0; index < max; index += 1) {
+        const leftPart = left[index];
+        const rightPart = right[index];
+        if (leftPart === undefined) return -1;
+        if (rightPart === undefined) return 1;
+        if (leftPart !== rightPart) return leftPart - rightPart;
+    }
+    return 0;
+};
 
 const readContentBounds = (
     source: string,
@@ -102,6 +111,7 @@ export const buildSectionIndex = (
     const startedAt = performance.now();
     const sourceOrderedIds: string[] = [];
     const ranges: SectionRange[] = [];
+    const partsById = new Map<string, number[]>();
     const markerRegex = new RegExp(SECTION_MARKER_RE.source, 'g');
 
     for (const match of source.matchAll(markerRegex)) {
@@ -111,6 +121,7 @@ export const buildSectionIndex = (
         if (!id || !marker || markerStart < 0) continue;
 
         const parts = parseSectionParts(id);
+        partsById.set(id, parts);
         const markerEnd = markerStart + marker.length;
         sourceOrderedIds.push(id);
         ranges.push({
@@ -140,7 +151,11 @@ export const buildSectionIndex = (
     }
 
     const canonicalOrderedIds = Array.from(new Set(sourceOrderedIds)).sort(
-        compareSectionIds,
+        (left, right) =>
+            compareSectionParts(
+                partsById.get(left) ?? [],
+                partsById.get(right) ?? [],
+            ),
     );
     const errors = validateSectionsStructure(
         ranges.map((range) => ({
