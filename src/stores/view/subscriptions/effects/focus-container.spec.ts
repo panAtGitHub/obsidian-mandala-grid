@@ -1,27 +1,31 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const platform = vi.hoisted(() => ({ isMobile: false }));
-
-vi.mock('obsidian', () => ({
-    Platform: platform,
-}));
-
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 
 describe('focusContainer', () => {
     beforeEach(() => {
-        vi.useFakeTimers();
-        platform.isMobile = false;
+        vi.stubGlobal(
+            'requestAnimationFrame',
+            (callback: FrameRequestCallback) => {
+                callback(0);
+                return 0;
+            },
+        );
     });
 
     afterEach(() => {
-        vi.useRealTimers();
+        vi.unstubAllGlobals();
     });
 
-    it('focuses inline editor on desktop when editing', () => {
+    it('does not focus the grid while the Store says editing is active', () => {
         const view = {
             container: {
                 focus: vi.fn(),
+            },
+            viewStore: {
+                getValue: () => ({
+                    document: { editing: { activeNodeId: 'node-1' } },
+                }),
             },
             inlineEditor: {
                 nodeId: 'node-1',
@@ -30,35 +34,42 @@ describe('focusContainer', () => {
         };
 
         focusContainer(view as never);
-        vi.runOnlyPendingTimers();
-
-        expect(view.inlineEditor.focus).toHaveBeenCalledTimes(1);
-        expect(view.container.focus).not.toHaveBeenCalled();
-    });
-
-    it('does not force focus on mobile while editing', () => {
-        platform.isMobile = true;
-        const view = {
-            container: {
-                focus: vi.fn(),
-            },
-            inlineEditor: {
-                nodeId: 'node-1',
-                focus: vi.fn(),
-            },
-        };
-
-        focusContainer(view as never);
-        vi.runOnlyPendingTimers();
 
         expect(view.inlineEditor.focus).not.toHaveBeenCalled();
         expect(view.container.focus).not.toHaveBeenCalled();
+    });
+
+    it('does not use a stale InlineEditor node as the editing state', () => {
+        const view = {
+            container: {
+                focus: vi.fn(),
+            },
+            viewStore: {
+                getValue: () => ({
+                    document: { editing: { activeNodeId: null } },
+                }),
+            },
+            inlineEditor: {
+                nodeId: 'node-1',
+                focus: vi.fn(),
+            },
+        };
+
+        focusContainer(view as never);
+
+        expect(view.inlineEditor.focus).not.toHaveBeenCalled();
+        expect(view.container.focus).toHaveBeenCalledTimes(1);
     });
 
     it('focuses container when not editing', () => {
         const view = {
             container: {
                 focus: vi.fn(),
+            },
+            viewStore: {
+                getValue: () => ({
+                    document: { editing: { activeNodeId: null } },
+                }),
             },
             inlineEditor: {
                 nodeId: null,
@@ -67,7 +78,6 @@ describe('focusContainer', () => {
         };
 
         focusContainer(view as never);
-        vi.runOnlyPendingTimers();
 
         expect(view.inlineEditor.focus).not.toHaveBeenCalled();
         expect(view.container.focus).toHaveBeenCalledTimes(1);

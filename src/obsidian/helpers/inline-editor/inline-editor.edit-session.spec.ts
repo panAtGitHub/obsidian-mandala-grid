@@ -257,6 +257,25 @@ describe('inline-editor edit-session integration', () => {
         expect(editor.nodeId).toBe('node-2');
     });
 
+    it('establishes editor ownership before the first focus call', () => {
+        const view = createTestView();
+        const editor = new InlineEditor(view as never);
+        const editorApi = attachEditorInternals(editor, 'content');
+        const target = createMockElement();
+
+        editorApi.focus.mockImplementation(() => {
+            expect(editor.nodeId).toBe('node-1');
+            expect(
+                (editor as unknown as { target: MockElement | null }).target,
+            ).toBe(target);
+        });
+
+        editor.loadNode(target as unknown as HTMLElement, 'node-1');
+
+        expect(editorApi.focus).toHaveBeenCalled();
+        expect(editor.nodeId).toBe('node-1');
+    });
+
     it('places the first day-plan edit cursor at the line below the heading when only a heading exists', () => {
         const view = createTestView();
         view.getMandalaSceneKey = () => ({
@@ -364,5 +383,22 @@ describe('inline-editor edit-session integration', () => {
 
         expect(view.editSession.updateBuffer).toHaveBeenCalledWith('dirty');
         expect(view.editSession.endSession).toHaveBeenCalledWith('unload');
+    });
+
+    it('does not clear a newer workspace editor while detaching an old target', () => {
+        const view = createTestView();
+        const editor = new InlineEditor(view as never);
+        attachEditorInternals(editor, 'content');
+        const target = createMockElement();
+        const newerEditor = {};
+        view.plugin.app.workspace.activeEditor = newerEditor;
+        view.plugin.app.workspace._activeEditor = newerEditor;
+        (editor as unknown as { target: MockElement | null }).target = target;
+        editor.nodeId = 'node-1';
+
+        editor.unloadNode(undefined, true);
+
+        expect(view.plugin.app.workspace.activeEditor).toBe(newerEditor);
+        expect(view.plugin.app.workspace._activeEditor).toBe(newerEditor);
     });
 });

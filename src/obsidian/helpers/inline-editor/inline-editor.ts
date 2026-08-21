@@ -180,26 +180,27 @@ export class InlineEditor {
             preparedContent: initialPlacement.content,
         };
 
-        this.setContent(initialPlacement.content);
-
-        target.append(this.containerEl);
-        this.inlineView.editor.refresh();
-        this.focus();
+        this.nodeId = nodeId;
         this.target = target;
-        if (!content) {
-            vimEnterInsertMode(this.view.plugin, this.inlineView);
-        }
+        target.append(this.containerEl);
         this.target.addEventListener('focusin', this.setActiveEditor);
         this.target.addEventListener('focusout', this.handleEditorFocusOut);
         this.setActiveEditor();
 
-        this.nodeId = nodeId;
+        this.setContent(initialPlacement.content);
+        this.inlineView.editor.refresh();
         this.restoreCursor();
+        if (!content) {
+            vimEnterInsertMode(this.view.plugin, this.inlineView);
+        }
         this.lockFile();
         this.fixVimWhenZooming();
+        this.focus();
         window.requestAnimationFrame(() => {
             if (this.target === target && this.nodeId === nodeId) {
+                this.setActiveEditor();
                 this.inlineView.editor.refresh();
+                this.focus();
             }
         });
         window.setTimeout(() => resolve(), Math.max(16, content.length / 60));
@@ -346,6 +347,7 @@ export class InlineEditor {
             .workspace as typeof this.view.plugin.app.workspace & {
             _activeEditor?: InlineMarkdownView | null;
         };
+        if (!this.inlineView || !this.target || !this.nodeId) return;
         workspace.activeEditor = this.inlineView;
         workspace._activeEditor = this.inlineView;
     };
@@ -399,8 +401,12 @@ export class InlineEditor {
             .workspace as typeof this.view.plugin.app.workspace & {
             _activeEditor?: InlineMarkdownView | null;
         };
-        workspace.activeEditor = null;
-        workspace._activeEditor = null;
+        if (workspace.activeEditor === this.inlineView) {
+            workspace.activeEditor = null;
+        }
+        if (workspace._activeEditor === this.inlineView) {
+            workspace._activeEditor = null;
+        }
         this.target.removeEventListener('focusin', this.setActiveEditor);
         this.target.removeEventListener('focusout', this.handleEditorFocusOut);
         this.target.empty();

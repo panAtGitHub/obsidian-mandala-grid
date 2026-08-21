@@ -115,22 +115,7 @@
         dialogEl?.focus();
     };
 
-    const focusInlineEditor = async () => {
-        await tick();
-        const editor = dialogEl?.querySelector('.common-editor') as
-            | HTMLTextAreaElement
-            | HTMLDivElement
-            | null;
-        editor?.focus();
-    };
-
-    $: if (isOpen) {
-        if (isEditingPreview) {
-            void focusInlineEditor();
-        } else {
-            void focusDialog();
-        }
-    }
+    $: if (isOpen && !isEditingPreview) void focusDialog();
 
     const startEditing = () => {
         if (!previewNodeId) return;
