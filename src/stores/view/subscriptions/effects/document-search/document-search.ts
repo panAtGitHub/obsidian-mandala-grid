@@ -22,11 +22,19 @@ export class DocumentSearch {
 
     private buildCollectionFromDocument = (documentState: DocumentState) => {
         this.collection.clear();
-        for (const [sectionId, nodeId] of Object.entries(
-            documentState.sections.section_id,
-        )) {
+        const lookup = this.view.getSectionLookup?.();
+        const sectionIds =
+            this.view.getSourceSectionIds?.() ??
+            Object.keys(documentState.sections.section_id);
+        for (const sectionId of sectionIds) {
+            const nodeId =
+                lookup?.getNodeId(sectionId) ??
+                documentState.sections.section_id[sectionId];
+            if (!nodeId) continue;
             const content =
-                documentState.document.content[nodeId]?.content ?? '';
+                lookup?.getContent(sectionId) ??
+                documentState.document.content[nodeId]?.content ??
+                '';
             if (content.length === 0) continue;
             this.collection.set(sectionId, {
                 sectionId,
@@ -68,7 +76,10 @@ export class DocumentSearch {
             this.collection.delete(sectionId);
             return;
         }
-        const content = documentState.document.content[nodeId]?.content ?? '';
+        const content =
+            documentState.document.content[nodeId]?.content ??
+            this.view.getContentForNode?.(nodeId) ??
+            '';
         if (content.length === 0) {
             this.collection.delete(sectionId);
             return;

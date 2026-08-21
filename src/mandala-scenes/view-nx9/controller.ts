@@ -4,9 +4,7 @@ import type {
     SceneRootContext,
 } from 'src/mandala-scenes/shared/scene-projection';
 import { buildNx9SceneProjection } from 'src/mandala-scenes/view-nx9/build-scene-projection';
-import {
-    normalizeNx9VisibleSection,
-} from 'src/mandala-scenes/view-nx9/context';
+import { normalizeNx9VisibleSection } from 'src/mandala-scenes/view-nx9/context';
 import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
 
@@ -19,6 +17,7 @@ const syncNx9SceneState = (
         documentSnapshot: context.documentSnapshot,
         rowsPerPage: context.settings.nx9RowsPerPage,
         activeSection: context.ui.activeCoreSection,
+        sectionLookup: context.sectionLookup,
     });
     const nx9Context = contextRuntime.resolvePageContext({
         structureContext,
@@ -91,17 +90,20 @@ export const createNx9Controller = (): SceneController => {
     let cachedProjection: Nx9SceneProjection | null = null;
     let cachedDocumentSnapshot: SceneRootContext['documentSnapshot'] | null =
         null;
-    let cachedDisplaySnapshot: SceneRootContext['displaySnapshot'] | null = null;
+    let cachedDisplaySnapshot: SceneRootContext['displaySnapshot'] | null =
+        null;
     let cachedInteractionSnapshot:
         | SceneRootContext['interactionSnapshot']
         | null = null;
-    let cachedThemeSnapshot: SceneRootContext['sceneThemeSnapshot'] | null = null;
+    let cachedThemeSnapshot: SceneRootContext['sceneThemeSnapshot'] | null =
+        null;
     let cachedGridStyle: SceneRootContext['gridStyles']['nx9'] | null = null;
     let cachedRowsPerPage = 0;
     let cachedActiveSection: string | null = null;
     let cachedActiveCoreSection: string | null = null;
     let cachedActiveCell: SceneRootContext['ui']['nx9ActiveCell'] | null = null;
-    let cachedDraftProjection: SceneRootContext['draftProjection'] | null = null;
+    let cachedDraftProjection: SceneRootContext['draftProjection'] | null =
+        null;
     let cachedSceneKeyId = '';
 
     return {

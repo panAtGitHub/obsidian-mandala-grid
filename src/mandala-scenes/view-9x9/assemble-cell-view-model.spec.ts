@@ -1,5 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { decorate9x9CellViewModels } from 'src/mandala-scenes/view-9x9/assemble-cell-view-model';
+import {
+    buildNineByNineSectionIds,
+    decorate9x9CellViewModels,
+} from 'src/mandala-scenes/view-9x9/assemble-cell-view-model';
+
+describe('buildNineByNineSectionIds', () => {
+    it('returns only the sections addressable by the current 9x9 layout', () => {
+        const sections = buildNineByNineSectionIds({
+            selectedLayoutId: 'default',
+            customLayouts: [],
+            baseTheme: '5',
+        });
+
+        expect(sections).toContain('5');
+        expect(sections).toContain('5.1');
+        expect(
+            sections.every(
+                (section) => section === '5' || section.startsWith('5.'),
+            ),
+        ).toBe(true);
+        expect(new Set(sections).size).toBe(sections.length);
+    });
+});
 
 describe('decorate9x9CellViewModels', () => {
     it('uses the same custom section background input rule as standard cards', () => {

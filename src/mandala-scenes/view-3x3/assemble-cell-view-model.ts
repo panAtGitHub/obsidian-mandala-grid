@@ -14,12 +14,14 @@ import {
 } from 'src/mandala-scenes/shared/card-scene-cell';
 import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import type { SceneDisplaySnapshot } from 'src/mandala-scenes/shared/scene-projection';
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 
 export type Assemble3x3CellViewModelsArgs = {
     theme: string;
     selectedLayoutId: string | null;
     customLayouts: MandalaCustomLayout[];
     topology: MandalaTopologyIndex;
+    sectionLookup?: SectionLookup;
     interaction: SceneCardInteractionDescriptor;
     gridStyle: ResolvedGridStyle;
     displaySnapshot: SceneDisplaySnapshot;
@@ -61,12 +63,14 @@ export const build3x3CardCellDescriptors = ({
     theme,
     layout,
     topology,
+    sectionLookup,
     displaySnapshot,
     displayPolicy,
 }: {
     theme: string;
     layout: ReturnType<typeof getMandalaLayoutById>;
     topology: MandalaTopologyIndex;
+    sectionLookup?: SectionLookup;
     displaySnapshot: SceneDisplaySnapshot;
     displayPolicy: CellDisplayPolicy;
 }): SceneCardCellDescriptorList<ThreeByThreeCardCellDescriptorExtra> =>
@@ -74,7 +78,9 @@ export const build3x3CardCellDescriptors = ({
         const row = Math.floor(index / 3);
         const col = index % 3;
         const section = slot ? `${theme}.${slot}` : theme;
-        const nodeId = getSectionNodeId(topology, section);
+        const nodeId =
+            sectionLookup?.getNodeId(section) ??
+            getSectionNodeId(topology, section);
         const sectionColorContext = {
             backgroundMode: displaySnapshot.backgroundMode,
             sectionColorsBySection: displaySnapshot.sectionColors,
@@ -118,6 +124,7 @@ export const assemble3x3CellViewModels = ({
     selectedLayoutId,
     customLayouts,
     topology,
+    sectionLookup,
     interaction,
     gridStyle,
     displaySnapshot,
@@ -128,6 +135,7 @@ export const assemble3x3CellViewModels = ({
         theme,
         layout,
         topology,
+        sectionLookup,
         displaySnapshot,
         displayPolicy: gridStyle.cellDisplayPolicy,
     });

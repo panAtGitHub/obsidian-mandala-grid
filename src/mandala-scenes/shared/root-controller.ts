@@ -1,13 +1,9 @@
-import {
-    parseDayPlanFrontmatter,
-} from 'src/mandala-display/logic/day-plan';
+import { parseDayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
 import {
     resolveDayPlanTodayNavigation,
     resolveMandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
-import {
-    resolveWeekPlanContext,
-} from 'src/mandala-display/logic/week-plan-context';
+import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
 import { buildMandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import { buildSceneInputSnapshots } from 'src/mandala-scenes/shared/scene-input-runtime';
@@ -20,6 +16,10 @@ import { createSceneControllerRegistry } from 'src/mandala-scenes/shared/scene-c
 import { createSceneCacheCleaner } from 'src/mandala-scenes/shared/scene-cache-cleanup';
 import { ensureSceneCompatibility } from 'src/mandala-scenes/shared/scene-compatibility';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
+import {
+    createSectionLookupFromDocumentState,
+    type SectionLookup,
+} from 'src/mandala-document/runtime/section-lookup';
 import type {
     MandalaCustomLayout,
     WeekStart,
@@ -78,7 +78,12 @@ type SceneSnapshots = Pick<
 
 type SceneDerivedDisplay = Pick<
     SceneRootContext,
-    'dayPlan' | 'dayPlanTodayNavigation' | 'weekContext' | 'topology' | 'gridStyles'
+    | 'dayPlan'
+    | 'dayPlanTodayNavigation'
+    | 'weekContext'
+    | 'topology'
+    | 'sectionLookup'
+    | 'gridStyles'
 >;
 
 type DocumentCacheRefs = {
@@ -126,36 +131,32 @@ export const createSceneRootController = (view: MandalaView) => {
               >)
         | null = null;
     let cachedDerivedDisplay: SceneDerivedDisplay | null = null;
-    let cachedDerivedArgs:
-        | {
-              frontmatter: string;
-              weekAnchorDate: string | null | undefined;
-              weekStart: WeekStart;
-              weekPlanCompactMode: boolean;
-              displaySnapshot: SceneRootContext['displaySnapshot'];
-              sectionToNodeId: SceneRootContext['sectionToNodeId'];
-          }
-        | null = null;
+    let cachedDerivedArgs: {
+        frontmatter: string;
+        weekAnchorDate: string | null | undefined;
+        weekStart: WeekStart;
+        weekPlanCompactMode: boolean;
+        displaySnapshot: SceneRootContext['displaySnapshot'];
+        sectionToNodeId: SceneRootContext['sectionToNodeId'];
+    } | null = null;
     let cachedContext: SceneRootContext | null = null;
-    let cachedContextDeps:
-        | {
-              facts: SceneFacts;
-              snapshots: SceneSnapshots;
-              derivedDisplay: SceneDerivedDisplay;
-              sceneThemeSnapshot: BuildSceneRootContextArgs['sceneThemeSnapshot'];
-              committedSceneKey: BuildSceneRootContextArgs['committedSceneKey'];
-              selectedLayoutId: string;
-              customLayouts: BuildSceneRootContextArgs['customLayouts'];
-              nx9RowsPerPage: number;
-              weekPlanCompactMode: boolean;
-              weekStart: WeekStart;
-              dayPlanEnabled: boolean;
-              showDayPlanTodayButton: boolean;
-              show3x3SubgridNavButtons: boolean;
-              uiKey: string;
-                            draftProjectionKey: string;
-          }
-        | null = null;
+    let cachedContextDeps: {
+        facts: SceneFacts;
+        snapshots: SceneSnapshots;
+        derivedDisplay: SceneDerivedDisplay;
+        sceneThemeSnapshot: BuildSceneRootContextArgs['sceneThemeSnapshot'];
+        committedSceneKey: BuildSceneRootContextArgs['committedSceneKey'];
+        selectedLayoutId: string;
+        customLayouts: BuildSceneRootContextArgs['customLayouts'];
+        nx9RowsPerPage: number;
+        weekPlanCompactMode: boolean;
+        weekStart: WeekStart;
+        dayPlanEnabled: boolean;
+        showDayPlanTodayButton: boolean;
+        show3x3SubgridNavButtons: boolean;
+        uiKey: string;
+        draftProjectionKey: string;
+    } | null = null;
     let cachedProjectionContext: SceneRootContext | null = null;
     let cachedProjection: SceneProjection | null = null;
 
@@ -220,10 +221,13 @@ export const createSceneRootController = (view: MandalaView) => {
             cachedSnapshotArgs.revision === documentRefs.revision &&
             cachedSnapshotArgs.contentRevision ===
                 documentRefs.contentRevision &&
-            cachedSnapshotArgs.sectionToNodeId === documentRefs.sectionToNodeId &&
-            cachedSnapshotArgs.documentContent === documentRefs.documentContent &&
+            cachedSnapshotArgs.sectionToNodeId ===
+                documentRefs.sectionToNodeId &&
+            cachedSnapshotArgs.documentContent ===
+                documentRefs.documentContent &&
             cachedSnapshotArgs.sectionColors === args.sectionColors &&
-            cachedSnapshotArgs.sectionColorOpacity === args.sectionColorOpacity &&
+            cachedSnapshotArgs.sectionColorOpacity ===
+                args.sectionColorOpacity &&
             cachedSnapshotArgs.backgroundMode === args.backgroundMode &&
             cachedSnapshotArgs.showDetailSidebar === args.showDetailSidebar &&
             cachedSnapshotArgs.whiteThemeMode === args.whiteThemeMode &&
@@ -289,7 +293,8 @@ export const createSceneRootController = (view: MandalaView) => {
             cachedDerivedArgs.frontmatter === frontmatter &&
             cachedDerivedArgs.weekAnchorDate === args.weekAnchorDate &&
             cachedDerivedArgs.weekStart === args.weekStart &&
-            cachedDerivedArgs.weekPlanCompactMode === args.weekPlanCompactMode &&
+            cachedDerivedArgs.weekPlanCompactMode ===
+                args.weekPlanCompactMode &&
             cachedDerivedArgs.displaySnapshot === snapshots.displaySnapshot &&
             cachedDerivedArgs.sectionToNodeId === facts.sectionToNodeId
         ) {
@@ -299,6 +304,9 @@ export const createSceneRootController = (view: MandalaView) => {
         const baseGridStyle = resolveCardGridStyle({
             whiteThemeMode: snapshots.displaySnapshot.whiteThemeMode,
         });
+        const sectionLookup: SectionLookup =
+            view.getSectionLookup?.() ??
+            createSectionLookupFromDocumentState(args.documentState);
         const nextDerivedDisplay = {
             dayPlan: parseDayPlanFrontmatter(frontmatter),
             dayPlanTodayNavigation: resolveDayPlanTodayNavigation(frontmatter),
@@ -308,6 +316,7 @@ export const createSceneRootController = (view: MandalaView) => {
                 weekStart: args.weekStart,
             }),
             topology: buildMandalaTopologyIndex(facts.sectionToNodeId),
+            sectionLookup,
             gridStyles: {
                 threeByThree: baseGridStyle,
                 nx9: baseGridStyle,
@@ -329,7 +338,9 @@ export const createSceneRootController = (view: MandalaView) => {
         return nextDerivedDisplay;
     };
 
-    const buildContext = (args: BuildSceneRootContextArgs): SceneRootContext => {
+    const buildContext = (
+        args: BuildSceneRootContextArgs,
+    ): SceneRootContext => {
         const facts = resolveSceneFacts(args);
         const sceneInputSnapshots = resolveSceneSnapshots(args);
         const derivedDisplay = resolveSceneDerivedDisplay({
@@ -348,7 +359,9 @@ export const createSceneRootController = (view: MandalaView) => {
             args.hasOpenOverlayModal ? 'overlay' : 'clear',
             args.desktopSquareSize,
             args.isMobilePopupEditing ? 'mobile-editor' : 'no-mobile-editor',
-            args.isMobileFullScreenSearch ? 'mobile-search' : 'no-mobile-search',
+            args.isMobileFullScreenSearch
+                ? 'mobile-search'
+                : 'no-mobile-search',
         ].join('|');
         const draftProjection = args.draftProjection ?? null;
         const draftProjectionKey = draftProjection
@@ -365,7 +378,8 @@ export const createSceneRootController = (view: MandalaView) => {
             cachedContextDeps.selectedLayoutId === args.selectedLayoutId &&
             cachedContextDeps.customLayouts === args.customLayouts &&
             cachedContextDeps.nx9RowsPerPage === args.nx9RowsPerPage &&
-            cachedContextDeps.weekPlanCompactMode === args.weekPlanCompactMode &&
+            cachedContextDeps.weekPlanCompactMode ===
+                args.weekPlanCompactMode &&
             cachedContextDeps.weekStart === args.weekStart &&
             cachedContextDeps.dayPlanEnabled === args.dayPlanEnabled &&
             cachedContextDeps.showDayPlanTodayButton ===
@@ -388,6 +402,7 @@ export const createSceneRootController = (view: MandalaView) => {
             interactionSnapshot: sceneInputSnapshots.interactionSnapshot,
             sceneThemeSnapshot: args.sceneThemeSnapshot,
             topology: derivedDisplay.topology,
+            sectionLookup: derivedDisplay.sectionLookup,
             sectionToNodeId: facts.sectionToNodeId,
             idToSection: facts.idToSection,
             dayPlan: derivedDisplay.dayPlan,

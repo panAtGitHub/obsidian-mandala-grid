@@ -64,10 +64,7 @@ export const resolveThreeByThreeExitFocusTheme = (
     return '1';
 };
 
-export const enterThreeByThreeSubgrid = (
-    view: MandalaView,
-    nodeId: string,
-) => {
+export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
     if (view.mandalaMode !== '3x3') return;
 
     const docState = view.documentStore.getValue();
@@ -105,6 +102,7 @@ export const enterThreeByThreeSubgrid = (
             new Notice(lang.notice_core_section_limit_reached);
             return;
         }
+        view.ensureFullHydrated?.('3x3-enter-subgrid');
         const dayPlanResolution = resolveNextDayPlanDate(view, currentTheme);
         if (dayPlanResolution.blocked) return;
 
@@ -162,6 +160,7 @@ export const enterThreeByThreeSubgrid = (
 
 export const exitThreeByThreeSubgrid = (view: MandalaView) => {
     if (view.mandalaMode !== '3x3') return;
+    view.ensureFullHydrated?.('3x3-exit-subgrid');
 
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme;
     if (!theme) return;

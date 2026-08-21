@@ -24,10 +24,12 @@ export const createThreeByThreeDayPlanController = (
         focusThreeByThreeDayPlanTodayFromButton(view, event);
 
     let cachedProjection: ThreeByThreeDayPlanSceneProjection | null = null;
-    let cachedCells: ReturnType<ThreeByThreeControllerCore['resolveState']>['cells'] =
-        [];
+    let cachedCells: ReturnType<
+        ThreeByThreeControllerCore['resolveState']
+    >['cells'] = [];
     let cachedTheme = '';
-    let cachedThemeSnapshot: SceneRootContext['sceneThemeSnapshot'] | null = null;
+    let cachedThemeSnapshot: SceneRootContext['sceneThemeSnapshot'] | null =
+        null;
     let cachedGridStyle: SceneRootContext['gridStyles']['threeByThree'] | null =
         null;
     let cachedAnimateSwap = false;
@@ -42,16 +44,18 @@ export const createThreeByThreeDayPlanController = (
 
     return {
         resolveProjection: (context) => {
-            const dayPlanTodayTargetSection =
-                syncThreeByThreeDayPlanSceneState({
+            const dayPlanTodayTargetSection = syncThreeByThreeDayPlanSceneState(
+                {
                     view: context.view,
                     mode: context.sceneKey.viewKind,
                     subgridTheme: context.ui.subgridTheme,
                     documentState: context.documentState,
                     sectionToNodeId: context.sectionToNodeId,
+                    sectionLookup: context.sectionLookup,
                     dayPlan: context.dayPlan,
                     dayPlanTodayNavigation: context.dayPlanTodayNavigation,
-                });
+                },
+            );
             const { cells, theme } = core.resolveState(context);
             const preparedTargetSection =
                 resolveThreeByThreeDayPlanTodayTargetSection(
@@ -92,8 +96,7 @@ export const createThreeByThreeDayPlanController = (
                     context.settings.show3x3SubgridNavButtons,
                 hasOpenOverlayModal: context.ui.hasOpenOverlayModal,
                 dayPlanEnabled: context.settings.dayPlanEnabled,
-                showDayPlanTodayButton:
-                    context.settings.showDayPlanTodayButton,
+                showDayPlanTodayButton: context.settings.showDayPlanTodayButton,
                 dayPlanTodayTargetSection: preparedTargetSection,
                 activeCoreSection: context.ui.activeCoreSection,
                 enterSubgridFromButton: core.enterSubgridFromButton,
@@ -122,12 +125,10 @@ export const createThreeByThreeDayPlanController = (
             cachedThemeSnapshot = context.sceneThemeSnapshot;
             cachedGridStyle = context.gridStyles.threeByThree;
             cachedAnimateSwap = context.ui.animateSwap;
-            cachedShowNavButtons =
-                context.settings.show3x3SubgridNavButtons;
+            cachedShowNavButtons = context.settings.show3x3SubgridNavButtons;
             cachedHasOpenOverlayModal = context.ui.hasOpenOverlayModal;
             cachedDayPlanEnabled = context.settings.dayPlanEnabled;
-            cachedShowTodayButton =
-                context.settings.showDayPlanTodayButton;
+            cachedShowTodayButton = context.settings.showDayPlanTodayButton;
             cachedTodayTarget = preparedTargetSection;
             cachedActiveCoreSection = context.ui.activeCoreSection;
             return cachedProjection;

@@ -1,6 +1,7 @@
 import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
 import { isGridCenter } from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 import type { MandalaView } from 'src/view/view';
 import { ensureChildrenForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
 import {
@@ -38,6 +39,7 @@ export const syncThreeByThreeSubgridState = ({
     subgridTheme,
     documentState,
     sectionToNodeId,
+    sectionLookup,
     allowSubgridExpansion,
 }: {
     view: MandalaView;
@@ -45,6 +47,7 @@ export const syncThreeByThreeSubgridState = ({
     subgridTheme: string | null | undefined;
     documentState: DocumentState;
     sectionToNodeId: Record<string, string | undefined>;
+    sectionLookup?: SectionLookup;
     allowSubgridExpansion: boolean;
 }) => {
     if (
@@ -56,16 +59,21 @@ export const syncThreeByThreeSubgridState = ({
     ) {
         const themeNodeId = sectionToNodeId[subgridTheme];
         if (themeNodeId) {
-            const childGroup = findChildGroup(
-                documentState.document.columns,
-                themeNodeId,
-            );
-            const childCount = childGroup?.nodes.length ?? 0;
-            const missingChildSections = !hasAllThreeByThreeChildSections(
-                subgridTheme,
-                sectionToNodeId,
-            );
-            if (childCount < 8 || missingChildSections) {
+            const childGroup = sectionLookup
+                ? null
+                : findChildGroup(documentState.document.columns, themeNodeId);
+            const childCount = sectionLookup
+                ? Array.from({ length: 8 }, (_, index) =>
+                      sectionLookup.getDirectChild(subgridTheme, index + 1),
+                  ).filter(Boolean).length
+                : childGroup?.nodes.length ?? 0;
+            const missingChildSections = sectionLookup
+                ? !sectionLookup.hasAllDirectSlots(subgridTheme)
+                : !hasAllThreeByThreeChildSections(
+                      subgridTheme,
+                      sectionToNodeId,
+                  );
+            if (!sectionLookup && (childCount < 8 || missingChildSections)) {
                 ensureChildrenForSection(view, subgridTheme);
             }
         }
@@ -78,12 +86,14 @@ export const syncThreeByThreeSceneState = ({
     subgridTheme,
     documentState,
     sectionToNodeId,
+    sectionLookup,
 }: {
     view: MandalaView;
     mode: string;
     subgridTheme: string | null | undefined;
     documentState: DocumentState;
     sectionToNodeId: Record<string, string | undefined>;
+    sectionLookup?: SectionLookup;
 }) =>
     syncThreeByThreeSubgridState({
         view,
@@ -91,6 +101,7 @@ export const syncThreeByThreeSceneState = ({
         subgridTheme,
         documentState,
         sectionToNodeId,
+        sectionLookup,
         allowSubgridExpansion: true,
     });
 

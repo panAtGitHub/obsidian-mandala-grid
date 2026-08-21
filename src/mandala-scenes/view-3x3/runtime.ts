@@ -42,6 +42,7 @@ export const createThreeByThreeRuntime = () => {
         selectedLayoutId,
         customLayouts,
         topology,
+        sectionLookup,
         gridStyle,
         displaySnapshot,
     }: Pick<
@@ -50,6 +51,7 @@ export const createThreeByThreeRuntime = () => {
         | 'selectedLayoutId'
         | 'customLayouts'
         | 'topology'
+        | 'sectionLookup'
         | 'gridStyle'
         | 'displaySnapshot'
     >) =>
@@ -58,11 +60,14 @@ export const createThreeByThreeRuntime = () => {
             selectedLayoutId ?? 'default',
             resolveObjectKey(customLayouts),
             resolveObjectKey(topology),
+            resolveObjectKey(sectionLookup),
             gridStyle.cacheKey,
             resolveObjectKey(displaySnapshot),
         ].join('|');
 
-    const resolveInteractionKey = (interaction: SceneCardInteractionDescriptor) => {
+    const resolveInteractionKey = (
+        interaction: SceneCardInteractionDescriptor,
+    ) => {
         const stamps = interaction as SceneCardInteractionDescriptor &
             InteractionStampCarrier;
         const selectedKey =
@@ -85,6 +90,7 @@ export const createThreeByThreeRuntime = () => {
         selectedLayoutId,
         customLayouts,
         topology,
+        sectionLookup,
         gridStyle,
         displaySnapshot,
     }: Pick<
@@ -93,6 +99,7 @@ export const createThreeByThreeRuntime = () => {
         | 'selectedLayoutId'
         | 'customLayouts'
         | 'topology'
+        | 'sectionLookup'
         | 'gridStyle'
         | 'displaySnapshot'
     >) => {
@@ -101,6 +108,7 @@ export const createThreeByThreeRuntime = () => {
             selectedLayoutId,
             customLayouts,
             topology,
+            sectionLookup,
             gridStyle,
             displaySnapshot,
         });
@@ -117,6 +125,7 @@ export const createThreeByThreeRuntime = () => {
             theme,
             layout,
             topology,
+            sectionLookup,
             displaySnapshot,
             displayPolicy: gridStyle.cellDisplayPolicy,
         });
@@ -131,9 +140,10 @@ export const createThreeByThreeRuntime = () => {
 
     const resolveCells = (args: ThreeByThreeRuntimeArgs) => {
         const { key: staticKey, descriptors } = resolveStaticDescriptors(args);
-        const cellsKey = [staticKey, resolveInteractionKey(args.interaction)].join(
-            '|',
-        );
+        const cellsKey = [
+            staticKey,
+            resolveInteractionKey(args.interaction),
+        ].join('|');
         const cached = cellsCache.get(cellsKey);
         if (cached) {
             return cached;

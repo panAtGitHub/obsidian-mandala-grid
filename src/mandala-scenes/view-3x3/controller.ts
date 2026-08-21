@@ -18,7 +18,9 @@ import type { MandalaView } from 'src/view/view';
 import { buildThreeByThreeSceneProjectionProps } from 'src/mandala-scenes/view-3x3/build-scene-projection';
 
 type SharedThreeByThreeState = {
-    cells: ReturnType<ReturnType<typeof createThreeByThreeRuntime>['resolveCells']>;
+    cells: ReturnType<
+        ReturnType<typeof createThreeByThreeRuntime>['resolveCells']
+    >;
     theme: string;
 };
 
@@ -68,10 +70,13 @@ export const createThreeByThreeControllerCore = (
     let cachedTheme: string | null = null;
     let cachedCells: SharedThreeByThreeState['cells'] = [];
     let cachedTopology: SceneRootContext['topology'] | null = null;
+    let cachedSectionLookup: SceneRootContext['sectionLookup'] | null = null;
     let cachedLayoutId = '';
-    let cachedCustomLayouts: SceneRootContext['settings']['customLayouts'] | null =
+    let cachedCustomLayouts:
+        | SceneRootContext['settings']['customLayouts']
+        | null = null;
+    let cachedInteraction: SceneRootContext['interactionSnapshot'] | null =
         null;
-    let cachedInteraction: SceneRootContext['interactionSnapshot'] | null = null;
     let cachedDisplay: SceneRootContext['displaySnapshot'] | null = null;
     let cachedGridStyle: SceneRootContext['gridStyles']['threeByThree'] | null =
         null;
@@ -83,6 +88,7 @@ export const createThreeByThreeControllerCore = (
             if (
                 cachedTheme === theme &&
                 cachedTopology === context.topology &&
+                cachedSectionLookup === context.sectionLookup &&
                 cachedLayoutId === context.settings.selectedLayoutId &&
                 cachedCustomLayouts === context.settings.customLayouts &&
                 cachedInteraction === context.interactionSnapshot &&
@@ -101,12 +107,14 @@ export const createThreeByThreeControllerCore = (
                 selectedLayoutId: context.settings.selectedLayoutId,
                 customLayouts: context.settings.customLayouts,
                 topology: context.topology,
+                sectionLookup: context.sectionLookup,
                 interaction: context.interactionSnapshot,
                 gridStyle: context.gridStyles.threeByThree,
                 displaySnapshot: context.displaySnapshot,
             });
             cachedTheme = theme;
             cachedTopology = context.topology;
+            cachedSectionLookup = context.sectionLookup;
             cachedLayoutId = context.settings.selectedLayoutId;
             cachedCustomLayouts = context.settings.customLayouts;
             cachedInteraction = context.interactionSnapshot;
@@ -125,6 +133,7 @@ export const createThreeByThreeControllerCore = (
                 subgridTheme: context.ui.subgridTheme,
                 documentState: context.documentState,
                 sectionToNodeId: context.sectionToNodeId,
+                sectionLookup: context.sectionLookup,
             });
         },
         enterSubgridFromButton,
@@ -142,7 +151,8 @@ export const createThreeByThreeController = (
     let cachedProjection: ThreeByThreeSceneProjection | null = null;
     let cachedCells: SharedThreeByThreeState['cells'] = [];
     let cachedTheme = '';
-    let cachedThemeSnapshot: SceneRootContext['sceneThemeSnapshot'] | null = null;
+    let cachedThemeSnapshot: SceneRootContext['sceneThemeSnapshot'] | null =
+        null;
     let cachedGridStyle: SceneRootContext['gridStyles']['threeByThree'] | null =
         null;
     let cachedAnimateSwap = false;
@@ -202,8 +212,7 @@ export const createThreeByThreeController = (
             cachedThemeSnapshot = context.sceneThemeSnapshot;
             cachedGridStyle = context.gridStyles.threeByThree;
             cachedAnimateSwap = context.ui.animateSwap;
-            cachedShowNavButtons =
-                context.settings.show3x3SubgridNavButtons;
+            cachedShowNavButtons = context.settings.show3x3SubgridNavButtons;
             cachedHasOpenOverlayModal = context.ui.hasOpenOverlayModal;
             return cachedProjection;
         },

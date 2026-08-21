@@ -104,6 +104,7 @@ type ContentStoreView = {
         ) => () => void;
     };
     editSession: EditSessionService;
+    getContentForNode?: (nodeId: string) => string;
 };
 
 export const contentStore = (view: ContentStoreView, nodeId: string) => {
@@ -114,8 +115,10 @@ export const contentStore = (view: ContentStoreView, nodeId: string) => {
     let unsubscribeDocument: (() => void) | null = null;
     let unsubscribeProjection: (() => void) | null = null;
 
-    const resolveCommittedContent = (content: Content | undefined) =>
-        content?.[nodeId]?.content ?? '';
+    const resolveCommittedContent = (content: Content | undefined) => {
+        const committed = content?.[nodeId];
+        return committed?.content ?? view.getContentForNode?.(nodeId) ?? '';
+    };
 
     const resolveNextContent = () =>
         projectionContent ?? resolveCommittedContent(documentContent);

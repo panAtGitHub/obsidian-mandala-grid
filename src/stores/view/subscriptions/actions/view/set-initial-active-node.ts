@@ -7,8 +7,12 @@ export const setInitialActiveNode = (view: MandalaView) => {
     const documentState = view.documentStore.getValue();
     const settings = view.plugin.settings.getValue();
     const path = view.file!.path;
+    const bootstrapSection = view.getInitialBootstrapTarget()?.activeSection;
+    if (bootstrapSection) {
+        id = maybeGetIdOfSection(documentState.sections, bootstrapSection);
+    }
     const persistedSection = settings.documents[path]?.activeSection;
-    if (persistedSection) {
+    if (!id && persistedSection) {
         id = maybeGetIdOfSection(documentState.sections, persistedSection);
     }
     const mostRecentActiveSection = documentState.history.context.activeSection;

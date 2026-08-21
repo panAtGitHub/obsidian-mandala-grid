@@ -1,8 +1,6 @@
 import type { MandalaCardMobileDoubleClickHandler } from 'src/mandala-cell/viewmodel/controller/mandala-card-controller';
 import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
-import type {
-    DayPlanFrontmatter,
-} from 'src/mandala-display/logic/day-plan';
+import type { DayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
 import type {
     DayPlanTodayNavigation,
     MandalaSceneKey,
@@ -12,6 +10,7 @@ import type {
     Content,
     DocumentState,
 } from 'src/mandala-document/state/document-state-type';
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 import type { MandalaTopologyIndex } from 'src/mandala-display/logic/mandala-topology';
 import type { SceneCardInteractionDescriptor } from 'src/mandala-scenes/shared/card-scene-cell';
 import type { ResolvedGridStyle } from 'src/mandala-scenes/shared/grid-style';
@@ -211,6 +210,7 @@ export type SceneRootContext = {
     interactionSnapshot: SceneCardInteractionSnapshot;
     sceneThemeSnapshot: MandalaThemeSnapshot;
     topology: MandalaTopologyIndex;
+    sectionLookup: SectionLookup;
     sectionToNodeId: Record<string, string | undefined>;
     idToSection: Record<string, string | undefined>;
     dayPlan: DayPlanFrontmatter | null;

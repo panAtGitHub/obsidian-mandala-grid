@@ -8,6 +8,7 @@ import {
     SectionRangeLimit,
 } from 'src/mandala-settings/state/settings-type';
 import type { Content } from 'src/mandala-document/state/document-state-type';
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 
 export type Nx9CellPosition = { row: number; col: number };
 export type Nx9CellWithPage = Nx9CellPosition & { page: number };
@@ -79,27 +80,38 @@ export const normalizeNx9VisibleSection = (
 
 export const collectNx9CoreSections = (
     sectionIdMap: Record<string, string | undefined>,
+    sectionLookup?: SectionLookup,
 ) =>
-    buildMandalaTopologyIndex(sectionIdMap).coreSections.filter((section) =>
-        CORE_SECTION_PATTERN.test(section),
-    );
+    (
+        sectionLookup?.getRootSections?.() ??
+        buildMandalaTopologyIndex(sectionIdMap).coreSections
+    ).filter((section) => CORE_SECTION_PATTERN.test(section));
 
 export const collectEffectiveNx9CoreSections = ({
     sectionIdMap,
     documentContent,
     activeSection,
+    sectionLookup,
 }: {
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Content;
     activeSection?: string | null | undefined;
+    sectionLookup?: SectionLookup;
 }) => {
     const topology = buildMandalaTopologyIndex(sectionIdMap);
+    const sectionIds =
+        sectionLookup?.getRootSections?.() ?? topology.sectionsWithNode;
+    const coreSections = collectNx9CoreSections(sectionIdMap, sectionLookup);
     const trailingCoreSections = collectTrailingEmptyCoreSections(
-        topology.sectionsWithNode.map((sectionId) => {
-            const nodeId = topology.entries[sectionId]?.nodeId;
+        sectionIds.map((sectionId) => {
+            const nodeId =
+                sectionLookup?.getNodeId(sectionId) ??
+                topology.entries[sectionId]?.nodeId;
             return {
                 sectionId,
-                content: nodeId ? documentContent[nodeId]?.content ?? '' : '',
+                content:
+                    sectionLookup?.getContent(sectionId) ??
+                    (nodeId ? documentContent[nodeId]?.content ?? '' : ''),
             };
         }),
     );
@@ -114,7 +126,7 @@ export const collectEffectiveNx9CoreSections = ({
             ? trailingCoreSections
             : trailingCoreSections.slice(activeTrailingIndex + 1),
     );
-    return topology.coreSections.filter(
+    return coreSections.filter(
         (section) => !removableTrailingCoreSections.has(section),
     );
 };
@@ -222,6 +234,7 @@ export const resolveNx9Context = ({
     activeSection,
     activeCell,
     coreSectionMax,
+    sectionLookup,
 }: {
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Content;
@@ -229,6 +242,7 @@ export const resolveNx9Context = ({
     activeSection: string | null | undefined;
     activeCell?: Nx9ActiveCell | null | undefined;
     coreSectionMax?: SectionRangeLimit | undefined;
+    sectionLookup?: SectionLookup;
 }): Nx9Context => {
     const structureContext = resolveNx9StructureContext({
         sectionIdMap,
@@ -236,6 +250,7 @@ export const resolveNx9Context = ({
         rowsPerPage,
         activeSection,
         coreSectionMax,
+        sectionLookup,
     });
     return resolveNx9PageContext({
         structureContext,
@@ -250,19 +265,22 @@ export const resolveNx9StructureContext = ({
     rowsPerPage,
     activeSection,
     coreSectionMax,
+    sectionLookup,
 }: {
     sectionIdMap: Record<string, string | undefined>;
     documentContent: Content;
     rowsPerPage: number | null | undefined;
     activeSection: string | null | undefined;
     coreSectionMax?: SectionRangeLimit | undefined;
+    sectionLookup?: SectionLookup;
 }): Nx9StructureContext => {
     const normalizedRowsPerPage = normalizeNx9RowsPerPage(rowsPerPage);
-    const coreSections = collectNx9CoreSections(sectionIdMap);
+    const coreSections = collectNx9CoreSections(sectionIdMap, sectionLookup);
     const effectiveCoreSections = collectEffectiveNx9CoreSections({
         sectionIdMap,
         documentContent,
         activeSection,
+        sectionLookup,
     });
     const rows = buildNx9Rows(
         effectiveCoreSections,

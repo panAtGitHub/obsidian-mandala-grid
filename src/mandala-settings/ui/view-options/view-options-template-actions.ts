@@ -1,6 +1,13 @@
 import { Notice, TFile } from 'obsidian';
-import { appendMandalaTemplate, MandalaTemplate, parseMandalaTemplates } from 'src/mandala-display/logic/mandala-templates';
-import { normalizeSlotTitle, upsertSlotHeading } from 'src/mandala-display/logic/day-plan';
+import {
+    appendMandalaTemplate,
+    MandalaTemplate,
+    parseMandalaTemplates,
+} from 'src/mandala-display/logic/mandala-templates';
+import {
+    normalizeSlotTitle,
+    upsertSlotHeading,
+} from 'src/mandala-display/logic/day-plan';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import {
     openMandalaTemplateNameModal,
@@ -28,6 +35,7 @@ const ensureMandala3x3 = (view: MandalaView) => {
         new Notice('当前文档不是九宫格格式。');
         return false;
     }
+    view.ensureFullHydrated?.('template-action');
     return true;
 };
 
@@ -85,7 +93,9 @@ const applyDayPlanSlotsToAllCoreThemes = (
     slots: string[],
 ) => {
     const normalizedSlots = slots.map((slot) => normalizeSlotTitle(slot));
-    const coreThemes = Object.keys(view.documentStore.getValue().sections.section_id)
+    const coreThemes = Object.keys(
+        view.documentStore.getValue().sections.section_id,
+    )
         .filter((section) => /^\d+$/.test(section))
         .sort((a, b) => Number(a) - Number(b));
 

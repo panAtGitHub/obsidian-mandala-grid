@@ -1,7 +1,5 @@
 import { MandalaView } from 'src/view/view';
-import {
-    compareSectionIds,
-} from 'src/mandala-display/palette/section-colors';
+import { compareSectionIds } from 'src/mandala-display/palette/section-colors';
 import { getCurrentFilePinnedSections } from 'src/mandala-settings/state/current-file/current-file-preferences';
 
 const sameSections = (a: string[], b: string[]) =>
@@ -9,11 +7,15 @@ const sameSections = (a: string[], b: string[]) =>
 
 export const loadPinnedNodesToDocument = (view: MandalaView) => {
     if (!view.file) return;
+    const pinnedSections = getCurrentFilePinnedSections(view);
+    if (pinnedSections.length > 0) {
+        view.materializeSections?.(pinnedSections, 'pinned');
+    }
     const documentStore = view.documentStore;
     const documentState = documentStore.getValue();
-    const pinnedSections = getCurrentFilePinnedSections(view);
-    const currentPinnedSections = documentState.pinnedNodes.Ids
-        .map((id) => documentState.sections.id_section[id])
+    const currentPinnedSections = documentState.pinnedNodes.Ids.map(
+        (id) => documentState.sections.id_section[id],
+    )
         .filter((section): section is string => Boolean(section))
         .sort(compareSectionIds);
     const unchanged = sameSections(currentPinnedSections, pinnedSections);

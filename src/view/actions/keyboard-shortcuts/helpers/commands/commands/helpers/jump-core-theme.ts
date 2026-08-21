@@ -14,6 +14,7 @@ export const jumpCoreTheme = (
 ) => {
     const startedAt = performance.now();
     if (!view.mandalaMode) return;
+    view.ensureFullHydrated?.(`core-jump:${direction}`);
 
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return;
@@ -37,7 +38,8 @@ export const jumpCoreTheme = (
         }
 
         const nextCore = String(coreNumber + 1);
-        const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+        const coreSectionMax =
+            view.getEffectiveMandalaSettings().view.coreSectionMax;
         if (coreSectionMax !== 'unlimited' && coreNumber + 1 > coreSectionMax) {
             new Notice(lang.notice_core_section_limit_reached);
             return;

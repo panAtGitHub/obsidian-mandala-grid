@@ -41,10 +41,8 @@ export const cancelMandalaSwap = (
     }
 };
 
-export const startMandalaSwap = (
-    view: MandalaView,
-    sourceNodeId: string,
-) => {
+export const startMandalaSwap = (view: MandalaView, sourceNodeId: string) => {
+    view.ensureFullHydrated?.('mandala-swap-start');
     const swapState = view.viewStore.getValue().ui.mandala.swap;
     if (swapState.active && swapState.sourceNodeId === sourceNodeId) {
         cancelMandalaSwap(view);
@@ -73,6 +71,7 @@ export const executeMandalaSwap = (
     sourceNodeId: string,
     targetNodeId: string,
 ) => {
+    view.ensureFullHydrated?.('mandala-swap-execute');
     new Notice(lang.notice_swap_in_progress, 800);
     view.documentStore.dispatch({
         type: 'document/mandala/swap',

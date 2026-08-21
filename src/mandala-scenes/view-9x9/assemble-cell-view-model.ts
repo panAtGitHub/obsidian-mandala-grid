@@ -20,6 +20,40 @@ type Build9x9CellsOptions = {
     baseTheme: string;
 };
 
+export const buildNineByNineSectionIds = ({
+    selectedLayoutId,
+    customLayouts,
+    baseTheme,
+}: Pick<
+    Build9x9CellsOptions,
+    'selectedLayoutId' | 'customLayouts' | 'baseTheme'
+>) => {
+    const layout = getMandalaLayoutById(selectedLayoutId, customLayouts);
+    const sections = new Set<string>();
+    for (let row = 0; row < 9; row += 1) {
+        for (let col = 0; col < 9; col += 1) {
+            const blockRow = Math.floor(row / 3);
+            const blockCol = Math.floor(col / 3);
+            const localRow = row % 3;
+            const localCol = col % 3;
+            const isCenter = blockRow === 1 && blockCol === 1;
+            const blockSlot = isCenter
+                ? null
+                : layout.themeGrid[blockRow]?.[blockCol] ?? null;
+            const theme = blockSlot ? `${baseTheme}.${blockSlot}` : baseTheme;
+            const slot = layout.themeGrid[localRow]?.[localCol];
+            const section =
+                localRow === 1 && localCol === 1
+                    ? theme
+                    : slot
+                      ? `${theme}.${slot}`
+                      : null;
+            if (section) sections.add(section);
+        }
+    }
+    return Array.from(sections);
+};
+
 type Decorate9x9CellsOptions = {
     cells: SimpleSummaryCellModel[];
     backgroundMode: string;

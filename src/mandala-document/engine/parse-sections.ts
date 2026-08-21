@@ -3,10 +3,11 @@ import {
     ParsedMandalaSections,
 } from 'src/mandala-document/engine/types';
 
-const SECTION_MARKER_RE = /<!--\s*section:\s*([0-9]+(?:\.[0-9]+)*)\s*-->/g;
+export const SECTION_MARKER_RE =
+    /<!--\s*section:\s*([0-9]+(?:\.[0-9]+)*)\s*-->/g;
 const encoder = new TextEncoder();
 
-const normalizeSectionContent = (raw: string) => {
+export const normalizeSectionContent = (raw: string) => {
     let normalized = raw;
     if (normalized.startsWith('\r\n')) {
         normalized = normalized.slice(2);

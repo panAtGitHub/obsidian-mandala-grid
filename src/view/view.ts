@@ -98,6 +98,8 @@ import {
     resolveNx9CurrentCell,
     resolveNx9PageNavigationTarget,
 } from 'src/mandala-scenes/view-nx9/context';
+import { resolveWeekPlanContext } from 'src/mandala-display/logic/week-plan-context';
+import { buildNineByNineSectionIds } from 'src/mandala-scenes/view-9x9/assemble-cell-view-model';
 import { resolveCompatibleMandalaMode } from 'src/mandala-interaction/helpers/resolve-compatible-mandala-mode';
 import { resolveNearestThreeByThreeCenterTheme } from 'src/mandala-scenes/view-3x3/subgrid-depth';
 import {
@@ -106,6 +108,20 @@ import {
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import { EditSessionService } from 'src/view/edit-session/edit-session-service';
 import type { EditSessionCommitPayload } from 'src/view/edit-session/edit-session-types';
+import {
+    MandalaSourceRuntime,
+    projectWorkingSetDocumentState,
+    StaleSourceRevisionError,
+} from 'src/mandala-document/runtime/source-document-runtime';
+import { buildThreeByThreeSectionIds } from 'src/mandala-document/runtime/working-set';
+import {
+    resolveInitialTarget,
+    type InitialTarget,
+} from 'src/mandala-document/runtime/initial-target-resolver';
+import {
+    createSectionLookupFromDocumentState,
+    type SectionLookup,
+} from 'src/mandala-document/runtime/section-lookup';
 
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
@@ -156,6 +172,10 @@ export class MandalaView extends TextFileView {
         string,
         MandalaUiStateSnapshot
     >();
+    private sourceRuntime: MandalaSourceRuntime | null = null;
+    private workingSetCenter: string | null = null;
+    private initialBootstrapTarget: InitialTarget | null = null;
+    private fullHydrated = true;
     constructor(
         leaf: WorkspaceLeaf,
         public plugin: MandalaGrid,
@@ -267,6 +287,224 @@ export class MandalaView extends TextFileView {
 
     getCurrentFilePath() {
         return this.activeFilePath ?? this.file?.path ?? null;
+    }
+
+    get isWorkingSetProjection() {
+        return Boolean(this.sourceRuntime && !this.fullHydrated);
+    }
+
+    get sourceRevision() {
+        return this.sourceRuntime?.revision ?? null;
+    }
+
+    getInitialBootstrapTarget() {
+        return this.initialBootstrapTarget;
+    }
+
+    getSectionLookup(): SectionLookup {
+        return (
+            this.sourceRuntime?.lookup ??
+            createSectionLookupFromDocumentState(this.documentStore.getValue())
+        );
+    }
+
+    getSourceSectionIds() {
+        return (
+            this.sourceRuntime?.index.canonicalOrderedIds ??
+            Object.keys(this.documentStore.getValue().sections.section_id)
+        );
+    }
+
+    getContentForNode(nodeId: string) {
+        const content = this.documentStore.getValue().document.content[nodeId];
+        if (content) return content.content;
+        const section = this.sourceRuntime?.getSectionId(nodeId);
+        return section ? this.sourceRuntime?.getContent(section) ?? '' : '';
+    }
+
+    ensureFullHydrated(reason: string) {
+        if (!this.sourceRuntime || this.fullHydrated) return false;
+        invariant(this.file);
+        const startedAt = performance.now();
+        const { body, frontmatter } = extractFrontmatter(this.data);
+        const activeNodeId = this.viewStore.getValue().document.activeNode;
+        const activeSection =
+            this.documentStore.getValue().sections.id_section[activeNodeId] ??
+            this.workingSetCenter ??
+            this.sourceRuntime.index.rootIds[0] ??
+            '1';
+
+        loadFullDocument(this, body, frontmatter, activeSection);
+        this.fullHydrated = true;
+        this.workingSetCenter = null;
+        this.recordPerfEvent('document.full-hydration', {
+            reason,
+            sections_count: this.sourceRuntime.index.canonicalOrderedIds.length,
+            hydrate_ms: Number((performance.now() - startedAt).toFixed(2)),
+        });
+        return true;
+    }
+
+    materializeWorkingSet(centerSection: string, activeSection?: string) {
+        if (!this.sourceRuntime || this.fullHydrated) return false;
+        const sectionIds = [
+            ...buildThreeByThreeSectionIds(centerSection),
+            ...(activeSection ? [activeSection] : []),
+        ];
+        return this.materializeSections(sectionIds, centerSection);
+    }
+
+    materializeSections(sectionIds: Iterable<string>, centerSection?: string) {
+        if (!this.sourceRuntime || this.fullHydrated) return false;
+        const currentState = this.documentStore.getValue();
+        const requestedSectionIds = [...sectionIds];
+        let activeSection = this.sourceRuntime.getSectionId(
+            this.viewStore.getValue().document.activeNode,
+        );
+        if (!activeSection) activeSection = centerSection ?? null;
+        if (activeSection) requestedSectionIds.push(activeSection);
+        const preservedNodeIds = [
+            ...currentState.pinnedNodes.Ids,
+            this.viewStore.getValue().document.editing.activeNodeId,
+        ];
+        for (const nodeId of preservedNodeIds) {
+            if (!nodeId) continue;
+            const sectionId = this.sourceRuntime.getSectionId(nodeId);
+            if (sectionId) requestedSectionIds.push(sectionId);
+        }
+        for (const requestedSectionId of [...requestedSectionIds]) {
+            let parent = this.sourceRuntime.getParent(requestedSectionId);
+            while (parent) {
+                requestedSectionIds.push(parent);
+                parent = this.sourceRuntime.getParent(parent);
+            }
+        }
+
+        const startedAt = performance.now();
+        const workingSet = this.sourceRuntime.materialize(requestedSectionIds);
+        const nextState = projectWorkingSetDocumentState(
+            this.documentStore.getValue(),
+            this.sourceRuntime,
+            workingSet,
+        );
+        this.documentStore.set(nextState);
+        this.viewStore.setContext(nextState.document);
+        this.workingSetCenter = centerSection ?? this.workingSetCenter;
+        this.recordPerfEvent('document.working-set-materialized', {
+            center_section: centerSection,
+            requested_count: workingSet.requestedSectionIds.length,
+            materialized_count: workingSet.materializedSectionIds.length,
+            cache_hits: 0,
+            materialize_ms: Number((performance.now() - startedAt).toFixed(2)),
+        });
+        return true;
+    }
+
+    private materializeModeWorkingSet(
+        mode: MandalaMode,
+        preferredActiveSection?: string | null,
+        requestedPage?: number | null,
+    ) {
+        if (!this.sourceRuntime || this.fullHydrated) {
+            return false;
+        }
+        const activeSection =
+            preferredActiveSection ??
+            this.sourceRuntime.getSectionId(
+                this.viewStore.getValue().document.activeNode,
+            );
+        if (mode === 'nx9') {
+            const settings = this.plugin.settings.getValue();
+            const isWeekPlan =
+                resolveMandalaSceneKey({
+                    frontmatter: this.documentStore.getValue().file.frontmatter,
+                    viewKind: mode,
+                    weekPlanEnabled: settings.general.weekPlanEnabled,
+                }).variant === 'week-7x9';
+            if (isWeekPlan) {
+                const weekContext = resolveWeekPlanContext({
+                    frontmatter: this.documentStore.getValue().file.frontmatter,
+                    anchorDate: this.mandalaWeekAnchorDate,
+                    weekStart: settings.general.weekStart,
+                });
+                const weekSectionIds = weekContext.rows.flatMap((row) =>
+                    row.coreSection
+                        ? buildThreeByThreeSectionIds(row.coreSection)
+                        : [],
+                );
+                return this.materializeSections(
+                    weekSectionIds,
+                    activeSection ??
+                        weekContext.rows[0]?.coreSection ??
+                        undefined,
+                );
+            }
+
+            const rootIds = this.sourceRuntime.index.rootIds;
+            const activeRoot =
+                activeSection?.split('.')[0] ?? rootIds[0] ?? '1';
+            const activeRootIndex = Math.max(0, rootIds.indexOf(activeRoot));
+            const rowsPerPage = this.getCurrentNx9RowsPerPage(settings);
+            const page =
+                requestedPage ??
+                this.mandalaActiveCellNx9?.page ??
+                Math.floor(activeRootIndex / rowsPerPage);
+            const pageRootIds = rootIds.slice(
+                page * rowsPerPage,
+                (page + 1) * rowsPerPage,
+            );
+            const pageSectionIds = pageRootIds.flatMap((rootId) =>
+                buildThreeByThreeSectionIds(rootId),
+            );
+            return this.materializeSections(pageSectionIds, activeRoot);
+        }
+        if (mode !== '9x9') return false;
+        const baseTheme =
+            activeSection?.split('.')[0] ??
+            this.workingSetCenter ??
+            this.sourceRuntime.index.rootIds[0] ??
+            '1';
+        const settings = this.plugin.settings.getValue();
+        const layoutId = this.getCurrentMandalaLayoutId(settings);
+        return this.materializeSections(
+            buildNineByNineSectionIds({
+                selectedLayoutId: layoutId,
+                customLayouts: settings.view.mandalaGridCustomLayouts ?? [],
+                baseTheme,
+            }),
+            baseTheme,
+        );
+    }
+
+    materializeNx9Page(page: number) {
+        return this.materializeModeWorkingSet('nx9', null, page);
+    }
+
+    materializeWeekPlanWorkingSet() {
+        return this.materializeModeWorkingSet('nx9');
+    }
+
+    private prepareMandalaMode(mode: MandalaMode, reason: string) {
+        if (mode === '3x3') {
+            if (this.sourceRuntime && !this.fullHydrated) {
+                const activeSection = this.sourceRuntime.getSectionId(
+                    this.viewStore.getValue().document.activeNode,
+                );
+                const centerSection =
+                    this.workingSetCenter ??
+                    activeSection?.split('.')[0] ??
+                    this.sourceRuntime.index.rootIds[0] ??
+                    '1';
+                this.materializeWorkingSet(
+                    centerSection,
+                    activeSection ?? undefined,
+                );
+            }
+            return;
+        }
+        if (!this.materializeModeWorkingSet(mode)) {
+            this.ensureFullHydrated(reason);
+        }
     }
 
     recordPerfEvent(name: string, payload: Record<string, unknown> = {}) {
@@ -389,6 +627,7 @@ export class MandalaView extends TextFileView {
             activeCell: this.mandalaActiveCellNx9,
             coreSectionMax:
                 this.getEffectiveMandalaSettings().view.coreSectionMax,
+            sectionLookup: this.getSectionLookup(),
         });
         const targetPage =
             direction === 'prev'
@@ -419,7 +658,9 @@ export class MandalaView extends TextFileView {
             target.page,
         );
         if (!section) return;
-        const nextNodeId = documentState.sections.section_id[section];
+        this.materializeNx9Page(target.page);
+        const nextNodeId =
+            this.documentStore.getValue().sections.section_id[section];
         if (!nextNodeId || nextNodeId === activeNodeId) return;
         this.viewStore.dispatch({
             type: 'view/set-active-node/mouse-silent',
@@ -443,6 +684,7 @@ export class MandalaView extends TextFileView {
             new Notice('当前 nx9 视图仅支持桌面端的 mandala 文件。');
             return false;
         }
+        this.prepareMandalaMode(mode, `mode:${mode}`);
         this.viewStore.dispatch({
             type: 'view/mandala/mode/set',
             payload: { mode },
@@ -485,6 +727,7 @@ export class MandalaView extends TextFileView {
             return false;
         }
 
+        this.prepareMandalaMode(nextMode, `compatible-mode:${nextMode}`);
         this.viewStore.dispatch({
             type: 'view/mandala/mode/set',
             payload: { mode: nextMode },
@@ -510,6 +753,7 @@ export class MandalaView extends TextFileView {
             }) ??
                 nextModeRaw);
         if (nextMode && nextMode !== this.mandalaMode) {
+            this.prepareMandalaMode(nextMode, `state-mode:${nextMode}`);
             this.viewStore.dispatch({
                 type: 'view/mandala/mode/set',
                 payload: { mode: nextMode },
@@ -553,6 +797,30 @@ export class MandalaView extends TextFileView {
                 }
             }
 
+            const incomingBody = extractFrontmatter(data).body;
+            const currentBody = extractFrontmatter(this.data).body;
+            const editingState = this.viewStore.getValue().document.editing;
+            if (
+                !changingFile &&
+                incomingBody !== currentBody &&
+                editingState.activeNodeId
+            ) {
+                if (this.inlineEditor) {
+                    this.inlineEditor.unloadNodeWithReason(
+                        undefined,
+                        false,
+                        'unload',
+                    );
+                } else {
+                    this.editSession.endSession('unload');
+                }
+                this.viewStore.dispatch({
+                    type: editingState.isInSidebar
+                        ? 'view/editor/disable-sidebar-editor'
+                        : 'view/editor/disable-main-editor',
+                });
+            }
+
             this.data = data;
 
             if (switchedFile) {
@@ -561,6 +829,10 @@ export class MandalaView extends TextFileView {
                 this.lastLoadedFrontmatter = '';
                 this.cachedActivation = null;
                 this.lastActivationNotice = null;
+                this.sourceRuntime = null;
+                this.workingSetCenter = null;
+                this.initialBootstrapTarget = null;
+                this.fullHydrated = true;
                 this.loadDocumentToStore();
                 return;
             }
@@ -599,6 +871,10 @@ export class MandalaView extends TextFileView {
         this.lastLoadedFrontmatter = '';
         this.cachedActivation = null;
         this.lastActivationNotice = null;
+        this.sourceRuntime = null;
+        this.workingSetCenter = null;
+        this.initialBootstrapTarget = null;
+        this.fullHydrated = true;
         this.contentEl.empty();
         this.documentStore = new Store(
             defaultDocumentState(),
@@ -658,7 +934,8 @@ export class MandalaView extends TextFileView {
             this.cancelFocusMandalaSection();
         }
         const documentLoaded =
-            this.documentStore.getValue().document.columns.length > 0;
+            this.documentStore.getValue().document.columns.length > 0 ||
+            Boolean(this.sourceRuntime?.index.diagnostics.valid);
         if (!documentLoaded) {
             this.pendingEphemeralState = state;
             return;
@@ -702,9 +979,12 @@ export class MandalaView extends TextFileView {
 
     saveDocument = (options: SaveDocumentOptions = {}) => {
         invariant(this.file);
+        const mode = options.mode ?? 'structural';
+        if (mode === 'structural' && this.isWorkingSetProjection) {
+            this.ensureFullHydrated('save-structural');
+        }
         const state = this.documentStore.getValue();
         const saveStartedMs = performance.now();
-        const mode = options.mode ?? 'structural';
         const changedSections = Array.from(
             new Set(
                 (options.changedSections ?? []).filter(
@@ -729,43 +1009,127 @@ export class MandalaView extends TextFileView {
         const canTryEarlyPatch =
             mode === 'content-only' &&
             changedSections.length > 0 &&
-            changedSections.every((sectionId) => {
-                const nodeId = state.sections.section_id[sectionId];
-                if (!nodeId) return false;
-                const replacement =
-                    state.document.content[nodeId]?.content ?? '';
-                return isNonEmptyMandalaContent(replacement);
-            });
+            (this.sourceRuntime
+                ? changedSections.every((sectionId) => {
+                      if (!this.sourceRuntime?.has(sectionId)) return false;
+                      if (!this.fullHydrated) return true;
+                      const nodeId = this.sourceRuntime.getNodeId(sectionId);
+                      const replacement = nodeId
+                          ? state.document.content[nodeId]?.content ?? ''
+                          : '';
+                      return isNonEmptyMandalaContent(replacement);
+                  })
+                : changedSections.every((sectionId) => {
+                      const nodeId = state.sections.section_id[sectionId];
+                      if (!nodeId) return false;
+                      const replacement =
+                          state.document.content[nodeId]?.content ?? '';
+                      return isNonEmptyMandalaContent(replacement);
+                  }));
 
         if (canTryEarlyPatch) {
             const patchStartedMs = performance.now();
-            const currentBody = extractFrontmatter(this.data).body;
-            let patchedBody = currentBody;
             usedFastPath = true;
-            for (const sectionId of changedSections) {
-                const nodeId = state.sections.section_id[sectionId];
-                if (!nodeId) {
-                    usedFastPath = false;
-                    break;
+            let patchedBody: string | null = null;
+            if (this.sourceRuntime) {
+                try {
+                    const currentBody = extractFrontmatter(this.data).body;
+                    if (this.sourceRuntime.source !== currentBody) {
+                        this.sourceRuntime.replaceSourceFromExternal(
+                            currentBody,
+                        );
+                    }
+                    const result = this.sourceRuntime.replaceSectionContents(
+                        changedSections.map((sectionId) => ({
+                            sectionId,
+                            content:
+                                state.document.content[
+                                    state.sections.section_id[sectionId]
+                                ]?.content ?? '',
+                        })),
+                    );
+                    patchedBody = result?.source ?? null;
+                    if (result) {
+                        this.recordPerfEvent('document.source-patch', {
+                            changed_section_count:
+                                result.changedSections.length,
+                            source_size: result.source.length,
+                            bytes_delta: result.bytesDelta,
+                            patch_ms: Number(
+                                (performance.now() - patchStartedMs).toFixed(2),
+                            ),
+                        });
+                    }
+                } catch (error) {
+                    if (!(error instanceof StaleSourceRevisionError)) {
+                        logger.warn(
+                            '[mandala-document] source patch failed',
+                            error,
+                        );
+                    }
+                    patchedBody = null;
                 }
-                const replacement =
-                    state.document.content[nodeId]?.content ?? '';
-                const patchResult = applySectionPatch(
-                    patchedBody,
-                    sectionId,
-                    replacement,
-                );
-                if (!patchResult) {
-                    usedFastPath = false;
-                    break;
+            } else {
+                const currentBody = extractFrontmatter(this.data).body;
+                patchedBody = currentBody;
+                for (const sectionId of changedSections) {
+                    const nodeId = state.sections.section_id[sectionId];
+                    if (!nodeId) {
+                        patchedBody = null;
+                        break;
+                    }
+                    const replacement =
+                        state.document.content[nodeId]?.content ?? '';
+                    const patchResult = applySectionPatch(
+                        patchedBody,
+                        sectionId,
+                        replacement,
+                    );
+                    if (!patchResult) {
+                        patchedBody = null;
+                        break;
+                    }
+                    patchedBody = patchResult.markdown;
                 }
-                patchedBody = patchResult.markdown;
             }
             patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
-            if (usedFastPath) {
+            if (patchedBody !== null) {
                 body = patchedBody;
                 this.lastSaveBlockedNoticeKey = null;
+            } else {
+                usedFastPath = false;
             }
+        }
+
+        if (!usedFastPath && mode === 'structural' && this.sourceRuntime) {
+            const patchStartedMs = performance.now();
+            try {
+                const currentBody = extractFrontmatter(this.data).body;
+                if (this.sourceRuntime.source !== currentBody) {
+                    this.sourceRuntime.replaceSourceFromExternal(currentBody);
+                }
+                const result = this.sourceRuntime.reconcileDocumentState(state);
+                if (result) {
+                    body = result.source;
+                    usedFastPath = true;
+                    this.recordPerfEvent('document.source-structural-patch', {
+                        changed_section_count: result.changedSections.length,
+                        source_size: result.source.length,
+                        bytes_delta: result.bytesDelta,
+                        patch_ms: Number(
+                            (performance.now() - patchStartedMs).toFixed(2),
+                        ),
+                    });
+                }
+            } catch (error) {
+                if (!(error instanceof StaleSourceRevisionError)) {
+                    logger.warn(
+                        '[mandala-document] structural source patch failed',
+                        error,
+                    );
+                }
+            }
+            patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
         }
 
         if (!usedFastPath) {
@@ -812,24 +1176,69 @@ export class MandalaView extends TextFileView {
                 const currentBody = extractFrontmatter(this.data).body;
                 let patchedBody = currentBody;
                 usedFastPath = true;
-                for (const sectionId of changedSections) {
-                    const nodeId = state.sections.section_id[sectionId];
-                    if (!nodeId) {
+                if (this.sourceRuntime) {
+                    try {
+                        if (this.sourceRuntime.source !== currentBody) {
+                            this.sourceRuntime.replaceSourceFromExternal(
+                                currentBody,
+                            );
+                        }
+                        const result =
+                            this.sourceRuntime.replaceSectionContents(
+                                changedSections.map((sectionId) => ({
+                                    sectionId,
+                                    content:
+                                        state.document.content[
+                                            state.sections.section_id[sectionId]
+                                        ]?.content ?? '',
+                                })),
+                            );
+                        if (result) {
+                            patchedBody = result.source;
+                            this.recordPerfEvent('document.source-patch', {
+                                changed_section_count:
+                                    result.changedSections.length,
+                                source_size: result.source.length,
+                                bytes_delta: result.bytesDelta,
+                                patch_ms: Number(
+                                    (
+                                        performance.now() - patchStartedMs
+                                    ).toFixed(2),
+                                ),
+                            });
+                        } else {
+                            usedFastPath = false;
+                        }
+                    } catch (error) {
                         usedFastPath = false;
-                        break;
+                        if (!(error instanceof StaleSourceRevisionError)) {
+                            logger.warn(
+                                '[mandala-document] source patch failed',
+                                error,
+                            );
+                        }
                     }
-                    const replacement =
-                        state.document.content[nodeId]?.content ?? '';
-                    const patchResult = applySectionPatch(
-                        patchedBody,
-                        sectionId,
-                        replacement,
-                    );
-                    if (!patchResult) {
-                        usedFastPath = false;
-                        break;
+                }
+                if (usedFastPath && !this.sourceRuntime) {
+                    for (const sectionId of changedSections) {
+                        const nodeId = state.sections.section_id[sectionId];
+                        if (!nodeId) {
+                            usedFastPath = false;
+                            break;
+                        }
+                        const replacement =
+                            state.document.content[nodeId]?.content ?? '';
+                        const patchResult = applySectionPatch(
+                            patchedBody,
+                            sectionId,
+                            replacement,
+                        );
+                        if (!patchResult) {
+                            usedFastPath = false;
+                            break;
+                        }
+                        patchedBody = patchResult.markdown;
                     }
-                    patchedBody = patchResult.markdown;
                 }
                 patchMs += Number(
                     (performance.now() - patchStartedMs).toFixed(2),
@@ -871,6 +1280,12 @@ export class MandalaView extends TextFileView {
             }
             this.data = data;
             const parsed = extractFrontmatter(data);
+            if (
+                this.sourceRuntime &&
+                this.sourceRuntime.source !== parsed.body
+            ) {
+                this.sourceRuntime.replaceSourceFromExternal(parsed.body);
+            }
             this.lastLoadedBody = parsed.body;
             this.lastLoadedFrontmatter = parsed.frontmatter;
             const persistPath = this.activeFilePath ?? this.file?.path ?? null;
@@ -893,9 +1308,7 @@ export class MandalaView extends TextFileView {
         this.loadDocumentToStore('view-mount');
         if (!this.inlineEditor) {
             this.inlineEditor = new InlineEditor(this);
-            await this.inlineEditor.onload();
         }
-        await this.inlineEditor.loadFile(this.file);
         this.component = new Component({
             target: this.contentEl,
             props: {
@@ -947,6 +1360,13 @@ export class MandalaView extends TextFileView {
         const activation = this.getMandalaProfileActivation(frontmatter);
         const activationCostMs = performance.now() - activationStartMs;
         this.dayPlanHotCores = activation.hotCoreSections;
+        const shouldReloadSource =
+            emptyStore || (bodyHasChanged && !isEditing) || !this.sourceRuntime;
+        if (shouldReloadSource) {
+            this.sourceRuntime = new MandalaSourceRuntime(body);
+            this.fullHydrated = false;
+            this.workingSetCenter = null;
+        }
         const settings = this.plugin.settings.getValue();
         const filePath = this.file?.path ?? '';
         const hydratedSettings = ensureCurrentFileCustomLayoutAvailable(
@@ -975,7 +1395,9 @@ export class MandalaView extends TextFileView {
                 },
             });
         }
-        const sectionsInBody = this.collectSectionIdsFromBody(body);
+        const sectionsInBody = this.sourceRuntime
+            ? new Set(this.sourceRuntime.index.canonicalOrderedIds)
+            : this.collectSectionIdsFromBody(body);
         const persistedMandalaLastActiveSection =
             this.getExistingSectionFromBody(
                 sectionsInBody,
@@ -989,10 +1411,87 @@ export class MandalaView extends TextFileView {
             activation.targetSection ??
             persistedMandalaLastActiveSection ??
             persistedActiveSection;
+        const initialTarget = this.sourceRuntime?.index.diagnostics.valid
+            ? resolveInitialTarget({
+                  index: this.sourceRuntime.index,
+                  profile: activation,
+                  persistedCenter:
+                      persistedMandalaViewState?.subgridTheme ?? null,
+                  persistedActive: nextActiveSection,
+                  explicitTarget: this.resolvePendingExplicitTarget(),
+              })
+            : null;
         let loadedFromDisk = false;
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             const loadStartMs = performance.now();
-            loadFullDocument(this, body, frontmatter, nextActiveSection);
+            const canFastBootstrap =
+                (this.mandalaMode === '3x3' ||
+                    this.mandalaMode === '9x9' ||
+                    this.mandalaMode === 'nx9') &&
+                Boolean(initialTarget) &&
+                Boolean(this.sourceRuntime?.index.diagnostics.valid);
+            if (canFastBootstrap && initialTarget) {
+                this.initialBootstrapTarget = initialTarget;
+                if (this.mandalaMode === '9x9') {
+                    this.materializeSections(
+                        buildNineByNineSectionIds({
+                            selectedLayoutId: currentSelectedLayoutId,
+                            customLayouts,
+                            baseTheme:
+                                initialTarget.activeSection.split('.')[0] ??
+                                initialTarget.centerSection,
+                        }),
+                        initialTarget.centerSection,
+                    );
+                } else if (this.mandalaMode === 'nx9') {
+                    this.materializeModeWorkingSet(
+                        'nx9',
+                        initialTarget.activeSection,
+                    );
+                } else {
+                    this.materializeWorkingSet(
+                        initialTarget.centerSection,
+                        initialTarget.activeSection,
+                    );
+                }
+                this.viewStore.batch(() => {
+                    this.viewStore.dispatch({
+                        type: 'view/mandala/subgrid/enter',
+                        payload: { theme: initialTarget.centerSection },
+                    });
+                    const activeNodeId =
+                        this.documentStore.getValue().sections.section_id[
+                            initialTarget.activeSection
+                        ] ??
+                        this.documentStore.getValue().sections.section_id[
+                            initialTarget.centerSection
+                        ];
+                    if (activeNodeId) {
+                        this.viewStore.dispatch({
+                            type: 'view/set-active-node/document',
+                            payload: { id: activeNodeId },
+                        });
+                    }
+                });
+                this.recordPerfEvent('document.section-index-built', {
+                    bytes: this.sourceRuntime?.index.sourceBytes ?? 0,
+                    sections_count:
+                        this.sourceRuntime?.index.canonicalOrderedIds.length ??
+                        0,
+                    index_ms: this.sourceRuntime?.index.metrics.indexMs ?? 0,
+                    valid: this.sourceRuntime?.index.diagnostics.valid ?? false,
+                });
+                this.recordPerfEvent('document.initial-target-resolved', {
+                    source: initialTarget.source,
+                    center_section: initialTarget.centerSection,
+                    active_section: initialTarget.activeSection,
+                });
+            } else {
+                loadFullDocument(this, body, frontmatter, nextActiveSection);
+                this.fullHydrated = true;
+                this.workingSetCenter = null;
+                this.initialBootstrapTarget = null;
+            }
             const loadCostMs = performance.now() - loadStartMs;
             const loadMetrics =
                 this.documentStore.getValue().meta.mandalaV2.loadMetrics;
@@ -1017,17 +1516,19 @@ export class MandalaView extends TextFileView {
                 '[perf][view] loadFullDocument',
                 loadFullDocumentPerfPayload,
             );
-            this.recordPerfEvent('document.load-from-disk', {
-                event: event ?? null,
-                bytes: loadMetrics?.bytes ?? 0,
-                sections_count: loadMetrics?.sectionsCount ?? 0,
-                parse_ms: loadMetrics?.parseMs ?? 0,
-                build_ms: loadMetrics?.buildMs ?? 0,
-            });
-            this.recordPerfEvent(
-                'view.load-full-document',
-                loadFullDocumentPerfPayload,
-            );
+            if (!this.isWorkingSetProjection) {
+                this.recordPerfEvent('document.load-from-disk', {
+                    event: event ?? null,
+                    bytes: loadMetrics?.bytes ?? 0,
+                    sections_count: loadMetrics?.sectionsCount ?? 0,
+                    parse_ms: loadMetrics?.parseMs ?? 0,
+                    build_ms: loadMetrics?.buildMs ?? 0,
+                });
+                this.recordPerfEvent(
+                    'view.load-full-document',
+                    loadFullDocumentPerfPayload,
+                );
+            }
         } else if (frontmatterHasChanged) {
             updateFrontmatter(this, frontmatter);
             this.lastLoadedFrontmatter = frontmatter;
@@ -1041,7 +1542,9 @@ export class MandalaView extends TextFileView {
         } else {
             this.lastActivationNotice = null;
         }
-        if (activation.targetSection) {
+        if (this.isWorkingSetProjection && initialTarget) {
+            this.restoreMandalaUiState(filePath, initialTarget.centerSection);
+        } else if (activation.targetSection) {
             if (!this.shouldSkipAutoFocusToday()) {
                 this.focusMandalaSection(activation.targetSection);
             }
@@ -1111,6 +1614,31 @@ export class MandalaView extends TextFileView {
             this.mandalaUiStateByPath,
             fallbackSubgridTheme,
         );
+    }
+
+    private resolvePendingExplicitTarget() {
+        const state = this.pendingEphemeralState;
+        const line =
+            state && typeof state === 'object' && 'line' in state
+                ? (state as { line?: unknown }).line
+                : null;
+        if (!this.sourceRuntime || typeof line !== 'number' || line < 0) {
+            return null;
+        }
+
+        let target: string | null = null;
+        const { body } = extractFrontmatter(this.data);
+        const bodyOffset = this.data.length - body.length;
+        for (const sectionId of this.sourceRuntime.index.sourceOrderedIds) {
+            const range = this.sourceRuntime.index.byId.get(sectionId);
+            if (!range) continue;
+            const markerLine =
+                this.data.slice(0, bodyOffset + range.markerStart).split('\n')
+                    .length - 1;
+            if (markerLine > line) break;
+            target = sectionId;
+        }
+        return target;
     }
 
     private collectSectionIdsFromBody(body: string) {
@@ -1391,7 +1919,6 @@ export class MandalaView extends TextFileView {
         if (!this.file) return;
         const cache = this.app.metadataCache.getFileCache(this.file);
         if (!cache) return;
-        const state = this.documentStore.getValue();
         const result = resolveSubpath(cache, subpath) as
             | HeadingSubpathResult
             | BlockSubpathResult
@@ -1405,10 +1932,15 @@ export class MandalaView extends TextFileView {
                       level: result.current.level,
                   }
                 : null;
+        const targetSection = this.getSectionNumberForLine(result.start.line);
+        if (targetSection && this.isWorkingSetProjection) {
+            this.materializeSections([targetSection], targetSection);
+        }
+        const targetState = this.documentStore.getValue();
         const nodeId = resolveSubpathJumpNodeId({
             markdown: this.data,
-            document: state.document,
-            sections: state.sections,
+            document: targetState.document,
+            sections: targetState.sections,
             line: result.start.line,
             headingText: heading?.text,
             headingLevel: heading?.level,
@@ -1431,6 +1963,9 @@ export class MandalaView extends TextFileView {
     private getNodeIdByLine(line: number): string | null {
         const section = this.getSectionNumberForLine(line);
         if (!section) return null;
+        if (this.isWorkingSetProjection) {
+            this.materializeSections([section], section);
+        }
         const nodeId =
             this.documentStore.getValue().sections.section_id[section] || null;
         if (!nodeId || !this.isNodeAlive(nodeId)) return null;

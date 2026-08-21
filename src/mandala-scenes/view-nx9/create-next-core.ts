@@ -25,7 +25,9 @@ export const createNextNx9Core = (
     view: MandalaView,
     nextCoreSection: string,
 ) => {
-    const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+    view.ensureFullHydrated?.('nx9-create-next-core');
+    const coreSectionMax =
+        view.getEffectiveMandalaSettings().view.coreSectionMax;
 
     const previousCoreNumber = Number(nextCoreSection) - 1;
     if (previousCoreNumber >= 1) {

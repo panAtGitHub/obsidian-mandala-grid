@@ -6,6 +6,7 @@ export const ensureNodeForSection = (
     view: MandalaView,
     section: string,
 ): string | null => {
+    view.ensureFullHydrated?.('ensure-node-for-section');
     const docState = view.documentStore.getValue();
     const existing = docState.sections.section_id[section];
     if (existing) return existing;
@@ -13,7 +14,8 @@ export const ensureNodeForSection = (
     const parts = section.split('.');
     if (parts.length === 0) return null;
 
-    const coreSectionMax = view.getEffectiveMandalaSettings().view.coreSectionMax;
+    const coreSectionMax =
+        view.getEffectiveMandalaSettings().view.coreSectionMax;
     const targetCore = Number(parts[0]);
     if (
         coreSectionMax !== 'unlimited' &&

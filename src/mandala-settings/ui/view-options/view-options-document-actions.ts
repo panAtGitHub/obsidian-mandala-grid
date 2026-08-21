@@ -23,6 +23,7 @@ export const createViewOptionsDocumentActions = ({
 
     return {
         clearEmptySubgrids() {
+            view.ensureFullHydrated?.('clear-empty-subgrids');
             const state = view.documentStore.getValue();
             if (!state.meta.isMandala) {
                 new Notice('当前文档不是九宫格格式。');

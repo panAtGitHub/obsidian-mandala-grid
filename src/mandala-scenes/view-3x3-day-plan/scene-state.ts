@@ -1,8 +1,7 @@
 import type { DayPlanFrontmatter } from 'src/mandala-display/logic/day-plan';
-import {
-    type DayPlanTodayNavigation,
-} from 'src/mandala-display/logic/mandala-profile';
+import { type DayPlanTodayNavigation } from 'src/mandala-display/logic/mandala-profile';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 import { syncThreeByThreeSubgridState } from 'src/mandala-scenes/view-3x3/scene-state';
 import type { MandalaView } from 'src/view/view';
 
@@ -16,6 +15,7 @@ export const syncThreeByThreeDayPlanSceneState = ({
     subgridTheme,
     documentState,
     sectionToNodeId,
+    sectionLookup,
     dayPlan: _dayPlan,
     dayPlanTodayNavigation,
 }: {
@@ -24,6 +24,7 @@ export const syncThreeByThreeDayPlanSceneState = ({
     subgridTheme: string | null | undefined;
     documentState: DocumentState;
     sectionToNodeId: Record<string, string | undefined>;
+    sectionLookup?: SectionLookup;
     dayPlan: DayPlanFrontmatter | null;
     dayPlanTodayNavigation: DayPlanTodayNavigation;
 }) => {
@@ -36,6 +37,7 @@ export const syncThreeByThreeDayPlanSceneState = ({
         subgridTheme,
         documentState,
         sectionToNodeId,
+        sectionLookup,
         allowSubgridExpansion: true,
     });
 

@@ -11,6 +11,7 @@ import {
     resolveNx9PageNavigationTarget,
     sectionAtCellNx9,
 } from 'src/mandala-scenes/view-nx9/context';
+import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-document-runtime';
 
 describe('nx9/context', () => {
     it('collects actual top-level core sections in numeric order', () => {
@@ -42,6 +43,33 @@ describe('nx9/context', () => {
                 },
             }),
         ).toEqual(['1', '2']);
+    });
+
+    it('uses source lookup metadata when the reactive state is page-local', () => {
+        const runtime = new MandalaSourceRuntime(
+            [
+                '<!--section: 1-->filled',
+                '<!--section: 1.1-->child',
+                '<!--section: 2-->filled',
+                '<!--section: 3-->',
+            ].join('\n'),
+        );
+
+        const context = resolveNx9Context({
+            sectionIdMap: {
+                '1': runtime.getNodeId('1') ?? undefined,
+                '1.1': runtime.getNodeId('1.1') ?? undefined,
+            },
+            documentContent: {
+                [runtime.getNodeId('1') ?? '']: { content: 'filled' },
+            },
+            rowsPerPage: 2,
+            activeSection: '2',
+            sectionLookup: runtime.lookup,
+        });
+
+        expect(context.coreSections).toEqual(['1', '2', '3']);
+        expect(context.effectiveCoreSections).toEqual(['1', '2']);
     });
 
     it('builds real rows plus a single ghost row and pads the last page', () => {

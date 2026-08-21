@@ -10,6 +10,7 @@ export const setMandalaWeekAnchorDate = (view: MandalaView, date: string) => {
         type: 'view/mandala/week-active-cell/set',
         payload: { cell: null },
     });
+    view.materializeWeekPlanWorkingSet?.();
 };
 
 export const navigateMandalaWeek = (

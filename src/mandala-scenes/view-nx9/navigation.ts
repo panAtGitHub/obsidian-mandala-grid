@@ -32,6 +32,7 @@ export const tryMandalaNx9Navigation = (
         activeSection,
         activeCell: view.mandalaActiveCellNx9,
         coreSectionMax: view.getEffectiveMandalaSettings().view.coreSectionMax,
+        sectionLookup: view.getSectionLookup?.(),
     });
     const current = resolveNx9CurrentCell({
         activeCell: view.mandalaActiveCellNx9,
@@ -77,7 +78,9 @@ export const tryMandalaNx9Navigation = (
     });
     if (!nextSection) return true;
 
-    const nextNodeId = docState.sections.section_id[nextSection];
+    view.materializeNx9Page?.(nextPage);
+    const nextNodeId =
+        view.documentStore.getValue().sections.section_id[nextSection];
     if (!nextNodeId || nextNodeId === activeNodeId) return true;
 
     view.viewStore.dispatch({

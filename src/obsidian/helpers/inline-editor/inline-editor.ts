@@ -24,8 +24,8 @@ export type InlineMarkdownView = MarkdownView & {
 };
 
 export class InlineEditor {
-    private inlineView: InlineMarkdownView;
-    private containerEl: HTMLElement;
+    private inlineView!: InlineMarkdownView;
+    private containerEl!: HTMLElement;
     #nodeId: string | null = null;
     target: HTMLElement | null = null;
     private onChangeSubscriptions: Set<() => void> = new Set();
@@ -38,8 +38,28 @@ export class InlineEditor {
         preparedContent: string;
     } | null = null;
     private suppressEditorEvents = false;
+    private readyPromise: Promise<void> | null = null;
+    private readyFile: TFile | null = null;
+    private readyGeneration = 0;
+    private pendingLoadNode: {
+        target: HTMLElement;
+        nodeId: string;
+    } | null = null;
 
     constructor(private view: MandalaView) {}
+
+    private ensureReady(file: TFile) {
+        if (!this.readyPromise || this.readyFile !== file) {
+            this.readyFile = file;
+            const generation = ++this.readyGeneration;
+            this.readyPromise = (async () => {
+                await this.onload();
+                if (generation !== this.readyGeneration) return;
+                await this.loadFile(file);
+            })();
+        }
+        return this.readyPromise;
+    }
 
     get nodeId() {
         return this.#nodeId;
@@ -91,7 +111,38 @@ export class InlineEditor {
     }
 
     loadNode(target: HTMLElement, nodeId: string) {
-        if (!this.view.file) return;
+        const file = this.view.file;
+        if (!file) return;
+        const inlineViewNeedsFile =
+            this.inlineView &&
+            'file' in (this.inlineView as unknown as Record<string, unknown>) &&
+            this.inlineView.file !== file;
+        if (!this.inlineView || inlineViewNeedsFile) {
+            this.pendingLoadNode = { target, nodeId };
+            void this.ensureReady(file).then(() => {
+                if (
+                    this.readyFile !== file ||
+                    ('file' in
+                        (this.inlineView as unknown as Record<
+                            string,
+                            unknown
+                        >) &&
+                        this.inlineView.file !== file)
+                ) {
+                    return;
+                }
+                const pending = this.pendingLoadNode;
+                if (!pending) return;
+                this.pendingLoadNode = null;
+                this.loadNodeReady(pending.target, pending.nodeId);
+            });
+            return;
+        }
+        this.loadNodeReady(target, nodeId);
+    }
+
+    private loadNodeReady(target: HTMLElement, nodeId: string) {
+        if (!this.view.file || !this.inlineView) return;
         const currentNodeId = this.nodeId;
 
         let resolve = () => {};
@@ -100,8 +151,10 @@ export class InlineEditor {
         });
 
         const content =
+            this.view.getContentForNode?.(nodeId) ??
             this.view.documentStore.getValue().document.content[nodeId]
-                ?.content ?? '';
+                ?.content ??
+            '';
         const isInSidebar =
             this.view.viewStore.getValue().document.editing.isInSidebar;
         const initialPlacement = resolveNodeEditorInitialPlacement({
@@ -201,6 +254,12 @@ export class InlineEditor {
         discardChanges: boolean,
         reason: 'disable-edit' | 'unload',
     ) {
+        if (
+            this.pendingLoadNode &&
+            (!nodeId || this.pendingLoadNode.nodeId === nodeId)
+        ) {
+            this.pendingLoadNode = null;
+        }
         const currentNodeId = this.nodeId;
         if (nodeId && nodeId !== currentNodeId) return;
         if (currentNodeId && discardChanges) {
@@ -222,6 +281,7 @@ export class InlineEditor {
     }
 
     async onload() {
+        if (this.inlineView) return;
         const workspace = this.view.plugin.app.workspace;
 
         this.containerEl = activeDocument.createElement('div');
@@ -259,11 +319,20 @@ export class InlineEditor {
     }
 
     async loadFile(file: TFile) {
+        if (!this.inlineView) return;
         this.inlineView.file = file;
         await this.inlineView.onLoadFile(file);
     }
 
     async unloadFile() {
+        this.readyGeneration += 1;
+        this.readyFile = null;
+        this.readyPromise = null;
+        if (!this.inlineView) {
+            this.pendingLoadNode = null;
+            this.unloadNode();
+            return;
+        }
         const file = this.inlineView.file;
         if (file) {
             this.inlineView.file = null;

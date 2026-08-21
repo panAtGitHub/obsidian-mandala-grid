@@ -7,6 +7,7 @@ import {
     type Nx9StructureContext,
 } from 'src/mandala-scenes/view-nx9/context';
 import type { Content } from 'src/mandala-document/state/document-state-type';
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 import {
     createBoundedCache,
     createObjectIdentityKeyResolver,
@@ -19,10 +20,7 @@ type Nx9ContextDocumentSnapshot = {
     documentContent: Content;
 };
 
-type PerfLogger = (
-    eventName: string,
-    payload: Record<string, unknown>,
-) => void;
+type PerfLogger = (eventName: string, payload: Record<string, unknown>) => void;
 
 export const createNx9ContextRuntime = ({
     recordPerfEvent,
@@ -48,10 +46,12 @@ export const createNx9ContextRuntime = ({
         documentSnapshot,
         rowsPerPage,
         activeSection,
+        sectionLookup,
     }: {
         documentSnapshot: Nx9ContextDocumentSnapshot;
         rowsPerPage: number;
         activeSection: string | null;
+        sectionLookup?: SectionLookup;
     }) => {
         const normalizedActiveSection =
             normalizeNx9VisibleSection(activeSection) ?? '';
@@ -59,6 +59,7 @@ export const createNx9ContextRuntime = ({
             normalizedActiveSection.split('.')[0] ?? normalizedActiveSection;
         const baseKey = [
             resolveObjectKey(documentSnapshot.sectionIdMap),
+            resolveObjectKey(sectionLookup),
             rowsPerPage,
             structureActiveSection,
         ].join('|');
@@ -77,12 +78,12 @@ export const createNx9ContextRuntime = ({
             documentContent: documentSnapshot.documentContent,
             rowsPerPage,
             activeSection,
+            sectionLookup,
         });
         const previous = latestStructureByBaseKey.get(baseKey);
         const nextShapeKey = resolveStructureShapeKey(value);
         const finalValue =
-            previous &&
-            resolveStructureShapeKey(previous) === nextShapeKey
+            previous && resolveStructureShapeKey(previous) === nextShapeKey
                 ? previous
                 : value;
         structureKeyByContext.set(finalValue, `${baseKey}|${nextShapeKey}`);
