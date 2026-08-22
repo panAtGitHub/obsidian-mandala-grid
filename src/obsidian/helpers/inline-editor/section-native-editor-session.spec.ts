@@ -51,6 +51,10 @@ vi.mock('obsidian', () => {
         }
 
         async setState() {}
+
+        getState() {
+            return {};
+        }
     }
 
     return {
@@ -149,15 +153,23 @@ const createView = ({
     });
     const focusMock = vi.fn();
     const modifyMock = vi.fn(async () => {});
+    let sourceLeaf: {
+        view: unknown;
+        getViewState: ReturnType<typeof vi.fn>;
+        openFile: ReturnType<typeof vi.fn>;
+        setViewState: ReturnType<typeof vi.fn>;
+        setEphemeralState: ReturnType<typeof vi.fn>;
+    };
     const openFileMock = vi.fn(async (file: TFile) => {
         Object.assign(markdownView, { file });
+        sourceLeaf.view = markdownView;
         editorValue = createdContents.get(file.path) ?? editorValue;
     });
-    const setViewStateMock = vi.fn(async () => {});
-    const revealLeafMock = vi.fn(async () => {});
-    const detachMock = vi.fn();
+    const setViewStateMock = vi.fn(async () => {
+        sourceLeaf.view = { getState: () => ({}) };
+    });
     const setEphemeralStateMock = vi.fn();
-    let sourceLeafOpen = true;
+    const setActiveLeafMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
     markdownView.editor.focus = focusMock;
     markdownView.editor.getCursor = vi.fn(() => editorCursor);
@@ -194,39 +206,34 @@ const createView = ({
             rmdir: rmdirMock,
         },
     };
-    const sourceLeaf = {
+    sourceLeaf = {
         view: null as unknown,
         getViewState: vi.fn(() => ({
-            type: 'mandala-grid',
+            type:
+                sourceLeaf.view === markdownView ? 'markdown' : 'mandala-grid',
             state: { file: sourceFile.path },
         })),
-        setEphemeralState: setEphemeralStateMock,
-    };
-    const editorLeaf = {
-        view: markdownView,
         openFile: openFileMock,
         setViewState: setViewStateMock,
-        detach: detachMock,
+        setEphemeralState: setEphemeralStateMock,
     };
     const getLeavesOfTypeMock = vi.fn((viewType: string) => {
         if (viewType === 'mandala-grid') {
-            return sourceLeafOpen ? [sourceLeaf] : [];
+            return sourceLeaf.view === markdownView ? [] : [sourceLeaf];
         }
         if (viewType === 'markdown' && markdownView.file) {
-            return [editorLeaf];
+            return sourceLeaf.view === markdownView ? [sourceLeaf] : [];
         }
         return [];
     });
-    const getLeafMock = vi.fn(() => editorLeaf);
     const view = {
         file: sourceFile,
         app: {
             vault,
             workspace: {
-                getLeaf: getLeafMock,
                 getLeavesOfType: getLeavesOfTypeMock,
                 on: vi.fn(() => () => {}),
-                revealLeaf: revealLeafMock,
+                setActiveLeaf: setActiveLeafMock,
             },
         },
         plugin: {
@@ -262,15 +269,9 @@ const createView = ({
         view,
         saveCallbacks,
         openFileMock,
-        getLeafMock,
-        revealLeafMock,
         setEphemeralStateMock,
         setViewStateMock,
         modifyMock,
-        detachMock,
-        setSourceLeafOpen: (open: boolean) => {
-            sourceLeafOpen = open;
-        },
     };
 };
 
@@ -308,11 +309,7 @@ describe('section-native-editor-session initial cursor placement', () => {
 
         await startSectionNativeEditorSession(view as never, 'node-1');
 
-        expect(openFileMock).toHaveBeenCalledWith(expect.any(TFile), {
-            active: true,
-            state: { mode: 'source', source: true },
-            eState: { line: 1 },
-        });
+        expect(openFileMock).toHaveBeenCalledWith(expect.any(TFile));
         expect(focusMock).toHaveBeenCalledTimes(1);
         expect(openFileMock.mock.invocationCallOrder[0]).toBeLessThan(
             focusMock.mock.invocationCallOrder[0],
@@ -416,14 +413,11 @@ describe('section-native-editor-session initial cursor placement', () => {
             sourceFile,
             saveCallbacks,
             openFileMock,
-            revealLeafMock,
             setViewStateMock,
             modifyMock,
-            setSourceLeafOpen,
         } = createView({ sectionContent });
 
         await startSectionNativeEditorSession(view as never, 'node-1');
-        setSourceLeafOpen(false);
         const cleanupCallsBeforeSave =
             deleteSectionSessionTempFile.mock.calls.length;
 
@@ -442,51 +436,19 @@ describe('section-native-editor-session initial cursor placement', () => {
         });
 
         expect(openFileMock).toHaveBeenCalledTimes(2);
-        expect(openFileMock).toHaveBeenLastCalledWith(sourceFile, {
-            active: true,
-            eState: { line: 7 },
-        });
-        expect(setViewStateMock).not.toHaveBeenCalled();
-        expect(revealLeafMock).not.toHaveBeenCalled();
+        expect(openFileMock).toHaveBeenLastCalledWith(sourceFile);
+        expect(setViewStateMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: 'mandala-grid',
+                popstate: true,
+            }),
+            { line: 7 },
+        );
         expect(setViewTypeMock).toHaveBeenCalledWith(
             view.plugin,
             sourceFile.path,
             'mandala-grid',
         );
-    });
-
-    it('returns to the existing Mandala leaf and closes the temporary editor leaf', async () => {
-        const sectionContent = 'plain body';
-        getSectionContentBySection.mockReturnValue(sectionContent);
-        applySectionPatch.mockReturnValue({
-            markdown: 'patched markdown',
-            lineForJump: 7,
-        });
-        const {
-            view,
-            saveCallbacks,
-            openFileMock,
-            revealLeafMock,
-            setEphemeralStateMock,
-            detachMock,
-        } = createView({ sectionContent });
-
-        await startSectionNativeEditorSession(view as never, 'node-1');
-        const cleanupCallsBeforeSave =
-            deleteSectionSessionTempFile.mock.calls.length;
-
-        saveCallbacks[0]?.();
-
-        await vi.waitFor(() => {
-            expect(
-                deleteSectionSessionTempFile.mock.calls.length,
-            ).toBeGreaterThan(cleanupCallsBeforeSave);
-        });
-
-        expect(openFileMock).toHaveBeenCalledTimes(1);
-        expect(revealLeafMock).toHaveBeenCalledWith(view.leaf);
-        expect(setEphemeralStateMock).toHaveBeenCalledWith({ line: 7 });
-        expect(detachMock).toHaveBeenCalledTimes(1);
     });
 
     it('reports a return failure and keeps the temporary session for retry', async () => {
@@ -496,11 +458,11 @@ describe('section-native-editor-session initial cursor placement', () => {
             markdown: 'patched markdown',
             lineForJump: 7,
         });
-        const { view, saveCallbacks, openFileMock, setSourceLeafOpen } =
-            createView({ sectionContent });
+        const { view, saveCallbacks, openFileMock } = createView({
+            sectionContent,
+        });
 
         await startSectionNativeEditorSession(view as never, 'node-1');
-        setSourceLeafOpen(false);
         const cleanupCallsBeforeSave =
             deleteSectionSessionTempFile.mock.calls.length;
         openFileMock.mockImplementationOnce(async () => {

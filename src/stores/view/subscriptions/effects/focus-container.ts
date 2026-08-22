@@ -1,12 +1,13 @@
 import { MandalaView } from 'src/view/view';
-import { isMandalaEditing } from 'src/view/helpers/editor-focus-state';
+import { Platform } from 'obsidian';
 
 export const focusContainer = (view: MandalaView) => {
-    const container = view.container;
-    if (!view.isActive || !container || isMandalaEditing(view)) return;
-
-    window.requestAnimationFrame(() => {
-        if (view.container !== container || isMandalaEditing(view)) return;
-        container.focus();
-    });
+    window.setTimeout(() => {
+        if (!view.container) return;
+        const isEditing = Boolean(view.inlineEditor.nodeId);
+        const isEditingOnMobile = Platform.isMobile && isEditing;
+        if (isEditingOnMobile) return;
+        if (isEditing) view.inlineEditor.focus();
+        else view.container.focus();
+    }, 16);
 };
