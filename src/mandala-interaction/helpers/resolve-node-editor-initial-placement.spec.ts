@@ -14,6 +14,19 @@ describe('resolveNodeEditorInitialPlacement', () => {
         });
     });
 
+    it('keeps a valid historical cursor for non-day-plan content', () => {
+        expect(
+            resolveNodeEditorInitialPlacement({
+                content: 'plain\ntext',
+                isDayPlanScene: false,
+                historyCursor: { line: 0, ch: 2 },
+            }),
+        ).toEqual({
+            content: 'plain\ntext',
+            cursor: { line: 0, ch: 2 },
+        });
+    });
+
     it('adds a body line below a day-plan heading when only the heading exists', () => {
         expect(
             resolveNodeEditorInitialPlacement({
@@ -26,28 +39,40 @@ describe('resolveNodeEditorInitialPlacement', () => {
         });
     });
 
-    it('places the first day-plan cursor at the last non-empty body line end', () => {
+    it('places a day-plan cursor on the first body line when the body is blank', () => {
         expect(
             resolveNodeEditorInitialPlacement({
-                content: '## 9-12 深度工作\n第一段\n\n最后一段\n',
+                content: '## 2026-05-28 周四\n\n\n',
                 isDayPlanScene: true,
             }),
         ).toEqual({
-            content: '## 9-12 深度工作\n第一段\n\n最后一段\n',
+            content: '## 2026-05-28 周四\n\n\n',
+            cursor: { line: 1, ch: 0 },
+        });
+    });
+
+    it('places the day-plan cursor at the last non-empty body line end', () => {
+        expect(
+            resolveNodeEditorInitialPlacement({
+                content: '## 9-12 深度工作\n第一段\n\n最后一段\n\n',
+                isDayPlanScene: true,
+            }),
+        ).toEqual({
+            content: '## 9-12 深度工作\n第一段\n\n最后一段\n\n',
             cursor: { line: 3, ch: 4 },
         });
     });
 
-    it('keeps a valid historical cursor for day-plan content', () => {
+    it('ignores a valid historical cursor for day-plan content', () => {
         expect(
             resolveNodeEditorInitialPlacement({
-                content: '## 9-12 深度工作\n正文',
+                content: '## 9-12 深度工作\n第一段\n第二段',
                 isDayPlanScene: true,
                 historyCursor: { line: 1, ch: 1 },
             }),
         ).toEqual({
-            content: '## 9-12 深度工作\n正文',
-            cursor: { line: 1, ch: 1 },
+            content: '## 9-12 深度工作\n第一段\n第二段',
+            cursor: { line: 2, ch: 3 },
         });
     });
 });
