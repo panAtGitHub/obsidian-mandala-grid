@@ -26,6 +26,18 @@ describe('resolveNodeEditorInitialPlacement', () => {
         });
     });
 
+    it('keeps the cursor on the first body line when only blank lines follow', () => {
+        expect(
+            resolveNodeEditorInitialPlacement({
+                content: '## 2026-05-28 周四\n\n\n',
+                isDayPlanScene: true,
+            }),
+        ).toEqual({
+            content: '## 2026-05-28 周四\n\n\n',
+            cursor: { line: 1, ch: 0 },
+        });
+    });
+
     it('places the first day-plan cursor at the last non-empty body line end', () => {
         expect(
             resolveNodeEditorInitialPlacement({
@@ -38,7 +50,7 @@ describe('resolveNodeEditorInitialPlacement', () => {
         });
     });
 
-    it('keeps a valid historical cursor for day-plan content', () => {
+    it('ignores a valid historical cursor for day-plan content', () => {
         expect(
             resolveNodeEditorInitialPlacement({
                 content: '## 9-12 深度工作\n正文',
@@ -47,7 +59,7 @@ describe('resolveNodeEditorInitialPlacement', () => {
             }),
         ).toEqual({
             content: '## 9-12 深度工作\n正文',
-            cursor: { line: 1, ch: 1 },
+            cursor: { line: 1, ch: 2 },
         });
     });
 
@@ -61,6 +73,19 @@ describe('resolveNodeEditorInitialPlacement', () => {
         ).toEqual({
             content: '### 习惯打卡\n',
             cursor: { line: 1, ch: 0 },
+        });
+    });
+
+    it('keeps a valid historical cursor for non-day-plan content', () => {
+        expect(
+            resolveNodeEditorInitialPlacement({
+                content: 'plain\ntext',
+                isDayPlanScene: false,
+                historyCursor: { line: 0, ch: 2 },
+            }),
+        ).toEqual({
+            content: 'plain\ntext',
+            cursor: { line: 0, ch: 2 },
         });
     });
 });

@@ -74,55 +74,47 @@ export const resolveNodeEditorInitialPlacement = ({
         isMarkdownHeading(lines[firstNonEmptyLine] ?? '')
             ? firstNonEmptyLine
             : null;
-    const canRestoreHistory =
-        historyCursor &&
-        isCursorInRange(historyCursor, content) &&
-        (dayPlanHeadingLine === null ||
-            historyCursor.line > dayPlanHeadingLine);
-    if (canRestoreHistory) {
+
+    if (dayPlanHeadingLine !== null) {
+        const lastBodyLine = findLastNonEmptyLineIndex(
+            lines,
+            dayPlanHeadingLine,
+        );
+        if (lastBodyLine !== -1) {
+            return {
+                content,
+                cursor: {
+                    line: lastBodyLine,
+                    ch: lines[lastBodyLine]?.length ?? 0,
+                },
+            };
+        }
+
+        const normalizedContent = ensureNextBodyLine(
+            content,
+            lines,
+            dayPlanHeadingLine,
+        );
+
+        return {
+            content: normalizedContent,
+            cursor: {
+                line: dayPlanHeadingLine + 1,
+                ch: 0,
+            },
+        };
+    }
+
+    if (historyCursor && isCursorInRange(historyCursor, content)) {
         return {
             content,
             cursor: historyCursor,
         };
     }
 
-    if (!isDayPlanScene) {
-        return {
-            content,
-            cursor: getContentEndCursor(content),
-        };
-    }
-
-    if (dayPlanHeadingLine === null) {
-        return {
-            content,
-            cursor: getContentEndCursor(content),
-        };
-    }
-
-    const lastBodyLine = findLastNonEmptyLineIndex(lines, dayPlanHeadingLine);
-    if (lastBodyLine !== -1) {
-        return {
-            content,
-            cursor: {
-                line: lastBodyLine,
-                ch: lines[lastBodyLine]?.length ?? 0,
-            },
-        };
-    }
-
-    const normalizedContent = ensureNextBodyLine(
-        content,
-        lines,
-        dayPlanHeadingLine,
-    );
-
     return {
-        content: normalizedContent,
-        cursor: {
-            line: dayPlanHeadingLine + 1,
-            ch: 0,
-        },
+        content,
+        cursor: getContentEndCursor(content),
     };
 };
 

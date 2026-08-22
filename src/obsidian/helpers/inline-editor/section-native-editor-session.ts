@@ -1,10 +1,4 @@
-import {
-    MarkdownView,
-    Notice,
-    TFile,
-    type EditorPosition,
-    ViewState,
-} from 'obsidian';
+import { MarkdownView, Notice, TFile, type EditorPosition } from 'obsidian';
 import { logger } from 'src/shared/helpers/logger';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
@@ -93,9 +87,6 @@ const getMarkdownView = (view: MandalaView) =>
 const getSectionCursorKey = (sourceFilePath: string, section: string) =>
     `${sourceFilePath}::${section}`;
 
-const wait = (ms: number) =>
-    new Promise<void>((resolve) => window.setTimeout(resolve, ms));
-
 const getFilePathFromLeaf = (leaf: unknown): string | null => {
     if (!leaf || typeof leaf !== 'object' || !('view' in leaf)) {
         return null;
@@ -171,28 +162,12 @@ const normalizeSessionCursor = (
     return { line: cursor.line, ch: cursor.ch - 1 };
 };
 
-const resolveValidEditorCursor = (
-    markdownView: MarkdownView,
-    target: EditorPosition,
-): EditorPosition => {
-    const lastLine = markdownView.editor.lastLine();
-    if (target.line >= 0 && target.line <= lastLine) {
-        const lineLength = markdownView.editor.getLine(target.line).length;
-        if (target.ch >= 0 && target.ch <= lineLength) return target;
-    }
-    return {
-        line: lastLine,
-        ch: markdownView.editor.getLine(lastLine).length,
-    };
-};
-
 const setCursorInEditor = (
     markdownView: MarkdownView,
     target: EditorPosition,
 ) => {
-    const cursor = resolveValidEditorCursor(markdownView, target);
-    markdownView.editor.setCursor(cursor);
-    markdownView.editor.scrollIntoView({ from: cursor, to: cursor }, true);
+    markdownView.editor.setCursor(target);
+    markdownView.editor.scrollIntoView({ from: target, to: target }, true);
     markdownView.editor.focus();
 };
 
@@ -201,17 +176,11 @@ const switchBackToMandala = async (
     sourceFile: TFile,
     line: number,
 ) => {
-    await view.leaf.openFile(sourceFile);
-    await view.leaf.setViewState(
-        {
-            type: MANDALA_VIEW_TYPE,
-            popstate: true,
-            state: view.leaf.view.getState(),
-        } as ViewState,
-        { line },
-    );
     setViewType(view.plugin, sourceFile.path, MANDALA_VIEW_TYPE);
-    view.app.workspace.setActiveLeaf(view.leaf, { focus: true });
+    await view.leaf.openFile(sourceFile, {
+        active: true,
+        eState: { line },
+    });
 };
 
 const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
@@ -437,21 +406,23 @@ export const startSectionNativeEditorSession = async (
             cursorKey,
         });
 
-        await view.leaf.openFile(tempFile);
+        await view.leaf.openFile(tempFile, {
+            active: true,
+            state: {
+                mode: 'source',
+                source: true,
+            },
+            eState: {
+                line: initialPlacement.cursor.line,
+            },
+        });
         const markdownView = getMarkdownView(view);
         if (!markdownView) return;
         if (markdownView.getMode() === 'preview') {
             await markdownView.setState({ mode: 'source' }, { history: false });
         }
         addSectionEditorActions(view, markdownView);
-        for (let attempt = 0; attempt < 10; attempt++) {
-            const liveView = getMarkdownView(view);
-            if (liveView?.editor) {
-                setCursorInEditor(liveView, initialPlacement.cursor);
-                return;
-            }
-            await wait(24);
-        }
+        setCursorInEditor(markdownView, initialPlacement.cursor);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         new Notice(`打开 section 原生编辑失败：${message}`);

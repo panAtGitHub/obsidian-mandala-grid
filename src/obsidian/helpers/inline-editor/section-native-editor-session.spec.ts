@@ -170,6 +170,7 @@ const createView = ({
     });
     const setEphemeralStateMock = vi.fn();
     const setActiveLeafMock = vi.fn();
+    const getLeafMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
     markdownView.editor.focus = focusMock;
     markdownView.editor.getCursor = vi.fn(() => editorCursor);
@@ -231,6 +232,7 @@ const createView = ({
         app: {
             vault,
             workspace: {
+                getLeaf: getLeafMock,
                 getLeavesOfType: getLeavesOfTypeMock,
                 on: vi.fn(() => () => {}),
                 setActiveLeaf: setActiveLeafMock,
@@ -269,8 +271,10 @@ const createView = ({
         view,
         saveCallbacks,
         openFileMock,
+        getLeafMock,
         setEphemeralStateMock,
         setViewStateMock,
+        setActiveLeafMock,
         modifyMock,
     };
 };
@@ -309,7 +313,11 @@ describe('section-native-editor-session initial cursor placement', () => {
 
         await startSectionNativeEditorSession(view as never, 'node-1');
 
-        expect(openFileMock).toHaveBeenCalledWith(expect.any(TFile));
+        expect(openFileMock).toHaveBeenCalledWith(expect.any(TFile), {
+            active: true,
+            state: { mode: 'source', source: true },
+            eState: { line: 1 },
+        });
         expect(focusMock).toHaveBeenCalledTimes(1);
         expect(openFileMock.mock.invocationCallOrder[0]).toBeLessThan(
             focusMock.mock.invocationCallOrder[0],
@@ -381,6 +389,34 @@ describe('section-native-editor-session initial cursor placement', () => {
         expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 2 });
     });
 
+    it('recomputes the day-plan cursor instead of restoring the previous edit position', async () => {
+        const sectionContent = '### 09-12\n正文 1\n正文 2';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        applySectionPatch.mockReturnValue({
+            markdown: 'patched markdown',
+            lineForJump: 7,
+        });
+        const { markdownView, saveCallbacks, setCursorMock, view, modifyMock } =
+            createView({ sectionContent, variant: 'day-plan' });
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        markdownView.editor.setCursor({ line: 1, ch: 1 });
+        const cleanupCallsBeforeSave =
+            deleteSectionSessionTempFile.mock.calls.length;
+        saveCallbacks[0]?.();
+        await vi.waitFor(() => {
+            expect(modifyMock).toHaveBeenCalled();
+            expect(
+                deleteSectionSessionTempFile.mock.calls.length,
+            ).toBeGreaterThan(cleanupCallsBeforeSave);
+        });
+
+        setCursorMock.mockClear();
+        await startSectionNativeEditorSession(view as never, 'node-1');
+
+        expect(setCursorMock).toHaveBeenLastCalledWith({ line: 2, ch: 4 });
+    });
+
     it('keeps the non-day-plan native editor cursor at content end', async () => {
         const sectionContent = 'plain body';
         getSectionContentBySection.mockReturnValue(sectionContent);
@@ -414,6 +450,8 @@ describe('section-native-editor-session initial cursor placement', () => {
             saveCallbacks,
             openFileMock,
             setViewStateMock,
+            setActiveLeafMock,
+            getLeafMock,
             modifyMock,
         } = createView({ sectionContent });
 
@@ -436,18 +474,20 @@ describe('section-native-editor-session initial cursor placement', () => {
         });
 
         expect(openFileMock).toHaveBeenCalledTimes(2);
-        expect(openFileMock).toHaveBeenLastCalledWith(sourceFile);
-        expect(setViewStateMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                type: 'mandala-grid',
-                popstate: true,
-            }),
-            { line: 7 },
-        );
+        expect(openFileMock).toHaveBeenLastCalledWith(sourceFile, {
+            active: true,
+            eState: { line: 7 },
+        });
+        expect(setViewStateMock).not.toHaveBeenCalled();
+        expect(setActiveLeafMock).not.toHaveBeenCalled();
+        expect(getLeafMock).not.toHaveBeenCalled();
         expect(setViewTypeMock).toHaveBeenCalledWith(
             view.plugin,
             sourceFile.path,
             'mandala-grid',
+        );
+        expect(setViewTypeMock.mock.invocationCallOrder[0]).toBeLessThan(
+            openFileMock.mock.invocationCallOrder[1],
         );
     });
 

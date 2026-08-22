@@ -11,6 +11,7 @@
     import { createMobileEditorViewportController } from 'src/mandala-scenes/shared/mobile-editor-viewport';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
+    import { shouldRequestGridFocusFromPointer } from 'src/view/helpers/should-request-grid-focus-from-pointer';
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
     import ToolbarCenter from 'src/ui/toolbar/main/toolbar-center.svelte';
@@ -152,6 +153,11 @@
         mobileEditorViewport.handleFocusOut();
         onMobileEditorFocusOut();
     };
+
+    const handleGridBackgroundClick = (event: MouseEvent) => {
+        if (!shouldRequestGridFocusFromPointer(event)) return;
+        focusContainer(view);
+    };
 </script>
 
 <div
@@ -202,7 +208,7 @@
                 class="mandala-scroll"
                 bind:this={containerRef}
                 tabindex="0"
-                on:click={() => focusContainer(view)}
+                on:click={handleGridBackgroundClick}
             >
                 <SceneRuntimeHost
                     {sceneKey}

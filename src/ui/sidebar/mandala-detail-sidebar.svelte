@@ -10,7 +10,7 @@
         ShowDayPlanTodayButtonStore,
         Show9x9ParallelNavButtonsStore,
     } from 'src/mandala-settings/state/derived/view-settings-store';
-    import { onDestroy, tick } from 'svelte';
+    import { onDestroy } from 'svelte';
     import Content from 'src/mandala-cell/view/content/content.svelte';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
     import SourcePreview from 'src/mandala-cell/view/content/source-preview.svelte';
@@ -112,27 +112,6 @@
         !Platform.isMobile &&
         $editingState.activeNodeId === $activeNodeId &&
         $editingState.isInSidebar;
-
-    const focusEditor = async () => {
-        await tick();
-        if (editorContainer) {
-            const editor = editorContainer.querySelector('.common-editor') as
-                | HTMLTextAreaElement
-                | HTMLDivElement;
-            if (editor) editor.focus();
-        }
-    };
-
-    $: if (isEditingInSidebar) {
-        focusEditor();
-    } else if (!$editingState.activeNodeId) {
-        tick().then(() => {
-            const root = view.contentEl.querySelector(
-                '.mandala-scroll',
-            ) as HTMLElement;
-            if (root) root.focus();
-        });
-    }
 
     const unsub = showSidebarStore.subscribe((show) => {
         // 在移动端正方形布局下，侧边栏主要通过 flex: 1 填充
