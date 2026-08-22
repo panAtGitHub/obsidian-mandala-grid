@@ -66,6 +66,48 @@ export const resolveNodeEditorInitialPlacement = ({
     isDayPlanScene: boolean;
     historyCursor?: NodeEditorCursorPosition | null;
 }): NodeEditorInitialPlacement => {
+    if (isDayPlanScene) {
+        const lines = splitLines(content);
+        const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines);
+        if (
+            firstNonEmptyLine === -1 ||
+            !isMarkdownHeading(lines[firstNonEmptyLine] ?? '')
+        ) {
+            return {
+                content,
+                cursor: getContentEndCursor(content),
+            };
+        }
+
+        const lastBodyLine = findLastNonEmptyLineIndex(
+            lines,
+            firstNonEmptyLine,
+        );
+        if (lastBodyLine !== -1) {
+            return {
+                content,
+                cursor: {
+                    line: lastBodyLine,
+                    ch: lines[lastBodyLine]?.length ?? 0,
+                },
+            };
+        }
+
+        const normalizedContent = ensureNextBodyLine(
+            content,
+            lines,
+            firstNonEmptyLine,
+        );
+
+        return {
+            content: normalizedContent,
+            cursor: {
+                line: firstNonEmptyLine + 1,
+                ch: 0,
+            },
+        };
+    }
+
     if (historyCursor && isCursorInRange(historyCursor, content)) {
         return {
             content,
@@ -73,48 +115,9 @@ export const resolveNodeEditorInitialPlacement = ({
         };
     }
 
-    if (!isDayPlanScene) {
-        return {
-            content,
-            cursor: getContentEndCursor(content),
-        };
-    }
-
-    const lines = splitLines(content);
-    const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines);
-    if (
-        firstNonEmptyLine === -1 ||
-        !isMarkdownHeading(lines[firstNonEmptyLine] ?? '')
-    ) {
-        return {
-            content,
-            cursor: getContentEndCursor(content),
-        };
-    }
-
-    const lastBodyLine = findLastNonEmptyLineIndex(lines, firstNonEmptyLine);
-    if (lastBodyLine !== -1) {
-        return {
-            content,
-            cursor: {
-                line: lastBodyLine,
-                ch: lines[lastBodyLine]?.length ?? 0,
-            },
-        };
-    }
-
-    const normalizedContent = ensureNextBodyLine(
-        content,
-        lines,
-        firstNonEmptyLine,
-    );
-
     return {
-        content: normalizedContent,
-        cursor: {
-            line: firstNonEmptyLine + 1,
-            ch: 0,
-        },
+        content,
+        cursor: getContentEndCursor(content),
     };
 };
 

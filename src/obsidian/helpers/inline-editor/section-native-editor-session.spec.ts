@@ -18,6 +18,8 @@ vi.mock('obsidian', () => {
             setCursor: ReturnType<typeof vi.fn>;
             scrollIntoView: ReturnType<typeof vi.fn>;
             focus: ReturnType<typeof vi.fn>;
+            getLine: ReturnType<typeof vi.fn>;
+            lastLine: ReturnType<typeof vi.fn>;
         };
         containerEl: {
             querySelector: ReturnType<typeof vi.fn>;
@@ -28,6 +30,8 @@ vi.mock('obsidian', () => {
                 setCursor: vi.fn(),
                 scrollIntoView: vi.fn(),
                 focus: vi.fn(),
+                getLine: vi.fn(() => ''),
+                lastLine: vi.fn(() => 0),
             };
             this.containerEl = {
                 querySelector: vi.fn(() => null),
@@ -94,13 +98,25 @@ const createTFileMock = (path: string) => {
 const createView = ({
     sectionContent,
     variant = 'default',
+    deferEditorTarget = false,
 }: {
     sectionContent: string;
     variant?: 'default' | 'day-plan';
+    deferEditorTarget?: boolean;
 }) => {
     const markdownView = createMarkdownViewMock();
     const sourceFile = createTFileMock('daily.md');
     const createdFiles = new Map<string, TFile>();
+    let openedContent = sectionContent;
+    const editorTargetState = { ready: !deferEditorTarget };
+    markdownView.editor.lastLine = vi.fn(() => {
+        if (!editorTargetState.ready) return 0;
+        return Math.max(0, openedContent.split(/\r?\n/).length - 1);
+    });
+    markdownView.editor.getLine = vi.fn((line: number) => {
+        if (!editorTargetState.ready) return '';
+        return openedContent.split(/\r?\n/)[line] ?? '';
+    });
     const readMock = vi.fn(async (file: TFile) => {
         if (file.path === sourceFile.path) {
             return 'source markdown';
@@ -110,6 +126,7 @@ const createView = ({
     const createFolderMock = vi.fn(async () => {});
     const createFileMock = vi.fn(async (path: string, content: string) => {
         const file = createTFileMock(path);
+        openedContent = content;
         createdFiles.set(path, file);
         getSectionContentBySection.mockReturnValue(sectionContent);
         readMock.mockImplementation(async (target: TFile) => {
@@ -131,6 +148,21 @@ const createView = ({
     const rmdirMock = vi.fn(async () => {});
     const setCursorMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
+    setCursorMock.mockImplementation(() => {
+        if (!editorTargetState.ready) {
+            throw new Error('cursor assigned before editor target was ready');
+        }
+    });
+    const focusMock = vi.fn();
+    markdownView.editor.focus = focusMock;
+    const openFileMock = vi.fn(async (file: TFile) => {
+        Object.assign(markdownView, { file });
+        if (deferEditorTarget) {
+            window.requestAnimationFrame(() => {
+                editorTargetState.ready = true;
+            });
+        }
+    });
     const vault = {
         read: readMock,
         createFolder: createFolderMock,
@@ -147,6 +179,8 @@ const createView = ({
         createFileMock,
         sourceFile,
         setCursorMock,
+        focusMock,
+        openFileMock,
         vault,
         view: {
             file: sourceFile,
@@ -163,7 +197,7 @@ const createView = ({
             },
             leaf: {
                 view: markdownView,
-                openFile: vi.fn(async () => {}),
+                openFile: openFileMock,
                 setViewState: vi.fn(async () => {}),
             },
             documentStore: {
@@ -186,6 +220,13 @@ const createView = ({
 describe('section-native-editor-session initial cursor placement', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.stubGlobal(
+            'requestAnimationFrame',
+            (callback: (timestamp: number) => void) => {
+                setImmediate(() => callback(0));
+                return 0;
+            },
+        );
         getSectionContentBySection.mockReset();
         applySectionPatch.mockReset();
     });
@@ -193,10 +234,11 @@ describe('section-native-editor-session initial cursor placement', () => {
     it('places the first day-plan edit cursor below the heading when only a heading exists', async () => {
         const sectionContent = '### 09-12';
         getSectionContentBySection.mockReturnValue(sectionContent);
-        const { createFileMock, setCursorMock, view } = createView({
-            sectionContent,
-            variant: 'day-plan',
-        });
+        const { createFileMock, setCursorMock, focusMock, openFileMock, view } =
+            createView({
+                sectionContent,
+                variant: 'day-plan',
+            });
 
         await startSectionNativeEditorSession(view as never, 'node-1');
 
@@ -204,6 +246,33 @@ describe('section-native-editor-session initial cursor placement', () => {
             expect.stringContaining('Mandala Grid Section Edit Sessions/'),
             '### 09-12\n',
         );
+        expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 0 });
+        expect(setCursorMock).toHaveBeenCalledTimes(1);
+        expect(focusMock).toHaveBeenCalledTimes(1);
+        expect(openFileMock).toHaveBeenCalledWith(expect.any(TFile), {
+            active: true,
+            state: {
+                mode: 'source',
+                source: true,
+            },
+            eState: {
+                line: 1,
+            },
+        });
+    });
+
+    it('waits for the target line before assigning the day-plan cursor', async () => {
+        const sectionContent = '### 09-12';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { setCursorMock, view } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            deferEditorTarget: true,
+        });
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+
+        expect(setCursorMock).toHaveBeenCalledTimes(1);
         expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 0 });
     });
 

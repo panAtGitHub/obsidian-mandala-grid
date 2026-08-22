@@ -94,6 +94,11 @@ const getSectionCursorKey = (sourceFilePath: string, section: string) =>
 const wait = (ms: number) =>
     new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
+const waitForNextAnimationFrame = () =>
+    new Promise<void>((resolve) => {
+        window.requestAnimationFrame(() => resolve());
+    });
+
 const getTempFilePathFromLeaf = (leaf: unknown): string | null => {
     if (!leaf || typeof leaf !== 'object' || !('view' in leaf)) {
         return null;
@@ -129,6 +134,36 @@ const centerCursorLineInEditor = (markdownView: MarkdownView) => {
     scroller.scrollTop += lineMidY - scrollerMidY;
 };
 
+const isEditorTargetReady = (
+    markdownView: MarkdownView,
+    tempFilePath: string,
+    target: EditorPosition,
+) => {
+    if (markdownView.file?.path !== tempFilePath) return false;
+    const lastLine = markdownView.editor.lastLine();
+    if (target.line < 0 || target.line > lastLine) return false;
+    const targetLine = markdownView.editor.getLine(target.line);
+    return target.ch >= 0 && target.ch <= targetLine.length;
+};
+
+const waitForEditorTargetReady = async (
+    view: MandalaView,
+    tempFilePath: string,
+    target: EditorPosition,
+) => {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+        const markdownView = getMarkdownView(view);
+        if (
+            markdownView &&
+            isEditorTargetReady(markdownView, tempFilePath, target)
+        ) {
+            return markdownView;
+        }
+        if (attempt < 3) await waitForNextAnimationFrame();
+    }
+    return null;
+};
+
 const setCursorInEditor = (
     markdownView: MarkdownView,
     target: EditorPosition,
@@ -141,8 +176,6 @@ const setCursorInEditor = (
         centerCursorLineInEditor(markdownView);
     };
     window.requestAnimationFrame(recenter);
-    window.setTimeout(recenter, 80);
-    window.setTimeout(recenter, 220);
 };
 
 const switchBackToMandala = async (
@@ -376,21 +409,28 @@ export const startSectionNativeEditorSession = async (
             cursorKey,
         });
 
-        await view.leaf.openFile(tempFile);
-        const markdownView = getMarkdownView(view);
-        if (!markdownView) return;
-        if (markdownView.getMode() === 'preview') {
-            await markdownView.setState({ mode: 'source' }, { history: false });
+        await view.leaf.openFile(tempFile, {
+            active: true,
+            state: {
+                mode: 'source',
+                source: true,
+            },
+            eState: {
+                line: initialPlacement.cursor.line,
+            },
+        });
+        const markdownView = await waitForEditorTargetReady(
+            view,
+            tempPath,
+            initialPlacement.cursor,
+        );
+        if (!markdownView) {
+            throw new Error(
+                'Native editor did not become ready for target cursor',
+            );
         }
         addSectionEditorActions(view, markdownView);
-        for (let attempt = 0; attempt < 10; attempt++) {
-            const liveView = getMarkdownView(view);
-            if (liveView?.editor) {
-                setCursorInEditor(liveView, initialPlacement.cursor);
-                return;
-            }
-            await wait(24);
-        }
+        setCursorInEditor(markdownView, initialPlacement.cursor);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         new Notice(`打开 section 原生编辑失败：${message}`);
