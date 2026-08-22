@@ -57,39 +57,16 @@ const ensureNextBodyLine = (
     return `${content}\n`;
 };
 
-export const resolveNodeEditorInitialPlacement = ({
-    content,
-    isDayPlanScene,
-    historyCursor,
-}: {
-    content: string;
-    isDayPlanScene: boolean;
-    historyCursor?: NodeEditorCursorPosition | null;
-}): NodeEditorInitialPlacement => {
-    if (historyCursor && isCursorInRange(historyCursor, content)) {
-        return {
-            content,
-            cursor: historyCursor,
-        };
-    }
-
-    if (!isDayPlanScene) {
-        return {
-            content,
-            cursor: getContentEndCursor(content),
-        };
-    }
-
+const resolveDayPlanPlacement = (
+    content: string,
+): NodeEditorInitialPlacement | null => {
     const lines = splitLines(content);
     const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines);
     if (
         firstNonEmptyLine === -1 ||
         !isMarkdownHeading(lines[firstNonEmptyLine] ?? '')
     ) {
-        return {
-            content,
-            cursor: getContentEndCursor(content),
-        };
+        return null;
     }
 
     const lastBodyLine = findLastNonEmptyLineIndex(lines, firstNonEmptyLine);
@@ -115,6 +92,39 @@ export const resolveNodeEditorInitialPlacement = ({
             line: firstNonEmptyLine + 1,
             ch: 0,
         },
+    };
+};
+
+export const resolveNodeEditorInitialPlacement = ({
+    content,
+    isDayPlanScene,
+    historyCursor,
+}: {
+    content: string;
+    isDayPlanScene: boolean;
+    historyCursor?: NodeEditorCursorPosition | null;
+}): NodeEditorInitialPlacement => {
+    // Day-plan editing has a deterministic business rule and intentionally
+    // does not restore the previous cursor position:
+    // 1. heading-only / blank body -> first line directly below the heading;
+    // 2. existing body -> end of the last non-empty body line.
+    if (isDayPlanScene) {
+        const dayPlanPlacement = resolveDayPlanPlacement(content);
+        if (dayPlanPlacement) return dayPlanPlacement;
+    }
+
+    // Keep the existing generic editor behaviour outside a valid day-plan
+    // section: restore a valid historical cursor before falling back to EOF.
+    if (historyCursor && isCursorInRange(historyCursor, content)) {
+        return {
+            content,
+            cursor: historyCursor,
+        };
+    }
+
+    return {
+        content,
+        cursor: getContentEndCursor(content),
     };
 };
 
