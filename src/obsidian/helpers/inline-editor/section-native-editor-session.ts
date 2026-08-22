@@ -1,10 +1,4 @@
-import {
-    MarkdownView,
-    Notice,
-    TFile,
-    ViewState,
-    type EditorPosition,
-} from 'obsidian';
+import { MarkdownView, Notice, TFile, type EditorPosition } from 'obsidian';
 import { logger } from 'src/shared/helpers/logger';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
@@ -150,17 +144,11 @@ const switchBackToMandala = async (
     sourceFile: TFile,
     line: number,
 ) => {
-    await view.leaf.openFile(sourceFile);
-    await view.leaf.setViewState(
-        {
-            type: MANDALA_VIEW_TYPE,
-            popstate: true,
-            state: view.leaf.view.getState(),
-        } as ViewState,
-        { line },
-    );
     setViewType(view.plugin, sourceFile.path, MANDALA_VIEW_TYPE);
-    view.app.workspace.setActiveLeaf(view.leaf, { focus: true });
+    await view.leaf.openFile(sourceFile, {
+        active: true,
+        eState: { line },
+    });
 };
 
 const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
@@ -320,7 +308,12 @@ const addSectionEditorActions = (
     if (typeof itemView.addAction !== 'function') return;
 
     const saveEl = itemView.addAction('save', '保存并返回九宫', () => {
-        void saveSectionAndReturn(view);
+        void saveSectionAndReturn(view).catch((error: unknown) => {
+            const message =
+                error instanceof Error ? error.message : String(error);
+            new Notice(`保存 section 失败：${message}`);
+            logger.error('[mandala-section-edit] save failed', error);
+        });
     });
     saveEl.setAttr('data-mandala-action', ACTION_SAVE_ID);
 };

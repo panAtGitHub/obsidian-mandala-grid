@@ -5,11 +5,15 @@ const {
     deleteSectionSessionTempFile,
     getSectionContentBySection,
     applySectionPatch,
+    loggerErrorMock,
+    setViewTypeMock,
 } = vi.hoisted(() => ({
     cleanupSectionSessionFolder: vi.fn(async () => {}),
     deleteSectionSessionTempFile: vi.fn(async () => {}),
     getSectionContentBySection: vi.fn(),
     applySectionPatch: vi.fn(),
+    loggerErrorMock: vi.fn(),
+    setViewTypeMock: vi.fn(),
 }));
 
 vi.mock('obsidian', () => {
@@ -18,6 +22,8 @@ vi.mock('obsidian', () => {
             setCursor: ReturnType<typeof vi.fn>;
             scrollIntoView: ReturnType<typeof vi.fn>;
             focus: ReturnType<typeof vi.fn>;
+            getCursor: ReturnType<typeof vi.fn>;
+            getValue: ReturnType<typeof vi.fn>;
         };
         containerEl: {
             querySelector: ReturnType<typeof vi.fn>;
@@ -28,6 +34,8 @@ vi.mock('obsidian', () => {
                 setCursor: vi.fn(),
                 scrollIntoView: vi.fn(),
                 focus: vi.fn(),
+                getCursor: vi.fn(),
+                getValue: vi.fn(),
             };
             this.containerEl = {
                 querySelector: vi.fn(() => null),
@@ -69,11 +77,11 @@ vi.mock('src/mandala-display/logic/apply-section-patch', () => ({
 vi.mock('src/shared/helpers/logger', () => ({
     logger: {
         warn: vi.fn(),
-        error: vi.fn(),
+        error: loggerErrorMock,
     },
 }));
 vi.mock('src/mandala-settings/state/actions/set-view-type', () => ({
-    setViewType: vi.fn(),
+    setViewType: setViewTypeMock,
 }));
 vi.mock('src/view/view', () => ({
     MANDALA_VIEW_TYPE: 'mandala-grid',
@@ -101,6 +109,7 @@ const createView = ({
     const markdownView = createMarkdownViewMock();
     const sourceFile = createTFileMock('daily.md');
     const createdFiles = new Map<string, TFile>();
+    const saveCallbacks: Array<() => unknown> = [];
     const readMock = vi.fn(async (file: TFile) => {
         if (file.path === sourceFile.path) {
             return 'source markdown';
@@ -130,9 +139,33 @@ const createView = ({
     const listMock = vi.fn(async () => ({ files: [], folders: [] }));
     const rmdirMock = vi.fn(async () => {});
     const setCursorMock = vi.fn();
+    const modifyMock = vi.fn(async () => {});
+    const openFileMock = vi.fn(async (file: TFile) => {
+        Object.assign(markdownView, { file });
+    });
+    const setViewStateMock = vi.fn(async () => {});
+    const setActiveLeafMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
+    markdownView.editor.getCursor = vi.fn(() => ({ line: 0, ch: 0 }));
+    markdownView.editor.getValue = vi.fn(() => sectionContent);
+    Object.assign(markdownView.containerEl, {
+        querySelector: vi.fn((selector: string) =>
+            selector === '.view-actions'
+                ? { querySelector: vi.fn(() => null) }
+                : null,
+        ),
+    });
+    Object.assign(markdownView, {
+        addAction: vi.fn(
+            (_icon: string, _title: string, callback: () => unknown) => {
+                saveCallbacks.push(callback);
+                return { setAttr: vi.fn() };
+            },
+        ),
+    });
     const vault = {
         read: readMock,
+        modify: modifyMock,
         createFolder: createFolderMock,
         create: createFileMock,
         getAbstractFileByPath: getAbstractFileByPathMock,
@@ -155,7 +188,7 @@ const createView = ({
                 workspace: {
                     getLeavesOfType: vi.fn(() => []),
                     on: vi.fn(() => () => {}),
-                    setActiveLeaf: vi.fn(),
+                    setActiveLeaf: setActiveLeafMock,
                 },
             },
             plugin: {
@@ -163,8 +196,8 @@ const createView = ({
             },
             leaf: {
                 view: markdownView,
-                openFile: vi.fn(async () => {}),
-                setViewState: vi.fn(async () => {}),
+                openFile: openFileMock,
+                setViewState: setViewStateMock,
             },
             documentStore: {
                 getValue: () => ({
@@ -180,6 +213,11 @@ const createView = ({
                 variant,
             }),
         },
+        saveCallbacks,
+        openFileMock,
+        setActiveLeafMock,
+        setViewStateMock,
+        modifyMock,
     };
 };
 
@@ -242,5 +280,85 @@ describe('section-native-editor-session initial cursor placement', () => {
             line: 0,
             ch: 'plain body'.length,
         });
+    });
+
+    it('returns to Mandala with one active file switch before cleanup', async () => {
+        const sectionContent = 'plain body';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        applySectionPatch.mockReturnValue({
+            markdown: 'patched markdown',
+            lineForJump: 7,
+        });
+        const {
+            view,
+            sourceFile,
+            saveCallbacks,
+            openFileMock,
+            setActiveLeafMock,
+            setViewStateMock,
+            modifyMock,
+        } = createView({ sectionContent });
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        const cleanupCallsBeforeSave =
+            deleteSectionSessionTempFile.mock.calls.length;
+
+        saveCallbacks[0]?.();
+
+        await vi.waitFor(() => {
+            expect(modifyMock).toHaveBeenCalledWith(
+                sourceFile,
+                'patched markdown',
+            );
+        });
+        await vi.waitFor(() => {
+            expect(
+                deleteSectionSessionTempFile.mock.calls.length,
+            ).toBeGreaterThan(cleanupCallsBeforeSave);
+        });
+
+        expect(openFileMock).toHaveBeenCalledTimes(2);
+        expect(openFileMock).toHaveBeenLastCalledWith(sourceFile, {
+            active: true,
+            eState: { line: 7 },
+        });
+        expect(setViewStateMock).not.toHaveBeenCalled();
+        expect(setActiveLeafMock).not.toHaveBeenCalled();
+        expect(setViewTypeMock).toHaveBeenCalledWith(
+            view.plugin,
+            sourceFile.path,
+            'mandala-grid',
+        );
+    });
+
+    it('reports a return failure and keeps the temporary session for retry', async () => {
+        const sectionContent = 'plain body';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        applySectionPatch.mockReturnValue({
+            markdown: 'patched markdown',
+            lineForJump: 7,
+        });
+        const { view, saveCallbacks, openFileMock } = createView({
+            sectionContent,
+        });
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        const cleanupCallsBeforeSave =
+            deleteSectionSessionTempFile.mock.calls.length;
+        openFileMock.mockImplementationOnce(async () => {
+            throw new Error('return failed');
+        });
+
+        saveCallbacks[0]?.();
+
+        await vi.waitFor(() => {
+            expect(loggerErrorMock).toHaveBeenCalledWith(
+                '[mandala-section-edit] save failed',
+                expect.any(Error),
+            );
+        });
+        expect(deleteSectionSessionTempFile.mock.calls.length).toBe(
+            cleanupCallsBeforeSave,
+        );
     });
 });
