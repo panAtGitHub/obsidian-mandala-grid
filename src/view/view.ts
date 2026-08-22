@@ -119,6 +119,10 @@ import {
     type InitialTarget,
 } from 'src/mandala-document/runtime/initial-target-resolver';
 import {
+    consumePendingEphemeralState,
+    getEphemeralStateLine,
+} from 'src/view/helpers/consume-pending-ephemeral-state';
+import {
     createSectionLookupFromDocumentState,
     type SectionLookup,
 } from 'src/mandala-document/runtime/section-lookup';
@@ -146,6 +150,7 @@ export class MandalaView extends TextFileView {
     zoomFactor: number;
     dayPlanHotCores: Set<string> = new Set();
     private pendingEphemeralState: unknown = null;
+    private consumedBootstrapEphemeralState: unknown = null;
     private hasPendingExplicitJump = false;
     private focusMandalaSectionRequestId = 0;
     private focusMandalaSectionTimer: number | null = null;
@@ -831,6 +836,7 @@ export class MandalaView extends TextFileView {
                 this.lastActivationNotice = null;
                 this.sourceRuntime = null;
                 this.workingSetCenter = null;
+                this.consumedBootstrapEphemeralState = null;
                 this.initialBootstrapTarget = null;
                 this.fullHydrated = true;
                 this.loadDocumentToStore();
@@ -873,6 +879,7 @@ export class MandalaView extends TextFileView {
         this.lastActivationNotice = null;
         this.sourceRuntime = null;
         this.workingSetCenter = null;
+        this.consumedBootstrapEphemeralState = null;
         this.initialBootstrapTarget = null;
         this.fullHydrated = true;
         this.contentEl.empty();
@@ -1473,6 +1480,13 @@ export class MandalaView extends TextFileView {
                         });
                     }
                 });
+                if (
+                    initialTarget.source === 'explicit-jump' &&
+                    this.pendingEphemeralState
+                ) {
+                    this.consumedBootstrapEphemeralState =
+                        this.pendingEphemeralState;
+                }
                 this.recordPerfEvent('document.section-index-built', {
                     bytes: this.sourceRuntime?.index.sourceBytes ?? 0,
                     sections_count:
@@ -1618,11 +1632,8 @@ export class MandalaView extends TextFileView {
 
     private resolvePendingExplicitTarget() {
         const state = this.pendingEphemeralState;
-        const line =
-            state && typeof state === 'object' && 'line' in state
-                ? (state as { line?: unknown }).line
-                : null;
-        if (!this.sourceRuntime || typeof line !== 'number' || line < 0) {
+        const line = getEphemeralStateLine(state);
+        if (!this.sourceRuntime || line === null) {
             return null;
         }
 
@@ -1911,8 +1922,20 @@ export class MandalaView extends TextFileView {
     private consumePendingEphemeralState() {
         if (!this.pendingEphemeralState) return;
         const pending = this.pendingEphemeralState;
+        const consumption = consumePendingEphemeralState(
+            pending,
+            this.consumedBootstrapEphemeralState,
+        );
         this.pendingEphemeralState = null;
-        void this.setEphemeralState(pending);
+        this.consumedBootstrapEphemeralState = null;
+        if (consumption.consumed) {
+            this.hasPendingExplicitJump = false;
+            if (consumption.nextState) {
+                void this.setEphemeralState(consumption.nextState);
+            }
+            return;
+        }
+        void this.setEphemeralState(consumption.nextState);
     }
 
     private async handleSubpathJump(subpath: string) {
