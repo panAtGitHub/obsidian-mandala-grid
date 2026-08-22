@@ -1,7 +1,7 @@
 {
 	"id": "mandala-grid",
 	"name": "Mandala Grid",
-	"version": "1.2.13.3",
+	"version": "1.2.13.4",
 	"minAppVersion": "1.7.2",
 	"description": "Structured Markdown planning editor with 3×3 and 9×9 mandala views.",
 	"author": "dusk",

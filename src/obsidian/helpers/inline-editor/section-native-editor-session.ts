@@ -12,6 +12,7 @@ import {
 } from 'src/mandala-display/logic/apply-section-patch';
 import { cleanupSectionSessionFolder } from 'src/obsidian/helpers/inline-editor/cleanup-section-session-folder';
 import { deleteSectionSessionTempFile } from 'src/obsidian/helpers/inline-editor/delete-section-session-temp-file';
+import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 
 type SectionEditSession = {
     tempFilePath: string;
@@ -196,7 +197,21 @@ const switchBackToMandala = async (
     line: number,
 ) => {
     setViewType(view.plugin, sourceFile.path, MANDALA_VIEW_TYPE);
-    await view.leaf.openFile(sourceFile, {
+
+    const editorLeaf = view.leaf;
+    const sourceLeaf = getLeafOfFile(
+        view.plugin,
+        sourceFile,
+        MANDALA_VIEW_TYPE,
+    );
+    if (sourceLeaf && sourceLeaf !== editorLeaf) {
+        view.app.workspace.setActiveLeaf(sourceLeaf);
+        sourceLeaf.setEphemeralState({ line });
+        editorLeaf.detach();
+        return;
+    }
+
+    await editorLeaf.openFile(sourceFile, {
         active: true,
         eState: { line },
     });

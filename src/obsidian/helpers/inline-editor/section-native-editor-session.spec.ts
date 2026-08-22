@@ -7,6 +7,7 @@ const {
     applySectionPatch,
     loggerErrorMock,
     setViewTypeMock,
+    getLeafOfFileMock,
 } = vi.hoisted(() => ({
     cleanupSectionSessionFolder: vi.fn(async () => {}),
     deleteSectionSessionTempFile: vi.fn(async () => {}),
@@ -14,6 +15,7 @@ const {
     applySectionPatch: vi.fn(),
     loggerErrorMock: vi.fn(),
     setViewTypeMock: vi.fn(),
+    getLeafOfFileMock: vi.fn(),
 }));
 
 vi.mock('obsidian', () => {
@@ -87,6 +89,9 @@ vi.mock('src/shared/helpers/logger', () => ({
 vi.mock('src/mandala-settings/state/actions/set-view-type', () => ({
     setViewType: setViewTypeMock,
 }));
+vi.mock('src/obsidian/events/workspace/helpers/get-leaf-of-file', () => ({
+    getLeafOfFile: getLeafOfFileMock,
+}));
 vi.mock('src/view/view', () => ({
     MANDALA_VIEW_TYPE: 'mandala-grid',
 }));
@@ -155,6 +160,7 @@ const createView = ({
     });
     const setViewStateMock = vi.fn(async () => {});
     const setActiveLeafMock = vi.fn();
+    const detachMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
     markdownView.editor.focus = focusMock;
     markdownView.editor.getCursor = vi.fn(() => editorCursor);
@@ -219,6 +225,7 @@ const createView = ({
                 view: markdownView,
                 openFile: openFileMock,
                 setViewState: setViewStateMock,
+                detach: detachMock,
             },
             documentStore: {
                 getValue: () => ({
@@ -239,6 +246,7 @@ const createView = ({
         setActiveLeafMock,
         setViewStateMock,
         modifyMock,
+        detachMock,
     };
 };
 
@@ -247,6 +255,7 @@ describe('section-native-editor-session initial cursor placement', () => {
         vi.clearAllMocks();
         getSectionContentBySection.mockReset();
         applySectionPatch.mockReset();
+        getLeafOfFileMock.mockReset();
     });
 
     it('places the first day-plan edit cursor below the heading when only a heading exists', async () => {
@@ -419,6 +428,43 @@ describe('section-native-editor-session initial cursor placement', () => {
             sourceFile.path,
             'mandala-grid',
         );
+    });
+
+    it('returns to the existing Mandala leaf and closes the temporary editor leaf', async () => {
+        const sectionContent = 'plain body';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        applySectionPatch.mockReturnValue({
+            markdown: 'patched markdown',
+            lineForJump: 7,
+        });
+        const {
+            view,
+            saveCallbacks,
+            openFileMock,
+            setActiveLeafMock,
+            detachMock,
+        } = createView({ sectionContent });
+        const sourceLeaf = {
+            setEphemeralState: vi.fn(),
+        };
+        getLeafOfFileMock.mockReturnValue(sourceLeaf);
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        const cleanupCallsBeforeSave =
+            deleteSectionSessionTempFile.mock.calls.length;
+
+        saveCallbacks[0]?.();
+
+        await vi.waitFor(() => {
+            expect(
+                deleteSectionSessionTempFile.mock.calls.length,
+            ).toBeGreaterThan(cleanupCallsBeforeSave);
+        });
+
+        expect(openFileMock).toHaveBeenCalledTimes(1);
+        expect(setActiveLeafMock).toHaveBeenCalledWith(sourceLeaf);
+        expect(sourceLeaf.setEphemeralState).toHaveBeenCalledWith({ line: 7 });
+        expect(detachMock).toHaveBeenCalledTimes(1);
     });
 
     it('reports a return failure and keeps the temporary session for retry', async () => {
