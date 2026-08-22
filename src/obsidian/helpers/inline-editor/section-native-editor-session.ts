@@ -1,4 +1,10 @@
-import { MarkdownView, Notice, TFile, type EditorPosition } from 'obsidian';
+import {
+    MarkdownView,
+    Notice,
+    TFile,
+    type EditorPosition,
+    type WorkspaceLeaf,
+} from 'obsidian';
 import { logger } from 'src/shared/helpers/logger';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
@@ -12,7 +18,6 @@ import {
 } from 'src/mandala-display/logic/apply-section-patch';
 import { cleanupSectionSessionFolder } from 'src/obsidian/helpers/inline-editor/cleanup-section-session-folder';
 import { deleteSectionSessionTempFile } from 'src/obsidian/helpers/inline-editor/delete-section-session-temp-file';
-import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
 
 type SectionEditSession = {
     tempFilePath: string;
@@ -22,6 +27,8 @@ type SectionEditSession = {
     preparedContent: string;
     bodyAnchorLine: number | null;
     cursorKey: string;
+    sourceLeaf: WorkspaceLeaf;
+    editorLeaf: WorkspaceLeaf;
 };
 
 const sessionByTempFilePath = new Map<string, SectionEditSession>();
@@ -82,16 +89,10 @@ const getFileByPath = (view: MandalaView, path: string): TFile | null => {
     return file instanceof TFile ? file : null;
 };
 
-const getMarkdownView = (view: MandalaView) =>
-    view.leaf.view instanceof MarkdownView ? view.leaf.view : null;
-
 const getSectionCursorKey = (sourceFilePath: string, section: string) =>
     `${sourceFilePath}::${section}`;
 
-const wait = (ms: number) =>
-    new Promise<void>((resolve) => window.setTimeout(resolve, ms));
-
-const getTempFilePathFromLeaf = (leaf: unknown): string | null => {
+const getFilePathFromLeaf = (leaf: unknown): string | null => {
     if (!leaf || typeof leaf !== 'object' || !('view' in leaf)) {
         return null;
     }
@@ -109,7 +110,7 @@ const getTempFilePathFromLeaf = (leaf: unknown): string | null => {
 const isTempFileOpen = (view: MandalaView, tempFilePath: string) =>
     view.app.workspace
         .getLeavesOfType('markdown')
-        .some((leaf) => getTempFilePathFromLeaf(leaf) === tempFilePath);
+        .some((leaf) => getFilePathFromLeaf(leaf) === tempFilePath);
 
 const prepareNativeEditorContent = (
     content: string,
@@ -193,25 +194,27 @@ const setCursorInEditor = (
 
 const switchBackToMandala = async (
     view: MandalaView,
+    session: SectionEditSession,
     sourceFile: TFile,
     line: number,
 ) => {
     setViewType(view.plugin, sourceFile.path, MANDALA_VIEW_TYPE);
 
-    const editorLeaf = view.leaf;
-    const sourceLeaf = getLeafOfFile(
-        view.plugin,
-        sourceFile,
-        MANDALA_VIEW_TYPE,
-    );
-    if (sourceLeaf && sourceLeaf !== editorLeaf) {
-        view.app.workspace.setActiveLeaf(sourceLeaf);
-        sourceLeaf.setEphemeralState({ line });
-        editorLeaf.detach();
+    const sourceLeafState = session.sourceLeaf.getViewState();
+    const sourceLeafIsOpen =
+        sourceLeafState.type === MANDALA_VIEW_TYPE &&
+        sourceLeafState.state?.file === sourceFile.path &&
+        view.app.workspace
+            .getLeavesOfType(MANDALA_VIEW_TYPE)
+            .includes(session.sourceLeaf);
+    if (sourceLeafIsOpen) {
+        await view.app.workspace.revealLeaf(session.sourceLeaf);
+        session.sourceLeaf.setEphemeralState({ line });
+        session.editorLeaf.detach();
         return;
     }
 
-    await editorLeaf.openFile(sourceFile, {
+    await session.editorLeaf.openFile(sourceFile, {
         active: true,
         eState: { line },
     });
@@ -298,21 +301,26 @@ export const ensureSectionSessionMaintenance = (view: MandalaView) => {
     return runSectionSessionMaintenance(view);
 };
 
-const withSessionFromView = (
-    view: MandalaView,
+const getSessionEditorContext = (
+    tempFilePath: string,
 ): { session: SectionEditSession; markdownView: MarkdownView } | null => {
-    const markdownView = getMarkdownView(view);
-    const tempFilePath = markdownView?.file?.path;
-    if (!markdownView || !tempFilePath) return null;
     const session = sessionByTempFilePath.get(tempFilePath);
     if (!session) return null;
+    const markdownView =
+        session.editorLeaf.view instanceof MarkdownView
+            ? session.editorLeaf.view
+            : null;
+    if (!markdownView || markdownView.file?.path !== tempFilePath) return null;
     return { session, markdownView };
 };
 
-const saveSectionAndReturn = async (view: MandalaView) => {
+const saveSectionAndReturn = async (
+    view: MandalaView,
+    tempFilePath: string,
+) => {
     if (isSavingSectionSession) return;
     isSavingSectionSession = true;
-    const ctx = withSessionFromView(view);
+    const ctx = getSessionEditorContext(tempFilePath);
     if (!ctx) {
         isSavingSectionSession = false;
         return;
@@ -325,8 +333,6 @@ const saveSectionAndReturn = async (view: MandalaView) => {
             return;
         }
 
-        // 点击保存时先等待一帧，尽量让输入法合成态提交到 editor state。
-        await wait(32);
         const currentContent = markdownView.editor.getValue();
         cursorBySectionKey.set(
             session.cursorKey,
@@ -348,7 +354,12 @@ const saveSectionAndReturn = async (view: MandalaView) => {
             return;
         }
         await view.app.vault.modify(sourceFile, patched.markdown);
-        await switchBackToMandala(view, sourceFile, patched.lineForJump);
+        await switchBackToMandala(
+            view,
+            session,
+            sourceFile,
+            patched.lineForJump,
+        );
         await cleanupSession(view, session.tempFilePath);
     } finally {
         isSavingSectionSession = false;
@@ -358,6 +369,7 @@ const saveSectionAndReturn = async (view: MandalaView) => {
 const addSectionEditorActions = (
     view: MandalaView,
     markdownView: MarkdownView,
+    tempFilePath: string,
 ) => {
     const actions = markdownView.containerEl.querySelector('.view-actions');
     if (!actions) return;
@@ -374,12 +386,14 @@ const addSectionEditorActions = (
     if (typeof itemView.addAction !== 'function') return;
 
     const saveEl = itemView.addAction('save', '保存并返回九宫', () => {
-        void saveSectionAndReturn(view).catch((error: unknown) => {
-            const message =
-                error instanceof Error ? error.message : String(error);
-            new Notice(`保存 section 失败：${message}`);
-            logger.error('[mandala-section-edit] save failed', error);
-        });
+        void saveSectionAndReturn(view, tempFilePath).catch(
+            (error: unknown) => {
+                const message =
+                    error instanceof Error ? error.message : String(error);
+                new Notice(`保存 section 失败：${message}`);
+                logger.error('[mandala-section-edit] save failed', error);
+            },
+        );
     });
     saveEl.setAttr('data-mandala-action', ACTION_SAVE_ID);
 };
@@ -432,6 +446,8 @@ export const startSectionNativeEditorSession = async (
             nativeContent.content,
         );
         const cursorKey = getSectionCursorKey(sourceFile.path, section);
+        const sourceLeaf = view.leaf;
+        const editorLeaf = view.app.workspace.getLeaf('tab');
         sessionByTempFilePath.set(tempPath, {
             tempFilePath: tempPath,
             sourceFilePath: sourceFile.path,
@@ -440,19 +456,22 @@ export const startSectionNativeEditorSession = async (
             preparedContent: initialPlacement.content,
             bodyAnchorLine: nativeContent.bodyAnchorLine,
             cursorKey,
+            sourceLeaf,
+            editorLeaf,
         });
 
-        await view.leaf.openFile(tempFile, {
+        await editorLeaf.openFile(tempFile, {
             active: true,
             state: { mode: 'source', source: true },
             eState: { line: initialPlacement.cursor.line },
         });
-        const markdownView = getMarkdownView(view);
+        const markdownView =
+            editorLeaf.view instanceof MarkdownView ? editorLeaf.view : null;
         if (!markdownView) return;
         if (markdownView.getMode() === 'preview') {
             await markdownView.setState({ mode: 'source' }, { history: false });
         }
-        addSectionEditorActions(view, markdownView);
+        addSectionEditorActions(view, markdownView, tempPath);
         setCursorInEditor(markdownView, initialPlacement.cursor);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
