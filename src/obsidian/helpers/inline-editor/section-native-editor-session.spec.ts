@@ -22,6 +22,7 @@ vi.mock('obsidian', () => {
             setCursor: ReturnType<typeof vi.fn>;
             scrollIntoView: ReturnType<typeof vi.fn>;
             focus: ReturnType<typeof vi.fn>;
+            hasFocus: ReturnType<typeof vi.fn>;
             getCursor: ReturnType<typeof vi.fn>;
             getValue: ReturnType<typeof vi.fn>;
         };
@@ -34,6 +35,7 @@ vi.mock('obsidian', () => {
                 setCursor: vi.fn(),
                 scrollIntoView: vi.fn(),
                 focus: vi.fn(),
+                hasFocus: vi.fn(() => true),
                 getCursor: vi.fn(),
                 getValue: vi.fn(),
             };
@@ -139,6 +141,8 @@ const createView = ({
     const listMock = vi.fn(async () => ({ files: [], folders: [] }));
     const rmdirMock = vi.fn(async () => {});
     const setCursorMock = vi.fn();
+    const focusMock = vi.fn();
+    const hasFocusMock = vi.fn(() => true);
     const modifyMock = vi.fn(async () => {});
     const openFileMock = vi.fn(async (file: TFile) => {
         Object.assign(markdownView, { file });
@@ -146,6 +150,8 @@ const createView = ({
     const setViewStateMock = vi.fn(async () => {});
     const setActiveLeafMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
+    markdownView.editor.focus = focusMock;
+    markdownView.editor.hasFocus = hasFocusMock;
     markdownView.editor.getCursor = vi.fn(() => ({ line: 0, ch: 0 }));
     markdownView.editor.getValue = vi.fn(() => sectionContent);
     Object.assign(markdownView.containerEl, {
@@ -180,6 +186,8 @@ const createView = ({
         createFileMock,
         sourceFile,
         setCursorMock,
+        focusMock,
+        hasFocusMock,
         vault,
         view: {
             file: sourceFile,
@@ -243,6 +251,44 @@ describe('section-native-editor-session initial cursor placement', () => {
             '### 09-12\n',
         );
         expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 0 });
+    });
+
+    it('restores the day-plan body cursor if native editor focus is lost during mount', async () => {
+        const frame: { current: (() => void) | null } = { current: null };
+        vi.stubGlobal('requestAnimationFrame', (callback: () => void) => {
+            frame.current = callback;
+            return 0;
+        });
+        try {
+            const sectionContent = '### 习惯打卡';
+            getSectionContentBySection.mockReturnValue(sectionContent);
+            const {
+                focusMock,
+                hasFocusMock,
+                markdownView,
+                setCursorMock,
+                view,
+            } = createView({ sectionContent, variant: 'day-plan' });
+
+            await startSectionNativeEditorSession(view as never, 'node-1');
+            const cursorCallsBeforeFocusLoss = setCursorMock.mock.calls.length;
+            const focusCallsBeforeFocusLoss = focusMock.mock.calls.length;
+            hasFocusMock.mockReturnValue(false);
+
+            expect(view.leaf.view).toBe(markdownView);
+            expect(frame.current).not.toBeNull();
+            frame.current?.();
+
+            expect(setCursorMock.mock.calls.length).toBeGreaterThan(
+                cursorCallsBeforeFocusLoss,
+            );
+            expect(setCursorMock).toHaveBeenLastCalledWith({ line: 1, ch: 0 });
+            expect(focusMock.mock.calls.length).toBeGreaterThan(
+                focusCallsBeforeFocusLoss,
+            );
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it('places the first day-plan native editor cursor at the body end when body text already exists', async () => {

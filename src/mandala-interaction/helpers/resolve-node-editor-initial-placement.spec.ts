@@ -50,4 +50,17 @@ describe('resolveNodeEditorInitialPlacement', () => {
             cursor: { line: 1, ch: 1 },
         });
     });
+
+    it('ignores a day-plan historical cursor on the heading line', () => {
+        expect(
+            resolveNodeEditorInitialPlacement({
+                content: '### 习惯打卡',
+                isDayPlanScene: true,
+                historyCursor: { line: 0, ch: 7 },
+            }),
+        ).toEqual({
+            content: '### 习惯打卡\n',
+            cursor: { line: 1, ch: 0 },
+        });
+    });
 });

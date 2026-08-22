@@ -124,6 +124,7 @@ const centerCursorLineInEditor = (markdownView: MarkdownView) => {
 };
 
 const setCursorInEditor = (
+    view: MandalaView,
     markdownView: MarkdownView,
     target: EditorPosition,
 ) => {
@@ -131,6 +132,11 @@ const setCursorInEditor = (
     markdownView.editor.scrollIntoView({ from: target, to: target }, true);
     markdownView.editor.focus();
     const recenter = () => {
+        if (getMarkdownView(view) !== markdownView) return;
+        if (!markdownView.editor.hasFocus()) {
+            markdownView.editor.setCursor(target);
+            markdownView.editor.focus();
+        }
         markdownView.editor.scrollIntoView({ from: target, to: target }, true);
         centerCursorLineInEditor(markdownView);
     };
@@ -379,7 +385,7 @@ export const startSectionNativeEditorSession = async (
         for (let attempt = 0; attempt < 10; attempt++) {
             const liveView = getMarkdownView(view);
             if (liveView?.editor) {
-                setCursorInEditor(liveView, initialPlacement.cursor);
+                setCursorInEditor(view, liveView, initialPlacement.cursor);
                 return;
             }
             await wait(24);

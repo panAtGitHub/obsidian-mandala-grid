@@ -66,7 +66,20 @@ export const resolveNodeEditorInitialPlacement = ({
     isDayPlanScene: boolean;
     historyCursor?: NodeEditorCursorPosition | null;
 }): NodeEditorInitialPlacement => {
-    if (historyCursor && isCursorInRange(historyCursor, content)) {
+    const lines = splitLines(content);
+    const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines);
+    const dayPlanHeadingLine =
+        isDayPlanScene &&
+        firstNonEmptyLine !== -1 &&
+        isMarkdownHeading(lines[firstNonEmptyLine] ?? '')
+            ? firstNonEmptyLine
+            : null;
+    const canRestoreHistory =
+        historyCursor &&
+        isCursorInRange(historyCursor, content) &&
+        (dayPlanHeadingLine === null ||
+            historyCursor.line > dayPlanHeadingLine);
+    if (canRestoreHistory) {
         return {
             content,
             cursor: historyCursor,
@@ -80,19 +93,14 @@ export const resolveNodeEditorInitialPlacement = ({
         };
     }
 
-    const lines = splitLines(content);
-    const firstNonEmptyLine = findFirstNonEmptyLineIndex(lines);
-    if (
-        firstNonEmptyLine === -1 ||
-        !isMarkdownHeading(lines[firstNonEmptyLine] ?? '')
-    ) {
+    if (dayPlanHeadingLine === null) {
         return {
             content,
             cursor: getContentEndCursor(content),
         };
     }
 
-    const lastBodyLine = findLastNonEmptyLineIndex(lines, firstNonEmptyLine);
+    const lastBodyLine = findLastNonEmptyLineIndex(lines, dayPlanHeadingLine);
     if (lastBodyLine !== -1) {
         return {
             content,
@@ -106,13 +114,13 @@ export const resolveNodeEditorInitialPlacement = ({
     const normalizedContent = ensureNextBodyLine(
         content,
         lines,
-        firstNonEmptyLine,
+        dayPlanHeadingLine,
     );
 
     return {
         content: normalizedContent,
         cursor: {
-            line: firstNonEmptyLine + 1,
+            line: dayPlanHeadingLine + 1,
             ch: 0,
         },
     };
