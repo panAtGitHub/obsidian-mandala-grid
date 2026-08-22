@@ -22,9 +22,10 @@ vi.mock('obsidian', () => {
             setCursor: ReturnType<typeof vi.fn>;
             scrollIntoView: ReturnType<typeof vi.fn>;
             focus: ReturnType<typeof vi.fn>;
-            hasFocus: ReturnType<typeof vi.fn>;
             getCursor: ReturnType<typeof vi.fn>;
             getValue: ReturnType<typeof vi.fn>;
+            lastLine: ReturnType<typeof vi.fn>;
+            getLine: ReturnType<typeof vi.fn>;
         };
         containerEl: {
             querySelector: ReturnType<typeof vi.fn>;
@@ -35,9 +36,10 @@ vi.mock('obsidian', () => {
                 setCursor: vi.fn(),
                 scrollIntoView: vi.fn(),
                 focus: vi.fn(),
-                hasFocus: vi.fn(() => true),
                 getCursor: vi.fn(),
                 getValue: vi.fn(),
+                lastLine: vi.fn(),
+                getLine: vi.fn(),
             };
             this.containerEl = {
                 querySelector: vi.fn(() => null),
@@ -101,6 +103,8 @@ const createTFileMock = (path: string) => {
     return file;
 };
 
+let viewSequence = 0;
+
 const createView = ({
     sectionContent,
     variant = 'default',
@@ -109,29 +113,24 @@ const createView = ({
     variant?: 'default' | 'day-plan';
 }) => {
     const markdownView = createMarkdownViewMock();
-    const sourceFile = createTFileMock('daily.md');
+    const sourceFile = createTFileMock(`daily-${++viewSequence}.md`);
     const createdFiles = new Map<string, TFile>();
+    const createdContents = new Map<string, string>();
     const saveCallbacks: Array<() => unknown> = [];
+    let editorValue = sectionContent;
+    let editorCursor = { line: 0, ch: 0 };
     const readMock = vi.fn(async (file: TFile) => {
         if (file.path === sourceFile.path) {
             return 'source markdown';
         }
-        return sectionContent;
+        return createdContents.get(file.path) ?? sectionContent;
     });
     const createFolderMock = vi.fn(async () => {});
     const createFileMock = vi.fn(async (path: string, content: string) => {
         const file = createTFileMock(path);
         createdFiles.set(path, file);
+        createdContents.set(path, content);
         getSectionContentBySection.mockReturnValue(sectionContent);
-        readMock.mockImplementation(async (target: TFile) => {
-            if (target.path === sourceFile.path) {
-                return 'source markdown';
-            }
-            if (target.path === path) {
-                return content;
-            }
-            return sectionContent;
-        });
         return file;
     });
     const getAbstractFileByPathMock = vi.fn((path: string) => {
@@ -140,20 +139,32 @@ const createView = ({
     });
     const listMock = vi.fn(async () => ({ files: [], folders: [] }));
     const rmdirMock = vi.fn(async () => {});
-    const setCursorMock = vi.fn();
+    const setCursorMock = vi.fn((cursor: { line: number; ch: number }) => {
+        const lines = editorValue.split('\n');
+        const line = lines[cursor.line];
+        if (line === undefined || cursor.ch < 0 || cursor.ch > line.length) {
+            throw new Error(`cursor out of range: ${JSON.stringify(cursor)}`);
+        }
+        editorCursor = cursor;
+    });
     const focusMock = vi.fn();
-    const hasFocusMock = vi.fn(() => true);
     const modifyMock = vi.fn(async () => {});
     const openFileMock = vi.fn(async (file: TFile) => {
         Object.assign(markdownView, { file });
+        editorValue = createdContents.get(file.path) ?? editorValue;
     });
     const setViewStateMock = vi.fn(async () => {});
     const setActiveLeafMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
     markdownView.editor.focus = focusMock;
-    markdownView.editor.hasFocus = hasFocusMock;
-    markdownView.editor.getCursor = vi.fn(() => ({ line: 0, ch: 0 }));
-    markdownView.editor.getValue = vi.fn(() => sectionContent);
+    markdownView.editor.getCursor = vi.fn(() => editorCursor);
+    markdownView.editor.getValue = vi.fn(() => editorValue);
+    markdownView.editor.lastLine = vi.fn(
+        () => editorValue.split('\n').length - 1,
+    );
+    markdownView.editor.getLine = vi.fn(
+        (line: number) => editorValue.split('\n')[line] ?? '',
+    );
     Object.assign(markdownView.containerEl, {
         querySelector: vi.fn((selector: string) =>
             selector === '.view-actions'
@@ -187,7 +198,9 @@ const createView = ({
         sourceFile,
         setCursorMock,
         focusMock,
-        hasFocusMock,
+        setEditorValue: (value: string) => {
+            editorValue = value;
+        },
         vault,
         view: {
             file: sourceFile,
@@ -248,47 +261,78 @@ describe('section-native-editor-session initial cursor placement', () => {
 
         expect(createFileMock).toHaveBeenCalledWith(
             expect.stringContaining('Mandala Grid Section Edit Sessions/'),
-            '### 09-12\n',
+            '### 09-12\n\u200b',
         );
         expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 0 });
     });
 
-    it('restores the day-plan body cursor if native editor focus is lost during mount', async () => {
-        const frame: { current: (() => void) | null } = { current: null };
-        vi.stubGlobal('requestAnimationFrame', (callback: () => void) => {
-            frame.current = callback;
-            return 0;
+    it('hands native editor focus over once after opening in source mode', async () => {
+        const sectionContent = '### 习惯打卡';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { focusMock, openFileMock, view } = createView({
+            sectionContent,
+            variant: 'day-plan',
         });
-        try {
-            const sectionContent = '### 习惯打卡';
-            getSectionContentBySection.mockReturnValue(sectionContent);
-            const {
-                focusMock,
-                hasFocusMock,
-                markdownView,
-                setCursorMock,
-                view,
-            } = createView({ sectionContent, variant: 'day-plan' });
 
-            await startSectionNativeEditorSession(view as never, 'node-1');
-            const cursorCallsBeforeFocusLoss = setCursorMock.mock.calls.length;
-            const focusCallsBeforeFocusLoss = focusMock.mock.calls.length;
-            hasFocusMock.mockReturnValue(false);
+        await startSectionNativeEditorSession(view as never, 'node-1');
 
-            expect(view.leaf.view).toBe(markdownView);
-            expect(frame.current).not.toBeNull();
-            frame.current?.();
+        expect(openFileMock).toHaveBeenCalledWith(expect.any(TFile), {
+            active: true,
+            state: { mode: 'source', source: true },
+            eState: { line: 1 },
+        });
+        expect(focusMock).toHaveBeenCalledTimes(1);
+        expect(openFileMock.mock.invocationCallOrder[0]).toBeLessThan(
+            focusMock.mock.invocationCallOrder[0],
+        );
+    });
 
-            expect(setCursorMock.mock.calls.length).toBeGreaterThan(
-                cursorCallsBeforeFocusLoss,
+    it('removes the native body anchor before saving day-plan text', async () => {
+        const sectionContent = '### 习惯打卡';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        applySectionPatch.mockReturnValue({
+            markdown: 'patched markdown',
+            lineForJump: 7,
+        });
+        const { markdownView, saveCallbacks, setEditorValue, view } =
+            createView({ sectionContent, variant: 'day-plan' });
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        setEditorValue('### 习惯打卡\n任务\u200b');
+        markdownView.editor.setCursor({ line: 1, ch: 2 });
+        saveCallbacks[0]?.();
+
+        await vi.waitFor(() => {
+            expect(applySectionPatch).toHaveBeenCalledWith(
+                'source markdown',
+                '1.1',
+                '### 习惯打卡\n任务',
             );
-            expect(setCursorMock).toHaveBeenLastCalledWith({ line: 1, ch: 0 });
-            expect(focusMock.mock.calls.length).toBeGreaterThan(
-                focusCallsBeforeFocusLoss,
+        });
+    });
+
+    it('keeps an untouched anchored day-plan section byte-for-byte unchanged', async () => {
+        const sectionContent = '### 习惯打卡';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        applySectionPatch.mockReturnValue({
+            markdown: 'patched markdown',
+            lineForJump: 7,
+        });
+        const { saveCallbacks, view } = createView({
+            sectionContent,
+            variant: 'day-plan',
+        });
+
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        saveCallbacks[0]?.();
+
+        await vi.waitFor(() => {
+            expect(applySectionPatch).toHaveBeenCalledWith(
+                'source markdown',
+                '1.1',
+                sectionContent,
             );
-        } finally {
-            vi.unstubAllGlobals();
-        }
+        });
     });
 
     it('places the first day-plan native editor cursor at the body end when body text already exists', async () => {

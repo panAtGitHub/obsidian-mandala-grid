@@ -19,6 +19,7 @@ type SectionEditSession = {
     section: string;
     originalContent: string;
     preparedContent: string;
+    bodyAnchorLine: number | null;
     cursorKey: string;
 };
 
@@ -32,6 +33,7 @@ let sectionSessionMaintenancePromise: Promise<void> | null = null;
 
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
+const EMPTY_BODY_ANCHOR = '\u200b';
 
 const isAlreadyExistsError = (error: unknown) =>
     error instanceof Error &&
@@ -108,41 +110,84 @@ const isTempFileOpen = (view: MandalaView, tempFilePath: string) =>
         .getLeavesOfType('markdown')
         .some((leaf) => getTempFilePathFromLeaf(leaf) === tempFilePath);
 
-const centerCursorLineInEditor = (markdownView: MarkdownView) => {
-    const scroller = markdownView.containerEl.querySelector<HTMLElement>(
-        '.cm-editor .cm-scroller',
-    );
-    const activeLine = markdownView.containerEl.querySelector<HTMLElement>(
-        '.cm-editor .cm-activeLine',
-    );
-    if (!scroller || !activeLine) return;
-    const scrollerRect = scroller.getBoundingClientRect();
-    const lineRect = activeLine.getBoundingClientRect();
-    const scrollerMidY = scrollerRect.top + scrollerRect.height / 2;
-    const lineMidY = lineRect.top + lineRect.height / 2;
-    scroller.scrollTop += lineMidY - scrollerMidY;
+const prepareNativeEditorContent = (
+    content: string,
+    cursor: EditorPosition,
+    isDayPlanScene: boolean,
+) => {
+    const lines = content.split(/\r?\n/);
+    if (!isDayPlanScene || cursor.ch !== 0 || lines[cursor.line] !== '') {
+        return { content, bodyAnchorLine: null };
+    }
+    lines[cursor.line] = EMPTY_BODY_ANCHOR;
+    return {
+        content: lines.join('\n'),
+        bodyAnchorLine: cursor.line,
+    };
+};
+
+const stripSessionBodyAnchor = (
+    session: SectionEditSession,
+    content: string,
+) => {
+    if (session.bodyAnchorLine === null) return content;
+    const lines = content.split('\n');
+    const bodyLine = lines[session.bodyAnchorLine];
+    if (!bodyLine?.includes(EMPTY_BODY_ANCHOR)) return content;
+    lines[session.bodyAnchorLine] = bodyLine.replace(EMPTY_BODY_ANCHOR, '');
+    return lines.join('\n');
+};
+
+const resolveSessionReplacement = (
+    session: SectionEditSession,
+    currentContent: string,
+) =>
+    resolveNodeEditorCommitContent({
+        currentContent: stripSessionBodyAnchor(session, currentContent),
+        originalContent: session.originalContent,
+        preparedContent: session.preparedContent,
+    });
+
+const normalizeSessionCursor = (
+    session: SectionEditSession,
+    content: string,
+    cursor: EditorPosition,
+): EditorPosition => {
+    if (
+        session.bodyAnchorLine === null ||
+        cursor.line !== session.bodyAnchorLine
+    ) {
+        return cursor;
+    }
+    const bodyLine = content.split('\n')[session.bodyAnchorLine] ?? '';
+    const anchorCh = bodyLine.indexOf(EMPTY_BODY_ANCHOR);
+    if (anchorCh === -1 || cursor.ch <= anchorCh) return cursor;
+    return { line: cursor.line, ch: cursor.ch - 1 };
+};
+
+const resolveValidEditorCursor = (
+    markdownView: MarkdownView,
+    target: EditorPosition,
+): EditorPosition => {
+    const lastLine = markdownView.editor.lastLine();
+    if (target.line >= 0 && target.line <= lastLine) {
+        const lineLength = markdownView.editor.getLine(target.line).length;
+        if (target.ch >= 0 && target.ch <= lineLength) return target;
+    }
+    return {
+        line: lastLine,
+        ch: markdownView.editor.getLine(lastLine).length,
+    };
 };
 
 const setCursorInEditor = (
-    view: MandalaView,
     markdownView: MarkdownView,
     target: EditorPosition,
 ) => {
-    markdownView.editor.setCursor(target);
-    markdownView.editor.scrollIntoView({ from: target, to: target }, true);
+    const cursor = resolveValidEditorCursor(markdownView, target);
+    markdownView.editor.setCursor(cursor);
+    markdownView.editor.scrollIntoView({ from: cursor, to: cursor }, true);
     markdownView.editor.focus();
-    const recenter = () => {
-        if (getMarkdownView(view) !== markdownView) return;
-        if (!markdownView.editor.hasFocus()) {
-            markdownView.editor.setCursor(target);
-            markdownView.editor.focus();
-        }
-        markdownView.editor.scrollIntoView({ from: target, to: target }, true);
-        centerCursorLineInEditor(markdownView);
-    };
-    window.requestAnimationFrame(recenter);
-    window.setTimeout(recenter, 80);
-    window.setTimeout(recenter, 220);
 };
 
 const switchBackToMandala = async (
@@ -170,11 +215,10 @@ const mergeTempFileToSource = async (
     const tempFile = getFileByPath(view, session.tempFilePath);
     const sourceFile = getFileByPath(view, session.sourceFilePath);
     if (!tempFile || !sourceFile) return;
-    const replacement = resolveNodeEditorCommitContent({
-        currentContent: await view.app.vault.read(tempFile),
-        originalContent: session.originalContent,
-        preparedContent: session.preparedContent,
-    });
+    const replacement = resolveSessionReplacement(
+        session,
+        await view.app.vault.read(tempFile),
+    );
     const sourceMarkdown = await view.app.vault.read(sourceFile);
     const patched = applySectionPatch(
         sourceMarkdown,
@@ -268,15 +312,16 @@ const saveSectionAndReturn = async (view: MandalaView) => {
 
         // 点击保存时先等待一帧，尽量让输入法合成态提交到 editor state。
         await wait(32);
+        const currentContent = markdownView.editor.getValue();
         cursorBySectionKey.set(
             session.cursorKey,
-            markdownView.editor.getCursor(),
+            normalizeSessionCursor(
+                session,
+                currentContent,
+                markdownView.editor.getCursor(),
+            ),
         );
-        const replacement = resolveNodeEditorCommitContent({
-            currentContent: markdownView.editor.getValue(),
-            originalContent: session.originalContent,
-            preparedContent: session.preparedContent,
-        });
+        const replacement = resolveSessionReplacement(session, currentContent);
         const sourceMarkdown = await view.app.vault.read(sourceFile);
         const patched = applySectionPatch(
             sourceMarkdown,
@@ -354,16 +399,22 @@ export const startSectionNativeEditorSession = async (
         await ensureFolderRecursive(view, SESSION_FOLDER);
         const safeSection = String(section).replace(/\./g, '-');
         const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}.md`;
+        const isDayPlanScene = view.getMandalaSceneKey().variant === 'day-plan';
         const initialPlacement = resolveNodeEditorInitialPlacement({
             content: sectionContent,
-            isDayPlanScene: view.getMandalaSceneKey().variant === 'day-plan',
+            isDayPlanScene,
             historyCursor: cursorBySectionKey.get(
                 getSectionCursorKey(sourceFile.path, section),
             ),
         });
+        const nativeContent = prepareNativeEditorContent(
+            initialPlacement.content,
+            initialPlacement.cursor,
+            isDayPlanScene,
+        );
         const tempFile = await view.app.vault.create(
             tempPath,
-            initialPlacement.content,
+            nativeContent.content,
         );
         const cursorKey = getSectionCursorKey(sourceFile.path, section);
         sessionByTempFilePath.set(tempPath, {
@@ -372,24 +423,22 @@ export const startSectionNativeEditorSession = async (
             section,
             originalContent: sectionContent,
             preparedContent: initialPlacement.content,
+            bodyAnchorLine: nativeContent.bodyAnchorLine,
             cursorKey,
         });
 
-        await view.leaf.openFile(tempFile);
+        await view.leaf.openFile(tempFile, {
+            active: true,
+            state: { mode: 'source', source: true },
+            eState: { line: initialPlacement.cursor.line },
+        });
         const markdownView = getMarkdownView(view);
         if (!markdownView) return;
         if (markdownView.getMode() === 'preview') {
             await markdownView.setState({ mode: 'source' }, { history: false });
         }
         addSectionEditorActions(view, markdownView);
-        for (let attempt = 0; attempt < 10; attempt++) {
-            const liveView = getMarkdownView(view);
-            if (liveView?.editor) {
-                setCursorInEditor(view, liveView, initialPlacement.cursor);
-                return;
-            }
-            await wait(24);
-        }
+        setCursorInEditor(markdownView, initialPlacement.cursor);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         new Notice(`打开 section 原生编辑失败：${message}`);
