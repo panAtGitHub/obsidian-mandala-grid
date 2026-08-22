@@ -353,7 +353,12 @@ const addSectionEditorActions = (
     if (typeof itemView.addAction !== 'function') return;
 
     const saveEl = itemView.addAction('save', '保存并返回九宫', () => {
-        void saveSectionAndReturn(view);
+        void saveSectionAndReturn(view).catch((error: unknown) => {
+            const message =
+                error instanceof Error ? error.message : String(error);
+            new Notice(`保存 section 失败：${message}`);
+            logger.error('[mandala-section-edit] save failed', error);
+        });
     });
     saveEl.setAttr('data-mandala-action', ACTION_SAVE_ID);
 };
