@@ -126,12 +126,12 @@ ESLint 配置：`.eslintrc`
 
 -   优先小而精的改动（尽量小的补丁）
 -   贴合当前模块既有模式（store/reducer、view、helpers 等）
--   发 PR 前先跑：`npm run lint`，并根据改动范围跑 `npm test`
--   只要本次会话产生了代码改动，在收尾前必须额外执行一轮官方本地校验：`npm run validate:official`
+-   **日常补丁修复按改动范围校验**：只运行本次改动涉及的测试文件，必要时补跑直接关联模块的测试；只对本次修改的源码文件执行 Prettier 和 ESLint，不默认运行完整测试、完整 Lint 或 `npm run validate:official`。发 PR 也遵循这一原则。
+-   涉及公共保存链路、数据结构、依赖或较大重构时，根据实际影响范围扩大检查范围，并说明原因。
+-   **准备正式发布时必须执行完整检查**：`npm test`、`npm run lint` 和 `npm run validate:official`；检查通过后才可继续正式发布。
 -   `npm run validate:official` 只覆盖仓库内可本地模拟的官方检查；社区 PR 模板、远端 GitHub Release 是否已创建等在线项不在本地脚本范围内
--   **强制交付动作（每次写完都要执行，不可省略）**：只要本次会话产生了代码改动，必须在结束前执行 `commit + validate:official + sync`
--   默认交付流程（完成代码改动后）：
-    1. `git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`
-    2. `npm run validate:official`
-    3. `npm run sync:obsidian`（同步到 `C:\iWork\obWin\.obsidian\plugins\mandala-grid\`，保留 `data.json`）
-   -   提交信息要求：**每次提交必须包含中英文总结**，禁止使用固定的 `chore: update ...` 占位提交信息。
+-   **日常代码改动的交付流程**：相关测试和修改文件的格式化 / Lint -> commit -> `npm run build` -> `npm run sync:obsidian`。构建保留 TypeScript 检查；同步到 `C:\iWork\obWin\.obsidian\plugins\mandala-grid\`，保留 `data.json`。
+-   仅修改文档或 Agent 规则时，检查文档内容和差异即可，不运行代码测试、Lint、构建或插件同步。
+-   若现有 Git hook 强制执行完整测试或完整 Lint，可在完成本次所需检查后，仅对本次提交跳过该 hook；不得全局禁用 hook。提交信息校验仍需执行。
+-   提交命令：`git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`
+-   提交信息要求：**每次提交必须包含中英文总结**，禁止使用固定的 `chore: update ...` 占位提交信息。
