@@ -48,6 +48,9 @@ vi.mock('obsidian', () => ({
     },
 }));
 vi.mock('src/view/view', () => ({ MandalaView: class {} }));
+vi.mock('src/obsidian/settings/fit-settings-label', () => ({
+    fitSettingsLabel: () => () => {},
+}));
 vi.mock('src/obsidian/settings/render-mandala-core-settings', () => ({
     renderMandalaCoreSettings: vi.fn(),
 }));

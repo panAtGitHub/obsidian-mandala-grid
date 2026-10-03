@@ -138,7 +138,10 @@ export const englishMessages = {
     '全局视图（针对新建的九宫格 md 文件做默认设置）':
         'Global view defaults for new Mandala Grid notes',
     '时间计划（打开本设置后，可通过命令面板新建「日计划九宫格」）':
-        'Time plans (enable to create day plans from the command palette)',
+        'Time plans',
+    不设上限: 'Unlimited',
+    '启用后，可通过命令面板新建日计划九宫格。':
+        'Enable to create day plans from the command palette.',
     '日/周计划设置已移至曼陀罗视图的设置面板中。请打开任意曼陀罗视图并点击设置图标。':
         'Day/week plan settings are in the Mandala view settings panel. Open a Mandala view and click its settings icon.',
     全局视图开关: 'Global view options',

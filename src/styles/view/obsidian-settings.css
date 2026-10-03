@@ -43,11 +43,32 @@
 }
 
 .mandala-settings-card__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 24.3px;
     font-size: 18px;
     font-weight: 800;
-    line-height: 1.35;
+    line-height: 24.3px;
     color: var(--text-accent);
     letter-spacing: 0.01em;
+}
+
+.mandala-settings-view-presets__grid button {
+    min-width: 0;
+}
+
+.mandala-settings-preset-label {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: calc(var(--font-ui-small) * 1.2);
+    height: calc(var(--font-ui-small) * 1.2);
 }
 
 .mandala-settings-card__chevron {
@@ -189,7 +210,11 @@
     padding: 12px 14px;
     border-radius: 16px;
     border: 1px solid
-        color-mix(in srgb, var(--interactive-accent) 28%, var(--background-modifier-border));
+        color-mix(
+            in srgb,
+            var(--interactive-accent) 28%,
+            var(--background-modifier-border)
+        );
     background: color-mix(
         in srgb,
         var(--interactive-accent) 6%,

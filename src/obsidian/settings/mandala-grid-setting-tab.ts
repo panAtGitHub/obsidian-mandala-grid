@@ -9,9 +9,16 @@ import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
 import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
 import { createSettingsFoldCard } from 'src/obsidian/settings/create-settings-fold-card';
+import { fitSettingsLabel } from 'src/obsidian/settings/fit-settings-label';
 
 export class MandalaGridSettingTab extends PluginSettingTab {
     plugin: MandalaGrid;
+    private labelCleanups: (() => void)[] = [];
+
+    hide(): void {
+        this.labelCleanups.forEach((cleanup) => cleanup());
+        this.labelCleanups = [];
+    }
     private readonly groupOpenState = new Map<string, boolean>([
         ['global-view', false],
         ['time-plan', false],
@@ -43,17 +50,23 @@ export class MandalaGridSettingTab extends PluginSettingTab {
 
     private createFoldCard(parent: HTMLElement, title: string, key: string) {
         const opened = this.groupOpenState.get(key) ?? false;
-        return createSettingsFoldCard({
+        const card = createSettingsFoldCard({
             parentEl: parent,
             title,
             opened,
             onToggle: (nextOpen) => {
                 this.groupOpenState.set(key, nextOpen);
             },
-        }).contentEl;
+        });
+        const label = card.headerEl.querySelector<HTMLElement>(
+            '.mandala-settings-card__title',
+        );
+        if (label) this.labelCleanups.push(fitSettingsLabel(label));
+        return card.contentEl;
     }
 
     display(): void {
+        this.hide();
         const { containerEl } = this;
         containerEl.empty();
         containerEl.addClass('mandala-plugin-settings');
@@ -89,6 +102,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                     });
             });
         renderMandalaCoreSettings({
+            registerCleanup: (cleanup) => this.labelCleanups.push(cleanup),
             parentEl: containerEl,
             state: {
                 view: {

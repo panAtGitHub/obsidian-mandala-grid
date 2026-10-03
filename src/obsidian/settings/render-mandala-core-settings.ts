@@ -1,4 +1,5 @@
 import { tx } from 'src/lang/translate';
+import { fitSettingsLabel } from 'src/obsidian/settings/fit-settings-label';
 import { Setting } from 'obsidian';
 import { lang } from 'src/lang/lang';
 import {
@@ -36,6 +37,7 @@ type RenderMandalaCoreSettingsOptions = {
         group: 'global-view' | 'time-plan',
     ) => HTMLElement;
     showDescriptions: boolean;
+    registerCleanup?: (cleanup: () => void) => void;
     showViewPresets?: boolean;
     showTimePlanEnabledToggle?: boolean;
     showTimePlanSection?: boolean;
@@ -182,6 +184,7 @@ export const renderMandalaCoreSettings = ({
     handlers,
     createGroupContainer,
     showDescriptions,
+    registerCleanup,
     showViewPresets = false,
     showTimePlanEnabledToggle = true,
     showTimePlanSection = true,
@@ -242,7 +245,11 @@ export const renderMandalaCoreSettings = ({
         presetButtons.forEach((button, presetId) => {
             const selected = presetId === currentPresetId;
             const label = button.dataset.label ?? '';
-            button.setText(`${selected ? '●' : '○'} ${label}`);
+            const labelEl = button.querySelector(
+                '.mandala-settings-preset-label',
+            );
+            if (labelEl)
+                labelEl.textContent = `${selected ? '●' : '○'} ${label}`;
             applyCssProps(button, {
                 border: selected
                     ? '1px solid var(--interactive-accent)'
@@ -324,6 +331,10 @@ export const renderMandalaCoreSettings = ({
                 attr: { type: 'button' },
             });
             button.dataset.label = tx(preset.label);
+            const labelEl = button.createSpan({
+                cls: 'mandala-settings-preset-label',
+                text: `○ ${tx(preset.label)}`,
+            });
             applyCssProps(button, {
                 'text-align': 'left',
                 padding: '8px 10px',
@@ -334,6 +345,7 @@ export const renderMandalaCoreSettings = ({
                 margin: '0',
             });
             button.addEventListener('click', () => applyPreset(preset.id));
+            registerCleanup?.(fitSettingsLabel(labelEl));
             presetButtons.set(preset.id, button);
         });
 
@@ -448,7 +460,7 @@ export const renderMandalaCoreSettings = ({
         previewSectionEl?.setText(
             tx(
                 '最大 section 示例：{0}',
-                resolveMaxSectionExample(currentSubgridMaxDepth),
+                tx(resolveMaxSectionExample(currentSubgridMaxDepth)),
             ),
         );
         previewBehaviorEl?.setText(
@@ -502,6 +514,12 @@ export const renderMandalaCoreSettings = ({
         showTimePlanEnabledToggle &&
         handlers.setTimePlanEnabled
     ) {
+        if (showDescriptions) {
+            timePlanContainer.createDiv({
+                cls: 'setting-item-description',
+                text: tx('启用后，可通过命令面板新建日计划九宫格。'),
+            });
+        }
         createMaybeDescriptionSetting(
             new Setting(timePlanContainer).setName(
                 texts?.timePlanEnabled ??
