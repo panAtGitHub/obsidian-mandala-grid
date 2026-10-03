@@ -110,7 +110,9 @@ export const onDocumentStateUpdate = (
         view.alignBranch.align(action);
     }
 
-    if (!container || !view.isViewOfFile) return;
+    // Embedded and detached views can share a document store owned by another
+    // view. Their edits must still reach the save queue while mounted.
+    if (!container) return;
 
     if (e.content || structuralChange) {
         const saveOptions = createSaveOptions(view, action);
