@@ -5,21 +5,16 @@
     --text-normal: var(--color-active-node);
 }
 
-.active-parent,
-.active-sibling {
-    background-color: var(--background-active-parent);
-    --text-normal: var(--color-active-parent);
-}
-
 .inactive-node {
     background-color: var(--background-active-parent);
     --text-normal: var(--color-active-parent);
     opacity: var(--inactive-card-opacity);
 }
 
-/* opacity*/
 .active-parent,
 .active-sibling {
+    background-color: var(--background-active-parent);
+    --text-normal: var(--color-active-parent);
     opacity: 0.8;
     --scrollbar-thumb-bg: var(--text-muted);
     --scrollbar-active-thumb-bg: var(--text-normal);

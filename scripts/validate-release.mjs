@@ -27,7 +27,8 @@ const RELEASE_ASSET_PATHS = [
     'temp/vault/.obsidian/plugins/mandala-grid-dev/styles.css',
 ];
 
-const BUILD_MANIFEST_PATH = 'temp/vault/.obsidian/plugins/mandala-grid-dev/manifest.json';
+const BUILD_MANIFEST_PATH =
+    'temp/vault/.obsidian/plugins/mandala-grid-dev/manifest.json';
 
 const errors = [];
 const warnings = [];
@@ -65,6 +66,7 @@ const assertNonEmptyFile = (relativePath) => {
 };
 
 const packageJson = readJson('package.json');
+const packageLock = readJson('package-lock.json');
 const manifest = readJson('manifest.json');
 const versions = readJson('versions.json');
 const buildManifest = existsSync(rootPath(BUILD_MANIFEST_PATH))
@@ -93,7 +95,9 @@ if (manifest) {
         addError("manifest.json id should not end with 'plugin'.");
     }
     if (id && !/^[a-z0-9-_]+$/.test(id)) {
-        addError('manifest.json id is invalid. Use lowercase letters, numbers, dashes, or underscores only.');
+        addError(
+            'manifest.json id is invalid. Use lowercase letters, numbers, dashes, or underscores only.',
+        );
     }
 
     const name = String(manifest.name ?? '');
@@ -118,7 +122,9 @@ if (manifest) {
         descriptionLower.includes('this is a plugin') ||
         descriptionLower.includes('this plugin allows')
     ) {
-        addWarning('Prefer a direct description over phrases like "This plugin ...".');
+        addWarning(
+            'Prefer a direct description over phrases like "This plugin ...".',
+        );
     }
     if (
         description &&
@@ -130,11 +136,27 @@ if (manifest) {
         addError('manifest.json description must end with one of . ? ! ).');
     }
     if (description.length > 250) {
-        addError('manifest.json description is too long. Keep it at or below 250 characters.');
+        addError(
+            'manifest.json description is too long. Keep it at or below 250 characters.',
+        );
     }
 
-    if (!/^[0-9.]+$/.test(String(manifest.version ?? ''))) {
-        addError('manifest.json version is invalid. Only numbers and dots are allowed.');
+    if (
+        typeof manifest.version !== 'string' ||
+        !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(manifest.version)
+    ) {
+        addError(
+            'manifest.json version must use x.y.z with no leading zeros, v prefix, or extra components.',
+        );
+    }
+
+    if (
+        process.env.RELEASE_TAG !== undefined &&
+        process.env.RELEASE_TAG !== manifest.version
+    ) {
+        addError(
+            `Release tag '${process.env.RELEASE_TAG}' must exactly match manifest version '${manifest.version}' (no v prefix).`,
+        );
     }
 
     if (typeof manifest.isDesktopOnly !== 'boolean') {
@@ -142,19 +164,27 @@ if (manifest) {
     }
 
     if (manifest.authorUrl === 'https://obsidian.md') {
-        addError('manifest.json authorUrl should not point to https://obsidian.md.');
+        addError(
+            'manifest.json authorUrl should not point to https://obsidian.md.',
+        );
     }
 
     if (
         typeof manifest.authorUrl === 'string' &&
         typeof packageJson?.repository === 'string' &&
-        manifest.authorUrl.toLowerCase().includes(packageJson.repository.toLowerCase())
+        manifest.authorUrl
+            .toLowerCase()
+            .includes(packageJson.repository.toLowerCase())
     ) {
-        addError('manifest.json authorUrl should not point to the plugin repository URL.');
+        addError(
+            'manifest.json authorUrl should not point to the plugin repository URL.',
+        );
     }
 
     if (manifest.fundingUrl === 'https://obsidian.md/pricing') {
-        addError('manifest.json fundingUrl should not point to https://obsidian.md/pricing.');
+        addError(
+            'manifest.json fundingUrl should not point to https://obsidian.md/pricing.',
+        );
     }
 
     if (manifest.fundingUrl === '') {
@@ -180,12 +210,25 @@ if (versions && manifest) {
     }
 }
 
+if (packageLock && packageJson) {
+    if (
+        packageLock.version !== packageJson.version ||
+        packageLock.packages?.['']?.version !== packageJson.version
+    ) {
+        addError(
+            'package-lock.json root versions must match package.json version.',
+        );
+    }
+}
+
 if (!assertFileExists('README.md')) {
     // already recorded
 }
 
 if (!existsSync(rootPath('LICENSE')) && !existsSync(rootPath('LICENCE'))) {
-    addError('Missing license file. Add LICENSE or LICENCE at the repository root.');
+    addError(
+        'Missing license file. Add LICENSE or LICENCE at the repository root.',
+    );
 }
 
 for (const assetPath of RELEASE_ASSET_PATHS) {
@@ -193,7 +236,15 @@ for (const assetPath of RELEASE_ASSET_PATHS) {
 }
 
 if (buildManifest && manifest) {
-    const compareKeys = ['id', 'name', 'description', 'author', 'version', 'minAppVersion', 'isDesktopOnly'];
+    const compareKeys = [
+        'id',
+        'name',
+        'description',
+        'author',
+        'version',
+        'minAppVersion',
+        'isDesktopOnly',
+    ];
     for (const key of compareKeys) {
         if (buildManifest[key] !== manifest[key]) {
             addError(
@@ -204,7 +255,9 @@ if (buildManifest && manifest) {
 }
 
 if (!buildManifest) {
-    addError(`Missing ${BUILD_MANIFEST_PATH}. Run npm run build before npm run validate:release.`);
+    addError(
+        `Missing ${BUILD_MANIFEST_PATH}. Run npm run build before npm run validate:release.`,
+    );
 }
 
 const releaseWorkflowPath = '.github/workflows/release.yml';
@@ -212,7 +265,9 @@ if (assertFileExists(releaseWorkflowPath, releaseWorkflowPath)) {
     const workflowText = readFileSync(rootPath(releaseWorkflowPath), 'utf8');
     for (const assetPath of RELEASE_ASSET_PATHS) {
         if (!workflowText.includes(assetPath)) {
-            addError(`release.yml does not reference expected asset path '${assetPath}'.`);
+            addError(
+                `release.yml does not reference expected asset path '${assetPath}'.`,
+            );
         }
     }
 }

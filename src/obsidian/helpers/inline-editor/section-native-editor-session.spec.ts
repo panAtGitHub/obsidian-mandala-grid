@@ -168,7 +168,7 @@ const createView = ({
     const setViewStateMock = vi.fn(async () => {
         sourceLeaf.view = { getState: () => ({}) };
     });
-    const setEphemeralStateMock = vi.fn();
+    const setEphemeralStateMock = vi.fn<[unknown], void>();
     const setActiveLeafMock = vi.fn();
     const getLeafMock = vi.fn();
     markdownView.editor.setCursor = setCursorMock;
