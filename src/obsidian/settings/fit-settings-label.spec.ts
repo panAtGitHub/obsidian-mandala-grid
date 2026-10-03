@@ -21,6 +21,9 @@ describe('fitSettingsLabel', () => {
             },
         );
         const label = document.createElement('span');
+        const card = document.createElement('div');
+        card.className = 'mandala-settings-card';
+        card.appendChild(label);
         label.style.fontSize = '20px';
         Object.defineProperty(label, 'clientWidth', {
             configurable: true,
@@ -28,7 +31,7 @@ describe('fitSettingsLabel', () => {
         });
         Object.defineProperty(label, 'scrollWidth', { value: contentWidth });
         const cleanup = fitSettingsLabel(label);
-        return { label, cleanup, disconnect, resize: () => resize() };
+        return { label, card, cleanup, disconnect, resize: () => resize() };
     };
 
     it('keeps the default font when text fits', () => {
@@ -56,5 +59,17 @@ describe('fitSettingsLabel', () => {
         resize();
         expect(label.style.fontSize).toBe('20px');
         cleanup();
+    });
+    it('fits immediately when opening a card and removes its click listener', () => {
+        const { label, card, cleanup, resize } = setup(110);
+        Object.defineProperty(label, 'clientWidth', { value: 0 });
+        resize();
+        Object.defineProperty(label, 'clientWidth', { value: 100 });
+        card.click();
+        expect(Number.parseFloat(label.style.fontSize)).toBeCloseTo(20 / 1.1);
+        cleanup();
+        label.style.fontSize = '20px';
+        card.click();
+        expect(label.style.fontSize).toBe('20px');
     });
 });

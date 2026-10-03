@@ -15,6 +15,10 @@ export const fitSettingsLabel = (label: HTMLElement): (() => void) => {
     };
     const observer = new ownerWindow.ResizeObserver(fit);
     const textObserver = new ownerWindow.MutationObserver(fit);
+    // Fit immediately when a collapsed card opens, including inactive windows
+    // where resize observation can wait until the next paint.
+    const card = label.closest('.mandala-settings-card');
+    card?.addEventListener('click', fit);
     observer.observe(label);
     textObserver.observe(label, {
         childList: true,
@@ -25,5 +29,6 @@ export const fitSettingsLabel = (label: HTMLElement): (() => void) => {
     return () => {
         observer.disconnect();
         textObserver.disconnect();
+        card?.removeEventListener('click', fit);
     };
 };
