@@ -5,12 +5,15 @@ This repository syncs the built plugin into the local Obsidian plugin directory 
 ## Source and target
 
 - Source build directory: `temp/vault/.obsidian/plugins/mandala-grid-dev/`
-- Target plugin directory: `/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/`
+- Target plugin directory: `C:\iWork\obWin\.obsidian\plugins\mandala-grid\`
 
 ## Safety rule
 
-- The sync command must continue to exclude `data.json`.
-- Current evidence: `package.json` uses `rsync -av --delete --exclude 'data.json' ...`.
+- `npm run sync:obsidian` runs `scripts/sync-obsidian.mjs` using Node.js on Windows.
+- Only the three build assets below are copied; `data.json` and other files are preserved.
+- The script requires an existing vault configuration directory and rejects redirected target directories and linked asset files.
+- Source assets are checked before copying, and copied files and existing settings are verified afterward.
+- Use `npm run build:sync` to build and sync in one command. Development watch builds stay in the source build directory above.
 
 ## Expected synced files
 
@@ -24,4 +27,4 @@ After running sync, verify that:
 
 1. `main.js` exists in the target plugin directory.
 2. `manifest.json` exists in the target plugin directory.
-3. `data.json` still exists and was not overwritten.
+3. Existing `data.json` contents are unchanged; absent settings are not created by sync.

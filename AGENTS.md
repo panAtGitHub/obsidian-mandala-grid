@@ -133,5 +133,5 @@ ESLint 配置：`.eslintrc`
 -   默认交付流程（完成代码改动后）：
     1. `git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`
     2. `npm run validate:official`
-    3. `rsync -av --delete --exclude 'data.json' temp/vault/.obsidian/plugins/mandala-grid-dev/ "/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid/"`
+    3. `npm run sync:obsidian`（同步到 `C:\iWork\obWin\.obsidian\plugins\mandala-grid\`，保留 `data.json`）
    -   提交信息要求：**每次提交必须包含中英文总结**，禁止使用固定的 `chore: update ...` 占位提交信息。

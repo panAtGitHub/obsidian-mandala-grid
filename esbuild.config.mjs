@@ -12,11 +12,7 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = process.argv[2] === 'production';
-const DEV_PLUGIN_DIR =
-    '/Users/panxiaorong/Library/Mobile Documents/iCloud~md~obsidian/Documents/obsidian/.obsidian/plugins/mandala-grid';
-const BUILD_OUTDIR = prod
-    ? 'temp/vault/.obsidian/plugins/mandala-grid-dev'
-    : DEV_PLUGIN_DIR;
+const BUILD_OUTDIR = 'temp/vault/.obsidian/plugins/mandala-grid-dev';
 
 const options = {
     banner: {
