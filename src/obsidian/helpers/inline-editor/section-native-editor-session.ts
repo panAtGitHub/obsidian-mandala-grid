@@ -34,6 +34,8 @@ let sectionSessionMaintenancePromise: Promise<void> | null = null;
 const ACTION_SAVE_ID = 'mandala-section-edit-save';
 const SESSION_FOLDER = 'Mandala Grid Section Edit Sessions';
 const EMPTY_BODY_ANCHOR = '\u200b';
+const EDITOR_READY_TIMEOUT_MS = 1000;
+const EDITOR_READY_POLL_MS = 20;
 
 const isAlreadyExistsError = (error: unknown) =>
     error instanceof Error &&
@@ -160,6 +162,43 @@ const normalizeSessionCursor = (
     const anchorCh = bodyLine.indexOf(EMPTY_BODY_ANCHOR);
     if (anchorCh === -1 || cursor.ch <= anchorCh) return cursor;
     return { line: cursor.line, ch: cursor.ch - 1 };
+};
+
+const waitForEditorTargetReady = async (
+    view: MandalaView,
+    markdownView: MarkdownView,
+    tempFilePath: string,
+    content: string,
+    target: EditorPosition,
+): Promise<boolean> => {
+    const deadline = Date.now() + EDITOR_READY_TIMEOUT_MS;
+    const expectedContent = content.replace(/\r\n?/g, '\n');
+    while (true) {
+        // Opening a different file or view cancels this pending focus request.
+        if (
+            view.leaf.view !== markdownView ||
+            markdownView.file?.path !== tempFilePath
+        ) {
+            return false;
+        }
+        const editor = markdownView.editor;
+        if (
+            markdownView.getMode() === 'source' &&
+            editor.getValue().replace(/\r\n?/g, '\n') === expectedContent &&
+            target.line >= 0 &&
+            target.line <= editor.lastLine() &&
+            target.ch >= 0 &&
+            target.ch <= editor.getLine(target.line).length
+        ) {
+            return true;
+        }
+        if (Date.now() >= deadline) {
+            throw new Error('Native editor content did not become ready');
+        }
+        await new Promise<void>((resolve) =>
+            window.setTimeout(resolve, EDITOR_READY_POLL_MS),
+        );
+    }
 };
 
 const setCursorInEditor = (
@@ -422,6 +461,14 @@ export const startSectionNativeEditorSession = async (
             await markdownView.setState({ mode: 'source' }, { history: false });
         }
         addSectionEditorActions(view, markdownView);
+        const ready = await waitForEditorTargetReady(
+            view,
+            markdownView,
+            tempPath,
+            nativeContent.content,
+            initialPlacement.cursor,
+        );
+        if (!ready) return;
         setCursorInEditor(markdownView, initialPlacement.cursor);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
     cleanupSectionSessionFolder,
@@ -112,9 +112,13 @@ let viewSequence = 0;
 const createView = ({
     sectionContent,
     variant = 'default',
+    editorReadyDelayMs,
+    initialEditorContent = '',
 }: {
     sectionContent: string;
     variant?: 'default' | 'day-plan';
+    editorReadyDelayMs?: number | null;
+    initialEditorContent?: string;
 }) => {
     const markdownView = createMarkdownViewMock();
     const sourceFile = createTFileMock(`daily-${++viewSequence}.md`);
@@ -163,7 +167,17 @@ const createView = ({
     const openFileMock = vi.fn(async (file: TFile) => {
         Object.assign(markdownView, { file });
         sourceLeaf.view = markdownView;
-        editorValue = createdContents.get(file.path) ?? editorValue;
+        const openedContent = createdContents.get(file.path) ?? editorValue;
+        if (editorReadyDelayMs === undefined) {
+            editorValue = openedContent;
+        } else {
+            editorValue = initialEditorContent;
+            if (editorReadyDelayMs !== null) {
+                window.setTimeout(() => {
+                    editorValue = openedContent;
+                }, editorReadyDelayMs);
+            }
+        }
     });
     const setViewStateMock = vi.fn(async () => {
         sourceLeaf.view = { getState: () => ({}) };
@@ -280,10 +294,140 @@ const createView = ({
 };
 
 describe('section-native-editor-session initial cursor placement', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     beforeEach(() => {
         vi.clearAllMocks();
         getSectionContentBySection.mockReset();
         applySectionPatch.mockReset();
+    });
+
+    it('waits for delayed body content before setting the cursor once', async () => {
+        vi.useFakeTimers();
+        const sectionContent = '### 09-12';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, setCursorMock, focusMock } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            editorReadyDelayMs: 120,
+        });
+        const opening = startSectionNativeEditorSession(
+            view as never,
+            'node-1',
+        );
+        await vi.advanceTimersByTimeAsync(20);
+        expect(setCursorMock).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(120);
+        await opening;
+        expect(setCursorMock).toHaveBeenCalledTimes(1);
+        expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 0 });
+        expect(focusMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits even when stale editor text has a valid target position', async () => {
+        vi.useFakeTimers();
+        const sectionContent = '### 09-12\n正文';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, setCursorMock } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            editorReadyDelayMs: 120,
+            initialEditorContent: '### old\nprevious body',
+        });
+        const opening = startSectionNativeEditorSession(
+            view as never,
+            'node-1',
+        );
+        await vi.advanceTimersByTimeAsync(20);
+        expect(setCursorMock).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(120);
+        await opening;
+        expect(setCursorMock).toHaveBeenCalledTimes(1);
+        expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 2 });
+    });
+
+    it('stops waiting with an error when editor content never becomes ready', async () => {
+        vi.useFakeTimers();
+        const sectionContent = '### 09-12';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, setCursorMock, focusMock } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            editorReadyDelayMs: null,
+        });
+        const opening = startSectionNativeEditorSession(
+            view as never,
+            'node-1',
+        );
+        await vi.advanceTimersByTimeAsync(1200);
+        await opening;
+        expect(setCursorMock).not.toHaveBeenCalled();
+        expect(focusMock).not.toHaveBeenCalled();
+        expect(loggerErrorMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'Native editor content did not become ready',
+            }),
+        );
+    });
+
+    it('accepts editor content with normalized Windows line endings', async () => {
+        const sectionContent = '### 09-12\r\n正文';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, setCursorMock } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            editorReadyDelayMs: null,
+            initialEditorContent: '### 09-12\n正文',
+        });
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        expect(setCursorMock).toHaveBeenCalledTimes(1);
+        expect(setCursorMock).toHaveBeenCalledWith({ line: 1, ch: 2 });
+    });
+
+    it('cancels a pending cursor handoff when the leaf view is replaced', async () => {
+        vi.useFakeTimers();
+        const sectionContent = '### 09-12';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, setCursorMock, focusMock } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            editorReadyDelayMs: 120,
+        });
+        const opening = startSectionNativeEditorSession(
+            view as never,
+            'node-1',
+        );
+        await vi.advanceTimersByTimeAsync(20);
+        view.leaf.view = createMarkdownViewMock();
+        await vi.advanceTimersByTimeAsync(120);
+        await opening;
+        expect(setCursorMock).not.toHaveBeenCalled();
+        expect(focusMock).not.toHaveBeenCalled();
+        expect(loggerErrorMock).not.toHaveBeenCalled();
+    });
+
+    it('does not refocus after the user switches to another file while waiting', async () => {
+        vi.useFakeTimers();
+        const sectionContent = '### 09-12';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, markdownView, setCursorMock, focusMock } = createView({
+            sectionContent,
+            variant: 'day-plan',
+            editorReadyDelayMs: 120,
+        });
+        const opening = startSectionNativeEditorSession(
+            view as never,
+            'node-1',
+        );
+        await vi.advanceTimersByTimeAsync(20);
+        Object.assign(markdownView, { file: createTFileMock('another.md') });
+        await vi.advanceTimersByTimeAsync(120);
+        await opening;
+        expect(setCursorMock).not.toHaveBeenCalled();
+        expect(focusMock).not.toHaveBeenCalled();
+        expect(loggerErrorMock).not.toHaveBeenCalled();
     });
 
     it('places the first day-plan edit cursor below the heading when only a heading exists', async () => {
