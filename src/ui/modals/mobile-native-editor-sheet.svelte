@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { createEventDispatcher } from 'svelte';
     import InlineEditor from 'src/mandala-cell/view/content/inline-editor.svelte';
 
@@ -46,7 +47,7 @@
         <button
             class="header-btn settings-btn"
             on:click|stopPropagation={toggleSettings}
-            aria-label="设置"
+            aria-label={tx('设置')}
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -66,9 +67,9 @@
                 <circle cx="12" cy="12" r="3" />
             </svg>
         </button>
-        <div class="mobile-edit-title">编辑格子</div>
+        <div class="mobile-edit-title">{tx('编辑格子')}</div>
         <button class="header-btn save-btn" on:click|stopPropagation={onSave}
-            >保存</button
+            >{tx('保存')}</button
         >
     </div>
 
@@ -76,7 +77,7 @@
         {#if showSettings}
             <div class="mobile-settings-panel" on:click|stopPropagation>
                 <div class="settings-row">
-                    <span class="settings-label">字号</span>
+                    <span class="settings-label">{tx('字号')}</span>
                     <div class="font-size-controls">
                         <button
                             class="control-btn"

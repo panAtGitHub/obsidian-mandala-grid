@@ -1,8 +1,7 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Pen, Trash } from 'lucide-svelte';
-    import {
-        modKeyDictionary
-    } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key-dictionary';
+    import { modKeyDictionary } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key-dictionary';
     import { ViewHotkey } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import EditorState from './editor-state/render-editor-state.svelte';
 
@@ -23,10 +22,10 @@
     {/if}
 </div>
 {#if !hotkey.key}
-    <kbd class="blank-hotkey">空</kbd>
+    <kbd class="blank-hotkey">{tx('空')}</kbd>
 {:else}
     {#if hotkey.editorState !== 'both'}
-        <EditorState {hotkey}/>
+        <EditorState {hotkey} />
     {/if}
     <kbd class="hotkey-key">{hotkey.key}</kbd>
     {#each hotkey.modifiers as modifier (modifier)}

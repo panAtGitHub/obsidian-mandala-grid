@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Platform } from 'obsidian';
     import { lang } from 'src/lang/lang';
     import { MoreVertical, Wrench } from 'lucide-svelte';
@@ -118,7 +119,7 @@
             <Button
                 active={$showOptionsMenu}
                 classes="control-item js-view-options-trigger topbar-button"
-                label="视图选项"
+                label={tx('视图选项')}
                 on:click={() => {
                     toggleOptionsMenu();
                     closeMobileControls();
@@ -180,7 +181,7 @@
                     <Button
                         active={$showOptionsMenu}
                         classes="control-item js-view-options-trigger topbar-button"
-                        label="视图选项"
+                        label={tx('视图选项')}
                         on:click={toggleOptionsMenu}
                         tooltipPosition="bottom"
                     >

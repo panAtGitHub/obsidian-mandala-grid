@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('obsidian', () => ({
+    getLanguage: () => 'zh',
     Notice: mocks.Notice,
 }));
 
@@ -113,11 +114,8 @@ describe('exportCurrentViewPng', () => {
             filePath: '/tmp/mandala.png',
         });
         const writeFile = vi.fn(
-            (
-                _path: string,
-                _data: Uint8Array,
-                cb: (err?: Error) => void,
-            ) => cb(),
+            (_path: string, _data: Uint8Array, cb: (err?: Error) => void) =>
+                cb(),
         );
 
         (
@@ -165,9 +163,9 @@ describe('exportCurrentViewPng', () => {
         });
         expect(clone?.classList.contains('mandala-white-theme')).toBe(true);
         expect(clone?.style.transform).toBe('translate(0px, 20px) scale(1)');
-        expect(document.body.querySelectorAll('.mandala-export-hide-controls')).toHaveLength(
-            0,
-        );
+        expect(
+            document.body.querySelectorAll('.mandala-export-hide-controls'),
+        ).toHaveLength(0);
         expect(document.body.contains(target)).toBe(false);
         expect(showSaveDialog).toHaveBeenCalledTimes(1);
         expect(writeFile).toHaveBeenCalledWith(

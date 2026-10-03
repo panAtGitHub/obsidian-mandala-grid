@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 
 import { exportCurrentViewPdf } from './export/pdf-export';
@@ -46,7 +47,7 @@ export const createViewOptionsExportActions = ({
     return {
         async exportCurrentFile() {
             if (isMobile) {
-                new Notice('移动端不支持导出，请在桌面端操作');
+                new Notice(tx('移动端不支持导出，请在桌面端操作'));
                 return;
             }
             await runExport(getExportMode());

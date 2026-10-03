@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { derived } from 'src/shared/store/derived';
     import {
@@ -248,7 +249,7 @@
                     {/key}
                 </div>
             {:else}
-                <div class="no-selection">请选择一个格子进行编辑</div>
+                <div class="no-selection">{tx('请选择一个格子进行编辑')}</div>
             {/if}
             {#if Platform.isMobile}
                 <DetailSidebarFloatingActions

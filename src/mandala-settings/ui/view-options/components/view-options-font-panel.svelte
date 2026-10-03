@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { RotateCcw, Type } from 'lucide-svelte';
 
     export let isMobile = false;
@@ -7,8 +8,9 @@
     export let panelTitle = '';
     export let panelDescription = '';
     export let gridSectionTitle = '';
-    export let headingsSectionTitle =
-        '标题字体大小（em）（可理解为正文字体的放大倍数）';
+    export let headingsSectionTitle = tx(
+        '标题字体大小（em）（可理解为正文字体的放大倍数）',
+    );
 
     export let fontSize3x3 = 16;
     export let fontSize9x9 = 11;
@@ -51,12 +53,18 @@
     let resolvedPanelDescription = '';
     let resolvedGridSectionTitle = '';
 
-    $: resolvedPanelTitle = panelTitle || `字体设置（${isMobile ? '手机端' : 'PC端'}）`;
+    $: resolvedPanelTitle =
+        panelTitle ||
+        tx('字体设置（{0}）', isMobile ? tx('手机端') : tx('PC端'));
     $: resolvedPanelDescription =
         panelDescription ||
-        `对 3x3 视图、9x9 视图、周计划视图、侧边栏${showCellQuickPreviewDialog ? '、快速预览浮层' : ''} 字体进行调整`;
+        tx(
+            '对 3x3 视图、9x9 视图、周计划视图、侧边栏{0} 字体进行调整',
+            showCellQuickPreviewDialog ? tx('、快速预览浮层') : '',
+        );
     $: resolvedGridSectionTitle =
-        gridSectionTitle || `格子字体大小（${isMobile ? '手机端' : 'PC端'}）`;
+        gridSectionTitle ||
+        tx('格子字体大小（{0}）', isMobile ? tx('手机端') : tx('PC端'));
 </script>
 
 {#if showTrigger}
@@ -78,10 +86,12 @@
 {#if show}
     <div class="view-options-menu__submenu">
         <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">{resolvedGridSectionTitle}</div>
+            <div class="view-options-menu__subsection-title">
+                {resolvedGridSectionTitle}
+            </div>
 
             <div class="view-options-menu__row">
-                <span>3x3视图：</span>
+                <span>{tx('3x3视图：')}</span>
                 <div class="view-options-menu__range">
                     <button
                         class="view-options-menu__range-step"
@@ -123,7 +133,7 @@
                         class="view-options-menu__reset"
                         type="button"
                         on:click={resetFontSize3x3}
-                        aria-label="重置为默认"
+                        aria-label={tx('重置为默认')}
                     >
                         <RotateCcw size={14} />
                     </button>
@@ -131,7 +141,7 @@
             </div>
 
             <div class="view-options-menu__row">
-                <span>9x9视图：</span>
+                <span>{tx('9x9视图：')}</span>
                 <div class="view-options-menu__range">
                     <button
                         class="view-options-menu__range-step"
@@ -173,7 +183,7 @@
                         class="view-options-menu__reset"
                         type="button"
                         on:click={resetFontSize9x9}
-                        aria-label="重置为默认"
+                        aria-label={tx('重置为默认')}
                     >
                         <RotateCcw size={14} />
                     </button>
@@ -182,7 +192,7 @@
 
             {#if weekPlanEnabled}
                 <div class="view-options-menu__row">
-                    <span>nx9视图：</span>
+                    <span>{tx('nx9视图：')}</span>
                     <div class="view-options-menu__range">
                         <button
                             class="view-options-menu__range-step"
@@ -224,7 +234,7 @@
                             class="view-options-menu__reset"
                             type="button"
                             on:click={resetFontSize7x9}
-                            aria-label="重置为默认"
+                            aria-label={tx('重置为默认')}
                         >
                             <RotateCcw size={14} />
                         </button>
@@ -233,7 +243,7 @@
             {/if}
 
             <div class="view-options-menu__row">
-                <span>右侧详情栏：</span>
+                <span>{tx('右侧详情栏：')}</span>
                 <div class="view-options-menu__range">
                     <button
                         class="view-options-menu__range-step"
@@ -276,7 +286,7 @@
                         class="view-options-menu__reset"
                         type="button"
                         on:click={resetFontSizeSidebar}
-                        aria-label="重置为默认"
+                        aria-label={tx('重置为默认')}
                     >
                         <RotateCcw size={14} />
                     </button>
@@ -285,7 +295,7 @@
 
             {#if showCellQuickPreviewDialog}
                 <div class="view-options-menu__row">
-                    <span>快速预览浮层：</span>
+                    <span>{tx('快速预览浮层：')}</span>
                     <div class="view-options-menu__range">
                         <button
                             class="view-options-menu__range-step"
@@ -332,7 +342,7 @@
                             class="view-options-menu__reset"
                             type="button"
                             on:click={resetFontSizeCellPreview}
-                            aria-label="重置为默认"
+                            aria-label={tx('重置为默认')}
                         >
                             <RotateCcw size={14} />
                         </button>
@@ -390,7 +400,7 @@
                         class="view-options-menu__reset"
                         type="button"
                         on:click={resetHeadingsFontSize}
-                        aria-label="重置为默认"
+                        aria-label={tx('重置为默认')}
                     >
                         <RotateCcw size={14} />
                     </button>

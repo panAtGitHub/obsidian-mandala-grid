@@ -21,6 +21,12 @@ import { Hotkey } from 'obsidian';
 
 export type SettingsActions =
     | {
+          type: 'settings/general/set-interface-language';
+          payload: {
+              language: import('src/lang/interface-language').InterfaceLanguage;
+          };
+      }
+    | {
           type: 'settings/documents/set-view-type';
           payload: {
               path: string;

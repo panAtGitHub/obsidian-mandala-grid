@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Hotkey } from 'obsidian';
     import { RotateCcw, X } from 'lucide-svelte';
 
@@ -114,7 +115,7 @@
             bind:value={key}
             class="search-input input hotkey-key"
             on:keydown={onKeyDown}
-            placeholder="按键"
+            placeholder={tx('按键')}
             spellcheck="false"
             type="text"
         />

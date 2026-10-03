@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import type { LastExportPreset } from 'src/mandala-settings/state/settings-type';
 import type { MandalaView } from 'src/view/view';
@@ -43,13 +44,13 @@ export const exportCurrentViewPng = async ({
             pixelRatio?: number;
         },
     ) => {
-        const loadingNotice = new Notice('正在导出 PNG...', 0);
+        const loadingNotice = new Notice(tx('正在导出 PNG...'), 0);
         let dataUrl = '';
         try {
             dataUrl = await renderToPNGDataUrl(target, options);
         } catch {
             loadingNotice.hide();
-            new Notice('导出失败，请稍后再试。');
+            new Notice(tx('导出失败，请稍后再试。'));
             closeExportMode();
             return;
         }
@@ -65,7 +66,7 @@ export const exportCurrentViewPng = async ({
 
         if (dialog) {
             const result = await dialog.showSaveDialog({
-                title: '导出 PNG',
+                title: tx('导出 PNG'),
                 defaultPath: defaultName,
                 filters: [{ name: 'PNG', extensions: ['png'] }],
             });
@@ -73,7 +74,7 @@ export const exportCurrentViewPng = async ({
                 const fs = electronRequire?.('fs') as ElectronFs | undefined;
                 if (!fs) {
                     loadingNotice.hide();
-                    new Notice('导出失败，请稍后再试。');
+                    new Notice(tx('导出失败，请稍后再试。'));
                     closeExportMode();
                     return;
                 }
@@ -86,9 +87,9 @@ export const exportCurrentViewPng = async ({
                 fs.writeFile(result.filePath, bytes, (err) => {
                     loadingNotice.hide();
                     if (err) {
-                        new Notice('导出失败，请稍后再试。');
+                        new Notice(tx('导出失败，请稍后再试。'));
                     } else {
-                        new Notice('PNG 导出完成。');
+                        new Notice(tx('PNG 导出完成。'));
                         persistLastExportPreset(exportPreset);
                     }
                 });
@@ -192,7 +193,7 @@ export const exportCurrentViewPng = async ({
 
     const target = getExportTarget();
     if (!target) {
-        new Notice('未找到可导出的视图区域。');
+        new Notice(tx('未找到可导出的视图区域。'));
         return;
     }
 

@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import { isEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import type { MandalaView } from 'src/view/view';
@@ -41,7 +42,10 @@ export const createNextNx9Core = (
 
         if (isEmptyMandalaContent(previousCoreContent)) {
             new Notice(
-                `请先填写核心 ${previousCoreSection} 的中心格内容，再创建新的核心九宫格。`,
+                tx(
+                    '请先填写核心 {0} 的中心格内容，再创建新的核心九宫格。',
+                    previousCoreSection,
+                ),
             );
             return false;
         }

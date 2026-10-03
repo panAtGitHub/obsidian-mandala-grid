@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { Printer, Settings2, Trash2, X } from 'lucide-svelte';
     import { Keyboard } from 'lucide-svelte';
@@ -67,18 +68,10 @@
         exportModeModalViewId,
         openExportModeModalForView,
     } from './export-mode-modal-store';
-    import {
-        createViewOptionsSettingsActions,
-    } from './view-options-settings-actions';
-    import {
-        createViewOptionsExportActions,
-    } from './view-options-export-actions';
-    import {
-        createViewOptionsExportModalState,
-    } from './view-options-export-modal-state';
-    import {
-        createViewOptionsDocumentActions,
-    } from './view-options-document-actions';
+    import { createViewOptionsSettingsActions } from './view-options-settings-actions';
+    import { createViewOptionsExportActions } from './view-options-export-actions';
+    import { createViewOptionsExportModalState } from './view-options-export-modal-state';
+    import { createViewOptionsDocumentActions } from './view-options-document-actions';
     import { openCurrentFileMandalaSettingsModal } from 'src/obsidian/modals/current-file-mandala-settings-modal';
 
     const dispatch = createEventDispatcher<{ close: void }>();
@@ -245,12 +238,12 @@
     type ExportMode = 'png-square' | 'png-screen' | 'pdf-a4';
     let exportMode: ExportMode = 'png-screen';
     let includeSidebarInPngScreen = true;
-    let exportModeLabel = 'PNG（屏幕范围）';
-    let exportModeHint = '包含侧边栏';
-    let appearanceStyleLabel = '风格：沉浸';
-    let appearanceShapeLabel = '形状：自适应';
-    let appearanceBackgroundLabel = '背景：无背景';
-    let appearanceOrientationLabel = '方位：从左到右';
+    let exportModeLabel = tx('PNG（屏幕范围）');
+    let exportModeHint = tx('包含侧边栏');
+    let appearanceStyleLabel = tx('风格：沉浸');
+    let appearanceShapeLabel = tx('形状：自适应');
+    let appearanceBackgroundLabel = tx('背景：无背景');
+    let appearanceOrientationLabel = tx('方位：从左到右');
     let showGridHighlightInExport = true;
     const EXPORT_HIDE_HIGHLIGHT_CLASS = 'mandala-export-hide-highlight';
 
@@ -276,44 +269,49 @@
 
     $: exportModeLabel =
         exportMode === 'png-square'
-            ? 'PNG（格子范围）'
+            ? tx('PNG（格子范围）')
             : exportMode === 'pdf-a4'
               ? 'PDF（A4）'
-              : 'PNG（屏幕范围）';
+              : tx('PNG（屏幕范围）');
     $: exportModeHint =
         exportMode === 'png-screen'
             ? includeSidebarInPngScreen
-                ? '包含侧边栏'
-                : '不含侧边栏'
+                ? tx('包含侧边栏')
+                : tx('不含侧边栏')
             : exportMode === 'pdf-a4'
               ? $a4Orientation === 'landscape'
-                  ? '横向'
-                  : '纵向'
+                  ? tx('横向')
+                  : tx('纵向')
               : $squareLayout
-                ? '正方形留白'
-                : '自适应长方形';
-    $: exportActionLabel = exportMode === 'pdf-a4' ? '导出 PDF' : '导出 PNG';
-    $: appearanceStyleLabel = $whiteThemeMode ? '风格：全景' : '风格：沉浸';
-    $: appearanceShapeLabel = $squareLayout ? '形状：正方形' : '形状：自适应';
+                ? tx('正方形留白')
+                : tx('自适应长方形');
+    $: exportActionLabel =
+        exportMode === 'pdf-a4' ? tx('导出 PDF') : tx('导出 PNG');
+    $: appearanceStyleLabel = $whiteThemeMode
+        ? tx('风格：全景')
+        : tx('风格：沉浸');
+    $: appearanceShapeLabel = $squareLayout
+        ? tx('形状：正方形')
+        : tx('形状：自适应');
     $: appearanceBackgroundLabel =
         $backgroundMode === 'custom'
-            ? '背景：色块'
+            ? tx('背景：色块')
             : $backgroundMode === 'gray'
-              ? '背景：灰色间隔'
-              : '背景：无背景';
+              ? tx('背景：灰色间隔')
+              : tx('背景：无背景');
     $: appearanceOrientationLabel = (() => {
         if ($selectedLayoutId === 'builtin:south-start') {
-            return '方位：从南开始';
+            return tx('方位：从南开始');
         }
         if ($selectedLayoutId === 'builtin:left-to-right') {
-            return '方位：从左到右';
+            return tx('方位：从左到右');
         }
         const selectedCustomLayout =
             $customLayouts.find((layout) => layout.id === $selectedLayoutId) ??
             null;
         return selectedCustomLayout
-            ? `方位：自定义 / ${selectedCustomLayout.name}`
-            : '方位：从左到右';
+            ? tx('方位：自定义 / {0}', selectedCustomLayout.name)
+            : tx('方位：从左到右');
     })();
     $: if (
         isExportModeModalOpen &&
@@ -662,7 +660,7 @@
     const applyLastExportPreset = () => {
         const preset = $lastExportPresetStore;
         if (!preset) {
-            new Notice('暂无上一次导出设置。');
+            new Notice(tx('暂无上一次导出设置。'));
             return;
         }
         applyPrintConfig({
@@ -794,7 +792,7 @@
 
     const openCurrentFileSettings = () => {
         if (!view.file) {
-            new Notice('未找到当前文件。');
+            new Notice(tx('未找到当前文件。'));
             return;
         }
         openCurrentFileMandalaSettingsModal(view);
@@ -855,12 +853,20 @@
         isMobile,
         show: true,
         showTrigger: false,
-        panelTitle: `导出字体设置（${isMobile ? '手机端' : 'PC端'}）`,
-        panelDescription:
+        panelTitle: tx(
+            '导出字体设置（{0}）',
+            isMobile ? tx('手机端') : tx('PC端'),
+        ),
+        panelDescription: tx(
             '仅本次导出会话生效，可分别调整 3x3、9x9、nx9、右侧详情栏与标题字号',
-        gridSectionTitle: `格子字体大小（导出 / ${isMobile ? '手机端' : 'PC端'}）`,
-        headingsSectionTitle:
+        ),
+        gridSectionTitle: tx(
+            '格子字体大小（导出 / {0}）',
+            isMobile ? tx('手机端') : tx('PC端'),
+        ),
+        headingsSectionTitle: tx(
             '标题字体大小（导出，em，可理解为正文字体的放大倍数）',
+        ),
         fontSize3x3: $fontSize3x3,
         fontSize9x9: $fontSize9x9,
         fontSize7x9: $fontSize7x9,
@@ -999,7 +1005,11 @@
             'scroll',
             handleViewportChange,
         );
-        activeDocument.removeEventListener('focusin', handleViewportChange, true);
+        activeDocument.removeEventListener(
+            'focusin',
+            handleViewportChange,
+            true,
+        );
         mobileBoundsStyle = '';
     };
 
@@ -1048,23 +1058,23 @@
     >
         {#if isMobile}
             <div class="mobile-modal-header">
-                <div class="mobile-modal-title">视图选项</div>
+                <div class="mobile-modal-title">{tx('视图选项')}</div>
                 <button
                     class="mobile-done-button"
                     on:click={closeMenu}
-                    aria-label="关闭视图选项"
+                    aria-label={tx('关闭视图选项')}
                 >
                     <X size={18} />
-                    <span>关闭</span>
+                    <span>{tx('关闭')}</span>
                 </button>
             </div>
         {:else}
             <div class="view-options-menu__header">
-                <span class="view-options-menu__title">视图选项</span>
+                <span class="view-options-menu__title">{tx('视图选项')}</span>
                 <button
                     class="view-options-menu__close"
                     on:click={closeMenu}
-                    aria-label="关闭"
+                    aria-label={tx('关闭')}
                 >
                     <X class="icon" size={16} />
                 </button>
@@ -1195,9 +1205,11 @@
                     <Keyboard class="view-options-menu__icon-svg" size={18} />
                 </div>
                 <div class="view-options-menu__content">
-                    <div class="view-options-menu__label">快捷键设置</div>
+                    <div class="view-options-menu__label">
+                        {tx('快捷键设置')}
+                    </div>
                     <div class="view-options-menu__desc">
-                        打开快捷键设置面板
+                        {tx('打开快捷键设置面板')}
                     </div>
                 </div>
             </button>
@@ -1220,9 +1232,11 @@
                     <Settings2 class="view-options-menu__icon-svg" size={18} />
                 </div>
                 <div class="view-options-menu__content">
-                    <div class="view-options-menu__label">当前文件设置</div>
+                    <div class="view-options-menu__label">
+                        {tx('当前文件设置')}
+                    </div>
                     <div class="view-options-menu__desc">
-                        打开九宫格当前文件设置面板
+                        {tx('打开九宫格当前文件设置面板')}
                     </div>
                 </div>
             </button>
@@ -1235,9 +1249,9 @@
                     <Printer class="view-options-menu__icon-svg" size={18} />
                 </div>
                 <div class="view-options-menu__content">
-                    <div class="view-options-menu__label">导出模式</div>
+                    <div class="view-options-menu__label">{tx('导出模式')}</div>
                     <div class="view-options-menu__desc">
-                        打开独立导出面板（临时会话）
+                        {tx('打开独立导出面板（临时会话）')}
                     </div>
                 </div>
             </button>
@@ -1250,9 +1264,11 @@
                     <Trash2 class="view-options-menu__icon-svg" size={18} />
                 </div>
                 <div class="view-options-menu__content">
-                    <div class="view-options-menu__label">清空空白九宫格</div>
+                    <div class="view-options-menu__label">
+                        {tx('清空空白九宫格')}
+                    </div>
                     <div class="view-options-menu__desc">
-                        删除空白子主题分支，保留中心格
+                        {tx('删除空白子主题分支，保留中心格')}
                     </div>
                 </div>
             </button>
@@ -1275,9 +1291,9 @@
     on:touchend={() => exportModalState.stopDrag()}
 />
 
-    <ExportModeModal
-        open={isExportModeModalOpen}
-        {isMobile}
+<ExportModeModal
+    open={isExportModeModalOpen}
+    {isMobile}
     inlineStyle={exportModalInlineStyle}
     {exportMode}
     {exportModeLabel}
@@ -1288,14 +1304,14 @@
     {appearanceOrientationLabel}
     {includeSidebarInPngScreen}
     showGridHighlight={showGridHighlightInExport}
-        a4Orientation={$a4Orientation}
-        {showExportStyleDetails}
-        {showExportFontDetails}
-        squareLayout={$squareLayout}
-        editPanelProps={exportEditPanelProps}
-        fontPanelProps={exportFontPanelProps}
-        canApplyLastExportPreset={Boolean($lastExportPresetStore)}
-        {exportActionLabel}
+    a4Orientation={$a4Orientation}
+    {showExportStyleDetails}
+    {showExportFontDetails}
+    squareLayout={$squareLayout}
+    editPanelProps={exportEditPanelProps}
+    fontPanelProps={exportFontPanelProps}
+    canApplyLastExportPreset={Boolean($lastExportPresetStore)}
+    {exportActionLabel}
     onClose={closeExportMode}
     onStartDrag={(event) =>
         exportModalState.startDrag(event, isExportModeModalOpen)}
@@ -1305,8 +1321,7 @@
     onUpdateA4Orientation={_updateA4Orientation}
     onToggleStyleDetails={() =>
         (showExportStyleDetails = !showExportStyleDetails)}
-    onToggleFontDetails={() =>
-        (showExportFontDetails = !showExportFontDetails)}
+    onToggleFontDetails={() => (showExportFontDetails = !showExportFontDetails)}
     onApplyLastExportPreset={applyLastExportPreset}
     onExportCurrentFile={exportCurrentFile}
 />

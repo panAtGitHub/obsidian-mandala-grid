@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Modal, Notice } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
 import {
@@ -58,7 +59,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
     }
 
     onOpen() {
-        this.setTitle('当前文件九宫设置');
+        this.setTitle(tx('当前文件九宫设置'));
         this.modalEl.addClass('mandala-file-settings-modal');
         this.contentEl.addClass('mandala-file-settings');
         this.render();
@@ -107,8 +108,10 @@ class CurrentFileMandalaSettingsModal extends Modal {
         contentEl.createDiv({
             cls: 'mandala-file-settings__note',
             text: isDayPlanDedicated
-                ? '仅影响当前 md 文件。视图设置保存到 YAML 的 mandala_settings；日计划模板会写回当前文件的 YAML。'
-                : '仅影响当前 md 文件，保存到 YAML 的 mandala_settings。',
+                ? tx(
+                      '仅影响当前 md 文件。视图设置保存到 YAML 的 mandala_settings；日计划模板会写回当前文件的 YAML。',
+                  )
+                : tx('仅影响当前 md 文件，保存到 YAML 的 mandala_settings。'),
         });
 
         renderMandalaCoreSettings({
@@ -129,26 +132,30 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 });
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-title',
-                    text: '检测到当前核心 8 格标题与 YAML 模板不一致',
+                    text: tx('检测到当前核心 8 格标题与 YAML 模板不一致'),
                 });
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-core',
-                    text: `当前核心：${templateMismatch.core}`,
+                    text: tx('当前核心：{0}', templateMismatch.core),
                 });
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-text',
-                    text: '差异提示：当前核心九宫的 8 个标题已被修改，但尚未写回当前文件模板。',
+                    text: tx(
+                        '差异提示：当前核心九宫的 8 个标题已被修改，但尚未写回当前文件模板。',
+                    ),
                 });
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-text',
-                    text: '如果你希望后续日期继续沿用这组 8 格标题，可写回 YAML 以便复用。',
+                    text: tx(
+                        '如果你希望后续日期继续沿用这组 8 格标题，可写回 YAML 以便复用。',
+                    ),
                 });
 
                 const actionsEl = promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-actions',
                 });
                 const writeButton = actionsEl.createEl('button', {
-                    text: '写回当前模板',
+                    text: tx('写回当前模板'),
                     cls: 'mod-cta',
                 });
                 writeButton.addEventListener('click', () => {
@@ -165,7 +172,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 });
 
                 const dismissButton = actionsEl.createEl('button', {
-                    text: '暂不处理',
+                    text: tx('暂不处理'),
                     cls: 'mod-muted',
                 });
                 dismissButton.addEventListener('click', () => {
@@ -177,16 +184,17 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 this.createFoldCard(parentEl, title, group),
             showDescriptions: false,
             texts: {
-                sectionGlobalView: '当前文件视图覆盖',
-                sectionTimePlan: '当前文件时间计划覆盖',
-                enable9x9View: '当前文件启用 9×9 视图',
-                enableNx9View: '当前文件启用 nx9 视图',
-                coreSectionMax: '当前文件核心格子编号范围（1 ~ n）',
-                subgridMaxDepth: '当前文件子九宫最大层级（含核心层）',
-                rangePreviewTitle: '当前文件范围总览（实时）',
-                weekStart: '当前文件周计划起始日',
-                dayPlanDateHeadingFormat: '当前文件日计划日期标题格式',
-                dayPlanDateHeadingCustomTemplate: '当前文件自定义日期标题模板',
+                sectionGlobalView: tx('当前文件视图覆盖'),
+                sectionTimePlan: tx('当前文件时间计划覆盖'),
+                enable9x9View: tx('当前文件启用 9×9 视图'),
+                enableNx9View: tx('当前文件启用 nx9 视图'),
+                coreSectionMax: tx('当前文件核心格子编号范围（1 ~ n）'),
+                subgridMaxDepth: tx('当前文件子九宫最大层级（含核心层）'),
+                rangePreviewTitle: tx('当前文件范围总览（实时）'),
+                weekStart: tx('当前文件周计划起始日'),
+                dayPlanDateHeadingFormat: tx('当前文件日计划日期标题格式'),
+                dayPlanDateHeadingCustomTemplate:
+                    tx('当前文件自定义日期标题模板'),
             },
             handlers: {
                 setEnable9x9View: (enabled) => {
@@ -219,13 +227,13 @@ class CurrentFileMandalaSettingsModal extends Modal {
             cls: 'mandala-file-settings__actions',
         });
         const cancelButton = footerActions.createEl('button', {
-            text: '取消',
+            text: tx('取消'),
             cls: 'mod-muted',
         });
         cancelButton.addEventListener('click', () => this.close());
 
         const saveButton = footerActions.createEl('button', {
-            text: '保存',
+            text: tx('保存'),
             cls: 'mod-cta',
         });
         saveButton.addEventListener('click', () => {
@@ -241,7 +249,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
 
     private async save() {
         if (!this.view.file) {
-            new Notice('未找到当前文件。');
+            new Notice(tx('未找到当前文件。'));
             return;
         }
         const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
@@ -290,7 +298,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
             });
         }
 
-        new Notice('当前文件九宫设置已保存到 YAML。');
+        new Notice(tx('当前文件九宫设置已保存到 YAML。'));
         this.close();
     }
 }

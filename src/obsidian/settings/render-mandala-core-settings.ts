@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Setting } from 'obsidian';
 import { lang } from 'src/lang/lang';
 import {
@@ -301,7 +302,7 @@ export const renderMandalaCoreSettings = ({
         applyCssProps(presetSection, {
             'margin-bottom': showDescriptions ? '8px' : '4px',
         });
-        const presetTitle = presetSection.createDiv({ text: '预设模式' });
+        const presetTitle = presetSection.createDiv({ text: tx('预设模式') });
         applyCssProps(presetTitle, {
             'font-size': 'var(--font-ui-medium)',
             'font-weight': 'var(--font-semibold)',
@@ -322,7 +323,7 @@ export const renderMandalaCoreSettings = ({
                 cls: 'mod-muted',
                 attr: { type: 'button' },
             });
-            button.dataset.label = preset.label;
+            button.dataset.label = tx(preset.label);
             applyCssProps(button, {
                 'text-align': 'left',
                 padding: '8px 10px',
@@ -338,7 +339,9 @@ export const renderMandalaCoreSettings = ({
 
         if (showDescriptions) {
             const presetHint = presetSection.createDiv({
-                text: '提示：选择预设后，下方参数会自动联动；若手动修改参数，预设自动切换为「自定义」。',
+                text: tx(
+                    '提示：选择预设后，下方参数会自动联动；若手动修改参数，预设自动切换为「自定义」。',
+                ),
             });
             applyCssProps(presetHint, {
                 'font-size': 'var(--font-ui-smaller)',
@@ -408,13 +411,20 @@ export const renderMandalaCoreSettings = ({
         const coreText =
             coreSectionError ??
             (currentCoreSectionMax === 'unlimited'
-                ? `实时提示：${lang.settings_global_range_input_empty}`
-                : `实时提示：当前仅允许核心编号 1 ~ ${currentCoreSectionMax}。`);
+                ? tx('实时提示：{0}', lang.settings_global_range_input_empty)
+                : tx(
+                      '实时提示：当前仅允许核心编号 1 ~ {0}。',
+                      currentCoreSectionMax,
+                  ));
         const depthText =
             subgridDepthError ??
             (currentSubgridMaxDepth === 'unlimited'
-                ? `实时提示：${lang.settings_global_range_input_empty}`
-                : `实时提示：当前最大层级 = ${currentSubgridMaxDepth}，最大 section 可到 ${resolveMaxSectionExample(currentSubgridMaxDepth)}。`);
+                ? tx('实时提示：{0}', lang.settings_global_range_input_empty)
+                : tx(
+                      '实时提示：当前最大层级 = {0}，最大 section 可到 {1}。',
+                      currentSubgridMaxDepth,
+                      resolveMaxSectionExample(currentSubgridMaxDepth),
+                  ));
         coreSectionSetting.setDesc(coreText);
         subgridDepthSetting.setDesc(depthText);
 
@@ -427,16 +437,19 @@ export const renderMandalaCoreSettings = ({
         }
         previewCoreEl?.setText(
             currentCoreSectionMax === 'unlimited'
-                ? '核心范围：1 ~ n（不设上限）'
-                : `核心范围：1 ~ ${currentCoreSectionMax}`,
+                ? tx('核心范围：1 ~ n（不设上限）')
+                : tx('核心范围：1 ~ {0}', currentCoreSectionMax),
         );
         previewDepthEl?.setText(
             currentSubgridMaxDepth === 'unlimited'
-                ? '子九宫层级：n 层（不设上限）'
-                : `子九宫层级：${currentSubgridMaxDepth} 层（含核心层）`,
+                ? tx('子九宫层级：n 层（不设上限）')
+                : tx('子九宫层级：{0} 层（含核心层）', currentSubgridMaxDepth),
         );
         previewSectionEl?.setText(
-            `最大 section 示例：${resolveMaxSectionExample(currentSubgridMaxDepth)}`,
+            tx(
+                '最大 section 示例：{0}',
+                resolveMaxSectionExample(currentSubgridMaxDepth),
+            ),
         );
         previewBehaviorEl?.setText(
             lang.settings_global_range_preview_limit_behavior,
@@ -445,7 +458,7 @@ export const renderMandalaCoreSettings = ({
 
     coreSectionSetting.addText((text) => {
         coreSectionInput = text;
-        text.setPlaceholder('留空表示不限')
+        text.setPlaceholder(tx('留空表示不限'))
             .setValue(toRangeInputValue(currentCoreSectionMax))
             .onChange((value) => {
                 const parsed = parsePositiveIntegerInput(value);
@@ -464,7 +477,7 @@ export const renderMandalaCoreSettings = ({
 
     subgridDepthSetting.addText((text) => {
         subgridDepthInput = text;
-        text.setPlaceholder('留空表示不限')
+        text.setPlaceholder(tx('留空表示不限'))
             .setValue(toRangeInputValue(currentSubgridMaxDepth))
             .onChange((value) => {
                 const parsed = parsePositiveIntegerInput(value);
@@ -514,12 +527,12 @@ export const renderMandalaCoreSettings = ({
 
     if (state.general.weekPlanEnabled) {
         new Setting(timePlanContainer)
-            .setName(texts?.weekStart ?? '周计划起始日')
+            .setName(texts?.weekStart ?? tx('周计划起始日'))
             .addDropdown((dropdown) =>
                 dropdown
                     .addOptions({
-                        monday: '周一开始',
-                        sunday: '周日开始',
+                        monday: tx('周一开始'),
+                        sunday: tx('周日开始'),
                     } satisfies Record<WeekStart, string>)
                     .setValue(state.general.weekStart)
                     .onChange((value) =>

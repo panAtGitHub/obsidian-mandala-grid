@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import {
     FuzzySuggestModal,
     Modal,
@@ -50,11 +51,11 @@ class MandalaTemplateNameModal extends Modal {
     }
 
     onOpen() {
-        this.setTitle('新建模板名称');
+        this.setTitle(tx('新建模板名称'));
         const { contentEl } = this;
         contentEl.empty();
 
-        new Setting(contentEl).setName('模板名称').addText((text) => {
+        new Setting(contentEl).setName(tx('模板名称')).addText((text) => {
             text.onChange((value) => {
                 this.name = value.trim();
             });
@@ -63,16 +64,16 @@ class MandalaTemplateNameModal extends Modal {
         const actions = contentEl.createDiv({
             cls: 'mandala-templates-modal__actions',
         });
-        const cancelButton = actions.createEl('button', { text: '取消' });
+        const cancelButton = actions.createEl('button', { text: tx('取消') });
         cancelButton.addEventListener('click', () => {
             this.resolveOnce(null);
             this.close();
         });
-        const confirmButton = actions.createEl('button', { text: '确认' });
+        const confirmButton = actions.createEl('button', { text: tx('确认') });
         confirmButton.classList.add('is-enabled');
         confirmButton.addEventListener('click', () => {
             if (!this.name) {
-                new Notice('模板名称不能为空。');
+                new Notice(tx('模板名称不能为空。'));
                 return;
             }
             this.resolveOnce(this.name);
@@ -107,7 +108,7 @@ class MandalaTemplateSelectModal extends Modal {
     }
 
     onOpen() {
-        this.setTitle('选择九宫格模板');
+        this.setTitle(tx('选择九宫格模板'));
         const { contentEl } = this;
         contentEl.empty();
 
@@ -126,25 +127,25 @@ class MandalaTemplateSelectModal extends Modal {
 
         this.previewEl = contentEl.createDiv({
             cls: 'mandala-templates-modal__preview',
-            text: '请选择一个模板查看内容。',
+            text: tx('请选择一个模板查看内容。'),
         });
 
         const actions = contentEl.createDiv({
             cls: 'mandala-templates-modal__actions',
         });
         const cancelButton = actions.createEl('button', {
-            text: '取消',
+            text: tx('取消'),
         });
         cancelButton.addEventListener('click', () => {
             this.resolveOnce(null);
             this.close();
         });
         this.confirmButton = actions.createEl('button', {
-            text: '确认',
+            text: tx('确认'),
         });
         this.confirmButton.addEventListener('click', () => {
             if (this.activeIndex === null) {
-                new Notice('请先选择一个模板。');
+                new Notice(tx('请先选择一个模板。'));
                 return;
             }
             this.resolveOnce(this.templates[this.activeIndex] ?? null);
@@ -208,7 +209,7 @@ class MandalaTemplatesFileModal extends Modal {
     }
 
     onOpen() {
-        this.setTitle('指定模板文件');
+        this.setTitle(tx('指定模板文件'));
         const { contentEl } = this;
         contentEl.empty();
 
@@ -223,10 +224,10 @@ class MandalaTemplatesFileModal extends Modal {
         }
 
         const folderSetting = new Setting(contentEl)
-            .setName('存放模板文件的文件夹')
-            .setDesc('请输入库内文件夹路径；留空表示根目录')
+            .setName(tx('存放模板文件的文件夹'))
+            .setDesc(tx('请输入库内文件夹路径；留空表示根目录'))
             .addText((text) => {
-                text.setPlaceholder('例如：3resources/templates');
+                text.setPlaceholder(tx('例如：3resources/templates'));
                 text.setValue(folderPath);
                 text.onChange((value) => {
                     folderPath = value.trim();
@@ -354,16 +355,16 @@ class MandalaTemplatesFileModal extends Modal {
         }
 
         new Setting(contentEl)
-            .setName('新建模板文件')
-            .setDesc('文件名为 mandala-templates.md')
+            .setName(tx('新建模板文件'))
+            .setDesc(tx('文件名为 mandala-templates.md'))
             .addButton((button) => {
                 button
-                    .setButtonText('新建')
+                    .setButtonText(tx('新建'))
                     .setCta()
                     .onClick(async () => {
                         const folder = this.getFolderFromPath(folderPath);
                         if (!folder) {
-                            new Notice('未找到该文件夹，请检查路径。');
+                            new Notice(tx('未找到该文件夹，请检查路径。'));
                             return;
                         }
 
@@ -382,9 +383,9 @@ class MandalaTemplatesFileModal extends Modal {
             });
 
         new Setting(contentEl)
-            .setName('选择已有模板文件')
+            .setName(tx('选择已有模板文件'))
             .addButton((button) => {
-                button.setButtonText('选择').onClick(() => {
+                button.setButtonText(tx('选择')).onClick(() => {
                     const modal = new MandalaTemplatesFileSuggestModal(
                         this.app,
                         (file) => {
@@ -418,7 +419,7 @@ class MandalaTemplatesFileModal extends Modal {
                 'mandala-templates',
             );
         } catch {
-            new Notice('创建模板文件失败。');
+            new Notice(tx('创建模板文件失败。'));
             return null;
         }
     }

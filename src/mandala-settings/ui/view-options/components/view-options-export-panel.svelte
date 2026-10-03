@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Printer } from 'lucide-svelte';
 
     export let show = false;
@@ -15,7 +16,7 @@
     export let canApplyLastExportPreset = false;
     export let applyLastExportPreset: () => void;
     export let exportCurrentFile: () => Promise<void>;
-    export let exportActionLabel = '导出文件';
+    export let exportActionLabel = tx('导出文件');
 </script>
 
 {#if showTrigger}
@@ -24,8 +25,10 @@
             <Printer class="view-options-menu__icon-svg" size={18} />
         </div>
         <div class="view-options-menu__content">
-            <div class="view-options-menu__label">导出模式</div>
-            <div class="view-options-menu__desc">可按自定义页面大小进行导出</div>
+            <div class="view-options-menu__label">{tx('导出模式')}</div>
+            <div class="view-options-menu__desc">
+                {tx('可按自定义页面大小进行导出')}
+            </div>
         </div>
     </button>
 {/if}
@@ -38,12 +41,14 @@
                 on:click={applyLastExportPreset}
                 disabled={!canApplyLastExportPreset}
             >
-                采用上一次导出设置
+                {tx('采用上一次导出设置')}
             </button>
         </div>
 
         <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">导出分享用 PNG</div>
+            <div class="view-options-menu__subsection-title">
+                {tx('导出分享用 PNG')}
+            </div>
             <div class="view-options-menu__row view-options-menu__row--inline">
                 <label class="view-options-menu__inline-option">
                     <input
@@ -53,7 +58,7 @@
                         on:change={setPngSquareMode}
                         on:click={setPngSquareMode}
                     />
-                    <span>仅导出正方形九宫格（自动等比留白）</span>
+                    <span>{tx('仅导出正方形九宫格（自动等比留白）')}</span>
                 </label>
                 <label class="view-options-menu__inline-option">
                     <input
@@ -63,7 +68,7 @@
                         on:change={setPngScreenMode}
                         on:click={setPngScreenMode}
                     />
-                    <span>导出屏幕视图内容，可包含侧边栏</span>
+                    <span>{tx('导出屏幕视图内容，可包含侧边栏')}</span>
                 </label>
             </div>
             <div class="view-options-menu__row">
@@ -74,13 +79,15 @@
                         disabled={exportMode !== 'png-screen'}
                         on:change={toggleIncludeSidebarInPngScreen}
                     />
-                    <span>包含侧边栏（屏幕视图）</span>
+                    <span>{tx('包含侧边栏（屏幕视图）')}</span>
                 </label>
             </div>
         </div>
 
         <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">导出打印用 PDF</div>
+            <div class="view-options-menu__subsection-title">
+                {tx('导出打印用 PDF')}
+            </div>
             <div class="view-options-menu__row view-options-menu__row--inline">
                 <label class="view-options-menu__inline-option">
                     <input
@@ -90,7 +97,7 @@
                         on:change={setPdfMode}
                         on:click={setPdfMode}
                     />
-                    <span>导出 A4 打印页面（推荐表格风格）</span>
+                    <span>{tx('导出 A4 打印页面（推荐表格风格）')}</span>
                 </label>
             </div>
         </div>

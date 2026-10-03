@@ -1,4 +1,5 @@
 import { DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH } from 'src/mandala-settings/state/default-settings';
+import { normalizeInterfaceLanguage } from 'src/lang/interface-language';
 import {
     DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_DESKTOP,
     DEFAULT_MANDALA_CELL_PREVIEW_FONT_SIZE_MOBILE,
@@ -102,6 +103,10 @@ const normalizeSelectedCustomLayout = (
 };
 
 export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
+    const general = (settings as Settings).general;
+    general.interfaceLanguage = normalizeInterfaceLanguage(
+        general.interfaceLanguage,
+    );
     const settingsViewRecord = settings.view as Record<string, unknown>;
     const normalizedCustomLayouts = normalizeMandalaCustomLayouts(
         settingsViewRecord.mandalaGridCustomLayouts,
@@ -394,8 +399,8 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         if (typeof legacyInfiniteNesting === 'boolean') {
             legacyViewSettings.subgridMaxDepth = legacyInfiniteNesting
                 ? 'unlimited'
-                : ((legacyViewSettings.enable9x9View as boolean | undefined) ??
-                    true)
+                : (legacyViewSettings.enable9x9View as boolean | undefined) ??
+                    true
                   ? 3
                   : 2;
         } else {
@@ -415,10 +420,16 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
     if (legacyViewSettings.coreSectionMax === null) {
         legacyViewSettings.coreSectionMax = 'unlimited';
     }
-    if (typeof (viewSettings as Record<string, unknown>).enable9x9View !== 'boolean') {
+    if (
+        typeof (viewSettings as Record<string, unknown>).enable9x9View !==
+        'boolean'
+    ) {
         (viewSettings as Record<string, unknown>).enable9x9View = false;
     }
-    if (typeof (viewSettings as Record<string, unknown>).enableNx9View !== 'boolean') {
+    if (
+        typeof (viewSettings as Record<string, unknown>).enableNx9View !==
+        'boolean'
+    ) {
         (viewSettings as Record<string, unknown>).enableNx9View = true;
     }
 

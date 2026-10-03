@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { MarkdownView, Notice, TFile, type EditorPosition } from 'obsidian';
 import { logger } from 'src/shared/helpers/logger';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
@@ -326,7 +327,7 @@ const saveSectionAndReturn = async (view: MandalaView) => {
         const { session, markdownView } = ctx;
         const sourceFile = getFileByPath(view, session.sourceFilePath);
         if (!sourceFile) {
-            new Notice('源文件不存在，无法保存。');
+            new Notice(tx('源文件不存在，无法保存。'));
             return;
         }
 
@@ -347,7 +348,7 @@ const saveSectionAndReturn = async (view: MandalaView) => {
             replacement,
         );
         if (!patched) {
-            new Notice('未找到对应 section，保存失败。');
+            new Notice(tx('未找到对应 section，保存失败。'));
             return;
         }
         await view.app.vault.modify(sourceFile, patched.markdown);
@@ -376,11 +377,11 @@ const addSectionEditorActions = (
     };
     if (typeof itemView.addAction !== 'function') return;
 
-    const saveEl = itemView.addAction('save', '保存并返回九宫', () => {
+    const saveEl = itemView.addAction('save', tx('保存并返回九宫'), () => {
         void saveSectionAndReturn(view).catch((error: unknown) => {
             const message =
                 error instanceof Error ? error.message : String(error);
-            new Notice(`保存 section 失败：${message}`);
+            new Notice(tx('保存 section 失败：{0}', message));
             logger.error('[mandala-section-edit] save failed', error);
         });
     });
@@ -400,7 +401,7 @@ export const startSectionNativeEditorSession = async (
 
         const section = getSectionByNodeId(view, nodeId);
         if (!section) {
-            new Notice('未找到对应 section，无法进入单独编辑。');
+            new Notice(tx('未找到对应 section，无法进入单独编辑。'));
             return;
         }
 
@@ -410,7 +411,7 @@ export const startSectionNativeEditorSession = async (
             section,
         );
         if (sectionContent === null) {
-            new Notice('未找到对应 section 内容，无法进入编辑。');
+            new Notice(tx('未找到对应 section 内容，无法进入编辑。'));
             return;
         }
 
@@ -472,7 +473,7 @@ export const startSectionNativeEditorSession = async (
         setCursorInEditor(markdownView, initialPlacement.cursor);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        new Notice(`打开 section 原生编辑失败：${message}`);
+        new Notice(tx('打开 section 原生编辑失败：{0}', message));
         logger.error(error);
     } finally {
         isStartingSectionSession = false;

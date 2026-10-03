@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import type { LastExportPreset } from 'src/mandala-settings/state/settings-type';
 import type { MandalaView } from 'src/view/view';
@@ -69,16 +70,16 @@ export const exportCurrentViewPdf = async ({
 }: ExportCurrentViewPdfArgs) => {
     const exportPreset = createCurrentExportPreset();
     if (!a4Mode) {
-        new Notice('请先切换到纸张导出模式，再导出文件。');
+        new Notice(tx('请先切换到纸张导出模式，再导出文件。'));
         return;
     }
 
-    const loadingNotice = new Notice('正在导出 PDF...', 0);
+    const loadingNotice = new Notice(tx('正在导出 PDF...'), 0);
     const sourceRoot =
         view.contentEl.querySelector<HTMLElement>('.mandala-root');
     if (!sourceRoot) {
         loadingNotice.hide();
-        new Notice('未找到可导出的视图区域。');
+        new Notice(tx('未找到可导出的视图区域。'));
         closeExportMode();
         return;
     }
@@ -96,7 +97,7 @@ export const exportCurrentViewPdf = async ({
 
     if (!dialog || !printToPDF) {
         loadingNotice.hide();
-        new Notice('当前环境不支持 PDF 导出。');
+        new Notice(tx('当前环境不支持 PDF 导出。'));
         closeExportMode();
         return;
     }
@@ -115,14 +116,14 @@ export const exportCurrentViewPdf = async ({
                 },
             });
             const result = await dialog.showSaveDialog({
-                title: '导出 PDF',
+                title: tx('导出 PDF'),
                 defaultPath: defaultName,
                 filters: [{ name: 'PDF', extensions: ['pdf'] }],
             });
             if (!result.canceled && result.filePath) {
                 const fs = electronRequire?.('fs') as ElectronFs | undefined;
                 if (!fs) {
-                    new Notice('导出失败，请稍后再试。');
+                    new Notice(tx('导出失败，请稍后再试。'));
                     return;
                 }
                 const bytes =
@@ -132,9 +133,9 @@ export const exportCurrentViewPdf = async ({
                 await new Promise<void>((resolve) => {
                     fs.writeFile(result.filePath!, bytes, (err) => {
                         if (err) {
-                            new Notice('导出失败，请稍后再试。');
+                            new Notice(tx('导出失败，请稍后再试。'));
                         } else {
-                            new Notice('PDF 导出完成。');
+                            new Notice(tx('PDF 导出完成。'));
                             persistLastExportPreset(exportPreset);
                         }
                         resolve();
@@ -143,7 +144,7 @@ export const exportCurrentViewPdf = async ({
             }
         });
     } catch {
-        new Notice('导出失败，请稍后再试。');
+        new Notice(tx('导出失败，请稍后再试。'));
     } finally {
         printHost.cleanup();
         loadingNotice.hide();

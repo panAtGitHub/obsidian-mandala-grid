@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import { createClearEmptyMandalaSubgridsPlan } from 'src/mandala-display/logic/clear-empty-subgrids';
 import type { MandalaView } from 'src/view/view';
@@ -26,7 +27,7 @@ export const createViewOptionsDocumentActions = ({
             view.ensureFullHydrated?.('clear-empty-subgrids');
             const state = view.documentStore.getValue();
             if (!state.meta.isMandala) {
-                new Notice('当前文档不是九宫格格式。');
+                new Notice(tx('当前文档不是九宫格格式。'));
                 closeMenu();
                 return;
             }
@@ -35,7 +36,7 @@ export const createViewOptionsDocumentActions = ({
                 view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
             const centerNodeId = state.sections.section_id[theme];
             if (!centerNodeId) {
-                new Notice('未找到当前主题中心格子。');
+                new Notice(tx('未找到当前主题中心格子。'));
                 closeMenu();
                 return;
             }
@@ -55,7 +56,7 @@ export const createViewOptionsDocumentActions = ({
                 state.sections,
             );
             if (plan.parentIds.length === 0 && plan.rootNodeIds.length === 0) {
-                new Notice('没有可清空的空白九宫格。');
+                new Notice(tx('没有可清空的空白九宫格。'));
                 closeMenu();
                 return;
             }
@@ -73,7 +74,12 @@ export const createViewOptionsDocumentActions = ({
             });
 
             new Notice(
-                `已清理 ${plan.parentIds.length} 个空白九宫格、${plan.rootSections.length} 个尾部空核心，共删除 ${plan.nodesToRemove.length} 个格子。`,
+                tx(
+                    '已清理 {0} 个空白九宫格、{1} 个尾部空核心，共删除 {2} 个格子。',
+                    plan.parentIds.length,
+                    plan.rootSections.length,
+                    plan.nodesToRemove.length,
+                ),
             );
             closeMenu();
         },

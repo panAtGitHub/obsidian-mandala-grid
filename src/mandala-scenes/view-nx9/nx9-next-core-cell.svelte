@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { createNextNx9Core } from 'src/mandala-scenes/view-nx9/create-next-core';
 
@@ -20,7 +21,7 @@
     type="button"
     class="nx9-next-core-button"
     class:nx9-next-core-button--muted={tone === 'muted'}
-    aria-label={`创建核心 ${nextCoreSection}`}
+    aria-label={tx('创建核心 {0}', nextCoreSection)}
     {disabled}
     on:click={handleClick}
 >

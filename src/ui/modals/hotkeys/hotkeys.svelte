@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import Group from './group.svelte';
     import Front from './front.svelte';
     import NumberOfConflicts from './status-bar.svelte';
@@ -18,7 +19,7 @@
     const isMobile = Platform.isMobile;
 </script>
 
-<div 
+<div
     class="mandala-modal mandala-modal--full-height hotkeys-modal"
     class:is-mobile={isMobile}
     on:mousedown|stopPropagation
@@ -28,23 +29,28 @@
         <div class="hotkeys-mobile-header">
             <div class="hotkeys-mobile-sheet-handle" aria-hidden="true" />
             <div class="hotkeys-mobile-header-row">
-                <div class="hotkeys-mobile-title">快捷键</div>
-                <button class="hotkeys-mobile-done-button" on:click={closeHotkeys}>
+                <div class="hotkeys-mobile-title">{tx('快捷键')}</div>
+                <button
+                    class="hotkeys-mobile-done-button"
+                    on:click={closeHotkeys}
+                >
                     <Check size={18} />
-                    <span>完成</span>
+                    <span>{tx('完成')}</span>
                 </button>
             </div>
         </div>
         <Front />
     {:else}
         <div class="hotkeys-desktop-header mandala-modal-header-inline">
-            <div class="hotkeys-desktop-header__search mandala-modal-header-inline__main">
+            <div
+                class="hotkeys-desktop-header__search mandala-modal-header-inline__main"
+            >
                 <Front />
             </div>
             <button
                 class="modal-close-button hotkeys-desktop-close mandala-modal-close-inline"
                 on:click={closeHotkeys}
-                aria-label="关闭快捷键"
+                aria-label={tx('关闭快捷键')}
             >
                 <X size={14} />
             </button>
@@ -55,7 +61,7 @@
             <Group {groupName} {group} />
         {/each}
     </div>
-    <NumberOfConflicts conflicts={$store.numberOfConflictingHotkeys}/>
+    <NumberOfConflicts conflicts={$store.numberOfConflictingHotkeys} />
 </div>
 
 <style>
@@ -72,7 +78,8 @@
         border-radius: 20px;
         border: 1px solid var(--background-modifier-border);
         background: var(--background-primary);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22),
+        box-shadow:
+            0 12px 32px rgba(0, 0, 0, 0.22),
             0 4px 12px rgba(0, 0, 0, 0.12);
         overflow: hidden;
         backdrop-filter: blur(20px) saturate(180%);

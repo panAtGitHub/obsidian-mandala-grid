@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { findChildGroup } from 'src/mandala-document/tree-utils/find/find-child-group';
 import { isGridCenter } from 'src/mandala-interaction/helpers/mobile-navigation';
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
@@ -137,7 +138,7 @@ export const handleThreeByThreeMobileCardDoubleClick = (
 };
 
 export const getThreeByThreeUpButtonLabel = (theme: string) =>
-    theme.includes('.') ? '退出上一层子九宫格' : '上一层核心九宫格';
+    theme.includes('.') ? tx('退出上一层子九宫格') : tx('上一层核心九宫格');
 
 export const getThreeByThreeDownButtonLabel = (theme: string) =>
-    theme.includes('.') ? '进入下一层子九宫格' : '下一层核心九宫格';
+    theme.includes('.') ? tx('进入下一层子九宫格') : tx('下一层核心九宫格');

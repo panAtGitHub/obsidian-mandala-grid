@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { getView } from 'src/mandala-scenes/shared/shell/context';
 import { FontSize } from 'src/mandala-settings/ui/settings-panel/fields/font-size';
 import { BackgroundColor } from 'src/mandala-settings/ui/settings-panel/fields/background-color';
@@ -60,7 +61,7 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     ControlsBarButtons(
         generalTab,
         view,
-        isMandala ? '顶部工具栏按钮管理' : undefined,
+        isMandala ? tx('顶部工具栏按钮管理') : undefined,
     );
 
     // ── Appearance Tab ──
@@ -105,21 +106,21 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
             cls: 'mandala-features-section',
         });
         section3x3.open = true;
-        section3x3.createEl('summary', { text: '3×3 视图' });
+        section3x3.createEl('summary', { text: tx('3×3 视图') });
         Features3x3(section3x3.createEl('div'), settingsStore);
 
         const section9x9 = featuresTab.createEl('details', {
             cls: 'mandala-features-section',
         });
         section9x9.open = true;
-        section9x9.createEl('summary', { text: '9×9 视图' });
+        section9x9.createEl('summary', { text: tx('9×9 视图') });
         Features9x9(section9x9.createEl('div'), settingsStore);
 
         const sectionGeneral = featuresTab.createEl('details', {
             cls: 'mandala-features-section',
         });
         sectionGeneral.open = true;
-        sectionGeneral.createEl('summary', { text: '通用' });
+        sectionGeneral.createEl('summary', { text: tx('通用') });
         FeaturesGeneral(sectionGeneral.createEl('div'), settingsStore);
     }
 

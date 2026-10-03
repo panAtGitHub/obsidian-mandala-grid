@@ -58,6 +58,7 @@ vi.mock('obsidian', () => {
     }
 
     return {
+        getLanguage: () => 'zh',
         MarkdownView,
         Notice: class {},
         TFile: class TFile {

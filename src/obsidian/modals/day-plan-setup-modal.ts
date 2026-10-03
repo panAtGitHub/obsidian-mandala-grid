@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Modal, Notice, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
 import {
@@ -33,7 +34,9 @@ export type DayPlanWizardStepResult<T> =
     | { action: 'back' }
     | { action: 'cancel' };
 
-const DAY_PLAN_WIZARD_NOTE = '备注：创建后仍可在当前文件设置中调整这些参数。';
+const DAY_PLAN_WIZARD_NOTE = tx(
+    '备注：创建后仍可在当前文件设置中调整这些参数。',
+);
 
 export const openDayPlanConfirmModal = (
     plugin: MandalaGrid,
@@ -134,7 +137,7 @@ class DayPlanConfirmModal extends Modal {
 
         new Setting(contentEl).addButton((button) => {
             button
-                .setButtonText(this.options.confirmText ?? '确认')
+                .setButtonText(this.options.confirmText ?? tx('确认'))
                 .setCta()
                 .onClick(() => {
                     this.resolveOnce(true);
@@ -144,7 +147,7 @@ class DayPlanConfirmModal extends Modal {
 
         new Setting(contentEl).addButton((button) => {
             button
-                .setButtonText(this.options.cancelText ?? '取消')
+                .setButtonText(this.options.cancelText ?? tx('取消'))
                 .onClick(() => {
                     this.resolveOnce(false);
                     this.close();
@@ -180,11 +183,11 @@ class DayPlanYearInputModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('一，「年计划」设置页');
+        this.setTitle(tx('一，「年计划」设置页'));
 
         new Setting(contentEl)
-            .setName('1）确认「年份」')
-            .setDesc('默认为「今年」，可输入其他年份。')
+            .setName(tx('1）确认「年份」'))
+            .setDesc(tx('默认为「今年」，可输入其他年份。'))
             .addText((text) => {
                 text.setPlaceholder('2026');
                 text.setValue(this.year);
@@ -195,11 +198,11 @@ class DayPlanYearInputModal extends Modal {
 
         appendWizardNote(contentEl);
         appendWizardActions(contentEl, {
-            primaryText: '下一步',
+            primaryText: tx('下一步'),
             onPrimary: () => {
                 const year = Number(this.year);
                 if (!Number.isInteger(year) || year < 1900 || year > 9999) {
-                    new Notice('请输入合法年份。');
+                    new Notice(tx('请输入合法年份。'));
                     return;
                 }
                 this.resolveOnce({ action: 'next', value: year });
@@ -246,17 +249,17 @@ class DayPlanDisplayOptionsModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('二，「周计划」设置页');
+        this.setTitle(tx('二，「周计划」设置页'));
         const sampleDate = new Date();
 
         const weekStartSetting = new Setting(contentEl)
-            .setName('1）确认「周计划」起始日')
-            .setDesc('每周的第一天从「周一」或「周日」开始。')
+            .setName(tx('1）确认「周计划」起始日'))
+            .setDesc(tx('每周的第一天从「周一」或「周日」开始。'))
             .addDropdown((dropdown) => {
                 dropdown
                     .addOptions({
-                        monday: '周一',
-                        sunday: '周日',
+                        monday: tx('周一'),
+                        sunday: tx('周日'),
                     } satisfies Record<WeekStart, string>)
                     .setValue(this.weekStart)
                     .onChange((value) => {
@@ -267,15 +270,15 @@ class DayPlanDisplayOptionsModal extends Modal {
         const weekPreviewEl = createPreviewPill(weekStartSetting.descEl);
 
         const dateHeadingSetting = new Setting(contentEl)
-            .setName('2）日期标题格式')
-            .setDesc('可选项：选择日期标题的显示样式')
+            .setName(tx('2）日期标题格式'))
+            .setDesc(tx('可选项：选择日期标题的显示样式'))
             .addDropdown((dropdown) => {
                 dropdown
                     .addOptions({
-                        'date-only': '仅日期',
-                        'zh-full': '日期 + 周一到周日',
-                        'zh-short': '日期 + 一到日',
-                        'en-short': '日期 + Mon~Sun',
+                        'date-only': tx('仅日期'),
+                        'zh-full': tx('日期 + 周一到周日'),
+                        'zh-short': tx('日期 + 一到日'),
+                        'en-short': tx('日期 + Mon~Sun'),
                     } satisfies Record<
                         Exclude<DayPlanDateHeadingFormat, 'custom'>,
                         string
@@ -292,17 +295,20 @@ class DayPlanDisplayOptionsModal extends Modal {
         const headingPreviewEl = createPreviewPill(dateHeadingSetting.descEl);
         const renderPreview = () => {
             weekPreviewEl.setText(
-                `预览：${buildWeekStartPreview(this.weekStart)}`,
+                tx('预览：{0}', buildWeekStartPreview(this.weekStart)),
             );
             headingPreviewEl.setText(
-                `预览：${buildDateHeadingPreview(sampleDate, this.dateHeadingFormat)}`,
+                tx(
+                    '预览：{0}',
+                    buildDateHeadingPreview(sampleDate, this.dateHeadingFormat),
+                ),
             );
         };
         renderPreview();
 
         appendWizardNote(contentEl);
         appendWizardActions(contentEl, {
-            primaryText: '下一步',
+            primaryText: tx('下一步'),
             onPrimary: () => {
                 this.resolveOnce({
                     action: 'next',
@@ -363,24 +369,26 @@ class DayPlanDailySetupModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('三，「日计划」设置页');
+        this.setTitle(tx('三，「日计划」设置页'));
 
         new Setting(contentEl)
-            .setName('1）「日计划」视图页')
+            .setName(tx('1）「日计划」视图页'))
             .setDesc(
-                '提示：每日计划默认为 3x3 九宫格视图，不展开更深层的子九宫；默认关闭9x9视图。',
+                tx(
+                    '提示：每日计划默认为 3x3 九宫格视图，不展开更深层的子九宫；默认关闭9x9视图。',
+                ),
             );
 
         const sourceOptions: Record<string, string> = {};
         if (this.templates.length > 0) {
-            sourceOptions.template = '使用已配置模板';
+            sourceOptions.template = tx('使用已配置模板');
         }
-        sourceOptions.recommended = '使用插件推荐模板';
-        sourceOptions.manual = '手动输入 8 个标题';
+        sourceOptions.recommended = tx('使用插件推荐模板');
+        sourceOptions.manual = tx('手动输入 8 个标题');
 
         const sourceSetting = new Setting(contentEl)
-            .setName('2）8 格标题来源')
-            .setDesc('在这里决定 8 个格子的标题从哪里来。')
+            .setName(tx('2）8 格标题来源'))
+            .setDesc(tx('在这里决定 8 个格子的标题从哪里来。'))
             .addDropdown((dropdown) => {
                 dropdown
                     .addOptions(sourceOptions)
@@ -408,8 +416,8 @@ class DayPlanDailySetupModal extends Modal {
         });
 
         const templateSetting = new Setting(contentEl)
-            .setName('模板名称')
-            .setDesc('已配置模板来源时，可直接在这里切换模板。')
+            .setName(tx('模板名称'))
+            .setDesc(tx('已配置模板来源时，可直接在这里切换模板。'))
             .addDropdown((dropdown) => {
                 this.templates.forEach((template, index) => {
                     dropdown.addOption(String(index), template.name);
@@ -456,7 +464,7 @@ class DayPlanDailySetupModal extends Modal {
                 templatePreviewEl.setText(
                     activeTemplate
                         ? formatTemplatePreview(activeTemplate)
-                        : '未找到可用模板。',
+                        : tx('未找到可用模板。'),
                 );
                 return;
             }
@@ -473,7 +481,7 @@ class DayPlanDailySetupModal extends Modal {
 
             setElementDisplay(sourceDetailEl, '');
             sourceDetailEl.setText(
-                '将进入手动填写页，你可以逐个设置 8 个格子的标题。',
+                tx('将进入手动填写页，你可以逐个设置 8 个格子的标题。'),
             );
             templatePreviewEl.empty();
         };
@@ -481,7 +489,7 @@ class DayPlanDailySetupModal extends Modal {
 
         appendWizardNote(contentEl);
         appendWizardActions(contentEl, {
-            primaryText: '下一步',
+            primaryText: tx('下一步'),
             onPrimary: () => {
                 this.resolveOnce({
                     action: 'next',
@@ -537,31 +545,35 @@ class DayPlanSlotsInputModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('四，「日计划模板」设置页');
+        this.setTitle(tx('四，「日计划模板」设置页'));
 
         for (let i = 0; i < 8; i += 1) {
             const slotIndex = i;
-            new Setting(contentEl).setName(`格子 ${i + 1}`).addText((text) => {
-                text.setValue(this.values[i] ?? '');
-                text.onChange((value) => {
-                    this.values[slotIndex] = value.trim();
+            new Setting(contentEl)
+                .setName(tx('格子 {0}', i + 1))
+                .addText((text) => {
+                    text.setValue(this.values[i] ?? '');
+                    text.onChange((value) => {
+                        this.values[slotIndex] = value.trim();
+                    });
                 });
-            });
         }
 
         contentEl.createEl('p', {
-            text: '提示：后续可在 YAML 区修改，修改后可再次运行命令同步到卡片标题。',
+            text: tx(
+                '提示：后续可在 YAML 区修改，修改后可再次运行命令同步到卡片标题。',
+            ),
         });
 
         appendWizardNote(contentEl);
         appendWizardActions(contentEl, {
-            primaryText: this.options.primaryText ?? '完成',
+            primaryText: this.options.primaryText ?? tx('完成'),
             onPrimary: () => {
                 const hasEmpty = this.values.some(
                     (value) => value.trim().length === 0,
                 );
                 if (hasEmpty) {
-                    new Notice('请填写完整的 8 个格子标题。');
+                    new Notice(tx('请填写完整的 8 个格子标题。'));
                     return;
                 }
                 this.resolveOnce({ action: 'next', value: [...this.values] });
@@ -603,18 +615,18 @@ class DayPlanSlotsSyncModeModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
-        this.setTitle('检测到日计划模板已变更');
+        this.setTitle(tx('检测到日计划模板已变更'));
 
         contentEl.createEl('p', {
-            text: '请选择如何同步已存在的格子标题：',
+            text: tx('请选择如何同步已存在的格子标题：'),
         });
 
         new Setting(contentEl)
-            .setName('替换所有已存在日期的格子标题')
-            .setDesc('会覆盖所有已存在 section 的标题行，正文内容不变。')
+            .setName(tx('替换所有已存在日期的格子标题'))
+            .setDesc(tx('会覆盖所有已存在 section 的标题行，正文内容不变。'))
             .addButton((button) => {
                 button
-                    .setButtonText('全部替换')
+                    .setButtonText(tx('全部替换'))
                     .setCta()
                     .onClick(() => {
                         this.resolveOnce('all-existing');
@@ -623,27 +635,27 @@ class DayPlanSlotsSyncModeModal extends Modal {
             });
 
         new Setting(contentEl)
-            .setName('仅替换今天及以后的日期')
-            .setDesc('仅覆盖今天及未来日期的标题行，历史日期保持不变。')
+            .setName(tx('仅替换今天及以后的日期'))
+            .setDesc(tx('仅覆盖今天及未来日期的标题行，历史日期保持不变。'))
             .addButton((button) => {
-                button.setButtonText('今天及以后').onClick(() => {
+                button.setButtonText(tx('今天及以后')).onClick(() => {
                     this.resolveOnce('today-and-future');
                     this.close();
                 });
             });
 
         new Setting(contentEl)
-            .setName('仅更新模板，不改已有内容')
-            .setDesc('本次不修改任何已存在卡片，后续新日期按模板生成。')
+            .setName(tx('仅更新模板，不改已有内容'))
+            .setDesc(tx('本次不修改任何已存在卡片，后续新日期按模板生成。'))
             .addButton((button) => {
-                button.setButtonText('仅更新模板').onClick(() => {
+                button.setButtonText(tx('仅更新模板')).onClick(() => {
                     this.resolveOnce('template-only');
                     this.close();
                 });
             });
 
         new Setting(contentEl).addButton((button) => {
-            button.setButtonText('取消').onClick(() => {
+            button.setButtonText(tx('取消')).onClick(() => {
                 this.resolveOnce(null);
                 this.close();
             });
@@ -686,22 +698,22 @@ const buildDateHeadingPreview = (
 
 const buildWeekStartPreview = (weekStart: WeekStart) => {
     const mondayStart = [
-        '周一',
-        '周二',
-        '周三',
-        '周四',
-        '周五',
-        '周六',
-        '周日',
+        tx('周一'),
+        tx('周二'),
+        tx('周三'),
+        tx('周四'),
+        tx('周五'),
+        tx('周六'),
+        tx('周日'),
     ];
     const sundayStart = [
-        '周日',
-        '周一',
-        '周二',
-        '周三',
-        '周四',
-        '周五',
-        '周六',
+        tx('周日'),
+        tx('周一'),
+        tx('周二'),
+        tx('周三'),
+        tx('周四'),
+        tx('周五'),
+        tx('周六'),
     ];
     return (weekStart === 'monday' ? mondayStart : sundayStart).join(' | ');
 };
@@ -777,7 +789,7 @@ const appendWizardActions = (
     if (options.onBack) {
         const onBack = options.onBack;
         row.addButton((button) => {
-            button.setButtonText('上一步').onClick(() => onBack());
+            button.setButtonText(tx('上一步')).onClick(() => onBack());
         });
     }
     row.addButton((button) => {
@@ -787,6 +799,6 @@ const appendWizardActions = (
             .onClick(options.onPrimary);
     });
     row.addButton((button) => {
-        button.setButtonText('取消').onClick(options.onCancel);
+        button.setButtonText(tx('取消')).onClick(options.onCancel);
     });
 };

@@ -1,11 +1,10 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Settings } from 'lucide-svelte';
     import { Menu } from 'obsidian';
     import { lang } from 'src/lang/lang';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
-    import {
-        AltPrimaryModifier
-    } from 'src/view/actions/keyboard-shortcuts/helpers/commands/presets/alt-primary-modifier';
+    import { AltPrimaryModifier } from 'src/view/actions/keyboard-shortcuts/helpers/commands/presets/alt-primary-modifier';
 
     export let conflicts: number;
     const view = getView();
@@ -38,7 +37,8 @@
 <div class="hotkeys-status-bar">
     {#if conflicts}
         <span class="conflicts-indicator">
-            {conflicts} 个快捷键存在冲突
+            {conflicts}
+            {tx('个快捷键存在冲突')}
         </span>
     {/if}
     <span class="hotkeys-menu" on:click={showMenu}>

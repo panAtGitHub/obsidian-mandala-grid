@@ -130,6 +130,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         subgridMaxDepth: 'unlimited',
     },
     general: {
+        interfaceLanguage: 'auto',
         linkPaneType: 'tab',
         mandalaTemplatesFilePath: null,
         dayPlanEnabled: true,

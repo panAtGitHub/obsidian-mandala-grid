@@ -1,70 +1,192 @@
 import { lang } from 'src/lang/lang';
 
 export const hotkeysLang = {
-    save_changes_and_exit_card: lang.hk_save_changes,
-    enable_edit_mode: lang.hk_enable_edit_mode,
-    enable_edit_mode_and_place_cursor_at_start:
-        lang.hk_enable_edit_mode_and_place_cursor_at_start,
-    enable_edit_mode_and_place_cursor_at_end:
-        lang.hk_enable_edit_mode_and_place_cursor_at_end,
-    toggle_cell_preview_dialog: lang.hk_toggle_cell_preview_dialog,
-    disable_edit_mode: lang.hk_disable_edit_mode,
-    add_child: lang.card_btn_add_child_node,
-    add_below: lang.card_btn_add_node_below,
-    add_above: lang.card_btn_add_node_above,
-    add_child_and_split: lang.hk_add_child_and_split,
-    add_below_and_split: lang.hk_add_below_and_split,
-    add_above_and_split: lang.hk_add_above_and_split,
-    delete_card: lang.hk_delete_section,
-    go_up: lang.hk_go_up,
-    go_down: lang.hk_go_down,
-    go_right: lang.hk_go_right,
-    go_left: lang.hk_go_Left,
-    move_node_up: lang.hk_move_node_up,
-    move_node_down: lang.hk_move_node_down,
-    move_node_right: lang.hk_move_node_right,
-    move_node_left: lang.hk_move_node_left,
-    merge_with_node_above: lang.hk_merge_with_node_above,
-    merge_with_node_below: lang.hk_merge_with_node_below,
-    toggle_search_input: lang.hk_toggle_search_input,
-    go_to_beginning_of_group: lang.hk_go_to_beginning_of_group,
-    go_to_end_of_group: lang.hk_go_to_end_of_group,
-    go_to_beginning_of_column: lang.hk_go_to_beginning_of_column,
-    go_to_end_of_column: lang.hk_go_to_end_of_column,
-    select_parent: lang.hk_select_parent,
-    copy_node: lang.hk_copy_node,
-    copy_node_unformatted: lang.hk_copy_node_unformatted,
-    copy_node_without_subitems: lang.hk_copy_node_without_subitems,
-    cut_node: lang.hk_cut_node,
-    paste_node: lang.hk_paste_node,
+    get save_changes_and_exit_card() {
+        return lang.hk_save_changes;
+    },
+    get enable_edit_mode() {
+        return lang.hk_enable_edit_mode;
+    },
+    get enable_edit_mode_and_place_cursor_at_start() {
+        return lang.hk_enable_edit_mode_and_place_cursor_at_start;
+    },
+    get enable_edit_mode_and_place_cursor_at_end() {
+        return lang.hk_enable_edit_mode_and_place_cursor_at_end;
+    },
+    get toggle_cell_preview_dialog() {
+        return lang.hk_toggle_cell_preview_dialog;
+    },
+    get disable_edit_mode() {
+        return lang.hk_disable_edit_mode;
+    },
+    get add_child() {
+        return lang.card_btn_add_child_node;
+    },
+    get add_below() {
+        return lang.card_btn_add_node_below;
+    },
+    get add_above() {
+        return lang.card_btn_add_node_above;
+    },
+    get add_child_and_split() {
+        return lang.hk_add_child_and_split;
+    },
+    get add_below_and_split() {
+        return lang.hk_add_below_and_split;
+    },
+    get add_above_and_split() {
+        return lang.hk_add_above_and_split;
+    },
+    get delete_card() {
+        return lang.hk_delete_section;
+    },
+    get go_up() {
+        return lang.hk_go_up;
+    },
+    get go_down() {
+        return lang.hk_go_down;
+    },
+    get go_right() {
+        return lang.hk_go_right;
+    },
+    get go_left() {
+        return lang.hk_go_Left;
+    },
+    get move_node_up() {
+        return lang.hk_move_node_up;
+    },
+    get move_node_down() {
+        return lang.hk_move_node_down;
+    },
+    get move_node_right() {
+        return lang.hk_move_node_right;
+    },
+    get move_node_left() {
+        return lang.hk_move_node_left;
+    },
+    get merge_with_node_above() {
+        return lang.hk_merge_with_node_above;
+    },
+    get merge_with_node_below() {
+        return lang.hk_merge_with_node_below;
+    },
+    get toggle_search_input() {
+        return lang.hk_toggle_search_input;
+    },
+    get go_to_beginning_of_group() {
+        return lang.hk_go_to_beginning_of_group;
+    },
+    get go_to_end_of_group() {
+        return lang.hk_go_to_end_of_group;
+    },
+    get go_to_beginning_of_column() {
+        return lang.hk_go_to_beginning_of_column;
+    },
+    get go_to_end_of_column() {
+        return lang.hk_go_to_end_of_column;
+    },
+    get select_parent() {
+        return lang.hk_select_parent;
+    },
+    get copy_node() {
+        return lang.hk_copy_node;
+    },
+    get copy_node_unformatted() {
+        return lang.hk_copy_node_unformatted;
+    },
+    get copy_node_without_subitems() {
+        return lang.hk_copy_node_without_subitems;
+    },
+    get cut_node() {
+        return lang.hk_cut_node;
+    },
+    get paste_node() {
+        return lang.hk_paste_node;
+    },
     // navigate_back: lang.hk_navigate_back,
     // navigate_forward: lang.hk_navigate_forward,
-    navigate_to_next_node: lang.hk_navigate_to_next_node,
-    navigate_to_previous_node: lang.hk_navigate_to_previous_node,
-    extend_select_up: lang.hk_extend_select_up,
-    extend_select_down: lang.hk_extend_select_down,
-    extend_select_to_start_of_group: lang.hk_extend_select_to_start_of_group,
-    extend_select_to_end_of_group: lang.hk_extend_select_to_end_of_group,
-    extend_select_to_start_of_column: lang.hk_extend_select_to_start_of_column,
-    extend_select_to_end_of_column: lang.hk_extend_select_to_end_of_column,
-    scroll_left: lang.hk_scroll_left,
-    scroll_right: lang.hk_scroll_right,
-    scroll_up: lang.hk_scroll_up,
-    scroll_down: lang.hk_scroll_down,
-    align_branch: lang.hk_align_branch,
-    zoom_in: lang.hk_zoom_in,
-    zoom_out: lang.hk_zoom_out,
-    zoom_reset: lang.hk_zoom_reset,
-    toggle_mandala_mode: lang.hk_toggle_mandala_mode,
-    enter_subgrid: lang.hk_enter_subgrid,
-    exit_subgrid: lang.hk_exit_subgrid,
-    jump_core_next: lang.hk_navigate_next_view_unit,
-    jump_core_prev: lang.hk_navigate_prev_view_unit,
-    toggle_detail_sidebar: lang.hk_toggle_detail_sidebar,
-    swap_cell_up: lang.hk_swap_cell_up,
-    swap_cell_down: lang.hk_swap_cell_down,
-    swap_cell_left: lang.hk_swap_cell_left,
-    swap_cell_right: lang.hk_swap_cell_right,
-    add_parent_sibling: lang.hk_add_parent_sibling,
-    select_all_nodes: lang.hk_select_all,
+    get navigate_to_next_node() {
+        return lang.hk_navigate_to_next_node;
+    },
+    get navigate_to_previous_node() {
+        return lang.hk_navigate_to_previous_node;
+    },
+    get extend_select_up() {
+        return lang.hk_extend_select_up;
+    },
+    get extend_select_down() {
+        return lang.hk_extend_select_down;
+    },
+    get extend_select_to_start_of_group() {
+        return lang.hk_extend_select_to_start_of_group;
+    },
+    get extend_select_to_end_of_group() {
+        return lang.hk_extend_select_to_end_of_group;
+    },
+    get extend_select_to_start_of_column() {
+        return lang.hk_extend_select_to_start_of_column;
+    },
+    get extend_select_to_end_of_column() {
+        return lang.hk_extend_select_to_end_of_column;
+    },
+    get scroll_left() {
+        return lang.hk_scroll_left;
+    },
+    get scroll_right() {
+        return lang.hk_scroll_right;
+    },
+    get scroll_up() {
+        return lang.hk_scroll_up;
+    },
+    get scroll_down() {
+        return lang.hk_scroll_down;
+    },
+    get align_branch() {
+        return lang.hk_align_branch;
+    },
+    get zoom_in() {
+        return lang.hk_zoom_in;
+    },
+    get zoom_out() {
+        return lang.hk_zoom_out;
+    },
+    get zoom_reset() {
+        return lang.hk_zoom_reset;
+    },
+    get toggle_mandala_mode() {
+        return lang.hk_toggle_mandala_mode;
+    },
+    get enter_subgrid() {
+        return lang.hk_enter_subgrid;
+    },
+    get exit_subgrid() {
+        return lang.hk_exit_subgrid;
+    },
+    get jump_core_next() {
+        return lang.hk_navigate_next_view_unit;
+    },
+    get jump_core_prev() {
+        return lang.hk_navigate_prev_view_unit;
+    },
+    get toggle_detail_sidebar() {
+        return lang.hk_toggle_detail_sidebar;
+    },
+    get swap_cell_up() {
+        return lang.hk_swap_cell_up;
+    },
+    get swap_cell_down() {
+        return lang.hk_swap_cell_down;
+    },
+    get swap_cell_left() {
+        return lang.hk_swap_cell_left;
+    },
+    get swap_cell_right() {
+        return lang.hk_swap_cell_right;
+    },
+    get add_parent_sibling() {
+        return lang.hk_add_parent_sibling;
+    },
+    get select_all_nodes() {
+        return lang.hk_select_all;
+    },
 };

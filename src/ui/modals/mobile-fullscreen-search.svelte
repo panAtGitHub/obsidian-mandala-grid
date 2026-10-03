@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { onDestroy } from 'svelte';
     import { derived as svelteDerived } from 'svelte/store';
 
@@ -94,12 +95,12 @@
     <div class="mobile-search-header">
         <div class="mobile-search-header-row">
             <div class="mobile-search-header-spacer" aria-hidden="true"></div>
-            <div class="mobile-search-title">搜索</div>
+            <div class="mobile-search-title">{tx('搜索')}</div>
             <button
                 class="mobile-search-done"
                 on:click|stopPropagation={onDone}
             >
-                完成
+                {tx('完成')}
             </button>
         </div>
         <div class="mobile-search-input-row">
@@ -109,15 +110,16 @@
 
     <div class="mobile-search-body">
         {#if $search.query.length === 0}
-            <div class="mobile-search-hint">输入关键词开始搜索</div>
+            <div class="mobile-search-hint">{tx('输入关键词开始搜索')}</div>
         {:else if $search.searching}
-            <div class="mobile-search-hint">搜索中...</div>
+            <div class="mobile-search-hint">{tx('搜索中...')}</div>
         {:else if $isMandalaMode}
             <div class="results-count">
-                {($mandalaSearchResults ?? []).length} 个结果
+                {($mandalaSearchResults ?? []).length}
+                {tx('个结果')}
             </div>
             {#if ($mandalaSearchResults ?? []).length === 0}
-                <div class="no-results">无匹配结果</div>
+                <div class="no-results">{tx('无匹配结果')}</div>
             {:else}
                 <div class="results-list" role="listbox">
                     {#each $mandalaSearchResults as result, index (result.nodeId)}

@@ -1,4 +1,5 @@
-import { lang } from 'src/lang/lang';
+// Group identifiers stay stable when the interface language changes.
+import { chineseMessages as lang } from 'src/lang/chinese-messages';
 import { hotkeysLang } from 'src/lang/hotkeys-lang';
 
 export type CommandName = keyof typeof hotkeysLang;

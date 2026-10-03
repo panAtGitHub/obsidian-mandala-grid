@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice, TFile } from 'obsidian';
 import {
     appendMandalaTemplate,
@@ -27,12 +28,12 @@ const getTemplatesFileFromPath = (
 
 const ensureMandala3x3 = (view: MandalaView) => {
     if (view.mandalaMode !== '3x3') {
-        new Notice('仅支持 3x3 视图。');
+        new Notice(tx('仅支持 3x3 视图。'));
         return false;
     }
     const state = view.documentStore.getValue();
     if (!state.meta.isMandala) {
-        new Notice('当前文档不是九宫格格式。');
+        new Notice(tx('当前文档不是九宫格格式。'));
         return false;
     }
     view.ensureFullHydrated?.('template-action');
@@ -137,7 +138,7 @@ const ensureTemplatesFile = async (
     const existing = getTemplatesFileFromPath(view, templatesFilePath);
     if (existing) return existing;
     if (templatesFilePath) {
-        new Notice('模板文件不存在，请重新指定。');
+        new Notice(tx('模板文件不存在，请重新指定。'));
         view.plugin.settings.dispatch({
             type: 'settings/general/set-mandala-templates-file-path',
             payload: { path: null },
@@ -159,7 +160,7 @@ export const openTemplatesFileFromPathAction = async (
 ) => {
     const file = getTemplatesFileFromPath(view, templatesFilePath);
     if (!file) {
-        new Notice('模板文件不存在，请重新指定。');
+        new Notice(tx('模板文件不存在，请重新指定。'));
         return;
     }
     await openFile(view.plugin, file, 'tab');
@@ -190,12 +191,12 @@ export const saveCurrentThemeAsTemplateAction = async (
     try {
         raw = await view.plugin.app.vault.read(file);
     } catch {
-        new Notice('读取模板文件失败。');
+        new Notice(tx('读取模板文件失败。'));
         return;
     }
     const templates = parseMandalaTemplates(raw);
     if (templates.some((template) => template.name === templateName)) {
-        new Notice('模板名称已存在，请更换名称。');
+        new Notice(tx('模板名称已存在，请更换名称。'));
         return;
     }
 
@@ -206,10 +207,10 @@ export const saveCurrentThemeAsTemplateAction = async (
     try {
         await view.plugin.app.vault.modify(file, nextContent);
     } catch {
-        new Notice('写入模板文件失败。');
+        new Notice(tx('写入模板文件失败。'));
         return;
     }
-    new Notice('模板已保存。');
+    new Notice(tx('模板已保存。'));
     closeMenu();
 };
 
@@ -226,12 +227,12 @@ export const applyTemplateToCurrentThemeAction = async (
     try {
         raw = await view.plugin.app.vault.read(file);
     } catch {
-        new Notice('读取模板文件失败。');
+        new Notice(tx('读取模板文件失败。'));
         return;
     }
     const templates = parseMandalaTemplates(raw);
     if (templates.length === 0) {
-        new Notice('模板文件中没有模板。');
+        new Notice(tx('模板文件中没有模板。'));
         return;
     }
 
@@ -250,7 +251,7 @@ export const applyTemplateToCurrentThemeAction = async (
     );
     if (isDayPlan) {
         applyDayPlanSlotsToAllCoreThemes(view, normalizedSlots);
-        new Notice('已根据文档前置区调整的标题进行全局替换。');
+        new Notice(tx('已根据文档前置区调整的标题进行全局替换。'));
         closeMenu();
         return;
     }
@@ -259,7 +260,7 @@ export const applyTemplateToCurrentThemeAction = async (
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
     const centerNodeId = state.sections.section_id[theme];
     if (!centerNodeId) {
-        new Notice('未找到当前主题中心格子。');
+        new Notice(tx('未找到当前主题中心格子。'));
         return;
     }
 
@@ -283,6 +284,6 @@ export const applyTemplateToCurrentThemeAction = async (
         });
     }
 
-    new Notice('模板已应用。');
+    new Notice(tx('模板已应用。'));
     closeMenu();
 };

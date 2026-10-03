@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Platform } from 'obsidian';
     import type {
         SimpleSummaryActiveCell,
@@ -345,7 +346,7 @@
             <button
                 class="parallel-nav-button parallel-nav-button--left"
                 type="button"
-                aria-label="切换到上一个平行九宫格"
+                aria-label={tx('切换到上一个平行九宫格')}
                 on:click={jumpToPrevCore}
             >
                 <span class="parallel-nav-button__icon">
@@ -360,7 +361,7 @@
         <button
             class="parallel-nav-button parallel-nav-button--right"
             type="button"
-            aria-label="切换到下一个平行九宫格"
+            aria-label={tx('切换到下一个平行九宫格')}
             on:click={jumpToNextCore}
         >
             <span class="parallel-nav-button__icon">

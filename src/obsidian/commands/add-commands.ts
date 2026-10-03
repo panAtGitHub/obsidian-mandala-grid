@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import type { Command } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
@@ -96,7 +97,7 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
             const view = getActiveMandalaView(plugin);
             if (!view || !view.file) {
                 if (!checking) {
-                    new Notice('请先打开一个九宫格文件。');
+                    new Notice(tx('请先打开一个九宫格文件。'));
                 }
                 return false;
             }

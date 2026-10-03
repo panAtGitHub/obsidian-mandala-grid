@@ -4,6 +4,7 @@ import { createNextNx9Core } from 'src/mandala-scenes/view-nx9/create-next-core'
 const noticeMock = vi.fn();
 
 vi.mock('obsidian', () => ({
+    getLanguage: () => 'zh',
     Notice: function Notice(message: string) {
         noticeMock(message);
     },

@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { SettingsStore } from 'src/main';
 import { Setting } from 'obsidian';
 import { lang } from 'src/lang/lang';
@@ -14,7 +15,7 @@ export const DayWeekPlanSettings = (
 
     // Day Plan Section
     element.createEl('h3', {
-        text: '日计划',
+        text: tx('日计划'),
         cls: 'mandala-settings-section-title',
     });
 
@@ -36,9 +37,7 @@ export const DayWeekPlanSettings = (
         // Date heading format
         new Setting(element)
             .setName(lang.settings_general_day_plan_date_heading_format)
-            .setDesc(
-                lang.settings_general_day_plan_date_heading_format_desc,
-            )
+            .setDesc(lang.settings_general_day_plan_date_heading_format_desc)
             .addDropdown((cb) => {
                 cb.addOptions({
                     'date-only':
@@ -49,8 +48,7 @@ export const DayWeekPlanSettings = (
                         lang.settings_general_day_plan_date_heading_format_zh_short,
                     'en-short':
                         lang.settings_general_day_plan_date_heading_format_en_short,
-                    custom:
-                        lang.settings_general_day_plan_date_heading_format_custom,
+                    custom: lang.settings_general_day_plan_date_heading_format_custom,
                 } satisfies Record<DayPlanDateHeadingFormat, string>)
                     .setValue(settingsState.general.dayPlanDateHeadingFormat)
                     .onChange((value) => {
@@ -103,7 +101,9 @@ export const DayWeekPlanSettings = (
 
         // Today button mobile
         new Setting(element)
-            .setName(lang.settings_display_day_plan_today_button + '（手机）')
+            .setName(
+                lang.settings_display_day_plan_today_button + tx('（手机）'),
+            )
             .addToggle((cb) => {
                 cb.setValue(
                     settingsState.view.showDayPlanTodayButtonMobile ?? true,
@@ -117,7 +117,7 @@ export const DayWeekPlanSettings = (
 
     // Week Plan Section
     element.createEl('h3', {
-        text: '周计划',
+        text: tx('周计划'),
         cls: 'mandala-settings-section-title',
     });
 
@@ -155,13 +155,13 @@ export const DayWeekPlanSettings = (
             });
 
         new Setting(element)
-            .setName('周计划起始日')
-            .setDesc('周视图中一周从周一或周日开始。')
+            .setName(tx('周计划起始日'))
+            .setDesc(tx('周视图中一周从周一或周日开始。'))
             .addDropdown((dropdown) => {
                 dropdown
                     .addOptions({
-                        monday: '周一开始',
-                        sunday: '周日开始',
+                        monday: tx('周一开始'),
+                        sunday: tx('周日开始'),
                     } satisfies Record<WeekStart, string>)
                     .setValue(settingsState.general.weekStart)
                     .onChange((value) => {

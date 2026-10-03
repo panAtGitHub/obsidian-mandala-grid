@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { derived } from 'svelte/store';
     import { PinnedNodesStore } from 'src/mandala-display/stores/document-derived-stores';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
@@ -217,7 +218,7 @@
                     type="button"
                 >
                     <Pin class="svg-icon" size="12" />
-                    列表
+                    {tx('列表')}
                 </button>
                 <button
                     class:active={sortMode === 'color'}
@@ -225,7 +226,7 @@
                     type="button"
                 >
                     <Pin class="svg-icon" size="12" />
-                    分类
+                    {tx('分类')}
                 </button>
             {/if}
             {#if hasColoredItems}
@@ -235,7 +236,7 @@
                     type="button"
                 >
                     <Palette class="svg-icon" size="12" />
-                    色块
+                    {tx('色块')}
                 </button>
             {/if}
         </div>

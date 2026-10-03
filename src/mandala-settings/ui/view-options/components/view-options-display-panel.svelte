@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Eye } from 'lucide-svelte';
     import { lang } from 'src/lang/lang';
     import type { DetailSidebarPreviewMode } from 'src/mandala-settings/state/settings-type';
@@ -38,8 +39,8 @@
         <Eye class="view-options-menu__icon-svg" size={18} />
     </div>
     <div class="view-options-menu__content">
-        <div class="view-options-menu__label">显示选项</div>
-        <div class="view-options-menu__desc">辅助信息与按钮显示</div>
+        <div class="view-options-menu__label">{tx('显示选项')}</div>
+        <div class="view-options-menu__desc">{tx('辅助信息与按钮显示')}</div>
     </div>
 </button>
 
@@ -47,11 +48,11 @@
     <div class="view-options-menu__submenu">
         <div class="view-options-menu__subsection">
             <div class="view-options-menu__subsection-title">
-                详情侧边栏预览
+                {tx('详情侧边栏预览')}
             </div>
 
             <div class="view-options-menu__row">
-                <span>预览样式</span>
+                <span>{tx('预览样式')}</span>
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -61,7 +62,7 @@
                             on:change={() =>
                                 updateDetailSidebarPreviewMode('rendered')}
                         />
-                        <span>渲染</span>
+                        <span>{tx('渲染')}</span>
                     </label>
                     <label class="view-options-menu__inline-option">
                         <input
@@ -71,15 +72,17 @@
                             on:change={() =>
                                 updateDetailSidebarPreviewMode('source')}
                         />
-                        <span>Markdown（只读）</span>
+                        <span>{tx('Markdown（只读）')}</span>
                     </label>
                 </div>
             </div>
 
-            <div class="view-options-menu__subsection-title">显示 / 隐藏</div>
+            <div class="view-options-menu__subsection-title">
+                {tx('显示 / 隐藏')}
+            </div>
 
             <div class="view-options-menu__row">
-                <span>Anki 卡片辅助信息</span>
+                <span>{tx('Anki 卡片辅助信息')}</span>
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -87,13 +90,17 @@
                             checked={showHiddenCardInfo}
                             on:change={toggleHiddenCardInfo}
                         />
-                        <span>{showHiddenCardInfo ? '显示中' : '已隐藏'}</span>
+                        <span
+                            >{showHiddenCardInfo
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
+                        >
                     </label>
                 </div>
             </div>
 
             <div class="view-options-menu__row">
-                <span>3x3 视图导航按钮</span>
+                <span>{tx('3x3 视图导航按钮')}</span>
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -103,15 +110,15 @@
                         />
                         <span
                             >{show3x3SubgridNavButtons
-                                ? '显示中'
-                                : '已隐藏'}</span
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
                         >
                     </label>
                 </div>
             </div>
 
             <div class="view-options-menu__row">
-                <span>9x9 平行九宫格切换按钮</span>
+                <span>{tx('9x9 平行九宫格切换按钮')}</span>
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -121,15 +128,15 @@
                         />
                         <span
                             >{show9x9ParallelNavButtons
-                                ? '显示中'
-                                : '已隐藏'}</span
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
                         >
                     </label>
                 </div>
             </div>
 
             <div class="view-options-menu__row">
-                <span>空格快速预览浮层</span>
+                <span>{tx('空格快速预览浮层')}</span>
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -139,8 +146,8 @@
                         />
                         <span
                             >{showCellQuickPreviewDialog
-                                ? '已开启'
-                                : '已关闭'}</span
+                                ? tx('已开启')
+                                : tx('已关闭')}</span
                         >
                     </label>
                 </div>
@@ -158,8 +165,8 @@
                             />
                             <span
                                 >{showDayPlanTodayButton
-                                    ? '显示中'
-                                    : '已隐藏'}</span
+                                    ? tx('显示中')
+                                    : tx('已隐藏')}</span
                             >
                         </label>
                     </div>
@@ -179,7 +186,11 @@
                             checked={showCopyBlockPlain}
                             on:change={toggleCopyBlockPlain}
                         />
-                        <span>{showCopyBlockPlain ? '显示中' : '已隐藏'}</span>
+                        <span
+                            >{showCopyBlockPlain
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
+                        >
                     </label>
                 </div>
             </div>
@@ -193,7 +204,11 @@
                             checked={showCopyBlockEmbed}
                             on:change={toggleCopyBlockEmbed}
                         />
-                        <span>{showCopyBlockEmbed ? '显示中' : '已隐藏'}</span>
+                        <span
+                            >{showCopyBlockEmbed
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
+                        >
                     </label>
                 </div>
             </div>
@@ -207,7 +222,10 @@
                             checked={showCopyHeadingPlain}
                             on:change={toggleCopyHeadingPlain}
                         />
-                        <span>{showCopyHeadingPlain ? '显示中' : '已隐藏'}</span
+                        <span
+                            >{showCopyHeadingPlain
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
                         >
                     </label>
                 </div>
@@ -222,7 +240,10 @@
                             checked={showCopyHeadingEmbed}
                             on:change={toggleCopyHeadingEmbed}
                         />
-                        <span>{showCopyHeadingEmbed ? '显示中' : '已隐藏'}</span
+                        <span
+                            >{showCopyHeadingEmbed
+                                ? tx('显示中')
+                                : tx('已隐藏')}</span
                         >
                     </label>
                 </div>
@@ -240,7 +261,9 @@
                             on:change={toggleCopyHeadingEmbedDollar}
                         />
                         <span>
-                            {showCopyHeadingEmbedDollar ? '显示中' : '已隐藏'}
+                            {showCopyHeadingEmbedDollar
+                                ? tx('显示中')
+                                : tx('已隐藏')}
                         </span>
                     </label>
                 </div>

@@ -1,6 +1,7 @@
 import { StateField } from '@codemirror/state';
 
 export class App {}
+export const getLanguage = () => 'zh';
 export class Plugin {
     registerEditorExtension(_extension: unknown) {}
 }

@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import {
     parseDayPlanFrontmatter,
@@ -73,7 +74,7 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
     const section = docState.sections.id_section[nodeId];
     if (!section) return;
     if (!canEnterThreeByThreeTheme(view, section)) {
-        new Notice('当前设置下已达到 3×3 子九宫层级上限。');
+        new Notice(tx('当前设置下已达到 3×3 子九宫层级上限。'));
         return;
     }
     const currentTheme =
@@ -89,7 +90,7 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
     if (section === currentTheme && !currentTheme.includes('.')) {
         const content = docState.document.content[nodeId]?.content ?? '';
         if (!content.trim()) {
-            new Notice('请先填写内容，再进入下一核心九宫');
+            new Notice(tx('请先填写内容，再进入下一核心九宫'));
             return;
         }
         const nextTheme = String(Number(currentTheme) + 1);
@@ -139,7 +140,7 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
     if (canExpandThreeByThreeChildren(view, section)) {
         const content = docState.document.content[nodeId]?.content ?? '';
         if (!content.trim()) {
-            new Notice('请先填写内容，再展开九宫格');
+            new Notice(tx('请先填写内容，再展开九宫格'));
             return;
         }
 

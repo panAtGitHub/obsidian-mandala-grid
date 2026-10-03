@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { Modal, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
 import { applyCssProps } from 'src/shared/helpers/apply-css-props';
@@ -40,8 +41,8 @@ class MandalaConversionModal extends Modal {
         const messageEl = contentEl.createEl('p', { text: message });
         applyCssProps(messageEl, { 'white-space': 'pre-wrap' });
 
-        const confirmText = this.options.confirmText ?? '转换';
-        const cancelText = this.options.cancelText ?? '取消';
+        const confirmText = this.options.confirmText ?? tx('转换');
+        const cancelText = this.options.cancelText ?? tx('取消');
 
         new Setting(contentEl).addButton((button) => {
             button

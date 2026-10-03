@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { setIcon } from 'obsidian';
     import { lang } from 'src/lang/lang';
 
@@ -35,7 +36,7 @@
             <button
                 class="mobile-subgrid-floating-btn"
                 type="button"
-                aria-label="退出上一层子九宫格"
+                aria-label={tx('退出上一层子九宫格')}
                 disabled={!canExitSubgrid}
                 on:click={onExitSubgrid}
             >
@@ -47,7 +48,7 @@
             <button
                 class="mobile-subgrid-floating-btn"
                 type="button"
-                aria-label="进入下一层子九宫格"
+                aria-label={tx('进入下一层子九宫格')}
                 disabled={!canEnterSubgrid}
                 on:click={onEnterSubgrid}
             >
@@ -77,7 +78,7 @@
             <button
                 class="mobile-subgrid-floating-btn"
                 type="button"
-                aria-label="进入上一层核心九宫格"
+                aria-label={tx('进入上一层核心九宫格')}
                 disabled={!canJumpPrevCore}
                 on:click={onJumpPrevCore}
             >
@@ -89,7 +90,7 @@
             <button
                 class="mobile-subgrid-floating-btn"
                 type="button"
-                aria-label="进入下一层核心九宫格"
+                aria-label={tx('进入下一层核心九宫格')}
                 on:click={onJumpNextCore}
             >
                 <span

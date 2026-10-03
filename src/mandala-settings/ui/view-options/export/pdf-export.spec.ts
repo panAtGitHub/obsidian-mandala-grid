@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('obsidian', () => ({
+    getLanguage: () => 'zh',
     Notice: mocks.Notice,
 }));
 
@@ -96,30 +97,32 @@ describe('exportCurrentViewPdf', () => {
             filePath: '/tmp/mandala.pdf',
         });
         const writeFile = vi.fn(
-            (
-                _path: string,
-                _data: Uint8Array,
-                cb: (err?: Error) => void,
-            ) => cb(),
+            (_path: string, _data: Uint8Array, cb: (err?: Error) => void) =>
+                cb(),
         );
         let capturedHost: HTMLElement | null = null;
         let capturedClone: HTMLElement | null = null;
         const printToPDF = vi.fn().mockImplementation((_options) => {
-            capturedHost = document.body.querySelector('.mandala-pdf-print-host');
-            capturedClone =
-                capturedHost?.querySelector<HTMLElement>('.mandala-root') ?? null;
-
-            expect(document.body.classList.contains('mandala-print-export')).toBe(
-                true,
+            capturedHost = document.body.querySelector(
+                '.mandala-pdf-print-host',
             );
+            capturedClone =
+                capturedHost?.querySelector<HTMLElement>('.mandala-root') ??
+                null;
+
             expect(
-                document.body.classList.contains('mandala-export-hide-controls'),
+                document.body.classList.contains('mandala-print-export'),
+            ).toBe(true);
+            expect(
+                document.body.classList.contains(
+                    'mandala-export-hide-controls',
+                ),
             ).toBe(true);
             expect(capturedHost).not.toBeNull();
             expect(capturedClone).not.toBe(root);
-            expect(capturedClone?.classList.contains('mandala-a4-landscape')).toBe(
-                true,
-            );
+            expect(
+                capturedClone?.classList.contains('mandala-a4-landscape'),
+            ).toBe(true);
             expect(capturedClone?.style.position).toBe('static');
             expect(capturedClone?.style.width).toBe('auto');
             expect(capturedClone?.style.height).toBe('auto');
@@ -174,7 +177,9 @@ describe('exportCurrentViewPdf', () => {
         );
         expect(persistLastExportPreset).toHaveBeenCalledWith(exportPreset);
         expect(closeExportMode).toHaveBeenCalledTimes(1);
-        expect(document.body.querySelector('.mandala-pdf-print-host')).toBeNull();
+        expect(
+            document.body.querySelector('.mandala-pdf-print-host'),
+        ).toBeNull();
         expect(document.body.classList.contains('mandala-print-export')).toBe(
             false,
         );
@@ -200,6 +205,8 @@ describe('exportCurrentViewPdf', () => {
         });
 
         expect(closeExportMode).toHaveBeenCalledTimes(1);
-        expect(document.body.querySelector('.mandala-pdf-print-host')).toBeNull();
+        expect(
+            document.body.querySelector('.mandala-pdf-print-host'),
+        ).toBeNull();
     });
 });

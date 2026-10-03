@@ -20,7 +20,6 @@ export type ToolbarButton =
     | 'hidden-card-info'
     | 'undo'
     | 'redo'
-     
     | 'zoom-in'
     | 'zoom-out'
     | 'zoom-reset'
@@ -42,7 +41,9 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
         buttons: [
             {
                 id: 'hotkeys',
-                label: lang.controls_hotkeys,
+                get label() {
+                    return lang.controls_hotkeys;
+                },
                 icon: Keyboard,
             },
         ],
@@ -52,7 +53,9 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
         buttons: [
             {
                 id: 'mandala-mode',
-                label: lang.controls_toggle_mandala_mode,
+                get label() {
+                    return lang.controls_toggle_mandala_mode;
+                },
                 icon: customIcons.cards,
             },
         ],
@@ -62,7 +65,9 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
         buttons: [
             {
                 id: 'hidden-card-info',
-                label: lang.controls_toggle_hidden_card_info,
+                get label() {
+                    return lang.controls_toggle_hidden_card_info;
+                },
                 icon: Eye,
             },
         ],
@@ -73,22 +78,30 @@ export const verticalToolbarButtons: VerticalToolbarGroup[] = [
         buttons: [
             {
                 id: 'zoom-in',
-                label: lang.controls_zoom_in,
+                get label() {
+                    return lang.controls_zoom_in;
+                },
                 icon: ZoomIn,
             },
             {
                 id: 'zoom-reset',
-                label: lang.controls_zoom_reset,
+                get label() {
+                    return lang.controls_zoom_reset;
+                },
                 icon: RotateCcw,
             },
             {
                 id: 'zoom-presets',
-                label: lang.controls_zoom_presets,
+                get label() {
+                    return lang.controls_zoom_presets;
+                },
                 icon: ScanSearch,
             },
             {
                 id: 'zoom-out',
-                label: lang.controls_zoom_out,
+                get label() {
+                    return lang.controls_zoom_out;
+                },
                 icon: ZoomOut,
             },
         ],

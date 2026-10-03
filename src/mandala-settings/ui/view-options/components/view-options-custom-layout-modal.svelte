@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { X } from 'lucide-svelte';
     import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
     import Portal from 'src/shared/ui/portal.svelte';
@@ -39,23 +40,24 @@
         currentId: string | null,
     ): string | null => {
         const normalizedName = name.trim();
-        if (!normalizedName) return '请输入名称';
+        if (!normalizedName) return tx('请输入名称');
         const comparable = normalizeLayoutName(normalizedName);
         const duplicated = customLayouts.some(
             (layout) =>
                 layout.id !== currentId &&
                 normalizeLayoutName(layout.name) === comparable,
         );
-        return duplicated ? '名称不能重复' : null;
+        return duplicated ? tx('名称不能重复') : null;
     };
 
     const validateDraftGrid = (grid: string[][]): string | null => {
         const values = grid.flat().filter((_, index) => index !== 4);
-        if (values.some((value) => value === '')) return '请填完整 8 个位置';
+        if (values.some((value) => value === ''))
+            return tx('请填完整 8 个位置');
         if (values.some((value) => !/^[1-8]$/.test(value))) {
-            return '外圈只能填写 1 到 8';
+            return tx('外圈只能填写 1 到 8');
         }
-        if (new Set(values).size !== 8) return '外圈数字不能重复';
+        if (new Set(values).size !== 8) return tx('外圈数字不能重复');
         return null;
     };
 
@@ -82,7 +84,8 @@
 
     const initializeDraft = () => {
         const activeCustomLayout =
-            customLayouts.find((layout) => layout.id === activeLayoutId) ?? null;
+            customLayouts.find((layout) => layout.id === activeLayoutId) ??
+            null;
         if (activeCustomLayout) {
             loadExistingLayout(activeCustomLayout);
             return;
@@ -119,24 +122,24 @@
     );
     $: activeLayoutLabel =
         activeLayoutId === 'builtin:south-start'
-            ? '从南开始'
+            ? tx('从南开始')
             : activeLayoutId === 'builtin:left-to-right'
-              ? '从左到右'
+              ? tx('从左到右')
               : (() => {
                     const customLayout =
                         customLayouts.find(
                             (layout) => layout.id === activeLayoutId,
                         ) ?? null;
                     return customLayout
-                        ? `自定义 / ${customLayout.name}`
-                        : '从左到右';
+                        ? tx('自定义 / {0}', customLayout.name)
+                        : tx('从左到右');
                 })();
     $: editorTitle =
         draftMode === 'create'
-            ? '新建自定义布局'
+            ? tx('新建自定义布局')
             : draftMode === 'edit'
-              ? '编辑自定义布局'
-              : '自定义布局';
+              ? tx('编辑自定义布局')
+              : tx('自定义布局');
     $: canSaveDraft =
         draftMode !== 'empty' &&
         !validateDraftName(draftName, editingLayoutId) &&
@@ -257,24 +260,26 @@
         >
             {#if isMobile}
                 <div class="mobile-modal-header">
-                    <div class="mobile-modal-title">自定义布局</div>
+                    <div class="mobile-modal-title">{tx('自定义布局')}</div>
                     <button
                         class="mobile-done-button"
                         type="button"
                         on:click={onClose}
                     >
                         <X size={18} />
-                        <span>关闭</span>
+                        <span>{tx('关闭')}</span>
                     </button>
                 </div>
             {:else}
                 <div class="view-options-menu__header">
-                    <span class="view-options-menu__title">自定义布局</span>
+                    <span class="view-options-menu__title"
+                        >{tx('自定义布局')}</span
+                    >
                     <button
                         class="view-options-menu__close"
                         type="button"
                         on:click={onClose}
-                        aria-label="关闭自定义布局"
+                        aria-label={tx('关闭自定义布局')}
                     >
                         <X class="icon" size={16} />
                     </button>
@@ -285,39 +290,41 @@
                 <div class="custom-layout-modal__sidebar">
                     <div class="custom-layout-modal__sidebar-header">
                         <div class="view-options-menu__subsection-title">
-                            已保存布局
+                            {tx('已保存布局')}
                         </div>
                         <button
                             class="view-options-menu__subitem custom-layout-modal__create-button"
                             type="button"
                             on:click={startCreate}
                         >
-                            新增自定义布局
+                            {tx('新增自定义布局')}
                         </button>
                     </div>
 
                     <div class="custom-layout-modal__active-note">
-                        当前生效：{activeLayoutLabel}
+                        {tx('当前生效：')}{activeLayoutLabel}
                     </div>
 
                     {#if customLayouts.length === 0}
                         <div class="custom-layout-modal__empty">
-                            还没有自定义布局，点击上方按钮开始新建。
+                            {tx('还没有自定义布局，点击上方按钮开始新建。')}
                         </div>
                     {:else}
                         <div class="custom-layout-modal__list">
                             {#each customLayouts as layout (layout.id)}
                                 <button
                                     class="custom-layout-modal__list-item"
-                                    class:is-editing={editingLayoutId === layout.id &&
-                                        draftMode === 'edit'}
+                                    class:is-editing={editingLayoutId ===
+                                        layout.id && draftMode === 'edit'}
                                     type="button"
                                     on:click={() => startEdit(layout.id)}
                                 >
                                     <span>{layout.name}</span>
                                     {#if activeLayoutId === layout.id}
-                                        <span class="custom-layout-modal__badge">
-                                            当前使用
+                                        <span
+                                            class="custom-layout-modal__badge"
+                                        >
+                                            {tx('当前使用')}
                                         </span>
                                     {/if}
                                 </button>
@@ -333,24 +340,24 @@
                         </div>
                         {#if draftMode === 'create'}
                             <div class="view-options-menu__note">
-                                请先填写名称和周边 8 格
+                                {tx('请先填写名称和周边 8 格')}
                             </div>
                         {/if}
                     </div>
 
                     {#if draftMode === 'empty'}
                         <div class="custom-layout-modal__empty-editor">
-                            选择一个已有布局，或新增一个自定义布局。
+                            {tx('选择一个已有布局，或新增一个自定义布局。')}
                         </div>
                     {:else}
                         <label class="view-options-menu__row">
-                            <span>布局名称</span>
+                            <span>{tx('布局名称')}</span>
                             <div class="view-options-menu__row-controls">
                                 <input
                                     class="custom-layout-modal__name-input"
                                     type="text"
                                     maxlength="20"
-                                    placeholder="请输入唯一名称"
+                                    placeholder={tx('请输入唯一名称')}
                                     value={draftName}
                                     on:input={handleNameInput}
                                 />
@@ -364,13 +371,15 @@
 
                         <div class="custom-layout-modal__grid-section">
                             <div class="view-options-menu__subsection-title">
-                                周边 8 格
+                                {tx('周边 8 格')}
                             </div>
                             <div class="custom-layout-modal__grid">
                                 {#each draftGrid as row, rowIndex (`row-${rowIndex}`)}
                                     {#each row as value, colIndex (`cell-${rowIndex}-${colIndex}`)}
                                         {#if rowIndex === 1 && colIndex === 1}
-                                            <div class="custom-layout-modal__center-cell">
+                                            <div
+                                                class="custom-layout-modal__center-cell"
+                                            >
                                                 0
                                             </div>
                                         {:else}
@@ -380,7 +389,7 @@
                                                 inputmode="numeric"
                                                 maxlength="1"
                                                 placeholder=" "
-                                                value={value}
+                                                {value}
                                                 on:input={(event) =>
                                                     handleCellInput(
                                                         rowIndex,
@@ -401,11 +410,13 @@
 
                         <div class="custom-layout-modal__preview">
                             <div class="view-options-menu__subsection-title">
-                                当前预览
+                                {tx('当前预览')}
                             </div>
                             <div class="custom-layout-modal__preview-grid">
                                 {#each previewRows as row, rowIndex (`preview-${rowIndex}`)}
-                                    <div class="custom-layout-modal__preview-row">
+                                    <div
+                                        class="custom-layout-modal__preview-row"
+                                    >
                                         {row}
                                     </div>
                                 {/each}
@@ -419,7 +430,7 @@
                                     type="button"
                                     on:click={cancelDraft}
                                 >
-                                    取消新增
+                                    {tx('取消新增')}
                                 </button>
                             {/if}
                             {#if draftMode === 'edit'}
@@ -428,7 +439,7 @@
                                     type="button"
                                     on:click={deleteCurrentLayout}
                                 >
-                                    删除当前布局
+                                    {tx('删除当前布局')}
                                 </button>
                             {/if}
                             <button
@@ -437,7 +448,7 @@
                                 disabled={!canSaveDraft}
                                 on:click={saveDraft}
                             >
-                                保存并应用
+                                {tx('保存并应用')}
                             </button>
                         </div>
                     {/if}

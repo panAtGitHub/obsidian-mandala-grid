@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import {
         CalendarDays,
         ChevronLeft,
@@ -77,8 +78,8 @@
             : null;
     $: currentWeekLabel =
         $weekAnchorDate && sceneKey.variant === 'week-7x9'
-            ? `第${getWeekIndexInPlanYear($weekAnchorDate, $weekStart)}周`
-            : '本周';
+            ? tx('第{0}周', getWeekIndexInPlanYear($weekAnchorDate, $weekStart))
+            : tx('本周');
 
     const toggleMandalaMode = () => {
         view.cycleMandalaMode();
@@ -126,7 +127,7 @@
             <Button
                 active={$show9x9TitleOnly}
                 classes="topbar-button"
-                label="仅显示标题"
+                label={tx('仅显示标题')}
                 on:click={toggle9x9TitleOnly}
                 tooltipPosition="bottom"
             >
@@ -137,14 +138,14 @@
             active={$mode !== '3x3'}
             classes="topbar-button"
             label={$mode === '3x3'
-                ? '切换到 9x9'
+                ? tx('切换到 9x9')
                 : $mode === '9x9'
                   ? canUseNx9Mode
-                      ? '切换到 Nx9'
-                      : '切换到 3x3'
+                      ? tx('切换到 Nx9')
+                      : tx('切换到 3x3')
                   : $mode === 'nx9'
-                    ? '切换到 3x3'
-                    : '切换到 3x3'}
+                    ? tx('切换到 3x3')
+                    : tx('切换到 3x3')}
             on:click={toggleMandalaMode}
             tooltipPosition="bottom"
         >
@@ -160,7 +161,7 @@
             <div class="week-nav-group">
                 <Button
                     classes="topbar-button"
-                    label="上一周"
+                    label={tx('上一周')}
                     on:click={goToPreviousWeek}
                     tooltipPosition="bottom"
                 >
@@ -179,7 +180,7 @@
                 </Button>
                 <Button
                     classes="topbar-button"
-                    label="下一周"
+                    label={tx('下一周')}
                     on:click={goToNextWeek}
                     tooltipPosition="bottom"
                 >
@@ -190,7 +191,7 @@
             <div class="week-nav-group">
                 <Button
                     classes="topbar-button"
-                    label="上一页"
+                    label={tx('上一页')}
                     disabled={!nx9Context || nx9Context.currentPage <= 0}
                     on:click={goToPreviousNx9Page}
                     tooltipPosition="bottom"
@@ -199,7 +200,7 @@
                 </Button>
                 <Button
                     classes="topbar-button toolbar-center__text"
-                    label="设置 Nx9 每页行数"
+                    label={tx('设置 Nx9 每页行数')}
                     on:click={changeNx9RowsPerPage}
                     tooltipPosition="bottom"
                 >
@@ -207,7 +208,7 @@
                 </Button>
                 <Button
                     classes="topbar-button"
-                    label="下一页"
+                    label={tx('下一页')}
                     disabled={!nx9Context ||
                         nx9Context.currentPage >= nx9Context.totalPages - 1}
                     on:click={goToNextNx9Page}

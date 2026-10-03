@@ -1,4 +1,9 @@
-import { PluginSettingTab, Setting } from 'obsidian';
+import { Notice, PluginSettingTab, Setting } from 'obsidian';
+import { tx } from 'src/lang/translate';
+import {
+    normalizeInterfaceLanguage,
+    setInterfaceLanguage,
+} from 'src/lang/interface-language';
 import type MandalaGrid from 'src/main';
 import { lang } from 'src/lang/lang';
 import { MandalaView } from 'src/view/view';
@@ -57,6 +62,32 @@ export class MandalaGridSettingTab extends PluginSettingTab {
             .setName(lang.settings_plugin_title)
             .setHeading();
         const settings = this.plugin.settings.getValue();
+        new Setting(containerEl)
+            .setName(tx('界面语言'))
+            .setDesc(tx('修改后重新加载插件，使已打开的菜单和视图更新。'))
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOption('auto', tx('跟随 Obsidian'))
+                    .addOption('zh', '简体中文')
+                    .addOption('en', 'English')
+                    .setValue(settings.general.interfaceLanguage)
+                    .onChange(async (value) => {
+                        const language = normalizeInterfaceLanguage(value);
+                        this.plugin.settings.dispatch({
+                            type: 'settings/general/set-interface-language',
+                            payload: { language },
+                        });
+                        await this.plugin.saveSettings();
+                        setInterfaceLanguage(language);
+                        this.plugin.refreshCommands();
+                        this.display();
+                        new Notice(
+                            tx(
+                                '语言设置已保存，请重新加载 Mandala Grid 插件。',
+                            ),
+                        );
+                    });
+            });
         renderMandalaCoreSettings({
             parentEl: containerEl,
             state: {

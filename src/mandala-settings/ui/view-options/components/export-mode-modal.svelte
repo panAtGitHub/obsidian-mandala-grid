@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { X } from 'lucide-svelte';
     import Portal from 'src/shared/ui/portal.svelte';
     import ViewOptionsEditPanel from './view-options-edit-panel.svelte';
@@ -25,7 +26,7 @@
     export let editPanelProps: Record<string, unknown> = {};
     export let fontPanelProps: Record<string, unknown> = {};
     export let canApplyLastExportPreset = false;
-    export let exportActionLabel = '导出文件';
+    export let exportActionLabel = tx('导出文件');
 
     export let onClose: () => void;
     export let onStartDrag: (event: MouseEvent | TouchEvent) => void;
@@ -55,7 +56,7 @@
                 on:touchstart={onStartDrag}
             >
                 <span class="view-options-menu__title">
-                    导出模式（临时会话，按住标题可移动）
+                    {tx('导出模式（临时会话，按住标题可移动）')}
                 </span>
                 <button class="view-options-menu__close" on:click={onClose}>
                     <X class="icon" size={16} />
@@ -64,10 +65,10 @@
             <div class="view-options-menu__items">
                 <div class="view-options-menu__submenu export-mode-flow">
                     <div class="view-options-menu__note">
-                        仅本次导出生效，关闭后恢复编辑状态。
+                        {tx('仅本次导出生效，关闭后恢复编辑状态。')}
                     </div>
                     <div class="view-options-menu__subsection-title">
-                        1. 导出目标
+                        {tx('1. 导出目标')}
                     </div>
                     <div class="export-target-tabs">
                         <button
@@ -75,14 +76,14 @@
                             class:is-active={exportMode === 'png-square'}
                             on:click={() => onSetExportMode('png-square')}
                         >
-                            PNG 格子范围
+                            {tx('PNG 格子范围')}
                         </button>
                         <button
                             class="export-target-tab"
                             class:is-active={exportMode === 'png-screen'}
                             on:click={() => onSetExportMode('png-screen')}
                         >
-                            PNG 屏幕范围
+                            {tx('PNG 屏幕范围')}
                         </button>
                         <button
                             class="export-target-tab"
@@ -123,7 +124,7 @@
                         </span>
                     </div>
                     <div class="view-options-menu__subsection-title">
-                        2. 专属选项
+                        {tx('2. 专属选项')}
                     </div>
                     {#if exportMode === 'png-screen'}
                         <div class="view-options-menu__row">
@@ -133,25 +134,29 @@
                                     checked={includeSidebarInPngScreen}
                                     on:change={onToggleIncludeSidebar}
                                 />
-                                <span>包含侧边栏</span>
+                                <span>{tx('包含侧边栏')}</span>
                             </label>
                         </div>
                     {:else if exportMode === 'pdf-a4'}
                         <div class="view-options-menu__row">
-                            <span>A4 方向</span>
+                            <span>{tx('A4 方向')}</span>
                             <select
                                 value={a4Orientation}
                                 on:change={onUpdateA4Orientation}
                             >
-                                <option value="portrait">纵向</option>
-                                <option value="landscape">横向</option>
+                                <option value="portrait">{tx('纵向')}</option>
+                                <option value="landscape">{tx('横向')}</option>
                             </select>
                         </div>
                     {:else}
                         <div class="view-options-menu__note">
                             {squareLayout
-                                ? '当前为正方形布局，按格子范围导出并自动留白。'
-                                : '当前为自适应布局，按格子范围导出长方形。'}
+                                ? tx(
+                                      '当前为正方形布局，按格子范围导出并自动留白。',
+                                  )
+                                : tx(
+                                      '当前为自适应布局，按格子范围导出长方形。',
+                                  )}
                         </div>
                     {/if}
                     <div class="view-options-menu__row">
@@ -161,18 +166,18 @@
                                 checked={showGridHighlight}
                                 on:change={onToggleShowGridHighlight}
                             />
-                            <span>显示高亮框</span>
+                            <span>{tx('显示高亮框')}</span>
                         </label>
                     </div>
                     <div class="export-style-header">
                         <div class="view-options-menu__subsection-title">
-                            3. 外观样式
+                            {tx('3. 外观样式')}
                         </div>
                         <button
                             class="export-style-toggle"
                             on:click={onToggleStyleDetails}
                         >
-                            {showExportStyleDetails ? '收起' : '展开'}
+                            {showExportStyleDetails ? tx('收起') : tx('展开')}
                         </button>
                     </div>
                     {#if showExportStyleDetails}
@@ -182,13 +187,13 @@
                     {/if}
                     <div class="export-style-header">
                         <div class="view-options-menu__subsection-title">
-                            4. 字体设置
+                            {tx('4. 字体设置')}
                         </div>
                         <button
                             class="export-style-toggle"
                             on:click={onToggleFontDetails}
                         >
-                            {showExportFontDetails ? '收起' : '展开'}
+                            {showExportFontDetails ? tx('收起') : tx('展开')}
                         </button>
                     </div>
                     {#if showExportFontDetails}
@@ -202,13 +207,13 @@
                             on:click={onApplyLastExportPreset}
                             disabled={!canApplyLastExportPreset}
                         >
-                            采用上一次导出设置
+                            {tx('采用上一次导出设置')}
                         </button>
                         <button
                             class="view-options-menu__subitem"
                             on:click={onClose}
                         >
-                            取消设置并退出
+                            {tx('取消设置并退出')}
                         </button>
                     </div>
                     <button

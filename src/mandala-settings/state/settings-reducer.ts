@@ -11,6 +11,7 @@ import { toggleEditorState } from 'src/mandala-settings/state/reducers/toggle-ed
 import { setHotkeyAsBlank } from 'src/mandala-settings/state/reducers/set-hotkey-as-blank';
 import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import { Platform } from 'obsidian';
+import { normalizeInterfaceLanguage } from 'src/lang/interface-language';
 import { normalizeContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
 import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
 import {
@@ -585,6 +586,12 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             ...current,
             [action.payload.variant]: action.payload.visible,
         };
+    },
+    'settings/general/set-interface-language': (store, action) => {
+        if (action.type !== 'settings/general/set-interface-language') return;
+        store.general.interfaceLanguage = normalizeInterfaceLanguage(
+            action.payload.language,
+        );
     },
     'settings/general/set-link-pane-type': (store, action) => {
         if (action.type !== 'settings/general/set-link-pane-type') return;

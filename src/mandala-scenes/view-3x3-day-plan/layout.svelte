@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Platform } from 'obsidian';
     import { CalendarDays } from 'lucide-svelte';
     import { flip } from 'svelte/animate';
@@ -144,7 +145,7 @@
                             <button
                                 class="mandala-subgrid-btn mandala-subgrid-btn--single"
                                 type="button"
-                                aria-label="进入子九宫"
+                                aria-label={tx('进入子九宫')}
                                 on:click={(event) =>
                                     enterSubgridFromButton(
                                         event,

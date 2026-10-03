@@ -166,6 +166,7 @@ export type Settings = {
         subgridMaxDepth: SectionRangeLimit;
     };
     general: {
+        interfaceLanguage: import('src/lang/interface-language').InterfaceLanguage;
         linkPaneType: LinkPaneType;
         mandalaTemplatesFilePath: string | null;
         dayPlanEnabled: boolean;

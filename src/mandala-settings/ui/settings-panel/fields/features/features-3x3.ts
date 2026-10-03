@@ -1,3 +1,4 @@
+import { tx } from 'src/lang/translate';
 import { SettingsStore } from 'src/main';
 import { Setting } from 'obsidian';
 import { lang } from 'src/lang/lang';
@@ -38,7 +39,7 @@ export const Features3x3 = (
         .setDesc(lang.settings_global_range_input_empty)
         .addText((text) =>
             text
-                .setPlaceholder('留空表示不限')
+                .setPlaceholder(tx('留空表示不限'))
                 .setValue(
                     settingsState.view.coreSectionMax === 'unlimited'
                         ? ''
@@ -59,7 +60,7 @@ export const Features3x3 = (
         .setDesc(lang.settings_global_range_input_empty)
         .addText((text) =>
             text
-                .setPlaceholder('留空表示不限')
+                .setPlaceholder(tx('留空表示不限'))
                 .setValue(
                     settingsState.view.subgridMaxDepth === 'unlimited'
                         ? ''

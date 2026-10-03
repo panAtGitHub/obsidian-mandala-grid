@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { Platform } from 'obsidian';
     import { tick } from 'svelte';
     import { derived } from 'src/shared/store/derived';
@@ -166,7 +167,7 @@
                             Quick Preview
                         </div>
                         <div class="cell-preview-dialog__title">
-                            {sectionLabel || '未命名格子'}
+                            {sectionLabel || tx('未命名格子')}
                         </div>
                     </div>
                 </div>
@@ -197,9 +198,11 @@
                 </div>
                 <div class="cell-preview-dialog__footer">
                     {#if isEditingPreview}
-                        继续使用当前编辑快捷键保存或退出编辑
+                        {tx('继续使用当前编辑快捷键保存或退出编辑')}
                     {:else}
-                        `Enter` 编辑，方向键切换格子，`Space` / `Esc` 关闭
+                        {tx(
+                            '`Enter` 编辑，方向键切换格子，`Space` / `Esc` 关闭',
+                        )}
                     {/if}
                 </div>
             </div>

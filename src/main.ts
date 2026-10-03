@@ -53,6 +53,7 @@ import { onVaultEvent } from 'src/stores/plugin/subscriptions/on-vault-event';
 import { onWorkspaceEvent } from 'src/stores/plugin/subscriptions/on-workspace-event';
 import { SettingsActions } from 'src/mandala-settings/state/settings-store-actions';
 import { lang } from 'src/lang/lang';
+import { setInterfaceLanguage } from 'src/lang/interface-language';
 import { MandalaGridSettingTab } from 'src/obsidian/settings/mandala-grid-setting-tab';
 import { __dev__ } from 'src/shared/helpers/logger';
 import { PerfRecorder } from 'src/perf/perf-recorder';
@@ -140,6 +141,7 @@ export default class MandalaGrid extends Plugin {
                 : {};
         const settings = deepMerge(rawSettings, DEFAULT_SETTINGS()) as Settings;
         migrateSettings(settings);
+        setInterfaceLanguage(settings.general.interfaceLanguage);
         this.settings = new Store<Settings, SettingsActions>(
             settings,
             settingsReducer,

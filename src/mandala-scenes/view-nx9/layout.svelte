@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tx } from 'src/lang/translate';
     import { onDestroy } from 'svelte';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import {
@@ -217,7 +218,6 @@
         displaySnapshot,
         draftProjection,
     });
-
 </script>
 
 <div
@@ -242,14 +242,10 @@
                     class:is-active-node={cell.isActiveNode}
                     style={`grid-row: ${cell.row + 1}; grid-column: ${cell.col + 1};`}
                     on:click|capture={() =>
-                        selectionRuntime.selectRealCell(
-                            cell.row,
-                            cell.col,
-                            {
-                                nodeId: cell.nodeId,
-                                section: cell.section,
-                            },
-                        )}
+                        selectionRuntime.selectRealCell(cell.row, cell.col, {
+                            nodeId: cell.nodeId,
+                            section: cell.section,
+                        })}
                 >
                     {#if cell.cardViewModel}
                         <MandalaCard
@@ -258,7 +254,9 @@
                             {themeSnapshot}
                         />
                     {:else}
-                        <div class="mandala-card-grid__empty">{cell.section}</div>
+                        <div class="mandala-card-grid__empty">
+                            {cell.section}
+                        </div>
                     {/if}
                 </div>
             {/each}
@@ -284,7 +282,9 @@
                     </div>
                     {#if rowModel.showFutureHint}
                         <div class="nx9-cell__future-hint">
-                            仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。
+                            {tx(
+                                '仅当前一个核心九宫格的中心格已填写内容时，才能创建新的核心九宫格。',
+                            )}
                         </div>
                     {/if}
                 </div>
