@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ensureChildrenForSection, ensureNodeForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
+import {
+    ensureChildrenForSection,
+    ensureNodeForSection,
+} from 'src/mandala-interaction/helpers/ensure-node-for-section';
 
 const noticeMock = vi.fn();
 
 vi.mock('obsidian', () => ({
+    getLanguage: () => 'zh',
     Notice: function Notice(message: string) {
         noticeMock(message);
     },
@@ -79,9 +83,7 @@ describe('ensure-node-for-section', () => {
             }),
         };
 
-        expect(ensureNodeForSection(view as never, '1.1.2')).toBe(
-            'node-1-1-2',
-        );
+        expect(ensureNodeForSection(view as never, '1.1.2')).toBe('node-1-1-2');
         expect(dispatch.mock.calls).toEqual([
             [
                 {

@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('obsidian', () => ({
+    getLanguage: () => 'zh',
     Notice: function Notice(message: string) {
         mocks.notice(message);
     },
