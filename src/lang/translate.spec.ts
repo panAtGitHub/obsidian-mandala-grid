@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-const mocks = vi.hoisted(() => ({ language: 'en', hasLanguageApi: true }));
+const mocks = vi.hoisted(() => ({
+    language: 'en',
+    getLanguage: vi.fn<[], string>(),
+}));
 vi.mock('obsidian', () => ({
-    get getLanguage() {
-        return mocks.hasLanguageApi ? () => mocks.language : undefined;
-    },
+    getLanguage: mocks.getLanguage,
 }));
 
 import { englishMessages } from 'src/lang/english-messages';
@@ -19,7 +20,7 @@ import { tx } from 'src/lang/translate';
 
 beforeEach(() => {
     mocks.language = 'en';
-    mocks.hasLanguageApi = true;
+    mocks.getLanguage.mockReset().mockImplementation(() => mocks.language);
     setInterfaceLanguage('auto');
 });
 afterEach(() => {
@@ -27,19 +28,17 @@ afterEach(() => {
 });
 
 describe('interface language', () => {
-    it('reads the legacy app preference when the language API is unavailable', () => {
-        mocks.hasLanguageApi = false;
+    it('reads the public language API instead of the legacy preference', () => {
         vi.stubGlobal('localStorage', { getItem: () => 'zh' });
-        expect(getInterfaceLanguage()).toBe('zh');
-    });
-    it('falls back to English when legacy storage cannot be read', () => {
-        mocks.hasLanguageApi = false;
-        vi.stubGlobal('localStorage', {
-            getItem: () => {
-                throw new Error('Unavailable');
-            },
-        });
         expect(getInterfaceLanguage()).toBe('en');
+        expect(mocks.getLanguage).toHaveBeenCalledOnce();
+    });
+    it('does not read the app language for an explicit plugin preference', () => {
+        setInterfaceLanguage('zh');
+        expect(getInterfaceLanguage()).toBe('zh');
+        setInterfaceLanguage('en');
+        expect(getInterfaceLanguage()).toBe('en');
+        expect(mocks.getLanguage).not.toHaveBeenCalled();
     });
     it.each(['zh', 'zh-CN', 'zh_TW', 'ZH-hk'])(
         'follows Chinese Obsidian locale %s',
