@@ -57,7 +57,7 @@ export const RangeSetting = (
                 props.onChange(value);
                 textInput.setValue(value.toString());
                 updateResetButton(value);
-            }).setDynamicTooltip();
+            });
         })
         .addText((cb) => {
             textInput = cb;

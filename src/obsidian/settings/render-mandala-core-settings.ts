@@ -77,7 +77,7 @@ type GlobalViewPreset = {
     };
 };
 
-const GLOBAL_VIEW_PRESETS: GlobalViewPreset[] = [
+export const GLOBAL_VIEW_PRESETS: GlobalViewPreset[] = [
     {
         id: 'single-81',
         label: '一页81宫格',
@@ -165,7 +165,7 @@ const viewPresetMatches = (
     preset.view.coreSectionMax === value.coreSectionMax &&
     preset.view.subgridMaxDepth === value.subgridMaxDepth;
 
-const resolveGlobalViewPresetId = (value: {
+export const resolveGlobalViewPresetId = (value: {
     enable9x9View: boolean;
     enableNx9View: boolean;
     coreSectionMax: SectionRangeLimit;
