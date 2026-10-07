@@ -51,6 +51,26 @@ export const syncThreeByThreeSubgridState = ({
     sectionLookup?: SectionLookup;
     allowSubgridExpansion: boolean;
 }) => {
+    // Indexed previews can show siblings outside the working set after a jump
+    // back from the native editor. Load their nodes before accepting clicks.
+    if (mode === '3x3' && subgridTheme && sectionLookup) {
+        const visibleSections = [
+            subgridTheme,
+            ...Array.from(
+                { length: 8 },
+                (_, index) => `${subgridTheme}.${index + 1}`,
+            ),
+        ];
+        if (
+            visibleSections.some(
+                (section) =>
+                    sectionLookup.has(section) && !sectionToNodeId[section],
+            )
+        ) {
+            view.materializeWorkingSet(subgridTheme);
+        }
+    }
+
     if (
         allowSubgridExpansion &&
         mode === '3x3' &&

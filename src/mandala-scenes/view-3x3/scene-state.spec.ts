@@ -15,6 +15,36 @@ vi.mock('src/mandala-document/tree-utils/find/find-child-group', () => ({
 }));
 
 describe('syncThreeByThreeSubgridState', () => {
+    it('loads visible indexed siblings after returning from native editing only once', () => {
+        const materializeWorkingSet = vi.fn();
+        const view = { materializeWorkingSet };
+        const sectionToNodeId: Record<string, string> = {
+            '280': 'core',
+            '280.6': 'edited',
+        };
+        const args = {
+            view: view as never,
+            mode: '3x3',
+            subgridTheme: '280',
+            documentState: {} as never,
+            sectionToNodeId,
+            sectionLookup: {
+                has: (section: string) =>
+                    section === '280' || /^280\.[1-8]$/.test(section),
+            } as never,
+            allowSubgridExpansion: false,
+        };
+
+        syncThreeByThreeSubgridState(args);
+        expect(materializeWorkingSet).toHaveBeenCalledWith('280');
+        for (let slot = 1; slot <= 8; slot += 1) {
+            sectionToNodeId[`280.${slot}`] = `node-${slot}`;
+        }
+        syncThreeByThreeSubgridState(args);
+        expect(materializeWorkingSet).toHaveBeenCalledTimes(1);
+        expect(mocks.ensureChildrenForSection).not.toHaveBeenCalled();
+    });
+
     beforeEach(() => {
         mocks.ensureChildrenForSection.mockReset();
         mocks.findChildGroup.mockReset();
