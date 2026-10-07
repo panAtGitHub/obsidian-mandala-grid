@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import type { LastExportPreset } from 'src/mandala-settings/state/settings-type';
@@ -22,7 +23,7 @@ type ExportCurrentViewPdfArgs = {
 
 const createPdfPrintHost = (sourceRoot: HTMLElement, view: MandalaView) => {
     const sourceView = sourceRoot.closest<HTMLElement>('.mandala-view');
-    const host = activeDocument.createElement('div');
+    const host = createElementInDocument('div');
     host.className = 'mandala-pdf-print-host';
 
     const cssVars = collectCssVariables([

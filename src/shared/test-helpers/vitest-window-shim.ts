@@ -4,6 +4,15 @@ const globalScope = globalThis as typeof window & {
     activeDocument?: Document;
 };
 
+if (!Object.getOwnPropertyDescriptor(globalScope, 'createEl')) {
+    Object.defineProperty(globalScope, 'createEl', {
+        configurable: true,
+        writable: true,
+        value: <K extends keyof HTMLElementTagNameMap>(tag: K) =>
+            globalScope.window.document.createElement(tag),
+    });
+}
+
 if (!Object.getOwnPropertyDescriptor(globalScope, 'window')) {
     Object.defineProperty(globalScope, 'window', {
         configurable: true,

@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import type { LastExportPreset } from 'src/mandala-settings/state/settings-type';
@@ -102,7 +103,7 @@ export const exportCurrentViewPng = async ({
         }
 
         loadingNotice.hide();
-        const link = activeDocument.createElement('a');
+        const link = createElementInDocument('a');
         link.href = dataUrl;
         link.download = defaultName;
         link.click();
@@ -129,7 +130,7 @@ export const exportCurrentViewPng = async ({
             source,
         ]);
 
-        const wrapper = activeDocument.createElement('div');
+        const wrapper = createElementInDocument('div');
         applyCssVariables(wrapper, cssVars);
         if (borderColor.trim().length > 0) {
             applyInlineStyles(wrapper, {

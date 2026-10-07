@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { tx } from 'src/lang/translate';
 import {
     FuzzySuggestModal,
@@ -246,7 +247,7 @@ class MandalaTemplatesFileModal extends Modal {
 
         const ensureSuggestEl = () => {
             if (this.folderSuggestEl) return this.folderSuggestEl;
-            const el = activeDocument.createElement('div');
+            const el = createElementInDocument('div');
             el.className = 'mandala-folder-suggest-float';
             el.setAttribute('role', 'listbox');
             activeDocument.body.appendChild(el);

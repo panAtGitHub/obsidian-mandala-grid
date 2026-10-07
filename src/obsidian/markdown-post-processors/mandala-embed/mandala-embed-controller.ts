@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { MarkdownRenderChild, MarkdownView, type TFile } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import { logger } from 'src/shared/helpers/logger';
@@ -460,11 +461,11 @@ export class MandalaEmbedController {
         this.embed.classList.add('mandala-embed-debug');
 
         body.empty();
-        const panel = activeDocument.createElement('div');
+        const panel = createElementInDocument('div');
         panel.className = 'mandala-embed-debug-panel';
 
         for (const line of lines) {
-            const row = activeDocument.createElement('div');
+            const row = createElementInDocument('div');
             row.className = 'mandala-embed-debug-line';
             row.setText(line);
             panel.appendChild(row);
@@ -509,21 +510,21 @@ export class MandalaEmbedController {
     private getOrCreateHostLayout() {
         let host = this.queryMandalaHost();
         if (!host) {
-            host = activeDocument.createElement('div');
+            host = createElementInDocument('div');
             host.className = MANDALA_EMBED_HOST_CLASS;
             this.embed.appendChild(host);
         }
 
         let header = queryDirectChildByClass(host, MANDALA_EMBED_HEADER_CLASS);
         if (!header) {
-            header = activeDocument.createElement('div');
+            header = createElementInDocument('div');
             header.className = MANDALA_EMBED_HEADER_CLASS;
             host.appendChild(header);
         }
 
         let body = queryDirectChildByClass(host, MANDALA_EMBED_BODY_CLASS);
         if (!body) {
-            body = activeDocument.createElement('div');
+            body = createElementInDocument('div');
             body.className = MANDALA_EMBED_BODY_CLASS;
             host.appendChild(body);
         }

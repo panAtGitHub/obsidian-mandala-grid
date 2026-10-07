@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { Editor, EditorPosition, MarkdownView, TFile } from 'obsidian';
 import {
     resolveNodeEditorCommitContent,
@@ -285,7 +286,7 @@ export class InlineEditor {
         if (this.inlineView) return;
         const workspace = this.view.plugin.app.workspace;
 
-        this.containerEl = activeDocument.createElement('div');
+        this.containerEl = createElementInDocument('div');
         this.containerEl.addClasses(['mandala-inline-editor']);
         this.inlineView = new MarkdownView({
             containerEl: this.containerEl,

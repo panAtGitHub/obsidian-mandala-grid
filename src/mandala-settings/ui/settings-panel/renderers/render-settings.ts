@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { tx } from 'src/lang/translate';
 import { getView } from 'src/mandala-scenes/shared/shell/context';
 import { FontSize } from 'src/mandala-settings/ui/settings-panel/fields/font-size';
@@ -43,11 +44,11 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     const settingsStore = view.plugin.settings;
     const isMandala = view.getViewType() === 'mandala-grid';
 
-    const generalTab = activeDocument.createElement('div');
-    const appearanceTab = activeDocument.createElement('div');
-    const layoutTab = activeDocument.createElement('div');
-    const featuresTab = activeDocument.createElement('div');
-    const dayWeekPlanTab = activeDocument.createElement('div');
+    const generalTab = createElementInDocument('div');
+    const appearanceTab = createElementInDocument('div');
+    const layoutTab = createElementInDocument('div');
+    const featuresTab = createElementInDocument('div');
+    const dayWeekPlanTab = createElementInDocument('div');
 
     tabs.push({ element: generalTab, name: 'General' });
     tabs.push({ element: appearanceTab, name: 'Appearance' });

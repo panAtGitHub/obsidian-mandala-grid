@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import {
     Prec,
     RangeSetBuilder,
@@ -134,7 +135,7 @@ export class MandalaSourceEmbedWidget
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const root = activeDocument.createElement('div');
+        const root = createElementInDocument('div');
         root.className = 'mandala-source-embed-widget';
         this.root = root;
         this.destroyed = false;
@@ -339,7 +340,7 @@ export class MandalaSourceEmbedWidget
     }
 
     private renderFallback(root: HTMLElement) {
-        const code = activeDocument.createElement('code');
+        const code = createElementInDocument('code');
         code.className = 'mandala-source-embed-widget__fallback';
         code.textContent = this.original;
         root.replaceChildren(code);

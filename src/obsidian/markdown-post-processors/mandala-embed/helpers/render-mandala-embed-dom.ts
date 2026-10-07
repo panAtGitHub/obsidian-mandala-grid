@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { MarkdownRenderChild, setIcon } from 'obsidian';
 import type MandalaGrid from 'src/main';
 import {
@@ -20,14 +21,14 @@ type AttachOpenTargetClick = (
 ) => void;
 
 export const createMandalaEmbedHostLayout = () => {
-    const host = activeDocument.createElement('div');
+    const host = createElementInDocument('div');
     host.className = MANDALA_EMBED_HOST_CLASS;
 
-    const header = activeDocument.createElement('div');
+    const header = createElementInDocument('div');
     header.className = MANDALA_EMBED_HEADER_CLASS;
     host.appendChild(header);
 
-    const body = activeDocument.createElement('div');
+    const body = createElementInDocument('div');
     body.className = MANDALA_EMBED_BODY_CLASS;
     host.appendChild(body);
 
@@ -47,18 +48,18 @@ export const renderMandalaEmbedHeader = ({
 }) => {
     headerEl.empty();
 
-    const titleEl = activeDocument.createElement('h1');
+    const titleEl = createElementInDocument('h1');
     titleEl.className = 'mandala-embed-header-title';
     titleEl.setText(title);
     headerEl.appendChild(titleEl);
 
-    const linkBtn = activeDocument.createElement('button');
+    const linkBtn = createElementInDocument('button');
     linkBtn.className = 'mandala-embed-header-link';
     linkBtn.type = 'button';
     linkBtn.setAttribute('aria-label', 'Open embed target in note');
     headerEl.appendChild(linkBtn);
 
-    const linkIcon = activeDocument.createElement('span');
+    const linkIcon = createElementInDocument('span');
     linkIcon.className = 'mandala-embed-header-link-icon';
     setIcon(linkIcon, 'maximize-2');
     linkBtn.appendChild(linkIcon);
@@ -85,7 +86,7 @@ export const buildMandalaEmbedGrid = async ({
     onAfterCellMarkdownRender?: (element: HTMLElement) => void;
     isCanceled?: () => boolean;
 }) => {
-    const gridEl = activeDocument.createElement('div');
+    const gridEl = createElementInDocument('div');
     gridEl.className = 'mandala-embed-3x3-grid';
 
     const renderTasks: Promise<void>[] = [];
@@ -94,7 +95,7 @@ export const buildMandalaEmbedGrid = async ({
         for (const cell of row) {
             if (isCanceled?.()) return null;
 
-            const cellEl = activeDocument.createElement('div');
+            const cellEl = createElementInDocument('div');
             cellEl.className = 'mandala-embed-3x3-cell';
             cellEl.dataset.mandalaSection = cell.section;
             if (cell.section === model.rows[1]?.[1]?.section) {
@@ -104,16 +105,16 @@ export const buildMandalaEmbedGrid = async ({
                 cellEl.classList.add('is-empty');
             }
 
-            const sectionEl = activeDocument.createElement('span');
+            const sectionEl = createElementInDocument('span');
             sectionEl.className = 'mandala-embed-3x3-cell-section';
             sectionEl.setText(cell.section);
             cellEl.appendChild(sectionEl);
 
-            const contentEl = activeDocument.createElement('div');
+            const contentEl = createElementInDocument('div');
             contentEl.className = 'mandala-embed-3x3-cell-content';
             cellEl.appendChild(contentEl);
 
-            const markdownEl = activeDocument.createElement('div');
+            const markdownEl = createElementInDocument('div');
             markdownEl.className =
                 'mandala-embed-3x3-cell-markdown markdown-rendered';
             contentEl.appendChild(markdownEl);

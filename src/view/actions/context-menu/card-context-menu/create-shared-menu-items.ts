@@ -1,3 +1,4 @@
+import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { lang } from 'src/lang/lang';
 import { MenuItemObject } from 'src/obsidian/context-menu/render-context-menu';
 import { MandalaView } from 'src/view/view';
@@ -111,11 +112,11 @@ export const createSectionColorMenuItems = (
                     const sectionColorIndex =
                         createSectionColorIndex(sectionColorMap);
                     const activeColorKey = sectionColorIndex[section];
-                    const palette = activeDocument.createElement('div');
+                    const palette = createElementInDocument('div');
                     palette.className = 'mandala-color-palette';
 
                     for (const key of SECTION_COLOR_KEYS) {
-                        const button = activeDocument.createElement('button');
+                        const button = createElementInDocument('button');
                         button.type = 'button';
                         button.className = 'mandala-color-swatch';
                         if (activeColorKey === key) {
