@@ -299,10 +299,9 @@ export class InlineEditor {
         } as never) as InlineMarkdownView;
         this.inlineView.save = noopSave;
         this.inlineView.requestSave = this.handleRequestSave;
-        // Preserve the receiver; bind() is any under this TS config.
         const boundSetViewData = this.inlineView.setViewData.bind(
             this.inlineView,
-        ) as MarkdownView['setViewData'];
+        );
         this.inlineView.mandalaSetViewData = boundSetViewData;
         this.inlineView.setViewData = noopSetViewData;
 

@@ -14,10 +14,7 @@ export const lockFile = (view: MandalaView) => {
                 const patchedView = leafView as MarkdownView & {
                     mandalaSetViewData?: MarkdownView['setViewData'];
                 };
-                // Preserve the receiver; bind() is any under this TS config.
-                const boundSetViewData = leafView.setViewData.bind(
-                    leafView,
-                ) as MarkdownView['setViewData'];
+                const boundSetViewData = leafView.setViewData.bind(leafView);
                 patchedView.mandalaSetViewData = boundSetViewData;
                 leafView.setViewData = noopSetViewData;
             }
