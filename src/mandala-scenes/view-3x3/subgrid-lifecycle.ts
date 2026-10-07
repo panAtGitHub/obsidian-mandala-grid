@@ -96,7 +96,11 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
         const nextTheme = String(Number(currentTheme) + 1);
         const coreSectionMax =
             view.getEffectiveMandalaSettings().view.coreSectionMax;
+        const nextCoreExists =
+            view.getSectionLookup?.().has(nextTheme) ??
+            Boolean(docState.sections.section_id[nextTheme]);
         if (
+            !nextCoreExists &&
             coreSectionMax !== 'unlimited' &&
             Number(currentTheme) + 1 > coreSectionMax
         ) {
@@ -111,6 +115,7 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
             type: 'document/mandala/ensure-core-theme',
             payload: { theme: nextTheme },
         });
+        ensureChildrenForSection(view, nextTheme);
         if (
             !applyDayPlanToCore(
                 view,
@@ -120,7 +125,6 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
             )
         )
             return;
-        ensureChildrenForSection(view, nextTheme);
 
         const nextNodeId =
             view.documentStore.getValue().sections.section_id[nextTheme];

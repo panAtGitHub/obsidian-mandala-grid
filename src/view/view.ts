@@ -308,9 +308,13 @@ export class MandalaView extends TextFileView {
     }
 
     getSectionLookup(): SectionLookup {
-        return (
-            this.sourceRuntime?.lookup ??
-            createSectionLookupFromDocumentState(this.documentStore.getValue())
+        // Structural edits allocate live node IDs that may differ from the
+        // source index. Once hydrated, clicks must address the live store.
+        if (this.sourceRuntime && !this.fullHydrated) {
+            return this.sourceRuntime.lookup;
+        }
+        return createSectionLookupFromDocumentState(
+            this.documentStore.getValue(),
         );
     }
 
@@ -392,6 +396,7 @@ export class MandalaView extends TextFileView {
             this.documentStore.getValue(),
             this.sourceRuntime,
             workingSet,
+            extractFrontmatter(this.data).frontmatter,
         );
         this.documentStore.set(nextState);
         this.viewStore.setContext(nextState.document);
@@ -1373,6 +1378,12 @@ export class MandalaView extends TextFileView {
         const frontmatterHasChanged =
             frontmatter !== this.lastLoadedFrontmatter;
 
+        // Fast bootstrap projects only visible sections. Load the incoming
+        // YAML first so initial defaults cannot replace the file's settings.
+        if (documentState.file.frontmatter !== frontmatter) {
+            updateFrontmatter(this, frontmatter);
+        }
+
         const isEditing = Boolean(viewState.document.editing.activeNodeId);
 
         const activationStartMs = performance.now();
@@ -1784,6 +1795,9 @@ export class MandalaView extends TextFileView {
         const currentSection =
             this.documentStore.getValue().sections.id_section[currentNodeId];
         if (currentSection === targetSection) return;
+        if (this.isWorkingSetProjection) {
+            this.materializeWorkingSet(targetSection, targetSection);
+        }
 
         const requestId = ++this.focusMandalaSectionRequestId;
         const startMs = performance.now();

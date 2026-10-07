@@ -7,6 +7,16 @@ import {
 
 const mocks = vi.hoisted(() => ({
     syncThreeByThreeSubgridState: vi.fn(),
+    ensureChildrenForSection: vi.fn(),
+    applyDayPlanToCore: vi.fn(),
+}));
+
+vi.mock('src/mandala-interaction/helpers/ensure-node-for-section', () => ({
+    ensureChildrenForSection: mocks.ensureChildrenForSection,
+}));
+
+vi.mock('src/mandala-display/logic/apply-day-plan-to-core', () => ({
+    applyDayPlanToCore: mocks.applyDayPlanToCore,
 }));
 
 vi.mock('src/mandala-scenes/view-3x3/scene-state', () => ({
@@ -16,6 +26,50 @@ vi.mock('src/mandala-scenes/view-3x3/scene-state', () => ({
 describe('view-3x3-day-plan/scene-state', () => {
     beforeEach(() => {
         mocks.syncThreeByThreeSubgridState.mockReset();
+        mocks.ensureChildrenForSection.mockReset();
+        mocks.applyDayPlanToCore.mockReset();
+    });
+
+    it('prepares eight slots and their templates for a sparse indexed day only once', () => {
+        const view = {
+            getEffectiveMandalaSettings: () => ({
+                view: { subgridMaxDepth: 2 },
+            }),
+        };
+        const sectionToNodeId: Record<string, string> = { '280': 'center' };
+        const args = {
+            view: view as never,
+            mode: '3x3',
+            subgridTheme: '280',
+            documentState: { meta: { isMandala: true } } as never,
+            sectionToNodeId,
+            sectionLookup: { has: () => false } as never,
+            dayPlan: { enabled: true, year: 2026, slots: {} },
+            dayPlanTodayNavigation: {
+                isDayPlan: true,
+                targetSection: '280',
+                canNavigate: true,
+            },
+        };
+        syncThreeByThreeDayPlanSceneState(args);
+        expect(mocks.ensureChildrenForSection).toHaveBeenCalledWith(
+            view,
+            '280',
+        );
+        expect(mocks.applyDayPlanToCore).toHaveBeenCalledWith(
+            view,
+            '280',
+            '280',
+            '2026-10-07',
+        );
+        expect(
+            mocks.ensureChildrenForSection.mock.invocationCallOrder[0],
+        ).toBeLessThan(mocks.applyDayPlanToCore.mock.invocationCallOrder[0]);
+        for (let slot = 1; slot <= 8; slot++) {
+            sectionToNodeId[`280.${slot}`] = `slot-${slot}`;
+        }
+        syncThreeByThreeDayPlanSceneState(args);
+        expect(mocks.ensureChildrenForSection).toHaveBeenCalledTimes(1);
     });
 
     it('syncs the shared 3x3 subgrid state with expansion enabled and returns today target section', () => {

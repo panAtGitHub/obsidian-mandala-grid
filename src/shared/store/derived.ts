@@ -16,14 +16,13 @@ export const derived = <Value, Action extends { type: string }, DerivedValue>(
             if (!unsubFromSource) {
                 unsubFromSource = source.subscribe(
                     (value, action, initialRun) => {
-                        if (action || initialRun) {
-                            const newValue = mapper(value, action);
-                            if (!hasValue || newValue !== derivedValue) {
-                                derivedValue = newValue;
-                                hasValue = true;
-                                for (const sub of subscribers) {
-                                    sub(derivedValue, action, initialRun);
-                                }
+                        // set()/update() notify without an action as well.
+                        const newValue = mapper(value, action);
+                        if (!hasValue || newValue !== derivedValue) {
+                            derivedValue = newValue;
+                            hasValue = true;
+                            for (const sub of subscribers) {
+                                sub(derivedValue, action, initialRun);
                             }
                         }
                     },
@@ -59,14 +58,13 @@ export const derivedEq = <Value, Action extends { type: string }, DerivedValue>(
             if (!unsubFromSource) {
                 unsubFromSource = source.subscribe(
                     (value, action, initialRun) => {
-                        if (action || initialRun) {
-                            const newValue = mapper(value, action);
-                            if (!hasValue || !isEqual(newValue, derivedValue)) {
-                                derivedValue = newValue;
-                                hasValue = true;
-                                for (const sub of subscribers) {
-                                    sub(derivedValue, action, initialRun);
-                                }
+                        // set()/update() notify without an action as well.
+                        const newValue = mapper(value, action);
+                        if (!hasValue || !isEqual(newValue, derivedValue)) {
+                            derivedValue = newValue;
+                            hasValue = true;
+                            for (const sub of subscribers) {
+                                sub(derivedValue, action, initialRun);
                             }
                         }
                     },

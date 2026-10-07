@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
     MandalaSourceRuntime,
     StaleSourceRevisionError,
+    projectWorkingSetDocumentState,
 } from 'src/mandala-document/runtime/source-document-runtime';
 import { buildMandalaDocumentV2 } from 'src/mandala-document/engine/build-state';
+import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
+import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 
 const createDocumentProjection = (
     entries: Array<{ id: string; content: string }>,
@@ -28,6 +31,29 @@ const createDocumentProjection = (
 };
 
 describe('MandalaSourceRuntime', () => {
+    it('keeps incoming YAML when bootstrapping and replacing a working set', () => {
+        const yaml =
+            '---\nmandala: true\ncustom: keep me\nmandala_plan:\n  enabled: true\n  year: 2026\n---\n';
+        const markdown =
+            yaml + '<!--section: 1-->first\n<!--section: 2-->second';
+        const { body, frontmatter } = extractFrontmatter(markdown);
+        const runtime = new MandalaSourceRuntime(body);
+        const first = projectWorkingSetDocumentState(
+            defaultDocumentState(),
+            runtime,
+            runtime.materialize(['1']),
+            frontmatter,
+        );
+        expect(first.file.frontmatter).toBe(yaml);
+        const next = projectWorkingSetDocumentState(
+            first,
+            runtime,
+            runtime.materialize(['2']),
+            frontmatter,
+        );
+        expect(next.file.frontmatter + runtime.source).toBe(markdown);
+    });
+
     it('reads current content without materializing other sections', () => {
         const source = [
             '<!--section: 1-->root',

@@ -151,7 +151,7 @@ export const projectWorkingSetDocumentState = (
     state: DocumentState,
     runtime: MandalaSourceRuntime,
     workingSet: WorkingSet,
-    frontmatter = state.file.frontmatter,
+    frontmatter: string,
 ): DocumentState => {
     const materializedSectionIds = [...workingSet.materializedSectionIds].sort(
         compareSectionIds,

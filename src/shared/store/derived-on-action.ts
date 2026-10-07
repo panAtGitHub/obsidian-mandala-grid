@@ -26,7 +26,9 @@ export const derivedOnAction = <
             subscribers.add(run);
             if (!unsub) {
                 unsub = source.subscribe((value, action, initialRun) => {
-                    if ((action && set.has(action?.type)) || initialRun) {
+                    // set()/update() replace a snapshot without an action;
+                    // every projection must refresh for those replacements.
+                    if (!action || set.has(action.type) || initialRun) {
                         derivedValue = mapper(value, action);
                         for (const sub of subscribers) {
                             sub(derivedValue, action, initialRun);

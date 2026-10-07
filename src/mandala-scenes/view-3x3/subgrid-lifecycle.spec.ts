@@ -1,14 +1,76 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { exitThreeByThreeSubgrid } from 'src/mandala-scenes/view-3x3/subgrid-lifecycle';
+import {
+    enterThreeByThreeSubgrid,
+    exitThreeByThreeSubgrid,
+} from 'src/mandala-scenes/view-3x3/subgrid-lifecycle';
 
 const mocks = vi.hoisted(() => ({
     unloadNode: vi.fn(),
+    ensureChildrenForSection: vi.fn(),
+    notice: vi.fn(),
+}));
+
+vi.mock('src/mandala-interaction/helpers/ensure-node-for-section', () => ({
+    ensureChildrenForSection: mocks.ensureChildrenForSection,
+}));
+
+vi.mock('obsidian', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('obsidian')>()),
+    Notice: mocks.notice,
 }));
 
 describe('view-3x3/subgrid-lifecycle', () => {
     beforeEach(() => {
         mocks.unloadNode.mockReset();
+        mocks.ensureChildrenForSection.mockReset();
+        mocks.notice.mockReset();
     });
+
+    it.each([true, false])(
+        'allows existing next cores beyond a creation limit (exists: %s)',
+        (exists) => {
+            const dispatch = vi.fn();
+            const view = {
+                mandalaMode: '3x3',
+                getEffectiveMandalaSettings: () => ({
+                    view: { coreSectionMax: 1, subgridMaxDepth: 2 },
+                }),
+                getSectionLookup: () => ({ has: () => exists }),
+                ensureFullHydrated: vi.fn(),
+                documentStore: {
+                    getValue: () => ({
+                        meta: { isMandala: true },
+                        file: { frontmatter: '' },
+                        sections: {
+                            id_section: { current: '261', next: '262' },
+                            section_id: { '261': 'current', '262': 'next' },
+                        },
+                        document: {
+                            content: { current: { content: '## 2026-09-18' } },
+                        },
+                    }),
+                    dispatch: vi.fn(),
+                },
+                viewStore: {
+                    getValue: () => ({
+                        ui: { mandala: { subgridTheme: '261' } },
+                    }),
+                    dispatch,
+                },
+            };
+            enterThreeByThreeSubgrid(view as never, 'current');
+            if (exists) {
+                expect(mocks.notice).not.toHaveBeenCalled();
+                expect(dispatch).toHaveBeenCalledWith({
+                    type: 'view/mandala/subgrid/enter',
+                    payload: { theme: '262' },
+                });
+            } else {
+                expect(mocks.notice).toHaveBeenCalledTimes(1);
+                expect(dispatch).not.toHaveBeenCalled();
+            }
+        },
+    );
 
     it('flushes the active editor and prunes the current empty nested subgrid on exit', () => {
         const documentDispatch = vi.fn();

@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { afterUpdate, tick, onDestroy } from 'svelte';
+    import { tick, onDestroy } from 'svelte';
     import CardSceneHost from 'src/mandala-scenes/shared/card-scene-host.svelte';
     import NineByNineLayout from 'src/mandala-scenes/view-9x9/layout.svelte';
     import type { MandalaSceneKey } from 'src/mandala-display/logic/mandala-profile';
     import {
         type SceneProjection,
+        sceneKeyEquals,
     } from 'src/mandala-scenes/shared/scene-projection';
     import {
         createSceneCommitSnapshot,
@@ -29,9 +30,8 @@
         'card-scene': CardSceneHost,
         '9x9-layout': NineByNineLayout,
     } as const;
-    let {
-        committedSceneKey: initialCommittedSceneKey,
-    } = createSceneCommitSnapshot(projection);
+    let { committedSceneKey: initialCommittedSceneKey } =
+        createSceneCommitSnapshot(projection);
     committedSceneKey = initialCommittedSceneKey;
     $: renderedComponent =
         rendererComponentByKind[renderedProjection.rendererKind];
@@ -47,13 +47,21 @@
             window.requestAnimationFrame(() => resolve());
         });
 
+    const commitSceneKey = (nextProjection: SceneProjection) => {
+        // The parent derives the projection from this bound key. Publishing
+        // an equivalent object would feed another update back into the scene.
+        if (sceneKeyEquals(committedSceneKey, nextProjection.sceneKey)) return;
+        ({ committedSceneKey } = createSceneCommitSnapshot(nextProjection));
+        onCommittedSceneChange?.(committedSceneKey);
+    };
+
     const commitProjection = async () => {
         if (isDestroyed) return;
         const nextProjection = pendingProjection;
+        if (nextProjection === renderedProjection) return;
         if (!hasPendingSceneSwitch(renderedProjection, nextProjection)) {
             renderedProjection = nextProjection;
-            ({ committedSceneKey } = createSceneCommitSnapshot(nextProjection));
-            onCommittedSceneChange?.(committedSceneKey);
+            commitSceneKey(nextProjection);
             return;
         }
         if (isSwitchingScene) return;
@@ -64,8 +72,7 @@
             return;
         }
         renderedProjection = pendingProjection;
-        ({ committedSceneKey } = createSceneCommitSnapshot(renderedProjection));
-        onCommittedSceneChange?.(committedSceneKey);
+        commitSceneKey(renderedProjection);
         isSwitchingScene = false;
         if (hasPendingSceneSwitch(renderedProjection, pendingProjection)) {
             void commitProjection();
@@ -76,10 +83,11 @@
         isDestroyed = true;
     });
 
-    afterUpdate(() => {
+    // React to incoming projections, rather than every local render.
+    $: {
         pendingProjection = projection;
         void commitProjection();
-    });
+    }
 </script>
 
 {#key `${renderedProjection.sceneKey.viewKind}:${renderedProjection.sceneKey.variant}`}
