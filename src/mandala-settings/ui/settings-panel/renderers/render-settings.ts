@@ -79,7 +79,7 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
     fontDetails.createEl('summary', {
         text: lang.settings_appearance_font_sizes_group,
     });
-    const fontContent = fontDetails.createEl('div', {
+    const fontContent = fontDetails.createDiv({
         cls: 'mandala-font-settings__content',
     });
     if (isMandala) {
@@ -108,21 +108,21 @@ const render = (view: MandalaView, element: HTMLElement, tabs: Tab[]) => {
         });
         section3x3.open = true;
         section3x3.createEl('summary', { text: tx('3×3 视图') });
-        Features3x3(section3x3.createEl('div'), settingsStore);
+        Features3x3(section3x3.createDiv(), settingsStore);
 
         const section9x9 = featuresTab.createEl('details', {
             cls: 'mandala-features-section',
         });
         section9x9.open = true;
         section9x9.createEl('summary', { text: tx('9×9 视图') });
-        Features9x9(section9x9.createEl('div'), settingsStore);
+        Features9x9(section9x9.createDiv(), settingsStore);
 
         const sectionGeneral = featuresTab.createEl('details', {
             cls: 'mandala-features-section',
         });
         sectionGeneral.open = true;
         sectionGeneral.createEl('summary', { text: tx('通用') });
-        FeaturesGeneral(sectionGeneral.createEl('div'), settingsStore);
+        FeaturesGeneral(sectionGeneral.createDiv(), settingsStore);
     }
 
     // ── Day/Week Plan Tab ──

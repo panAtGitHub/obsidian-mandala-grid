@@ -2,12 +2,8 @@ import { SettingsStore } from 'src/main';
 import { Setting } from 'obsidian';
 import { Platform } from 'obsidian';
 import { lang } from 'src/lang/lang';
-import {
-    ContextMenuCopyLinkVariant,
-} from 'src/mandala-settings/state/settings-type';
-import {
-    normalizeContextMenuCopyLinkVisibility,
-} from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
+import { ContextMenuCopyLinkVariant } from 'src/mandala-settings/state/settings-type';
+import { normalizeContextMenuCopyLinkVisibility } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
 
 export const FeaturesGeneral = (
     element: HTMLElement,
@@ -58,7 +54,7 @@ export const FeaturesGeneral = (
     contextMenuDetails.createEl('summary', {
         text: lang.settings_display_context_menu_advanced,
     });
-    const contextMenuContent = contextMenuDetails.createEl('div', {
+    const contextMenuContent = contextMenuDetails.createDiv({
         cls: 'mandala-context-menu-settings__content',
     });
 
