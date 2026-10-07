@@ -62,7 +62,7 @@
         cursor: pointer;
         transition: opacity ease 100ms;
         opacity: 0.7;
-        & svg {
+        & :global(svg) {
             width: 14px;
             height: 14px;
         }

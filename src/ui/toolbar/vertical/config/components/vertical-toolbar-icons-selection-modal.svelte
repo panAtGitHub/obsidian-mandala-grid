@@ -1,5 +1,8 @@
 <script lang="ts">
-    import { ToolbarButton, verticalToolbarButtons } from '../vertical-toolbar-buttons';
+    import {
+        type ToolbarButton,
+        verticalToolbarButtons,
+    } from '../vertical-toolbar-buttons';
     import Button from 'src/shared/ui/button.svelte';
     import { derived } from 'svelte/store';
     import { HiddenVerticalToolbarButtons } from 'src/mandala-settings/state/derived/view-settings-store';
@@ -67,7 +70,7 @@
         display: flex;
         flex-direction: column;
 
-        & button {
+        & :global(button) {
             background-color: transparent;
             cursor: initial;
         }

@@ -56,6 +56,8 @@
     const pinnedState = derived(
         [pinnedNodesArray, view.documentStore, sectionColorMapStore],
         ([pinnedNodeIds, documentState, colorMap]) => {
+            // These lookup maps are rebuilt per emission, not reactive state.
+            // eslint-disable-next-line svelte/prefer-svelte-reactivity
             const orderMap = new Map<string, number>();
             pinnedNodeIds.forEach((nodeId, index) => {
                 const section = documentState.sections.id_section[nodeId];
@@ -64,6 +66,7 @@
                 }
             });
             const colorIndex = createSectionColorIndex(colorMap);
+            // eslint-disable-next-line svelte/prefer-svelte-reactivity
             const colorOrderMap = new Map<string, number>();
             for (const key of SECTION_COLOR_KEYS) {
                 const sections = colorMap[key] || [];
@@ -71,6 +74,7 @@
                     colorOrderMap.set(section, idx);
                 });
             }
+            // eslint-disable-next-line svelte/prefer-svelte-reactivity
             const previewCache = new Map<
                 string,
                 { title: string; body: string }

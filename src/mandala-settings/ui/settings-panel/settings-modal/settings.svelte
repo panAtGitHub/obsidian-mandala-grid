@@ -1,7 +1,7 @@
 <script lang="ts">
     import {
         renderSettings,
-        SettingsTab,
+        type SettingsTab,
     } from 'src/mandala-settings/ui/settings-panel/renderers/render-settings';
     import VerticalTabHeader from './vertical-tab-header.svelte';
     import { ActiveSettingsTabStore } from 'src/mandala-settings/ui/settings-panel/settings-modal/active-settings-tab-store';
@@ -22,10 +22,10 @@
     const isMobile = Platform.isMobile;
 </script>
 
-<div 
-    class="mandala-modal" 
-    id="mandala-view-settings" 
-    tabindex="0" 
+<div
+    class="mandala-modal"
+    id="mandala-view-settings"
+    tabindex="0"
     class:is-mobile={isMobile}
     on:mousedown|stopPropagation
     on:touchstart|stopPropagation
@@ -39,7 +39,11 @@
             </button>
         </div>
     {:else}
-        <button class="modal-close-button" on:click={closeSettings} aria-label="Close settings">
+        <button
+            class="modal-close-button"
+            on:click={closeSettings}
+            aria-label="Close settings"
+        >
             <X size={18} />
         </button>
     {/if}
@@ -67,7 +71,7 @@
         padding: var(--size-4-8) var(--size-4-12) var(--size-4-12);
 
         grid-template-areas: 'main';
-        & > div {
+        & > :global(div) {
             grid-area: main;
         }
     }
@@ -91,7 +95,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-top: calc(env(safe-area-inset-top, 20px) + var(--size-4-2)); /* 适配刘海屏/状态栏 */
+        padding-top: calc(
+            env(safe-area-inset-top, 20px) + var(--size-4-2)
+        ); /* 适配刘海屏/状态栏 */
         padding-bottom: var(--size-4-4);
         padding-left: var(--size-4-6);
         padding-right: var(--size-4-6);
@@ -119,11 +125,10 @@
         font-weight: var(--font-semibold);
         cursor: pointer;
         transition: opacity 0.2s;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
         &:hover {
             opacity: 0.9;
         }
     }
-
 </style>

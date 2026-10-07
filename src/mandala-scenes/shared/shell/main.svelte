@@ -81,7 +81,7 @@
                         type: 'view/left-sidebar/toggle',
                     });
                 }}
-            />
+            ></div>
         {/if}
         <MandalaViewComponent />
         <CellPreviewDialog />

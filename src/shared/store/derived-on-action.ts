@@ -1,10 +1,10 @@
 import { Subscriber } from 'src/shared/store/store';
-import { Invalidator, Unsubscriber } from 'svelte/store';
+import { Readable, Unsubscriber } from 'svelte/store';
 
 export type Derivable<DerivedValue, Action extends { type: string }> = {
     subscribe(
         run: Subscriber<DerivedValue, Action>,
-        invalidate?: Invalidator<DerivedValue>,
+        invalidate?: Parameters<Readable<DerivedValue>['subscribe']>[1],
     ): Unsubscriber;
 };
 

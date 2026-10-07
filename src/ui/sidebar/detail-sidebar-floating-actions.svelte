@@ -43,7 +43,7 @@
                 <span
                     class="mobile-subgrid-floating-btn__icon"
                     use:applyObsidianIcon={'chevron-up'}
-                />
+                ></span>
             </button>
             <button
                 class="mobile-subgrid-floating-btn"
@@ -55,7 +55,7 @@
                 <span
                     class="mobile-subgrid-floating-btn__icon"
                     use:applyObsidianIcon={'chevron-down'}
-                />
+                ></span>
             </button>
         {/if}
         {#if dayPlanEnabled && showDayPlanTodayButton && showTodayButton}
@@ -68,7 +68,7 @@
                 <span
                     class="mobile-subgrid-floating-btn__icon"
                     use:applyObsidianIcon={'calendar-days'}
-                />
+                ></span>
             </button>
         {/if}
     </div>
@@ -85,7 +85,7 @@
                 <span
                     class="mobile-subgrid-floating-btn__icon"
                     use:applyObsidianIcon={'chevron-left'}
-                />
+                ></span>
             </button>
             <button
                 class="mobile-subgrid-floating-btn"
@@ -96,7 +96,7 @@
                 <span
                     class="mobile-subgrid-floating-btn__icon"
                     use:applyObsidianIcon={'chevron-right'}
-                />
+                ></span>
             </button>
         {/if}
         {#if dayPlanEnabled && showDayPlanTodayButton && showTodayButton}
@@ -109,7 +109,7 @@
                 <span
                     class="mobile-subgrid-floating-btn__icon"
                     use:applyObsidianIcon={'calendar-days'}
-                />
+                ></span>
             </button>
         {/if}
     </div>

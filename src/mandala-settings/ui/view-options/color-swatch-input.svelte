@@ -17,12 +17,12 @@
         style={`background-color: ${value};`}
         aria-label={ariaLabel}
         on:click|stopPropagation={openPicker}
-    />
+    ></button>
     <input
         bind:this={inputRef}
         class="color-swatch-input__native"
         type="color"
-        value={value}
+        {value}
         aria-label={ariaLabel}
         on:input={onInput}
     />
@@ -59,4 +59,3 @@
         pointer-events: none;
     }
 </style>
-

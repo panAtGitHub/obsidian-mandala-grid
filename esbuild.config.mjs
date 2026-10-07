@@ -2,7 +2,7 @@ import esbuild from 'esbuild';
 import process from 'process';
 import { builtinModules } from 'node:module';
 import esbuildSvelte from 'esbuild-svelte';
-import sveltePreprocess from 'svelte-preprocess';
+import { svelteBuildOptions } from './scripts/svelte-build-options.mjs';
 import inlineWorkerPlugin from 'esbuild-plugin-inline-worker';
 
 const banner = `/*
@@ -44,16 +44,7 @@ const options = {
     outfile: `${BUILD_OUTDIR}/main.js`,
     plugins: [
         inlineWorkerPlugin({ minify: prod }),
-        esbuildSvelte({
-            compilerOptions: {
-                css: 'injected',
-            },
-            preprocess: sveltePreprocess(),
-            filterWarnings: (warning) => {
-                // disable a11y warnings
-                return !warning.code.startsWith('a11y-');
-            },
-        }),
+        esbuildSvelte(svelteBuildOptions),
     ],
 };
 const context = await esbuild.context(options);

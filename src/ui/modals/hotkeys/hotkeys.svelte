@@ -27,7 +27,7 @@
 >
     {#if isMobile}
         <div class="hotkeys-mobile-header">
-            <div class="hotkeys-mobile-sheet-handle" aria-hidden="true" />
+            <div class="hotkeys-mobile-sheet-handle" aria-hidden="true"></div>
             <div class="hotkeys-mobile-header-row">
                 <div class="hotkeys-mobile-title">{tx('快捷键')}</div>
                 <button

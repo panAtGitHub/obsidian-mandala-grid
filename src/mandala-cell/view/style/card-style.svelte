@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
+    import type { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
 
     export let style: NodeStyle;
 </script>
@@ -9,8 +9,7 @@
     class={style.styleVariant === 'background-color'
         ? 'card-background-style'
         : 'card-left-border-style'}
-/>
+></div>
 
 <style>
-
 </style>

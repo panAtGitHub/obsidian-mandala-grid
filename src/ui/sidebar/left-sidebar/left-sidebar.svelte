@@ -92,7 +92,7 @@
     style="--animated-sidebar-width: {animatedSidebarWidth}px; --sidebar-width: {sidebarWidth}px; }"
 >
     <TabHeader />
-    <div class="resizer" on:mousedown={onStartResize} />
+    <div class="resizer" on:mousedown={onStartResize}></div>
     {#if $activeTab === 'pinned-cards'}
         <PinnedCards />
     {/if}
@@ -133,10 +133,10 @@
     }
 
     .limit-card-height {
-        & .lng-prev {
+        & :global(.lng-prev) {
             max-height: 65vh;
         }
-        & .editor-container {
+        & :global(.editor-container) {
             max-height: 65vh;
         }
     }

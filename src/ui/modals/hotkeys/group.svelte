@@ -1,7 +1,7 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
     import Hotkey from './components/command.svelte';
-    import { StatefulViewCommand } from '../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+    import type { StatefulViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 
     export let group: StatefulViewCommand[];
 

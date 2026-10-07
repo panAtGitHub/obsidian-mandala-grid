@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {
+    import type {
         HotkeyEditorState,
-        ViewHotkey
-    } from '../../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+        ViewHotkey,
+    } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import { lang } from 'src/lang/lang';
 
     export let hotkey: ViewHotkey;
@@ -22,7 +22,7 @@
     const wrappedOnClick = () => {
         if (onClick) {
             onClick();
-        /*    setTimeout(() => {
+            /*    setTimeout(() => {
                 if (notice) {
                     notice.hide();
                 }
@@ -33,8 +33,7 @@
 </script>
 
 <kbd
-    class={'editor-state ' +
-        classes[hotkey.editorState]}
+    class={'editor-state ' + classes[hotkey.editorState]}
     aria-label={label[hotkey.editorState]}
     on:click={wrappedOnClick}
 >
@@ -54,8 +53,7 @@
             <path d="M4 5l16 14" />
         {/if}
     </svg>
-</kbd
->
+</kbd>
 
 <style>
     .editor-state {
@@ -71,6 +69,4 @@
         width: 14px;
         height: 14px;
     }
-
-
 </style>

@@ -1,19 +1,13 @@
 <script lang="ts">
     import Hotkey from './hotkey/hotkey.svelte';
-    import {
-        StatefulViewCommand
-    } from '../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
-    import {
-        getDynamicLabel,
-    } from 'src/ui/modals/hotkeys/components/helpers/get-dynamic-label';
+    import type { StatefulViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+    import { getDynamicLabel } from 'src/ui/modals/hotkeys/components/helpers/get-dynamic-label';
 
     export let commandHotkeys: StatefulViewCommand;
 </script>
 
 <div class="command">
-    <span class="label"
-        >{getDynamicLabel(commandHotkeys.name)}</span
-    >
+    <span class="label">{getDynamicLabel(commandHotkeys.name)}</span>
     <div class="hotkeys">
         {#if commandHotkeys.hotkeys[0]}
             <Hotkey

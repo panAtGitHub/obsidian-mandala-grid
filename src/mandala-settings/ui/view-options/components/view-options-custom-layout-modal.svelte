@@ -251,7 +251,7 @@
             on:click={onClose}
             on:mousedown|stopPropagation
             on:touchstart|stopPropagation
-        />
+        ></div>
         <div
             class="mandala-modal custom-layout-modal"
             class:is-mobile={isMobile}

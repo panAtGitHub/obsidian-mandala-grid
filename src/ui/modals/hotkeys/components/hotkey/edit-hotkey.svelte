@@ -3,7 +3,7 @@
     import { Hotkey } from 'obsidian';
     import { RotateCcw, X } from 'lucide-svelte';
 
-    import { CommandName } from '../../../../../../../lang/hotkey-groups';
+    import type { CommandName } from 'src/lang/hotkey-groups';
     import { Modifiers } from 'src/view/actions/keyboard-shortcuts/helpers/commands/update-view-hotkeys-dictionary';
     import {
         isMacLike,
@@ -14,7 +14,7 @@
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { lang } from 'src/lang/lang';
     import EditEditorState from './editor-state/edit-editor-state.svelte';
-    import { StatefulViewHotkey } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+    import type { StatefulViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 
     export let hotkey: StatefulViewHotkey;
     export let commandName: CommandName;

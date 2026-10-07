@@ -191,7 +191,7 @@
     on:dblclick|capture={blockMobilePreviewInteraction}
     on:touchend|capture={handleMobilePreviewTouchEnd}
     on:focusin|capture={blurMobileFocus}
-/>
+></div>
 
 <style>
     .source-preview-editor {

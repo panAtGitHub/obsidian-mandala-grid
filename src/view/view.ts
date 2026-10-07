@@ -15,6 +15,7 @@ import {
 } from 'obsidian';
 
 import Component from 'src/mandala-scenes/shared/shell/main.svelte';
+import { flushSync, mount, unmount } from 'svelte';
 import MandalaGrid from '../main';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
 import { Unsubscriber } from 'svelte/store';
@@ -138,7 +139,7 @@ export type SaveDocumentOptions = {
 };
 
 export class MandalaView extends TextFileView {
-    component: Component;
+    component: ReturnType<typeof mount> | undefined;
     documentStore: DocumentStore;
     viewStore: ViewStore;
     container: HTMLElement | null;
@@ -875,7 +876,8 @@ export class MandalaView extends TextFileView {
             return;
         }
         if (this.component) {
-            this.component.$destroy();
+            await unmount(this.component);
+            this.component = undefined;
         }
         if (this.file?.path) {
             this.persistMandalaUiState(this.file.path);
@@ -1324,13 +1326,15 @@ export class MandalaView extends TextFileView {
         if (!this.inlineEditor) {
             this.inlineEditor = new InlineEditor(this);
         }
-        this.component = new Component({
+        this.component = mount(Component, {
             target: this.contentEl,
             props: {
                 plugin: this.plugin,
                 view: this,
             },
         });
+        // Actions must finish mounting before accessing the view container.
+        flushSync();
 
         invariant(this.container);
         this.onDestroyCallbacks.add(viewSubscriptions(this));

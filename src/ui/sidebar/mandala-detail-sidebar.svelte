@@ -213,7 +213,7 @@
         : `--animated-sidebar-size: ${$animatedSidebarSize}px; --sidebar-size: ${$sidebarSize}px;`}
 >
     <!-- 移动端 Resizer 位置：竖排在顶，横排在左 -->
-    <div class="resizer" on:mousedown={onStartResize} />
+    <div class="resizer" on:mousedown={onStartResize}></div>
     {#if shouldRenderSidebarContent}
         <div class="sidebar-content">
             {#if $activeNodeId}

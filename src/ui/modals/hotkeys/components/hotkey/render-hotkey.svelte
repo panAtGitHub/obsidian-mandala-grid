@@ -2,7 +2,7 @@
     import { tx } from 'src/lang/translate';
     import { Pen, Trash } from 'lucide-svelte';
     import { modKeyDictionary } from 'src/view/actions/keyboard-shortcuts/helpers/keyboard-events/mod-key-dictionary';
-    import { ViewHotkey } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+    import type { ViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
     import EditorState from './editor-state/render-editor-state.svelte';
 
     export let enableEditing: () => void;

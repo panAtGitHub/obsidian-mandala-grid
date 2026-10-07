@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { SettingsTab } from 'src/mandala-settings/ui/settings-panel/renderers/render-settings';
+    import type { SettingsTab } from 'src/mandala-settings/ui/settings-panel/renderers/render-settings';
     import { Platform } from 'obsidian';
 
     export let setActiveTab: (tab: SettingsTab) => void;

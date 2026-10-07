@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { NodeId } from 'src/mandala-document/state/document-state-type';
-    import { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
+    import type { NodeId } from 'src/mandala-document/state/document-state-type';
+    import type { NodeStyle } from 'src/mandala-settings/state/types/style-rules-types';
     import { getCellRuntime } from 'src/view/context';
 
     export let nodeId: NodeId;
@@ -85,7 +85,7 @@
     }
 
     .apply-style-rule {
-        & .view-content.view-content {
+        & :global(.view-content.view-content) {
             background-color: transparent;
         }
     }

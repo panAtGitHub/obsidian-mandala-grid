@@ -42,7 +42,7 @@
 
 {#if open}
     <Portal>
-        <div class="export-mode-overlay" />
+        <div class="export-mode-overlay"></div>
         <div
             class="mandala-modal export-mode-modal"
             class:is-mobile={isMobile}

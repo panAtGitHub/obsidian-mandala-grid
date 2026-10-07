@@ -193,7 +193,7 @@
                             class="cell-preview-dialog__preview markdown-preview-view markdown-rendered"
                             style={`font-size: ${$cellPreviewFontSize}px;`}
                             use:markdownPreviewAction={previewNodeId}
-                        />
+                        ></div>
                     {/if}
                 </div>
                 <div class="cell-preview-dialog__footer">

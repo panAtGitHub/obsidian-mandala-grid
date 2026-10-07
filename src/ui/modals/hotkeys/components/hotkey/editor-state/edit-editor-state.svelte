@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { ViewHotkey } from '../../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+    import type { ViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 
     import EditorState from './render-editor-state.svelte';
-    import { CommandName } from '../../../../../../../../lang/hotkey-groups';
+    import type { CommandName } from 'src/lang/hotkey-groups';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
 
     export let hotkey: ViewHotkey;
@@ -21,4 +21,4 @@
     };
 </script>
 
-<EditorState {hotkey}  {onClick} />
+<EditorState {hotkey} {onClick} />

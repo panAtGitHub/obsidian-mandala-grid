@@ -3,14 +3,12 @@
     import EditHotkey from './edit-hotkey.svelte';
     import clx from 'classnames';
 
-    import { CommandName } from '../../../../../../../lang/hotkey-groups';
+    import type { CommandName } from 'src/lang/hotkey-groups';
     import { writable } from 'svelte/store';
     import { getView } from 'src/mandala-scenes/shared/shell/context';
     import { onMount } from 'svelte';
     import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
-    import {
-        StatefulViewHotkey
-    } from '../../../../../../actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
+    import type { StatefulViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 
     export let hotkey: StatefulViewHotkey;
     export let commandName: CommandName;
