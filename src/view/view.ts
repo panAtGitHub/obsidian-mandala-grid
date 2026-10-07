@@ -187,10 +187,10 @@ export class MandalaView extends TextFileView {
     ) {
         super(leaf);
         this.scope = new Scope(this.app.scope);
-        this.documentStore = new Store(
+        this.documentStore = new Store<DocumentState, DocumentStoreAction>(
             defaultDocumentState(),
             documentReducer,
-            this.onViewStoreError as OnError<DocumentStoreAction>,
+            this.onViewStoreError,
         );
         this.viewStore = new Store<
             ViewState,
@@ -202,7 +202,7 @@ export class MandalaView extends TextFileView {
                 resolveInitialMandalaDetailSidebarVisible(this),
             ),
             viewReducer,
-            this.onViewStoreError as OnError<ViewStoreAction>,
+            this.onViewStoreError,
             this.documentStore.getValue().document,
         );
 
@@ -891,10 +891,10 @@ export class MandalaView extends TextFileView {
         this.initialBootstrapTarget = null;
         this.fullHydrated = true;
         this.contentEl.empty();
-        this.documentStore = new Store(
+        this.documentStore = new Store<DocumentState, DocumentStoreAction>(
             defaultDocumentState(),
             documentReducer,
-            this.onViewStoreError as OnError<DocumentStoreAction>,
+            this.onViewStoreError,
         );
         if (this.inlineEditor) await this.inlineEditor.unloadFile();
         for (const s of this.onDestroyCallbacks) {

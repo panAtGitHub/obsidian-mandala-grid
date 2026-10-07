@@ -25,6 +25,7 @@ export function createSetViewState(plugin: MandalaGrid) {
                     ...state,
                     type: MANDALA_VIEW_TYPE,
                 };
+                // strictBindCallApply is disabled: call() otherwise returns any.
                 return next.call(this, newState, eState) as Promise<void>;
             } else {
                 return next.call(this, state, eState) as Promise<void>;

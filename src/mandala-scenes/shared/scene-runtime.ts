@@ -8,31 +8,31 @@ import type { ViewState } from 'src/stores/view/view-state-type';
 export type ActiveCell9x9 = { row: number; col: number } | null;
 export type ActiveCellWeek7x9 = { row: number; col: number } | null;
 
-const getMandalaSceneState = (viewState: ViewState) =>
-    ({
-        nineByNine: {
+const getMandalaSceneState = (
+    viewState: ViewState,
+): ViewState['ui']['mandala']['sceneState'] => ({
+    nineByNine: {
+        activeCell:
+            viewState.ui.mandala.sceneState?.nineByNine?.activeCell ?? null,
+    },
+    nx9: {
+        activeCell: viewState.ui.mandala.sceneState?.nx9?.activeCell ?? null,
+        weekPlan: {
             activeCell:
-                viewState.ui.mandala.sceneState?.nineByNine?.activeCell ?? null,
+                viewState.ui.mandala.sceneState?.nx9?.weekPlan?.activeCell ??
+                null,
+            anchorDate:
+                viewState.ui.mandala.sceneState?.nx9?.weekPlan?.anchorDate ??
+                null,
         },
-        nx9: {
-            activeCell: viewState.ui.mandala.sceneState?.nx9?.activeCell ?? null,
-            weekPlan: {
-                activeCell:
-                    viewState.ui.mandala.sceneState?.nx9?.weekPlan?.activeCell ??
-                    null,
-                anchorDate:
-                    viewState.ui.mandala.sceneState?.nx9?.weekPlan?.anchorDate ??
-                    null,
-            },
-        },
-    }) as ViewState['ui']['mandala']['sceneState'];
+    },
+});
 
 export const getMandalaWeekPlanState = (viewState: ViewState) =>
     getMandalaSceneState(viewState).nx9.weekPlan;
 
-export const getMandalaActiveCell9x9 = (
-    viewState: ViewState,
-): ActiveCell9x9 => getMandalaSceneState(viewState).nineByNine.activeCell;
+export const getMandalaActiveCell9x9 = (viewState: ViewState): ActiveCell9x9 =>
+    getMandalaSceneState(viewState).nineByNine.activeCell;
 
 export const getMandalaActiveCellNx9 = (
     viewState: ViewState,
@@ -64,9 +64,8 @@ export const getMandalaActiveCellWeek7x9 = (
         : null;
 };
 
-export const getMandalaWeekAnchorDate = (
-    viewState: ViewState,
-): string | null => getMandalaWeekPlanState(viewState).anchorDate;
+export const getMandalaWeekAnchorDate = (viewState: ViewState): string | null =>
+    getMandalaWeekPlanState(viewState).anchorDate;
 
 const matchesSceneKey = (
     focusTarget: ViewState['ui']['mandala']['focusTarget'],
@@ -78,7 +77,9 @@ const matchesSceneKey = (
 
 const toFocusedCell = (
     focusTarget: ViewState['ui']['mandala']['focusTarget'],
-): Exclude<ViewState['ui']['mandala']['focusTarget'], null> & { kind: 'cell' } =>
+): Exclude<ViewState['ui']['mandala']['focusTarget'], null> & {
+    kind: 'cell';
+} =>
     focusTarget as Exclude<ViewState['ui']['mandala']['focusTarget'], null> & {
         kind: 'cell';
     };

@@ -15,7 +15,7 @@ const filterHiddenGroups = (
                 return !collapsedParents.has(g.parentId);
             }),
             id: c.id,
-        } as Column;
+        };
     });
 };
 
