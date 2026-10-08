@@ -599,8 +599,6 @@ export const writeDayPlanConfiguration = (
         enabled: config.enabled,
         year: config.year,
         week_view: {
-            enabled: config.week_view?.enabled ?? true,
-            compact: config.week_view?.compact ?? true,
             start: config.week_view?.start ?? 'monday',
         },
         date_heading:

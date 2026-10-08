@@ -25,8 +25,6 @@ export type MandalaCoreSettingsHandlers = {
     setEnableNx9View: (enabled: boolean) => void;
     setCoreSectionMax: (max: SectionRangeLimit) => void;
     setSubgridMaxDepth: (depth: SectionRangeLimit) => void;
-    setWeekPlanEnabled?: (enabled: boolean) => void;
-    setWeekPlanCompactMode?: (enabled: boolean) => void;
     setTimePlanEnabled?: (enabled: boolean) => void;
     setWeekStart: (weekStart: WeekStart) => void;
     setDayPlanDateHeadingFormat: (format: DayPlanDateHeadingFormat) => void;
@@ -548,36 +546,22 @@ export const renderMandalaCoreSettings = ({
     }
 
     if (!timePlanContainer) return;
-    if (showWeekViewOptions) {
-        new Setting(timePlanContainer)
-            .setName(tx('启用周视图'))
-            .setDesc(tx('开启时同时允许 nx9 视图；关闭 nx9 后周视图不可用。'))
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(state.general.weekPlanEnabled)
-                    .onChange((enabled) =>
-                        handlers.setWeekPlanEnabled?.(enabled),
-                    ),
-            );
-        new Setting(timePlanContainer)
-            .setName(tx('周视图紧凑显示'))
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(state.general.weekPlanCompactMode)
-                    .onChange((enabled) =>
-                        handlers.setWeekPlanCompactMode?.(enabled),
-                    ),
-            );
-    }
     const isTimePlanEnabled =
         showWeekViewOptions ||
         (state.general.dayPlanEnabled && state.general.weekPlanEnabled);
     if (!isTimePlanEnabled) return;
     if (!showTimePlanDefaults) return;
 
-    if (state.general.weekPlanEnabled) {
+    if (showWeekViewOptions || state.general.weekPlanEnabled) {
         new Setting(timePlanContainer)
             .setName(texts?.weekStart ?? tx('周计划起始日'))
+            .setDesc(
+                showWeekViewOptions
+                    ? tx(
+                          '周视图按一周七天展示日计划，需开启上方的「当前文件启用 nx9 视图」。',
+                      )
+                    : '',
+            )
             .addDropdown((dropdown) =>
                 dropdown
                     .addOptions({

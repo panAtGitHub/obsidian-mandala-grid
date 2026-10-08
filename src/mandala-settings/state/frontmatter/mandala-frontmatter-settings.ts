@@ -164,8 +164,9 @@ export const resolveEffectiveMandalaSettings = (
         overrides.general = {
             dayPlanEnabled:
                 dayPlan.mandalaEnabled && dayPlan.config?.enabled === true,
-            weekPlanEnabled: dayPlan.config?.week_view?.enabled ?? true,
-            weekPlanCompactMode: dayPlan.config?.week_view?.compact ?? true,
+            weekPlanEnabled:
+                overrides.view?.enableNx9View ?? settings.view.enableNx9View,
+            weekPlanCompactMode: true,
             weekStart: dayPlan.config?.week_view?.start ?? 'monday',
             dayPlanDateHeadingFormat:
                 dayPlan.config?.date_heading?.format ?? 'zh-short',
@@ -176,6 +177,9 @@ export const resolveEffectiveMandalaSettings = (
         overrides.general = {
             ...overrides.general,
             dayPlanEnabled: dayPlan.mandalaEnabled && dayPlan.config.enabled,
+            weekPlanEnabled:
+                overrides.view?.enableNx9View ?? settings.view.enableNx9View,
+            weekPlanCompactMode: true,
         };
     }
     const legacyDayPlanSubgridMaxDepth =
@@ -226,8 +230,6 @@ export const withDayPlanDisplaySettings = (
 ): DayPlanFrontmatter => ({
     ...config,
     week_view: {
-        enabled: settings.weekPlanEnabled,
-        compact: settings.weekPlanCompactMode,
         start: settings.weekStart,
     },
     date_heading: {

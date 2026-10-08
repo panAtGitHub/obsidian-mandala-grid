@@ -287,14 +287,6 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     this.state.general.dayPlanEnabled = enabled;
                     this.render({ preserveScroll: true });
                 },
-                setWeekPlanEnabled: (enabled) => {
-                    this.state.general.weekPlanEnabled = enabled;
-                    if (enabled) this.state.view.enableNx9View = true;
-                    this.render({ preserveScroll: true });
-                },
-                setWeekPlanCompactMode: (enabled) => {
-                    this.state.general.weekPlanCompactMode = enabled;
-                },
                 setEnable9x9View: (enabled) => {
                     this.state.view.enable9x9View = enabled;
                 },

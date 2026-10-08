@@ -110,6 +110,8 @@ test('new day-plan settings ignore legacy general and global feature gates', () 
         settings,
         `mandala: true
 mandala_settings:
+  view:
+    enableNx9View: false
   general:
     weekStart: sunday
     dayPlanEnabled: false
@@ -126,4 +128,28 @@ mandala_day_plan:
     expect(effective.general.weekPlanEnabled).toBe(false);
     expect(effective.general.weekStart).toBe('monday');
     expect(effective.general.dayPlanDateHeadingFormat).toBe('date-only');
+});
+
+test('nx9 alone controls dedicated week view and compact rendering is always enabled', () => {
+    const settings = DEFAULT_SETTINGS();
+    for (const enabled of [true, false]) {
+        const effective = resolveEffectiveMandalaSettings(
+            settings,
+            `mandala: true
+mandala_settings:
+  view:
+    enableNx9View: ${enabled}
+mandala_day_plan:
+  enabled: true
+  year: 2026
+  week_view:
+    enabled: false
+    compact: false
+    start: sunday
+`,
+        );
+        expect(effective.general.weekPlanEnabled).toBe(enabled);
+        expect(effective.general.weekPlanCompactMode).toBe(true);
+        expect(effective.general.weekStart).toBe('sunday');
+    }
 });
