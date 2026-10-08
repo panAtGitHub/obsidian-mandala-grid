@@ -575,7 +575,7 @@ export const renderMandalaCoreSettings = ({
             );
     }
 
-    createMaybeDescriptionSetting(
+    const dateFormatSetting = createMaybeDescriptionSetting(
         new Setting(timePlanContainer).setName(
             texts?.dayPlanDateHeadingFormat ??
                 lang.settings_general_day_plan_date_heading_format,
@@ -601,6 +601,10 @@ export const renderMandalaCoreSettings = ({
                     value as DayPlanDateHeadingFormat,
                 ),
             ),
+    );
+
+    dateFormatSetting.setDesc(
+        `预览：${buildCenterDateHeading('2026-10-08', { format: state.general.dayPlanDateHeadingFormat, customTemplate: state.general.dayPlanDateHeadingCustomTemplate })}`,
     );
 
     if (state.general.dayPlanDateHeadingFormat === 'custom') {

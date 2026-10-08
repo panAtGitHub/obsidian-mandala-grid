@@ -1,7 +1,17 @@
 import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { Setting } from 'obsidian';
-import { applyDayPlanTemplateTitles } from 'src/obsidian/commands/helpers/apply-day-plan-template-titles';
-import { openDayPlanConfirmModal } from 'src/obsidian/modals/day-plan-setup-modal';
+import {
+    editDayPlanTemplate,
+    localDayPlanDate,
+} from 'src/obsidian/commands/helpers/day-plan-template-edit';
+import {
+    openDayPlanTemplateEditModal,
+    openDayPlanHistoryRangeModal,
+} from 'src/obsidian/modals/day-plan-template-edit-modal';
+import {
+    addDaysIsoDate,
+    slotsRecordToArray,
+} from 'src/mandala-display/logic/day-plan';
 import { tx } from 'src/lang/translate';
 import { Modal, Notice } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
@@ -143,67 +153,94 @@ class CurrentFileMandalaSettingsModal extends Modal {
             showTimePlanSection: isDayPlanDedicated,
             renderTimePlanFooter: (containerEl) => {
                 if (dayPlan.config) {
-                    containerEl.createDiv({
-                        cls: 'setting-item-description',
-                        text: Object.entries(dayPlan.config.slots)
-                            .map(([id, title]) => `${id}：${title}`)
-                            .join('；'),
-                    });
+                    const year = dayPlan.config.year;
+                    const today = localDayPlanDate();
+                    const yesterday = addDaysIsoDate(today, -1);
                     new Setting(containerEl)
                         .setName('每日八格模板')
-                        .setDesc('使用已保存的模板更新标题，保留标题下的正文。')
                         .addButton((button) =>
                             button
-                                .setButtonText('应用到当前日期')
-                                .setDisabled(!dayPlan.config?.enabled)
-                                .onClick(() => {
-                                    if (this.view.file === this.targetFile)
-                                        void applyDayPlanTemplateTitles(
-                                            this.view,
-                                            'current',
-                                        ).catch((error) =>
-                                            onPluginError(
-                                                error,
-                                                'command',
-                                                'apply-day-plan-template',
-                                            ),
-                                        );
-                                }),
-                        )
-                        .addButton((button) =>
-                            button
-                                .setButtonText('同步到已有日期')
-                                .setDisabled(!dayPlan.config?.enabled)
+                                .setButtonText('修改模板标题…')
+                                .setDisabled(
+                                    !dayPlan.config?.enabled ||
+                                        !today.startsWith(`${year}-`),
+                                )
                                 .onClick(() => {
                                     void (async () => {
-                                        const confirmed =
-                                            await openDayPlanConfirmModal(
+                                        const slots =
+                                            await openDayPlanTemplateEditModal(
                                                 this.view.plugin,
-                                                {
-                                                    title: '同步已有日期的八格标题',
-                                                    message:
-                                                        '将按已保存模板更新所有已存在日期的八格标题，保留正文，不补建空格子。',
-                                                    confirmText: '同步标题',
-                                                    cancelText: '取消',
-                                                },
+                                                slotsRecordToArray(
+                                                    dayPlan.config?.slots,
+                                                ),
                                             );
                                         if (
-                                            confirmed &&
-                                            this.view.file === this.targetFile
+                                            !slots ||
+                                            this.view.file !== this.targetFile
                                         )
-                                            await applyDayPlanTemplateTitles(
-                                                this.view,
-                                                'existing',
-                                            );
+                                            return;
+                                        await editDayPlanTemplate(this.view, {
+                                            slots,
+                                            start: today,
+                                            end: `${year}-12-31`,
+                                        });
+                                        this.render({ preserveScroll: true });
                                     })().catch((error) =>
                                         onPluginError(
                                             error,
                                             'command',
-                                            'sync-day-plan-template',
+                                            'edit-day-plan-template',
+                                        ),
+                                    );
+                                }),
+                        )
+                        .addButton((button) =>
+                            button
+                                .setButtonText('更新历史标题…')
+                                .setDisabled(
+                                    !dayPlan.config?.enabled ||
+                                        yesterday < `${year}-01-01`,
+                                )
+                                .onClick(() => {
+                                    void (async () => {
+                                        const range =
+                                            await openDayPlanHistoryRangeModal(
+                                                this.view.plugin,
+                                                year,
+                                                yesterday,
+                                            );
+                                        if (
+                                            !range ||
+                                            this.view.file !== this.targetFile
+                                        )
+                                            return;
+                                        await editDayPlanTemplate(
+                                            this.view,
+                                            range,
+                                        );
+                                        new Notice(
+                                            '所选日期的标题已更新，正文保留。',
+                                        );
+                                    })().catch((error) =>
+                                        onPluginError(
+                                            error,
+                                            'command',
+                                            'update-day-plan-history',
                                         ),
                                     );
                                 }),
                         );
+                    const preview = containerEl.createDiv({
+                        cls: 'setting-item-description',
+                    });
+                    for (const [id, title] of Object.entries(
+                        dayPlan.config.slots,
+                    ))
+                        preview.createDiv({ text: `${id}：${title}` });
+                    containerEl.createDiv({
+                        cls: 'setting-item-description',
+                        text: '修改模板后，今天及后续日期使用新标题。历史日期可按范围单独更新。所有操作仅修改标题，保留正文。',
+                    });
                 }
                 if (!templateMismatch) return;
                 if (
@@ -217,7 +254,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 });
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-title',
-                    text: tx('检测到当前核心 8 格标题与 YAML 模板不一致'),
+                    text: tx('当前日期的八格标题与每日模板不同'),
                 });
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-core',
@@ -232,7 +269,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 promptCard.createDiv({
                     cls: 'mandala-file-settings__template-sync-text',
                     text: tx(
-                        '如果你希望后续日期继续沿用这组 8 格标题，可写回 YAML 以便复用。',
+                        '是否将当前八格标题设为每日模板？保存后，今天及后续日期使用这组标题，历史日期保持不变，正文保留。',
                     ),
                 });
 
@@ -240,7 +277,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     cls: 'mandala-file-settings__template-sync-actions',
                 });
                 const writeButton = actionsEl.createEl('button', {
-                    text: tx('将当前八格标题设为每日模板'),
+                    text: tx('保存为模板'),
                     cls: 'mod-cta',
                 });
                 writeButton.addEventListener('click', () => {
@@ -251,13 +288,28 @@ class CurrentFileMandalaSettingsModal extends Modal {
                                 this.view,
                             );
                         if (!written) return;
+                        const today = localDayPlanDate();
+                        if (
+                            dayPlan.config &&
+                            today.startsWith(`${dayPlan.config.year}-`)
+                        )
+                            await editDayPlanTemplate(this.view, {
+                                start: today,
+                                end: `${dayPlan.config.year}-12-31`,
+                            });
                         this.dismissedTemplateMismatchCore = null;
                         this.render({ preserveScroll: true });
-                    })();
+                    })().catch((error) =>
+                        onPluginError(
+                            error,
+                            'command',
+                            'save-current-day-plan-template',
+                        ),
+                    );
                 });
 
                 const dismissButton = actionsEl.createEl('button', {
-                    text: tx('暂不处理'),
+                    text: tx('暂不更新'),
                     cls: 'mod-muted',
                 });
                 dismissButton.addEventListener('click', () => {
