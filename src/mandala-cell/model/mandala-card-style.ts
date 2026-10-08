@@ -29,6 +29,11 @@ const DARK_TEXT_TOKENS =
 const LIGHT_TEXT_TOKENS =
     '--text-normal: #f3f6fd; --text-muted: #d0d8e6; --text-faint: #b0bbce; --h1-color: #f3f6fd; --h2-color: #f3f6fd; --h3-color: #f3f6fd; --h4-color: #f3f6fd; --h5-color: #f3f6fd; --h6-color: #f3f6fd; --link-color: #d0d8e6; --link-color-hover: #f3f6fd';
 
+// Changing text variables alone does not change an inherited computed color.
+// Obsidian headings also read their own color variables instead of --text-normal.
+const ACTIVE_TEXT_TOKENS =
+    'color: var(--color-active-node); --text-normal: var(--color-active-node); --h1-color: var(--color-active-node); --h2-color: var(--color-active-node); --h3-color: var(--color-active-node); --h4-color: var(--color-active-node); --h5-color: var(--color-active-node); --h6-color: var(--color-active-node)';
+
 const getContrastBackgroundColor = ({
     active,
     backgroundColor,
@@ -84,6 +89,7 @@ export const buildMandalaCardStyle = ({
 
     const bodyStyle = [
         !active ? 'opacity: var(--inactive-card-opacity)' : '',
+        shouldForceActiveBackground ? ACTIVE_TEXT_TOKENS : '',
         !shouldForceActiveBackground && textTone === 'dark'
             ? DARK_TEXT_TOKENS
             : '',
@@ -100,6 +106,7 @@ export const buildMandalaCardStyle = ({
         .join('; ');
 
     const cardStyle = [
+        shouldForceActiveBackground ? ACTIVE_TEXT_TOKENS : '',
         shouldForceActiveBackground
             ? 'background-color: var(--background-active-node) !important'
             : backgroundColor

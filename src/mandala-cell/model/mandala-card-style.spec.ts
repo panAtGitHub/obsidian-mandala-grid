@@ -3,6 +3,37 @@ import { resolveCardGridStyle } from 'src/mandala-scenes/shared/grid-style';
 import { buildMandalaCardStyle } from './mandala-card-style';
 
 describe('buildMandalaCardStyle', () => {
+    it.each(['light', 'dark'] as const)(
+        'uses the active text setting for body text and headings in the %s theme',
+        (themeTone) => {
+            const state = buildMandalaCardStyle({
+                active: true,
+                backgroundColor: null,
+                style: undefined,
+                themeTone,
+            });
+            expect(state.cardStyle).toContain(
+                'color: var(--color-active-node)',
+            );
+            for (let level = 1; level <= 6; level += 1) {
+                expect(state.cardStyle).toContain(
+                    `--h${level}-color: var(--color-active-node)`,
+                );
+            }
+            const inactive = buildMandalaCardStyle({
+                active: false,
+                backgroundColor: null,
+                style: undefined,
+                themeTone,
+            });
+            expect(inactive.cardStyle ?? '').not.toContain(
+                '--color-active-node',
+            );
+            expect(inactive.bodyStyle ?? '').not.toContain(
+                '--color-active-node',
+            );
+        },
+    );
     it('keeps existing active background behavior by default', () => {
         const state = buildMandalaCardStyle({
             active: true,
@@ -90,7 +121,9 @@ describe('buildMandalaCardStyle', () => {
         expect(state.surfaceStyle).toContain(
             'background-color: var(--background-primary)',
         );
-        expect(state.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+        expect(state.bodyStyle).toContain(
+            'opacity: var(--inactive-card-opacity)',
+        );
         expect(state.bodyStyle).toContain(
             '--text-normal: var(--color-active-parent)',
         );
@@ -107,7 +140,9 @@ describe('buildMandalaCardStyle', () => {
         expect(state.surfaceStyle).toContain(
             'background-color: rgba(103, 127, 239, 0.65)',
         );
-        expect(state.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+        expect(state.bodyStyle).toContain(
+            'opacity: var(--inactive-card-opacity)',
+        );
         expect(state.bodyStyle).toContain('--text-normal: #0f131a');
     });
 
