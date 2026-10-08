@@ -3,6 +3,8 @@ import {
     BUILTIN_MANDALA_LAYOUT_PATTERNS,
     BUILTIN_MANDALA_LAYOUT_IDS,
     gridToPattern,
+    layoutIdToOrientation,
+    legacyOrientationToLayoutId,
     normalizeMandalaCustomLayouts,
     patternToGrid,
     patternToPreviewRows,
@@ -12,6 +14,18 @@ import {
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 
 describe('mandala-grid-custom-layout', () => {
+    test('resolves and restores the clockwise builtin layout', () => {
+        expect(resolveMandalaLayoutId('builtin:clockwise', [])).toBe(
+            'builtin:clockwise',
+        );
+        expect(layoutIdToOrientation('builtin:clockwise')).toBe('clockwise');
+        expect(legacyOrientationToLayoutId('clockwise')).toBe(
+            'builtin:clockwise',
+        );
+        expect(
+            patternToPreviewRows(BUILTIN_MANDALA_LAYOUT_PATTERNS.clockwise),
+        ).toEqual(['1 2 3', '8 0 4', '7 6 5']);
+    });
     test('converts pattern to grid and back', () => {
         const grid = patternToGrid('123405678');
 

@@ -125,15 +125,17 @@
             ? tx('从南开始')
             : activeLayoutId === 'builtin:left-to-right'
               ? tx('从左到右')
-              : (() => {
-                    const customLayout =
-                        customLayouts.find(
-                            (layout) => layout.id === activeLayoutId,
-                        ) ?? null;
-                    return customLayout
-                        ? tx('自定义 / {0}', customLayout.name)
-                        : tx('从左到右');
-                })();
+              : activeLayoutId === 'builtin:clockwise'
+                ? tx('顺时针')
+                : (() => {
+                      const customLayout =
+                          customLayouts.find(
+                              (layout) => layout.id === activeLayoutId,
+                          ) ?? null;
+                      return customLayout
+                          ? tx('自定义 / {0}', customLayout.name)
+                          : tx('从左到右');
+                  })();
     $: editorTitle =
         draftMode === 'create'
             ? tx('新建自定义布局')

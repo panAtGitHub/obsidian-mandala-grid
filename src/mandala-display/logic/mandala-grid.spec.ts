@@ -7,6 +7,22 @@ import {
 } from 'src/mandala-display/logic/mandala-grid';
 
 describe('mandala-grid', () => {
+    test('maps clockwise builtin cells in both grid sizes', () => {
+        expect(
+            getMandalaLayoutById('builtin:clockwise', []).previewPattern,
+        ).toBe('123804765');
+        expect(posOfSection3x3('1.8', 'builtin:clockwise', [])).toEqual({
+            row: 1,
+            col: 0,
+        });
+        expect(posOfSection9x9('1.8.1', 'builtin:clockwise', '1', [])).toEqual({
+            row: 3,
+            col: 0,
+        });
+        expect(sectionAtCell9x9(3, 0, 'builtin:clockwise', '1', [])).toBe(
+            '1.8.1',
+        );
+    });
     test('keeps builtin layouts stable', () => {
         const layout = getMandalaLayoutById('builtin:left-to-right', []);
         const southLayout = getMandalaLayoutById('builtin:south-start', []);
@@ -25,9 +41,11 @@ describe('mandala-grid', () => {
         ]);
 
         expect(layout.previewPattern).toBe('876405123');
-        expect(posOfSection3x3('1.8', 'custom:1', [
-            { id: 'custom:1', name: '顺时针', pattern: '876405123' },
-        ])).toEqual({ row: 0, col: 0 });
+        expect(
+            posOfSection3x3('1.8', 'custom:1', [
+                { id: 'custom:1', name: '顺时针', pattern: '876405123' },
+            ]),
+        ).toEqual({ row: 0, col: 0 });
     });
 
     test('falls back when custom layout id is missing', () => {
@@ -45,9 +63,9 @@ describe('mandala-grid', () => {
             },
         ];
 
-        expect(posOfSection9x9('1.8.1', 'custom:1', '1', customLayouts)).toEqual(
-            { row: 2, col: 0 },
-        );
+        expect(
+            posOfSection9x9('1.8.1', 'custom:1', '1', customLayouts),
+        ).toEqual({ row: 2, col: 0 });
         expect(sectionAtCell9x9(2, 0, 'custom:1', '1', customLayouts)).toBe(
             '1.8.1',
         );

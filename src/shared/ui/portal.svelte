@@ -1,8 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
 
-    export let target: HTMLElement | null | undefined =
-        activeDocument?.body;
+    export let target: HTMLElement | null | undefined = activeDocument?.body;
     export let enable = true;
 
     let ref: HTMLElement;
@@ -15,10 +14,10 @@
 
     onDestroy(() => {
         if (enable) {
+            // Svelte clears bind:this during teardown, before this timer runs.
+            const portalElement = ref;
             window.setTimeout(() => {
-                if (ref?.parentNode) {
-                    ref.parentNode?.removeChild(ref);
-                }
+                portalElement?.remove();
             });
         }
     });

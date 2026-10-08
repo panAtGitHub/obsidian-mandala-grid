@@ -16,7 +16,9 @@
             : tx('当前：自定义布局')
         : selectedLayoutId === 'builtin:south-start'
           ? tx('当前：从南开始')
-          : tx('当前：从左到右');
+          : selectedLayoutId === 'builtin:clockwise'
+            ? tx('当前：顺时针')
+            : tx('当前：从左到右');
 </script>
 
 <div class="view-options-menu__subsection">
@@ -43,6 +45,15 @@
                 on:change={() => onSelectLayout('builtin:south-start')}
             />
             <span>{tx('从南开始')}</span>
+        </label>
+        <label class="view-options-menu__inline-option">
+            <input
+                type="radio"
+                name="mandala-grid-layout"
+                checked={selectedLayoutId === 'builtin:clockwise'}
+                on:change={() => onSelectLayout('builtin:clockwise')}
+            />
+            <span>{tx('顺时针')}</span>
         </label>
         <label
             class="view-options-menu__inline-option grid-layout-panel__custom-option"

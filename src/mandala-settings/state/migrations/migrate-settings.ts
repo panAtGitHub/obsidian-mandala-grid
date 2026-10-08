@@ -20,6 +20,7 @@ import {
 } from 'src/mandala-display/logic/grid-layout';
 
 const VALID_GRID_ORIENTATIONS = new Set([
+    'clockwise',
     'south-start',
     'left-to-right',
     'custom',

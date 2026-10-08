@@ -3,6 +3,21 @@ import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import { settingsReducer } from 'src/mandala-settings/state/settings-reducer';
 
 describe('settingsReducer custom grid layouts', () => {
+    test('selects clockwise through layout and orientation actions', () => {
+        const settings = DEFAULT_SETTINGS();
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/select-grid-layout',
+            payload: { layoutId: 'builtin:clockwise' },
+        });
+        expect(settings.view.mandalaGridOrientation).toBe('clockwise');
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/set-grid-orientation',
+            payload: { orientation: 'clockwise' },
+        });
+        expect(settings.view.mandalaGridSelectedLayoutId).toBe(
+            'builtin:clockwise',
+        );
+    });
     test('creates and selects a custom layout', () => {
         const settings = DEFAULT_SETTINGS();
 

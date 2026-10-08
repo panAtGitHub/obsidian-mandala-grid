@@ -643,6 +643,8 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
             store.view.mandalaGridSelectedLayoutId = 'builtin:left-to-right';
         } else if (action.payload.orientation === 'south-start') {
             store.view.mandalaGridSelectedLayoutId = 'builtin:south-start';
+        } else if (action.payload.orientation === 'clockwise') {
+            store.view.mandalaGridSelectedLayoutId = 'builtin:clockwise';
         }
     },
     'settings/view/mandala/select-grid-layout': (store, action) => {

@@ -10,11 +10,13 @@ export const DEFAULT_MANDALA_CUSTOM_PATTERN = '123405678';
 export const BUILTIN_MANDALA_LAYOUT_IDS = {
     'left-to-right': 'builtin:left-to-right',
     'south-start': 'builtin:south-start',
+    clockwise: 'builtin:clockwise',
 } as const satisfies Record<BuiltinMandalaGridOrientation, string>;
 
 export const BUILTIN_MANDALA_LAYOUT_PATTERNS = {
     'left-to-right': DEFAULT_MANDALA_CUSTOM_PATTERN,
     'south-start': '637204518',
+    clockwise: '123804765',
 } as const satisfies Record<BuiltinMandalaGridOrientation, string>;
 
 export const getFallbackCustomPattern = () => DEFAULT_MANDALA_CUSTOM_PATTERN;
@@ -23,7 +25,8 @@ export const isBuiltinMandalaLayoutId = (
     value: string | null | undefined,
 ): value is (typeof BUILTIN_MANDALA_LAYOUT_IDS)[BuiltinMandalaGridOrientation] =>
     value === BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'] ||
-    value === BUILTIN_MANDALA_LAYOUT_IDS['south-start'];
+    value === BUILTIN_MANDALA_LAYOUT_IDS['south-start'] ||
+    value === BUILTIN_MANDALA_LAYOUT_IDS.clockwise;
 
 export const getBuiltinOrientationFromLayoutId = (
     layoutId: string | null | undefined,
@@ -34,6 +37,7 @@ export const getBuiltinOrientationFromLayoutId = (
     if (layoutId === BUILTIN_MANDALA_LAYOUT_IDS['south-start']) {
         return 'south-start';
     }
+    if (layoutId === BUILTIN_MANDALA_LAYOUT_IDS.clockwise) return 'clockwise';
     return null;
 };
 
@@ -52,10 +56,16 @@ export const layoutIdToOrientation = (
 export const legacyOrientationToLayoutId = (
     orientation: MandalaGridOrientation | null | undefined,
 ): string | null => {
-    if (orientation === 'left-to-right' || orientation === 'south-start') {
+    if (
+        orientation === 'left-to-right' ||
+        orientation === 'south-start' ||
+        orientation === 'clockwise'
+    ) {
         return getBuiltinLayoutId(orientation);
     }
-    return orientation === 'custom' ? getBuiltinLayoutId('left-to-right') : null;
+    return orientation === 'custom'
+        ? getBuiltinLayoutId('left-to-right')
+        : null;
 };
 
 export const findMandalaCustomLayout = (
@@ -68,7 +78,10 @@ export const resolveMandalaLayoutId = (
     customLayouts: MandalaCustomLayout[],
 ): string => {
     if (isBuiltinMandalaLayoutId(layoutId)) return layoutId;
-    if (layoutId?.startsWith('custom:') && findMandalaCustomLayout(customLayouts, layoutId)) {
+    if (
+        layoutId?.startsWith('custom:') &&
+        findMandalaCustomLayout(customLayouts, layoutId)
+    ) {
         return layoutId;
     }
     return BUILTIN_MANDALA_LAYOUT_IDS['left-to-right'];

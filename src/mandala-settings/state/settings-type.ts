@@ -26,7 +26,10 @@ export type DetailSidebarPreviewMode = 'rendered' | 'source';
 export const DEFAULT_NX9_ROWS_PER_PAGE = 3;
 
 export type MandalaMode = '3x3' | '9x9' | 'nx9';
-export type BuiltinMandalaGridOrientation = 'left-to-right' | 'south-start';
+export type BuiltinMandalaGridOrientation =
+    | 'left-to-right'
+    | 'south-start'
+    | 'clockwise';
 export type MandalaGridOrientation = BuiltinMandalaGridOrientation | 'custom';
 export type MandalaCustomLayout = {
     id: string;

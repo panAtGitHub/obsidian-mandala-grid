@@ -300,6 +300,8 @@
               ? tx('背景：灰色间隔')
               : tx('背景：无背景');
     $: appearanceOrientationLabel = (() => {
+        if ($selectedLayoutId === 'builtin:clockwise')
+            return tx('方位：顺时针');
         if ($selectedLayoutId === 'builtin:south-start') {
             return tx('方位：从南开始');
         }

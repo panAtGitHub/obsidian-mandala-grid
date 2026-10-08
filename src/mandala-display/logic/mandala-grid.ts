@@ -7,6 +7,7 @@ import {
     BUILTIN_MANDALA_LAYOUT_PATTERNS,
     coreGridToPattern,
     findMandalaCustomLayout,
+    getBuiltinOrientationFromLayoutId,
     getFallbackCustomPattern,
     normalizeCustomMandalaPattern,
     patternToCoreGrid,
@@ -24,9 +25,8 @@ type MandalaLayout = {
     previewPattern: string;
 };
 
-const buildCoreSlots = (
-    grid: readonly (readonly string[])[],
-): string[] => grid.flat();
+const buildCoreSlots = (grid: readonly (readonly string[])[]): string[] =>
+    grid.flat();
 
 const buildThemeGrid = (
     grid: readonly (readonly string[])[],
@@ -85,16 +85,21 @@ const createLayout = (
     };
 };
 
-const builtinLayoutMaps: Record<BuiltinMandalaGridOrientation, MandalaLayout> = {
-    'left-to-right': createLayout(
-        patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS['left-to-right']),
-        BUILTIN_MANDALA_LAYOUT_PATTERNS['left-to-right'],
-    ),
-    'south-start': createLayout(
-        patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start']),
-        BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start'],
-    ),
-};
+const builtinLayoutMaps: Record<BuiltinMandalaGridOrientation, MandalaLayout> =
+    {
+        clockwise: createLayout(
+            patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS.clockwise),
+            BUILTIN_MANDALA_LAYOUT_PATTERNS.clockwise,
+        ),
+        'left-to-right': createLayout(
+            patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS['left-to-right']),
+            BUILTIN_MANDALA_LAYOUT_PATTERNS['left-to-right'],
+        ),
+        'south-start': createLayout(
+            patternToCoreGrid(BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start']),
+            BUILTIN_MANDALA_LAYOUT_PATTERNS['south-start'],
+        ),
+    };
 
 const customLayoutCache = new Map<string, MandalaLayout>();
 
@@ -123,6 +128,7 @@ export const getMandalaLayout = (
     if (orientation === 'south-start') {
         return builtinLayoutMaps['south-start'];
     }
+    if (orientation === 'clockwise') return builtinLayoutMaps.clockwise;
     if (orientation === 'custom') {
         return getCustomMandalaLayout(customPattern);
     }
@@ -136,10 +142,12 @@ export const getMandalaLayoutById = (
     const resolvedId = resolveMandalaLayoutId(selectedLayoutId, customLayouts);
     if (resolvedId.startsWith('custom:')) {
         const customLayout = findMandalaCustomLayout(customLayouts, resolvedId);
-        return getCustomMandalaLayout(customLayout?.pattern ?? getFallbackCustomPattern());
+        return getCustomMandalaLayout(
+            customLayout?.pattern ?? getFallbackCustomPattern(),
+        );
     }
     return getMandalaLayout(
-        resolvedId === 'builtin:south-start' ? 'south-start' : 'left-to-right',
+        getBuiltinOrientationFromLayoutId(resolvedId) ?? 'left-to-right',
     );
 };
 
@@ -155,13 +163,14 @@ export const posOfSection3x3 = (
     selectedLayoutIdOrOrientation: string,
     customLayouts: MandalaCustomLayout[] = [],
 ): { row: number; col: number } | null => {
-    const layout = selectedLayoutIdOrOrientation.startsWith('builtin:') ||
+    const layout =
+        selectedLayoutIdOrOrientation.startsWith('builtin:') ||
         selectedLayoutIdOrOrientation.startsWith('custom:')
-        ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
-        : getMandalaLayout(
-              selectedLayoutIdOrOrientation as MandalaGridOrientation,
-              customLayouts[0]?.pattern,
-          );
+            ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
+            : getMandalaLayout(
+                  selectedLayoutIdOrOrientation as MandalaGridOrientation,
+                  customLayouts[0]?.pattern,
+              );
     const { slotPositions } = layout;
     if (section === '1') return { row: 1, col: 1 };
     if (!section.includes('.')) return null;
@@ -177,13 +186,14 @@ export const posOfSection9x9 = (
     baseTheme = '1',
     customLayouts: MandalaCustomLayout[] = [],
 ): { row: number; col: number } | null => {
-    const layout = selectedLayoutIdOrOrientation.startsWith('builtin:') ||
+    const layout =
+        selectedLayoutIdOrOrientation.startsWith('builtin:') ||
         selectedLayoutIdOrOrientation.startsWith('custom:')
-        ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
-        : getMandalaLayout(
-              selectedLayoutIdOrOrientation as MandalaGridOrientation,
-              customLayouts[0]?.pattern,
-          );
+            ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
+            : getMandalaLayout(
+                  selectedLayoutIdOrOrientation as MandalaGridOrientation,
+                  customLayouts[0]?.pattern,
+              );
     const { slotPositions } = layout;
 
     if (section === baseTheme) return { row: 4, col: 4 };
@@ -216,13 +226,14 @@ export const sectionAtCell9x9 = (
     baseTheme = '1',
     customLayouts: MandalaCustomLayout[] = [],
 ): string | null => {
-    const layout = selectedLayoutIdOrOrientation.startsWith('builtin:') ||
+    const layout =
+        selectedLayoutIdOrOrientation.startsWith('builtin:') ||
         selectedLayoutIdOrOrientation.startsWith('custom:')
-        ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
-        : getMandalaLayout(
-              selectedLayoutIdOrOrientation as MandalaGridOrientation,
-              customLayouts[0]?.pattern,
-          );
+            ? getMandalaLayoutById(selectedLayoutIdOrOrientation, customLayouts)
+            : getMandalaLayout(
+                  selectedLayoutIdOrOrientation as MandalaGridOrientation,
+                  customLayouts[0]?.pattern,
+              );
     const blockRow = Math.floor(row / 3);
     const blockCol = Math.floor(col / 3);
     const localRow = row % 3;

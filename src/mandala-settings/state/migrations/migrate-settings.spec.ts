@@ -20,6 +20,16 @@ type SettingsWithLegacySidebar = Settings & {
 };
 
 describe('migrateSettings', () => {
+    test('preserves the clockwise builtin layout on reload', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.mandalaGridOrientation = 'clockwise';
+        settings.view.mandalaGridSelectedLayoutId = 'builtin:clockwise';
+        migrateSettings(settings);
+        expect(settings.view.mandalaGridOrientation).toBe('clockwise');
+        expect(settings.view.mandalaGridSelectedLayoutId).toBe(
+            'builtin:clockwise',
+        );
+    });
     test('migrates legacy showMandalaDetailSidebar into desktop/mobile fields', () => {
         const settings = DEFAULT_SETTINGS() as SettingsWithLegacySidebar;
         settings.view.showMandalaDetailSidebar = true;
