@@ -140,3 +140,21 @@ export const getReadableTextTone = (
     const whiteContrast = contrast(bgLuminance, 1);
     return blackContrast >= whiteContrast ? 'dark' : 'light';
 };
+
+// Flatten translucent fills once so badges do not blend again with colored cards.
+export const resolveOpaqueFillColor = (
+    color: string,
+    theme: ThemeTone,
+    underlayColor?: string,
+): string => {
+    const foreground = parseToRgba(color);
+    if (!foreground) return color;
+    const fallback =
+        theme === 'dark' ? DARK_THEME_BACKGROUND : LIGHT_THEME_BACKGROUND;
+    const underlay = underlayColor ? parseToRgba(underlayColor) : null;
+    const background = underlay
+        ? blendWithBackground(underlay, fallback)
+        : fallback;
+    const mixed = blendWithBackground(foreground, background);
+    return `rgba(${Math.round(mixed.r)}, ${Math.round(mixed.g)}, ${Math.round(mixed.b)}, 1)`;
+};

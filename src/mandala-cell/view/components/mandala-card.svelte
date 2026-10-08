@@ -81,6 +81,10 @@
         viewModel,
         uiState,
         colorIndicatorOpacity: $colorIndicatorOpacity,
+        colorIndicatorUnderlayColor: window
+            .getComputedStyle(activeDocument.body)
+            .getPropertyValue('--background-primary')
+            .trim(),
         fallbackSection: $idToSection?.[nodeId],
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,

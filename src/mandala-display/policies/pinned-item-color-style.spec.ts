@@ -13,7 +13,7 @@ describe('resolvePinnedItemColorStyle', () => {
             themeUnderlayColor: '#ffffff',
         });
 
-        expect(style).toContain('--pinned-item-bg: rgba(103, 127, 239, 0.65);');
+        expect(style).toContain('--pinned-item-bg: rgba(156, 172, 245, 1);');
         expect(style).toContain('--text-normal: #0f131a;');
     });
     it.each(['none', 'gray'])(
@@ -27,7 +27,7 @@ describe('resolvePinnedItemColorStyle', () => {
                 themeUnderlayColor: '#ffffff',
             });
             expect(style).toContain(
-                '--pinned-item-bg: rgba(50, 50, 50, 0.25);',
+                '--pinned-item-bg: rgba(204, 204, 204, 1);',
             );
             expect(style).toContain('--text-normal: #0f131a;');
         },

@@ -1,5 +1,6 @@
 import {
     getReadableTextTone,
+    resolveOpaqueFillColor,
     type TextTone,
     type ThemeTone,
 } from 'src/mandala-display/contrast/readable-text-tone';
@@ -36,6 +37,7 @@ export const resolveCellSectionColorVisual = ({
     themeTone,
     themeUnderlayColor,
     colorIndicatorOpacity = 100,
+    colorIndicatorUnderlayColor,
 }: {
     section: string;
     colorContext: CellSectionColorContext | null;
@@ -44,6 +46,7 @@ export const resolveCellSectionColorVisual = ({
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
     colorIndicatorOpacity?: number;
+    colorIndicatorUnderlayColor?: string;
 }): CellSectionColorVisual => {
     const backgroundColor = resolveSectionSurfaceBackgroundColor({
         section,
@@ -56,7 +59,11 @@ export const resolveCellSectionColorVisual = ({
           })
         : null;
     const indicatorColor = accentColor
-        ? applyOpacityToHex(accentColor, colorIndicatorOpacity / 100)
+        ? resolveOpaqueFillColor(
+              applyOpacityToHex(accentColor, colorIndicatorOpacity / 100),
+              themeTone,
+              colorIndicatorUnderlayColor ?? themeUnderlayColor,
+          )
         : null;
     const policy = resolveSectionColorPolicy({
         indicatorVariant,

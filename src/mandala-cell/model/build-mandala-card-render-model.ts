@@ -23,6 +23,7 @@ type BuildMandalaCardRenderModelOptions = {
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
     colorIndicatorOpacity?: number;
+    colorIndicatorUnderlayColor?: string;
 };
 
 export const buildMandalaCardRenderModel = ({
@@ -36,6 +37,7 @@ export const buildMandalaCardRenderModel = ({
     themeTone,
     themeUnderlayColor,
     colorIndicatorOpacity = 100,
+    colorIndicatorUnderlayColor,
 }: BuildMandalaCardRenderModelOptions): MandalaCardRenderModel => {
     const {
         nodeId,
@@ -52,6 +54,7 @@ export const buildMandalaCardRenderModel = ({
         colorContext: sectionColorContext,
         indicatorVariant: displayPolicy.sectionIndicatorVariant,
         colorIndicatorOpacity,
+        colorIndicatorUnderlayColor,
         pinned,
         themeTone,
         themeUnderlayColor,

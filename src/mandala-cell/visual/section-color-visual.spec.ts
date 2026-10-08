@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { resolvePinnedItemColorStyle } from 'src/mandala-display/policies/pinned-item-color-style';
+import { resolveOpaqueFillColor } from 'src/mandala-display/contrast/readable-text-tone';
 import { resolveCellSectionColorVisual } from 'src/mandala-cell/visual/section-color-visual';
 
 describe('section-color-visual', () => {
@@ -102,10 +104,45 @@ describe('section-color-visual', () => {
                 themeTone: 'light',
                 themeUnderlayColor: '#ffffff',
             });
-            expect(visual.metaBackgroundColor).toBe('rgba(50, 50, 50, 0.25)');
+            expect(visual.metaBackgroundColor).toBe('rgba(204, 204, 204, 1)');
             expect(visual.metaTextTone).toBe('dark');
             expect(visual.backgroundColor).toBe(
                 backgroundMode === 'custom' ? 'rgba(50, 50, 50, 0.75)' : null,
+            );
+        },
+    );
+    it.each(['#ffffff', '#232938'])(
+        'matches the cell background and sidebar at 70 percent over %s',
+        (underlay) => {
+            const visual = resolveCellSectionColorVisual({
+                section: '1.1',
+                colorContext: {
+                    backgroundMode: 'custom',
+                    sectionColorsBySection: { '1.1': '#76BE77' },
+                    sectionColorOpacity: 70,
+                },
+                colorIndicatorOpacity: 70,
+                colorIndicatorUnderlayColor: underlay,
+                indicatorVariant: 'plain-with-pin',
+                pinned: false,
+                themeTone: 'light',
+            });
+            expect(visual.metaBackgroundColor).toBe(
+                resolveOpaqueFillColor(
+                    visual.backgroundColor!,
+                    'light',
+                    underlay,
+                ),
+            );
+            const sidebarStyle = resolvePinnedItemColorStyle({
+                section: '1.1',
+                sectionColorsBySection: { '1.1': '#76BE77' },
+                colorIndicatorOpacity: 70,
+                themeTone: 'light',
+                themeUnderlayColor: underlay,
+            });
+            expect(sidebarStyle).toContain(
+                `--pinned-item-bg: ${visual.metaBackgroundColor};`,
             );
         },
     );
