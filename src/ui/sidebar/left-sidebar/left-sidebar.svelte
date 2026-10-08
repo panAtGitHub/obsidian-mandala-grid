@@ -128,6 +128,11 @@
         border-right: 1px solid var(--background-modifier-border);
     }
 
+    :global(.mandala-white-theme) .sidebar.is-desktop.is-open {
+        border: 1px solid var(--background-modifier-border);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
     .width-transition {
         transition: width 0.3s ease;
     }
