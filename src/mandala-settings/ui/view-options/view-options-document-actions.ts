@@ -114,7 +114,11 @@ export const createViewOptionsDocumentActions = ({
         },
 
         insertBuiltinTemplate() {
-            return insertBuiltinTemplateAction(view, closeMenu);
+            return insertBuiltinTemplateAction(
+                view,
+                resolveTemplatesFilePath(),
+                closeMenu,
+            );
         },
 
         openHotkeysModal() {

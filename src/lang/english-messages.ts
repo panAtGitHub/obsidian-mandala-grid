@@ -349,6 +349,16 @@ export const englishMessages = {
     九宫格方位布局: 'Grid orientation',
     九宫格模板: 'Grid templates',
     插入内置模板: 'Insert built-in template',
+    '模板文件不存在，请指定或新建九宫格模板文件。':
+        'The template file is missing. Select or create a grid template file.',
+    '尚未指定九宫格模板文件，请先指定或新建模板文件。':
+        'No grid template file is configured. Select or create a template file first.',
+    指定或新建模板文件: 'Select or create a template file',
+    '指定模板文件失败。': 'Failed to configure the template file.',
+    '内置模板已插入模板文件。':
+        'The built-in template was added to the template file.',
+    '模板文件中已存在同名内置模板。':
+        'A template with the same built-in name already exists in the template file.',
     保存与应用周边八格: 'Save and apply the eight outer cells',
     指定模板文件: 'Choose template file',
     未指定: 'Not selected',

@@ -248,22 +248,78 @@ export const applyTemplateToCurrentThemeAction = async (
 
 export const insertBuiltinTemplateAction = async (
     view: MandalaView,
+    templatesFilePath: string | null,
     closeMenu: () => void,
 ) => {
-    if (!ensureMandala3x3(view)) return;
-    await applyTemplateToCurrentTheme(
-        view,
-        BUILTIN_MANDALA_TEMPLATE,
-        closeMenu,
-        true,
+    const file = getTemplatesFileFromPath(view, templatesFilePath);
+    if (!file) {
+        const message = activeDocument.createDocumentFragment();
+        message.append(
+            tx(
+                templatesFilePath
+                    ? '模板文件不存在，请指定或新建九宫格模板文件。'
+                    : '尚未指定九宫格模板文件，请先指定或新建模板文件。',
+            ),
+        );
+        const button = activeDocument.createElement('button');
+        button.type = 'button';
+        button.textContent = tx('指定或新建模板文件');
+        message.append(' ', button);
+        const notice = new Notice(message, 0);
+        button.addEventListener(
+            'click',
+            () => {
+                notice.hide();
+                void ensureTemplatesFile(view, null)
+                    .then((selectedFile) => {
+                        if (!selectedFile) return;
+                        return insertBuiltinTemplateAction(
+                            view,
+                            selectedFile.path,
+                            closeMenu,
+                        );
+                    })
+                    .catch(() => {
+                        new Notice(tx('指定模板文件失败。'));
+                    });
+            },
+            { once: true },
+        );
+        return;
+    }
+
+    let inserted = false;
+    try {
+        await view.plugin.app.vault.process(file, (raw) => {
+            if (
+                parseMandalaTemplates(raw).some(
+                    (template) =>
+                        template.name === BUILTIN_MANDALA_TEMPLATE.name,
+                )
+            ) {
+                return raw;
+            }
+            inserted = true;
+            return appendMandalaTemplate(raw, BUILTIN_MANDALA_TEMPLATE);
+        });
+    } catch {
+        new Notice(tx('写入模板文件失败。'));
+        return;
+    }
+    new Notice(
+        tx(
+            inserted
+                ? '内置模板已插入模板文件。'
+                : '模板文件中已存在同名内置模板。',
+        ),
     );
+    closeMenu();
 };
 
 const applyTemplateToCurrentTheme = async (
     view: MandalaView,
     selected: MandalaTemplate,
     closeMenu: () => void,
-    preserveContent = false,
 ) => {
     const normalizedSlots = Array.from({ length: 8 }, (_, index) =>
         normalizeSlotTitle(selected.slots[index] ?? ''),
@@ -301,12 +357,7 @@ const applyTemplateToCurrentTheme = async (
             type: 'document/update-node-content',
             payload: {
                 nodeId,
-                content: preserveContent
-                    ? upsertSlotHeading(
-                          refreshed.document.content[nodeId]?.content ?? '',
-                          selected.slots[i - 1] ?? '',
-                      )
-                    : selected.slots[i - 1] ?? '',
+                content: selected.slots[i - 1] ?? '',
             },
             context: { isInSidebar: false },
         });
