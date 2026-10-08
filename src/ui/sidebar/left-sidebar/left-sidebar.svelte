@@ -124,6 +124,7 @@
     }
 
     .sidebar.is-desktop.is-open {
+        margin-left: 12px;
         border-right: 1px solid var(--background-modifier-border);
     }
 
