@@ -1,4 +1,7 @@
 import {
+    readDayPlanConfiguration,
+    writeDayPlanConfiguration,
+    isValidDayPlanDateTemplate,
     addDaysIsoDate,
     allSlotsFilled,
     buildCenterDateHeading,
@@ -75,7 +78,9 @@ describe('day-plan helpers', () => {
     });
 
     it('extracts date from H2 heading only', () => {
-        expect(extractDateFromCenterHeading('## 2026-02-10')).toBe('2026-02-10');
+        expect(extractDateFromCenterHeading('## 2026-02-10')).toBe(
+            '2026-02-10',
+        );
         expect(extractDateFromCenterHeading('## 2026-02-10 二')).toBe(
             '2026-02-10',
         );
@@ -182,25 +187,27 @@ describe('day-plan helpers', () => {
 
     it('normalizes slot titles and checks filled state', () => {
         expect(normalizeSlotTitle('### 19-21')).toBe('19-21');
-        expect(
-            allSlotsFilled(['1', '2', '3', '4', '5', '6', '7', '8']),
-        ).toBe(true);
-        expect(
-            allSlotsFilled(['1', '2', '3', '4', '5', '6', '7', '']),
-        ).toBe(false);
+        expect(allSlotsFilled(['1', '2', '3', '4', '5', '6', '7', '8'])).toBe(
+            true,
+        );
+        expect(allSlotsFilled(['1', '2', '3', '4', '5', '6', '7', ''])).toBe(
+            false,
+        );
     });
 
     it('converts slot array to record', () => {
-        expect(toSlotsRecord(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'])).toEqual({
-            '1': 'a',
-            '2': 'b',
-            '3': 'c',
-            '4': 'd',
-            '5': 'e',
-            '6': 'f',
-            '7': 'g',
-            '8': 'h',
-        });
+        expect(toSlotsRecord(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'])).toEqual(
+            {
+                '1': 'a',
+                '2': 'b',
+                '3': 'c',
+                '4': 'd',
+                '5': 'e',
+                '6': 'f',
+                '7': 'g',
+                '8': 'h',
+            },
+        );
     });
 
     it('parses day-plan frontmatter without requiring daily_only_3x3', () => {
@@ -335,7 +342,10 @@ describe('day-plan helpers', () => {
     });
 
     it('builds hot core sections from week window', () => {
-        const sections = getHotCoreSections(2026, new Date('2026-02-10T08:00:00'));
+        const sections = getHotCoreSections(
+            2026,
+            new Date('2026-02-10T08:00:00'),
+        );
         expect(sections.has('41')).toBe(true);
         expect(sections.has('43')).toBe(true);
         expect(sections.has('45')).toBe(true);
@@ -379,5 +389,75 @@ describe('day-plan helpers', () => {
         const crossYearRows = mapWeekPlanRows(2026, '2026-12-31', 'monday');
         expect(crossYearRows[5]?.inPlanYear).toBe(false);
         expect(sectionAtCellWeek7x9(5, 0, crossYearRows)).toBeNull();
+    });
+});
+
+describe('day-plan configuration normalization', () => {
+    it('selects the new block without mixing legacy fields or nested enabled values', () => {
+        const parsed = readDayPlanConfiguration(`mandala: true
+mandala_plan:
+  enabled: true
+  year: 2025
+mandala_day_plan:
+  enabled: false
+  year: 2026
+  week_view:
+    enabled: true
+  slots:
+    "1": 'Health: rest # daily'
+`);
+        expect(parsed.config?.enabled).toBe(false);
+        expect(parsed.config?.year).toBe(2026);
+        expect(parsed.config?.slots['1']).toBe('Health: rest # daily');
+        expect(
+            parseDayPlanFrontmatter(
+                'mandala: true\nmandala_day_plan:\n  enabled: false\n  year: 2026',
+            ),
+        ).toBeNull();
+    });
+    it('does not fall back when the new block is invalid', () => {
+        const parsed = readDayPlanConfiguration(
+            'mandala: true\nmandala_day_plan: { enabled: true, year: invalid }\nmandala_plan: { enabled: true, year: 2026 }',
+        );
+        expect(parsed.config).toBeNull();
+        expect(parsed.error).toBeTruthy();
+        expect(parsed.legacy).toBe(false);
+    });
+    it('migrates managed fields while preserving unrelated user properties', () => {
+        const root = {
+            id: 'my-id',
+            mandala_plan: { year: 2026 },
+            mandala_settings: {
+                view: { enableNx9View: true },
+                general: { dayPlanEnabled: true },
+            },
+        };
+        writeDayPlanConfiguration(root, {
+            enabled: false,
+            year: 2026,
+            slots: { '1': '### Health' },
+            week_view: { enabled: false, compact: true, start: 'sunday' },
+            date_heading: { format: 'zh-short', template: 'unused' },
+        });
+        expect(root).toMatchObject({
+            id: 'my-id',
+            mandala_day_plan: {
+                enabled: false,
+                slots: { '1': 'Health' },
+                date_heading: { format: 'zh-short' },
+            },
+            mandala_settings: { view: { enableNx9View: true } },
+        });
+        expect(root).not.toHaveProperty('mandala_plan');
+        expect(root.mandala_settings).not.toHaveProperty('general');
+        expect(root).not.toHaveProperty(
+            'mandala_day_plan.date_heading.template',
+        );
+    });
+    it('requires custom headings that can round trip through date navigation', () => {
+        expect(isValidDayPlanDateTemplate('## {date} {cn}')).toBe(true);
+        expect(isValidDayPlanDateTemplate('{date} {zh}')).toBe(true);
+        expect(isValidDayPlanDateTemplate('## {cn} {date}')).toBe(false);
+        expect(isValidDayPlanDateTemplate('## {date}\nbody')).toBe(false);
     });
 });

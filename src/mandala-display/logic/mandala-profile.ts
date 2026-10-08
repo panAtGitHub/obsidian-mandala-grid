@@ -2,6 +2,7 @@ import {
     DayPlanFrontmatter,
     getHotCoreSections,
     parseDayPlanFrontmatterWithMandala,
+    readDayPlanConfiguration,
     sectionFromDateInPlanYear,
 } from 'src/mandala-display/logic/day-plan';
 import type {
@@ -77,7 +78,7 @@ export const resolveMandalaProfileActivation = (
             kind: 'generic',
             targetSection: null,
             hotCoreSections: new Set(),
-            notice: null,
+            notice: readDayPlanConfiguration(frontmatter).error,
             dayPlan: null,
         };
     }
@@ -88,7 +89,7 @@ export const resolveMandalaProfileActivation = (
             kind: 'day-plan',
             targetSection: '1',
             hotCoreSections: new Set(['1']),
-            notice: '年份错误。',
+            notice: '今天不在该计划年份内。',
             dayPlan,
         };
     }

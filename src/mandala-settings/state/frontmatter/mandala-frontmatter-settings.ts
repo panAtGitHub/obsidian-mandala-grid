@@ -1,5 +1,9 @@
 import { parseYaml } from 'obsidian';
-import { resolveLegacyDayPlanSubgridMaxDepthOverride } from 'src/mandala-display/logic/day-plan';
+import {
+    type DayPlanFrontmatter,
+    readDayPlanConfiguration,
+    resolveLegacyDayPlanSubgridMaxDepthOverride,
+} from 'src/mandala-display/logic/day-plan';
 import type {
     DayPlanDateHeadingFormat,
     SectionRangeLimit,
@@ -53,24 +57,12 @@ export const buildNewFileMandalaFrontmatterSettings = (
         coreSectionMax: settings.view.coreSectionMax,
         subgridMaxDepth: options.dayPlan ? 2 : settings.view.subgridMaxDepth,
     },
-    ...(options.dayPlan
-        ? {
-              general: {
-                  dayPlanEnabled: settings.general.dayPlanEnabled,
-                  weekPlanEnabled: settings.general.weekPlanEnabled,
-                  weekPlanCompactMode: settings.general.weekPlanCompactMode,
-                  weekStart: settings.general.weekStart,
-                  dayPlanDateHeadingFormat:
-                      settings.general.dayPlanDateHeadingFormat,
-                  dayPlanDateHeadingCustomTemplate:
-                      settings.general.dayPlanDateHeadingCustomTemplate,
-              },
-          }
-        : {}),
 });
 
 const toRecord = (input: unknown): Record<string, unknown> | null =>
-    input && typeof input === 'object' ? (input as Record<string, unknown>) : null;
+    input && typeof input === 'object'
+        ? (input as Record<string, unknown>)
+        : null;
 
 const isWeekStart = (value: unknown): value is WeekStart =>
     value === 'monday' || value === 'sunday';
@@ -167,9 +159,30 @@ export const resolveEffectiveMandalaSettings = (
     frontmatter: string,
 ): EffectiveMandalaSettings => {
     const overrides = parseMandalaFrontmatterSettings(frontmatter);
+    const dayPlan = readDayPlanConfiguration(frontmatter);
+    if (dayPlan.present && !dayPlan.legacy) {
+        overrides.general = {
+            dayPlanEnabled:
+                dayPlan.mandalaEnabled && dayPlan.config?.enabled === true,
+            weekPlanEnabled: dayPlan.config?.week_view?.enabled ?? true,
+            weekPlanCompactMode: dayPlan.config?.week_view?.compact ?? true,
+            weekStart: dayPlan.config?.week_view?.start ?? 'monday',
+            dayPlanDateHeadingFormat:
+                dayPlan.config?.date_heading?.format ?? 'zh-short',
+            dayPlanDateHeadingCustomTemplate:
+                dayPlan.config?.date_heading?.template ?? '## {date} {cn}',
+        };
+    } else if (dayPlan.config) {
+        overrides.general = {
+            ...overrides.general,
+            dayPlanEnabled: dayPlan.mandalaEnabled && dayPlan.config.enabled,
+        };
+    }
     const legacyDayPlanSubgridMaxDepth =
         resolveLegacyDayPlanSubgridMaxDepthOverride(frontmatter);
-    const hasViewOverride = <K extends keyof NonNullable<MandalaFrontmatterSettings['view']>>(
+    const hasViewOverride = <
+        K extends keyof NonNullable<MandalaFrontmatterSettings['view']>,
+    >(
         key: K,
     ) => !!overrides.view && key in overrides.view;
     return {
@@ -179,22 +192,24 @@ export const resolveEffectiveMandalaSettings = (
             enableNx9View:
                 overrides.view?.enableNx9View ?? settings.view.enableNx9View,
             coreSectionMax: hasViewOverride('coreSectionMax')
-                ? (overrides.view?.coreSectionMax ?? 'unlimited')
+                ? overrides.view?.coreSectionMax ?? 'unlimited'
                 : settings.view.coreSectionMax,
             subgridMaxDepth: hasViewOverride('subgridMaxDepth')
-                ? (overrides.view?.subgridMaxDepth ?? 'unlimited')
-                : (legacyDayPlanSubgridMaxDepth ?? settings.view.subgridMaxDepth),
+                ? overrides.view?.subgridMaxDepth ?? 'unlimited'
+                : legacyDayPlanSubgridMaxDepth ?? settings.view.subgridMaxDepth,
         },
         general: {
             dayPlanEnabled:
-                overrides.general?.dayPlanEnabled ?? settings.general.dayPlanEnabled,
+                overrides.general?.dayPlanEnabled ??
+                settings.general.dayPlanEnabled,
             weekPlanEnabled:
                 overrides.general?.weekPlanEnabled ??
                 settings.general.weekPlanEnabled,
             weekPlanCompactMode:
                 overrides.general?.weekPlanCompactMode ??
                 settings.general.weekPlanCompactMode,
-            weekStart: overrides.general?.weekStart ?? settings.general.weekStart,
+            weekStart:
+                overrides.general?.weekStart ?? settings.general.weekStart,
             dayPlanDateHeadingFormat:
                 overrides.general?.dayPlanDateHeadingFormat ??
                 settings.general.dayPlanDateHeadingFormat,
@@ -204,3 +219,21 @@ export const resolveEffectiveMandalaSettings = (
         },
     };
 };
+
+export const withDayPlanDisplaySettings = (
+    config: DayPlanFrontmatter,
+    settings: EffectiveMandalaSettings['general'],
+): DayPlanFrontmatter => ({
+    ...config,
+    week_view: {
+        enabled: settings.weekPlanEnabled,
+        compact: settings.weekPlanCompactMode,
+        start: settings.weekStart,
+    },
+    date_heading: {
+        format: settings.dayPlanDateHeadingFormat,
+        ...(settings.dayPlanDateHeadingFormat === 'custom'
+            ? { template: settings.dayPlanDateHeadingCustomTemplate }
+            : {}),
+    },
+});

@@ -1,10 +1,12 @@
+import { parseYaml, stringifyYaml } from 'obsidian';
 import type {
     DayPlanDateHeadingFormat,
     SectionRangeLimit,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
 
-export const DAY_PLAN_FRONTMATTER_KEY = 'mandala_plan';
+export const DAY_PLAN_FRONTMATTER_KEY = 'mandala_day_plan';
+export const LEGACY_DAY_PLAN_FRONTMATTER_KEY = 'mandala_plan';
 export const DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE = '## {date} {cn}';
 
 export const DAY_PLAN_DEFAULT_SLOT_TITLES = [
@@ -19,8 +21,7 @@ export const DAY_PLAN_DEFAULT_SLOT_TITLES = [
 ] as const;
 
 export const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-export const DAY_PLAN_H2_DATE_PATTERN =
-    /^##\s+(\d{4}-\d{2}-\d{2})(?:\s+.*)?$/;
+export const DAY_PLAN_H2_DATE_PATTERN = /^##\s+(\d{4}-\d{2}-\d{2})(?:\s+.*)?$/;
 
 export type DayPlanDateHeadingSettings = {
     format: DayPlanDateHeadingFormat;
@@ -36,7 +37,8 @@ export const DEFAULT_DAY_PLAN_DATE_HEADING_SETTINGS: DayPlanDateHeadingSettings 
 export type DayPlanFrontmatter = {
     enabled: boolean;
     year: number;
-    center_date_h2?: string;
+    week_view?: { enabled?: boolean; compact?: boolean; start?: WeekStart };
+    date_heading?: { format?: DayPlanDateHeadingFormat; template?: string };
     slots: Record<string, string>;
 };
 
@@ -45,37 +47,20 @@ export type DayPlanFrontmatterParseResult = {
     dayPlan: DayPlanFrontmatter | null;
 };
 
-type ParsedDayPlanFrontmatterFields = {
-    mandalaEnabled: boolean;
-    enabled: boolean;
-    year: number | null;
-    legacyDailyOnly3x3: boolean;
-    centerDateH2?: string;
-    slots: Record<string, unknown>;
-};
-
 let cachedDayPlanFrontmatter = '';
 let cachedDayPlanFrontmatterResult: DayPlanFrontmatterParseResult | null = null;
 
-const normalizeLineEndings = (content: string) => content.replace(/\r\n/g, '\n');
+const normalizeLineEndings = (content: string) =>
+    content.replace(/\r\n/g, '\n');
 
-const splitLines = (content: string) => normalizeLineEndings(content).split('\n');
+const splitLines = (content: string) =>
+    normalizeLineEndings(content).split('\n');
 
 const stripFrontmatterMarkers = (frontmatter: string) =>
-    frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, '').trim();
-
-const leadingSpaces = (line: string) => line.match(/^ */)?.[0].length ?? 0;
-
-const stripQuotes = (value: string) => {
-    const trimmed = value.trim();
-    if (
-        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-        (trimmed.startsWith("'") && trimmed.endsWith("'"))
-    ) {
-        return trimmed.slice(1, -1);
-    }
-    return trimmed;
-};
+    frontmatter
+        .replace(/^---\n/, '')
+        .replace(/\n---\n?$/, '')
+        .trim();
 
 const firstNonEmptyLineIndex = (lines: string[]) =>
     lines.findIndex((line) => line.trim().length > 0);
@@ -106,11 +91,7 @@ export const isLeapYear = (year: number) =>
 
 export const daysInYear = (year: number) => (isLeapYear(year) ? 366 : 365);
 
-export const dayOfYearFromDate = (
-    year: number,
-    month: number,
-    day: number,
-) => {
+export const dayOfYearFromDate = (year: number, month: number, day: number) => {
     const date = new Date(Date.UTC(year, month - 1, day));
     const start = new Date(Date.UTC(year, 0, 1));
     return Math.floor((date.getTime() - start.getTime()) / 86400000) + 1;
@@ -130,9 +111,7 @@ export const sectionFromDateInPlanYear = (
 ) => {
     const year = date.getFullYear();
     if (year !== planYear) return null;
-    return String(
-        dayOfYearFromDate(year, date.getMonth() + 1, date.getDate()),
-    );
+    return String(dayOfYearFromDate(year, date.getMonth() + 1, date.getDate()));
 };
 
 const normalizeCoreSection = (section: string) => section.split('.')[0];
@@ -322,10 +301,7 @@ export const sectionAtCellWeek7x9 = (
     return `${weekRow.coreSection}.${col}`;
 };
 
-export const posOfSectionWeek7x9 = (
-    section: string,
-    rows: WeekPlanRow[],
-) => {
+export const posOfSectionWeek7x9 = (section: string, rows: WeekPlanRow[]) => {
     const core = normalizeCoreSection(section);
     const row = rows.findIndex((value) => value.coreSection === core);
     if (row === -1) return null;
@@ -342,12 +318,17 @@ const buildCenterDateHeadingFromTemplate = (
     date: string,
     template: string,
 ): string => {
-    const normalizedTemplate = template.trim() || DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE;
+    const normalizedTemplate =
+        template.trim() || DAY_PLAN_DEFAULT_CUSTOM_TEMPLATE;
     let rendered = normalizedTemplate;
     rendered = replaceToken(rendered, '{date}', date);
     rendered = replaceToken(rendered, '{cn}', getChineseWeekdayLabel(date));
     rendered = replaceToken(rendered, '{zh}', getChineseFullWeekdayLabel(date));
-    rendered = replaceToken(rendered, '{en}', getEnglishShortWeekdayLabel(date));
+    rendered = replaceToken(
+        rendered,
+        '{en}',
+        getEnglishShortWeekdayLabel(date),
+    );
     rendered = replaceToken(
         rendered,
         '{en_full}',
@@ -360,7 +341,10 @@ const buildCenterDateHeadingFromTemplate = (
     );
     rendered = rendered.trim();
 
-    const safeRendered = rendered.length > 0 ? rendered : `## ${date} ${getChineseWeekdayLabel(date)}`;
+    const safeRendered =
+        rendered.length > 0
+            ? rendered
+            : `## ${date} ${getChineseWeekdayLabel(date)}`;
     const withHeadingPrefix = safeRendered.startsWith('## ')
         ? safeRendered
         : `## ${safeRendered}`;
@@ -465,7 +449,9 @@ export const toSlotsRecord = (slots: string[]) => {
     return record;
 };
 
-export const slotsRecordToArray = (slots: Record<string, unknown> | null | undefined) => {
+export const slotsRecordToArray = (
+    slots: Record<string, unknown> | null | undefined,
+) => {
     const values: string[] = [];
     for (let i = 1; i <= 8; i += 1) {
         const raw = slots?.[String(i)];
@@ -475,129 +461,182 @@ export const slotsRecordToArray = (slots: Record<string, unknown> | null | undef
 };
 
 export const allSlotsFilled = (slots: string[]) =>
-    slots.length === 8 && slots.every((slot) => normalizeSlotTitle(slot).length > 0);
+    slots.length === 8 &&
+    slots.every((slot) => normalizeSlotTitle(slot).length > 0);
 
-const parseDayPlanFrontmatterFields = (
-    frontmatter: string,
-): ParsedDayPlanFrontmatterFields => {
-    const stripped = stripFrontmatterMarkers(frontmatter);
-    if (!stripped) {
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+    value && typeof value === 'object' && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : null;
+
+const readDayPlanConfigurationUncached = (frontmatter: string) => {
+    let root: Record<string, unknown> | null;
+    try {
+        root = asRecord(parseYaml(stripFrontmatterMarkers(frontmatter)));
+    } catch {
         return {
             mandalaEnabled: false,
-            enabled: false,
-            year: null,
-            legacyDailyOnly3x3: true,
-            slots: {},
+            present: true,
+            legacy: false,
+            config: null,
+            error: 'YAML 格式无效。',
         };
     }
-    const mandalaMatch = stripped.match(/^mandala\s*:\s*(.*)$/m);
-    const mandalaEnabled = mandalaMatch
-        ? stripQuotes(mandalaMatch[1]).toLowerCase() === 'true'
-        : false;
-
-    const lines = stripped.split('\n');
-    let inPlan = false;
-    let inSlots = false;
-    let enabled = false;
-    let year: number | null = null;
-    let dailyOnly3x3 = true;
-    let centerDateH2: string | undefined;
-    const slots: Record<string, unknown> = {};
-
-    for (const rawLine of lines) {
-        const line = rawLine.replace(/\t/g, '    ');
-        const indent = leadingSpaces(line);
-        const trimmed = line.trim();
-
-        if (!inPlan) {
-            if (trimmed === `${DAY_PLAN_FRONTMATTER_KEY}:`) {
-                inPlan = true;
-            }
-            continue;
-        }
-
-        if (indent === 0 && trimmed.length > 0) {
-            break;
-        }
-
-        if (/^enabled\s*:\s*true\s*$/i.test(trimmed)) {
-            enabled = true;
-            continue;
-        }
-
-        const yearMatch = trimmed.match(/^year\s*:\s*(.*)$/);
-        if (yearMatch) {
-            const parsedYear = Number(stripQuotes(yearMatch[1]));
-            year = Number.isInteger(parsedYear) ? parsedYear : null;
-            continue;
-        }
-
-        const centerDateMatch = trimmed.match(/^center_date_h2\s*:\s*(.*)$/);
-        if (centerDateMatch) {
-            centerDateH2 = stripQuotes(centerDateMatch[1]);
-            continue;
-        }
-
-        const dailyOnlyMatch = trimmed.match(/^daily_only_3x3\s*:\s*(.*)$/);
-        if (dailyOnlyMatch) {
-            const value = stripQuotes(dailyOnlyMatch[1]).toLowerCase();
-            dailyOnly3x3 = value === 'true';
-            continue;
-        }
-
-        if (!inSlots && /^slots\s*:\s*$/.test(trimmed)) {
-            inSlots = true;
-            continue;
-        }
-
-        if (inSlots) {
-            if (indent < 4 && trimmed.length > 0) {
-                inSlots = false;
-            }
-            const slotMatch = trimmed.match(/^"?([1-8])"?\s*:\s*(.*)$/);
-            if (slotMatch) {
-                slots[slotMatch[1]] = stripQuotes(slotMatch[2]);
-            }
-        }
-    }
-
-    return {
-        mandalaEnabled,
-        enabled,
-        year,
-        legacyDailyOnly3x3: dailyOnly3x3,
-        centerDateH2,
-        slots,
+    const legacy = !!root && !(DAY_PLAN_FRONTMATTER_KEY in root);
+    const key = legacy
+        ? LEGACY_DAY_PLAN_FRONTMATTER_KEY
+        : DAY_PLAN_FRONTMATTER_KEY;
+    const present = !!root && key in root;
+    const raw = asRecord(root?.[key]);
+    const base = { mandalaEnabled: root?.mandala === true, present, legacy };
+    if (!present) return { ...base, config: null, error: null };
+    if (
+        !raw ||
+        typeof raw.enabled !== 'boolean' ||
+        !Number.isInteger(legacy ? Number(raw.year) : raw.year) ||
+        Number(raw.year) < 1900 ||
+        Number(raw.year) > 9999
+    )
+        return {
+            ...base,
+            config: null,
+            error: '日计划 enabled 或 year 配置无效。',
+        };
+    const week = asRecord(raw.week_view);
+    const heading = asRecord(raw.date_heading);
+    const formats = ['date-only', 'zh-full', 'zh-short', 'en-short', 'custom'];
+    if (
+        !legacy &&
+        ((raw.week_view !== undefined && !week) ||
+            (raw.date_heading !== undefined && !heading) ||
+            (week?.enabled !== undefined &&
+                typeof week.enabled !== 'boolean') ||
+            (week?.compact !== undefined &&
+                typeof week.compact !== 'boolean') ||
+            (week?.start !== undefined &&
+                week.start !== 'monday' &&
+                week.start !== 'sunday') ||
+            (heading?.format !== undefined &&
+                (typeof heading.format !== 'string' ||
+                    !formats.includes(heading.format))) ||
+            (heading?.template !== undefined &&
+                typeof heading.template !== 'string') ||
+            (heading?.format === 'custom' &&
+                (typeof heading.template !== 'string' ||
+                    !isValidDayPlanDateTemplate(heading.template))))
+    )
+        return {
+            ...base,
+            config: null,
+            error: '日计划周视图或日期标题配置无效。',
+        };
+    const slots = asRecord(raw.slots);
+    if (
+        raw.slots !== undefined &&
+        (!slots ||
+            Object.values(slots).some((value) => typeof value !== 'string'))
+    )
+        return { ...base, config: null, error: '日计划八格标题必须是文字。' };
+    const config: DayPlanFrontmatter = {
+        enabled: raw.enabled,
+        year: Number(raw.year),
+        slots: toSlotsRecord(slotsRecordToArray(slots)),
+        ...(!legacy
+            ? {
+                  week_view: {
+                      ...(typeof week?.enabled === 'boolean'
+                          ? { enabled: week.enabled }
+                          : {}),
+                      ...(typeof week?.compact === 'boolean'
+                          ? { compact: week.compact }
+                          : {}),
+                      ...(week?.start === 'monday' || week?.start === 'sunday'
+                          ? { start: week.start }
+                          : {}),
+                  },
+                  date_heading: {
+                      ...(typeof heading?.format === 'string'
+                          ? {
+                                format: heading.format as DayPlanDateHeadingFormat,
+                            }
+                          : {}),
+                      ...(typeof heading?.template === 'string'
+                          ? { template: heading.template }
+                          : {}),
+                  },
+              }
+            : {}),
     };
+    return { ...base, config, error: null };
+};
+
+let cachedConfigurationFrontmatter: string | null = null;
+let cachedConfiguration: ReturnType<
+    typeof readDayPlanConfigurationUncached
+> | null = null;
+
+export const readDayPlanConfiguration = (frontmatter: string) => {
+    if (cachedConfiguration && cachedConfigurationFrontmatter === frontmatter)
+        return cachedConfiguration;
+    cachedConfigurationFrontmatter = frontmatter;
+    cachedConfiguration = readDayPlanConfigurationUncached(frontmatter);
+    return cachedConfiguration;
+};
+
+export const readDayPlanConfigurationFromRecord = (
+    root: Record<string, unknown>,
+) => readDayPlanConfiguration(stringifyYaml(root));
+
+export const isValidDayPlanDateTemplate = (template: string) =>
+    /^(?:##\s+)?\{date\}(?:\s|$)/.test(template.trim()) &&
+    !/[\r\n]/.test(template);
+
+export const writeDayPlanConfiguration = (
+    root: Record<string, unknown>,
+    config: DayPlanFrontmatter,
+) => {
+    root[DAY_PLAN_FRONTMATTER_KEY] = {
+        enabled: config.enabled,
+        year: config.year,
+        week_view: {
+            enabled: config.week_view?.enabled ?? true,
+            compact: config.week_view?.compact ?? true,
+            start: config.week_view?.start ?? 'monday',
+        },
+        date_heading:
+            config.date_heading?.format === 'custom'
+                ? config.date_heading
+                : { format: config.date_heading?.format ?? 'zh-short' },
+        slots: toSlotsRecord(slotsRecordToArray(config.slots)),
+    };
+    delete root[LEGACY_DAY_PLAN_FRONTMATTER_KEY];
+    const settings = asRecord(root.mandala_settings);
+    if (settings) delete settings.general;
 };
 
 export const resolveLegacyDayPlanSubgridMaxDepthOverride = (
     frontmatter: string,
 ): SectionRangeLimit | undefined => {
-    const parsed = parseDayPlanFrontmatterFields(frontmatter);
-    if (!parsed.mandalaEnabled || !parsed.enabled) return undefined;
-    if (!parsed.year || parsed.year < 1900 || parsed.year > 9999) return undefined;
-    return parsed.legacyDailyOnly3x3 ? 2 : undefined;
+    const parsed = readDayPlanConfiguration(frontmatter);
+    if (!parsed.legacy || !parsed.mandalaEnabled || !parsed.config?.enabled)
+        return undefined;
+    const root = asRecord(parseYaml(stripFrontmatterMarkers(frontmatter)));
+    return asRecord(root?.[LEGACY_DAY_PLAN_FRONTMATTER_KEY])?.daily_only_3x3 ===
+        false
+        ? undefined
+        : 2;
 };
 
 const parseDayPlanFrontmatterWithMandalaUncached = (
     frontmatter: string,
 ): DayPlanFrontmatterParseResult => {
-    const parsed = parseDayPlanFrontmatterFields(frontmatter);
-    if (!parsed.mandalaEnabled || !parsed.enabled) {
-        return { mandalaEnabled: parsed.mandalaEnabled, dayPlan: null };
-    }
-    if (!parsed.year || parsed.year < 1900 || parsed.year > 9999) {
-        return { mandalaEnabled: parsed.mandalaEnabled, dayPlan: null };
-    }
+    const parsed = readDayPlanConfiguration(frontmatter);
     return {
         mandalaEnabled: parsed.mandalaEnabled,
-        dayPlan: {
-            enabled: true,
-            year: parsed.year,
-            center_date_h2: parsed.centerDateH2,
-            slots: toSlotsRecord(slotsRecordToArray(parsed.slots)),
-        },
+        dayPlan:
+            parsed.mandalaEnabled && parsed.config?.enabled
+                ? parsed.config
+                : null,
     };
 };
 

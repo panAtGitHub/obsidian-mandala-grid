@@ -1,9 +1,8 @@
-import { Notice } from 'obsidian';
+import { Notice, type TFile } from 'obsidian';
 import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
 import MandalaGrid from 'src/main';
 import {
     buildCenterDateHeading,
-    DAY_PLAN_FRONTMATTER_KEY,
     extractDateFromCenterHeading,
     getDayPlanDateHeadingSettings,
     parseDayPlanFromMarkdown,
@@ -18,13 +17,6 @@ import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 
 const isCoreSection = (section: string) => /^\d+$/.test(section);
-const getTodayIsoDate = () => {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${now.getFullYear()}-${month}-${day}`;
-};
-
 export const refreshDayPlanDateHeadingsInMarkdown = (
     markdown: string,
     settings: ReturnType<typeof getDayPlanDateHeadingSettings>,
@@ -87,10 +79,10 @@ const replaceFirstNonEmptyLine = (content: string, nextHeading: string) => {
 
 export const refreshCurrentDayPlanDateHeadings = async (
     plugin: MandalaGrid,
-    options: { notify?: boolean } = {},
+    options: { notify?: boolean; file?: TFile } = {},
 ) => {
     const { notify = true } = options;
-    const file = getActiveFile(plugin);
+    const file = options.file ?? getActiveFile(plugin);
     if (!file) {
         if (notify) {
             new Notice('未找到当前文件。');
@@ -120,16 +112,6 @@ export const refreshCurrentDayPlanDateHeadings = async (
     if (refreshed.changed) {
         await plugin.app.vault.modify(file, refreshed.markdown);
     }
-
-    const todayHeading = buildCenterDateHeading(getTodayIsoDate(), settings);
-    await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        const record = frontmatter as Record<string, unknown>;
-        const raw = record[DAY_PLAN_FRONTMATTER_KEY];
-        if (!raw || typeof raw !== 'object') return;
-        const dayPlan = raw as Record<string, unknown>;
-        if (dayPlan.enabled !== true) return;
-        dayPlan.center_date_h2 = todayHeading;
-    });
 
     if (notify) {
         new Notice(

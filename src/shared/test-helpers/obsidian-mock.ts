@@ -1,3 +1,4 @@
+import { parse, stringify } from 'yaml';
 import { StateField } from '@codemirror/state';
 
 export class App {}
@@ -6,7 +7,8 @@ export class Plugin {
     registerEditorExtension(_extension: unknown) {}
 }
 export class Notice {
-    constructor(_message?: string) {}
+    constructor(_message?: string | DocumentFragment, _timeout?: number) {}
+    hide() {}
 }
 export class Menu {}
 export class Modal {}
@@ -123,8 +125,8 @@ export const addIcon = () => {};
 export const setIcon = (parent: HTMLElement, iconId: string) => {
     parent.dataset.icon = iconId;
 };
-export const parseYaml = (_input: string): unknown => ({});
-export const stringifyYaml = (_input: unknown): string => '';
+export const parseYaml = (input: string): unknown => parse(input);
+export const stringifyYaml = (input: unknown): string => stringify(input);
 export const parseLinktext = (linktext: string) => {
     const hashIndex = linktext.indexOf('#');
     if (hashIndex < 0) {

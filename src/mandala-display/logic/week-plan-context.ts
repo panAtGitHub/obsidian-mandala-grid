@@ -39,7 +39,7 @@ type WeekPlanContextCacheEntry = {
 let cachedWeekPlanContext: WeekPlanContextCacheEntry | null = null;
 
 export const getDefaultWeekAnchorDate = (today: Date = new Date()) =>
-    today.toISOString().slice(0, 10);
+    `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
 export const resolveWeekPlanContext = ({
     frontmatter,
@@ -52,7 +52,7 @@ export const resolveWeekPlanContext = ({
     weekStart: WeekStart;
     today?: Date;
 }): WeekPlanContext => {
-    const todayKey = !anchorDate && today ? today.toISOString().slice(0, 10) : null;
+    const todayKey = !anchorDate ? getDefaultWeekAnchorDate(today) : null;
     if (
         cachedWeekPlanContext &&
         cachedWeekPlanContext.frontmatter === frontmatter &&

@@ -1,13 +1,15 @@
 import { Notice } from 'obsidian';
 import MandalaGrid from 'src/main';
 import {
-    DAY_PLAN_FRONTMATTER_KEY,
+    readDayPlanConfigurationFromRecord,
+    writeDayPlanConfiguration,
     normalizeSlotTitle,
     parseDayPlanFrontmatter,
     slotsRecordToArray,
 } from 'src/mandala-display/logic/day-plan';
 import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-mandala-view';
 import type { MandalaView } from 'src/view/view';
+import { withDayPlanDisplaySettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 
@@ -104,8 +106,7 @@ export const getCurrentCoreDayPlanTemplateMismatch = (
 
     const hasDiff = snapshot.titles.some(
         (title, index) =>
-            title !==
-            normalizeSlotTitle(snapshot.templateSlots[index] ?? ''),
+            title !== normalizeSlotTitle(snapshot.templateSlots[index] ?? ''),
     );
     if (!hasDiff) return null;
 
@@ -133,11 +134,16 @@ export const writeCurrentCoreDayPlanSlotsToYamlForView = async (
     let updated = false;
     await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
         const frontmatterRecord = frontmatter as Record<string, unknown>;
-        const rawPlan = frontmatterRecord[DAY_PLAN_FRONTMATTER_KEY];
-        if (!rawPlan || typeof rawPlan !== 'object') return;
-        const planRecord = rawPlan as Record<string, unknown>;
-        if (planRecord.enabled !== true) return;
-        planRecord.slots = toSlotRecord(snapshot.titles);
+        const current =
+            readDayPlanConfigurationFromRecord(frontmatterRecord).config;
+        if (!current) return;
+        writeDayPlanConfiguration(
+            frontmatterRecord,
+            withDayPlanDisplaySettings(
+                { ...current, slots: toSlotRecord(snapshot.titles) },
+                view.getEffectiveMandalaSettings().general,
+            ),
+        );
         updated = true;
     });
 

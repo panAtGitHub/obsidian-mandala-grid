@@ -1,3 +1,6 @@
+import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
+import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import { parseYaml } from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
@@ -215,4 +218,59 @@ describe('builtin template insertion', () => {
         expect(fixture.read).toHaveBeenCalledOnce();
         expect(fixture.closeMenu).toHaveBeenCalledOnce();
     });
+});
+
+it('updates the daily template without rewriting or materializing historical cells', async () => {
+    const f = createFixture();
+    f.view.file = f.file;
+    f.state.file.frontmatter =
+        '---\nmandala: true\nmandala_plan:\n  enabled: true\n  year: 2026\n  slots:\n    "1": Old\n---\n';
+    const root: Record<string, unknown> = {
+        mandala: true,
+        id: 'user-id',
+        mandala_plan: { enabled: true, year: 2026, slots: { '1': 'Old' } },
+    };
+    f.view.plugin.app.fileManager = {
+        processFrontMatter: vi.fn(
+            async (
+                _file: TFile,
+                update: (record: Record<string, unknown>) => void,
+            ) => {
+                update(root);
+            },
+        ),
+    } as unknown as typeof f.view.plugin.app.fileManager;
+    f.view.getEffectiveMandalaSettings = () =>
+        resolveEffectiveMandalaSettings(
+            DEFAULT_SETTINGS(),
+            f.state.file.frontmatter,
+        );
+    vi.mocked(openMandalaTemplateSelectModal).mockResolvedValue({
+        name: 'New',
+        slots: ['## New title', '', '', '', '', '', '', ''],
+    });
+    await applyTemplateToCurrentThemeAction(
+        f.view,
+        'templates.md',
+        f.closeMenu,
+    );
+    expect(root).toMatchObject({
+        id: 'user-id',
+        mandala_day_plan: { slots: { '1': 'New title' } },
+    });
+    expect(root).not.toHaveProperty('mandala_plan');
+    expect(f.content('1.1')).toBe('### Old title\nKeep this body');
+    expect(f.state.sections.section_id['2.1']).toBeUndefined();
+    expect(
+        f.dispatch.mock.calls.every(
+            ([action]) => action.type === 'document/file/update-frontmatter',
+        ),
+    ).toBe(true);
+    expect(
+        parseYaml(
+            f.state.file.frontmatter
+                .replace(/^---\n/, '')
+                .replace(/\n---\n?$/, ''),
+        ),
+    ).toHaveProperty('mandala_day_plan');
 });

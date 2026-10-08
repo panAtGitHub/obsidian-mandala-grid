@@ -1,9 +1,14 @@
+import { onPluginError } from 'src/shared/store/on-plugin-error';
+import { Setting } from 'obsidian';
+import { applyDayPlanTemplateTitles } from 'src/obsidian/commands/helpers/apply-day-plan-template-titles';
+import { openDayPlanConfirmModal } from 'src/obsidian/modals/day-plan-setup-modal';
 import { tx } from 'src/lang/translate';
 import { Modal, Notice } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
 import {
     type EffectiveMandalaSettings,
     MANDALA_FRONTMATTER_SETTINGS_KEY,
+    withDayPlanDisplaySettings,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
@@ -13,7 +18,12 @@ import {
     getCurrentCoreDayPlanTemplateMismatch,
     writeCurrentCoreDayPlanSlotsToYamlForView,
 } from 'src/obsidian/commands/helpers/write-day-plan-slots-to-yaml';
-import { isDayPlanDedicatedFrontmatter } from 'src/mandala-display/logic/day-plan';
+import {
+    readDayPlanConfigurationFromRecord,
+    readDayPlanConfiguration,
+    writeDayPlanConfiguration,
+    isValidDayPlanDateTemplate,
+} from 'src/mandala-display/logic/day-plan';
 import { createSettingsFoldCard } from 'src/obsidian/settings/create-settings-fold-card';
 
 type LocalFileSettings = EffectiveMandalaSettings;
@@ -47,6 +57,7 @@ export const openCurrentFileMandalaSettingsModal = (view: MandalaView) => {
 
 class CurrentFileMandalaSettingsModal extends Modal {
     private state: LocalFileSettings;
+    private readonly targetFile: MandalaView['file'];
     private dismissedTemplateMismatchCore: string | null = null;
     private readonly groupOpenState = new Map<string, boolean>([
         ['global-view', true],
@@ -56,10 +67,19 @@ class CurrentFileMandalaSettingsModal extends Modal {
     constructor(private readonly view: MandalaView) {
         super(view.plugin.app);
         this.state = createInitialLocalState(view);
+        this.targetFile = view.file;
     }
 
     onOpen() {
-        this.setTitle(tx('当前文件九宫设置'));
+        this.setTitle(
+            tx(
+                readDayPlanConfiguration(
+                    this.view.documentStore.getValue().file.frontmatter,
+                ).present
+                    ? '当前文件日计划设置'
+                    : '当前文件九宫设置',
+            ),
+        );
         this.modalEl.addClass('mandala-file-settings-modal');
         this.contentEl.addClass('mandala-file-settings');
         this.render();
@@ -92,9 +112,10 @@ class CurrentFileMandalaSettingsModal extends Modal {
         const scrollContainer = this.getScrollContainer();
         const scrollTop = preserveScroll ? scrollContainer.scrollTop : 0;
         contentEl.empty();
-        const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
+        const dayPlan = readDayPlanConfiguration(
             this.view.documentStore.getValue().file.frontmatter,
         );
+        const isDayPlanDedicated = !!dayPlan.config;
         const templateMismatch = isDayPlanDedicated
             ? getCurrentCoreDayPlanTemplateMismatch(this.view)
             : null;
@@ -109,7 +130,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
             cls: 'mandala-file-settings__note',
             text: isDayPlanDedicated
                 ? tx(
-                      '仅影响当前 md 文件。视图设置保存到 YAML 的 mandala_settings；日计划模板会写回当前文件的 YAML。',
+                      '仅影响当前 md 文件。视图设置保存到 mandala_settings；日计划设置及每日模板保存到 mandala_day_plan。',
                   )
                 : tx('仅影响当前 md 文件，保存到 YAML 的 mandala_settings。'),
         });
@@ -117,9 +138,73 @@ class CurrentFileMandalaSettingsModal extends Modal {
         renderMandalaCoreSettings({
             parentEl: contentEl,
             state: this.state,
-            showTimePlanEnabledToggle: false,
+            showTimePlanEnabledToggle: isDayPlanDedicated,
+            showWeekViewOptions: isDayPlanDedicated,
             showTimePlanSection: isDayPlanDedicated,
             renderTimePlanFooter: (containerEl) => {
+                if (dayPlan.config) {
+                    containerEl.createDiv({
+                        cls: 'setting-item-description',
+                        text: Object.entries(dayPlan.config.slots)
+                            .map(([id, title]) => `${id}：${title}`)
+                            .join('；'),
+                    });
+                    new Setting(containerEl)
+                        .setName('每日八格模板')
+                        .setDesc('使用已保存的模板更新标题，保留标题下的正文。')
+                        .addButton((button) =>
+                            button
+                                .setButtonText('应用到当前日期')
+                                .setDisabled(!dayPlan.config?.enabled)
+                                .onClick(() => {
+                                    if (this.view.file === this.targetFile)
+                                        void applyDayPlanTemplateTitles(
+                                            this.view,
+                                            'current',
+                                        ).catch((error) =>
+                                            onPluginError(
+                                                error,
+                                                'command',
+                                                'apply-day-plan-template',
+                                            ),
+                                        );
+                                }),
+                        )
+                        .addButton((button) =>
+                            button
+                                .setButtonText('同步到已有日期')
+                                .setDisabled(!dayPlan.config?.enabled)
+                                .onClick(() => {
+                                    void (async () => {
+                                        const confirmed =
+                                            await openDayPlanConfirmModal(
+                                                this.view.plugin,
+                                                {
+                                                    title: '同步已有日期的八格标题',
+                                                    message:
+                                                        '将按已保存模板更新所有已存在日期的八格标题，保留正文，不补建空格子。',
+                                                    confirmText: '同步标题',
+                                                    cancelText: '取消',
+                                                },
+                                            );
+                                        if (
+                                            confirmed &&
+                                            this.view.file === this.targetFile
+                                        )
+                                            await applyDayPlanTemplateTitles(
+                                                this.view,
+                                                'existing',
+                                            );
+                                    })().catch((error) =>
+                                        onPluginError(
+                                            error,
+                                            'command',
+                                            'sync-day-plan-template',
+                                        ),
+                                    );
+                                }),
+                        );
+                }
                 if (!templateMismatch) return;
                 if (
                     this.dismissedTemplateMismatchCore === templateMismatch.core
@@ -155,7 +240,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     cls: 'mandala-file-settings__template-sync-actions',
                 });
                 const writeButton = actionsEl.createEl('button', {
-                    text: tx('写回当前模板'),
+                    text: tx('将当前八格标题设为每日模板'),
                     cls: 'mod-cta',
                 });
                 writeButton.addEventListener('click', () => {
@@ -185,7 +270,8 @@ class CurrentFileMandalaSettingsModal extends Modal {
             showDescriptions: false,
             texts: {
                 sectionGlobalView: tx('当前文件视图覆盖'),
-                sectionTimePlan: tx('当前文件时间计划覆盖'),
+                sectionTimePlan: tx('日计划显示与每日模板'),
+                timePlanEnabled: tx('当前文件启用日计划模式'),
                 enable9x9View: tx('当前文件启用 9×9 视图'),
                 enableNx9View: tx('当前文件启用 nx9 视图'),
                 coreSectionMax: tx('当前文件核心格子编号范围（1 ~ n）'),
@@ -197,6 +283,18 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     tx('当前文件自定义日期标题模板'),
             },
             handlers: {
+                setTimePlanEnabled: (enabled) => {
+                    this.state.general.dayPlanEnabled = enabled;
+                    this.render({ preserveScroll: true });
+                },
+                setWeekPlanEnabled: (enabled) => {
+                    this.state.general.weekPlanEnabled = enabled;
+                    if (enabled) this.state.view.enableNx9View = true;
+                    this.render({ preserveScroll: true });
+                },
+                setWeekPlanCompactMode: (enabled) => {
+                    this.state.general.weekPlanCompactMode = enabled;
+                },
                 setEnable9x9View: (enabled) => {
                     this.state.view.enable9x9View = enabled;
                 },
@@ -237,7 +335,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
             cls: 'mod-cta',
         });
         saveButton.addEventListener('click', () => {
-            void this.save();
+            void this.save().catch((error) =>
+                onPluginError(error, 'command', 'save-day-plan-settings'),
+            );
         });
 
         if (preserveScroll) {
@@ -248,14 +348,31 @@ class CurrentFileMandalaSettingsModal extends Modal {
     }
 
     private async save() {
-        if (!this.view.file) {
-            new Notice(tx('未找到当前文件。'));
+        if (!this.view.file || this.view.file !== this.targetFile) {
+            new Notice(tx('目标文件已切换，请重新打开设置。'));
             return;
         }
-        const isDayPlanDedicated = isDayPlanDedicatedFrontmatter(
+        const dayPlan = readDayPlanConfiguration(
             this.view.documentStore.getValue().file.frontmatter,
         );
+        const isDayPlanDedicated = !!dayPlan.config;
 
+        if (dayPlan.error) {
+            new Notice(dayPlan.error);
+            return;
+        }
+        if (
+            isDayPlanDedicated &&
+            this.state.general.dayPlanDateHeadingFormat === 'custom' &&
+            !isValidDayPlanDateTemplate(
+                this.state.general.dayPlanDateHeadingCustomTemplate,
+            )
+        ) {
+            new Notice(
+                '自定义标题必须以 {date} 或 ## {date} 开头，且只能使用一行。',
+            );
+            return;
+        }
         await this.view.plugin.app.fileManager.processFrontMatter(
             this.view.file,
             (frontmatter) => {
@@ -269,17 +386,22 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     },
                 };
                 if (isDayPlanDedicated) {
-                    nextSettings.general = {
-                        dayPlanEnabled: this.state.general.dayPlanEnabled,
-                        weekPlanEnabled: this.state.general.weekPlanEnabled,
-                        weekPlanCompactMode:
-                            this.state.general.weekPlanCompactMode,
-                        weekStart: this.state.general.weekStart,
-                        dayPlanDateHeadingFormat:
-                            this.state.general.dayPlanDateHeadingFormat,
-                        dayPlanDateHeadingCustomTemplate:
-                            this.state.general.dayPlanDateHeadingCustomTemplate,
-                    };
+                    const current = readDayPlanConfigurationFromRecord(record);
+                    if (!current.config || current.error)
+                        throw new Error(
+                            current.error ??
+                                '日计划配置已修改，请重新打开设置。',
+                        );
+                    writeDayPlanConfiguration(
+                        record,
+                        withDayPlanDisplaySettings(
+                            {
+                                ...current.config,
+                                enabled: this.state.general.dayPlanEnabled,
+                            },
+                            this.state.general,
+                        ),
+                    );
                 }
                 record[MANDALA_FRONTMATTER_SETTINGS_KEY] = nextSettings;
             },
@@ -292,9 +414,10 @@ class CurrentFileMandalaSettingsModal extends Modal {
         updateFrontmatter(this.view, frontmatter);
         this.view.ensureCompatibleMandalaMode(frontmatter);
 
-        if (isDayPlanDedicated) {
+        if (isDayPlanDedicated && this.state.general.dayPlanEnabled) {
             await refreshCurrentDayPlanDateHeadings(this.view.plugin, {
                 notify: false,
+                file: this.view.file,
             });
         }
 

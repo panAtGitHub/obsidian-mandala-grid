@@ -1,5 +1,6 @@
+import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { tx } from 'src/lang/translate';
-import { Notice, TFile } from 'obsidian';
+import { Notice, TFile, stringifyYaml } from 'obsidian';
 import {
     appendMandalaTemplate,
     BUILTIN_MANDALA_TEMPLATE,
@@ -7,8 +8,10 @@ import {
     parseMandalaTemplates,
 } from 'src/mandala-display/logic/mandala-templates';
 import {
+    readDayPlanConfigurationFromRecord,
+    readDayPlanConfiguration,
+    writeDayPlanConfiguration,
     normalizeSlotTitle,
-    upsertSlotHeading,
 } from 'src/mandala-display/logic/day-plan';
 import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import {
@@ -16,6 +19,7 @@ import {
     openMandalaTemplateSelectModal,
     openMandalaTemplatesFileModal,
 } from 'src/obsidian/modals/mandala-templates-modal';
+import { withDayPlanDisplaySettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import type { MandalaView } from 'src/view/view';
 
 const getTemplatesFileFromPath = (
@@ -68,68 +72,33 @@ const updateDayPlanSlotsInFrontmatter = async (
     slots: string[],
 ) => {
     if (!view.file) return false;
-    const cache = view.plugin.app.metadataCache.getFileCache(view.file);
-    const frontmatter = cache?.frontmatter as Record<string, unknown> | null;
-    const rawPlan = frontmatter?.mandala_plan;
-    if (!rawPlan || typeof rawPlan !== 'object') return false;
-    const plan = rawPlan as Record<string, unknown>;
-    if (plan.enabled !== true) return false;
-
+    const parsed = readDayPlanConfiguration(
+        view.documentStore.getValue().file.frontmatter,
+    );
+    if (parsed.error) throw new Error(parsed.error);
+    if (!parsed.config) return false;
+    let savedFrontmatter = '';
     await view.plugin.app.fileManager.processFrontMatter(
         view.file,
         (frontmatter) => {
-            const frontmatterRecord = frontmatter as Record<string, unknown>;
-            const currentPlan = frontmatterRecord.mandala_plan;
-            if (!currentPlan || typeof currentPlan !== 'object') return;
-            frontmatterRecord.mandala_plan = {
-                ...(currentPlan as Record<string, unknown>),
-                slots: toDayPlanSlotsRecord(slots),
-            };
+            const record = frontmatter as Record<string, unknown>;
+            const current = readDayPlanConfigurationFromRecord(record);
+            if (!current.config)
+                throw new Error(
+                    current.error ?? '日计划配置已修改，请重新打开设置。',
+                );
+            writeDayPlanConfiguration(
+                record,
+                withDayPlanDisplaySettings(
+                    { ...current.config, slots: toDayPlanSlotsRecord(slots) },
+                    view.getEffectiveMandalaSettings().general,
+                ),
+            );
+            savedFrontmatter = `---\n${stringifyYaml(record)}---\n`;
         },
     );
+    updateFrontmatter(view, savedFrontmatter);
     return true;
-};
-
-const applyDayPlanSlotsToAllCoreThemes = (
-    view: MandalaView,
-    slots: string[],
-) => {
-    const normalizedSlots = slots.map((slot) => normalizeSlotTitle(slot));
-    const coreThemes = Object.keys(
-        view.documentStore.getValue().sections.section_id,
-    )
-        .filter((section) => /^\d+$/.test(section))
-        .sort((a, b) => Number(a) - Number(b));
-
-    for (const theme of coreThemes) {
-        const state = view.documentStore.getValue();
-        const centerNodeId = state.sections.section_id[theme];
-        if (!centerNodeId) continue;
-        view.documentStore.dispatch({
-            type: 'document/mandala/ensure-children',
-            payload: { parentNodeId: centerNodeId, count: 8 },
-        });
-    }
-
-    for (const theme of coreThemes) {
-        for (let i = 1; i <= 8; i += 1) {
-            const refreshed = view.documentStore.getValue();
-            const section = `${theme}.${i}`;
-            const nodeId = refreshed.sections.section_id[section];
-            if (!nodeId) continue;
-            const slotTitle = normalizedSlots[i - 1];
-            if (!slotTitle) continue;
-            const content = refreshed.document.content[nodeId]?.content ?? '';
-            view.documentStore.dispatch({
-                type: 'document/update-node-content',
-                payload: {
-                    nodeId,
-                    content: upsertSlotHeading(content, slotTitle),
-                },
-                context: { isInSidebar: false },
-            });
-        }
-    }
 };
 
 const ensureTemplatesFile = async (
@@ -243,7 +212,13 @@ export const applyTemplateToCurrentThemeAction = async (
     );
     if (!selected) return;
 
-    await applyTemplateToCurrentTheme(view, selected, closeMenu);
+    try {
+        await applyTemplateToCurrentTheme(view, selected, closeMenu);
+    } catch (error) {
+        new Notice(
+            error instanceof Error ? error.message : tx('模板应用失败。'),
+        );
+    }
 };
 
 export const insertBuiltinTemplateAction = async (
@@ -329,8 +304,7 @@ const applyTemplateToCurrentTheme = async (
         normalizedSlots,
     );
     if (isDayPlan) {
-        applyDayPlanSlotsToAllCoreThemes(view, normalizedSlots);
-        new Notice(tx('已根据文档前置区调整的标题进行全局替换。'));
+        new Notice(tx('每日模板已保存，已有日期内容保持不变。'));
         closeMenu();
         return;
     }

@@ -1,7 +1,7 @@
 import { Notice } from 'obsidian';
 import {
     addDaysIsoDate,
-    DAY_PLAN_FRONTMATTER_KEY,
+    readDayPlanConfiguration,
     extractDateFromCenterHeading,
     getDayPlanDateHeadingSettings,
     isIsoDate,
@@ -24,9 +24,11 @@ const isHeadingLine = (line: string) => /^#{1,6}\s+/.test(line);
 const getDateHeadingSettings = (view: MandalaView) =>
     // File-level YAML overrides plugin defaults when present.
     getDayPlanDateHeadingSettings({
-        format: view.getEffectiveMandalaSettings().general.dayPlanDateHeadingFormat,
+        format: view.getEffectiveMandalaSettings().general
+            .dayPlanDateHeadingFormat,
         customTemplate:
-            view.getEffectiveMandalaSettings().general.dayPlanDateHeadingCustomTemplate,
+            view.getEffectiveMandalaSettings().general
+                .dayPlanDateHeadingCustomTemplate,
     });
 
 export const shouldApplyDayPlanSlotTemplate = (content: string) => {
@@ -37,14 +39,18 @@ export const shouldApplyDayPlanSlotTemplate = (content: string) => {
 };
 
 const hasDayPlanKey = (frontmatter: string) =>
-    frontmatter.includes(`${DAY_PLAN_FRONTMATTER_KEY}:`);
+    readDayPlanConfiguration(frontmatter).present &&
+    readDayPlanConfiguration(frontmatter).config?.enabled !== false;
 
 const getDayPlanConfig = (frontmatter: string) => {
     const config = parseDayPlanFrontmatter(frontmatter);
     if (config) {
         return {
             valid: true,
-            slots: Array.from({ length: 8 }, (_, index) => config.slots[String(index + 1)] ?? ''),
+            slots: Array.from(
+                { length: 8 },
+                (_, index) => config.slots[String(index + 1)] ?? '',
+            ),
             year: config.year,
         } as const;
     }
@@ -66,7 +72,9 @@ export const resolveNextDayPlanDate = (
     view: MandalaView,
     currentCore: string,
 ) => {
-    const config = getDayPlanConfig(view.documentStore.getValue().file.frontmatter);
+    const config = getDayPlanConfig(
+        view.documentStore.getValue().file.frontmatter,
+    );
     if (config.valid === null) {
         return {
             enabled: false,
@@ -75,7 +83,9 @@ export const resolveNextDayPlanDate = (
         };
     }
     if (config.valid === false) {
-        new Notice('日计划配置无效，请检查当前文件 YAML 中的 mandala_plan 配置。');
+        new Notice(
+            '日计划配置无效，请检查当前文件 YAML 中的 mandala_day_plan 配置。',
+        );
         return {
             enabled: true,
             blocked: true,
@@ -132,10 +142,14 @@ export const applyDayPlanToCore = (
     nextCore: string,
     nextDateOverride?: string,
 ) => {
-    const config = getDayPlanConfig(view.documentStore.getValue().file.frontmatter);
+    const config = getDayPlanConfig(
+        view.documentStore.getValue().file.frontmatter,
+    );
     if (config.valid === null) return true;
     if (config.valid === false) {
-        new Notice('日计划配置无效，请检查当前文件 YAML 中的 mandala_plan 配置。');
+        new Notice(
+            '日计划配置无效，请检查当前文件 YAML 中的 mandala_day_plan 配置。',
+        );
         return false;
     }
     if (!view.dayPlanHotCores.has(nextCore)) {
@@ -163,7 +177,8 @@ export const applyDayPlanToCore = (
         return false;
     }
 
-    const nextCoreContent = docState.document.content[nextCoreNodeId]?.content ?? '';
+    const nextCoreContent =
+        docState.document.content[nextCoreNodeId]?.content ?? '';
     const updates: Array<{ nodeId: string; content: string }> = [];
     const nextCenterContent = upsertCenterDateHeading(
         nextCoreContent,
@@ -185,7 +200,8 @@ export const applyDayPlanToCore = (
         const section = `${nextCore}.${i}`;
         const nodeId = refreshed.sections.section_id[section];
         if (!nodeId) continue;
-        const currentContent = refreshed.document.content[nodeId]?.content ?? '';
+        const currentContent =
+            refreshed.document.content[nodeId]?.content ?? '';
         if (!shouldApplyDayPlanSlotTemplate(currentContent)) continue;
         const nextContent = upsertSlotHeading(currentContent, slotTitle);
         if (nextContent === currentContent) continue;

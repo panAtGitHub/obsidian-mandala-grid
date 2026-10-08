@@ -2,6 +2,7 @@ import { tx } from 'src/lang/translate';
 import { Modal, Notice, Setting } from 'obsidian';
 import MandalaGrid from 'src/main';
 import {
+    isValidDayPlanDateTemplate,
     buildCenterDateHeading,
     DAY_PLAN_DEFAULT_SLOT_TITLES,
 } from 'src/mandala-display/logic/day-plan';
@@ -22,6 +23,7 @@ export type DayPlanSlotsSyncMode =
 export type DayPlanDisplayOptions = {
     weekStart: WeekStart;
     dateHeadingFormat: DayPlanDateHeadingFormat;
+    dateHeadingCustomTemplate?: string;
 };
 export type DayPlanSlotsSource = 'template' | 'recommended' | 'manual';
 export type DayPlanDailySetupValue = {
@@ -230,7 +232,8 @@ class DayPlanYearInputModal extends Modal {
 class DayPlanDisplayOptionsModal extends Modal {
     private resolved = false;
     private weekStart: WeekStart;
-    private dateHeadingFormat: Exclude<DayPlanDateHeadingFormat, 'custom'>;
+    private dateHeadingFormat: DayPlanDateHeadingFormat;
+    private dateHeadingCustomTemplate: string;
 
     constructor(
         plugin: MandalaGrid,
@@ -241,9 +244,9 @@ class DayPlanDisplayOptionsModal extends Modal {
     ) {
         super(plugin.app);
         this.weekStart = initialValue.weekStart;
-        this.dateHeadingFormat = normalizeDateHeadingFormat(
-            initialValue.dateHeadingFormat,
-        );
+        this.dateHeadingFormat = initialValue.dateHeadingFormat;
+        this.dateHeadingCustomTemplate =
+            initialValue.dateHeadingCustomTemplate ?? '## {date} {cn}';
     }
 
     onOpen() {
@@ -279,28 +282,41 @@ class DayPlanDisplayOptionsModal extends Modal {
                         'zh-full': tx('日期 + 周一到周日'),
                         'zh-short': tx('日期 + 一到日'),
                         'en-short': tx('日期 + Mon~Sun'),
-                    } satisfies Record<
-                        Exclude<DayPlanDateHeadingFormat, 'custom'>,
-                        string
-                    >)
+                        custom: tx('自定义'),
+                    } satisfies Record<DayPlanDateHeadingFormat, string>)
                     .setValue(this.dateHeadingFormat)
                     .onChange((value) => {
-                        this.dateHeadingFormat = value as Exclude<
-                            DayPlanDateHeadingFormat,
-                            'custom'
-                        >;
+                        this.dateHeadingFormat =
+                            value as DayPlanDateHeadingFormat;
                         renderPreview();
                     });
             });
         const headingPreviewEl = createPreviewPill(dateHeadingSetting.descEl);
+        const templateSetting = new Setting(contentEl)
+            .setName(tx('自定义日期标题模板'))
+            .setDesc(tx('必须以 {date} 或 ## {date} 开头，且只能使用一行。'))
+            .addText((text) =>
+                text
+                    .setValue(this.dateHeadingCustomTemplate)
+                    .onChange((value) => {
+                        this.dateHeadingCustomTemplate = value;
+                        renderPreview();
+                    }),
+            );
         const renderPreview = () => {
+            applyCssProps(templateSetting.settingEl, {
+                display: this.dateHeadingFormat === 'custom' ? '' : 'none',
+            });
             weekPreviewEl.setText(
                 tx('预览：{0}', buildWeekStartPreview(this.weekStart)),
             );
             headingPreviewEl.setText(
                 tx(
                     '预览：{0}',
-                    buildDateHeadingPreview(sampleDate, this.dateHeadingFormat),
+                    buildCenterDateHeading(formatIsoDate(sampleDate), {
+                        format: this.dateHeadingFormat,
+                        customTemplate: this.dateHeadingCustomTemplate,
+                    }),
                 ),
             );
         };
@@ -310,9 +326,20 @@ class DayPlanDisplayOptionsModal extends Modal {
         appendWizardActions(contentEl, {
             primaryText: tx('下一步'),
             onPrimary: () => {
+                if (
+                    this.dateHeadingFormat === 'custom' &&
+                    !isValidDayPlanDateTemplate(this.dateHeadingCustomTemplate)
+                ) {
+                    new Notice(
+                        '自定义标题必须以 {date} 或 ## {date} 开头，且只能使用一行。',
+                    );
+                    return;
+                }
                 this.resolveOnce({
                     action: 'next',
                     value: {
+                        dateHeadingCustomTemplate:
+                            this.dateHeadingCustomTemplate,
                         weekStart: this.weekStart,
                         dateHeadingFormat: this.dateHeadingFormat,
                     },
@@ -688,14 +715,6 @@ const formatIsoDate = (date: Date) => {
     return `${year}-${month}-${day}`;
 };
 
-const buildDateHeadingPreview = (
-    date: Date,
-    format: Exclude<DayPlanDateHeadingFormat, 'custom'>,
-) =>
-    buildCenterDateHeading(formatIsoDate(date), {
-        format,
-    });
-
 const buildWeekStartPreview = (weekStart: WeekStart) => {
     const mondayStart = [
         tx('周一'),
@@ -716,15 +735,6 @@ const buildWeekStartPreview = (weekStart: WeekStart) => {
         tx('周六'),
     ];
     return (weekStart === 'monday' ? mondayStart : sundayStart).join(' | ');
-};
-
-const normalizeDateHeadingFormat = (
-    format: DayPlanDateHeadingFormat,
-): Exclude<DayPlanDateHeadingFormat, 'custom'> => {
-    if (format === 'custom') {
-        return 'zh-full';
-    }
-    return format;
 };
 
 const normalizeSlotsSource = (

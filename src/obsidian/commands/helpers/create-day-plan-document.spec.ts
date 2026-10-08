@@ -23,13 +23,10 @@ vi.mock('src/obsidian/commands/helpers/setup-day-plan-mandala-format', () => ({
     setupDayPlanMandalaFormat: mocks.setupDayPlanMandalaFormat,
 }));
 
-vi.mock(
-    'src/mandala-settings/state/current-file/mandala-view-state',
-    () => ({
-        createNewFileMandalaViewStateAction:
-            mocks.createNewFileMandalaViewStateAction,
-    }),
-);
+vi.mock('src/mandala-settings/state/current-file/mandala-view-state', () => ({
+    createNewFileMandalaViewStateAction:
+        mocks.createNewFileMandalaViewStateAction,
+}));
 
 vi.mock('src/shared/store/on-plugin-error', () => ({
     onPluginError: mocks.onPluginError,
@@ -96,9 +93,7 @@ describe('createDayPlanDocument', () => {
             expect.any(String),
             'Day Plan',
         );
-        expect(
-            mocks.createNewFileMandalaViewStateAction,
-        ).toHaveBeenCalledWith(
+        expect(mocks.createNewFileMandalaViewStateAction).toHaveBeenCalledWith(
             createdFile.path,
             settingsValue,
         );
@@ -107,10 +102,7 @@ describe('createDayPlanDocument', () => {
             plugin,
             createdFile,
         );
-        expect(processFrontMatter).toHaveBeenCalledWith(
-            createdFile,
-            expect.any(Function),
-        );
+        expect(processFrontMatter).not.toHaveBeenCalled();
         expect(mocks.onPluginError).not.toHaveBeenCalled();
     });
 
@@ -162,9 +154,7 @@ describe('createDayPlanDocument', () => {
             expect.any(String),
             'Day Plan',
         );
-        expect(
-            mocks.createNewFileMandalaViewStateAction,
-        ).toHaveBeenCalledWith(
+        expect(mocks.createNewFileMandalaViewStateAction).toHaveBeenCalledWith(
             createdFile.path,
             settingsValue,
         );
@@ -173,10 +163,7 @@ describe('createDayPlanDocument', () => {
             plugin,
             createdFile,
         );
-        expect(processFrontMatter).toHaveBeenCalledWith(
-            createdFile,
-            expect.any(Function),
-        );
+        expect(processFrontMatter).not.toHaveBeenCalled();
     });
 
     it('trashes the created file when setup is canceled', async () => {
@@ -223,10 +210,7 @@ describe('createDayPlanDocument', () => {
 
         await createDayPlanDocument(plugin as never);
 
-        expect(processFrontMatter).toHaveBeenCalledWith(
-            createdFile,
-            expect.any(Function),
-        );
+        expect(processFrontMatter).not.toHaveBeenCalled();
         expect(trashFile).toHaveBeenCalledWith(createdFile);
         expect(mocks.createNewFileMandalaViewStateAction).toHaveBeenCalledWith(
             createdFile.path,

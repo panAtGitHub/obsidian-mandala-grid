@@ -10,9 +10,9 @@ describe('mandala profile activation', () => {
         expect(isMandalaFrontmatterEnabled('---\nmandala: true\n---\n')).toBe(
             true,
         );
-        expect(
-            isMandalaFrontmatterEnabled('---\nmandala: false\n---\n'),
-        ).toBe(false);
+        expect(isMandalaFrontmatterEnabled('---\nmandala: false\n---\n')).toBe(
+            false,
+        );
     });
 
     it('resolves day-plan activation for matching year', () => {
@@ -65,7 +65,7 @@ describe('mandala profile activation', () => {
         );
         expect(result.kind).toBe('day-plan');
         expect(result.targetSection).toBe('1');
-        expect(result.notice).toBe('年份错误。');
+        expect(result.notice).toBe('今天不在该计划年份内。');
         expect(result.hotCoreSections.has('1')).toBe(true);
     });
 

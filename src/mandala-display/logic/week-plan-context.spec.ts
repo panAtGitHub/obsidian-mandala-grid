@@ -141,3 +141,8 @@ describe('week-plan-context', () => {
         expect(shifted).not.toBe(first);
     });
 });
+
+it('uses the local calendar day instead of UTC for the week anchor', () => {
+    const localMidnight = new Date(2026, 9, 8, 0, 15);
+    expect(getDefaultWeekAnchorDate(localMidnight)).toBe('2026-10-08');
+});

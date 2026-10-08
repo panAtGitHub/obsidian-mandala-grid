@@ -1,54 +1,10 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import {
     buildNewFileMandalaFrontmatterSettings,
     parseMandalaFrontmatterSettings,
     resolveEffectiveMandalaSettings,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
-
-vi.mock('obsidian', () => ({
-    parseYaml: (input: string) => {
-        if (input.includes('enable9x9View: false')) {
-            return {
-                mandala_settings: {
-                    view: {
-                        enable9x9View: false,
-                        coreSectionMax: null,
-                        subgridMaxDepth: 2,
-                    },
-                    general: {
-                        weekPlanEnabled: false,
-                        dayPlanDateHeadingFormat: 'custom',
-                        dayPlanDateHeadingCustomTemplate: '## {date}',
-                    },
-                },
-            };
-        }
-        if (input.includes('coreSectionMax:')) {
-            return {
-                mandala_settings: {
-                    view: {
-                        coreSectionMax: null,
-                        subgridMaxDepth: 2,
-                    },
-                },
-            };
-        }
-        if (input.includes('enable9x9View: maybe')) {
-            return {
-                mandala_settings: {
-                    view: {
-                        enable9x9View: 'maybe',
-                    },
-                    general: {
-                        weekStart: 'fri',
-                    },
-                },
-            };
-        }
-        return {};
-    },
-}));
 
 describe('mandala-frontmatter-settings', () => {
     test('parses valid mandala_settings fields from frontmatter', () => {
@@ -58,6 +14,10 @@ describe('mandala-frontmatter-settings', () => {
                 'mandala_settings:',
                 '  view:',
                 '    enable9x9View: false',
+                '  general:',
+                '    weekPlanEnabled: false',
+                '    dayPlanDateHeadingFormat: custom',
+                '    dayPlanDateHeadingCustomTemplate: "## {date}"',
                 '---',
             ].join('\n'),
         );
@@ -97,6 +57,8 @@ describe('mandala-frontmatter-settings', () => {
                 '    enable9x9View: false',
                 '    coreSectionMax:',
                 '    subgridMaxDepth: 2',
+                '  general:',
+                '    weekPlanEnabled: false',
                 '---',
             ].join('\n'),
         );
@@ -111,9 +73,12 @@ describe('mandala-frontmatter-settings', () => {
     });
 
     test('uses depth 2 for new day-plan files', () => {
-        const built = buildNewFileMandalaFrontmatterSettings(DEFAULT_SETTINGS(), {
-            dayPlan: true,
-        });
+        const built = buildNewFileMandalaFrontmatterSettings(
+            DEFAULT_SETTINGS(),
+            {
+                dayPlan: true,
+            },
+        );
 
         expect(built.view?.enable9x9View).toBe(false);
         expect(built.view?.subgridMaxDepth).toBe(2);
@@ -135,4 +100,30 @@ describe('mandala-frontmatter-settings', () => {
 
         expect(effective.view.subgridMaxDepth).toBe(2);
     });
+});
+
+test('new day-plan settings ignore legacy general and global feature gates', () => {
+    const settings = DEFAULT_SETTINGS();
+    settings.general.dayPlanEnabled = false;
+    settings.general.weekStart = 'sunday';
+    const effective = resolveEffectiveMandalaSettings(
+        settings,
+        `mandala: true
+mandala_settings:
+  general:
+    weekStart: sunday
+    dayPlanEnabled: false
+mandala_day_plan:
+  enabled: true
+  year: 2026
+  week_view:
+    enabled: false
+  date_heading:
+    format: date-only
+`,
+    );
+    expect(effective.general.dayPlanEnabled).toBe(true);
+    expect(effective.general.weekPlanEnabled).toBe(false);
+    expect(effective.general.weekStart).toBe('monday');
+    expect(effective.general.dayPlanDateHeadingFormat).toBe('date-only');
 });

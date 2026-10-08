@@ -1,4 +1,5 @@
-import { Notice, TFile } from 'obsidian';
+import { parseSectionMarker } from 'src/mandala-document/engine/parse-section-marker';
+import { Notice, TFile, parseYaml, stringifyYaml } from 'obsidian';
 import MandalaGrid from 'src/main';
 import { getActiveFile } from 'src/obsidian/commands/helpers/get-active-file';
 import { getLeafOfFile } from 'src/obsidian/events/workspace/helpers/get-leaf-of-file';
@@ -12,8 +13,10 @@ import {
     MandalaConversionMode,
 } from 'src/mandala-display/logic/mandala-conversion';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
-import { resolveEffectiveMandalaSettings } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
-import { MANDALA_FRONTMATTER_SETTINGS_KEY } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import {
+    withDayPlanDisplaySettings,
+    resolveEffectiveMandalaSettings,
+} from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import {
     allSlotsFilled,
     buildCenterDateHeading,
@@ -21,23 +24,20 @@ import {
     dayOfYearFromDate,
     daysInYear,
     DAY_PLAN_DEFAULT_SLOT_TITLES,
-    DAY_PLAN_FRONTMATTER_KEY,
+    readDayPlanConfiguration,
+    writeDayPlanConfiguration,
+    isValidDayPlanDateTemplate,
+    extractDateFromCenterHeading,
     getDayPlanDateHeadingSettings,
     normalizeSlotTitle,
-    parseDayPlanFrontmatter,
     slotsRecordToArray,
     upsertSlotHeading,
 } from 'src/mandala-display/logic/day-plan';
-import {
-    ensureSectionChildren,
-    getSectionContent,
-    replaceSectionContent,
-} from 'src/mandala-display/logic/day-plan-sections';
+import { getSectionContent } from 'src/mandala-display/logic/day-plan-sections';
 import { parseMandalaTemplates } from 'src/mandala-display/logic/mandala-templates';
 import {
     DayPlanDailySetupValue,
     DayPlanDisplayOptions,
-    openDayPlanConfirmModal,
     openDayPlanDailySetupModal,
     openDayPlanDisplayOptionsModal,
     openDayPlanSlotsInputModal,
@@ -46,7 +46,6 @@ import {
 import { logger } from 'src/shared/helpers/logger';
 import { applyDayPlanSlotTitles } from 'src/obsidian/commands/helpers/apply-day-plan-slot-titles';
 
-const MANDALA_KEY = 'mandala';
 let isSettingUpDayPlan = false;
 
 const getTodayInfo = () => {
@@ -56,13 +55,6 @@ const getTodayInfo = () => {
         month: now.getMonth() + 1,
         day: now.getDate(),
     };
-};
-
-const getTodayIsoDate = () => {
-    const today = getTodayInfo();
-    const month = String(today.month).padStart(2, '0');
-    const day = String(today.day).padStart(2, '0');
-    return `${today.year}-${month}-${day}`;
 };
 
 const getConversionMode = (
@@ -121,48 +113,26 @@ const getPlanDayFromToday = (planYear: number) => {
     return dayOfYearFromDate(planYear, month, day);
 };
 
-const persistDayPlanDisplayOptions = async (
-    plugin: MandalaGrid,
-    file: TFile,
-    options: {
-        weekStart: 'monday' | 'sunday';
-        dateHeadingFormat:
-            | 'date-only'
-            | 'zh-full'
-            | 'zh-short'
-            | 'en-short'
-            | 'custom';
-        dateHeadingCustomTemplate: string;
-    },
-) => {
-    await plugin.app.fileManager.processFrontMatter(file, (frontmatter) => {
-        const record = frontmatter as Record<string, unknown>;
-        const rawSettings = record[MANDALA_FRONTMATTER_SETTINGS_KEY];
-        const rootSettings =
-            rawSettings && typeof rawSettings === 'object'
-                ? (rawSettings as Record<string, unknown>)
-                : {};
-        const rawGeneral = rootSettings.general;
-        const general =
-            rawGeneral && typeof rawGeneral === 'object'
-                ? (rawGeneral as Record<string, unknown>)
-                : {};
-        general.weekStart = options.weekStart;
-        general.dayPlanDateHeadingFormat = options.dateHeadingFormat;
-        general.dayPlanDateHeadingCustomTemplate =
-            options.dateHeadingCustomTemplate;
-        rootSettings.general = general;
-        record[MANDALA_FRONTMATTER_SETTINGS_KEY] = rootSettings;
-    });
-};
-
 const createYearPlanBodyAsync = async (
     planYear: number,
     todaySection: number,
     slots: string[],
     dateHeadingSettings: ReturnType<typeof getDayPlanDateHeadingSettings>,
     onProgress: (done: number, total: number) => void,
+    existingBody: string,
 ) => {
+    const existingSections = new Map<string, string[]>();
+    let currentSection = '1';
+    for (const line of existingBody.split('\n')) {
+        const marker = parseSectionMarker(line);
+        if (marker) {
+            currentSection = marker[2];
+            continue;
+        }
+        const sectionLines = existingSections.get(currentSection) ?? [];
+        sectionLines.push(line);
+        existingSections.set(currentSection, sectionLines);
+    }
     const totalDays = daysInYear(planYear);
     const lines: string[] = [];
     for (let day = 1; day <= totalDays; day += 1) {
@@ -173,16 +143,45 @@ const createYearPlanBodyAsync = async (
                 dateHeadingSettings,
             ),
         );
+        const previousCenter = [...(existingSections.get(String(day)) ?? [])];
+        const firstContent = previousCenter.findIndex((line) => !!line.trim());
+        if (
+            firstContent >= 0 &&
+            extractDateFromCenterHeading(previousCenter[firstContent])
+        )
+            previousCenter.splice(firstContent, 1);
+        if (previousCenter.some((line) => !!line.trim()))
+            lines.push(...previousCenter);
+        existingSections.delete(String(day));
+        const children = [...existingSections.keys()].filter((section) =>
+            section.startsWith(`${day}.`),
+        );
         if (day === todaySection) {
-            for (let i = 1; i <= 8; i += 1) {
-                lines.push(`<!--section: ${todaySection}.${i}-->`);
-                lines.push(upsertSlotHeading('', slots[i - 1] ?? ''));
-            }
+            for (let i = 1; i <= 8; i += 1)
+                if (!children.includes(`${day}.${i}`))
+                    children.push(`${day}.${i}`);
+        }
+        for (const section of children) {
+            lines.push(`<!--section: ${section}-->`);
+            const previous = existingSections.get(section)?.join('\n') ?? '';
+            lines.push(
+                previous.trim()
+                    ? previous
+                    : upsertSlotHeading(
+                          '',
+                          slots[Number(section.split('.')[1]) - 1] ?? '',
+                      ),
+            );
+            existingSections.delete(section);
         }
         if (day % 24 === 0 || day === totalDays) {
             onProgress(day, totalDays);
             await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
         }
+    }
+    for (const [section, sectionLines] of existingSections) {
+        if (sectionLines.some((line) => !!line.trim()))
+            lines.push(`<!--section: ${section}-->`, ...sectionLines);
     }
     return lines.join('\n') + '\n';
 };
@@ -192,175 +191,6 @@ const mergeBodyWithFrontmatter = (frontmatter: string, body: string) =>
 
 const stripFrontmatterMarkers = (frontmatter: string) =>
     frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, '');
-
-const getTopLevelKey = (line: string) => {
-    if (/^\s/.test(line)) return null;
-    const match = line.match(/^([A-Za-z0-9_-]+)\s*:/);
-    return match ? match[1] : null;
-};
-
-const quoteYamlString = (value: string) =>
-    `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
-
-const getLineIndent = (line: string) => line.match(/^ */)?.[0].length ?? 0;
-
-const isIndentedYamlKey = (line: string, indent: number, key: string) =>
-    new RegExp(`^ {${indent}}${key}\\s*:`).test(line);
-
-const findTopLevelBlockEnd = (lines: string[], startIndex: number) => {
-    for (let i = startIndex + 1; i < lines.length; i += 1) {
-        if (getTopLevelKey(lines[i] ?? '') !== null) {
-            return i;
-        }
-    }
-    return lines.length;
-};
-
-const findNestedBlockEnd = (
-    lines: string[],
-    startIndex: number,
-    parentEnd: number,
-    indent: number,
-) => {
-    for (let i = startIndex + 1; i < parentEnd; i += 1) {
-        const line = lines[i] ?? '';
-        if (!line.trim()) continue;
-        if (getLineIndent(line) <= indent) {
-            return i;
-        }
-    }
-    return parentEnd;
-};
-
-const ensureDayPlanViewSettingsInFrontmatter = (lines: string[]) => {
-    const nextLines = [...lines];
-    const settingsIndex = nextLines.findIndex((line) =>
-        isIndentedYamlKey(line, 0, 'mandala_settings'),
-    );
-
-    if (settingsIndex === -1) {
-        nextLines.push('mandala_settings:');
-        nextLines.push('  view:');
-        nextLines.push('    enable9x9View: false');
-        nextLines.push('    subgridMaxDepth: 2');
-        return nextLines;
-    }
-
-    const settingsEnd = findTopLevelBlockEnd(nextLines, settingsIndex);
-    const viewIndex = nextLines.findIndex(
-        (line, index) =>
-            index > settingsIndex &&
-            index < settingsEnd &&
-            isIndentedYamlKey(line, 2, 'view'),
-    );
-
-    if (viewIndex === -1) {
-        nextLines.splice(
-            settingsEnd,
-            0,
-            '  view:',
-            '    enable9x9View: false',
-            '    subgridMaxDepth: 2',
-        );
-        return nextLines;
-    }
-
-    const viewEnd = findNestedBlockEnd(nextLines, viewIndex, settingsEnd, 2);
-    const enable9x9Index = nextLines.findIndex(
-        (line, index) =>
-            index > viewIndex &&
-            index < viewEnd &&
-            isIndentedYamlKey(line, 4, 'enable9x9View'),
-    );
-
-    if (enable9x9Index !== -1) {
-        nextLines[enable9x9Index] = '    enable9x9View: false';
-    } else {
-        nextLines.splice(viewEnd, 0, '    enable9x9View: false');
-    }
-
-    const nextViewEnd = findNestedBlockEnd(nextLines, viewIndex, settingsEnd, 2);
-    const subgridMaxDepthIndex = nextLines.findIndex(
-        (line, index) =>
-            index > viewIndex &&
-            index < nextViewEnd &&
-            isIndentedYamlKey(line, 4, 'subgridMaxDepth'),
-    );
-    if (subgridMaxDepthIndex !== -1) {
-        nextLines[subgridMaxDepthIndex] = '    subgridMaxDepth: 2';
-        return nextLines;
-    }
-
-    nextLines.splice(nextViewEnd, 0, '    subgridMaxDepth: 2');
-    return nextLines;
-};
-
-const buildDayPlanFrontmatter = (
-    baseFrontmatter: string,
-    dayPlan: {
-        year: number;
-        centerDateH2: string;
-        slots: string[];
-    },
-) => {
-    const raw = stripFrontmatterMarkers(baseFrontmatter).trim();
-    const lines = raw.length > 0 ? raw.split('\n') : [];
-    const kept: string[] = [];
-    let skippingPlan = false;
-
-    for (const line of lines) {
-        const topKey = getTopLevelKey(line);
-        if (topKey === DAY_PLAN_FRONTMATTER_KEY) {
-            skippingPlan = true;
-            continue;
-        }
-        if (topKey === MANDALA_KEY) {
-            skippingPlan = false;
-            continue;
-        }
-        if (skippingPlan && topKey) {
-            skippingPlan = false;
-        }
-        if (skippingPlan) continue;
-        kept.push(line);
-    }
-
-    while (kept.length > 0 && kept[kept.length - 1].trim() === '') {
-        kept.pop();
-    }
-
-    const mergedSettingsLines = ensureDayPlanViewSettingsInFrontmatter(kept);
-    const slotLines = dayPlan.slots.map(
-        (value, index) =>
-            `    "${index + 1}": ${quoteYamlString(normalizeSlotTitle(value))}`,
-    );
-
-    const nextLines = [
-        ...mergedSettingsLines,
-        `${MANDALA_KEY}: true`,
-        `${DAY_PLAN_FRONTMATTER_KEY}:`,
-        '  enabled: true',
-        `  year: ${dayPlan.year}`,
-        `  center_date_h2: ${quoteYamlString(dayPlan.centerDateH2)}`,
-        '  slots:',
-        ...slotLines,
-    ];
-
-    return `---\n${nextLines.join('\n')}\n---\n`;
-};
-
-const applyTodaySlotsForYear = (body: string, planYear: number) => {
-    const day = getPlanDayFromToday(planYear);
-    let nextBody = ensureSectionChildren(body, String(day), 8);
-
-    const hasAnySlotContent = Array.from({ length: 8 }, (_, index) => {
-        const section = `${day}.${index + 1}`;
-        const content = getSectionContent(nextBody, section) ?? '';
-        return content.trim().length > 0;
-    }).some(Boolean);
-
-    return { body: nextBody, day, hasAnySlotContent };
-};
 
 const refreshMandalaViewData = (
     plugin: MandalaGrid,
@@ -419,17 +249,21 @@ export const setupDayPlanMandalaFormat = async (
             return false;
         }
 
-        let content = await plugin.app.vault.read(file);
+        const originalContent = await plugin.app.vault.read(file);
+        let content = originalContent;
         const analysis = analyzeMandalaContent(content);
         const conversionMode = getConversionMode(analysis);
         if (conversionMode) {
             content = convertToMandalaMarkdown(content, conversionMode);
-            await plugin.app.vault.modify(file, content);
         }
 
-        const latest = await plugin.app.vault.read(file);
-        const { body, frontmatter } = extractFrontmatter(latest);
-        const existingPlan = parseDayPlanFrontmatter(frontmatter);
+        const { body, frontmatter } = extractFrontmatter(content);
+        const parsedPlan = readDayPlanConfiguration(frontmatter);
+        if (parsedPlan.error) {
+            new Notice(parsedPlan.error);
+            return false;
+        }
+        const existingPlan = parsedPlan.config;
         const effectiveSettings = resolveEffectiveMandalaSettings(
             plugin.settings.getValue(),
             frontmatter,
@@ -439,7 +273,10 @@ export const setupDayPlanMandalaFormat = async (
         const planSlotsFromYaml = slotsRecordToArray(existingPlan?.slots);
         const initialDisplayOptions: DayPlanDisplayOptions = {
             weekStart: effectiveSettings.general.weekStart,
-            dateHeadingFormat: effectiveSettings.general.dayPlanDateHeadingFormat,
+            dateHeadingFormat:
+                effectiveSettings.general.dayPlanDateHeadingFormat,
+            dateHeadingCustomTemplate:
+                effectiveSettings.general.dayPlanDateHeadingCustomTemplate,
         };
         const resolveInitialSlots = (selectedYear: number) => {
             const todaySection = String(getPlanDayFromToday(selectedYear));
@@ -462,10 +299,10 @@ export const setupDayPlanMandalaFormat = async (
         const templates = await readTemplatesFromSettings(plugin);
 
         let wizardStep: 'year' | 'display' | 'daily' | 'slots' = 'year';
-        let selectedYear = getTodayInfo().year;
+        let selectedYear = existingPlan?.year ?? getTodayInfo().year;
         let displayOptions = initialDisplayOptions;
         let dailySetup: DayPlanDailySetupValue = {
-            slotsSource: 'recommended',
+            slotsSource: existingPlan ? 'manual' : 'recommended',
             templateIndex: templates.length > 0 ? 0 : null,
         };
         let slots: string[] | null = null;
@@ -480,7 +317,7 @@ export const setupDayPlanMandalaFormat = async (
                 if (result.action === 'back') continue;
                 selectedYear = result.value;
                 if (
-                    existingPlan?.enabled === true &&
+                    existingPlan &&
                     Number.isInteger(existingYear) &&
                     existingYear !== selectedYear
                 ) {
@@ -495,6 +332,8 @@ export const setupDayPlanMandalaFormat = async (
                 const result = await openDayPlanDisplayOptionsModal(plugin, {
                     weekStart: displayOptions.weekStart,
                     dateHeadingFormat: displayOptions.dateHeadingFormat,
+                    dateHeadingCustomTemplate:
+                        displayOptions.dateHeadingCustomTemplate,
                 });
                 if (result.action === 'cancel') return false;
                 if (result.action === 'back') {
@@ -553,11 +392,12 @@ export const setupDayPlanMandalaFormat = async (
         const dateHeadingSettings = getDayPlanDateHeadingSettings({
             format: displayOptions.dateHeadingFormat,
             customTemplate:
+                displayOptions.dateHeadingCustomTemplate ??
                 effectiveSettings.general.dayPlanDateHeadingCustomTemplate,
         });
 
         let nextBody = body;
-        let firstRun = !(existingPlan?.enabled === true);
+        const firstRun = !existingPlan;
 
         if (firstRun) {
             const generationStartMs = performance.now();
@@ -569,6 +409,7 @@ export const setupDayPlanMandalaFormat = async (
                 (done, total) => {
                     new Notice(`正在生成：${done}/${total}`, 800);
                 },
+                body,
             );
             logger.debug('[perf][day-plan-setup] generate-year-body', {
                 file: file.path,
@@ -582,52 +423,73 @@ export const setupDayPlanMandalaFormat = async (
                 ['1', todaySection],
                 slots,
             );
-        } else {
-            const todayApplied = applyTodaySlotsForYear(nextBody, selectedYear);
-            nextBody = todayApplied.body;
-
-            if (todayApplied.hasAnySlotContent) {
-                const shouldOverwriteAll = await openDayPlanConfirmModal(
-                    plugin,
-                    {
-                        title: '是否一次性覆盖 8 个格子的标题？',
-                        message: '确认后将统一覆盖当天 section 的 8 个标题行。',
-                        confirmText: '一次性覆盖',
-                        cancelText: '取消',
-                    },
-                );
-                if (!shouldOverwriteAll) return false;
-            }
-
-            for (let i = 0; i < 8; i += 1) {
-                const section = `${todayApplied.day}.${i + 1}`;
-                const currentContent =
-                    getSectionContent(nextBody, section) ?? '';
-                nextBody = replaceSectionContent(
-                    nextBody,
-                    section,
-                    upsertSlotHeading(currentContent, slots[i]),
-                );
-            }
         }
-
-        const nextFrontmatter = buildDayPlanFrontmatter(frontmatter, {
-            year: selectedYear,
-            centerDateH2: buildCenterDateHeading(
-                getTodayIsoDate(),
-                dateHeadingSettings,
+        if (
+            dateHeadingSettings.format === 'custom' &&
+            !isValidDayPlanDateTemplate(dateHeadingSettings.customTemplate)
+        ) {
+            new Notice(
+                '自定义标题必须以 {date} 或 ## {date} 开头，且只能使用一行。',
+            );
+            return false;
+        }
+        const latest = await plugin.app.vault.read(file);
+        if (latest !== originalContent) {
+            new Notice('文件在设置期间已修改，请重新打开设置。');
+            return false;
+        }
+        const latestFrontmatter = extractFrontmatter(latest).frontmatter;
+        const root = parseYaml(
+            stripFrontmatterMarkers(latestFrontmatter),
+        ) as Record<string, unknown> | null;
+        const record = root ?? {};
+        record.mandala = true;
+        record.mandala_settings = {
+            view: {
+                ...effectiveSettings.view,
+                enableNx9View: effectiveSettings.general.weekPlanEnabled
+                    ? true
+                    : effectiveSettings.view.enableNx9View,
+                enable9x9View: false,
+                subgridMaxDepth: 2,
+            },
+        };
+        writeDayPlanConfiguration(
+            record,
+            withDayPlanDisplaySettings(
+                {
+                    enabled: true,
+                    year: selectedYear,
+                    slots: Object.fromEntries(
+                        slots.map((title, index) => [String(index + 1), title]),
+                    ),
+                },
+                {
+                    ...effectiveSettings.general,
+                    weekStart: displayOptions.weekStart,
+                    dayPlanDateHeadingFormat: displayOptions.dateHeadingFormat,
+                    dayPlanDateHeadingCustomTemplate:
+                        dateHeadingSettings.customTemplate,
+                },
             ),
-            slots,
-        });
-        const nextContent = mergeBodyWithFrontmatter(nextFrontmatter, nextBody);
+        );
+        const nextContent = mergeBodyWithFrontmatter(
+            `---\n${stringifyYaml(record)}---\n`,
+            nextBody,
+        );
         const writeStartMs = performance.now();
-        await plugin.app.vault.modify(file, nextContent);
-        await persistDayPlanDisplayOptions(plugin, file, {
-            weekStart: displayOptions.weekStart,
-            dateHeadingFormat: displayOptions.dateHeadingFormat,
-            dateHeadingCustomTemplate:
-                effectiveSettings.general.dayPlanDateHeadingCustomTemplate,
+        let conflict = false;
+        await plugin.app.vault.process(file, (raw) => {
+            if (raw !== originalContent) {
+                conflict = true;
+                return raw;
+            }
+            return nextContent;
         });
+        if (conflict) {
+            new Notice('文件在设置期间已修改，请重新打开设置。');
+            return false;
+        }
         logger.debug('[perf][day-plan-setup] write-markdown', {
             file: file.path,
             costMs: Number((performance.now() - writeStartMs).toFixed(2)),

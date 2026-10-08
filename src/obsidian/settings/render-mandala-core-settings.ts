@@ -1,3 +1,7 @@
+import {
+    buildCenterDateHeading,
+    isValidDayPlanDateTemplate,
+} from 'src/mandala-display/logic/day-plan';
 import { tx } from 'src/lang/translate';
 import { fitSettingsLabel } from 'src/obsidian/settings/fit-settings-label';
 import { Setting } from 'obsidian';
@@ -21,6 +25,8 @@ export type MandalaCoreSettingsHandlers = {
     setEnableNx9View: (enabled: boolean) => void;
     setCoreSectionMax: (max: SectionRangeLimit) => void;
     setSubgridMaxDepth: (depth: SectionRangeLimit) => void;
+    setWeekPlanEnabled?: (enabled: boolean) => void;
+    setWeekPlanCompactMode?: (enabled: boolean) => void;
     setTimePlanEnabled?: (enabled: boolean) => void;
     setWeekStart: (weekStart: WeekStart) => void;
     setDayPlanDateHeadingFormat: (format: DayPlanDateHeadingFormat) => void;
@@ -41,6 +47,7 @@ type RenderMandalaCoreSettingsOptions = {
     showViewPresets?: boolean;
     showTimePlanEnabledToggle?: boolean;
     showTimePlanSection?: boolean;
+    showWeekViewOptions?: boolean;
     showTimePlanDefaults?: boolean;
     renderTimePlanFooter?: (containerEl: HTMLElement) => void;
     texts?: Partial<{
@@ -189,6 +196,7 @@ export const renderMandalaCoreSettings = ({
     showTimePlanEnabledToggle = true,
     showTimePlanSection = true,
     showTimePlanDefaults = true,
+    showWeekViewOptions = false,
     renderTimePlanFooter,
     texts,
 }: RenderMandalaCoreSettingsOptions) => {
@@ -530,16 +538,40 @@ export const renderMandalaCoreSettings = ({
         ).addToggle((toggle) =>
             toggle
                 .setValue(
-                    state.general.dayPlanEnabled &&
-                        state.general.weekPlanEnabled,
+                    showWeekViewOptions
+                        ? state.general.dayPlanEnabled
+                        : state.general.dayPlanEnabled &&
+                              state.general.weekPlanEnabled,
                 )
                 .onChange((enabled) => handlers.setTimePlanEnabled?.(enabled)),
         );
     }
 
     if (!timePlanContainer) return;
+    if (showWeekViewOptions) {
+        new Setting(timePlanContainer)
+            .setName(tx('启用周视图'))
+            .setDesc(tx('开启时同时允许 nx9 视图；关闭 nx9 后周视图不可用。'))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(state.general.weekPlanEnabled)
+                    .onChange((enabled) =>
+                        handlers.setWeekPlanEnabled?.(enabled),
+                    ),
+            );
+        new Setting(timePlanContainer)
+            .setName(tx('周视图紧凑显示'))
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(state.general.weekPlanCompactMode)
+                    .onChange((enabled) =>
+                        handlers.setWeekPlanCompactMode?.(enabled),
+                    ),
+            );
+    }
     const isTimePlanEnabled =
-        state.general.dayPlanEnabled && state.general.weekPlanEnabled;
+        showWeekViewOptions ||
+        (state.general.dayPlanEnabled && state.general.weekPlanEnabled);
     if (!isTimePlanEnabled) return;
     if (!showTimePlanDefaults) return;
 
@@ -588,7 +620,7 @@ export const renderMandalaCoreSettings = ({
     );
 
     if (state.general.dayPlanDateHeadingFormat === 'custom') {
-        createMaybeDescriptionSetting(
+        const customSetting = createMaybeDescriptionSetting(
             new Setting(timePlanContainer).setName(
                 texts?.dayPlanDateHeadingCustomTemplate ??
                     lang.settings_general_day_plan_date_heading_custom_template,
@@ -599,9 +631,21 @@ export const renderMandalaCoreSettings = ({
             text
                 .setPlaceholder('## {date} {cn}')
                 .setValue(state.general.dayPlanDateHeadingCustomTemplate)
-                .onChange((value) =>
-                    handlers.setDayPlanDateHeadingCustomTemplate(value),
-                ),
+                .onChange((value) => {
+                    handlers.setDayPlanDateHeadingCustomTemplate(value);
+                    customSetting.setDesc(
+                        isValidDayPlanDateTemplate(value)
+                            ? `预览：${buildCenterDateHeading('2026-10-08', { format: 'custom', customTemplate: value })}`
+                            : '标题必须以 {date} 或 ## {date} 开头，且只能使用一行。',
+                    );
+                }),
+        );
+        customSetting.setDesc(
+            isValidDayPlanDateTemplate(
+                state.general.dayPlanDateHeadingCustomTemplate,
+            )
+                ? `预览：${buildCenterDateHeading('2026-10-08', { format: 'custom', customTemplate: state.general.dayPlanDateHeadingCustomTemplate })}`
+                : '标题必须以 {date} 或 ## {date} 开头，且只能使用一行。',
         );
     }
 

@@ -53,8 +53,7 @@ const getAllCommands = (plugin: MandalaGrid): ManagedCommand[] => {
         name: lang.cmd_create_day_plan_document,
         icon: customIcons.mandalaGrid.name,
         isEnabled: (pluginValue) =>
-            pluginValue.settings.getValue().general.dayPlanEnabled &&
-            pluginValue.settings.getValue().general.weekPlanEnabled,
+            pluginValue.settings.getValue().general.dayPlanEnabled,
         checkCallback: (checking) => {
             if (checking) return true;
             void createDayPlanDocument(plugin);
