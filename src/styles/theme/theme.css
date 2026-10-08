@@ -23,7 +23,6 @@
     --custom-hotkey-bg: #a0c6dd;
 }
 
-
 /* 纯白主题模式 */
 .mandala-view.mandala-white-theme {
     --background-container: var(--background-primary);
@@ -89,6 +88,13 @@ body.mandala-export-hide-highlight
     .mandala-card.active-node,
 body.mandala-export-hide-highlight .mandala-card-grid__cell.is-active-cell,
 body.mandala-export-hide-highlight .mandala-card-grid__cell.is-active-node {
+    outline: none;
+}
+
+body.mandala-export-hide-highlight
+    .mandala-white-theme
+    .mandala-card-grid__cell
+    .mandala-card.mandala-card.active-node {
     outline: none;
 }
 

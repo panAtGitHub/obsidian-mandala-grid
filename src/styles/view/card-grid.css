@@ -126,3 +126,12 @@
     box-shadow: none;
     outline: 0;
 }
+
+.mandala-white-theme
+    .mandala-card-grid__cell
+    .mandala-card.mandala-card.active-node {
+    outline: var(--mandala-grid-highlight-width, 2px) solid
+        var(--mandala-grid-highlight-color, var(--mandala-color-selection));
+    /* Table cells clip their children, so draw the highlight inside the card. */
+    outline-offset: calc(0px - var(--mandala-grid-highlight-width, 2px));
+}
