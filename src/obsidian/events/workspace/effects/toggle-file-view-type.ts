@@ -11,18 +11,25 @@ import {
     MandalaConversionMode,
 } from 'src/mandala-display/logic/mandala-conversion';
 import {
-    createDayPlanTitleSyncBatches,
-    syncDayPlanTitlesBySections,
-    syncDayPlanTitlesInMarkdown,
-} from 'src/mandala-display/logic/sync-day-plan-titles';
-import {
-    dayOfYearFromDate,
     parseDayPlanFromMarkdown,
+    sectionFromDateInPlanYear,
 } from 'src/mandala-display/logic/day-plan';
 import {
-    DayPlanSlotsSyncMode,
-    openDayPlanSlotsSyncModeModal,
-} from 'src/obsidian/modals/day-plan-setup-modal';
+    getEditedDayPlanSlotTitles,
+    localDayPlanDate,
+    updateDayPlanTemplateMarkdown,
+} from 'src/obsidian/commands/helpers/day-plan-template-edit';
+import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
+import { parseYaml, stringifyYaml } from 'obsidian';
+import {
+    readDayPlanConfigurationFromRecord,
+    writeDayPlanConfiguration,
+} from 'src/mandala-display/logic/day-plan';
+import {
+    resolveEffectiveMandalaSettings,
+    withDayPlanDisplaySettings,
+} from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import { openDayPlanConfirmModal } from 'src/obsidian/modals/day-plan-setup-modal';
 import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 
 const refreshMandalaViewData = (
@@ -42,122 +49,46 @@ const refreshMandalaViewData = (
     }, 50);
 };
 
-const splitSectionsToBatches = (sections: string[], batchSize: number) => {
-    const normalizedBatchSize = Math.max(1, batchSize);
-    const batches: string[][] = [];
-    for (let i = 0; i < sections.length; i += normalizedBatchSize) {
-        batches.push(sections.slice(i, i + normalizedBatchSize));
-    }
-    return batches;
-};
-
-const getCoreFromSlotSection = (section: string) => {
-    const coreText = section.split('.')[0];
-    const core = Number(coreText);
-    if (!Number.isInteger(core)) return null;
-    return core;
-};
-
-const getPlanDayFromToday = (planYear: number, now: Date = new Date()) => {
-    const normalized = new Date(
-        Date.UTC(planYear, now.getMonth(), now.getDate()),
-    );
-    const month = normalized.getUTCMonth() + 1;
-    const day = normalized.getUTCDate();
-    return dayOfYearFromDate(planYear, month, day);
-};
-
-const syncDayPlanTitlesWithBatches = (
-    markdown: string,
-    batches: string[][],
-) => {
-    let nextMarkdown = markdown;
-    let changed = false;
-    for (const sections of batches) {
-        const batch = syncDayPlanTitlesBySections(nextMarkdown, sections);
-        if (batch.changed) changed = true;
-        nextMarkdown = batch.markdown;
-    }
-    return {
-        changed,
-        markdown: nextMarkdown,
-    };
-};
-
-const syncDayPlanTitlesByUserChoice = async (
+export const syncEditedDayPlanTitlesByUserChoice = async (
     plugin: MandalaGrid,
     markdown: string,
+    activeSection?: string | null,
 ) => {
-    const fullSyncResult = syncDayPlanTitlesInMarkdown(markdown);
-    if (!fullSyncResult.changed) {
-        return {
-            changed: false,
-            markdown,
-        };
-    }
-
-    const mode: DayPlanSlotsSyncMode | null =
-        await openDayPlanSlotsSyncModeModal(plugin);
-    if (!mode) {
-        return {
-            changed: false,
-            markdown,
-        };
-    }
-
-    if (mode === 'template-only') {
-        new Notice('已仅更新模板，不修改已存在格子标题。');
-        return {
-            changed: false,
-            markdown,
-        };
-    }
-
-    if (mode === 'all-existing') {
-        new Notice('已根据 YAML 模板替换所有已存在日期的格子标题。');
-        return {
-            changed: true,
-            markdown: fullSyncResult.markdown,
-        };
-    }
-
     const plan = parseDayPlanFromMarkdown(markdown);
-    const batchPlan = createDayPlanTitleSyncBatches(markdown, 120);
-    if (!plan || !batchPlan) {
-        new Notice('未检测到可同步的日计划格子标题。');
-        return {
-            changed: false,
-            markdown,
-        };
-    }
-
-    const todayCore = getPlanDayFromToday(plan.year);
-    const targetSections = batchPlan.batches
-        .flat()
-        .filter((section) => {
-            const core = getCoreFromSlotSection(section);
-            return core !== null && core >= todayCore;
-        });
-
-    if (targetSections.length === 0) {
-        new Notice('今天及以后没有可同步的格子标题。');
-        return {
-            changed: false,
-            markdown,
-        };
-    }
-
-    const todayAndFutureBatches = splitSectionsToBatches(targetSections, 120);
-    const todayAndFutureResult = syncDayPlanTitlesWithBatches(
-        markdown,
-        todayAndFutureBatches,
+    if (!plan) return markdown;
+    const today = localDayPlanDate();
+    if (!today.startsWith(`${plan.year}-`)) return markdown;
+    const core =
+        activeSection?.split('.')[0] ?? sectionFromDateInPlanYear(plan.year);
+    if (!core) return markdown;
+    const slots = getEditedDayPlanSlotTitles(markdown, core);
+    if (!slots) return markdown;
+    const confirmed = await openDayPlanConfirmModal(plugin, {
+        title: '当前日期的八格标题与每日模板不同',
+        message:
+            '是否将当前八格标题设为每日模板？保存后，今天及后续日期使用这组标题，历史日期保持不变，正文保留。',
+        confirmText: '保存为模板',
+        cancelText: '暂不更新',
+    });
+    if (!confirmed) return markdown;
+    const { frontmatter, body } = extractFrontmatter(markdown);
+    const root = parseYaml(
+        frontmatter.replace(/^---\n/, '').replace(/\n---\n?$/, ''),
+    ) as Record<string, unknown>;
+    const config = readDayPlanConfigurationFromRecord(root).config;
+    if (!config) return markdown;
+    const effective = resolveEffectiveMandalaSettings(
+        plugin.settings.getValue(),
+        frontmatter,
     );
-    if (todayAndFutureResult.changed) {
-        new Notice('已根据 YAML 模板替换今天及以后的格子标题。');
-    } else {
-        new Notice('今天及以后的格子标题已是最新，无需同步。');
-    }
-    return todayAndFutureResult;
+    writeDayPlanConfiguration(
+        root,
+        withDayPlanDisplaySettings(config, effective.general),
+    );
+    return updateDayPlanTemplateMarkdown(
+        `---\n${stringifyYaml(root)}---\n${body}`,
+        { slots, start: today, end: `${plan.year}-12-31` },
+    );
 };
 
 export const toggleFileViewType = async (
@@ -191,10 +122,7 @@ export const toggleFileViewType = async (
                 message,
             });
             if (choice === 'cancel') return;
-            nextContent = convertToMandalaMarkdown(
-                nextContent,
-                conversionMode,
-            );
+            nextContent = convertToMandalaMarkdown(nextContent, conversionMode);
             if (analysis.hasSection1 && !analysis.hasSection1_1) {
                 new Notice(
                     '当前非标准九宫格式，请切回 Markdown 视图核对 section 编号。',
@@ -202,14 +130,25 @@ export const toggleFileViewType = async (
             }
         }
 
-        const syncResult = await syncDayPlanTitlesByUserChoice(
+        nextContent = await syncEditedDayPlanTitlesByUserChoice(
             plugin,
             nextContent,
+            preferences?.mandalaView?.lastActiveSection,
         );
-        nextContent = syncResult.markdown;
         const contentChangedOnEnter = nextContent !== content;
         if (contentChangedOnEnter) {
-            await plugin.app.vault.modify(file, nextContent);
+            let conflicted = false;
+            await plugin.app.vault.process(file, (raw) => {
+                if (raw !== content) {
+                    conflicted = true;
+                    return raw;
+                }
+                return nextContent;
+            });
+            if (conflicted) {
+                new Notice('文件在确认期间已修改，请重新操作。');
+                return;
+            }
         }
     }
     toggleObsidianViewType(plugin, fileLeaf, newViewType);

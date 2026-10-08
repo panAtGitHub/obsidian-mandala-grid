@@ -16,10 +16,6 @@ import type {
 } from 'src/mandala-settings/state/settings-type';
 import { applyCssProps } from 'src/shared/helpers/apply-css-props';
 
-export type DayPlanSlotsSyncMode =
-    | 'all-existing'
-    | 'today-and-future'
-    | 'template-only';
 export type DayPlanDisplayOptions = {
     weekStart: WeekStart;
     dateHeadingFormat: DayPlanDateHeadingFormat;
@@ -103,12 +99,6 @@ export const openDayPlanSlotsInputModal = (
             options,
             resolve,
         );
-        modal.open();
-    });
-
-export const openDayPlanSlotsSyncModeModal = (plugin: MandalaGrid) =>
-    new Promise<DayPlanSlotsSyncMode | null>((resolve) => {
-        const modal = new DayPlanSlotsSyncModeModal(plugin, resolve);
         modal.open();
     });
 
@@ -623,78 +613,6 @@ class DayPlanSlotsInputModal extends Modal {
     }
 
     private resolveOnce(value: DayPlanWizardStepResult<string[]>) {
-        if (this.resolved) return;
-        this.resolved = true;
-        this.resolve(value);
-    }
-}
-
-class DayPlanSlotsSyncModeModal extends Modal {
-    private resolved = false;
-
-    constructor(
-        plugin: MandalaGrid,
-        private resolve: (value: DayPlanSlotsSyncMode | null) => void,
-    ) {
-        super(plugin.app);
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.empty();
-        this.setTitle(tx('检测到日计划模板已变更'));
-
-        contentEl.createEl('p', {
-            text: tx('请选择如何同步已存在的格子标题：'),
-        });
-
-        new Setting(contentEl)
-            .setName(tx('替换所有已存在日期的格子标题'))
-            .setDesc(tx('会覆盖所有已存在 section 的标题行，正文内容不变。'))
-            .addButton((button) => {
-                button
-                    .setButtonText(tx('全部替换'))
-                    .setCta()
-                    .onClick(() => {
-                        this.resolveOnce('all-existing');
-                        this.close();
-                    });
-            });
-
-        new Setting(contentEl)
-            .setName(tx('仅替换今天及以后的日期'))
-            .setDesc(tx('仅覆盖今天及未来日期的标题行，历史日期保持不变。'))
-            .addButton((button) => {
-                button.setButtonText(tx('今天及以后')).onClick(() => {
-                    this.resolveOnce('today-and-future');
-                    this.close();
-                });
-            });
-
-        new Setting(contentEl)
-            .setName(tx('仅更新模板，不改已有内容'))
-            .setDesc(tx('本次不修改任何已存在卡片，后续新日期按模板生成。'))
-            .addButton((button) => {
-                button.setButtonText(tx('仅更新模板')).onClick(() => {
-                    this.resolveOnce('template-only');
-                    this.close();
-                });
-            });
-
-        new Setting(contentEl).addButton((button) => {
-            button.setButtonText(tx('取消')).onClick(() => {
-                this.resolveOnce(null);
-                this.close();
-            });
-        });
-    }
-
-    onClose() {
-        this.resolveOnce(null);
-        this.contentEl.empty();
-    }
-
-    private resolveOnce(value: DayPlanSlotsSyncMode | null) {
         if (this.resolved) return;
         this.resolved = true;
         this.resolve(value);

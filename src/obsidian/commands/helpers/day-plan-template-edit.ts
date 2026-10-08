@@ -1,3 +1,8 @@
+import { getSectionContent } from 'src/mandala-display/logic/day-plan-sections';
+import {
+    normalizeSlotTitle,
+    parseDayPlanFromMarkdown,
+} from 'src/mandala-display/logic/day-plan';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import type { MandalaView } from 'src/view/view';
 import { parseYaml, stringifyYaml } from 'obsidian';
@@ -97,4 +102,25 @@ export const editDayPlanTemplate = async (
         view.setViewData(markdown);
         updateFrontmatter(view, extractFrontmatter(markdown).frontmatter);
     }
+};
+
+export const getEditedDayPlanSlotTitles = (
+    markdown: string,
+    core: string,
+): string[] | null => {
+    const plan = parseDayPlanFromMarkdown(markdown);
+    if (!plan) return null;
+    const body = extractFrontmatter(markdown).body;
+    const titles = Array.from({ length: 8 }, (_, index) => {
+        const content = getSectionContent(body, `${core}.${index + 1}`) ?? '';
+        return normalizeSlotTitle(
+            content.split('\n').find((line) => !!line.trim()) ?? '',
+        );
+    });
+    if (
+        !allSlotsFilled(titles) ||
+        titles.every((title, index) => title === plan.slots[String(index + 1)])
+    )
+        return null;
+    return titles;
 };
