@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
+    import { settingHelp } from 'src/shared/ui/setting-help';
     import { Eye } from 'lucide-svelte';
     import { Platform } from 'obsidian';
     import { lang } from 'src/lang/lang';
@@ -86,7 +87,11 @@
             </div>
 
             <div class="view-options-menu__row">
-                <span>{tx('Anki 卡片辅助信息')}</span>
+                <span
+                    use:settingHelp={tx(
+                        '显示正文中用于Anki的辅助标记，不修改原始内容。',
+                    )}>{tx('Anki 卡片辅助信息')}</span
+                >
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -104,7 +109,11 @@
             </div>
 
             <div class="view-options-menu__row">
-                <span>{tx('3x3 视图导航按钮')}</span>
+                <span
+                    use:settingHelp={tx(
+                        '显示格子中的导航按钮，用于展开子九宫格或切换核心九宫格。',
+                    )}>{tx('3x3 视图导航按钮')}</span
+                >
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -122,7 +131,9 @@
             </div>
 
             <div class="view-options-menu__row">
-                <span>{tx('9x9 平行九宫格切换按钮')}</span>
+                <span use:settingHelp={tx('显示用于切换前后核心九宫格的按钮。')}
+                    >{tx('9x9 平行九宫格切换按钮')}</span
+                >
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input
@@ -140,7 +151,11 @@
             </div>
 
             <div class="view-options-menu__row">
-                <span>{tx('空格快速预览浮层')}</span>
+                <span
+                    use:settingHelp={tx(
+                        '开启后可用空格键预览当前格子；编辑文字时空格仍正常输入。',
+                    )}>{tx('空格快速预览浮层')}</span
+                >
                 <div class="view-options-menu__row-controls">
                     <label class="view-options-menu__inline-option">
                         <input

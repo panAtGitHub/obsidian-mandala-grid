@@ -1,5 +1,6 @@
 import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { tx } from 'src/lang/translate';
+import { settingHelp } from 'src/shared/ui/setting-help';
 import { getView } from 'src/mandala-scenes/shared/shell/context';
 import { FontSize } from 'src/mandala-settings/ui/settings-panel/fields/font-size';
 import { BackgroundColor } from 'src/mandala-settings/ui/settings-panel/fields/background-color';
@@ -141,10 +142,32 @@ export const renderSettings = (element: HTMLElement, tab: SettingsTab) => {
     const tabs: Tab[] = [];
     const view = getView();
     render(view, element, tabs);
+    const helpActions: ReturnType<typeof settingHelp>[] = [];
+    for (const { element: tabElement, name } of tabs) {
+        // Date formats and planning previews remain visible as live feedback.
+        if (name === 'Day/Week Plan') continue;
+        for (const row of tabElement.querySelectorAll<HTMLElement>(
+            '.setting-item',
+        )) {
+            const title = row.querySelector<HTMLElement>('.setting-item-name');
+            const description = row.querySelector<HTMLElement>(
+                '.setting-item-description',
+            );
+            const text = description?.textContent?.trim();
+            if (!title || !description || !text || description.children.length)
+                continue;
+            helpActions.push(settingHelp(title, text));
+            description.hidden = true;
+        }
+    }
     setVisibleTab(tabs, tab);
     return {
         update: (tab: SettingsTab) => {
+            helpActions.forEach((help) => help.close());
             setVisibleTab(tabs, tab);
+        },
+        destroy: () => {
+            helpActions.forEach((help) => help.destroy());
         },
     };
 };

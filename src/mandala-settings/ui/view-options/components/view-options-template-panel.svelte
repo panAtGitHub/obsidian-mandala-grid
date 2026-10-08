@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
+    import { settingHelp } from 'src/shared/ui/setting-help';
     import { Frame } from 'lucide-svelte';
 
     export let show = false;
@@ -19,7 +20,14 @@
     </div>
     <div class="view-options-menu__content">
         <div class="view-options-menu__label">{tx('九宫格模板')}</div>
-        <div class="view-options-menu__desc">{tx('保存与应用周边八格')}</div>
+        <div
+            class="view-options-menu__desc"
+            use:settingHelp={tx(
+                '模板保存周边八格，中心格保持独立；应用模板前请确认目标九宫格。',
+            )}
+        >
+            {tx('保存与应用周边八格')}
+        </div>
     </div>
 </button>
 

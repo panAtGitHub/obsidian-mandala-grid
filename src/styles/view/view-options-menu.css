@@ -189,7 +189,11 @@
         var(--interactive-accent) 18%,
         var(--background-primary)
     );
-    border-color: color-mix(in srgb, var(--interactive-accent) 65%, transparent);
+    border-color: color-mix(
+        in srgb,
+        var(--interactive-accent) 65%,
+        transparent
+    );
 }
 
 .view-options-menu__inline-toggle--text:active {
@@ -436,4 +440,49 @@
 
 .mobile-done-button:hover {
     background: var(--background-modifier-hover);
+}
+
+/* Explicitly override host label styles for every option row. */
+.view-options-menu label.view-options-menu__row,
+.view-options-menu .view-options-menu__inline-option,
+.view-options-menu .view-options-menu__row input[type='number'],
+.view-options-menu .view-options-menu__row select {
+    font-size: 12px;
+    font-weight: normal;
+}
+.mandala-setting-help {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    cursor: help;
+}
+.mandala-setting-help:hover,
+.mandala-setting-help:focus-visible {
+    color: var(--text-accent);
+}
+.mandala-setting-help-tooltip {
+    position: fixed;
+    z-index: 10000;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    box-shadow: var(--shadow-s);
+    font-size: 12px;
+    font-weight: normal;
+    line-height: 1.5;
+    white-space: normal;
 }

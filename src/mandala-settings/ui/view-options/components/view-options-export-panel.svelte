@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
+    import { settingHelp } from 'src/shared/ui/setting-help';
     import { Printer } from 'lucide-svelte';
 
     export let show = false;
@@ -58,7 +59,11 @@
                         on:change={setPngSquareMode}
                         on:click={setPngSquareMode}
                     />
-                    <span>{tx('仅导出正方形九宫格（自动等比留白）')}</span>
+                    <span
+                        use:settingHelp={tx(
+                            '仅导出九宫格内容，不包含左右侧栏；按导出尺寸等比排版。',
+                        )}>{tx('仅导出正方形九宫格（自动等比留白）')}</span
+                    >
                 </label>
                 <label class="view-options-menu__inline-option">
                     <input
@@ -79,7 +84,11 @@
                         disabled={exportMode !== 'png-screen'}
                         on:change={toggleIncludeSidebarInPngScreen}
                     />
-                    <span>{tx('包含侧边栏（屏幕视图）')}</span>
+                    <span
+                        use:settingHelp={tx(
+                            '仅用于屏幕视图导出，包含当前打开的侧栏。',
+                        )}>{tx('包含侧边栏（屏幕视图）')}</span
+                    >
                 </label>
             </div>
         </div>

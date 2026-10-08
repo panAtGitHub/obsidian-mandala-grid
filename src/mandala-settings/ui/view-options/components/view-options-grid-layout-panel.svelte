@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
+    import { settingHelp } from 'src/shared/ui/setting-help';
     import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
 
     export let selectedLayoutId = 'builtin:left-to-right';
@@ -23,7 +24,11 @@
 
 <div class="view-options-menu__subsection">
     <div class="view-options-menu__subsection-title">
-        {tx('九宫格方位布局')}
+        <span
+            use:settingHelp={tx(
+                '决定周边八格编号的位置，中心格始终为0，不修改格子正文。',
+            )}>{tx('九宫格方位布局')}</span
+        >
     </div>
     <div
         class="view-options-menu__row view-options-menu__row--inline grid-layout-panel__row"

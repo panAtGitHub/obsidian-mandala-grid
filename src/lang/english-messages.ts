@@ -634,4 +634,37 @@ export const englishMessages = {
     PC端: 'desktop',
     '、快速预览浮层': ' and quick preview',
     '创建核心 {0}': 'Create core {0}',
+    查看说明: 'Show explanation',
+    '调整九宫格的整格背景透明度；选择“无背景色”时不生效。':
+        'Adjusts whole-cell background opacity; unavailable when no background is selected.',
+    '调整左侧栏色块与格子编号色标的填色透明度，在所有背景模式下生效。':
+        'Adjusts fill opacity of sidebar colored items and cell number badges in all background modes.',
+    '调整未选中格子的内容透明度，用于突出当前格子。':
+        'Adjusts the opacity of inactive cell content to emphasize the current cell.',
+    '调整格子之间的间隔，不改变格子内文字的行距。':
+        'Adjusts spacing between cells, without changing text line spacing.',
+    '调整表格网格线和高亮框的透明度。':
+        'Adjusts opacity of table grid lines and selection outlines.',
+    '调整当前选中格子高亮边框的宽度。':
+        'Adjusts the width of the selection outline.',
+    '自适应布局随可用空间伸缩；正方形布局保持九宫格宽高相等。':
+        'Adaptive layout fills the available space; square layout keeps equal grid width and height.',
+    '决定周边八格编号的位置，中心格始终为0，不修改格子正文。':
+        'Controls the positions of the eight surrounding cell numbers. The center remains 0 and text is unchanged.',
+    '按位置交替显示灰色背景；已选颜色仍通过编号色标显示。':
+        'Alternates gray backgrounds by position. Assigned colors remain visible on number badges.',
+    '显示正文中用于Anki的辅助标记，不修改原始内容。':
+        'Shows Anki helper markers in the content without changing the original text.',
+    '显示格子中的导航按钮，用于展开子九宫格或切换核心九宫格。':
+        'Shows navigation buttons for expanding subgrids or switching core grids.',
+    '显示用于切换前后核心九宫格的按钮。':
+        'Shows buttons for switching to the previous or next core grid.',
+    '开启后可用空格键预览当前格子；编辑文字时空格仍正常输入。':
+        'Enables Space to preview the current cell. Space still types normally while editing.',
+    '模板保存周边八格，中心格保持独立；应用模板前请确认目标九宫格。':
+        'Templates save the eight surrounding cells independently of the center. Check the target grid before applying.',
+    '仅导出九宫格内容，不包含左右侧栏；按导出尺寸等比排版。':
+        'Exports only the grid, without sidebars, and fits it proportionally to the export size.',
+    '仅用于屏幕视图导出，包含当前打开的侧栏。':
+        'For screen exports only; includes the currently open sidebars.',
 } as const;

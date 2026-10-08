@@ -1,5 +1,6 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
+    import { settingHelp } from 'src/shared/ui/setting-help';
     import { Grid3x3, RotateCcw } from 'lucide-svelte';
     import type { MandalaCustomLayout } from 'src/mandala-settings/state/settings-type';
     import ColorSwatchInput from '../color-swatch-input.svelte';
@@ -192,7 +193,11 @@
                             </div>
                         </div>
                         <label class="view-options-menu__row">
-                            <span>{tx('非活跃格子透明度')}</span>
+                            <span
+                                use:settingHelp={tx(
+                                    '调整未选中格子的内容透明度，用于突出当前格子。',
+                                )}>{tx('非活跃格子透明度')}</span
+                            >
                             <div class="view-options-menu__range">
                                 <button
                                     class="view-options-menu__range-step"
@@ -241,7 +246,11 @@
                             </div>
                         </label>
                         <label class="view-options-menu__row">
-                            <span>{tx('网格间距')}</span>
+                            <span
+                                use:settingHelp={tx(
+                                    '调整格子之间的间隔，不改变格子内文字的行距。',
+                                )}>{tx('网格间距')}</span
+                            >
                             <div class="view-options-menu__range">
                                 <button
                                     class="view-options-menu__range-step"
@@ -314,7 +323,11 @@
                             </div>
                         </div>
                         <label class="view-options-menu__row">
-                            <span>{tx('高亮框粗细')}</span>
+                            <span
+                                use:settingHelp={tx(
+                                    '调整当前选中格子高亮边框的宽度。',
+                                )}>{tx('高亮框粗细')}</span
+                            >
                             <div class="view-options-menu__range">
                                 <button
                                     class="view-options-menu__range-step"
@@ -365,7 +378,11 @@
                             </div>
                         </label>
                         <label class="view-options-menu__row">
-                            <span>{tx('线框透明度')}</span>
+                            <span
+                                use:settingHelp={tx(
+                                    '调整表格网格线和高亮框的透明度。',
+                                )}>{tx('线框透明度')}</span
+                            >
                             <div class="view-options-menu__range">
                                 <button
                                     class="view-options-menu__range-step"
@@ -434,7 +451,11 @@
                         checked={backgroundMode === 'gray'}
                         on:change={() => updateBackgroundMode('gray')}
                     />
-                    <span>{tx('间隔灰色色块')}</span>
+                    <span
+                        use:settingHelp={tx(
+                            '按位置交替显示灰色背景；已选颜色仍通过编号色标显示。',
+                        )}>{tx('间隔灰色色块')}</span
+                    >
                 </label>
             </div>
             <label class="view-options-menu__row">
@@ -473,6 +494,11 @@
                         disabled={backgroundMode === 'none'}
                     />
                 </div>
+                <span
+                    use:settingHelp={tx(
+                        '调整九宫格的整格背景透明度；选择“无背景色”时不生效。',
+                    )}
+                ></span>
             </label>
             <label class="view-options-menu__row">
                 <span>{tx('色标透明度')}</span>
@@ -511,17 +537,21 @@
                         on:change={updateColorIndicatorOpacity}
                     />
                 </div>
+                <span
+                    use:settingHelp={tx(
+                        '调整左侧栏色块与格子编号色标的填色透明度，在所有背景模式下生效。',
+                    )}
+                ></span>
             </label>
-            <div class="view-options-menu__hint">
-                {tx(
-                    '控制左侧栏色块与格子编号色标的填色透明度，适用于所有背景模式。',
-                )}
-            </div>
         </div>
 
         <div class="view-options-menu__subsection">
             <div class="view-options-menu__subsection-title">
-                {tx('格子形状布局')}
+                <span
+                    use:settingHelp={tx(
+                        '自适应布局随可用空间伸缩；正方形布局保持九宫格宽高相等。',
+                    )}>{tx('格子形状布局')}</span
+                >
             </div>
             <div class="view-options-menu__row view-options-menu__row--inline">
                 <label class="view-options-menu__inline-option">
@@ -553,11 +583,3 @@
         />
     </div>
 {/if}
-
-<style>
-    .view-options-menu__hint {
-        color: var(--text-muted);
-        font-size: var(--font-ui-small);
-        line-height: 1.5;
-    }
-</style>
