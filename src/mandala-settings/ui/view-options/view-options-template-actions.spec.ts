@@ -134,7 +134,7 @@ describe('builtin template insertion', () => {
         expect(fixture.markdown()).toContain('Notes');
         expect(fixture.markdown()).toContain('## 模板：Custom\n1: Replacement');
         expect(fixture.markdown()).toContain(
-            '## 模板：生活八领域\n1: 健康\n2: 工作\n3: 财务\n4: 家庭\n5: 社群\n6: 内在\n7: 学习\n8: 休闲',
+            '## 模板：生活八领域\n1: ## 健康\n2: ## 工作\n3: ## 财务\n4: ## 家庭\n5: ## 社群\n6: ## 内在\n7: ## 学习\n8: ## 休闲',
         );
         expect(fixture.dispatch).not.toHaveBeenCalled();
         expect(fixture.content('1.1')).toBe('### Old title\nKeep this body');
