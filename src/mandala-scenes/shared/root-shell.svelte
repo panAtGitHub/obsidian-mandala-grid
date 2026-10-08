@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Platform } from 'obsidian';
+    import { ShowLeftSidebarStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { onDestroy, onMount } from 'svelte';
     import type { MandalaThemeSnapshot } from 'src/mandala-cell/model/card-view-model';
     import type {
@@ -26,6 +27,9 @@
     } from 'src/mandala-scenes/shared/root-shell-state';
 
     const view = getView();
+    const showLeftSidebar = ShowLeftSidebarStore(view);
+    $: desktopSquareLayout =
+        squareLayout && ($showLeftSidebar || showDetailSidebar || a4Mode);
     const DEFAULT_THEME_SNAPSHOT: MandalaThemeSnapshot = {
         themeTone: 'light',
         themeUnderlayColor: '',
@@ -93,7 +97,7 @@
         const rect = contentWrapperRef.getBoundingClientRect();
         desktopSquareSize = resolveDesktopSquareSize({
             isMobile: Platform.isMobile,
-            squareLayout,
+            squareLayout: desktopSquareLayout,
             wrapperWidth: rect.width,
             wrapperHeight: rect.height,
             showDetailSidebar,
@@ -139,7 +143,7 @@
     }
 
     $: if (!Platform.isMobile) {
-        squareLayout;
+        desktopSquareLayout;
         showDetailSidebar;
         detailSidebarWidth;
         recomputeDesktopSquareSize();
@@ -169,7 +173,8 @@
     class:mandala-root--week={committedSceneKey.variant === 'week-7x9'}
     class:is-editing-mobile={isMobilePopupEditing}
     class:is-square-layout={Platform.isMobile && showDetailSidebar}
-    class:is-desktop-square-layout={!Platform.isMobile && squareLayout}
+    class:is-desktop-square-layout={!Platform.isMobile && desktopSquareLayout}
+    class:has-left-sidebar={!Platform.isMobile && $showLeftSidebar}
     class:has-detail-sidebar={!Platform.isMobile && showDetailSidebar}
     class:is-portrait={isPortrait}
     class:mandala-white-theme={whiteThemeMode}
@@ -304,7 +309,19 @@
     :global(body:not(.is-mobile))
         .mandala-root:not(.mandala-a4-mode)
         .mandala-scroll {
-        padding: 12px;
+        padding: 12px 0;
+    }
+
+    :global(body:not(.is-mobile))
+        .mandala-root.has-left-sidebar:not(.mandala-a4-mode)
+        .mandala-scroll {
+        padding-left: 12px;
+    }
+
+    :global(body:not(.is-mobile))
+        .mandala-root.has-detail-sidebar:not(.mandala-a4-mode)
+        .mandala-scroll {
+        padding-right: 12px;
     }
 
     .mandala-body {

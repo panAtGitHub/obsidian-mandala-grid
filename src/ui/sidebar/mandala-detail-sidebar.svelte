@@ -377,12 +377,12 @@
 
     /* 桌面端详情侧栏左侧不再额外留白，中间空白由主视图提供 */
     :global(body:not(.is-mobile)) .sidebar-content {
-        padding: 12px 12px 12px 0;
+        padding: 12px 0;
     }
 
     /* 桌面端竖屏时，调整顶部间距为 6px */
     :global(body:not(.is-mobile)) .is-portrait .sidebar-content {
-        padding: 6px 12px 12px 12px;
+        padding: 12px 0;
     }
 
     .is-portrait .sidebar-content {
