@@ -34,6 +34,7 @@
         MandalaFontSizeSidebarMobileStore,
         MandalaGridSelectedLayoutIdStore,
         MandalaSectionColorOpacityStore,
+        MandalaColorIndicatorOpacityStore,
         ShowCellQuickPreviewDialogStore,
         ShowMandalaDetailSidebarStore,
         Show3x3SubgridNavButtonsStore,
@@ -95,6 +96,7 @@
     const borderOpacity = MandalaBorderOpacityStore(view);
     const gridHighlightColorStore = MandalaGridHighlightColorStore(view);
     const gridHighlightWidth = MandalaGridHighlightWidthStore(view);
+    const colorIndicatorOpacity = MandalaColorIndicatorOpacityStore(view);
     const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
     const backgroundMode = MandalaBackgroundModeStore(view);
     const whiteThemeMode = WhiteThemeModeStore(view);
@@ -205,6 +207,7 @@
         updateHeadingsFontSizeValue,
         updateBorderOpacityValue,
         updateSectionColorOpacityValue,
+        updateColorIndicatorOpacityValue,
         updateGridHighlightWidthValue,
         updateInactiveNodeOpacityValue,
         updateContainerBgColor,
@@ -450,6 +453,15 @@
         updateHeadingsFontSizeValue,
         parseFiniteFloat,
     );
+
+    const updateColorIndicatorOpacity = (event: Event) => {
+        updateColorIndicatorOpacityValue(
+            Number((event.target as HTMLInputElement).value),
+        );
+    };
+    const stepColorIndicatorOpacity = (current: number, delta: number) => {
+        updateColorIndicatorOpacityValue(current + delta);
+    };
 
     const stepOpacity = (current: number, delta: number) => {
         updateSectionColorOpacityValue(current + delta);
@@ -824,6 +836,7 @@
         borderOpacity: $borderOpacity,
         backgroundMode: $backgroundMode,
         sectionColorOpacity: $sectionColorOpacity,
+        colorIndicatorOpacity: $colorIndicatorOpacity,
         squareLayout: $squareLayout,
         cardsGap: $cardsGap,
         selectedLayoutId: $selectedLayoutId,
@@ -846,6 +859,8 @@
         updateBackgroundMode,
         stepOpacity,
         updateSectionColorOpacity,
+        updateColorIndicatorOpacity,
+        stepColorIndicatorOpacity,
         updateSquareLayout,
         stepCardsGap,
         updateCardsGap,
@@ -1099,6 +1114,7 @@
                 gridHighlightWidth={$gridHighlightWidth}
                 backgroundMode={$backgroundMode}
                 sectionColorOpacity={$sectionColorOpacity}
+                colorIndicatorOpacity={$colorIndicatorOpacity}
                 squareLayout={$squareLayout}
                 cardsGap={$cardsGap}
                 selectedLayoutId={$selectedLayoutId}
@@ -1126,6 +1142,8 @@
                 {updateBackgroundMode}
                 {stepOpacity}
                 {updateSectionColorOpacity}
+                {updateColorIndicatorOpacity}
+                {stepColorIndicatorOpacity}
                 {updateSquareLayout}
                 {stepCardsGap}
                 {updateCardsGap}

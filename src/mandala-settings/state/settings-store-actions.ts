@@ -348,6 +348,10 @@ export type SettingsActions =
           payload: { width: number };
       }
     | {
+          type: 'settings/view/mandala/set-color-indicator-opacity';
+          payload: { opacity: number };
+      }
+    | {
           type: 'settings/view/mandala/set-section-color-opacity';
           payload: { opacity: number };
       }

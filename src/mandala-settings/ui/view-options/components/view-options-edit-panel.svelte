@@ -21,6 +21,12 @@
     export let gridHighlightWidth = 2;
     export let backgroundMode: 'none' | 'custom' | 'gray' = 'none';
     export let sectionColorOpacity = 0;
+    export let colorIndicatorOpacity = 100;
+    export let updateColorIndicatorOpacity: (event: Event) => void;
+    export let stepColorIndicatorOpacity: (
+        current: number,
+        delta: number,
+    ) => void;
     export let squareLayout = false;
     export let cardsGap = 0;
     export let selectedLayoutId = 'builtin:left-to-right';
@@ -432,7 +438,7 @@
                 </label>
             </div>
             <label class="view-options-menu__row">
-                <span>{tx('背景色透明度')}</span>
+                <span>{tx('格子背景透明度')}</span>
                 <div class="view-options-menu__range">
                     <button
                         class="view-options-menu__range-step"
@@ -468,6 +474,49 @@
                     />
                 </div>
             </label>
+            <label class="view-options-menu__row">
+                <span>{tx('色标透明度')}</span>
+                <div class="view-options-menu__range">
+                    <button
+                        class="view-options-menu__range-step"
+                        type="button"
+                        on:click={() =>
+                            stepColorIndicatorOpacity(
+                                colorIndicatorOpacity,
+                                -5,
+                            )}
+                    >
+                        -
+                    </button>
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={colorIndicatorOpacity}
+                        on:input={updateColorIndicatorOpacity}
+                    />
+                    <button
+                        class="view-options-menu__range-step"
+                        type="button"
+                        on:click={() =>
+                            stepColorIndicatorOpacity(colorIndicatorOpacity, 5)}
+                    >
+                        +
+                    </button>
+                    <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={colorIndicatorOpacity}
+                        on:change={updateColorIndicatorOpacity}
+                    />
+                </div>
+            </label>
+            <div class="view-options-menu__hint">
+                {tx(
+                    '控制左侧栏色块与格子编号色标的填色透明度，适用于所有背景模式。',
+                )}
+            </div>
         </div>
 
         <div class="view-options-menu__subsection">
@@ -504,3 +553,11 @@
         />
     </div>
 {/if}
+
+<style>
+    .view-options-menu__hint {
+        color: var(--text-muted);
+        font-size: var(--font-ui-small);
+        line-height: 1.5;
+    }
+</style>

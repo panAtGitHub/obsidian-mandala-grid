@@ -208,6 +208,12 @@ export const MandalaBorderOpacityStore = (view: MandalaView) =>
         (state) => state.view.mandalaGridBorderOpacity,
     );
 
+export const MandalaColorIndicatorOpacityStore = (view: MandalaView) =>
+    derived(
+        view.plugin.settings,
+        (state) => state.view.mandalaColorIndicatorOpacity ?? 100,
+    );
+
 export const MandalaSectionColorOpacityStore = (view: MandalaView) =>
     derived(
         view.plugin.settings,

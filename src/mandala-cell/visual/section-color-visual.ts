@@ -3,7 +3,10 @@ import {
     type TextTone,
     type ThemeTone,
 } from 'src/mandala-display/contrast/readable-text-tone';
-import { resolveSectionAccentColor } from 'src/mandala-display/palette/section-colors';
+import {
+    applyOpacityToHex,
+    resolveSectionAccentColor,
+} from 'src/mandala-display/palette/section-colors';
 import { resolveSectionColorPolicy } from 'src/mandala-display/policies/section-color-policy';
 import type {
     CellSectionIndicatorVariant,
@@ -32,6 +35,7 @@ export const resolveCellSectionColorVisual = ({
     pinned,
     themeTone,
     themeUnderlayColor,
+    colorIndicatorOpacity = 100,
 }: {
     section: string;
     colorContext: CellSectionColorContext | null;
@@ -39,6 +43,7 @@ export const resolveCellSectionColorVisual = ({
     pinned: boolean;
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
+    colorIndicatorOpacity?: number;
 }): CellSectionColorVisual => {
     const backgroundColor = resolveSectionSurfaceBackgroundColor({
         section,
@@ -49,6 +54,9 @@ export const resolveCellSectionColorVisual = ({
               section,
               sectionColorsBySection: colorContext.sectionColorsBySection,
           })
+        : null;
+    const indicatorColor = accentColor
+        ? applyOpacityToHex(accentColor, colorIndicatorOpacity / 100)
         : null;
     const policy = resolveSectionColorPolicy({
         indicatorVariant,
@@ -62,13 +70,13 @@ export const resolveCellSectionColorVisual = ({
         policy.metaColorSource === 'surface'
             ? backgroundColor
             : policy.metaColorSource === 'accent'
-              ? accentColor
+              ? indicatorColor
               : null;
 
     return {
         backgroundColor,
         metaVariant: policy.metaMode,
-        metaAccentColor: accentColor,
+        metaAccentColor: indicatorColor,
         metaBackgroundColor,
         metaTextTone: metaBackgroundColor
             ? getReadableTextTone(

@@ -39,7 +39,8 @@ export const createViewOptionsSettingsActions = ({
     const settingsStore = view.plugin.settings as {
         dispatch: (action: SettingsActions) => void;
     };
-    const dispatch = (action: SettingsActions) => settingsStore.dispatch(action);
+    const dispatch = (action: SettingsActions) =>
+        settingsStore.dispatch(action);
 
     const setContextMenuCopyLinkVisibility = (
         variant: ContextMenuCopyLinkVariant,
@@ -125,8 +126,9 @@ export const createViewOptionsSettingsActions = ({
         toggleCopyBlockEmbed: createCopyLinkVisibilityToggle('block-embed'),
         toggleCopyHeadingPlain: createCopyLinkVisibilityToggle('heading-plain'),
         toggleCopyHeadingEmbed: createCopyLinkVisibilityToggle('heading-embed'),
-        toggleCopyHeadingEmbedDollar:
-            createCopyLinkVisibilityToggle('heading-embed-dollar'),
+        toggleCopyHeadingEmbedDollar: createCopyLinkVisibilityToggle(
+            'heading-embed-dollar',
+        ),
         updateDetailSidebarPreviewMode(mode: DetailSidebarPreviewMode) {
             dispatch({
                 type: 'settings/view/detail-sidebar/set-preview-mode',
@@ -191,6 +193,12 @@ export const createViewOptionsSettingsActions = ({
         updateBorderOpacityValue(value: number) {
             dispatch({
                 type: 'settings/view/mandala/set-border-opacity',
+                payload: { opacity: clampOpacity(value) },
+            });
+        },
+        updateColorIndicatorOpacityValue(value: number) {
+            dispatch({
+                type: 'settings/view/mandala/set-color-indicator-opacity',
                 payload: { opacity: clampOpacity(value) },
             });
         },

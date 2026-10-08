@@ -229,6 +229,7 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         mandalaGridCustomLayouts?: unknown;
         mandalaShowSectionColors?: boolean;
         mandalaSectionColorOpacity?: number;
+        mandalaColorIndicatorOpacity?: number;
         mandalaFontSize7x9Desktop?: number;
         mandalaFontSize7x9Mobile?: number;
         mandalaCellPreviewFontSizeDesktop?: number;
@@ -307,6 +308,9 @@ export const migrateSettings = (settings: Settings | Settings_0_5_4) => {
         layoutIdToOrientation(selectedLayoutId);
     if (viewSettings.mandalaSectionColorOpacity === undefined) {
         viewSettings.mandalaSectionColorOpacity = 100;
+    }
+    if (viewSettings.mandalaColorIndicatorOpacity === undefined) {
+        viewSettings.mandalaColorIndicatorOpacity = 100;
     }
     const generalSettings = (settings as Settings).general as {
         defaultDocumentFormat?: unknown;

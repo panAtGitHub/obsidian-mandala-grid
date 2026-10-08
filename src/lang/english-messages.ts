@@ -317,6 +317,10 @@ export const englishMessages = {
     色块卡片: 'Colored cards',
     间隔灰色色块: 'Alternating gray cells',
     背景色透明度: 'Background opacity',
+    格子背景透明度: 'Cell background opacity',
+    色标透明度: 'Color indicator opacity',
+    '控制左侧栏色块与格子编号色标的填色透明度，适用于所有背景模式。':
+        'Controls fill opacity of sidebar colored items and cell number badges in all background modes.',
     格子形状布局: 'Cell shape',
     自适应布局: 'Adaptive layout',
     正方形布局: 'Square layout',

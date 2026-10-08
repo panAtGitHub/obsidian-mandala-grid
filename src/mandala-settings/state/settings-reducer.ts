@@ -744,6 +744,11 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         }
         store.view.mandalaGridHighlightWidth = action.payload.width;
     },
+    'settings/view/mandala/set-color-indicator-opacity': (store, action) => {
+        if (action.type !== 'settings/view/mandala/set-color-indicator-opacity')
+            return;
+        store.view.mandalaColorIndicatorOpacity = action.payload.opacity;
+    },
     'settings/view/mandala/set-section-color-opacity': (store, action) => {
         if (action.type !== 'settings/view/mandala/set-section-color-opacity')
             return;

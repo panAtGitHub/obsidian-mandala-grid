@@ -102,6 +102,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         mandalaGridBorderOpacity: 100,
         mandalaGridHighlightWidth: DEFAULT_MANDALA_GRID_HIGHLIGHT_WIDTH,
         mandalaSectionColorOpacity: 100,
+        mandalaColorIndicatorOpacity: 100,
         lastExportPreset: null,
         showHiddenCardInfo: true,
         show3x3SubgridNavButtonsDesktop: true,

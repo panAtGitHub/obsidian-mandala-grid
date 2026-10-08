@@ -343,3 +343,17 @@ describe('settingsReducer custom grid layouts', () => {
         expect(settings.view.mandalaMode).toBe('nx9');
     });
 });
+
+describe('color indicator opacity', () => {
+    test('persists indicator opacity independently of cell background opacity', () => {
+        const settings = DEFAULT_SETTINGS();
+        expect(settings.view.mandalaColorIndicatorOpacity).toBe(100);
+        settings.view.mandalaSectionColorOpacity = 28;
+        settingsReducer(settings, {
+            type: 'settings/view/mandala/set-color-indicator-opacity',
+            payload: { opacity: 60 },
+        });
+        expect(settings.view.mandalaColorIndicatorOpacity).toBe(60);
+        expect(settings.view.mandalaSectionColorOpacity).toBe(28);
+    });
+});

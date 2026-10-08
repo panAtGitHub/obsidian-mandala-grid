@@ -1,5 +1,7 @@
 <script lang="ts">
     import clx from 'classnames';
+    import { getView } from 'src/mandala-scenes/shared/shell/context';
+    import { MandalaColorIndicatorOpacityStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { getCellRuntime } from 'src/view/context';
     import CardMainContent from 'src/mandala-cell/view/components/card-main-content.svelte';
     import CardMeta from 'src/mandala-cell/view/components/card-meta.svelte';
@@ -31,6 +33,7 @@
         null;
 
     const cellRuntime = getCellRuntime();
+    const colorIndicatorOpacity = MandalaColorIndicatorOpacityStore(getView());
     const isMobile = cellRuntime.isMobilePlatform;
     const showDetailSidebar = cellRuntime.showDetailSidebar;
     const swapState = cellRuntime.swapState;
@@ -77,6 +80,7 @@
     $: renderModel = buildMandalaCardRenderModel({
         viewModel,
         uiState,
+        colorIndicatorOpacity: $colorIndicatorOpacity,
         fallbackSection: $idToSection?.[nodeId],
         previewDialogOpen: $previewDialog.open,
         previewDialogNodeId: $previewDialog.nodeId,

@@ -60,10 +60,12 @@ describe('buildMandalaCardRenderModel', () => {
         expect(model.surfaceStyle).toContain(
             'background-color: var(--background-primary)',
         );
-        expect(model.bodyStyle).toContain('opacity: var(--inactive-card-opacity)');
+        expect(model.bodyStyle).toContain(
+            'opacity: var(--inactive-card-opacity)',
+        );
     });
 
-    it('keeps section-capsule meta background aligned with the resolved card background', () => {
+    it('renders an opaque color badge in colored card mode', () => {
         const model = buildMandalaCardRenderModel({
             ...baseOptions(),
             viewModel: {
@@ -77,7 +79,7 @@ describe('buildMandalaCardRenderModel', () => {
             },
         });
 
-        expect(model.sectionMetaVariant).toBe('background');
+        expect(model.sectionMetaVariant).toBe('capsule');
         expect(model.metaStyle).toContain(
             '--mandala-card-meta-bg: rgba(233, 217, 103, 1)',
         );
@@ -107,6 +109,8 @@ describe('buildMandalaCardRenderModel', () => {
 
         expect(model.sectionMetaVariant).toBe('capsule');
         expect(model.sectionMetaTextTone).toBe('light');
-        expect(model.metaStyle).toContain('--mandala-card-meta-accent: #323232');
+        expect(model.metaStyle).toContain(
+            '--mandala-card-meta-accent: rgba(50, 50, 50, 1)',
+        );
     });
 });

@@ -348,3 +348,15 @@ describe('migrateSettings', () => {
         expect(settings.view.mandalaFontSize7x9Mobile).toBe(10);
     });
 });
+
+describe('color indicator opacity migration', () => {
+    test('defaults old settings to 100 without changing saved values', () => {
+        const settings = DEFAULT_SETTINGS();
+        Reflect.deleteProperty(settings.view, 'mandalaColorIndicatorOpacity');
+        migrateSettings(settings);
+        expect(settings.view.mandalaColorIndicatorOpacity).toBe(100);
+        settings.view.mandalaColorIndicatorOpacity = 45;
+        migrateSettings(settings);
+        expect(settings.view.mandalaColorIndicatorOpacity).toBe(45);
+    });
+});

@@ -3,16 +3,14 @@ import { resolveSectionSurfaceVisual } from 'src/mandala-display/contrast/sectio
 
 export const resolvePinnedItemColorStyle = ({
     section,
-    backgroundMode,
     sectionColorsBySection,
-    sectionColorOpacity,
+    colorIndicatorOpacity,
     themeTone,
     themeUnderlayColor,
 }: {
     section: string;
-    backgroundMode: string;
     sectionColorsBySection: Record<string, string>;
-    sectionColorOpacity: number;
+    colorIndicatorOpacity: number;
     themeTone: ThemeTone;
     themeUnderlayColor: string;
 }) =>
@@ -22,8 +20,7 @@ export const resolvePinnedItemColorStyle = ({
             // Sidebar color assignments remain visible in every grid background mode.
             backgroundMode: 'custom',
             sectionColorsBySection,
-            sectionColorOpacity:
-                backgroundMode === 'custom' ? sectionColorOpacity : 100,
+            sectionColorOpacity: colorIndicatorOpacity,
         },
         themeTone,
         themeUnderlayColor,

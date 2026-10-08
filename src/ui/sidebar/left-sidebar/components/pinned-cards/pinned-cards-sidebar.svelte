@@ -16,18 +16,14 @@
         createSectionColorIndex,
         SECTION_COLOR_KEYS,
     } from 'src/mandala-display/palette/section-colors';
-    import {
-        MandalaBackgroundModeStore,
-        MandalaSectionColorOpacityStore,
-    } from 'src/mandala-settings/state/derived/view-settings-store';
+    import { MandalaColorIndicatorOpacityStore } from 'src/mandala-settings/state/derived/view-settings-store';
     import { Palette, Pin } from 'lucide-svelte';
     import type { ThemeTone } from 'src/mandala-display/contrast/readable-text-tone';
     import { resolvePinnedItemColorStyle } from 'src/mandala-display/policies/pinned-item-color-style';
 
     const view = getView();
     const pinnedNodesArray = PinnedNodesStore(view);
-    const sectionColorOpacity = MandalaSectionColorOpacityStore(view);
-    const backgroundMode = MandalaBackgroundModeStore(view);
+    const colorIndicatorOpacity = MandalaColorIndicatorOpacityStore(view);
     const sectionColorMapStore = CurrentFileSectionColorMapStore(view);
     const sectionColors = SectionColorBySectionStore(view);
 
@@ -202,15 +198,13 @@
 
     const getPinnedItemStyle = (
         section: string,
-        mode: string,
         colors: Record<string, string>,
         opacity: number,
     ) => {
         return resolvePinnedItemColorStyle({
             section,
-            backgroundMode: mode,
             sectionColorsBySection: colors,
-            sectionColorOpacity: opacity,
+            colorIndicatorOpacity: opacity,
             themeTone: getThemeTone(),
             themeUnderlayColor: getThemeUnderlayColor(),
         });
@@ -257,9 +251,8 @@
                     class:has-color={Boolean($sectionColors[item.section])}
                     style={getPinnedItemStyle(
                         item.section,
-                        $backgroundMode,
                         $sectionColors,
-                        $sectionColorOpacity,
+                        $colorIndicatorOpacity,
                     )}
                     id={item.nodeId}
                     on:click={() => handleClick(item)}

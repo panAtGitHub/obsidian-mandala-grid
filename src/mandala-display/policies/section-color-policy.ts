@@ -26,7 +26,7 @@ export const resolveSectionColorPolicy = ({
     if (
         hasAccentColor &&
         (indicatorVariant === 'plain-with-pin' ||
-            (indicatorVariant === 'section-capsule' && !hasBackgroundColor))
+            indicatorVariant === 'section-capsule')
     ) {
         return {
             metaMode: 'capsule',

@@ -145,6 +145,7 @@ export type Settings = {
         mandalaGridHighlightColor?: string;
         mandalaGridHighlightWidth: number;
         mandalaSectionColorOpacity: number;
+        mandalaColorIndicatorOpacity: number;
         lastExportPreset: LastExportPreset | null;
         showHiddenCardInfo: boolean;
         show3x3SubgridNavButtonsDesktop: boolean;

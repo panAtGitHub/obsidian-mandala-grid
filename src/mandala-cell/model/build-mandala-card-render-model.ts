@@ -22,6 +22,7 @@ type BuildMandalaCardRenderModelOptions = {
     isMobile: boolean;
     themeTone: ThemeTone;
     themeUnderlayColor?: string;
+    colorIndicatorOpacity?: number;
 };
 
 export const buildMandalaCardRenderModel = ({
@@ -34,6 +35,7 @@ export const buildMandalaCardRenderModel = ({
     isMobile,
     themeTone,
     themeUnderlayColor,
+    colorIndicatorOpacity = 100,
 }: BuildMandalaCardRenderModelOptions): MandalaCardRenderModel => {
     const {
         nodeId,
@@ -49,23 +51,20 @@ export const buildMandalaCardRenderModel = ({
         section: displaySection,
         colorContext: sectionColorContext,
         indicatorVariant: displayPolicy.sectionIndicatorVariant,
+        colorIndicatorOpacity,
         pinned,
         themeTone,
         themeUnderlayColor,
     });
-    const {
-        cardStyle,
-        surfaceStyle,
-        bodyStyle,
-        shouldHideBackgroundStyle,
-    } = buildMandalaCardStyle({
-        active,
-        backgroundColor: sectionColorVisual.backgroundColor,
-        preserveActiveBackground: displayPolicy.preserveActiveBackground,
-        style,
-        themeTone,
-        themeUnderlayColor,
-    });
+    const { cardStyle, surfaceStyle, bodyStyle, shouldHideBackgroundStyle } =
+        buildMandalaCardStyle({
+            active,
+            backgroundColor: sectionColorVisual.backgroundColor,
+            preserveActiveBackground: displayPolicy.preserveActiveBackground,
+            style,
+            themeTone,
+            themeUnderlayColor,
+        });
     const previewOwnsInlineEditor = isPreviewDialogEditingNode({
         previewDialogOpen,
         previewDialogNodeId,
@@ -92,17 +91,17 @@ export const buildMandalaCardRenderModel = ({
         metaStyle:
             sectionColorVisual.metaAccentColor ||
             sectionColorVisual.metaBackgroundColor
-            ? [
-                  sectionColorVisual.metaAccentColor
-                      ? `--mandala-card-meta-accent: ${sectionColorVisual.metaAccentColor}`
-                      : null,
-                  sectionColorVisual.metaBackgroundColor
-                      ? `--mandala-card-meta-bg: ${sectionColorVisual.metaBackgroundColor}`
-                      : null,
-              ]
-                  .filter(Boolean)
-                  .join('; ')
-            : undefined,
+                ? [
+                      sectionColorVisual.metaAccentColor
+                          ? `--mandala-card-meta-accent: ${sectionColorVisual.metaAccentColor}`
+                          : null,
+                      sectionColorVisual.metaBackgroundColor
+                          ? `--mandala-card-meta-bg: ${sectionColorVisual.metaBackgroundColor}`
+                          : null,
+                  ]
+                      .filter(Boolean)
+                      .join('; ')
+                : undefined,
         isFloatingMobile: isMobile && editing && !showDetailSidebar,
     };
 };
