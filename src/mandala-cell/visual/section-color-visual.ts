@@ -3,9 +3,7 @@ import {
     type TextTone,
     type ThemeTone,
 } from 'src/mandala-display/contrast/readable-text-tone';
-import {
-    resolveSectionAccentColor,
-} from 'src/mandala-display/palette/section-colors';
+import { resolveSectionAccentColor } from 'src/mandala-display/palette/section-colors';
 import { resolveSectionColorPolicy } from 'src/mandala-display/policies/section-color-policy';
 import type {
     CellSectionIndicatorVariant,
@@ -54,7 +52,10 @@ export const resolveCellSectionColorVisual = ({
         : null;
     const policy = resolveSectionColorPolicy({
         indicatorVariant,
-        hasBackgroundColor: Boolean(backgroundColor),
+        hasBackgroundColor:
+            colorContext?.backgroundMode === 'custom' &&
+            Boolean(backgroundColor),
+        hasAccentColor: Boolean(accentColor),
         pinned,
     });
     const metaBackgroundColor =

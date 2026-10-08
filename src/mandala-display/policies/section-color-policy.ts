@@ -15,12 +15,26 @@ export type ResolvedSectionColorPolicy = {
 export const resolveSectionColorPolicy = ({
     indicatorVariant,
     hasBackgroundColor,
+    hasAccentColor = false,
     pinned,
 }: {
     indicatorVariant: SectionColorIndicatorVariant;
     hasBackgroundColor: boolean;
+    hasAccentColor?: boolean;
     pinned: boolean;
 }): ResolvedSectionColorPolicy => {
+    if (
+        hasAccentColor &&
+        (indicatorVariant === 'plain-with-pin' ||
+            (indicatorVariant === 'section-capsule' && !hasBackgroundColor))
+    ) {
+        return {
+            metaMode: 'capsule',
+            metaColorSource: 'accent',
+            showPin: pinned,
+        };
+    }
+
     if (indicatorVariant === 'section-capsule') {
         return hasBackgroundColor
             ? {

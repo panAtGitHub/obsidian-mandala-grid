@@ -81,6 +81,10 @@
         opacity: 0.7;
     }
 
+    .mandala-card-meta--capsule-wrap.mandala-card-meta--without-bg {
+        opacity: 1;
+    }
+
     .mandala-card-meta__pin {
         display: inline-flex;
         align-items: center;

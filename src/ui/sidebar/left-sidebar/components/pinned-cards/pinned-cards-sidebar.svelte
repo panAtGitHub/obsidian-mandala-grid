@@ -200,12 +200,17 @@
             .getPropertyValue('--background-primary')
             .trim();
 
-    const getPinnedItemStyle = (section: string) => {
+    const getPinnedItemStyle = (
+        section: string,
+        mode: string,
+        colors: Record<string, string>,
+        opacity: number,
+    ) => {
         return resolvePinnedItemColorStyle({
             section,
-            backgroundMode: $backgroundMode,
-            sectionColorsBySection: $sectionColors,
-            sectionColorOpacity: $sectionColorOpacity,
+            backgroundMode: mode,
+            sectionColorsBySection: colors,
+            sectionColorOpacity: opacity,
             themeTone: getThemeTone(),
             themeUnderlayColor: getThemeUnderlayColor(),
         });
@@ -249,9 +254,13 @@
                 <div
                     class="pinned-list-item"
                     class:selected={$activePinnedCard === item.nodeId}
-                    class:has-color={$backgroundMode === 'custom' &&
-                        Boolean($sectionColors[item.section])}
-                    style={getPinnedItemStyle(item.section)}
+                    class:has-color={Boolean($sectionColors[item.section])}
+                    style={getPinnedItemStyle(
+                        item.section,
+                        $backgroundMode,
+                        $sectionColors,
+                        $sectionColorOpacity,
+                    )}
                     id={item.nodeId}
                     on:click={() => handleClick(item)}
                     on:keydown={(event) => handleKeydown(event, item)}

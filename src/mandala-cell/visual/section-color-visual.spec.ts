@@ -39,4 +39,51 @@ describe('section-color-visual', () => {
         expect(visual.metaTextTone).toBe('light');
         expect(visual.showPin).toBe(true);
     });
+    it.each(['none', 'gray'])(
+        'keeps assigned color on the number in %s mode',
+        (backgroundMode) => {
+            for (const indicatorVariant of [
+                'section-capsule',
+                'plain-with-pin',
+            ] as const) {
+                const visual = resolveCellSectionColorVisual({
+                    section: '1.1',
+                    colorContext: {
+                        backgroundMode,
+                        sectionColorsBySection: { '1.1': '#323232' },
+                        sectionColorOpacity: 0,
+                        showGrayBlockBackground: true,
+                    },
+                    indicatorVariant,
+                    pinned: true,
+                    themeTone: 'light',
+                });
+                expect(visual.metaVariant).toBe('capsule');
+                expect(visual.metaBackgroundColor).toBe('#323232');
+                expect(visual.metaTextTone).toBe('light');
+                expect(visual.showPin).toBe(true);
+                if (backgroundMode === 'none')
+                    expect(visual.backgroundColor).toBeNull();
+                else expect(visual.backgroundColor).toContain('color-mix');
+            }
+        },
+    );
+
+    it('returns to plain numbering after clearing an assigned color', () => {
+        const visual = resolveCellSectionColorVisual({
+            section: '1.1',
+            colorContext: {
+                backgroundMode: 'gray',
+                sectionColorsBySection: {},
+                sectionColorOpacity: 80,
+                showGrayBlockBackground: true,
+            },
+            indicatorVariant: 'section-capsule',
+            pinned: false,
+            themeTone: 'light',
+        });
+        expect(visual.backgroundColor).toContain('color-mix');
+        expect(visual.metaVariant).toBe('plain');
+        expect(visual.metaBackgroundColor).toBeNull();
+    });
 });

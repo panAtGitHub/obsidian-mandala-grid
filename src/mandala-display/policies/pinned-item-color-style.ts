@@ -19,9 +19,11 @@ export const resolvePinnedItemColorStyle = ({
     resolveSectionSurfaceVisual({
         section,
         colorContext: {
-            backgroundMode,
+            // Sidebar color assignments remain visible in every grid background mode.
+            backgroundMode: 'custom',
             sectionColorsBySection,
-            sectionColorOpacity,
+            sectionColorOpacity:
+                backgroundMode === 'custom' ? sectionColorOpacity : 100,
         },
         themeTone,
         themeUnderlayColor,
