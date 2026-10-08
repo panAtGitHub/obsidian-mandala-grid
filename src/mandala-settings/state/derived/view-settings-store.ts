@@ -124,7 +124,7 @@ export const DetailSidebarPreviewModeStore = (view: MandalaView) =>
     derived(view.plugin.settings, (state) =>
         Platform.isMobile
             ? state.view.detailSidebarPreviewModeMobile ?? 'rendered'
-            : state.view.detailSidebarPreviewModeDesktop ?? 'rendered',
+            : 'rendered',
     );
 
 export const Show3x3SubgridNavButtonsStore = (view: MandalaView) =>

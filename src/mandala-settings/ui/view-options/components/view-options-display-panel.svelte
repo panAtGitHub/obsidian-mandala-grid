@@ -1,6 +1,7 @@
 <script lang="ts">
     import { tx } from 'src/lang/translate';
     import { Eye } from 'lucide-svelte';
+    import { Platform } from 'obsidian';
     import { lang } from 'src/lang/lang';
     import type { DetailSidebarPreviewMode } from 'src/mandala-settings/state/settings-type';
 
@@ -47,35 +48,38 @@
 {#if show}
     <div class="view-options-menu__submenu">
         <div class="view-options-menu__subsection">
-            <div class="view-options-menu__subsection-title">
-                {tx('详情侧边栏预览')}
-            </div>
-
-            <div class="view-options-menu__row">
-                <span>{tx('预览样式')}</span>
-                <div class="view-options-menu__row-controls">
-                    <label class="view-options-menu__inline-option">
-                        <input
-                            type="radio"
-                            name="detail-sidebar-preview-mode"
-                            checked={detailSidebarPreviewMode === 'rendered'}
-                            on:change={() =>
-                                updateDetailSidebarPreviewMode('rendered')}
-                        />
-                        <span>{tx('渲染')}</span>
-                    </label>
-                    <label class="view-options-menu__inline-option">
-                        <input
-                            type="radio"
-                            name="detail-sidebar-preview-mode"
-                            checked={detailSidebarPreviewMode === 'source'}
-                            on:change={() =>
-                                updateDetailSidebarPreviewMode('source')}
-                        />
-                        <span>{tx('Markdown（只读）')}</span>
-                    </label>
+            {#if Platform.isMobile}
+                <div class="view-options-menu__subsection-title">
+                    {tx('详情侧边栏预览')}
                 </div>
-            </div>
+
+                <div class="view-options-menu__row">
+                    <span>{tx('预览样式')}</span>
+                    <div class="view-options-menu__row-controls">
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="radio"
+                                name="detail-sidebar-preview-mode"
+                                checked={detailSidebarPreviewMode ===
+                                    'rendered'}
+                                on:change={() =>
+                                    updateDetailSidebarPreviewMode('rendered')}
+                            />
+                            <span>{tx('渲染')}</span>
+                        </label>
+                        <label class="view-options-menu__inline-option">
+                            <input
+                                type="radio"
+                                name="detail-sidebar-preview-mode"
+                                checked={detailSidebarPreviewMode === 'source'}
+                                on:change={() =>
+                                    updateDetailSidebarPreviewMode('source')}
+                            />
+                            <span>{tx('Markdown（只读）')}</span>
+                        </label>
+                    </div>
+                </div>
+            {/if}
 
             <div class="view-options-menu__subsection-title">
                 {tx('显示 / 隐藏')}
