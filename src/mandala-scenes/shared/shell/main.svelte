@@ -71,7 +71,9 @@
     tabindex="0"
 >
     <div class="mandala-main" use:mouseWheelZoom={view}>
-        <LeftSidebar />
+        {#if Platform.isMobile}
+            <LeftSidebar />
+        {/if}
         {#if Platform.isMobile && $showLeftSidebar}
             <div
                 class="left-sidebar-overlay"

@@ -89,7 +89,9 @@
     class={'sidebar' +
         (isResizing ? '' : ' width-transition') +
         ($limitPreviewHeight ? ' limit-card-height' : '')}
-    style="--animated-sidebar-width: {animatedSidebarWidth}px; --sidebar-width: {sidebarWidth}px; }"
+    class:is-desktop={!Platform.isMobile}
+    class:is-open={animatedSidebarWidth > 0}
+    style="--animated-sidebar-width: {animatedSidebarWidth}px; --sidebar-width: {sidebarWidth}px;"
 >
     <TabHeader />
     <div class="resizer" on:mousedown={onStartResize}></div>
@@ -112,6 +114,19 @@
         padding: 10px 0;
         gap: 10px;
     }
+    .sidebar.is-desktop {
+        min-height: 0;
+        margin: 12px 0;
+        padding: 10px 0;
+        background-color: var(--background-primary);
+        background-blend-mode: normal;
+        box-sizing: border-box;
+    }
+
+    .sidebar.is-desktop.is-open {
+        border-right: 1px solid var(--background-modifier-border);
+    }
+
     .width-transition {
         transition: width 0.3s ease;
     }

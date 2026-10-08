@@ -15,6 +15,7 @@
     import VerticalToolbar from 'src/ui/toolbar/vertical/vertical-toolbar.svelte';
     import Toolbar from 'src/ui/toolbar/main/toolbar.svelte';
     import ToolbarCenter from 'src/ui/toolbar/main/toolbar-center.svelte';
+    import LeftSidebar from 'src/ui/sidebar/left-sidebar/left-sidebar.svelte';
     import MandalaDetailSidebar from 'src/ui/sidebar/mandala-detail-sidebar.svelte';
     import MobileFullScreenSearch from 'src/ui/modals/mobile-fullscreen-search.svelte';
     import MobileNativeEditorSheet from 'src/ui/modals/mobile-native-editor-sheet.svelte';
@@ -203,21 +204,26 @@
                 <VerticalToolbar />
             </div>
         </div>
-        <div class="mandala-content-wrapper" bind:this={contentWrapperRef}>
-            <div
-                class="mandala-scroll"
-                bind:this={containerRef}
-                tabindex="0"
-                on:click={handleGridBackgroundClick}
-            >
-                <SceneRuntimeHost
-                    {sceneKey}
-                    {projection}
-                    bind:committedSceneKey
-                />
-            </div>
+        <div class="mandala-body">
+            {#if !Platform.isMobile}
+                <LeftSidebar />
+            {/if}
+            <div class="mandala-content-wrapper" bind:this={contentWrapperRef}>
+                <div
+                    class="mandala-scroll"
+                    bind:this={containerRef}
+                    tabindex="0"
+                    on:click={handleGridBackgroundClick}
+                >
+                    <SceneRuntimeHost
+                        {sceneKey}
+                        {projection}
+                        bind:committedSceneKey
+                    />
+                </div>
 
-            <MandalaDetailSidebar />
+                <MandalaDetailSidebar />
+            </div>
         </div>
     {/if}
 </div>
@@ -301,11 +307,20 @@
         padding: 12px;
     }
 
+    .mandala-body {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+    }
+
     .mandala-content-wrapper {
         flex: 1 1 auto;
         display: flex;
         flex-direction: row;
         min-height: 0;
+        min-width: 0;
         overflow: hidden;
     }
 
