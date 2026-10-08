@@ -10,6 +10,7 @@
     export let openTemplatesFileFromPath: () => Promise<void>;
     export let saveCurrentThemeAsTemplate: () => Promise<void>;
     export let applyTemplateToCurrentTheme: () => Promise<void>;
+    export let insertBuiltinTemplate: () => Promise<void>;
 </script>
 
 <button class="view-options-menu__item" on:click={toggle}>
@@ -40,7 +41,9 @@
                 {tx('模板文件：')}{templatesFilePath ?? tx('未指定')}
             </button>
         </div>
-        <div class="view-options-menu__row view-options-menu__row--inline">
+        <div
+            class="view-options-menu__row view-options-menu__row--inline template-panel__actions"
+        >
             <button
                 class="view-options-menu__subitem"
                 on:click={saveCurrentThemeAsTemplate}
@@ -53,6 +56,18 @@
             >
                 {tx('将模板应用到当前九宫格')}
             </button>
+            <button
+                class="view-options-menu__subitem"
+                on:click={insertBuiltinTemplate}
+            >
+                {tx('插入内置模板')}
+            </button>
         </div>
     </div>
 {/if}
+
+<style>
+    .template-panel__actions {
+        gap: 8px;
+    }
+</style>

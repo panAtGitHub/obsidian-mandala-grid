@@ -2,6 +2,7 @@ import { tx } from 'src/lang/translate';
 import { Notice, TFile } from 'obsidian';
 import {
     appendMandalaTemplate,
+    BUILTIN_MANDALA_TEMPLATE,
     MandalaTemplate,
     parseMandalaTemplates,
 } from 'src/mandala-display/logic/mandala-templates';
@@ -15,7 +16,7 @@ import {
     openMandalaTemplateSelectModal,
     openMandalaTemplatesFileModal,
 } from 'src/obsidian/modals/mandala-templates-modal';
-import { MandalaView } from 'src/view/view';
+import type { MandalaView } from 'src/view/view';
 
 const getTemplatesFileFromPath = (
     view: MandalaView,
@@ -242,6 +243,28 @@ export const applyTemplateToCurrentThemeAction = async (
     );
     if (!selected) return;
 
+    await applyTemplateToCurrentTheme(view, selected, closeMenu);
+};
+
+export const insertBuiltinTemplateAction = async (
+    view: MandalaView,
+    closeMenu: () => void,
+) => {
+    if (!ensureMandala3x3(view)) return;
+    await applyTemplateToCurrentTheme(
+        view,
+        BUILTIN_MANDALA_TEMPLATE,
+        closeMenu,
+        true,
+    );
+};
+
+const applyTemplateToCurrentTheme = async (
+    view: MandalaView,
+    selected: MandalaTemplate,
+    closeMenu: () => void,
+    preserveContent = false,
+) => {
     const normalizedSlots = Array.from({ length: 8 }, (_, index) =>
         normalizeSlotTitle(selected.slots[index] ?? ''),
     );
@@ -278,7 +301,12 @@ export const applyTemplateToCurrentThemeAction = async (
             type: 'document/update-node-content',
             payload: {
                 nodeId,
-                content: selected.slots[i - 1] ?? '',
+                content: preserveContent
+                    ? upsertSlotHeading(
+                          refreshed.document.content[nodeId]?.content ?? '',
+                          selected.slots[i - 1] ?? '',
+                      )
+                    : selected.slots[i - 1] ?? '',
             },
             context: { isInSidebar: false },
         });

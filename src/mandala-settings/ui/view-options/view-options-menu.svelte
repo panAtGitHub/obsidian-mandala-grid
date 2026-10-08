@@ -223,6 +223,7 @@
     let pickTemplatesFile = () => {};
     let saveCurrentThemeAsTemplate = () => {};
     let applyTemplateToCurrentTheme = () => {};
+    let insertBuiltinTemplate = () => {};
     let openHotkeysModal = () => {};
     let exportCurrentFile: () => Promise<void> = async () => {};
 
@@ -778,6 +779,7 @@
         pickTemplatesFile,
         saveCurrentThemeAsTemplate,
         applyTemplateToCurrentTheme,
+        insertBuiltinTemplate,
         openHotkeysModal,
     } = createViewOptionsDocumentActions({
         view,
@@ -1224,6 +1226,7 @@
                 {openTemplatesFileFromPath}
                 {saveCurrentThemeAsTemplate}
                 {applyTemplateToCurrentTheme}
+                {insertBuiltinTemplate}
             />
 
             <button

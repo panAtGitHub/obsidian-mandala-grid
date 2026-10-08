@@ -348,6 +348,7 @@ export const englishMessages = {
     '当前：从左到右': 'Current: left to right',
     九宫格方位布局: 'Grid orientation',
     九宫格模板: 'Grid templates',
+    插入内置模板: 'Insert built-in template',
     保存与应用周边八格: 'Save and apply the eight outer cells',
     指定模板文件: 'Choose template file',
     未指定: 'Not selected',

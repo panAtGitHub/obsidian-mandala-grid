@@ -5,6 +5,11 @@ export type MandalaTemplate = {
     slots: string[];
 };
 
+export const BUILTIN_MANDALA_TEMPLATE: MandalaTemplate = {
+    name: '生活八领域',
+    slots: ['健康', '工作', '财务', '家庭', '社群', '内在', '学习', '休闲'],
+};
+
 const TEMPLATE_PREFIX = '## 模板：';
 const TEMPLATE_FRONTMATTER_KEY = 'mandala-templates';
 
@@ -106,7 +111,5 @@ export const createEmptyTemplateFileContent = () =>
 
 export const formatTemplatePreview = (template: MandalaTemplate) => {
     const slots = ensureSlotsLength(template.slots);
-    return slots
-        .map((slot, index) => `${index + 1}: ${slot ?? ''}`)
-        .join('；');
+    return slots.map((slot, index) => `${index + 1}: ${slot ?? ''}`).join('；');
 };

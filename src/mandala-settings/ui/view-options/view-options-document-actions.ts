@@ -4,6 +4,7 @@ import { createClearEmptyMandalaSubgridsPlan } from 'src/mandala-display/logic/c
 import type { MandalaView } from 'src/view/view';
 import {
     applyTemplateToCurrentThemeAction,
+    insertBuiltinTemplateAction,
     openTemplatesFileFromPathAction,
     pickTemplatesFileAction,
     saveCurrentThemeAsTemplateAction,
@@ -110,6 +111,10 @@ export const createViewOptionsDocumentActions = ({
                 resolveTemplatesFilePath(),
                 closeMenu,
             );
+        },
+
+        insertBuiltinTemplate() {
+            return insertBuiltinTemplateAction(view, closeMenu);
         },
 
         openHotkeysModal() {
