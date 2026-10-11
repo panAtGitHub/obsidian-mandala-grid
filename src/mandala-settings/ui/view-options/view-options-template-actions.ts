@@ -331,7 +331,12 @@ const applyTemplateToCurrentTheme = async (
             type: 'document/update-node-content',
             payload: {
                 nodeId,
-                content: selected.slots[i - 1] ?? '',
+                content: (() => {
+                    const content = selected.slots[i - 1] ?? '';
+                    if (!content.trim() || /^\s{0,3}#{1,6}\s/.test(content))
+                        return content;
+                    return `### ${content}`;
+                })(),
             },
             context: { isInSidebar: false },
         });

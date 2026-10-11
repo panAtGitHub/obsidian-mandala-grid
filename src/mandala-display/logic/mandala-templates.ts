@@ -8,14 +8,14 @@ export type MandalaTemplate = {
 export const BUILTIN_MANDALA_TEMPLATE: MandalaTemplate = {
     name: '生活八领域',
     slots: [
-        '## 健康',
-        '## 工作',
-        '## 财务',
-        '## 家庭',
-        '## 社群',
-        '## 内在',
-        '## 学习',
-        '## 休闲',
+        '### 健康',
+        '### 工作',
+        '### 财务',
+        '### 家庭',
+        '### 社群',
+        '### 内在',
+        '### 学习',
+        '### 休闲',
     ],
 };
 

@@ -137,7 +137,7 @@ describe('builtin template insertion', () => {
         expect(fixture.markdown()).toContain('Notes');
         expect(fixture.markdown()).toContain('## 模板：Custom\n1: Replacement');
         expect(fixture.markdown()).toContain(
-            '## 模板：生活八领域\n1: ## 健康\n2: ## 工作\n3: ## 财务\n4: ## 家庭\n5: ## 社群\n6: ## 内在\n7: ## 学习\n8: ## 休闲',
+            '## 模板：生活八领域\n1: ### 健康\n2: ### 工作\n3: ### 财务\n4: ### 家庭\n5: ### 社群\n6: ### 内在\n7: ### 学习\n8: ### 休闲',
         );
         expect(fixture.dispatch).not.toHaveBeenCalled();
         expect(fixture.content('1.1')).toBe('### Old title\nKeep this body');
@@ -202,19 +202,20 @@ describe('builtin template insertion', () => {
         expect(fixture.closeMenu).not.toHaveBeenCalled();
     });
 
-    it('retains the existing custom template replacement behavior', async () => {
+    it('adds a heading to plain template titles while preserving existing headings and bodies', async () => {
         const fixture = createFixture();
         vi.mocked(openMandalaTemplateSelectModal).mockResolvedValue({
             name: 'Custom',
-            slots: ['Replacement'],
+            slots: ['Replacement', '', '### Existing title\nBody'],
         });
         await applyTemplateToCurrentThemeAction(
             fixture.view,
             'templates.md',
             fixture.closeMenu,
         );
-        expect(fixture.content('1.1')).toBe('Replacement');
+        expect(fixture.content('1.1')).toBe('### Replacement');
         expect(fixture.content('1.2')).toBe('');
+        expect(fixture.content('1.3')).toBe('### Existing title\nBody');
         expect(fixture.read).toHaveBeenCalledOnce();
         expect(fixture.closeMenu).toHaveBeenCalledOnce();
     });
