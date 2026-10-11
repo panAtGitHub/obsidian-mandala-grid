@@ -15,7 +15,7 @@ const sourceDir = resolve(
     repoRoot,
     'temp/vault/.obsidian/plugins/mandala-grid-dev',
 );
-const vaultDir = resolve('C:/iWork/obWin');
+const vaultDir = resolve('C:/iWork/obsidian');
 const targetDir = join(vaultDir, '.obsidian', 'plugins', 'mandala-grid');
 const assets = ['main.js', 'styles.css', 'manifest.json'];
 const hash = (contents) => createHash('sha256').update(contents).digest('hex');

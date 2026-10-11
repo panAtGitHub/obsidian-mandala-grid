@@ -130,7 +130,7 @@ ESLint 配置：`.eslintrc`
 -   涉及公共保存链路、数据结构、依赖或较大重构时，根据实际影响范围扩大检查范围，并说明原因。
 -   **准备正式发布时必须执行完整检查**：`npm test`、`npm run lint` 和 `npm run validate:official`；检查通过后才可继续正式发布。
 -   `npm run validate:official` 只覆盖仓库内可本地模拟的官方检查；社区 PR 模板、远端 GitHub Release 是否已创建等在线项不在本地脚本范围内
--   **日常代码改动的交付流程**：相关测试和修改文件的格式化 / Lint -> commit -> `npm run build` -> `npm run sync:obsidian`。构建保留 TypeScript 检查；同步到 `C:\iWork\obWin\.obsidian\plugins\mandala-grid\`，保留 `data.json`。
+-   **日常代码改动的交付流程**：相关测试和修改文件的格式化 / Lint -> commit -> `npm run build` -> `npm run sync:obsidian`。构建保留 TypeScript 检查；同步到 `C:\iWork\obsidian\.obsidian\plugins\mandala-grid\`，保留 `data.json`。
 -   仅修改文档或 Agent 规则时，检查文档内容和差异即可，不运行代码测试、Lint、构建或插件同步。
 -   若现有 Git hook 强制执行完整测试或完整 Lint，可在完成本次所需检查后，仅对本次提交跳过该 hook；不得全局禁用 hook。提交信息校验仍需执行。
 -   提交命令：`git add -A && git commit -m "<type(scope): concise english summary>" -m "中文: <本次改动中文总结>" -m "English: <English summary>"`

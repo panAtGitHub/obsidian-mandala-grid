@@ -5,7 +5,7 @@ This repository syncs the built plugin into the local Obsidian plugin directory 
 ## Source and target
 
 - Source build directory: `temp/vault/.obsidian/plugins/mandala-grid-dev/`
-- Target plugin directory: `C:\iWork\obWin\.obsidian\plugins\mandala-grid\`
+- Target plugin directory: `C:\iWork\obsidian\.obsidian\plugins\mandala-grid\`
 
 ## Safety rule
 
