@@ -80,3 +80,42 @@
 :global(.is-mobile) .is-floating-mobile .editor-container {
     height: 100%;
 }
+
+/* Grid editors share the cell surface; sidebars and preview sheets keep theirs. */
+.mandala-scroll .mandala-card:not(.is-floating-mobile) .mandala-card-editor {
+    --caret-color: var(--text-normal);
+    --text-selection: color-mix(in srgb, var(--text-normal) 22%, transparent);
+    color: var(--text-normal);
+
+    & .mandala-inline-editor,
+    & .markdown-source-view.markdown-source-view,
+    & .view-content.view-content,
+    & .cm-editor.cm-editor,
+    & .cm-scroller {
+        background-color: transparent !important;
+        color: var(--text-normal);
+    }
+
+    & .cm-content,
+    & .cm-line,
+    & .cm-header {
+        color: var(--text-normal);
+        caret-color: var(--text-normal);
+    }
+
+    & .cm-formatting {
+        color: color-mix(in srgb, var(--text-normal) 65%, transparent);
+    }
+
+    & .cm-cursor {
+        border-left-color: var(--text-normal);
+    }
+
+    & .cm-selectionBackground {
+        background-color: var(--text-selection) !important;
+    }
+
+    & .cm-content ::selection {
+        background-color: var(--text-selection);
+    }
+}
