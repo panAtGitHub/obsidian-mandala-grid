@@ -30,11 +30,14 @@ const createHost = () => {
         fullHydrated: false,
         data: runtime.source,
         file: {},
-        documentStore: { getValue: () => state, set },
+        documentStore: { getValue: () => state, set, dispatch: vi.fn() },
+        workingSetCooldown: { schedule: vi.fn(), cancel: vi.fn() },
         viewStore: { getValue: () => viewState, setContext: vi.fn() },
         recordPerfEvent: vi.fn(),
     }) as Pick<
         MandalaView,
+        | 'ensureFullHydrated'
+        | 'documentStore'
         | 'materializeWorkingSet'
         | 'materializeSubgridForExit'
         | 'isWorkingSetProjection'
@@ -92,6 +95,14 @@ describe('view working-set transitions', () => {
         expect(
             host.getState().meta.mandalaV2.subtreeNonEmptyCountBySection['2.1'],
         ).toBe(1);
+    });
+    it('marks hydration before notifying subscribers so they cannot shrink the incoming state', () => {
+        const host = createHost();
+        vi.spyOn(host.view.documentStore, 'dispatch').mockImplementation(() => {
+            expect(host.view.isWorkingSetProjection).toBe(false);
+        });
+        expect(host.view.ensureFullHydrated('test')).toBe(true);
+        expect(host.view.ensureFullHydrated('reentrant')).toBe(false);
     });
     it('does not drop unsaved structural or content changes during cooling', () => {
         const host = createHost();

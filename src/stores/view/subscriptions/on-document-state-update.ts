@@ -114,7 +114,12 @@ export const onDocumentStateUpdate = (
     // view. Their edits must still reach the save queue while mounted.
     if (!container) return;
 
-    if (e.content || structuralChange) {
+    // Loading is an incoming snapshot, including on-demand hydration. Saving
+    // it again can re-enter hydration and serialize during the load itself.
+    if (
+        type !== 'document/file/load-from-disk' &&
+        (e.content || structuralChange)
+    ) {
         const saveOptions = createSaveOptions(view, action);
         if (saveOptions) {
             void view.saveDocument(saveOptions);

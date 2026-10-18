@@ -397,8 +397,15 @@ export class MandalaView extends TextFileView {
             this.sourceRuntime.index.rootIds[0] ??
             '1';
 
-        loadFullDocument(this, body, frontmatter, activeSection);
+        // Subscribers can request lookups or saves while the load dispatches.
+        // They must see the incoming full document, not rematerialize a subset.
         this.fullHydrated = true;
+        try {
+            loadFullDocument(this, body, frontmatter, activeSection);
+        } catch (error) {
+            this.fullHydrated = false;
+            throw error;
+        }
         this.workingSetCenter = null;
         this.workingSetCooldown.schedule();
         this.recordPerfEvent('document.full-hydration', {

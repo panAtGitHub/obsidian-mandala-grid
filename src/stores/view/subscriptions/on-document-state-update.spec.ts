@@ -279,6 +279,25 @@ describe('on-document-state-update', () => {
         expect(mocks.focusContainer).not.toHaveBeenCalled();
     });
 
+    it('refreshes incoming snapshots without saving or re-entering hydration', () => {
+        const view = createView();
+        onDocumentStateUpdate(view as never, {
+            type: 'document/file/load-from-disk',
+            payload: {
+                document: {
+                    data: '<!--section: 1-->loaded',
+                    frontmatter: '',
+                    position: null,
+                },
+                activeSection: '1',
+            },
+        });
+        expect(view.saveDocument).not.toHaveBeenCalled();
+        expect(mocks.loadPinnedNodesToDocument).toHaveBeenCalledWith(view);
+        expect(mocks.setActiveNode).toHaveBeenCalled();
+        expect(view.plugin.statusBar.updateAll).toHaveBeenCalledWith(view);
+    });
+
     it('does not save before a view has mounted its container', () => {
         const view: MockView = createView();
         view.container = null;
