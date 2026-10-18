@@ -28,6 +28,13 @@ export const createNx9SelectionRuntime = ({
         },
     ) => {
         if (!nodeId && !section) return;
+        if (
+            view.isWorkingSetProjection &&
+            section &&
+            !view.documentStore.getValue().sections.section_id[section]
+        ) {
+            view.materializeNx9Page(getCurrentPage());
+        }
         setActiveCellNx9(view, {
             row,
             col,

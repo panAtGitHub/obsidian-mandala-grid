@@ -6,10 +6,19 @@ export const ensureNodeForSection = (
     view: MandalaView,
     section: string,
 ): string | null => {
-    view.ensureFullHydrated?.('ensure-node-for-section');
     const docState = view.documentStore.getValue();
     const existing = docState.sections.section_id[section];
     if (existing) return existing;
+    if (view.getSectionLookup?.().has(section)) {
+        view.materializeSections?.([
+            ...Object.keys(docState.sections.section_id),
+            section,
+        ]);
+        return (
+            view.documentStore.getValue().sections.section_id[section] ?? null
+        );
+    }
+    view.ensureFullHydrated?.('ensure-node-for-section');
 
     const parts = section.split('.');
     if (parts.length === 0) return null;
@@ -50,6 +59,13 @@ export const ensureChildrenForSection = (
     view: MandalaView,
     section: string,
 ): string | null => {
+    if (view.getSectionLookup?.().hasAllDirectSlots?.(section)) {
+        view.materializeWorkingSet?.(section);
+        return (
+            view.documentStore.getValue().sections.section_id[section] ?? null
+        );
+    }
+    view.ensureFullHydrated?.('ensure-children-for-section');
     const parentNodeId = ensureNodeForSection(view, section);
     if (!parentNodeId) return null;
 

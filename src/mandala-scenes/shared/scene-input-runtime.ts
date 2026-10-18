@@ -72,11 +72,16 @@ const buildSceneInputSnapshotsUncached = ({
 });
 
 const SNAPSHOT_CACHE_LIMIT = 8;
-const snapshotCache =
-    createBoundedCache<SceneInputRuntimeCacheEntry['value']>({
-        capacity: SNAPSHOT_CACHE_LIMIT,
-    });
+const snapshotCache = createBoundedCache<SceneInputRuntimeCacheEntry['value']>({
+    capacity: SNAPSHOT_CACHE_LIMIT,
+});
 const resolveObjectKey = createObjectIdentityKeyResolver();
+const documentCache = createBoundedCache<
+    ReturnType<typeof buildSceneDocumentSnapshot>
+>({ capacity: SNAPSHOT_CACHE_LIMIT });
+const displayCache = createBoundedCache<
+    ReturnType<typeof buildSceneDisplaySnapshot>
+>({ capacity: SNAPSHOT_CACHE_LIMIT });
 
 export const buildSceneInputSnapshots = ({
     documentState,
@@ -132,5 +137,24 @@ export const buildSceneInputSnapshots = ({
         pinnedSections,
         pinnedStamp,
     });
+    const documentKey = [
+        mandalaRevision,
+        mandalaContentRevision,
+        resolveObjectKey(sectionIdMap),
+        resolveObjectKey(documentContent),
+    ].join('|');
+    const displayKey = [
+        resolveObjectKey(sectionColors),
+        sectionColorOpacity,
+        backgroundMode,
+        showDetailSidebar,
+        whiteThemeMode,
+    ].join('|');
+    value.documentSnapshot =
+        documentCache.get(documentKey) ??
+        documentCache.set(documentKey, value.documentSnapshot);
+    value.displaySnapshot =
+        displayCache.get(displayKey) ??
+        displayCache.set(displayKey, value.displaySnapshot);
     return snapshotCache.set(cacheKey, value);
 };

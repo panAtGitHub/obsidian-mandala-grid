@@ -1,3 +1,4 @@
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 import type { CellDisplayPolicy } from 'src/mandala-cell/model/cell-display-policy';
 import {
     buildSceneCardCellList,
@@ -198,12 +199,14 @@ const resolveContentOverride = (
 const createRealCellFrameViewModel = ({
     context,
     documentState,
+    sectionLookup,
     row,
     col,
     rowCount,
     coreSection,
 }: {
     context: Nx9PageContext;
+    sectionLookup?: SectionLookup;
     documentState: {
         sections: {
             section_id: Record<string, string>;
@@ -215,7 +218,10 @@ const createRealCellFrameViewModel = ({
     coreSection: string;
 }): Nx9RealCellFrameViewModel => {
     const section = col === 0 ? coreSection : `${coreSection}.${col}`;
-    const nodeId = documentState.sections.section_id[section] ?? null;
+    const nodeId =
+        documentState.sections.section_id[section] ??
+        sectionLookup?.getNodeId(section) ??
+        null;
     const frame: SceneCardCellFrame = {
         key: `${context.currentPage}-${row}-${col}`,
         section,
@@ -239,8 +245,10 @@ const createRealCellFrameViewModel = ({
 export const assembleNx9PageFrame = ({
     context,
     documentState,
+    sectionLookup,
 }: {
     context: Nx9PageContext;
+    sectionLookup?: SectionLookup;
     documentState: {
         sections: {
             section_id: Record<string, string>;
@@ -256,6 +264,7 @@ export const assembleNx9PageFrame = ({
                 createRealCellFrameViewModel({
                     context,
                     documentState,
+                    sectionLookup,
                     row,
                     col,
                     rowCount,
@@ -428,7 +437,10 @@ export const applyNx9PageInteractionState = ({
 }: SharedInteractiveNx9RowsOptions & {
     staticRows: Nx9StaticRowViewModel[];
 }): Nx9RowViewModel[] => {
-    const normalizedActiveCell = normalizeActiveCell(activeCell, context.currentPage);
+    const normalizedActiveCell = normalizeActiveCell(
+        activeCell,
+        context.currentPage,
+    );
     const interaction = {
         activeNodeId: interactionSnapshot.activeNodeId,
         editingState: interactionSnapshot.editingState,
@@ -517,7 +529,8 @@ const patchRealCell = ({
         !!staticCell.nodeId &&
         staticCell.nodeId === nextInteraction.activeNodeId;
     const nextCardActive =
-        !!staticCell.nodeId && staticCell.nodeId === nextInteraction.activeNodeId;
+        !!staticCell.nodeId &&
+        staticCell.nodeId === nextInteraction.activeNodeId;
 
     const currentCardUiState = previousCell.cardUiState;
     const nextCardUiState =
@@ -656,7 +669,10 @@ export const patchNx9ActiveInteractionState = ({
         }
 
         if (!Array.isArray(staticRow) && !Array.isArray(previousRow)) {
-            if (staticRow.kind !== 'ghost-row' || previousRow.kind !== 'ghost-row') {
+            if (
+                staticRow.kind !== 'ghost-row' ||
+                previousRow.kind !== 'ghost-row'
+            ) {
                 continue;
             }
 

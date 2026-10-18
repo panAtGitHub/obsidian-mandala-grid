@@ -186,6 +186,14 @@ export class InlineEditor {
         target.append(this.containerEl);
         this.target.addEventListener('focusin', this.setActiveEditor);
         this.target.addEventListener('focusout', this.handleEditorFocusOut);
+        this.target.addEventListener(
+            'compositionstart',
+            this.handleCompositionStart,
+        );
+        this.target.addEventListener(
+            'compositionend',
+            this.handleCompositionEnd,
+        );
         this.setActiveEditor();
 
         this.setContent(initialPlacement.content);
@@ -363,9 +371,20 @@ export class InlineEditor {
 
     private handleRequestSave = (_clear?: boolean): void => {
         if (!this.nodeId || this.suppressEditorEvents) return;
+        // Obsidian calls this for ordinary typing as well as autosave.
+        // Explicit saves use requestSave(); typing stays on the idle timer.
         this.view.editSession.updateBuffer(this.getContent());
-        this.view.editSession.requestSave();
         this.invokeAndDeleteOnChangeSubscriptions();
+    };
+
+    private handleCompositionStart = () => {
+        this.view.editSession.setComposing(true);
+    };
+
+    private handleCompositionEnd = () => {
+        if (!this.nodeId || this.suppressEditorEvents) return;
+        this.view.editSession.updateBuffer(this.getContent());
+        this.view.editSession.setComposing(false);
     };
 
     private handleEditorFocusOut = (event: FocusEvent) => {
@@ -410,6 +429,14 @@ export class InlineEditor {
         }
         this.target.removeEventListener('focusin', this.setActiveEditor);
         this.target.removeEventListener('focusout', this.handleEditorFocusOut);
+        this.target.removeEventListener(
+            'compositionstart',
+            this.handleCompositionStart,
+        );
+        this.target.removeEventListener(
+            'compositionend',
+            this.handleCompositionEnd,
+        );
         this.target.empty();
         this.target = null;
     }

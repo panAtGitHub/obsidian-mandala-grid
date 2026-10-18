@@ -1,3 +1,4 @@
+import type { SectionRangeLimit } from 'src/mandala-settings/state/settings-type';
 import {
     normalizeNx9VisibleSection,
     resolveNx9PageContext,
@@ -37,7 +38,12 @@ export const createNx9ContextRuntime = ({
     });
     const resolveObjectKey = createObjectIdentityKeyResolver();
     const structureKeyByContext = new WeakMap<Nx9StructureContext, string>();
-    const latestStructureByBaseKey = new Map<string, Nx9StructureContext>();
+    const latestStructureByBaseKey = createBoundedCache<Nx9StructureContext>({
+        capacity: STRUCTURE_CACHE_LIMIT,
+    });
+    const stableStructures = createBoundedCache<Nx9StructureContext>({
+        capacity: STRUCTURE_CACHE_LIMIT,
+    });
 
     const resolveStructureShapeKey = (context: Nx9StructureContext) =>
         context.effectiveCoreSections.join('|');
@@ -47,11 +53,13 @@ export const createNx9ContextRuntime = ({
         rowsPerPage,
         activeSection,
         sectionLookup,
+        coreSectionMax,
     }: {
         documentSnapshot: Nx9ContextDocumentSnapshot;
         rowsPerPage: number;
         activeSection: string | null;
         sectionLookup?: SectionLookup;
+        coreSectionMax?: SectionRangeLimit;
     }) => {
         const normalizedActiveSection =
             normalizeNx9VisibleSection(activeSection) ?? '';
@@ -61,13 +69,17 @@ export const createNx9ContextRuntime = ({
             resolveObjectKey(documentSnapshot.sectionIdMap),
             resolveObjectKey(sectionLookup),
             rowsPerPage,
+            coreSectionMax ?? 'unlimited',
             structureActiveSection,
         ].join('|');
         const cacheKey = [baseKey, documentSnapshot.contentRevision].join('|');
         const cached = structureCache.get(cacheKey);
         if (cached) {
             const shapeKey = resolveStructureShapeKey(cached);
-            structureKeyByContext.set(cached, `${baseKey}|${shapeKey}`);
+            structureKeyByContext.set(
+                cached,
+                `${resolveObjectKey(documentSnapshot.sectionIdMap)}|${resolveObjectKey(sectionLookup)}|${rowsPerPage}|${coreSectionMax ?? 'unlimited'}|${shapeKey}`,
+            );
             latestStructureByBaseKey.set(baseKey, cached);
             return cached;
         }
@@ -79,14 +91,19 @@ export const createNx9ContextRuntime = ({
             rowsPerPage,
             activeSection,
             sectionLookup,
+            coreSectionMax,
         });
-        const previous = latestStructureByBaseKey.get(baseKey);
         const nextShapeKey = resolveStructureShapeKey(value);
+        const shapeKey = `${resolveObjectKey(documentSnapshot.sectionIdMap)}|${resolveObjectKey(sectionLookup)}|${rowsPerPage}|${coreSectionMax ?? 'unlimited'}|${nextShapeKey}`;
+        const previous =
+            stableStructures.get(shapeKey) ??
+            latestStructureByBaseKey.get(baseKey);
         const finalValue =
             previous && resolveStructureShapeKey(previous) === nextShapeKey
                 ? previous
                 : value;
-        structureKeyByContext.set(finalValue, `${baseKey}|${nextShapeKey}`);
+        structureKeyByContext.set(finalValue, shapeKey);
+        stableStructures.set(shapeKey, finalValue);
         latestStructureByBaseKey.set(baseKey, finalValue);
         structureCache.set(cacheKey, finalValue);
         recordPerfEvent?.('trace.nx9.resolve-context', {
@@ -110,8 +127,6 @@ export const createNx9ContextRuntime = ({
         requestedPage?: number | null;
     }) => {
         const structureKey = structureKeyByContext.get(structureContext) ?? '';
-        const normalizedActiveSection =
-            normalizeNx9VisibleSection(activeSection) ?? '';
         const resolvedPage =
             requestedPage ??
             activeCell?.page ??
@@ -119,12 +134,10 @@ export const createNx9ContextRuntime = ({
             0;
         const key = [
             structureKey,
-            requestedPage ?? 'auto',
-            resolvedPage,
-            normalizedActiveSection,
-            activeCell?.row ?? '',
-            activeCell?.col ?? '',
-            activeCell?.page ?? '',
+            Math.max(
+                0,
+                Math.min(resolvedPage, structureContext.totalPages - 1),
+            ),
         ].join('|');
         const cached = pageCache.get(key);
         if (cached) {

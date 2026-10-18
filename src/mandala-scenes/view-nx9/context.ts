@@ -100,7 +100,7 @@ export const collectEffectiveNx9CoreSections = ({
 }) => {
     const topology = buildMandalaTopologyIndex(sectionIdMap);
     const sectionIds =
-        sectionLookup?.getRootSections?.() ?? topology.sectionsWithNode;
+        sectionLookup?.getSectionIds?.() ?? topology.sectionsWithNode;
     const coreSections = collectNx9CoreSections(sectionIdMap, sectionLookup);
     const trailingCoreSections = collectTrailingEmptyCoreSections(
         sectionIds.map((sectionId) => {

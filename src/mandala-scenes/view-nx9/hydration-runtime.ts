@@ -22,16 +22,14 @@ export type Nx9HydrationSnapshot = {
 };
 
 const buildHydrationMarker = ({
-    revision,
     page,
     rowCount,
     nodeIds,
 }: {
-    revision: number;
     page: number;
     rowCount: number;
     nodeIds: string[];
-}) => [revision, page, rowCount, nodeIds.join('|')].join('|');
+}) => [page, rowCount, nodeIds.join('|')].join('|');
 
 export const resolveNx9FutureScale = (rowCount: number) =>
     rowCount <= 5 ? 1 : Math.max(0.58, Math.min(1, 5 / rowCount));
@@ -109,7 +107,6 @@ export const createNx9HydrationRuntime = ({
     };
 
     const sync = ({
-        revision,
         currentPage,
         rowCount,
         hotPages,
@@ -139,7 +136,6 @@ export const createNx9HydrationRuntime = ({
             if (!pageFrame) continue;
             const nodeIds = collectNx9HydratableNodeIds(pageFrame);
             const marker = buildHydrationMarker({
-                revision,
                 page,
                 rowCount,
                 nodeIds,

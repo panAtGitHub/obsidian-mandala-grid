@@ -14,7 +14,7 @@ export const jumpCoreTheme = (
 ) => {
     const startedAt = performance.now();
     if (!view.mandalaMode) return;
-    view.ensureFullHydrated?.(`core-jump:${direction}`);
+    view.inlineEditor?.requestSave();
 
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return;
@@ -47,10 +47,15 @@ export const jumpCoreTheme = (
         const dayPlanResolution = resolveNextDayPlanDate(view, core);
         if (dayPlanResolution.blocked) return;
 
-        view.documentStore.dispatch({
-            type: 'document/mandala/ensure-core-theme',
-            payload: { theme: nextCore },
-        });
+        if (view.getSectionLookup?.().has(nextCore)) {
+            view.materializeCoreWorkingSet?.(nextCore);
+        } else {
+            view.ensureFullHydrated?.(`core-jump:${direction}`);
+            view.documentStore.dispatch({
+                type: 'document/mandala/ensure-core-theme',
+                payload: { theme: nextCore },
+            });
+        }
         if (
             !applyDayPlanToCore(
                 view,
@@ -100,7 +105,9 @@ export const jumpCoreTheme = (
     if (coreNumber <= 1) return;
 
     const prevCore = String(coreNumber - 1);
-    const prevNodeId = docState.sections.section_id[prevCore];
+    view.materializeCoreWorkingSet?.(prevCore);
+    const prevNodeId =
+        view.documentStore.getValue().sections.section_id[prevCore];
     if (!prevNodeId) return;
 
     view.beginSceneSyncTrace('trace.core-jump.sync-scene', {

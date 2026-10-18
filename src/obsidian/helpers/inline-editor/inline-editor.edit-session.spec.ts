@@ -24,6 +24,8 @@ vi.mock('src/obsidian/helpers/inline-editor/helpers/unlock-file', () => ({
     unlockFile: vi.fn(),
 }));
 
+import type { EditSessionCommitPayload } from 'src/view/edit-session/edit-session-types';
+import { EditSessionService } from 'src/view/edit-session/edit-session-service';
 import { InlineEditor } from 'src/obsidian/helpers/inline-editor/inline-editor';
 
 type InlineEditorTestView = {
@@ -60,6 +62,7 @@ type InlineEditorTestView = {
         startSession: ReturnType<typeof vi.fn>;
         switchNode: ReturnType<typeof vi.fn>;
         updateBuffer: ReturnType<typeof vi.fn>;
+        setComposing: ReturnType<typeof vi.fn>;
         requestSave: ReturnType<typeof vi.fn>;
         requestBlurCommit: ReturnType<typeof vi.fn>;
         endSession: ReturnType<typeof vi.fn>;
@@ -104,6 +107,7 @@ const createTestView = (): InlineEditorTestView => ({
         startSession: vi.fn(),
         switchNode: vi.fn(),
         updateBuffer: vi.fn(),
+        setComposing: vi.fn(),
         requestSave: vi.fn(),
         requestBlurCommit: vi.fn(),
         endSession: vi.fn(),
@@ -190,6 +194,53 @@ describe('inline-editor edit-session integration', () => {
         expect(view.editSession.updateBuffer).toHaveBeenCalledWith('saved');
         expect(view.editSession.requestSave).toHaveBeenCalledTimes(1);
         expect(view.editSession.endSession).not.toHaveBeenCalled();
+    });
+
+    it('keeps automatic editor save notifications on the idle debounce', () => {
+        const view = createTestView();
+        const editor = new InlineEditor(view as never);
+        attachEditorInternals(editor, 'typing');
+        editor.nodeId = 'node-1';
+        const automaticSave = (
+            editor as unknown as { handleRequestSave: () => void }
+        ).handleRequestSave;
+        for (let i = 0; i < 10; i++) automaticSave();
+        expect(view.editSession.updateBuffer).toHaveBeenCalledTimes(10);
+        expect(view.editSession.requestSave).not.toHaveBeenCalled();
+    });
+
+    it('merges a typing burst into one commit and flushes a later change on blur', () => {
+        const onCommit = vi.fn<[EditSessionCommitPayload], void>();
+        const service = new EditSessionService(onCommit);
+        const view = { ...createTestView(), editSession: service };
+        const editor = new InlineEditor(view as never);
+        const api = attachEditorInternals(editor);
+        editor.nodeId = 'node-1';
+        service.startSession('node-1', false, '');
+        const internals = editor as unknown as {
+            handleRequestSave: () => void;
+            handleEditorFocusOut: (event: FocusEvent) => void;
+            target: MockElement;
+        };
+        internals.target = createMockElement();
+        for (let i = 0; i < 10; i++) {
+            api.getValue.mockReturnValue(`input-${i}`);
+            internals.handleRequestSave();
+            vi.advanceTimersByTime(100);
+        }
+        expect(onCommit).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(500);
+        expect(onCommit).toHaveBeenCalledTimes(1);
+        expect(onCommit.mock.calls[0][0].content).toBe('input-9');
+        api.getValue.mockReturnValue('last change');
+        internals.handleRequestSave();
+        internals.handleEditorFocusOut({ relatedTarget: {} } as FocusEvent);
+        expect(onCommit).toHaveBeenCalledTimes(2);
+        expect(onCommit.mock.calls[1][0]).toMatchObject({
+            content: 'last change',
+            reason: 'blur',
+        });
+        service.endSession('unload');
     });
 
     it('commits on blur via requestBlurCommit and keeps session alive', () => {

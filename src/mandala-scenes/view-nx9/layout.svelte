@@ -129,12 +129,15 @@
 
     onDestroy(() => {
         hydrationRuntime.dispose();
+        pageRuntime.cancelPrewarm();
     });
 
+    $: sectionLookup = (documentSnapshot, view.getSectionLookup());
     $: structureContext = contextRuntime.resolveStructureContext({
         documentSnapshot,
         rowsPerPage,
         activeSection: activeCoreSection,
+        sectionLookup,
     });
     $: nx9Context = contextRuntime.resolvePageContext({
         structureContext,
@@ -164,6 +167,7 @@
                 page,
                 context: pageContextsByPage.get(page) ?? nx9Context,
                 sectionIdMap: documentSnapshot.sectionIdMap,
+                sectionLookup,
             }),
         ]),
     );
@@ -185,21 +189,24 @@
     $: hydratedNodeIds =
         hydrationSnapshot.hydratedNodeIdsByPage.get(currentPage) ??
         new Set<string>();
-    $: pageRuntime.prewarmPages({
-        pages: hotPages.map((page) => ({
-            page,
-            context: pageContextsByPage.get(page) ?? nx9Context,
-            sectionIdMap: documentSnapshot.sectionIdMap,
-            hydratedNodeIds:
-                hydrationSnapshot.hydratedNodeIdsByPage.get(page) ??
-                new Set<string>(),
-        })),
-        displaySnapshot,
-        gridStyle,
-        interactionSnapshot,
-        activeCell,
-        draftProjection,
-    });
+    $: if (hydrationSnapshot.hotPages.has(currentPage))
+        pageRuntime.schedulePrewarmPages({
+            pages: hotPages.map((page) => ({
+                page,
+                context: pageContextsByPage.get(page) ?? nx9Context,
+                sectionIdMap: documentSnapshot.sectionIdMap,
+                sectionLookup,
+                hydratedNodeIds:
+                    hydrationSnapshot.hydratedNodeIdsByPage.get(page) ??
+                    new Set<string>(),
+            })),
+            displaySnapshot,
+            gridStyle,
+            interactionSnapshot,
+            activeCell,
+            draftProjection,
+        });
+    else pageRuntime.cancelPrewarm();
     $: staticRows = pageRuntime.resolveStaticRows({
         page: currentPage,
         context: currentPageContext,

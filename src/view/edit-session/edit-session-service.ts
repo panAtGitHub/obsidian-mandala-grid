@@ -19,6 +19,7 @@ const createDefaultState = (): EditSessionState => ({
 });
 
 export class EditSessionService {
+    private composing = false;
     private readonly state = writable<EditSessionState>(createDefaultState());
     private readonly projectionTimer: ReturnType<typeof createTrailingTimer>;
     private readonly commitTimer: ReturnType<typeof createTrailingTimer>;
@@ -62,6 +63,7 @@ export class EditSessionService {
         }
         this.projectionTimer.cancel();
         this.commitTimer.cancel();
+        this.composing = false;
         this.state.set({
             activeNodeId: nodeId,
             isInSidebar,
@@ -95,8 +97,22 @@ export class EditSessionService {
             return;
         }
 
-        this.projectionTimer.schedule(() => this.flushProjection());
-        this.commitTimer.schedule(() => this.commit('idle'));
+        if (!this.composing) {
+            this.projectionTimer.schedule(() => this.flushProjection());
+            this.commitTimer.schedule(() => this.commit('idle'));
+        }
+    }
+
+    setComposing(composing: boolean) {
+        if (this.composing === composing) return;
+        this.composing = composing;
+        this.projectionTimer.cancel();
+        this.commitTimer.cancel();
+        if (!composing) {
+            const current = get(this.state);
+            if (current.activeNodeId && current.dirty)
+                this.updateBuffer(current.bufferContent);
+        }
     }
 
     requestSave() {
@@ -107,7 +123,11 @@ export class EditSessionService {
         this.commit('blur');
     }
 
-    switchNode(nextNodeId: string, isInSidebar: boolean, initialContent: string) {
+    switchNode(
+        nextNodeId: string,
+        isInSidebar: boolean,
+        initialContent: string,
+    ) {
         const current = get(this.state);
         if (
             current.activeNodeId === nextNodeId &&
@@ -177,6 +197,7 @@ export class EditSessionService {
     }
 
     endSession(reason: EditSessionCommitReason) {
+        this.composing = false;
         if (reason === 'disable-edit' || reason === 'unload') {
             this.commit(reason);
         }

@@ -90,6 +90,11 @@ describe('three-by-three-runtime', () => {
         });
 
         expect(active).not.toBe(inactive);
+        for (let i = 0; i < active.length; i++) {
+            expect(active[i].cardViewModel).toBe(inactive[i].cardViewModel);
+            if (active[i].nodeId !== 'node-1')
+                expect(active[i]).toBe(inactive[i]);
+        }
         expect(activeAgain).toBe(active);
     });
 

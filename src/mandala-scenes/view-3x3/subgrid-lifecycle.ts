@@ -107,14 +107,16 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
             new Notice(lang.notice_core_section_limit_reached);
             return;
         }
-        view.ensureFullHydrated?.('3x3-enter-subgrid');
+        if (nextCoreExists) view.materializeWorkingSet?.(nextTheme);
+        else view.ensureFullHydrated?.('3x3-enter-subgrid');
         const dayPlanResolution = resolveNextDayPlanDate(view, currentTheme);
         if (dayPlanResolution.blocked) return;
 
-        view.documentStore.dispatch({
-            type: 'document/mandala/ensure-core-theme',
-            payload: { theme: nextTheme },
-        });
+        if (!nextCoreExists)
+            view.documentStore.dispatch({
+                type: 'document/mandala/ensure-core-theme',
+                payload: { theme: nextTheme },
+            });
         ensureChildrenForSection(view, nextTheme);
         if (
             !applyDayPlanToCore(
@@ -165,34 +167,44 @@ export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
 
 export const exitThreeByThreeSubgrid = (view: MandalaView) => {
     if (view.mandalaMode !== '3x3') return;
-    view.ensureFullHydrated?.('3x3-exit-subgrid');
-
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme;
     if (!theme) return;
 
     flushActiveEditorBeforeSubgridExit(view);
+    view.materializeSubgridForExit?.(theme);
 
     const nextTheme = resolveThreeByThreeParentTheme(theme) ?? '1';
     const focusTheme = resolveThreeByThreeExitFocusTheme(theme);
     const documentState = view.documentStore.getValue();
-    const focusNodeId = focusTheme
+    let focusNodeId = focusTheme
         ? documentState.sections.section_id[focusTheme] ?? null
         : null;
-    const prunePlan = createThreeByThreeSubgridPrunePlan({
+    let prunePlan = createThreeByThreeSubgridPrunePlan({
         theme,
         documentState,
         activeNodeId: focusNodeId,
     });
 
     if (prunePlan.shouldPrune && prunePlan.activeNodeId) {
-        view.documentStore.dispatch({
-            type: 'document/mandala/clear-empty-subgrids',
-            payload: {
-                parentIds: prunePlan.parentIds,
-                rootNodeIds: [],
-                activeNodeId: prunePlan.activeNodeId,
-            },
+        view.ensureFullHydrated?.('3x3-prune-subgrid');
+        const fullState = view.documentStore.getValue();
+        focusNodeId = focusTheme
+            ? fullState.sections.section_id[focusTheme] ?? null
+            : null;
+        prunePlan = createThreeByThreeSubgridPrunePlan({
+            theme,
+            documentState: fullState,
+            activeNodeId: focusNodeId,
         });
+        if (prunePlan.shouldPrune && prunePlan.activeNodeId)
+            view.documentStore.dispatch({
+                type: 'document/mandala/clear-empty-subgrids',
+                payload: {
+                    parentIds: prunePlan.parentIds,
+                    rootNodeIds: [],
+                    activeNodeId: prunePlan.activeNodeId,
+                },
+            });
     }
 
     view.viewStore.dispatch({

@@ -6,6 +6,7 @@ import {
 } from 'src/mandala-document/runtime/source-document-runtime';
 import { buildMandalaDocumentV2 } from 'src/mandala-document/engine/build-state';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
+import { buildSectionIndex } from 'src/mandala-document/runtime/section-index';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 
 const createDocumentProjection = (
@@ -178,5 +179,99 @@ describe('MandalaSourceRuntime', () => {
                 '<!--section: 2-->\r\nother\r\n',
         );
         expect(runtime.getContent('1.1')).toBe('child');
+    });
+});
+
+describe('incremental source offsets', () => {
+    it.each(['\n', '\r\n'])(
+        'matches a fresh index across repeated multi-section edits (%j)',
+        (eol) => {
+            const runtime = new MandalaSourceRuntime(
+                [
+                    '<!--section: 1-->' + eol + 'root',
+                    '<!--section: 1.1-->' + eol + 'child',
+                    '<!--section: 2-->' + eol + 'other',
+                ].join(eol),
+            );
+            const topology = runtime.index.childrenSlotsByParent;
+            const identities = runtime.index.sectionToNodeId;
+            const contents = [
+                '',
+                '甲😀',
+                eol,
+                'line' + eol + 'two' + eol,
+                'z',
+                '',
+            ];
+            for (let i = 0; i < contents.length; i++) {
+                const previous = runtime.index;
+                const oldRanges = [...previous.byId.values()].map((range) => ({
+                    ...range,
+                }));
+                const previousBytes = previous.sourceBytes;
+                const result = runtime.replaceSectionContents([
+                    { sectionId: '1', content: contents[i] },
+                    {
+                        sectionId: '2',
+                        content: contents[(i + 2) % contents.length],
+                    },
+                ]);
+                const expected = buildSectionIndex(runtime.source, {
+                    sourceRevision: runtime.revision,
+                });
+                expect(result).not.toBeNull();
+                expect(runtime.index.byId).toEqual(expected.byId);
+                expect(runtime.index.sourceBytes).toBe(expected.sourceBytes);
+                expect(result?.bytesDelta).toBe(
+                    expected.sourceBytes - previousBytes,
+                );
+                expect(runtime.index.childrenSlotsByParent).toBe(topology);
+                expect(runtime.index.sectionToNodeId).toBe(identities);
+                expect([...previous.byId.values()]).toEqual(oldRanges);
+            }
+        },
+    );
+
+    it('fully validates marker changes and leaves source/revision untouched on rejection', () => {
+        const runtime = new MandalaSourceRuntime('<!--section: 1-->root');
+        expect(
+            runtime.replaceSectionContents([
+                { sectionId: '1', content: 'root\n<!--section: 2-->next' },
+            ]),
+        ).not.toBeNull();
+        expect(runtime.index.canonicalOrderedIds).toEqual(['1', '2']);
+        const before = runtime.source;
+        const revision = runtime.revision;
+        expect(
+            runtime.replaceSectionContents([
+                { sectionId: '2', content: '<!--section: 1-->duplicate' },
+            ]),
+        ).toBeNull();
+        expect(runtime.source).toBe(before);
+        expect(runtime.revision).toBe(revision);
+    });
+
+    it('retains live node IDs through cooling and subsequent content patches', () => {
+        const runtime = new MandalaSourceRuntime(
+            '<!--section: 1-->root\n<!--section: 2-->other',
+        );
+        expect(runtime.retainNodeIds({ '1': 'live-1', '2': 'live-2' })).toBe(
+            true,
+        );
+        runtime.replaceSectionContents([
+            { sectionId: '1', content: 'changed' },
+        ]);
+        const state = projectWorkingSetDocumentState(
+            defaultDocumentState(),
+            runtime,
+            runtime.materialize(['2']),
+            '',
+        );
+        expect(state.sections.section_id['2']).toBe('live-2');
+        expect(runtime.getSectionId('live-1')).toBe('1');
+        expect(
+            runtime.retainNodeIds({ '1': 'duplicate', '2': 'duplicate' }),
+        ).toBe(false);
+        expect(runtime.getNodeId('1')).toBe('live-1');
     });
 });

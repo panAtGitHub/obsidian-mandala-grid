@@ -112,6 +112,13 @@ describe('scene-input-runtime', () => {
         };
 
         const first = buildSceneInputSnapshots(args);
+        const moved = buildSceneInputSnapshots({
+            ...args,
+            activeNodeId: 'node-2',
+        });
+        expect(moved.documentSnapshot).toBe(first.documentSnapshot);
+        expect(moved.displaySnapshot).toBe(first.displaySnapshot);
+        expect(moved.interactionSnapshot).not.toBe(first.interactionSnapshot);
         const second = buildSceneInputSnapshots(args);
 
         expect(second).toBe(first);

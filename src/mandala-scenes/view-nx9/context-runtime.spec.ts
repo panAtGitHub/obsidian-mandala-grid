@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-document-runtime';
 import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
 
 describe('nx9-context-runtime', () => {
@@ -101,7 +102,7 @@ describe('nx9-context-runtime', () => {
         expect(second).not.toBe(first);
     });
 
-    it('invalidates the page cache when the active cell changes within a page', () => {
+    it('reuses the page cache when the active cell changes within a page', () => {
         const runtime = createNx9ContextRuntime();
         const structureContext = runtime.resolveStructureContext({
             documentSnapshot,
@@ -120,7 +121,7 @@ describe('nx9-context-runtime', () => {
             activeCell: { row: 0, col: 1, page: 0 },
         });
 
-        expect(second).not.toBe(first);
+        expect(second).toBe(first);
     });
 
     it('caches adjacent page contexts independently for the same structure context', () => {
@@ -150,8 +151,28 @@ describe('nx9-context-runtime', () => {
             requestedPage: 1,
         });
 
-        expect(firstPage1).not.toBe(secondPage1);
+        expect(firstPage1).toBe(secondPage1);
         expect(firstPage0).not.toBe(firstPage1);
+    });
+
+    it('uses indexed roots outside the working set and keeps child-only cores visible', () => {
+        const source = new MandalaSourceRuntime(
+            '<!--section: 1-->first\n<!--section: 2-->\n<!--section: 2.1-->child',
+        );
+        const runtime = createNx9ContextRuntime();
+        const structure = runtime.resolveStructureContext({
+            documentSnapshot: {
+                revision: 1,
+                contentRevision: 1,
+                sectionIdMap: { '1': 'node-1' },
+                documentContent: { 'node-1': { content: 'first' } },
+            },
+            rowsPerPage: 1,
+            activeSection: '1',
+            sectionLookup: source,
+        });
+        expect(structure.effectiveCoreSections).toEqual(['1', '2']);
+        expect(structure.totalPages).toBe(3);
     });
 
     it('reuses the structure context when only the active cell changes', () => {

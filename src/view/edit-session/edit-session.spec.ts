@@ -47,6 +47,24 @@ describe('edit-session-service', () => {
         expect(get(service.projectionStore)).toBe(null);
     });
 
+    it('waits for IME composition to finish before projecting or committing', () => {
+        const onCommit = vi.fn();
+        const service = new EditSessionService(onCommit);
+        service.startSession('node-1', false, '');
+        service.setComposing(true);
+        service.updateBuffer('拼');
+        vi.advanceTimersByTime(1000);
+        expect(onCommit).not.toHaveBeenCalled();
+        expect(get(service.stateStore).projectionContent).toBe('');
+        service.updateBuffer('拼音');
+        service.setComposing(false);
+        vi.advanceTimersByTime(600);
+        expect(onCommit).toHaveBeenCalledTimes(1);
+        expect(onCommit).toHaveBeenCalledWith(
+            expect.objectContaining({ content: '拼音', reason: 'idle' }),
+        );
+    });
+
     it('commits immediately when save is requested explicitly', () => {
         const onCommit = vi.fn();
         const service = new EditSessionService(onCommit);

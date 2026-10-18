@@ -1,3 +1,4 @@
+import type { SectionLookup } from 'src/mandala-document/runtime/section-lookup';
 import {
     applyNx9PageInteractionState,
     assembleNx9PageFrame,
@@ -22,10 +23,7 @@ import type {
     SceneDisplaySnapshot,
 } from 'src/mandala-scenes/shared/scene-projection';
 
-type PerfLogger = (
-    eventName: string,
-    payload: Record<string, unknown>,
-) => void;
+type PerfLogger = (eventName: string, payload: Record<string, unknown>) => void;
 
 export const createNx9PageRuntime = ({
     recordPerfEvent,
@@ -90,18 +88,38 @@ export const createNx9PageRuntime = ({
         page,
         context,
         sectionIdMap,
+        sectionLookup,
     }: {
         page: number;
         context: Nx9PageContext;
         sectionIdMap: Record<string, string>;
+        sectionLookup?: SectionLookup;
     }) => {
         const entry = getPageCacheEntry(page);
-        if (entry.context === context && entry.sectionIdMap === sectionIdMap && entry.pageFrame) {
+        if (
+            entry.context === context &&
+            entry.pageFrame &&
+            entry.pageFrame.every(
+                (row) =>
+                    !Array.isArray(row) ||
+                    row.every(
+                        (cell) =>
+                            cell.nodeId ===
+                            (cell.section
+                                ? sectionIdMap[cell.section] ??
+                                  sectionLookup?.getNodeId(cell.section) ??
+                                  null
+                                : null),
+                    ),
+            )
+        ) {
+            entry.sectionIdMap = sectionIdMap;
             return entry.pageFrame;
         }
         const startedAt = performance.now();
         const value = assembleNx9PageFrame({
             context,
+            sectionLookup,
             documentState: {
                 sections: {
                     section_id: sectionIdMap,
@@ -187,6 +205,16 @@ export const createNx9PageRuntime = ({
             hydratedNodeIds,
             value,
         });
+        // Retain only the cold/hot variants for the current display settings.
+        if (entry.staticRowsCache.length > 2) {
+            entry.staticRowsCache.shift();
+            entry.runtimeRowsCache = entry.runtimeRowsCache.filter(
+                (candidate) =>
+                    entry.staticRowsCache.some(
+                        (cached) => cached.value === candidate.staticRows,
+                    ),
+            );
+        }
         recordPerfEvent?.('trace.nx9.build-static-rows', {
             total_ms: Number((performance.now() - startedAt).toFixed(2)),
             row_count: value.length,
@@ -338,7 +366,10 @@ export const createNx9PageRuntime = ({
 
         if (
             runtimeCache &&
-            sameDraftProjection(runtimeCache.draftProjection, draftProjection) &&
+            sameDraftProjection(
+                runtimeCache.draftProjection,
+                draftProjection,
+            ) &&
             canPatchActiveInteractionState(
                 runtimeCache.interaction,
                 interaction,
@@ -407,6 +438,7 @@ export const createNx9PageRuntime = ({
             context: Nx9PageContext;
             sectionIdMap: Record<string, string>;
             hydratedNodeIds: Set<string>;
+            sectionLookup?: SectionLookup;
         }>;
         displaySnapshot: SceneDisplaySnapshot;
         gridStyle: ResolvedGridStyle;
@@ -422,6 +454,7 @@ export const createNx9PageRuntime = ({
                 page: pageEntry.page,
                 context: pageEntry.context,
                 sectionIdMap: pageEntry.sectionIdMap,
+                sectionLookup: pageEntry.sectionLookup,
             });
             const pageIndex = resolvePageIndex({
                 page: pageEntry.page,
@@ -450,7 +483,22 @@ export const createNx9PageRuntime = ({
         trimCache(hotPages);
     };
 
+    let prewarmRequest = 0;
+    const cancelPrewarm = () => {
+        prewarmRequest += 1;
+    };
+    const schedulePrewarmPages = (args: Parameters<typeof prewarmPages>[0]) => {
+        const request = ++prewarmRequest;
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                if (request === prewarmRequest) prewarmPages(args);
+            });
+        });
+    };
+
     return {
+        cancelPrewarm,
+        schedulePrewarmPages,
         resolvePageFrame,
         resolvePageIndex,
         resolveStaticRows,

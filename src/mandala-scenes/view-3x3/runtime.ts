@@ -36,6 +36,9 @@ export const createThreeByThreeRuntime = () => {
         capacity: CELLS_CACHE_LIMIT,
     });
     const resolveObjectKey = createObjectIdentityKeyResolver();
+    const latestCells = createBoundedCache<ThreeByThreeCellViewModel[]>({
+        capacity: STATIC_CACHE_LIMIT,
+    });
 
     const resolveStaticKey = ({
         theme,
@@ -146,13 +149,27 @@ export const createThreeByThreeRuntime = () => {
         ].join('|');
         const cached = cellsCache.get(cellsKey);
         if (cached) {
+            latestCells.set(staticKey, cached);
             return cached;
         }
 
+        const previous = latestCells.get(staticKey);
         const value = buildSceneCardCellList({
             descriptors,
             interaction: args.interaction,
+        }).map((cell, index) => {
+            const old = previous?.[index];
+            if (!old) return cell;
+            const a = old.cardUiState;
+            const b = cell.cardUiState;
+            return a.active === b.active &&
+                a.editing === b.editing &&
+                a.selected === b.selected &&
+                a.pinned === b.pinned
+                ? old
+                : { ...cell, cardViewModel: old.cardViewModel };
         });
+        latestCells.set(staticKey, value);
         return cellsCache.set(cellsKey, value);
     };
 

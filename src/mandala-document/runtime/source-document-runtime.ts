@@ -6,6 +6,7 @@ import type { DocumentState } from 'src/mandala-document/state/document-state-ty
 import {
     buildSectionIndex,
     getSectionContentFromRange,
+    updateSectionIndexOffsets,
     type SectionIndex,
     type SectionRange,
 } from 'src/mandala-document/runtime/section-index';
@@ -20,6 +21,7 @@ import {
     compareSectionIds,
     getParentSection,
 } from 'src/mandala-document/engine/section-utils';
+import { SECTION_MARKER_RE } from 'src/mandala-document/engine/parse-sections';
 import { refreshGroupParentIds } from 'src/mandala-document/state/reducers/meta/refresh-group-parent-ids';
 
 export type SourceContentPatch = {
@@ -270,6 +272,10 @@ export class MandalaSourceRuntime implements SectionLookup {
         return this.currentIndex.nodeIdToSection.get(nodeId) ?? null;
     }
 
+    getSectionIds() {
+        return this.currentIndex.canonicalOrderedIds;
+    }
+
     getRootSections() {
         return this.currentIndex.rootIds;
     }
@@ -288,6 +294,23 @@ export class MandalaSourceRuntime implements SectionLookup {
         for (let slot = 1; slot <= 8; slot += 1) {
             if (!this.getDirectChild(parentSection, slot)) return false;
         }
+        return true;
+    }
+
+    retainNodeIds(sectionIdMap: Record<string, string>) {
+        const sectionToNodeId = new Map<string, string>();
+        const nodeIdToSection = new Map<string, string>();
+        for (const section of this.currentIndex.canonicalOrderedIds) {
+            const nodeId = sectionIdMap[section];
+            if (!nodeId || nodeIdToSection.has(nodeId)) return false;
+            sectionToNodeId.set(section, nodeId);
+            nodeIdToSection.set(nodeId, section);
+        }
+        this.currentIndex = {
+            ...this.currentIndex,
+            sectionToNodeId,
+            nodeIdToSection,
+        };
         return true;
     }
 
@@ -355,23 +378,50 @@ export class MandalaSourceRuntime implements SectionLookup {
 
         const previousSource = this.currentSource;
         let nextSource = previousSource;
+        const characterDeltas = new Map<string, number>();
+        let bytesDelta = 0;
+        const encoder = new TextEncoder();
         for (const entry of ranges) {
+            const previousLength = nextSource.length;
             nextSource = patchSectionRange(
                 nextSource,
                 entry.range,
                 entry.content,
             );
+            const delta = nextSource.length - previousLength;
+            characterDeltas.set(entry.sectionId, delta);
+            const oldRange = previousSource.slice(
+                entry.range.markerEnd,
+                entry.range.sectionEnd,
+            );
+            const newRange = nextSource.slice(
+                entry.range.markerEnd,
+                entry.range.sectionEnd + delta,
+            );
+            bytesDelta +=
+                encoder.encode(newRange).length -
+                encoder.encode(oldRange).length;
         }
 
-        this.currentRevision += 1;
-        const nextIndex = buildSectionIndex(nextSource, {
-            sourceRevision: this.currentRevision,
-        });
+        const previousBytes = this.currentIndex.sourceBytes;
+        const nextRevision = this.currentRevision + 1;
+        const changesMarkers = ranges.some((entry) =>
+            new RegExp(SECTION_MARKER_RE.source).test(entry.content),
+        );
+        const nextIndex = changesMarkers
+            ? buildSectionIndex(nextSource, { sourceRevision: nextRevision })
+            : updateSectionIndexOffsets({
+                  index: this.currentIndex,
+                  source: nextSource,
+                  characterDeltas,
+                  bytesDelta,
+                  sourceRevision: nextRevision,
+              });
         if (!nextIndex.diagnostics.valid) {
-            this.currentRevision -= 1;
             return null;
         }
         this.currentSource = nextSource;
+        this.currentRevision = nextRevision;
         this.currentIndex = nextIndex;
 
         return {
@@ -379,9 +429,7 @@ export class MandalaSourceRuntime implements SectionLookup {
             index: nextIndex,
             revision: this.currentRevision,
             changedSections: ranges.map((entry) => entry.sectionId),
-            bytesDelta:
-                new TextEncoder().encode(nextSource).length -
-                new TextEncoder().encode(previousSource).length,
+            bytesDelta: nextIndex.sourceBytes - previousBytes,
         };
     }
 

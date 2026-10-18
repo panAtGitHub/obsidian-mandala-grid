@@ -58,6 +58,28 @@ describe('nx9-hydration-runtime', () => {
         expect(onHydrationChange).toHaveBeenCalledTimes(1);
     });
 
+    it('retains hydrated content across working-set revisions with the same visible nodes', () => {
+        const queue: Array<() => void> = [];
+        const runtime = createNx9HydrationRuntime({
+            scheduleFrame: (callback) => queue.push(callback),
+        });
+        const args = {
+            revision: 1,
+            currentPage: 0,
+            rowCount: 5,
+            hotPages: [0],
+            pageFramesByPage: new Map([[0, pageFrame]]),
+        };
+        runtime.sync(args);
+        while (queue.length) queue.shift()?.();
+        const first = runtime.sync(args);
+        const second = runtime.sync({ ...args, revision: 2 });
+        expect(second.hydratedNodeIdsByPage.get(0)).toBe(
+            first.hydratedNodeIdsByPage.get(0),
+        );
+        expect(queue).toHaveLength(0);
+    });
+
     it('drops pages outside the current hot window', () => {
         const queue: Array<() => void> = [];
         const runtime = createNx9HydrationRuntime({

@@ -1,10 +1,13 @@
+import { createNx9ContextRuntime } from 'src/mandala-scenes/view-nx9/context-runtime';
 import { AllDirections } from 'src/mandala-document/state/document-store-actions';
 import type { MandalaView } from 'src/view/view';
-import {
-    resolveNx9Context,
-    resolveNx9CurrentCell,
-} from 'src/mandala-scenes/view-nx9/context';
+import { resolveNx9CurrentCell } from 'src/mandala-scenes/view-nx9/context';
 import { setActiveCellNx9 } from 'src/mandala-scenes/view-nx9/set-active-cell';
+
+const contextRuntimes = new WeakMap<
+    MandalaView,
+    ReturnType<typeof createNx9ContextRuntime>
+>();
 
 const deltas: Record<AllDirections, { dr: number; dc: number }> = {
     up: { dr: -1, dc: 0 },
@@ -25,14 +28,27 @@ export const tryMandalaNx9Navigation = (
 
     const activeNodeId = view.viewStore.getValue().document.activeNode;
     const activeSection = docState.sections.id_section[activeNodeId] ?? null;
-    const context = resolveNx9Context({
-        sectionIdMap: docState.sections.section_id,
-        documentContent: docState.document.content,
+    let runtime = contextRuntimes.get(view);
+    if (!runtime) {
+        runtime = createNx9ContextRuntime();
+        contextRuntimes.set(view, runtime);
+    }
+    const structureContext = runtime.resolveStructureContext({
+        documentSnapshot: {
+            revision: docState.meta.mandalaV2.revision,
+            contentRevision: docState.meta.mandalaV2.contentRevision,
+            sectionIdMap: docState.sections.section_id,
+            documentContent: docState.document.content,
+        },
         rowsPerPage: view.getCurrentNx9RowsPerPage(),
         activeSection,
-        activeCell: view.mandalaActiveCellNx9,
         coreSectionMax: view.getEffectiveMandalaSettings().view.coreSectionMax,
         sectionLookup: view.getSectionLookup?.(),
+    });
+    const context = runtime.resolvePageContext({
+        structureContext,
+        activeSection,
+        activeCell: view.mandalaActiveCellNx9,
     });
     const current = resolveNx9CurrentCell({
         activeCell: view.mandalaActiveCellNx9,
@@ -78,7 +94,12 @@ export const tryMandalaNx9Navigation = (
     });
     if (!nextSection) return true;
 
-    view.materializeNx9Page?.(nextPage);
+    if (
+        nextPage !== current.page ||
+        !docState.sections.section_id[nextSection]
+    ) {
+        view.materializeNx9Page?.(nextPage);
+    }
     const nextNodeId =
         view.documentStore.getValue().sections.section_id[nextSection];
     if (!nextNodeId || nextNodeId === activeNodeId) return true;

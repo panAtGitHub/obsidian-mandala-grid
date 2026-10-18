@@ -221,3 +221,51 @@ export const getSectionContentFromRange = (
     source: string,
     range: SectionRange | undefined,
 ) => (range ? source.slice(range.contentStart, range.contentEnd) : null);
+
+/** Preserve topology and node identities for edits that cannot add markers. */
+export const updateSectionIndexOffsets = ({
+    index,
+    source,
+    characterDeltas,
+    bytesDelta,
+    sourceRevision,
+}: {
+    index: SectionIndex;
+    source: string;
+    characterDeltas: Map<string, number>;
+    bytesDelta: number;
+    sourceRevision: number;
+}): SectionIndex => {
+    const startedAt = performance.now();
+    const byId = new Map<string, SectionRange>();
+    let offset = 0;
+    for (const id of index.sourceOrderedIds) {
+        const previous = index.byId.get(id);
+        if (!previous) continue;
+        const delta = characterDeltas.get(id) ?? 0;
+        const markerEnd = previous.markerEnd + offset;
+        const sectionEnd = previous.sectionEnd + offset + delta;
+        byId.set(id, {
+            ...previous,
+            markerStart: previous.markerStart + offset,
+            markerEnd,
+            sectionEnd,
+            ...(characterDeltas.has(id)
+                ? readContentBounds(source, markerEnd, sectionEnd)
+                : {
+                      contentStart: previous.contentStart + offset,
+                      contentEnd: previous.contentEnd + offset,
+                  }),
+        });
+        offset += delta;
+    }
+    return {
+        ...index,
+        byId,
+        sourceRevision,
+        sourceBytes: index.sourceBytes + bytesDelta,
+        metrics: {
+            indexMs: Number((performance.now() - startedAt).toFixed(2)),
+        },
+    };
+};

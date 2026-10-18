@@ -49,7 +49,89 @@ describe('nx9-page-runtime', () => {
                 sectionIdMap,
             }),
         ).toBe(pageFrame);
-        expect(runtime.resolvePageIndex({ page: 0, pageFrame })).toBe(pageIndex);
+        expect(runtime.resolvePageIndex({ page: 0, pageFrame })).toBe(
+            pageIndex,
+        );
+    });
+
+    it('keeps the current frame when unrelated working-set nodes change', () => {
+        const runtime = createNx9PageRuntime();
+        const context = createContext(0);
+        const first = runtime.resolvePageFrame({
+            page: 0,
+            context,
+            sectionIdMap: { '1': 'node-1' },
+        });
+        expect(
+            runtime.resolvePageFrame({
+                page: 0,
+                context,
+                sectionIdMap: { '1': 'node-1', '2': 'node-2' },
+            }),
+        ).toBe(first);
+        expect(
+            runtime.resolvePageFrame({
+                page: 0,
+                context,
+                sectionIdMap: { '1': 'replacement' },
+            }),
+        ).not.toBe(first);
+    });
+
+    it('defers prewarming and discards stale jobs after navigation or destruction', () => {
+        const frames: Array<FrameRequestCallback> = [];
+        vi.stubGlobal(
+            'requestAnimationFrame',
+            (callback: FrameRequestCallback) => frames.push(callback),
+        );
+        const recordPerfEvent = vi.fn();
+        const runtime = createNx9PageRuntime({ recordPerfEvent });
+        const args = {
+            pages: [
+                {
+                    page: 0,
+                    context: createContext(0),
+                    sectionIdMap: { '1': 'node-1' },
+                    hydratedNodeIds: new Set(['node-1']),
+                },
+            ],
+            displaySnapshot: {
+                sectionColors: {},
+                sectionColorOpacity: 0,
+                backgroundMode: 'none',
+                showDetailSidebar: false,
+                whiteThemeMode: false,
+            },
+            gridStyle: nx9GridStyle,
+            interactionSnapshot: {
+                activeNodeId: null,
+                editingState: { activeNodeId: null, isInSidebar: false },
+                selectedNodes: new Set<string>(),
+                selectedStamp: '',
+                pinnedSections: new Set<string>(),
+                pinnedStamp: '',
+                showDetailSidebar: false,
+            },
+            activeCell: null,
+            draftProjection: null,
+        };
+        try {
+            runtime.schedulePrewarmPages(args);
+            runtime.cancelPrewarm();
+            while (frames.length) frames.shift()?.(0);
+            expect(recordPerfEvent).not.toHaveBeenCalled();
+            runtime.schedulePrewarmPages(args);
+            runtime.schedulePrewarmPages(args);
+            expect(recordPerfEvent).not.toHaveBeenCalled();
+            while (frames.length) frames.shift()?.(0);
+            expect(
+                recordPerfEvent.mock.calls.filter(
+                    ([name]) => name === 'trace.nx9.assemble-rows',
+                ),
+            ).toHaveLength(1);
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it('patches active state instead of rebuilding all rows when only active focus changes', () => {

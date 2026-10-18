@@ -64,6 +64,7 @@ import { prepareSaveSections } from 'src/mandala-document/engine/prepare-save-se
 import { serializeSections } from 'src/mandala-document/engine/serialize-sections';
 import { applySectionPatch } from 'src/mandala-display/logic/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
+import { createWorkingSetCooldown } from 'src/view/helpers/working-set-cooldown';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import {
     ensureCurrentFileCustomLayoutAvailable,
@@ -182,6 +183,58 @@ export class MandalaView extends TextFileView {
     private workingSetCenter: string | null = null;
     private initialBootstrapTarget: InitialTarget | null = null;
     private fullHydrated = true;
+    private readonly workingSetCooldown = createWorkingSetCooldown(() =>
+        this.coolToWorkingSet(),
+    );
+
+    private coolToWorkingSet() {
+        if (!this.sourceRuntime || !this.fullHydrated || !this.file)
+            return true;
+        const viewState = this.viewStore.getValue();
+        if (
+            viewState.document.editing.activeNodeId ||
+            viewState.ui.mandala.swap.active
+        )
+            return false;
+        const state = this.documentStore.getValue();
+        const ids = Object.keys(state.sections.section_id);
+        // Structural operations must have reached the source/save queue first.
+        if (
+            !this.sourceRuntime.index.diagnostics.valid ||
+            this.sourceRuntime.source !== extractFrontmatter(this.data).body ||
+            ids.length !==
+                this.sourceRuntime.index.canonicalOrderedIds.length ||
+            ids.some(
+                (section) =>
+                    this.sourceRuntime?.getContent(section) !==
+                    (state.document.content[state.sections.section_id[section]]
+                        ?.content ?? ''),
+            ) ||
+            !this.sourceRuntime.retainNodeIds(state.sections.section_id)
+        )
+            return true;
+        this.fullHydrated = false;
+        const activeSection =
+            state.sections.id_section[viewState.document.activeNode];
+        if (this.mandalaMode === '3x3') {
+            this.materializeWorkingSet(
+                viewState.ui.mandala.subgridTheme ?? activeSection ?? '1',
+            );
+        } else if (
+            !this.materializeModeWorkingSet(this.mandalaMode, activeSection)
+        ) {
+            this.fullHydrated = true;
+            return true;
+        }
+        this.recordPerfEvent('document.working-set-cooled', {
+            source_count: ids.length,
+            materialized_count: Object.keys(
+                this.documentStore.getValue().sections.section_id,
+            ).length,
+        });
+        return true;
+    }
+
     constructor(
         leaf: WorkspaceLeaf,
         public plugin: MandalaGrid,
@@ -347,6 +400,7 @@ export class MandalaView extends TextFileView {
         loadFullDocument(this, body, frontmatter, activeSection);
         this.fullHydrated = true;
         this.workingSetCenter = null;
+        this.workingSetCooldown.schedule();
         this.recordPerfEvent('document.full-hydration', {
             reason,
             sections_count: this.sourceRuntime.index.canonicalOrderedIds.length,
@@ -375,6 +429,7 @@ export class MandalaView extends TextFileView {
         if (activeSection) requestedSectionIds.push(activeSection);
         const preservedNodeIds = [
             ...currentState.pinnedNodes.Ids,
+            ...this.viewStore.getValue().document.selectedNodes,
             this.viewStore.getValue().document.editing.activeNodeId,
         ];
         for (const nodeId of preservedNodeIds) {
@@ -392,6 +447,21 @@ export class MandalaView extends TextFileView {
 
         const startedAt = performance.now();
         const workingSet = this.sourceRuntime.materialize(requestedSectionIds);
+        const currentIds = Object.keys(currentState.sections.section_id);
+        if (
+            currentIds.length === workingSet.materializedSectionIds.length &&
+            workingSet.materializedSectionIds.every(
+                (section) =>
+                    currentState.sections.section_id[section] ===
+                        workingSet.sections.get(section)?.nodeId &&
+                    currentState.document.content[
+                        currentState.sections.section_id[section]
+                    ]?.content === workingSet.sections.get(section)?.content,
+            )
+        ) {
+            this.workingSetCenter = centerSection ?? this.workingSetCenter;
+            return false;
+        }
         const nextState = projectWorkingSetDocumentState(
             this.documentStore.getValue(),
             this.sourceRuntime,
@@ -443,12 +513,13 @@ export class MandalaView extends TextFileView {
                         ? buildThreeByThreeSectionIds(row.coreSection)
                         : [],
                 );
-                return this.materializeSections(
+                this.materializeSections(
                     weekSectionIds,
                     activeSection ??
                         weekContext.rows[0]?.coreSection ??
                         undefined,
                 );
+                return true;
             }
 
             const rootIds = this.sourceRuntime.index.rootIds;
@@ -458,7 +529,9 @@ export class MandalaView extends TextFileView {
             const rowsPerPage = this.getCurrentNx9RowsPerPage(settings);
             const page =
                 requestedPage ??
-                this.mandalaActiveCellNx9?.page ??
+                (preferredActiveSection
+                    ? Math.floor(activeRootIndex / rowsPerPage)
+                    : this.mandalaActiveCellNx9?.page) ??
                 Math.floor(activeRootIndex / rowsPerPage);
             const pageRootIds = rootIds.slice(
                 page * rowsPerPage,
@@ -467,7 +540,8 @@ export class MandalaView extends TextFileView {
             const pageSectionIds = pageRootIds.flatMap((rootId) =>
                 buildThreeByThreeSectionIds(rootId),
             );
-            return this.materializeSections(pageSectionIds, activeRoot);
+            this.materializeSections(pageSectionIds, activeRoot);
+            return true;
         }
         if (mode !== '9x9') return false;
         const baseTheme =
@@ -477,7 +551,7 @@ export class MandalaView extends TextFileView {
             '1';
         const settings = this.plugin.settings.getValue();
         const layoutId = this.getCurrentMandalaLayoutId(settings);
-        return this.materializeSections(
+        this.materializeSections(
             buildNineByNineSectionIds({
                 selectedLayoutId: layoutId,
                 customLayouts: settings.view.mandalaGridCustomLayouts ?? [],
@@ -485,6 +559,25 @@ export class MandalaView extends TextFileView {
             }),
             baseTheme,
         );
+        return true;
+    }
+
+    materializeCoreWorkingSet(section: string) {
+        return this.mandalaMode === '3x3'
+            ? this.materializeWorkingSet(section)
+            : this.materializeModeWorkingSet(this.mandalaMode, section);
+    }
+
+    materializeSubgridForExit(theme: string) {
+        if (!this.sourceRuntime || this.fullHydrated) return false;
+        const parent =
+            this.sourceRuntime.getParent(theme) ??
+            (Number(theme) > 1 ? String(Number(theme) - 1) : '1');
+        const sections = this.sourceRuntime.index.canonicalOrderedIds.filter(
+            (section) => section === theme || section.startsWith(`${theme}.`),
+        );
+        if (parent) sections.push(parent);
+        return this.materializeSections(sections, theme);
     }
 
     materializeNx9Page(page: number) {
@@ -843,6 +936,7 @@ export class MandalaView extends TextFileView {
             this.data = data;
 
             if (switchedFile) {
+                this.workingSetCooldown.cancel();
                 this.activeFilePath = nextPath;
                 this.lastLoadedBody = '';
                 this.lastLoadedFrontmatter = '';
@@ -867,6 +961,7 @@ export class MandalaView extends TextFileView {
     }
 
     async onUnloadFile(_file?: TFile) {
+        this.workingSetCooldown.cancel();
         this.cancelFocusMandalaSection();
         this.cancelFirstRenderProbe();
         this.debouncedLoadDocumentToStore.cancel();
@@ -875,6 +970,7 @@ export class MandalaView extends TextFileView {
         } else {
             this.editSession.endSession('unload');
         }
+        this.workingSetCooldown.cancel();
         const flushed =
             await this.flushPendingPersistSnapshotsForTransition('close-view');
         if (!flushed) {
@@ -918,6 +1014,7 @@ export class MandalaView extends TextFileView {
             this.editSession.endSession('unload');
         }
         void this.flushPendingPersistSnapshotsForTransition('clear-view');
+        this.workingSetCooldown.cancel();
         this.data = '';
     }
 
@@ -1315,6 +1412,7 @@ export class MandalaView extends TextFileView {
                 this.queuePersistSnapshot(persistPath, data);
             }
         }
+        if (this.fullHydrated) this.workingSetCooldown.schedule();
     };
 
     private loadInitialData = async () => {
