@@ -1896,18 +1896,15 @@ export class MandalaView extends TextFileView {
 
     private focusMandalaSection(targetSection: string) {
         this.cancelFocusMandalaSection();
-        const currentNodeId = this.viewStore.getValue().document.activeNode;
-        const currentSection =
-            this.documentStore.getValue().sections.id_section[currentNodeId];
-        if (currentSection === targetSection) return;
-        if (this.isWorkingSetProjection) {
-            this.materializeWorkingSet(targetSection, targetSection);
-        }
 
         const requestId = ++this.focusMandalaSectionRequestId;
         const startMs = performance.now();
         const run = (attempt: number) => {
             if (requestId !== this.focusMandalaSectionRequestId) return;
+            // Load and focus together so the previous scene cannot evict the target.
+            if (this.isWorkingSetProjection) {
+                this.materializeWorkingSet(targetSection, targetSection);
+            }
             const nodeId =
                 this.documentStore.getValue().sections.section_id[
                     targetSection

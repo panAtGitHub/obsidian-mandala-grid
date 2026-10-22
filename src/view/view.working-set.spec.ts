@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('src/mandala-scenes/shared/shell/main.svelte', () => ({ default: {} }));
 vi.mock('src/main', () => ({ default: class {} }));
 import { MandalaView } from 'src/view/view';
@@ -8,6 +8,8 @@ import {
 } from 'src/mandala-document/runtime/source-document-runtime';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import { defaultViewState } from 'src/stores/view/default-view-state';
+import { syncThreeByThreeSubgridState } from 'src/mandala-scenes/view-3x3/scene-state';
+import { viewReducer } from 'src/stores/view/view-reducer';
 
 const createHost = () => {
     const runtime = new MandalaSourceRuntime(
@@ -32,7 +34,17 @@ const createHost = () => {
         file: {},
         documentStore: { getValue: () => state, set, dispatch: vi.fn() },
         workingSetCooldown: { schedule: vi.fn(), cancel: vi.fn() },
-        viewStore: { getValue: () => viewState, setContext: vi.fn() },
+        viewStore: {
+            getValue: () => viewState,
+            setContext: vi.fn(),
+            batch: (callback: () => void) => callback(),
+            dispatch: vi.fn((action: Parameters<typeof viewReducer>[1]) =>
+                viewReducer(viewState, action, state.document),
+            ),
+        },
+        getEffectiveMandalaSettings: () => ({ view: { subgridMaxDepth: 2 } }),
+        focusMandalaSectionRequestId: 0,
+        focusMandalaSectionTimer: null,
         recordPerfEvent: vi.fn(),
     }) as Pick<
         MandalaView,
@@ -41,6 +53,9 @@ const createHost = () => {
         | 'materializeWorkingSet'
         | 'materializeSubgridForExit'
         | 'isWorkingSetProjection'
+        | 'focusDayPlanToday'
+        | 'getDayPlanTodayNavigation'
+        | 'getSectionLookup'
     > & {
         fullHydrated: boolean;
         coolToWorkingSet: () => boolean;
@@ -49,6 +64,59 @@ const createHost = () => {
 };
 
 describe('view working-set transitions', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('focuses today before the previous grid can evict its working set', async () => {
+        vi.useFakeTimers();
+        const host = createHost();
+        vi.spyOn(host.view, 'getDayPlanTodayNavigation').mockReturnValue({
+            isDayPlan: true,
+            targetSection: '2',
+            canNavigate: true,
+        });
+        const setState = host.set.getMockImplementation()!;
+        host.set.mockImplementation((state) => {
+            setState(state);
+            void Promise.resolve().then(() => {
+                syncThreeByThreeSubgridState({
+                    view: host.view as unknown as MandalaView,
+                    mode: '3x3',
+                    subgridTheme: host.viewState.ui.mandala.subgridTheme,
+                    documentState: host.getState(),
+                    sectionToNodeId: host.getState().sections.section_id,
+                    sectionLookup: host.view.getSectionLookup(),
+                    allowSubgridExpansion: false,
+                });
+            });
+        });
+
+        expect(host.view.focusDayPlanToday()).toBe(true);
+        await vi.runAllTimersAsync();
+
+        expect(host.viewState.ui.mandala.subgridTheme).toBe('2');
+        expect(host.viewState.document.activeNode).toBe(
+            host.runtime.getNodeId('2'),
+        );
+    });
+
+    it('returns to the today grid even when its node is already active', async () => {
+        vi.useFakeTimers();
+        const host = createHost();
+        host.viewState.ui.mandala.subgridTheme = '2';
+        vi.spyOn(host.view, 'getDayPlanTodayNavigation').mockReturnValue({
+            isDayPlan: true,
+            targetSection: '1',
+            canNavigate: true,
+        });
+
+        host.view.focusDayPlanToday();
+        await vi.runAllTimersAsync();
+
+        expect(host.viewState.ui.mandala.subgridTheme).toBe('1');
+    });
+
     it('does not notify or bump revisions when the requested working set is unchanged', () => {
         const host = createHost();
         host.view.materializeWorkingSet('1');
