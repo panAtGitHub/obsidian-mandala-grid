@@ -120,4 +120,30 @@ describe('clear-empty-subgrids', () => {
         expect(plan.rootNodeIds).toEqual([]);
         expect(plan.nodesToRemove).toEqual([]);
     });
+
+    it('can preserve trailing roots for fixed-range documents', () => {
+        const document = {
+            columns: [
+                {
+                    id: 'c0',
+                    groups: [{ parentId: 'root', nodes: ['n1', 'n2'] }],
+                },
+            ],
+            content: {
+                n1: { content: '' },
+                n2: { content: '' },
+            },
+        };
+        const sections = {
+            section_id: { '1': 'n1', '2': 'n2' },
+            id_section: { n1: '1', n2: '2' },
+        };
+
+        const plan = createClearEmptyMandalaSubgridsPlan(document, sections, {
+            preserveRootSections: true,
+        });
+
+        expect(plan.rootSections).toEqual([]);
+        expect(plan.rootNodeIds).toEqual([]);
+    });
 });

@@ -1,6 +1,7 @@
 import { tx } from 'src/lang/translate';
 import { Notice } from 'obsidian';
 import { createClearEmptyMandalaSubgridsPlan } from 'src/mandala-display/logic/clear-empty-subgrids';
+import { resolveMandalaProfile } from 'src/mandala-display/logic/mandala-profile';
 import type { MandalaView } from 'src/view/view';
 import {
     applyTemplateToCurrentThemeAction,
@@ -55,6 +56,11 @@ export const createViewOptionsDocumentActions = ({
             const plan = createClearEmptyMandalaSubgridsPlan(
                 state.document,
                 state.sections,
+                {
+                    preserveRootSections:
+                        resolveMandalaProfile(state.file.frontmatter)?.kind ===
+                        'day-plan',
+                },
             );
             if (plan.parentIds.length === 0 && plan.rootNodeIds.length === 0) {
                 new Notice(tx('没有可清空的空白九宫格。'));

@@ -438,6 +438,26 @@ describe('mandala-v2 save prepare', () => {
         expect(result.stats.prunedRootCount).toBe(1);
     });
 
+    it('preserves trailing roots when the document owns a fixed core range', () => {
+        const sections = {
+            section_id: { '1': 'n1', '2': 'n2' },
+            id_section: { n1: '1', n2: '2' },
+        };
+        const document = {
+            content: { n1: { content: 'Root' }, n2: { content: '' } },
+        };
+
+        const result = prepareSaveSections(document, sections, {
+            preserveRootSections: true,
+        });
+
+        expect(result.sections.map((section) => section.sectionId)).toEqual([
+            '1',
+            '2',
+        ]);
+        expect(result.stats.prunedRootCount).toBe(0);
+    });
+
     it('does not prune non-trailing empty core sections', () => {
         const sections = {
             section_id: {

@@ -18,6 +18,10 @@ export type MandalaSectionContentEntry = {
     content: string;
 };
 
+type ClearEmptyMandalaSubgridsOptions = {
+    preserveRootSections?: boolean;
+};
+
 const isDocumentNode = (document: MandalaGridDocument, nodeId: string) =>
     Boolean(document.content[nodeId]);
 
@@ -77,6 +81,7 @@ export const collectTrailingEmptyCoreSections = (
 export const createClearEmptyMandalaSubgridsPlan = (
     document: MandalaGridDocument,
     sections: Sections,
+    options: ClearEmptyMandalaSubgridsOptions = {},
 ): ClearEmptySubgridsPlan => {
     const parentsWithChildren = new Set<string>();
     const parentOf = new Map<string, string>();
@@ -112,12 +117,16 @@ export const createClearEmptyMandalaSubgridsPlan = (
         return true;
     });
 
-    const trailingRootSections = collectTrailingEmptyCoreSections(
-        Object.entries(sections.section_id).map(([sectionId, nodeId]) => ({
-            sectionId,
-            content: document.content[nodeId]?.content ?? '',
-        })),
-    );
+    const trailingRootSections = options.preserveRootSections
+        ? []
+        : collectTrailingEmptyCoreSections(
+              Object.entries(sections.section_id).map(
+                  ([sectionId, nodeId]) => ({
+                      sectionId,
+                      content: document.content[nodeId]?.content ?? '',
+                  }),
+              ),
+          );
     const rootNodeIds = trailingRootSections
         .map((sectionId) => sections.section_id[sectionId])
         .filter((nodeId): nodeId is string => Boolean(nodeId));

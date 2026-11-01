@@ -91,6 +91,21 @@ export const isLeapYear = (year: number) =>
 
 export const daysInYear = (year: number) => (isLeapYear(year) ? 366 : 365);
 
+export const getMissingDayPlanCoreSections = (
+    sectionIds: Iterable<string>,
+    year: number,
+) => {
+    const existingRoots = new Set<string>();
+    for (const sectionId of sectionIds) {
+        const root = sectionId.split('.')[0];
+        if (root) existingRoots.add(root);
+    }
+
+    return Array.from({ length: daysInYear(year) }, (_, index) =>
+        String(index + 1),
+    ).filter((section) => !existingRoots.has(section));
+};
+
 export const dayOfYearFromDate = (year: number, month: number, day: number) => {
     const date = new Date(Date.UTC(year, month - 1, day));
     const start = new Date(Date.UTC(year, 0, 1));

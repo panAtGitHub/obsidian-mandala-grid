@@ -1,4 +1,12 @@
 export const englishMessages = {
+    '保存已中止：当前只加载了局部工作集，无法安全写回完整 MD。请重新加载文件后再试。':
+        'Save blocked: only a partial working set is loaded, so the full Markdown file cannot be written safely. Reload the file and try again.',
+    '保存已中止：日计划缺少日期核心格（section {0}）。请先修复日计划结构。':
+        'Save blocked: the day plan is missing core section {0}. Repair the day-plan structure first.',
+    '日计划结构不完整：缺少 {0} 个日期核心格（例如 section {1}）。请先修复文件。':
+        'Day-plan structure is incomplete: {0} core date sections are missing (for example, section {1}). Repair the file first.',
+    '日计划缺少今天对应的 section {0}，未执行跳转。':
+        "The day plan is missing today's section {0}; navigation was not performed.",
     用普通md视图打开: 'Open as Markdown',
     用九宫格插件打开: 'Open in Mandala Grid',
     '切换九宫格视图与普通 md 视图': 'Toggle Mandala Grid / Markdown view',

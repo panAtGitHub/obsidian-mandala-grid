@@ -30,6 +30,7 @@ type PrepareSaveSectionsResult = {
 type PrepareSaveSectionsOptions = {
     parentToChildrenSlots?: Record<string, Partial<Record<number, string>>>;
     subtreeNonEmptyCountBySection?: Record<string, number>;
+    preserveRootSections?: boolean;
 };
 
 const createParentToChildrenSlots = (sectionIds: string[]) => {
@@ -193,16 +194,17 @@ export const prepareSaveSections = (
                 content: nodeId ? document.content[nodeId]?.content ?? '' : '',
             };
         });
-    const trailingEmptyRoots = collectTrailingEmptyCoreSections(
-        serializableSections,
-    );
+    const trailingEmptyRoots = options.preserveRootSections
+        ? []
+        : collectTrailingEmptyCoreSections(serializableSections);
     const trailingRootSet = new Set(trailingEmptyRoots);
     const finalSections = serializableSections.filter(({ sectionId }) => {
         const root = sectionId.split('.')[0];
         return root ? !trailingRootSet.has(root) : true;
     });
     const finalDroppedSectionCount =
-        droppedSections.size + (serializableSections.length - finalSections.length);
+        droppedSections.size +
+        (serializableSections.length - finalSections.length);
 
     return {
         sections: finalSections,

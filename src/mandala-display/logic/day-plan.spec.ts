@@ -14,6 +14,7 @@ import {
     getChineseFullWeekdayLabel,
     getChineseWeekdayLabel,
     getDayPlanDateHeadingSettings,
+    getMissingDayPlanCoreSections,
     getEnglishCapitalizedWeekdayLabel,
     getEnglishFullWeekdayLabel,
     getEnglishShortWeekdayLabel,
@@ -57,6 +58,14 @@ describe('day-plan helpers', () => {
         expect(isLeapYear(2026)).toBe(false);
         expect(daysInYear(2024)).toBe(366);
         expect(daysInYear(2026)).toBe(365);
+    });
+
+    it('finds missing day-plan core sections without counting child sections', () => {
+        const missing = getMissingDayPlanCoreSections(['1', '1.1', '3'], 2026);
+
+        expect(missing).toHaveLength(363);
+        expect(missing.slice(0, 2)).toEqual(['2', '4']);
+        expect(missing.at(-1)).toBe('365');
     });
 
     it('maps day-of-year and date correctly', () => {

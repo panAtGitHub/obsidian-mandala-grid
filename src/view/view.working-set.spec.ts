@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('src/mandala-scenes/shared/shell/main.svelte', () => ({ default: {} }));
 vi.mock('src/main', () => ({ default: class {} }));
-import { MandalaView } from 'src/view/view';
+import { MandalaView, shouldBlockPartialContentSave } from 'src/view/view';
 import {
     MandalaSourceRuntime,
     projectWorkingSetDocumentState,
@@ -184,5 +184,39 @@ describe('view working-set transitions', () => {
             host.getState().document.content[host.runtime.getNodeId('1') ?? '']
                 .content,
         ).toBe('unsaved');
+    });
+
+    it('blocks partial content serialization after a failed source patch', () => {
+        expect(
+            shouldBlockPartialContentSave('content-only', false, false),
+        ).toBe(true);
+        expect(shouldBlockPartialContentSave('content-only', false, true)).toBe(
+            false,
+        );
+        expect(shouldBlockPartialContentSave('structural', false, false)).toBe(
+            false,
+        );
+    });
+
+    it('does not make a missing day-plan target navigable', () => {
+        const host = createHost();
+        host.getState().file.frontmatter = `---
+mandala: true
+mandala_plan:
+  enabled: true
+  year: 2026
+---
+`;
+
+        const navigation = MandalaView.prototype.getDayPlanTodayNavigation.call(
+            host.view as never,
+            new Date('2026-01-03T08:00:00'),
+        );
+
+        expect(navigation).toEqual({
+            isDayPlan: true,
+            targetSection: '3',
+            canNavigate: false,
+        });
     });
 });

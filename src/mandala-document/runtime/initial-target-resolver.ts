@@ -46,7 +46,7 @@ export const resolveInitialTarget = ({
     persistedActive = null,
     explicitTarget = null,
     defaultSection = '1',
-}: InitialTargetOptions): InitialTarget => {
+}: InitialTargetOptions): InitialTarget | null => {
     const explicit = firstExisting(index, [explicitTarget]);
     if (explicit) {
         return {
@@ -56,14 +56,11 @@ export const resolveInitialTarget = ({
         };
     }
 
-    const today =
-        profile.kind === 'day-plan'
-            ? firstExisting(index, [profile.targetSection])
-            : null;
-    if (today) {
+    if (profile.kind === 'day-plan' && profile.targetSection) {
+        if (!index.byId.has(profile.targetSection)) return null;
         return {
-            centerSection: today,
-            activeSection: today,
+            centerSection: profile.targetSection,
+            activeSection: profile.targetSection,
             source: 'day-plan-today',
         };
     }

@@ -49,8 +49,23 @@ describe('resolveInitialTarget', () => {
             persistedActive: '1.1',
         });
 
-        expect(result.source).toBe('day-plan-today');
-        expect(result.centerSection).toBe('2');
+        expect(result?.source).toBe('day-plan-today');
+        expect(result?.centerSection).toBe('2');
+    });
+
+    it('does not fall back when the day-plan target section is missing', () => {
+        const result = resolveInitialTarget({
+            index,
+            profile: {
+                ...generic,
+                kind: 'day-plan',
+                targetSection: '3',
+            },
+            persistedCenter: '1',
+            persistedActive: '1.1',
+        });
+
+        expect(result).toBeNull();
     });
 
     it('falls back from invalid center to an existing active ancestor', () => {

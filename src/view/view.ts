@@ -43,6 +43,7 @@ import { toggleObsidianViewType } from 'src/obsidian/events/workspace/effects/to
 import { DocumentSearch } from 'src/stores/view/subscriptions/effects/document-search/document-search';
 import { AlignBranch } from 'src/stores/view/subscriptions/effects/align-branch/align-branch';
 import { lang } from 'src/lang/lang';
+import { tx } from 'src/lang/translate';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { loadFullDocument } from 'src/stores/view/subscriptions/actions/document/load-full-document';
 import { refreshActiveViewOfDocument } from 'src/stores/plugin/actions/refresh-active-view-of-document';
@@ -57,6 +58,7 @@ import {
     resolveMandalaProfileActivation,
     resolveMandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
+import { getMissingDayPlanCoreSections } from 'src/mandala-display/logic/day-plan';
 import { isNonEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
@@ -138,6 +140,12 @@ export type SaveDocumentOptions = {
     mode?: SaveDocumentMode;
     changedSections?: string[];
 };
+
+export const shouldBlockPartialContentSave = (
+    mode: SaveDocumentMode,
+    fullHydrated: boolean,
+    usedFastPath: boolean,
+) => mode === 'content-only' && !fullHydrated && !usedFastPath;
 
 export class MandalaView extends TextFileView {
     component: ReturnType<typeof mount> | undefined;
@@ -1123,6 +1131,32 @@ export class MandalaView extends TextFileView {
                 'MandalaGrid V2 document state is required for saveDocument',
             );
         }
+        const dayPlan = resolveMandalaProfile(state.file.frontmatter)?.dayPlan;
+        const missingDayPlanSections = dayPlan
+            ? getMissingDayPlanCoreSections(
+                  this.sourceRuntime?.index.rootIds ??
+                      Object.keys(state.sections.section_id),
+                  dayPlan.year,
+              )
+            : [];
+        if (missingDayPlanSections.length > 0) {
+            const firstMissingSection = missingDayPlanSections[0] ?? '?';
+            const message = tx(
+                '保存已中止：日计划缺少日期核心格（section {0}）。请先修复日计划结构。',
+                firstMissingSection,
+            );
+            const blockedKey = `${this.file.path}:day-plan:${firstMissingSection}`;
+            if (this.lastSaveBlockedNoticeKey !== blockedKey) {
+                this.lastSaveBlockedNoticeKey = blockedKey;
+                new Notice(message, 5000);
+            }
+            logger.error('[mandala-document] day-plan save blocked', {
+                file: this.file.path,
+                missing_sections: missingDayPlanSections,
+            });
+            return;
+        }
+        const isDayPlan = Boolean(dayPlan);
         let body = '';
         let usedFastPath = false;
         let prepareMs = 0;
@@ -1258,6 +1292,28 @@ export class MandalaView extends TextFileView {
             patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
         }
 
+        if (
+            this.sourceRuntime &&
+            shouldBlockPartialContentSave(mode, this.fullHydrated, usedFastPath)
+        ) {
+            const message = tx(
+                '保存已中止：当前只加载了局部工作集，无法安全写回完整 MD。请重新加载文件后再试。',
+            );
+            const blockedKey = `${this.file.path}:partial-working-set`;
+            if (this.lastSaveBlockedNoticeKey !== blockedKey) {
+                this.lastSaveBlockedNoticeKey = blockedKey;
+                new Notice(message, 5000);
+            }
+            logger.error(
+                '[mandala-document] partial working-set save blocked',
+                {
+                    file: this.file.path,
+                    changed_sections: changedSections,
+                },
+            );
+            return;
+        }
+
         if (!usedFastPath) {
             const prepareStartedMs = performance.now();
             const prepared = prepareSaveSections(
@@ -1268,6 +1324,7 @@ export class MandalaView extends TextFileView {
                         state.meta.mandalaV2.parentToChildrenSlots,
                     subtreeNonEmptyCountBySection:
                         state.meta.mandalaV2.subtreeNonEmptyCountBySection,
+                    preserveRootSections: isDayPlan,
                 },
             );
             prepareMs = Number(
@@ -1533,6 +1590,12 @@ export class MandalaView extends TextFileView {
         const sectionsInBody = this.sourceRuntime
             ? new Set(this.sourceRuntime.index.canonicalOrderedIds)
             : this.collectSectionIdsFromBody(body);
+        const missingDayPlanSections = activation.dayPlan
+            ? getMissingDayPlanCoreSections(
+                  this.sourceRuntime?.index.rootIds ?? sectionsInBody,
+                  activation.dayPlan.year,
+              )
+            : [];
         const persistedMandalaLastActiveSection =
             this.getExistingSectionFromBody(
                 sectionsInBody,
@@ -1542,8 +1605,12 @@ export class MandalaView extends TextFileView {
             sectionsInBody,
             documentPreferences?.activeSection ?? null,
         );
+        const existingDayPlanTarget = this.getExistingSectionFromBody(
+            sectionsInBody,
+            activation.targetSection,
+        );
         const nextActiveSection =
-            activation.targetSection ??
+            existingDayPlanTarget ??
             persistedMandalaLastActiveSection ??
             persistedActiveSection;
         const initialTarget = this.sourceRuntime?.index.diagnostics.valid
@@ -1676,19 +1743,28 @@ export class MandalaView extends TextFileView {
             this.lastLoadedFrontmatter = frontmatter;
         }
 
-        if (activation.notice) {
-            if (this.lastActivationNotice !== activation.notice) {
-                new Notice(activation.notice);
-                this.lastActivationNotice = activation.notice;
+        const activationNotice =
+            activation.notice ??
+            (missingDayPlanSections.length > 0
+                ? tx(
+                      '日计划结构不完整：缺少 {0} 个日期核心格（例如 section {1}）。请先修复文件。',
+                      missingDayPlanSections.length,
+                      missingDayPlanSections[0] ?? '?',
+                  )
+                : null);
+        if (activationNotice) {
+            if (this.lastActivationNotice !== activationNotice) {
+                new Notice(activationNotice);
+                this.lastActivationNotice = activationNotice;
             }
         } else {
             this.lastActivationNotice = null;
         }
         if (this.isWorkingSetProjection && initialTarget) {
             this.restoreMandalaUiState(filePath, initialTarget.centerSection);
-        } else if (activation.targetSection) {
+        } else if (existingDayPlanTarget) {
             if (!this.shouldSkipAutoFocusToday()) {
-                this.focusMandalaSection(activation.targetSection);
+                this.focusMandalaSection(existingDayPlanTarget);
             }
         } else {
             const fallbackSubgridTheme = resolveRestoredSubgridTheme({
@@ -1881,15 +1957,31 @@ export class MandalaView extends TextFileView {
     }
 
     getDayPlanTodayNavigation(date: Date = new Date()): DayPlanTodayNavigation {
-        return resolveDayPlanTodayNavigation(
+        const navigation = resolveDayPlanTodayNavigation(
             this.documentStore.getValue().file.frontmatter,
             date,
         );
+        if (
+            !navigation.targetSection ||
+            this.getSectionLookup().has(navigation.targetSection)
+        ) {
+            return navigation;
+        }
+        return { ...navigation, canNavigate: false };
     }
 
     focusDayPlanToday(date: Date = new Date()) {
         const navigation = this.getDayPlanTodayNavigation(date);
         if (!navigation.targetSection) return false;
+        if (!navigation.canNavigate) {
+            new Notice(
+                tx(
+                    '日计划缺少今天对应的 section {0}，未执行跳转。',
+                    navigation.targetSection,
+                ),
+            );
+            return false;
+        }
         this.focusMandalaSection(navigation.targetSection);
         return true;
     }
