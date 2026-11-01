@@ -204,46 +204,66 @@ describe('view working-set transitions', () => {
         );
     });
 
-    it('does not write a partial working set when source patching fails', () => {
-        const frontmatter =
-            '---\nmandala: true\nmandala_day_plan:\n  enabled: true\n  year: 2026\n---\n';
-        const body = Array.from(
-            { length: 365 },
-            (_, index) => `<!--section: ${index + 1}-->\nday ${index + 1}\n`,
-        ).join('');
-        const runtime = new MandalaSourceRuntime(body);
-        const state = projectWorkingSetDocumentState(
-            defaultDocumentState(),
-            runtime,
-            runtime.materialize(['1', '305']),
-            frontmatter,
-        );
-        state.document.content[state.sections.section_id['305']].content =
-            'edited';
-        const patch = vi
-            .spyOn(runtime, 'replaceSectionContents')
-            .mockReturnValue(null);
-        const queue = vi.fn();
-        Object.assign(TextFileView.prototype, { app: { scope: {} } });
-        const view = new MandalaView(new WorkspaceLeaf(), {
-            settings: { getValue: DEFAULT_SETTINGS },
-        } as never);
-        Object.assign(view, {
-            file: { path: 'day-plan.md' },
-            data: frontmatter + body,
-            sourceRuntime: runtime,
-            fullHydrated: false,
-            documentStore: { getValue: () => state },
-            queuePersistSnapshot: queue,
-        });
+    it.each([
+        {
+            name: 'day plan',
+            frontmatter:
+                '---\nmandala: true\nmandala_day_plan:\n  enabled: true\n  year: 2026\n---\n',
+            count: 365,
+            editedSection: '305',
+        },
+        {
+            name: 'ordinary mandala',
+            frontmatter: '---\nmandala: true\n---\n',
+            count: 10,
+            editedSection: '5',
+        },
+    ])(
+        'does not write a partial $name when source patching fails',
+        ({ frontmatter, count, editedSection }) => {
+            const body = Array.from(
+                { length: count },
+                (_, index) =>
+                    `<!--section: ${index + 1}-->\ncontent ${index + 1}\n`,
+            ).join('');
+            const runtime = new MandalaSourceRuntime(body);
+            const state = projectWorkingSetDocumentState(
+                defaultDocumentState(),
+                runtime,
+                runtime.materialize(['1', editedSection]),
+                frontmatter,
+            );
+            state.document.content[
+                state.sections.section_id[editedSection]
+            ].content = 'edited';
+            const patch = vi
+                .spyOn(runtime, 'replaceSectionContents')
+                .mockReturnValue(null);
+            const queue = vi.fn();
+            Object.assign(TextFileView.prototype, { app: { scope: {} } });
+            const view = new MandalaView(new WorkspaceLeaf(), {
+                settings: { getValue: DEFAULT_SETTINGS },
+            } as never);
+            Object.assign(view, {
+                file: { path: 'day-plan.md' },
+                data: frontmatter + body,
+                sourceRuntime: runtime,
+                fullHydrated: false,
+                documentStore: { getValue: () => state },
+                queuePersistSnapshot: queue,
+            });
 
-        view.saveDocument({ mode: 'content-only', changedSections: ['305'] });
+            view.saveDocument({
+                mode: 'content-only',
+                changedSections: [editedSection],
+            });
 
-        expect(patch).toHaveBeenCalledOnce();
-        expect(queue).not.toHaveBeenCalled();
-        expect(view.data).toBe(frontmatter + body);
-        expect(runtime.source).toBe(body);
-    });
+            expect(patch).toHaveBeenCalledOnce();
+            expect(queue).not.toHaveBeenCalled();
+            expect(view.data).toBe(frontmatter + body);
+            expect(runtime.source).toBe(body);
+        },
+    );
 
     it('does not make a missing day-plan target navigable', () => {
         const host = createHost();
