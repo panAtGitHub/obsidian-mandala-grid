@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('src/mandala-scenes/shared/shell/main.svelte', () => ({ default: {} }));
 vi.mock('src/main', () => ({ default: class {} }));
+vi.mock('obsidian', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('obsidian')>()),
+    Scope: class {},
+}));
 import { MandalaView, shouldBlockPartialContentSave } from 'src/view/view';
 import {
     MandalaSourceRuntime,
@@ -10,6 +14,8 @@ import { defaultDocumentState } from 'src/mandala-document/state/default-documen
 import { defaultViewState } from 'src/stores/view/default-view-state';
 import { syncThreeByThreeSubgridState } from 'src/mandala-scenes/view-3x3/scene-state';
 import { viewReducer } from 'src/stores/view/view-reducer';
+import { TextFileView, WorkspaceLeaf } from 'obsidian';
+import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 
 const createHost = () => {
     const runtime = new MandalaSourceRuntime(
@@ -196,6 +202,47 @@ describe('view working-set transitions', () => {
         expect(shouldBlockPartialContentSave('structural', false, false)).toBe(
             false,
         );
+    });
+
+    it('does not write a partial working set when source patching fails', () => {
+        const frontmatter =
+            '---\nmandala: true\nmandala_day_plan:\n  enabled: true\n  year: 2026\n---\n';
+        const body = Array.from(
+            { length: 365 },
+            (_, index) => `<!--section: ${index + 1}-->\nday ${index + 1}\n`,
+        ).join('');
+        const runtime = new MandalaSourceRuntime(body);
+        const state = projectWorkingSetDocumentState(
+            defaultDocumentState(),
+            runtime,
+            runtime.materialize(['1', '305']),
+            frontmatter,
+        );
+        state.document.content[state.sections.section_id['305']].content =
+            'edited';
+        const patch = vi
+            .spyOn(runtime, 'replaceSectionContents')
+            .mockReturnValue(null);
+        const queue = vi.fn();
+        Object.assign(TextFileView.prototype, { app: { scope: {} } });
+        const view = new MandalaView(new WorkspaceLeaf(), {
+            settings: { getValue: DEFAULT_SETTINGS },
+        } as never);
+        Object.assign(view, {
+            file: { path: 'day-plan.md' },
+            data: frontmatter + body,
+            sourceRuntime: runtime,
+            fullHydrated: false,
+            documentStore: { getValue: () => state },
+            queuePersistSnapshot: queue,
+        });
+
+        view.saveDocument({ mode: 'content-only', changedSections: ['305'] });
+
+        expect(patch).toHaveBeenCalledOnce();
+        expect(queue).not.toHaveBeenCalled();
+        expect(view.data).toBe(frontmatter + body);
+        expect(runtime.source).toBe(body);
     });
 
     it('does not make a missing day-plan target navigable', () => {
