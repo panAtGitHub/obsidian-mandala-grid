@@ -1134,8 +1134,10 @@ export class MandalaView extends TextFileView {
         const dayPlan = resolveMandalaProfile(state.file.frontmatter)?.dayPlan;
         const missingDayPlanSections = dayPlan
             ? getMissingDayPlanCoreSections(
-                  this.sourceRuntime?.index.rootIds ??
-                      Object.keys(state.sections.section_id),
+                  mode === 'structural'
+                      ? Object.keys(state.sections.section_id)
+                      : this.sourceRuntime?.index.rootIds ??
+                            Object.keys(state.sections.section_id),
                   dayPlan.year,
               )
             : [];

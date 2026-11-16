@@ -265,6 +265,41 @@ describe('view working-set transitions', () => {
         },
     );
 
+    it('blocks structural day-plan saves when a shared store is only partially loaded', () => {
+        const frontmatter =
+            '---\nmandala: true\nmandala_day_plan:\n  enabled: true\n  year: 2026\n---\n';
+        const body = Array.from(
+            { length: 365 },
+            (_, index) => `<!--section: ${index + 1}-->\ncontent\n`,
+        ).join('');
+        const runtime = new MandalaSourceRuntime(body);
+        const state = projectWorkingSetDocumentState(
+            defaultDocumentState(),
+            runtime,
+            runtime.materialize(['1', '3']),
+            frontmatter,
+        );
+        const queue = vi.fn();
+        Object.assign(TextFileView.prototype, { app: { scope: {} } });
+        const view = new MandalaView(new WorkspaceLeaf(), {
+            settings: { getValue: DEFAULT_SETTINGS },
+        } as never);
+        Object.assign(view, {
+            file: { path: 'day-plan.md' },
+            data: frontmatter + body,
+            sourceRuntime: runtime,
+            fullHydrated: true,
+            documentStore: { getValue: () => state },
+            queuePersistSnapshot: queue,
+        });
+
+        view.saveDocument({ mode: 'structural' });
+
+        expect(queue).not.toHaveBeenCalled();
+        expect(view.data).toBe(frontmatter + body);
+        expect(runtime.source).toBe(body);
+    });
+
     it('does not make a missing day-plan target navigable', () => {
         const host = createHost();
         host.getState().file.frontmatter = `---
