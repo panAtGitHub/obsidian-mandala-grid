@@ -134,6 +134,7 @@ import {
 export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
 export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
+const projectedDocumentStores = new WeakSet<DocumentStore>();
 export type ViewStore = Store<ViewState, ViewStoreAction, MandalaGridDocument>;
 export type SaveDocumentMode = 'content-only' | 'structural';
 export type SaveDocumentOptions = {
@@ -289,7 +290,8 @@ export class MandalaView extends TextFileView {
         this.alignBranch = new AlignBranch(this);
         this.persistSnapshotQueue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: (path, data) => this.persistSnapshot(path, data),
+            persist: (path, data, base) =>
+                this.persistSnapshot(path, data, base),
             onError: ({ path, error }) => {
                 this.handlePersistSnapshotError(path, error);
             },
@@ -408,10 +410,12 @@ export class MandalaView extends TextFileView {
         // Subscribers can request lookups or saves while the load dispatches.
         // They must see the incoming full document, not rematerialize a subset.
         this.fullHydrated = true;
+        projectedDocumentStores.delete(this.documentStore);
         try {
             loadFullDocument(this, body, frontmatter, activeSection);
         } catch (error) {
             this.fullHydrated = false;
+            projectedDocumentStores.add(this.documentStore);
             throw error;
         }
         this.workingSetCenter = null;
@@ -483,6 +487,7 @@ export class MandalaView extends TextFileView {
             workingSet,
             extractFrontmatter(this.data).frontmatter,
         );
+        projectedDocumentStores.add(this.documentStore);
         this.documentStore.set(nextState);
         this.viewStore.setContext(nextState.document);
         this.workingSetCenter = centerSection ?? this.workingSetCenter;
@@ -1114,8 +1119,18 @@ export class MandalaView extends TextFileView {
     saveDocument = (options: SaveDocumentOptions = {}) => {
         invariant(this.file);
         const mode = options.mode ?? 'structural';
-        if (mode === 'structural' && this.isWorkingSetProjection) {
-            this.ensureFullHydrated('save-structural');
+        if (
+            mode === 'structural' &&
+            (this.isWorkingSetProjection ||
+                projectedDocumentStores.has(this.documentStore))
+        ) {
+            new Notice(
+                tx(
+                    '保存已中止：共享文档只加载了部分内容。请保留当前视图并重新加载文件。',
+                ),
+                0,
+            );
+            return;
         }
         const state = this.documentStore.getValue();
         const saveStartedMs = performance.now();
@@ -1174,6 +1189,9 @@ export class MandalaView extends TextFileView {
             (this.sourceRuntime
                 ? changedSections.every((sectionId) => {
                       if (!this.sourceRuntime?.has(sectionId)) return false;
+                      const stateNodeId = state.sections.section_id[sectionId];
+                      if (!stateNodeId || !state.document.content[stateNodeId])
+                          return false;
                       if (!this.fullHydrated) return true;
                       const nodeId = this.sourceRuntime.getNodeId(sectionId);
                       const replacement = nodeId
@@ -1296,7 +1314,12 @@ export class MandalaView extends TextFileView {
 
         if (
             this.sourceRuntime &&
-            shouldBlockPartialContentSave(mode, this.fullHydrated, usedFastPath)
+            shouldBlockPartialContentSave(
+                mode,
+                this.fullHydrated &&
+                    !projectedDocumentStores.has(this.documentStore),
+                usedFastPath,
+            )
         ) {
             const message = tx(
                 '保存已中止：当前只加载了局部工作集，无法安全写回完整 MD。请重新加载文件后再试。',
@@ -1463,6 +1486,7 @@ export class MandalaView extends TextFileView {
             if (data.trim().length === 0) {
                 throw new Error(lang.error_save_empty_data);
             }
+            const base = this.data;
             this.data = data;
             const parsed = extractFrontmatter(data);
             if (
@@ -1475,7 +1499,7 @@ export class MandalaView extends TextFileView {
             this.lastLoadedFrontmatter = parsed.frontmatter;
             const persistPath = this.activeFilePath ?? this.file?.path ?? null;
             if (persistPath) {
-                this.queuePersistSnapshot(persistPath, data);
+                this.queuePersistSnapshot(persistPath, data, base);
             }
         }
         if (this.fullHydrated) this.workingSetCooldown.schedule();
@@ -1698,6 +1722,7 @@ export class MandalaView extends TextFileView {
                     active_section: initialTarget.activeSection,
                 });
             } else {
+                projectedDocumentStores.delete(this.documentStore);
                 loadFullDocument(this, body, frontmatter, nextActiveSection);
                 this.fullHydrated = true;
                 this.workingSetCenter = null;
@@ -1882,8 +1907,8 @@ export class MandalaView extends TextFileView {
         250,
     );
 
-    private queuePersistSnapshot(path: string, data: string) {
-        this.persistSnapshotQueue.queue(path, data);
+    private queuePersistSnapshot(path: string, data: string, base: string) {
+        this.persistSnapshotQueue.queue(path, data, base);
     }
 
     private async flushAllPendingPersistSnapshots() {
@@ -1909,10 +1934,15 @@ export class MandalaView extends TextFileView {
         }
     }
 
-    private async persistSnapshot(path: string, data: string) {
+    private async persistSnapshot(path: string, data: string, base: string) {
         const abstractFile = this.app.vault.getAbstractFileByPath(path);
-        if (!(abstractFile instanceof TFile)) return;
-        await this.app.vault.process(abstractFile, () => data);
+        if (!(abstractFile instanceof TFile)) throw new Error('文件不存在');
+        await this.app.vault.process(abstractFile, (current) => {
+            if (current !== base && current !== data) {
+                throw new Error('文件已被其他视图或程序修改，当前修改尚未保存');
+            }
+            return data;
+        });
         this.persistSnapshotErrorKeys.delete(path);
     }
 
@@ -1921,7 +1951,10 @@ export class MandalaView extends TextFileView {
         const errorKey = `${path}:${message}`;
         if (this.persistSnapshotErrorKeys.get(path) !== errorKey) {
             this.persistSnapshotErrorKeys.set(path, errorKey);
-            new Notice(`Failed to save ${path}`);
+            new Notice(
+                `保存失败：${path}。${message}。请先复制当前修改，暂不要关闭或重载视图。`,
+                0,
+            );
         }
         logger.error('[mandala-view] persist snapshot failed', {
             file: path,

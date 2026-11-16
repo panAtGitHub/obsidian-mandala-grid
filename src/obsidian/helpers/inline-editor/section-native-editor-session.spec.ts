@@ -157,7 +157,7 @@ const createView = ({
         editorCursor = cursor;
     });
     const focusMock = vi.fn();
-    const modifyMock = vi.fn(async () => {});
+    const modifyMock = vi.fn(async (_file: TFile, _data: string) => {});
     let sourceLeaf: {
         view: unknown;
         getViewState: ReturnType<typeof vi.fn>;
@@ -214,6 +214,9 @@ const createView = ({
     const vault = {
         read: readMock,
         modify: modifyMock,
+        process: async (file: TFile, update: (markdown: string) => string) => {
+            await modifyMock(file, update(await readMock(file)));
+        },
         createFolder: createFolderMock,
         create: createFileMock,
         getAbstractFileByPath: getAbstractFileByPathMock,
@@ -664,6 +667,28 @@ describe('section-native-editor-session initial cursor placement', () => {
         });
         expect(deleteSectionSessionTempFile.mock.calls.length).toBe(
             cleanupCallsBeforeSave,
+        );
+    });
+
+    it('keeps the temporary session when the same section changed externally', async () => {
+        const sectionContent = 'original';
+        getSectionContentBySection.mockReturnValue(sectionContent);
+        const { view, saveCallbacks, modifyMock } = createView({
+            sectionContent,
+        });
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        const cleanupCount = deleteSectionSessionTempFile.mock.calls.length;
+        getSectionContentBySection.mockReturnValue('external edit');
+        saveCallbacks[0]?.();
+        await vi.waitFor(() => {
+            expect(loggerErrorMock).toHaveBeenCalledWith(
+                '[mandala-section-edit] save failed',
+                expect.any(Error),
+            );
+        });
+        expect(modifyMock).not.toHaveBeenCalled();
+        expect(deleteSectionSessionTempFile.mock.calls.length).toBe(
+            cleanupCount,
         );
     });
 });

@@ -144,7 +144,7 @@ const createView = () => {
 // store. The view serializer is stubbed; these tests cover save dispatch and
 // queue ordering rather than Markdown serialization or Obsidian rendering.
 const createPersistenceHarness = (
-    persist: (path: string, data: string) => Promise<void>,
+    persist: (path: string, data: string, base: string) => Promise<void>,
 ) => {
     const documentStore = new Store(
         createView().documentStore.getValue(),
@@ -164,11 +164,13 @@ const createPersistenceHarness = (
             documentStore.getValue(),
         );
         const queue = new PersistSnapshotQueue({ delayMs: 2000, persist });
+        let previous =
+            documentStore.getValue().document.content['node-1'].content;
         view.saveDocument.mockImplementation(() => {
-            queue.queue(
-                'note.md',
-                documentStore.getValue().document.content['node-1'].content,
-            );
+            const next =
+                documentStore.getValue().document.content['node-1'].content;
+            queue.queue('note.md', next, previous);
+            previous = next;
             return Promise.resolve();
         });
         const unsubscribe = documentStore.subscribe((_state, action) => {
@@ -205,7 +207,7 @@ describe('on-document-state-update', () => {
 
     it('flushes embedded edits when the popover closes before the save timer', async () => {
         vi.useFakeTimers();
-        const persist = vi.fn<[string, string], Promise<void>>();
+        const persist = vi.fn<[string, string, string], Promise<void>>();
         persist.mockResolvedValue(undefined);
         const harness = createPersistenceHarness(persist);
         const embedded = harness.attachView();
@@ -214,7 +216,11 @@ describe('on-document-state-update', () => {
         expect(persist).not.toHaveBeenCalled();
         await embedded.close();
 
-        expect(persist).toHaveBeenCalledWith('note.md', 'popover edit');
+        expect(persist).toHaveBeenCalledWith(
+            'note.md',
+            'popover edit',
+            'hello',
+        );
     });
 
     it('keeps the latest edit when two views save the shared document and one closes', async () => {

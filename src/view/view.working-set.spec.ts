@@ -14,7 +14,7 @@ import { defaultDocumentState } from 'src/mandala-document/state/default-documen
 import { defaultViewState } from 'src/stores/view/default-view-state';
 import { syncThreeByThreeSubgridState } from 'src/mandala-scenes/view-3x3/scene-state';
 import { viewReducer } from 'src/stores/view/view-reducer';
-import { TextFileView, WorkspaceLeaf } from 'obsidian';
+import { TFile, TextFileView, WorkspaceLeaf } from 'obsidian';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 
 const createHost = () => {
@@ -72,6 +72,39 @@ const createHost = () => {
 describe('view working-set transitions', () => {
     afterEach(() => {
         vi.useRealTimers();
+    });
+
+    it('does not overwrite a file changed by another view or external editor', async () => {
+        const file = new TFile();
+        let disk = 'external change';
+        const view = Object.assign(Object.create(MandalaView.prototype), {
+            app: {
+                vault: {
+                    getAbstractFileByPath: () => file,
+                    process: async (
+                        _file: TFile,
+                        update: (current: string) => string,
+                    ) => {
+                        disk = update(disk);
+                    },
+                },
+            },
+            persistSnapshotErrorKeys: new Map(),
+        }) as {
+            persistSnapshot: (
+                path: string,
+                data: string,
+                base: string,
+            ) => Promise<void>;
+        };
+
+        await expect(
+            view.persistSnapshot('a.md', 'my change', 'original'),
+        ).rejects.toThrow();
+        expect(disk).toBe('external change');
+        disk = 'original';
+        await view.persistSnapshot('a.md', 'my change', 'original');
+        expect(disk).toBe('my change');
     });
 
     it('focuses today before the previous grid can evict its working set', async () => {
@@ -143,6 +176,55 @@ describe('view working-set transitions', () => {
             host.getState().document.content[host.runtime.getNodeId('1') ?? '']
                 .content,
         ).toBe('external');
+    });
+    it('blocks structural saves from another view after the shared store is projected', () => {
+        const host = createHost();
+        host.runtime.replaceSourceFromExternal(
+            '<!--section: 1-->root\n<!--section: 2-->other\n<!--section: 3-->unloaded',
+        );
+        host.view.materializeWorkingSet('1');
+        const queue = vi.fn();
+        Object.assign(TextFileView.prototype, { app: { scope: {} } });
+        const other = new MandalaView(new WorkspaceLeaf(), {
+            settings: { getValue: DEFAULT_SETTINGS },
+        } as never);
+        Object.assign(other, {
+            file: { path: 'shared.md' },
+            data: host.runtime.source,
+            sourceRuntime: new MandalaSourceRuntime(host.runtime.source),
+            fullHydrated: true,
+            documentStore: host.view.documentStore,
+            queuePersistSnapshot: queue,
+        });
+
+        other.saveDocument({ mode: 'structural' });
+        expect(queue).not.toHaveBeenCalled();
+        expect(other.data).toBe(host.runtime.source);
+    });
+
+    it('does not replace an unloaded section with empty content in another view', () => {
+        const host = createHost();
+        host.runtime.replaceSourceFromExternal(
+            '<!--section: 1-->root\n<!--section: 2-->important content',
+        );
+        host.view.materializeWorkingSet('1');
+        const queue = vi.fn();
+        Object.assign(TextFileView.prototype, { app: { scope: {} } });
+        const other = new MandalaView(new WorkspaceLeaf(), {
+            settings: { getValue: DEFAULT_SETTINGS },
+        } as never);
+        Object.assign(other, {
+            file: { path: 'shared.md' },
+            data: host.runtime.source,
+            sourceRuntime: new MandalaSourceRuntime(host.runtime.source),
+            fullHydrated: false,
+            documentStore: host.view.documentStore,
+            queuePersistSnapshot: queue,
+        });
+
+        other.saveDocument({ mode: 'content-only', changedSections: ['2'] });
+        expect(queue).not.toHaveBeenCalled();
+        expect(other.data).toBe(host.runtime.source);
     });
     it('defers cooling while editing and preserves selected and pinned nodes afterward', () => {
         const host = createHost();

@@ -1,6 +1,6 @@
 type PersistSnapshotQueueOptions = {
     delayMs: number;
-    persist: (path: string, data: string) => Promise<void>;
+    persist: (path: string, data: string, base: string) => Promise<void>;
     onError?: (args: {
         path: string;
         data: string;
@@ -9,14 +9,20 @@ type PersistSnapshotQueueOptions = {
 };
 
 export class PersistSnapshotQueue {
-    private readonly pendingSnapshots = new Map<string, string>();
+    private readonly pendingSnapshots = new Map<
+        string,
+        { data: string; base: string }
+    >();
     private readonly timers = new Map<string, number>();
     private readonly inflightFlushes = new Map<string, Promise<void>>();
 
     constructor(private readonly options: PersistSnapshotQueueOptions) {}
 
-    queue(path: string, data: string) {
-        this.pendingSnapshots.set(path, data);
+    queue(path: string, data: string, base: string) {
+        this.pendingSnapshots.set(path, {
+            data,
+            base: this.pendingSnapshots.get(path)?.base ?? base,
+        });
         this.clearTimer(path);
         this.timers.set(
             path,
@@ -37,18 +43,29 @@ export class PersistSnapshotQueue {
             .catch(() => undefined)
             .then(async () => {
                 while (this.pendingSnapshots.has(path)) {
-                    const data = this.pendingSnapshots.get(path);
-                    if (typeof data !== 'string') return;
+                    const snapshot = this.pendingSnapshots.get(path);
+                    if (!snapshot) return;
                     try {
-                        await this.options.persist(path, data);
+                        await this.options.persist(
+                            path,
+                            snapshot.data,
+                            snapshot.base,
+                        );
                     } catch (error) {
                         if (this.options.onError) {
-                            await this.options.onError({ path, data, error });
+                            await this.options.onError({
+                                path,
+                                data: snapshot.data,
+                                error,
+                            });
                         }
                         throw error;
                     }
-                    if (this.pendingSnapshots.get(path) === data) {
+                    const pending = this.pendingSnapshots.get(path);
+                    if (pending === snapshot) {
                         this.pendingSnapshots.delete(path);
+                    } else if (pending?.base === snapshot.base) {
+                        pending.base = snapshot.data;
                     }
                 }
             })

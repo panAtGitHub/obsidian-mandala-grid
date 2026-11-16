@@ -229,25 +229,46 @@ const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
     await removeSessionFolderIfEmpty(view);
 };
 
+const writeSessionToSource = async (
+    view: MandalaView,
+    sourceFile: TFile,
+    session: SectionEditSession,
+    replacement: string,
+) => {
+    let lineForJump = 0;
+    await view.app.vault.process(sourceFile, (markdown) => {
+        const current = getSectionContentBySection(markdown, session.section);
+        if (current === null) throw new Error('未找到对应 section');
+        if (current !== session.originalContent && current !== replacement) {
+            throw new Error(
+                '原文件的 section 已被其他编辑修改，临时文件已保留',
+            );
+        }
+        const patched = applySectionPatch(
+            markdown,
+            session.section,
+            replacement,
+        );
+        if (!patched) throw new Error('未找到对应 section');
+        lineForJump = patched.lineForJump;
+        return patched.markdown;
+    });
+    return lineForJump;
+};
+
 const mergeTempFileToSource = async (
     view: MandalaView,
     session: SectionEditSession,
 ) => {
     const tempFile = getFileByPath(view, session.tempFilePath);
     const sourceFile = getFileByPath(view, session.sourceFilePath);
-    if (!tempFile || !sourceFile) return;
+    if (!tempFile) return;
+    if (!sourceFile) throw new Error('源文件不存在，临时文件已保留');
     const replacement = resolveSessionReplacement(
         session,
         await view.app.vault.read(tempFile),
     );
-    const sourceMarkdown = await view.app.vault.read(sourceFile);
-    const patched = applySectionPatch(
-        sourceMarkdown,
-        session.section,
-        replacement,
-    );
-    if (!patched) return;
-    await view.app.vault.modify(sourceFile, patched.markdown);
+    await writeSessionToSource(view, sourceFile, session, replacement);
 };
 
 const sweepStaleSessions = async (view: MandalaView) => {
@@ -258,8 +279,19 @@ const sweepStaleSessions = async (view: MandalaView) => {
             if (isTempFileOpen(view, tempFilePath)) continue;
             try {
                 await mergeTempFileToSource(view, session);
-            } finally {
                 await cleanupSession(view, tempFilePath);
+            } catch (error) {
+                const message =
+                    error instanceof Error ? error.message : String(error);
+                new Notice(
+                    tx(
+                        '未能保存 section 编辑，临时文件保留在 {0}：{1}',
+                        tempFilePath,
+                        message,
+                    ),
+                    0,
+                );
+                logger.error('[mandala-section-edit] recovery failed', error);
             }
         }
     } finally {
@@ -341,18 +373,13 @@ const saveSectionAndReturn = async (view: MandalaView) => {
             ),
         );
         const replacement = resolveSessionReplacement(session, currentContent);
-        const sourceMarkdown = await view.app.vault.read(sourceFile);
-        const patched = applySectionPatch(
-            sourceMarkdown,
-            session.section,
+        const lineForJump = await writeSessionToSource(
+            view,
+            sourceFile,
+            session,
             replacement,
         );
-        if (!patched) {
-            new Notice(tx('未找到对应 section，保存失败。'));
-            return;
-        }
-        await view.app.vault.modify(sourceFile, patched.markdown);
-        await switchBackToMandala(view, sourceFile, patched.lineForJump);
+        await switchBackToMandala(view, sourceFile, lineForJump);
         await cleanupSession(view, session.tempFilePath);
     } finally {
         isSavingSectionSession = false;
