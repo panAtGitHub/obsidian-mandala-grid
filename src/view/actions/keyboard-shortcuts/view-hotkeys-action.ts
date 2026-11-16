@@ -6,6 +6,7 @@ import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { isEditing } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/is-editing';
 import { KeymapEventHandler } from 'obsidian';
 import { shouldHandleViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/should-handle-view-hotkey';
+import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 
 export const viewHotkeysAction = (
     target: HTMLElement,
@@ -32,7 +33,8 @@ export const viewHotkeysAction = (
         name === 'go_left' ||
         name === 'go_right';
     const tryRunHotkeyCommand = (event: KeyboardEvent) => {
-        const command = viewHotkeys.current[eventToString(event)];
+        const hotkey = eventToString(event);
+        const command = viewHotkeys.current[hotkey];
         if (command) {
             const allow =
                 command.editorState === 'editor-on'
@@ -41,7 +43,10 @@ export const viewHotkeysAction = (
                       ? !isEditing(view)
                       : true;
 
-            if (allow) {
+            if (
+                allow &&
+                !(isEditing(view) && getUsedHotkeys(view.plugin).has(hotkey))
+            ) {
                 try {
                     command.callback(view, event);
                     return true; // 如果执行了命令，直接返回
