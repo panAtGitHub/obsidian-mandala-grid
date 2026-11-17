@@ -27,7 +27,9 @@ export class EditSessionService {
     readonly projectionStore: Readable<EditSessionProjectionSnapshot | null>;
 
     constructor(
-        private readonly onCommit: (payload: EditSessionCommitPayload) => void,
+        private readonly onCommit: (
+            payload: EditSessionCommitPayload,
+        ) => boolean | void,
         {
             projectionDelayMs = 150,
             commitDelayMs = 600,
@@ -136,9 +138,10 @@ export class EditSessionService {
             return;
         }
         if (current.activeNodeId && current.dirty) {
-            this.commit('switch-node');
+            if (!this.commit('switch-node')) return false;
         }
         this.startSession(nextNodeId, isInSidebar, initialContent);
+        return true;
     }
 
     flushProjection() {
@@ -157,23 +160,25 @@ export class EditSessionService {
         if (!current.activeNodeId) {
             this.projectionTimer.cancel();
             this.commitTimer.cancel();
-            return;
+            return true;
         }
 
         this.projectionTimer.flush();
         this.commitTimer.cancel();
         const latest = get(this.state);
-        if (!latest.dirty) return;
+        if (!latest.dirty) return true;
         const activeNodeId = latest.activeNodeId;
-        if (!activeNodeId) return;
+        if (!activeNodeId) return true;
 
-        this.onCommit({
+        const accepted = this.onCommit({
             nodeId: activeNodeId,
             content: latest.bufferContent,
+            previousContent: latest.lastCommittedContent,
             isInSidebar: latest.isInSidebar,
             reason,
             suppressRefocus: reason === 'blur',
         });
+        if (accepted === false) return false;
         this.state.update((state) => ({
             ...state,
             dirty: false,
@@ -181,6 +186,7 @@ export class EditSessionService {
             lastCommittedContent: state.bufferContent,
             commitRevision: state.commitRevision + 1,
         }));
+        return true;
     }
 
     cancel() {
@@ -199,7 +205,7 @@ export class EditSessionService {
     endSession(reason: EditSessionCommitReason) {
         this.composing = false;
         if (reason === 'disable-edit' || reason === 'unload') {
-            this.commit(reason);
+            if (!this.commit(reason)) return false;
         }
         this.projectionTimer.cancel();
         this.commitTimer.cancel();
@@ -212,6 +218,7 @@ export class EditSessionService {
             dirty: false,
             lastCommittedContent: '',
         }));
+        return true;
     }
 
     getProjectionSnapshot() {

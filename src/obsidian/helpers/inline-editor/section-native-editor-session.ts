@@ -11,14 +11,18 @@ import {
     applySectionPatch,
     getSectionContentBySection,
 } from 'src/mandala-display/logic/apply-section-patch';
-import { cleanupSectionSessionFolder } from 'src/obsidian/helpers/inline-editor/cleanup-section-session-folder';
 import { deleteSectionSessionTempFile } from 'src/obsidian/helpers/inline-editor/delete-section-session-temp-file';
+import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-document-runtime';
+import { patchSectionContents } from 'src/mandala-document/runtime/patch-section-contents';
+import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
+import { id } from 'src/shared/helpers/id';
 
 type SectionEditSession = {
     tempFilePath: string;
     sourceFilePath: string;
     section: string;
     originalContent: string;
+    originalSourceContent: string;
     preparedContent: string;
     bodyAnchorLine: number | null;
     cursorKey: string;
@@ -224,8 +228,13 @@ const switchBackToMandala = async (
 };
 
 const cleanupSession = async (view: MandalaView, tempFilePath: string) => {
-    sessionByTempFilePath.delete(tempFilePath);
     await deleteSectionSessionTempFile(view, tempFilePath);
+    try {
+        await view.app.vault.adapter.remove(`${tempFilePath}.session.json`);
+    } catch (error) {
+        if (!isFileNotFound(error)) throw error;
+    }
+    sessionByTempFilePath.delete(tempFilePath);
     await removeSessionFolderIfEmpty(view);
 };
 
@@ -237,21 +246,35 @@ const writeSessionToSource = async (
 ) => {
     let lineForJump = 0;
     await view.app.vault.process(sourceFile, (markdown) => {
-        const current = getSectionContentBySection(markdown, session.section);
-        if (current === null) throw new Error('未找到对应 section');
-        if (current !== session.originalContent && current !== replacement) {
-            throw new Error(
-                '原文件的 section 已被其他编辑修改，临时文件已保留',
-            );
-        }
         const patched = applySectionPatch(
             markdown,
             session.section,
             replacement,
         );
         if (!patched) throw new Error('未找到对应 section');
+        const candidate = new MandalaSourceRuntime(
+            extractFrontmatter(patched.markdown).body,
+        );
+        const current = new MandalaSourceRuntime(
+            extractFrontmatter(markdown).body,
+        );
+        const after = candidate.getContent(session.section);
+        if (
+            !current.index.diagnostics.valid ||
+            !candidate.index.diagnostics.valid ||
+            after === null ||
+            current.index.sourceOrderedIds.join('|') !==
+                candidate.index.sourceOrderedIds.join('|')
+        )
+            throw new Error('无法安全识别编辑后的 section');
         lineForJump = patched.lineForJump;
-        return patched.markdown;
+        return patchSectionContents(markdown, [
+            {
+                sectionId: session.section,
+                before: session.originalSourceContent,
+                after,
+            },
+        ]);
     });
     return lineForJump;
 };
@@ -305,11 +328,6 @@ const runSectionSessionMaintenance = (view: MandalaView) => {
     }
     sectionSessionMaintenancePromise = (async () => {
         await sweepStaleSessions(view);
-        await cleanupSectionSessionFolder(
-            view,
-            SESSION_FOLDER,
-            new Set(sessionByTempFilePath.keys()),
-        );
     })().finally(() => {
         sectionSessionMaintenancePromise = null;
     });
@@ -424,7 +442,9 @@ export const startSectionNativeEditorSession = async (
     try {
         const sourceFile = view.file;
         if (!sourceFile) return;
+        await view.flushPendingSaves();
         await ensureSectionSessionMaintenance(view);
+        if (view.file !== sourceFile) return;
 
         const section = getSectionByNodeId(view, nodeId);
         if (!section) {
@@ -433,6 +453,7 @@ export const startSectionNativeEditorSession = async (
         }
 
         const sourceMarkdown = await view.app.vault.read(sourceFile);
+        if (view.file !== sourceFile) return;
         const sectionContent = getSectionContentBySection(
             sourceMarkdown,
             section,
@@ -441,10 +462,21 @@ export const startSectionNativeEditorSession = async (
             new Notice(tx('未找到对应 section 内容，无法进入编辑。'));
             return;
         }
+        const sourceRuntime = new MandalaSourceRuntime(
+            extractFrontmatter(sourceMarkdown).body,
+        );
+        const originalSourceContent = sourceRuntime.getContent(section);
+        if (
+            !sourceRuntime.index.diagnostics.valid ||
+            originalSourceContent === null
+        ) {
+            new Notice(tx('无法安全识别对应 section，未打开编辑。'));
+            return;
+        }
 
         await ensureFolderRecursive(view, SESSION_FOLDER);
         const safeSection = String(section).replace(/\./g, '-');
-        const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}.md`;
+        const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}-${id.view()}.md`;
         const isDayPlanScene = view.getMandalaSceneKey().variant === 'day-plan';
         const initialPlacement = resolveNodeEditorInitialPlacement({
             content: sectionContent,
@@ -458,6 +490,18 @@ export const startSectionNativeEditorSession = async (
             initialPlacement.cursor,
             isDayPlanScene,
         );
+        await view.app.vault.adapter.write(
+            `${tempPath}.session.json`,
+            JSON.stringify(
+                {
+                    sourceFilePath: sourceFile.path,
+                    section,
+                    originalContent: originalSourceContent,
+                },
+                null,
+                2,
+            ),
+        );
         const tempFile = await view.app.vault.create(
             tempPath,
             nativeContent.content,
@@ -468,10 +512,13 @@ export const startSectionNativeEditorSession = async (
             sourceFilePath: sourceFile.path,
             section,
             originalContent: sectionContent,
+            originalSourceContent,
             preparedContent: initialPlacement.content,
             bodyAnchorLine: nativeContent.bodyAnchorLine,
             cursorKey,
         });
+
+        if (view.file !== sourceFile) return;
 
         await view.leaf.openFile(tempFile, {
             active: true,

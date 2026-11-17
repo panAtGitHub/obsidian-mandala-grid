@@ -1,28 +1,75 @@
+import type { StructuralMutation } from 'src/mandala-document/runtime/reconcile-structural-mutation';
+import type { SectionContentEdit } from 'src/mandala-document/runtime/patch-section-contents';
+
+type PendingSave =
+    | { kind: 'structure'; data: string; mutation: StructuralMutation }
+    | { kind: 'sections'; edits: SectionContentEdit[] };
+
 type PersistSnapshotQueueOptions = {
     delayMs: number;
-    persist: (path: string, data: string, base: string) => Promise<void>;
+    persistStructure: (
+        path: string,
+        data: string,
+        mutation: StructuralMutation,
+    ) => Promise<void>;
+    persistSections: (
+        path: string,
+        edits: SectionContentEdit[],
+    ) => Promise<void>;
     onError?: (args: {
         path: string;
         data: string;
+        edits?: SectionContentEdit[];
         error: unknown;
     }) => Promise<void> | void;
 };
 
 export class PersistSnapshotQueue {
-    private readonly pendingSnapshots = new Map<
-        string,
-        { data: string; base: string }
-    >();
+    private readonly pendingSnapshots = new Map<string, PendingSave[]>();
     private readonly timers = new Map<string, number>();
     private readonly inflightFlushes = new Map<string, Promise<void>>();
 
     constructor(private readonly options: PersistSnapshotQueueOptions) {}
 
-    queue(path: string, data: string, base: string) {
-        this.pendingSnapshots.set(path, {
-            data,
-            base: this.pendingSnapshots.get(path)?.base ?? base,
-        });
+    queueStructure(path: string, data: string, mutation: StructuralMutation) {
+        const pending = this.pendingSnapshots.get(path) ?? [];
+        pending.push({ kind: 'structure', data, mutation });
+        this.pendingSnapshots.set(path, pending);
+        this.schedule(path);
+    }
+
+    queueSections(path: string, edits: SectionContentEdit[]) {
+        if (edits.length === 0) return;
+        const pending = this.pendingSnapshots.get(path) ?? [];
+        const last = pending.at(-1);
+        const canMerge =
+            last?.kind === 'sections' &&
+            !this.inflightFlushes.has(path) &&
+            edits.every((edit) => {
+                const previous = last.edits.find(
+                    (item) => item.sectionId === edit.sectionId,
+                );
+                return !previous || previous.after === edit.before;
+            });
+        if (canMerge && last.kind === 'sections') {
+            for (const edit of edits) {
+                const previous = last.edits.find(
+                    (item) => item.sectionId === edit.sectionId,
+                );
+                if (previous) previous.after = edit.after;
+                else last.edits.push({ ...edit });
+            }
+        } else {
+            pending.push({
+                kind: 'sections',
+                edits: edits.map((edit) => ({ ...edit })),
+            });
+        }
+        this.pendingSnapshots.set(path, pending);
+        this.schedule(path);
+    }
+
+    private schedule(path: string) {
         this.clearTimer(path);
         this.timers.set(
             path,
@@ -43,29 +90,44 @@ export class PersistSnapshotQueue {
             .catch(() => undefined)
             .then(async () => {
                 while (this.pendingSnapshots.has(path)) {
-                    const snapshot = this.pendingSnapshots.get(path);
-                    if (!snapshot) return;
+                    const pending = this.pendingSnapshots.get(path);
+                    if (!pending?.length) return;
+                    const snapshot = pending[0];
                     try {
-                        await this.options.persist(
-                            path,
-                            snapshot.data,
-                            snapshot.base,
-                        );
+                        if (snapshot.kind === 'sections') {
+                            await this.options.persistSections(
+                                path,
+                                snapshot.edits,
+                            );
+                        } else {
+                            await this.options.persistStructure(
+                                path,
+                                snapshot.data,
+                                snapshot.mutation,
+                            );
+                        }
                     } catch (error) {
                         if (this.options.onError) {
-                            await this.options.onError({
-                                path,
-                                data: snapshot.data,
-                                error,
-                            });
+                            for (const unsaved of pending) {
+                                await this.options.onError({
+                                    path,
+                                    data:
+                                        unsaved.kind === 'structure'
+                                            ? unsaved.data
+                                            : '',
+                                    edits:
+                                        unsaved.kind === 'sections'
+                                            ? unsaved.edits
+                                            : undefined,
+                                    error,
+                                });
+                            }
                         }
                         throw error;
                     }
-                    const pending = this.pendingSnapshots.get(path);
-                    if (pending === snapshot) {
+                    pending.shift();
+                    if (pending.length === 0) {
                         this.pendingSnapshots.delete(path);
-                    } else if (pending?.base === snapshot.base) {
-                        pending.base = snapshot.data;
                     }
                 }
             })

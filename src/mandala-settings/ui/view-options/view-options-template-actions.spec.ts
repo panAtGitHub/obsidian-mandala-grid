@@ -10,9 +10,11 @@ import type { MandalaView } from 'src/view/view';
 import {
     applyTemplateToCurrentThemeAction,
     insertBuiltinTemplateAction,
+    saveCurrentThemeAsTemplateAction,
 } from './view-options-template-actions';
 import {
     openMandalaTemplateSelectModal,
+    openMandalaTemplateNameModal,
     openMandalaTemplatesFileModal,
 } from 'src/obsidian/modals/mandala-templates-modal';
 import { Notice, TFile } from 'obsidian';
@@ -123,6 +125,21 @@ describe('builtin template insertion', () => {
         expect(button.textContent).toBe('指定或新建模板文件');
         return button;
     };
+
+    it('saves a theme by updating the latest template file atomically', async () => {
+        const fixture = createFixture();
+        vi.mocked(openMandalaTemplateNameModal).mockResolvedValue('New');
+        await saveCurrentThemeAsTemplateAction(
+            fixture.view,
+            'templates.md',
+            fixture.closeMenu,
+        );
+        expect(fixture.process).toHaveBeenCalledOnce();
+        expect(fixture.read).not.toHaveBeenCalled();
+        expect(fixture.markdown()).toContain('## 模板：Custom');
+        expect(fixture.markdown()).toContain('## 模板：New');
+        expect(fixture.closeMenu).toHaveBeenCalledOnce();
+    });
 
     it('appends the eight numbered titles to the template file and preserves existing content', async () => {
         const fixture = createFixture();

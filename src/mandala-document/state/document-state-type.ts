@@ -30,6 +30,13 @@ export type DocumentMeta = {
             changedSections: string[];
             structural: boolean;
         } | null;
+        lastStructuralMutation?: {
+            actionType: string;
+            addedSections: string[];
+            removedSections: string[];
+            changedSections: string[];
+            beforeContentBySection: Record<string, string>;
+        } | null;
         parentToChildrenSlots: Record<string, Partial<Record<number, string>>>;
         subtreeNonEmptyCountBySection: Record<string, number>;
         loadMetrics: {

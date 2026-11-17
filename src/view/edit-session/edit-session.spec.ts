@@ -40,6 +40,7 @@ describe('edit-session-service', () => {
         expect(onCommit).toHaveBeenCalledWith({
             nodeId: 'node-1',
             content: 'hello world',
+            previousContent: 'hello',
             isInSidebar: false,
             reason: 'idle',
             suppressRefocus: false,
@@ -76,9 +77,30 @@ describe('edit-session-service', () => {
         expect(onCommit).toHaveBeenCalledWith({
             nodeId: 'node-1',
             content: 'hello world',
+            previousContent: 'hello',
             isInSidebar: true,
             reason: 'save',
             suppressRefocus: false,
+        });
+    });
+
+    it('keeps the buffer dirty when the document rejects a conflicting edit', () => {
+        const onCommit = vi.fn(() => false);
+        const service = new EditSessionService(onCommit);
+        service.startSession('node-1', false, 'original');
+        service.updateBuffer('my edit');
+        service.requestSave();
+        expect(get(service.stateStore)).toMatchObject({
+            dirty: true,
+            bufferContent: 'my edit',
+            lastCommittedContent: 'original',
+        });
+        expect(service.switchNode('node-2', false, 'next')).toBe(false);
+        expect(service.endSession('unload')).toBe(false);
+        expect(get(service.stateStore)).toMatchObject({
+            activeNodeId: 'node-1',
+            bufferContent: 'my edit',
+            dirty: true,
         });
     });
 
@@ -93,6 +115,7 @@ describe('edit-session-service', () => {
         expect(onCommit).toHaveBeenCalledWith({
             nodeId: 'node-1',
             content: 'hello world',
+            previousContent: 'hello',
             isInSidebar: false,
             reason: 'blur',
             suppressRefocus: true,
@@ -111,6 +134,7 @@ describe('edit-session-service', () => {
         expect(onCommit).toHaveBeenCalledWith({
             nodeId: 'node-1',
             content: 'hello world',
+            previousContent: 'hello',
             isInSidebar: false,
             reason: 'switch-node',
             suppressRefocus: false,

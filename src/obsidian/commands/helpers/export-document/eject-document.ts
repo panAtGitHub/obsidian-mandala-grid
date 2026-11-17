@@ -20,9 +20,10 @@ export const ejectDocument = async (view: MandalaView) => {
             }, 100);
             return;
         }
-        const fileData = await view.plugin.app.vault.read(file);
-        const text = mapDocumentToText(fileData);
-        await view.plugin.app.vault.modify(file, text);
+        await view.flushPendingSaves();
+        await view.plugin.app.vault.process(file, (fileData) =>
+            mapDocumentToText(fileData),
+        );
         toggleObsidianViewType(view.plugin, view.leaf, 'markdown');
         setViewType(view.plugin, file.path, 'markdown');
     } catch (e) {

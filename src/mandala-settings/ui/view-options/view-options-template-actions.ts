@@ -157,27 +157,28 @@ export const saveCurrentThemeAsTemplateAction = async (
     const templateName = await openMandalaTemplateNameModal(view.plugin);
     if (!templateName) return;
 
-    let raw = '';
-    try {
-        raw = await view.plugin.app.vault.read(file);
-    } catch {
-        new Notice(tx('读取模板文件失败。'));
-        return;
-    }
-    const templates = parseMandalaTemplates(raw);
-    if (templates.some((template) => template.name === templateName)) {
-        new Notice(tx('模板名称已存在，请更换名称。'));
-        return;
-    }
-
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme ?? '1';
     const slots = getCurrentThemeSlots(view, theme);
     const template: MandalaTemplate = { name: templateName, slots };
-    const nextContent = appendMandalaTemplate(raw, template);
+    let duplicate = false;
     try {
-        await view.plugin.app.vault.modify(file, nextContent);
+        await view.plugin.app.vault.process(file, (raw) => {
+            if (
+                parseMandalaTemplates(raw).some(
+                    (entry) => entry.name === templateName,
+                )
+            ) {
+                duplicate = true;
+                return raw;
+            }
+            return appendMandalaTemplate(raw, template);
+        });
     } catch {
         new Notice(tx('写入模板文件失败。'));
+        return;
+    }
+    if (duplicate) {
+        new Notice(tx('模板名称已存在，请更换名称。'));
         return;
     }
     new Notice(tx('模板已保存。'));

@@ -1,14 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
-    cleanupSectionSessionFolder,
     deleteSectionSessionTempFile,
     getSectionContentBySection,
     applySectionPatch,
     loggerErrorMock,
     setViewTypeMock,
 } = vi.hoisted(() => ({
-    cleanupSectionSessionFolder: vi.fn(async () => {}),
     deleteSectionSessionTempFile: vi.fn(async () => {}),
     getSectionContentBySection: vi.fn(),
     applySectionPatch: vi.fn(),
@@ -68,12 +66,6 @@ vi.mock('obsidian', () => {
 });
 
 vi.mock(
-    'src/obsidian/helpers/inline-editor/cleanup-section-session-folder',
-    () => ({
-        cleanupSectionSessionFolder,
-    }),
-);
-vi.mock(
     'src/obsidian/helpers/inline-editor/delete-section-session-temp-file',
     () => ({
         deleteSectionSessionTempFile,
@@ -127,10 +119,11 @@ const createView = ({
     const createdContents = new Map<string, string>();
     const saveCallbacks: Array<() => unknown> = [];
     let editorValue = sectionContent;
+    let sourceMarkdown = `<!--section: 1-->root\n<!--section: 1.1-->\n${sectionContent}`;
     let editorCursor = { line: 0, ch: 0 };
     const readMock = vi.fn(async (file: TFile) => {
         if (file.path === sourceFile.path) {
-            return 'source markdown';
+            return sourceMarkdown;
         }
         return createdContents.get(file.path) ?? sectionContent;
     });
@@ -148,6 +141,10 @@ const createView = ({
     });
     const listMock = vi.fn(async () => ({ files: [], folders: [] }));
     const rmdirMock = vi.fn(async () => {});
+    const writeMetadataMock = vi.fn(
+        async (_path: string, _content: string) => {},
+    );
+    const removeMetadataMock = vi.fn(async (_path: string) => {});
     const setCursorMock = vi.fn((cursor: { line: number; ch: number }) => {
         const lines = editorValue.split('\n');
         const line = lines[cursor.line];
@@ -223,6 +220,8 @@ const createView = ({
         adapter: {
             list: listMock,
             rmdir: rmdirMock,
+            write: writeMetadataMock,
+            remove: removeMetadataMock,
         },
     };
     sourceLeaf = {
@@ -273,6 +272,7 @@ const createView = ({
             viewKind: '3x3',
             variant,
         }),
+        flushPendingSaves: vi.fn(async () => {}),
     };
     sourceLeaf.view = view;
 
@@ -285,6 +285,9 @@ const createView = ({
         setEditorValue: (value: string) => {
             editorValue = value;
         },
+        setSourceMarkdown: (value: string) => {
+            sourceMarkdown = value;
+        },
         vault,
         view,
         saveCallbacks,
@@ -294,6 +297,8 @@ const createView = ({
         setViewStateMock,
         setActiveLeafMock,
         modifyMock,
+        writeMetadataMock,
+        removeMetadataMock,
     };
 };
 
@@ -476,7 +481,8 @@ describe('section-native-editor-session initial cursor placement', () => {
         const sectionContent = '### 习惯打卡';
         getSectionContentBySection.mockReturnValue(sectionContent);
         applySectionPatch.mockReturnValue({
-            markdown: 'patched markdown',
+            markdown:
+                '<!--section: 1-->root\n<!--section: 1.1-->\npatched markdown',
             lineForJump: 7,
         });
         const { markdownView, saveCallbacks, setEditorValue, view } =
@@ -489,7 +495,7 @@ describe('section-native-editor-session initial cursor placement', () => {
 
         await vi.waitFor(() => {
             expect(applySectionPatch).toHaveBeenCalledWith(
-                'source markdown',
+                expect.stringContaining('<!--section: 1.1-->'),
                 '1.1',
                 '### 习惯打卡\n任务',
             );
@@ -500,7 +506,8 @@ describe('section-native-editor-session initial cursor placement', () => {
         const sectionContent = '### 习惯打卡';
         getSectionContentBySection.mockReturnValue(sectionContent);
         applySectionPatch.mockReturnValue({
-            markdown: 'patched markdown',
+            markdown:
+                '<!--section: 1-->root\n<!--section: 1.1-->\npatched markdown',
             lineForJump: 7,
         });
         const { saveCallbacks, view } = createView({
@@ -513,7 +520,7 @@ describe('section-native-editor-session initial cursor placement', () => {
 
         await vi.waitFor(() => {
             expect(applySectionPatch).toHaveBeenCalledWith(
-                'source markdown',
+                expect.stringContaining('<!--section: 1.1-->'),
                 '1.1',
                 sectionContent,
             );
@@ -541,7 +548,8 @@ describe('section-native-editor-session initial cursor placement', () => {
         const sectionContent = '### 09-12\n正文 1\n正文 2';
         getSectionContentBySection.mockReturnValue(sectionContent);
         applySectionPatch.mockReturnValue({
-            markdown: 'patched markdown',
+            markdown:
+                '<!--section: 1-->root\n<!--section: 1.1-->\npatched markdown',
             lineForJump: 7,
         });
         const { markdownView, saveCallbacks, setCursorMock, view, modifyMock } =
@@ -589,7 +597,8 @@ describe('section-native-editor-session initial cursor placement', () => {
         const sectionContent = 'plain body';
         getSectionContentBySection.mockReturnValue(sectionContent);
         applySectionPatch.mockReturnValue({
-            markdown: 'patched markdown',
+            markdown:
+                '<!--section: 1-->root\n<!--section: 1.1-->\npatched markdown',
             lineForJump: 7,
         });
         const {
@@ -601,6 +610,7 @@ describe('section-native-editor-session initial cursor placement', () => {
             setActiveLeafMock,
             getLeafMock,
             modifyMock,
+            removeMetadataMock,
         } = createView({ sectionContent });
 
         await startSectionNativeEditorSession(view as never, 'node-1');
@@ -612,7 +622,7 @@ describe('section-native-editor-session initial cursor placement', () => {
         await vi.waitFor(() => {
             expect(modifyMock).toHaveBeenCalledWith(
                 sourceFile,
-                'patched markdown',
+                expect.stringContaining('patched markdown'),
             );
         });
         await vi.waitFor(() => {
@@ -620,6 +630,11 @@ describe('section-native-editor-session initial cursor placement', () => {
                 deleteSectionSessionTempFile.mock.calls.length,
             ).toBeGreaterThan(cleanupCallsBeforeSave);
         });
+        await vi.waitFor(() =>
+            expect(removeMetadataMock).toHaveBeenCalledWith(
+                expect.stringContaining('.session.json'),
+            ),
+        );
 
         expect(openFileMock).toHaveBeenCalledTimes(2);
         expect(openFileMock).toHaveBeenLastCalledWith(sourceFile, {
@@ -643,7 +658,8 @@ describe('section-native-editor-session initial cursor placement', () => {
         const sectionContent = 'plain body';
         getSectionContentBySection.mockReturnValue(sectionContent);
         applySectionPatch.mockReturnValue({
-            markdown: 'patched markdown',
+            markdown:
+                '<!--section: 1-->root\n<!--section: 1.1-->\npatched markdown',
             lineForJump: 7,
         });
         const { view, saveCallbacks, openFileMock } = createView({
@@ -673,12 +689,30 @@ describe('section-native-editor-session initial cursor placement', () => {
     it('keeps the temporary session when the same section changed externally', async () => {
         const sectionContent = 'original';
         getSectionContentBySection.mockReturnValue(sectionContent);
-        const { view, saveCallbacks, modifyMock } = createView({
+        const {
+            view,
+            saveCallbacks,
+            modifyMock,
+            setSourceMarkdown,
+            writeMetadataMock,
+            removeMetadataMock,
+        } = createView({
             sectionContent,
         });
         await startSectionNativeEditorSession(view as never, 'node-1');
+        expect(writeMetadataMock).toHaveBeenCalledWith(
+            expect.stringContaining('.session.json'),
+            expect.stringContaining('"section": "1.1"'),
+        );
+        const metadataCleanupCount = removeMetadataMock.mock.calls.length;
         const cleanupCount = deleteSectionSessionTempFile.mock.calls.length;
-        getSectionContentBySection.mockReturnValue('external edit');
+        setSourceMarkdown(
+            '<!--section: 1-->root\n<!--section: 1.1-->\nexternal edit',
+        );
+        applySectionPatch.mockReturnValue({
+            markdown: '<!--section: 1-->root\n<!--section: 1.1-->\nmy edit',
+            lineForJump: 2,
+        });
         saveCallbacks[0]?.();
         await vi.waitFor(() => {
             expect(loggerErrorMock).toHaveBeenCalledWith(
@@ -686,6 +720,68 @@ describe('section-native-editor-session initial cursor placement', () => {
                 expect.any(Error),
             );
         });
+        expect(modifyMock).not.toHaveBeenCalled();
+        expect(removeMetadataMock.mock.calls.length).toBe(metadataCleanupCount);
+        expect(deleteSectionSessionTempFile.mock.calls.length).toBe(
+            cleanupCount,
+        );
+    });
+
+    it('saves a real section edit while preserving a newer unrelated section', async () => {
+        const actual = await vi.importActual<
+            typeof import('src/mandala-display/logic/apply-section-patch')
+        >('src/mandala-display/logic/apply-section-patch');
+        getSectionContentBySection.mockImplementation(
+            actual.getSectionContentBySection,
+        );
+        applySectionPatch.mockImplementation(actual.applySectionPatch);
+        const sectionContent = 'original';
+        const {
+            view,
+            saveCallbacks,
+            modifyMock,
+            setSourceMarkdown,
+            setEditorValue,
+        } = createView({ sectionContent });
+        setSourceMarkdown(
+            '<!--section: 1-->root\n<!--section: 1.1-->\noriginal\n<!--section: 2-->old',
+        );
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        setSourceMarkdown(
+            '<!--section: 1-->root\n<!--section: 1.1-->\noriginal\n<!--section: 2-->external',
+        );
+        setEditorValue('my edit');
+        saveCallbacks[0]?.();
+        await vi.waitFor(() => expect(modifyMock).toHaveBeenCalledOnce());
+        expect(modifyMock.mock.calls[0][1]).toContain(
+            '<!--section: 1.1-->\nmy edit',
+        );
+        expect(modifyMock.mock.calls[0][1]).toContain(
+            '<!--section: 2-->external',
+        );
+    });
+
+    it('retains the temp file if native editing introduces a section marker', async () => {
+        const actual = await vi.importActual<
+            typeof import('src/mandala-display/logic/apply-section-patch')
+        >('src/mandala-display/logic/apply-section-patch');
+        getSectionContentBySection.mockImplementation(
+            actual.getSectionContentBySection,
+        );
+        applySectionPatch.mockImplementation(actual.applySectionPatch);
+        const { view, saveCallbacks, modifyMock, setEditorValue } = createView({
+            sectionContent: 'original',
+        });
+        await startSectionNativeEditorSession(view as never, 'node-1');
+        const cleanupCount = deleteSectionSessionTempFile.mock.calls.length;
+        setEditorValue('changed\n<!--section: 1.1.1-->\nchild');
+        saveCallbacks[0]?.();
+        await vi.waitFor(() =>
+            expect(loggerErrorMock).toHaveBeenCalledWith(
+                '[mandala-section-edit] save failed',
+                expect.any(Error),
+            ),
+        );
         expect(modifyMock).not.toHaveBeenCalled();
         expect(deleteSectionSessionTempFile.mock.calls.length).toBe(
             cleanupCount,

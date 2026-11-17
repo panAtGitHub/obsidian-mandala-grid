@@ -28,6 +28,7 @@ export type EditSessionState = {
 export type EditSessionCommitPayload = {
     nodeId: string;
     content: string;
+    previousContent: string;
     isInSidebar: boolean;
     reason: EditSessionCommitReason;
     suppressRefocus: boolean;

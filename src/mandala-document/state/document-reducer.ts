@@ -76,7 +76,24 @@ const updateDocumentState = (
     let newActiveNodeId: null | string = null;
     let affectedNodeId: null | string = null;
     let needsMandalaV2MetaRebuild = false;
+    const trackStructuralMutation =
+        action.type === 'document/mandala/swap' ||
+        action.type === 'document/mandala/ensure-children' ||
+        action.type === 'document/mandala/ensure-core-theme' ||
+        action.type === 'document/mandala/clear-empty-subgrids' ||
+        action.type === 'document/format-headings';
+    const beforeSections = trackStructuralMutation
+        ? Object.fromEntries(
+              Object.entries(state.sections.section_id).map(
+                  ([section, node]) => [
+                      section,
+                      state.document.content[node]?.content ?? '',
+                  ],
+              ),
+          )
+        : null;
     state.meta.mandalaV2.lastMutation = null;
+    state.meta.mandalaV2.lastStructuralMutation = null;
     if (action.type === 'document/update-node-content') {
         const previousContent =
             state.document.content[action.payload.nodeId]?.content ?? '';
@@ -173,7 +190,8 @@ const updateDocumentState = (
             childGroup?.nodes ?? createdNodes,
             { commit: false },
         );
-        if (createdNodes.length === 0 && registeredCount === 0) return NO_UPDATE;
+        if (createdNodes.length === 0 && registeredCount === 0)
+            return NO_UPDATE;
         needsMandalaV2MetaRebuild = true;
 
         newActiveNodeId = action.payload.parentNodeId;
@@ -187,7 +205,10 @@ const updateDocumentState = (
                 existingNodeId,
                 8,
             );
-            const childGroup = findChildGroup(state.document.columns, existingNodeId);
+            const childGroup = findChildGroup(
+                state.document.columns,
+                existingNodeId,
+            );
             const registeredCount = registerMandalaChildSections(
                 state,
                 existingNodeId,
@@ -273,6 +294,29 @@ const updateDocumentState = (
 
     if (needsMandalaV2MetaRebuild) {
         rebuildMandalaV2MetaFromSections(state);
+    }
+
+    if (beforeSections) {
+        const afterSections = Object.keys(state.sections.section_id);
+        const afterSet = new Set(afterSections);
+        state.meta.mandalaV2.lastStructuralMutation = {
+            actionType: action.type,
+            addedSections: afterSections.filter(
+                (section) => !(section in beforeSections),
+            ),
+            removedSections: Object.keys(beforeSections).filter(
+                (section) => !afterSet.has(section),
+            ),
+            changedSections: afterSections.filter((section) => {
+                if (!(section in beforeSections)) return false;
+                const node = state.sections.section_id[section];
+                return (
+                    (state.document.content[node]?.content ?? '') !==
+                    beforeSections[section]
+                );
+            }),
+            beforeContentBySection: beforeSections,
+        };
     }
 
     // if file was modified externally, try to maintain active section

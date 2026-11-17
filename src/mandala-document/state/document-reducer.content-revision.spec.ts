@@ -61,6 +61,12 @@ describe('documentReducer contentRevision', () => {
 
         expect(state.meta.mandalaV2.contentRevision).toBe(1);
         expect(state.meta.mandalaV2.revision).toBe(0);
+        expect(state.meta.mandalaV2.lastStructuralMutation).toMatchObject({
+            actionType: 'document/format-headings',
+            addedSections: [],
+            removedSections: [],
+            beforeContentBySection: { '1': 'Alpha' },
+        });
     });
 
     it('increments both revisions when loading from disk', () => {

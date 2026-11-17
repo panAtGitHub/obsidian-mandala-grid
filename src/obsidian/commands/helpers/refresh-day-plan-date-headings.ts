@@ -90,32 +90,37 @@ export const refreshCurrentDayPlanDateHeadings = async (
         return;
     }
 
-    const markdown = await plugin.app.vault.read(file);
-    const plan = parseDayPlanFromMarkdown(markdown);
-    if (!plan) {
+    let isDayPlan = false;
+    let changed = false;
+    await plugin.app.vault.process(file, (markdown) => {
+        if (!parseDayPlanFromMarkdown(markdown)) return markdown;
+        isDayPlan = true;
+        const { frontmatter } = extractFrontmatter(markdown);
+        const effective = resolveEffectiveMandalaSettings(
+            plugin.settings.getValue(),
+            frontmatter,
+        );
+        const settings = getDayPlanDateHeadingSettings({
+            format: effective.general.dayPlanDateHeadingFormat,
+            customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
+        });
+        const refreshed = refreshDayPlanDateHeadingsInMarkdown(
+            markdown,
+            settings,
+        );
+        changed = refreshed.changed;
+        return refreshed.markdown;
+    });
+    if (!isDayPlan) {
         if (notify) {
             new Notice(lang.notice_day_plan_not_active_file);
         }
         return;
     }
 
-    const { frontmatter } = extractFrontmatter(markdown);
-    const effective = resolveEffectiveMandalaSettings(
-        plugin.settings.getValue(),
-        frontmatter,
-    );
-    const settings = getDayPlanDateHeadingSettings({
-        format: effective.general.dayPlanDateHeadingFormat,
-        customTemplate: effective.general.dayPlanDateHeadingCustomTemplate,
-    });
-    const refreshed = refreshDayPlanDateHeadingsInMarkdown(markdown, settings);
-    if (refreshed.changed) {
-        await plugin.app.vault.modify(file, refreshed.markdown);
-    }
-
     if (notify) {
         new Notice(
-            refreshed.changed
+            changed
                 ? lang.notice_day_plan_date_headings_refreshed
                 : lang.notice_day_plan_date_headings_already_latest,
         );

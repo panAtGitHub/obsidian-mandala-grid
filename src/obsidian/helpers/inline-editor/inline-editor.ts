@@ -167,7 +167,16 @@ export class InlineEditor {
 
         if (currentNodeId && currentNodeId !== nodeId) {
             this.view.editSession.updateBuffer(this.getContent());
-            this.view.editSession.switchNode(nodeId, isInSidebar, content);
+            if (
+                this.view.editSession.switchNode(
+                    nodeId,
+                    isInSidebar,
+                    content,
+                ) === false
+            ) {
+                resolve();
+                return;
+            }
             const cursor = this.getCursor();
             this.cursorPositions.set(currentNodeId, cursor);
             this.detachTarget();
@@ -276,7 +285,7 @@ export class InlineEditor {
             this.view.editSession.cancel();
         } else if (currentNodeId) {
             this.view.editSession.updateBuffer(this.getContent());
-            this.view.editSession.endSession(reason);
+            if (this.view.editSession.endSession(reason) === false) return;
             const cursor = this.getCursor();
             this.cursorPositions.set(currentNodeId, cursor);
         }

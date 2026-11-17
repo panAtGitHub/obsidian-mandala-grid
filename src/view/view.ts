@@ -18,7 +18,7 @@ import Component from 'src/mandala-scenes/shared/shell/main.svelte';
 import { flushSync, mount, unmount } from 'svelte';
 import MandalaGrid from '../main';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
-import { Unsubscriber } from 'svelte/store';
+import { get, Unsubscriber } from 'svelte/store';
 import { OnError, Store } from 'src/shared/store/store';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import {
@@ -59,12 +59,8 @@ import {
     resolveMandalaSceneKey,
 } from 'src/mandala-display/logic/mandala-profile';
 import { getMissingDayPlanCoreSections } from 'src/mandala-display/logic/day-plan';
-import { isNonEmptyMandalaContent } from 'src/mandala-display/logic/is-empty-mandala-content';
 import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
-import { prepareSaveSections } from 'src/mandala-document/engine/prepare-save-sections';
-import { serializeSections } from 'src/mandala-document/engine/serialize-sections';
-import { applySectionPatch } from 'src/mandala-display/logic/apply-section-patch';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { createWorkingSetCooldown } from 'src/view/helpers/working-set-cooldown';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
@@ -119,6 +115,14 @@ import {
 } from 'src/mandala-document/runtime/source-document-runtime';
 import { buildThreeByThreeSectionIds } from 'src/mandala-document/runtime/working-set';
 import {
+    patchSectionContents,
+    type SectionContentEdit,
+} from 'src/mandala-document/runtime/patch-section-contents';
+import {
+    reconcileStructuralMutation,
+    type StructuralMutation,
+} from 'src/mandala-document/runtime/reconcile-structural-mutation';
+import {
     resolveInitialTarget,
     type InitialTarget,
 } from 'src/mandala-document/runtime/initial-target-resolver';
@@ -140,13 +144,9 @@ export type SaveDocumentMode = 'content-only' | 'structural';
 export type SaveDocumentOptions = {
     mode?: SaveDocumentMode;
     changedSections?: string[];
+    structuralMutation?: StructuralMutation;
+    recoveryEdits?: Array<{ nodeId: string; content: string }>;
 };
-
-export const shouldBlockPartialContentSave = (
-    mode: SaveDocumentMode,
-    fullHydrated: boolean,
-    usedFastPath: boolean,
-) => mode === 'content-only' && !fullHydrated && !usedFastPath;
 
 export class MandalaView extends TextFileView {
     component: ReturnType<typeof mount> | undefined;
@@ -184,6 +184,8 @@ export class MandalaView extends TextFileView {
     } | null = null;
     private readonly persistSnapshotQueue: PersistSnapshotQueue;
     private readonly persistSnapshotErrorKeys = new Map<string, string>();
+    private readonly pendingRecoveryWrites = new Set<Promise<void>>();
+    private readonly failedRecoveryCopies = new Map<string, string>();
     private readonly mandalaUiStateByPath = new Map<
         string,
         MandalaUiStateSnapshot
@@ -272,6 +274,31 @@ export class MandalaView extends TextFileView {
         this.id = id.view();
         this.editSession = new EditSessionService(
             (payload: EditSessionCommitPayload) => {
+                const documentState = this.documentStore.getValue();
+                const current =
+                    documentState.document.content[payload.nodeId]?.content;
+                if (
+                    current === undefined ||
+                    (current !== payload.previousContent &&
+                        current !== payload.content)
+                ) {
+                    void this.writeRecoveryCopy({
+                        file: this.activeFilePath ?? this.file?.path ?? null,
+                        source: this.data,
+                        nodeId: payload.nodeId,
+                        section:
+                            documentState.sections.id_section[payload.nodeId] ??
+                            this.sourceRuntime?.getSectionId(payload.nodeId) ??
+                            null,
+                        before: payload.previousContent,
+                        content: payload.content,
+                    });
+                    new Notice(
+                        '保存已中止：当前 section 已被其他编辑修改，正在备份你的内容。',
+                        0,
+                    );
+                    return false;
+                }
                 this.documentStore.dispatch({
                     type: 'document/update-node-content',
                     payload: {
@@ -284,15 +311,23 @@ export class MandalaView extends TextFileView {
                         suppressRefocus: payload.suppressRefocus,
                     },
                 });
+                return true;
             },
         );
         this.documentSearch = new DocumentSearch(this);
         this.alignBranch = new AlignBranch(this);
         this.persistSnapshotQueue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: (path, data, base) =>
-                this.persistSnapshot(path, data, base),
-            onError: ({ path, error }) => {
+            persistStructure: (path, data, mutation) =>
+                this.persistSnapshot(path, data, mutation),
+            persistSections: (path, edits) =>
+                this.persistSectionEdits(path, edits),
+            onError: async ({ path, data, edits, error }) => {
+                await this.writeRecoveryCopy(
+                    edits
+                        ? { file: path, edits }
+                        : { file: path, source: data },
+                );
                 this.handlePersistSnapshotError(path, error);
             },
         });
@@ -396,7 +431,23 @@ export class MandalaView extends TextFileView {
     }
 
     ensureFullHydrated(reason: string) {
-        if (!this.sourceRuntime || this.fullHydrated) return false;
+        if (
+            !this.sourceRuntime ||
+            (this.fullHydrated &&
+                !projectedDocumentStores.has(this.documentStore))
+        )
+            return false;
+        if (this.fullHydrated) {
+            const state = this.documentStore.getValue();
+            if (
+                Object.entries(state.sections.section_id).some(
+                    ([section, node]) =>
+                        this.sourceRuntime?.getContent(section) !==
+                        state.document.content[node]?.content,
+                )
+            )
+                return false;
+        }
         invariant(this.file);
         const startedAt = performance.now();
         const { body, frontmatter } = extractFrontmatter(this.data);
@@ -439,6 +490,7 @@ export class MandalaView extends TextFileView {
 
     materializeSections(sectionIds: Iterable<string>, centerSection?: string) {
         if (!this.sourceRuntime || this.fullHydrated) return false;
+        projectedDocumentStores.add(this.documentStore);
         const currentState = this.documentStore.getValue();
         const requestedSectionIds = [...sectionIds];
         let activeSection = this.sourceRuntime.getSectionId(
@@ -487,7 +539,6 @@ export class MandalaView extends TextFileView {
             workingSet,
             extractFrontmatter(this.data).frontmatter,
         );
-        projectedDocumentStores.add(this.documentStore);
         this.documentStore.set(nextState);
         this.viewStore.setContext(nextState.document);
         this.workingSetCenter = centerSection ?? this.workingSetCenter;
@@ -939,11 +990,10 @@ export class MandalaView extends TextFileView {
                 if (this.inlineEditor) {
                     this.inlineEditor.unloadNodeWithReason(
                         undefined,
-                        true,
+                        false,
                         'unload',
                     );
                 } else {
-                    this.editSession.cancel();
                     this.editSession.endSession('unload');
                 }
                 this.viewStore.dispatch({
@@ -1121,9 +1171,9 @@ export class MandalaView extends TextFileView {
         const mode = options.mode ?? 'structural';
         if (
             mode === 'structural' &&
-            (this.isWorkingSetProjection ||
-                projectedDocumentStores.has(this.documentStore))
+            projectedDocumentStores.has(this.documentStore)
         ) {
+            this.preserveBlockedState(this.documentStore.getValue());
             new Notice(
                 tx(
                     '保存已中止：共享文档只加载了部分内容。请保留当前视图并重新加载文件。',
@@ -1157,6 +1207,7 @@ export class MandalaView extends TextFileView {
               )
             : [];
         if (missingDayPlanSections.length > 0) {
+            this.preserveBlockedState(state, options.recoveryEdits);
             const firstMissingSection = missingDayPlanSections[0] ?? '?';
             const message = tx(
                 '保存已中止：日计划缺少日期核心格（section {0}）。请先修复日计划结构。',
@@ -1173,138 +1224,63 @@ export class MandalaView extends TextFileView {
             });
             return;
         }
-        const isDayPlan = Boolean(dayPlan);
         let body = '';
         let usedFastPath = false;
-        let prepareMs = 0;
+        const prepareMs = 0;
         let patchMs = 0;
-        let serializeMs = 0;
-        let droppedSectionCount = 0;
-        let prunedParentCount = 0;
-        let blockedParentCount = 0;
+        const serializeMs = 0;
+        const droppedSectionCount = 0;
+        const prunedParentCount = 0;
+        const blockedParentCount = 0;
 
-        const canTryEarlyPatch =
-            mode === 'content-only' &&
-            changedSections.length > 0 &&
-            (this.sourceRuntime
-                ? changedSections.every((sectionId) => {
-                      if (!this.sourceRuntime?.has(sectionId)) return false;
-                      const stateNodeId = state.sections.section_id[sectionId];
-                      if (!stateNodeId || !state.document.content[stateNodeId])
-                          return false;
-                      if (!this.fullHydrated) return true;
-                      const nodeId = this.sourceRuntime.getNodeId(sectionId);
-                      const replacement = nodeId
-                          ? state.document.content[nodeId]?.content ?? ''
-                          : '';
-                      return isNonEmptyMandalaContent(replacement);
-                  })
-                : changedSections.every((sectionId) => {
-                      const nodeId = state.sections.section_id[sectionId];
-                      if (!nodeId) return false;
-                      const replacement =
-                          state.document.content[nodeId]?.content ?? '';
-                      return isNonEmptyMandalaContent(replacement);
-                  }));
-
-        if (canTryEarlyPatch) {
-            const patchStartedMs = performance.now();
-            usedFastPath = true;
-            let patchedBody: string | null = null;
-            if (this.sourceRuntime) {
-                try {
-                    const currentBody = extractFrontmatter(this.data).body;
-                    if (this.sourceRuntime.source !== currentBody) {
-                        this.sourceRuntime.replaceSourceFromExternal(
-                            currentBody,
-                        );
-                    }
-                    const result = this.sourceRuntime.replaceSectionContents(
-                        changedSections.map((sectionId) => ({
-                            sectionId,
-                            content:
-                                state.document.content[
-                                    state.sections.section_id[sectionId]
-                                ]?.content ?? '',
-                        })),
-                    );
-                    patchedBody = result?.source ?? null;
-                    if (result) {
-                        this.recordPerfEvent('document.source-patch', {
-                            changed_section_count:
-                                result.changedSections.length,
-                            source_size: result.source.length,
-                            bytes_delta: result.bytesDelta,
-                            patch_ms: Number(
-                                (performance.now() - patchStartedMs).toFixed(2),
-                            ),
-                        });
-                    }
-                } catch (error) {
-                    if (!(error instanceof StaleSourceRevisionError)) {
-                        logger.warn(
-                            '[mandala-document] source patch failed',
-                            error,
-                        );
-                    }
-                    patchedBody = null;
-                }
-            } else {
-                const currentBody = extractFrontmatter(this.data).body;
-                patchedBody = currentBody;
-                for (const sectionId of changedSections) {
-                    const nodeId = state.sections.section_id[sectionId];
-                    if (!nodeId) {
-                        patchedBody = null;
-                        break;
-                    }
-                    const replacement =
-                        state.document.content[nodeId]?.content ?? '';
-                    const patchResult = applySectionPatch(
-                        patchedBody,
-                        sectionId,
-                        replacement,
-                    );
-                    if (!patchResult) {
-                        patchedBody = null;
-                        break;
-                    }
-                    patchedBody = patchResult.markdown;
-                }
-            }
-            patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
-            if (patchedBody !== null) {
-                body = patchedBody;
-                this.lastSaveBlockedNoticeKey = null;
-            } else {
-                usedFastPath = false;
-            }
-        }
-
-        if (!usedFastPath && mode === 'structural' && this.sourceRuntime) {
+        let sectionEdits: SectionContentEdit[] = [];
+        if (mode === 'content-only' && changedSections.length > 0) {
             const patchStartedMs = performance.now();
             try {
                 const currentBody = extractFrontmatter(this.data).body;
-                if (this.sourceRuntime.source !== currentBody) {
-                    this.sourceRuntime.replaceSourceFromExternal(currentBody);
-                }
-                const result = this.sourceRuntime.reconcileDocumentState(state);
-                if (result) {
-                    body = result.source;
-                    usedFastPath = true;
-                    this.recordPerfEvent('document.source-structural-patch', {
-                        changed_section_count: result.changedSections.length,
-                        source_size: result.source.length,
-                        bytes_delta: result.bytesDelta,
-                        patch_ms: Number(
-                            (performance.now() - patchStartedMs).toFixed(2),
-                        ),
-                    });
-                }
+                const runtime =
+                    this.sourceRuntime ?? new MandalaSourceRuntime(currentBody);
+                if (runtime.source !== currentBody)
+                    runtime.replaceSourceFromExternal(currentBody);
+                if (!runtime.index.diagnostics.valid)
+                    throw new Error('无法安全识别 section');
+                const idsBefore = runtime.index.sourceOrderedIds.join('|');
+                sectionEdits = changedSections.map((sectionId) => {
+                    const nodeId = state.sections.section_id[sectionId];
+                    const after = nodeId
+                        ? state.document.content[nodeId]?.content
+                        : undefined;
+                    const before = runtime.getContent(sectionId);
+                    if (before === null || after === undefined)
+                        throw new Error('未找到待保存的 section');
+                    return { sectionId, before, after };
+                });
+                const result = runtime.replaceSectionContents(
+                    sectionEdits.map(({ sectionId, after }) => ({
+                        sectionId,
+                        content: after,
+                    })),
+                );
+                if (
+                    !result ||
+                    result.index.sourceOrderedIds.join('|') !== idsBefore
+                )
+                    throw new Error('无法安全更新 section');
+                body = result.source;
+                usedFastPath = true;
+                this.lastSaveBlockedNoticeKey = null;
+                this.recordPerfEvent('document.source-patch', {
+                    changed_section_count: result.changedSections.length,
+                    source_size: result.source.length,
+                    bytes_delta: result.bytesDelta,
+                    patch_ms: Number(
+                        (performance.now() - patchStartedMs).toFixed(2),
+                    ),
+                });
             } catch (error) {
                 if (!(error instanceof StaleSourceRevisionError)) {
                     logger.warn(
-                        '[mandala-document] structural source patch failed',
+                        '[mandala-document] source patch failed',
                         error,
                     );
                 }
@@ -1312,157 +1288,50 @@ export class MandalaView extends TextFileView {
             patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
         }
 
-        if (
-            this.sourceRuntime &&
-            shouldBlockPartialContentSave(
-                mode,
-                this.fullHydrated &&
-                    !projectedDocumentStores.has(this.documentStore),
-                usedFastPath,
-            )
-        ) {
+        if (mode === 'content-only' && !usedFastPath) {
+            this.preserveBlockedState(state, options.recoveryEdits);
             const message = tx(
-                '保存已中止：当前只加载了局部工作集，无法安全写回完整 MD。请重新加载文件后再试。',
+                '保存已中止：无法安全更新指定 section，请保留当前编辑。',
             );
-            const blockedKey = `${this.file.path}:partial-working-set`;
-            if (this.lastSaveBlockedNoticeKey !== blockedKey) {
-                this.lastSaveBlockedNoticeKey = blockedKey;
-                new Notice(message, 5000);
-            }
-            logger.error(
-                '[mandala-document] partial working-set save blocked',
-                {
-                    file: this.file.path,
-                    changed_sections: changedSections,
-                },
-            );
+            new Notice(message, 0);
+            logger.error('[mandala-document] section patch blocked', {
+                file: this.file.path,
+                changed_sections: changedSections,
+            });
             return;
         }
 
-        if (!usedFastPath) {
-            const prepareStartedMs = performance.now();
-            const prepared = prepareSaveSections(
-                state.document,
-                state.sections,
-                {
-                    parentToChildrenSlots:
-                        state.meta.mandalaV2.parentToChildrenSlots,
-                    subtreeNonEmptyCountBySection:
-                        state.meta.mandalaV2.subtreeNonEmptyCountBySection,
-                    preserveRootSections: isDayPlan,
-                },
-            );
-            prepareMs = Number(
-                (performance.now() - prepareStartedMs).toFixed(2),
-            );
-            droppedSectionCount = prepared.stats.droppedSectionCount;
-            prunedParentCount = prepared.stats.prunedParentCount;
-            blockedParentCount = prepared.stats.blockedParentCount;
-
-            if (prepared.blockedReasons.length > 0) {
-                const message = prepared.blockedReasons[0];
-                const blockedKey = `${this.file.path}:${state.meta.mandalaV2.revision}:${message}`;
-                if (this.lastSaveBlockedNoticeKey !== blockedKey) {
-                    this.lastSaveBlockedNoticeKey = blockedKey;
-                    new Notice(message, 3500);
+        if (!usedFastPath && mode === 'structural') {
+            const patchStartedMs = performance.now();
+            try {
+                if (!this.sourceRuntime || !options.structuralMutation) {
+                    throw new Error('缺少结构变更范围');
                 }
-                logger.error('[mandala-document] save blocked', {
-                    file: this.file.path,
-                    reason: message,
-                    blocked_parents: prepared.stats.blockedParentCount,
-                });
+                const currentBody = extractFrontmatter(this.data).body;
+                if (this.sourceRuntime.source !== currentBody) {
+                    this.sourceRuntime.replaceSourceFromExternal(currentBody);
+                }
+                body = reconcileStructuralMutation(
+                    this.sourceRuntime,
+                    state,
+                    options.structuralMutation,
+                );
+                usedFastPath = true;
+            } catch (error) {
+                this.preserveBlockedState(state);
+                logger.warn(
+                    '[mandala-document] structural source patch failed',
+                    error,
+                );
+                new Notice(
+                    tx(
+                        '保存已中止：无法安全更新文档结构，未保存的内容正在备份。',
+                    ),
+                    0,
+                );
                 return;
             }
-            this.lastSaveBlockedNoticeKey = null;
-
-            if (
-                mode === 'content-only' &&
-                changedSections.length > 0 &&
-                prepared.stats.droppedSectionCount === 0
-            ) {
-                const patchStartedMs = performance.now();
-                const currentBody = extractFrontmatter(this.data).body;
-                let patchedBody = currentBody;
-                usedFastPath = true;
-                if (this.sourceRuntime) {
-                    try {
-                        if (this.sourceRuntime.source !== currentBody) {
-                            this.sourceRuntime.replaceSourceFromExternal(
-                                currentBody,
-                            );
-                        }
-                        const result =
-                            this.sourceRuntime.replaceSectionContents(
-                                changedSections.map((sectionId) => ({
-                                    sectionId,
-                                    content:
-                                        state.document.content[
-                                            state.sections.section_id[sectionId]
-                                        ]?.content ?? '',
-                                })),
-                            );
-                        if (result) {
-                            patchedBody = result.source;
-                            this.recordPerfEvent('document.source-patch', {
-                                changed_section_count:
-                                    result.changedSections.length,
-                                source_size: result.source.length,
-                                bytes_delta: result.bytesDelta,
-                                patch_ms: Number(
-                                    (
-                                        performance.now() - patchStartedMs
-                                    ).toFixed(2),
-                                ),
-                            });
-                        } else {
-                            usedFastPath = false;
-                        }
-                    } catch (error) {
-                        usedFastPath = false;
-                        if (!(error instanceof StaleSourceRevisionError)) {
-                            logger.warn(
-                                '[mandala-document] source patch failed',
-                                error,
-                            );
-                        }
-                    }
-                }
-                if (usedFastPath && !this.sourceRuntime) {
-                    for (const sectionId of changedSections) {
-                        const nodeId = state.sections.section_id[sectionId];
-                        if (!nodeId) {
-                            usedFastPath = false;
-                            break;
-                        }
-                        const replacement =
-                            state.document.content[nodeId]?.content ?? '';
-                        const patchResult = applySectionPatch(
-                            patchedBody,
-                            sectionId,
-                            replacement,
-                        );
-                        if (!patchResult) {
-                            usedFastPath = false;
-                            break;
-                        }
-                        patchedBody = patchResult.markdown;
-                    }
-                }
-                patchMs += Number(
-                    (performance.now() - patchStartedMs).toFixed(2),
-                );
-                if (usedFastPath) {
-                    body = patchedBody;
-                }
-            }
-
-            if (!usedFastPath) {
-                const serializeStartedMs = performance.now();
-                body = serializeSections(prepared.sections);
-                serializeMs = Number(
-                    (performance.now() - serializeStartedMs).toFixed(2),
-                );
-            }
+            patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
         }
 
         const savePerfPayload = {
@@ -1486,7 +1355,6 @@ export class MandalaView extends TextFileView {
             if (data.trim().length === 0) {
                 throw new Error(lang.error_save_empty_data);
             }
-            const base = this.data;
             this.data = data;
             const parsed = extractFrontmatter(data);
             if (
@@ -1499,7 +1367,17 @@ export class MandalaView extends TextFileView {
             this.lastLoadedFrontmatter = parsed.frontmatter;
             const persistPath = this.activeFilePath ?? this.file?.path ?? null;
             if (persistPath) {
-                this.queuePersistSnapshot(persistPath, data, base);
+                if (mode === 'content-only') {
+                    this.queueSectionEdits(persistPath, sectionEdits);
+                } else {
+                    if (!options.structuralMutation)
+                        throw new Error('缺少结构变更范围');
+                    this.queuePersistSnapshot(
+                        persistPath,
+                        data,
+                        options.structuralMutation,
+                    );
+                }
             }
         }
         if (this.fullHydrated) this.workingSetCooldown.schedule();
@@ -1907,12 +1785,109 @@ export class MandalaView extends TextFileView {
         250,
     );
 
-    private queuePersistSnapshot(path: string, data: string, base: string) {
-        this.persistSnapshotQueue.queue(path, data, base);
+    private queuePersistSnapshot(
+        path: string,
+        data: string,
+        mutation: StructuralMutation,
+    ) {
+        this.persistSnapshotQueue.queueStructure(path, data, mutation);
+    }
+
+    private queueSectionEdits(path: string, edits: SectionContentEdit[]) {
+        this.persistSnapshotQueue.queueSections(path, edits);
     }
 
     private async flushAllPendingPersistSnapshots() {
-        await this.persistSnapshotQueue.flushAll();
+        let persistError: unknown;
+        let persistFailed = false;
+        try {
+            await this.persistSnapshotQueue.flushAll();
+        } catch (error) {
+            persistFailed = true;
+            persistError = error;
+        }
+        await Promise.all(this.pendingRecoveryWrites);
+        for (const [path, data] of this.failedRecoveryCopies) {
+            try {
+                await this.app.vault.adapter.write(path, data);
+                this.failedRecoveryCopies.delete(path);
+                new Notice(`未保存的编辑已备份到 ${path}`, 0);
+            } catch {
+                throw new Error('无法备份未保存的编辑');
+            }
+        }
+        if (persistFailed) throw persistError;
+    }
+
+    async flushPendingSaves() {
+        if (this.inlineEditor?.nodeId) {
+            this.editSession.updateBuffer(this.inlineEditor.getContent());
+            if (!this.editSession.commit('save')) {
+                throw new Error('当前 section 存在冲突，无法保存');
+            }
+        }
+        await this.flushAllPendingPersistSnapshots();
+    }
+
+    private preserveBlockedState(
+        state: DocumentState,
+        edits?: Array<{ nodeId: string; content: string }>,
+    ) {
+        const path = this.activeFilePath ?? this.file?.path;
+        if (!path) return;
+        const sections = Object.fromEntries(
+            Object.entries(state.sections.section_id).map(([section, node]) => [
+                section,
+                state.document.content[node]?.content ?? '',
+            ]),
+        );
+        void this.writeRecoveryCopy({
+            file: path,
+            source: this.data,
+            sections,
+            edits,
+        });
+    }
+
+    preserveActiveEditorBeforeReload() {
+        const session = get(this.editSession.stateStore);
+        if (!session.activeNodeId || !this.inlineEditor) return;
+        let content = session.bufferContent;
+        try {
+            content = this.inlineEditor.getContent();
+        } catch (error) {
+            logger.warn('[mandala-view] failed to read active editor', error);
+        }
+        if (content === session.lastCommittedContent) return;
+        const path = this.activeFilePath ?? this.file?.path;
+        if (!path) return;
+        void this.writeRecoveryCopy({
+            file: path,
+            source: this.data,
+            nodeId: session.activeNodeId,
+            section:
+                this.sourceRuntime?.getSectionId(session.activeNodeId) ?? null,
+            before: session.lastCommittedContent,
+            content,
+        });
+    }
+
+    private writeRecoveryCopy(snapshot: Record<string, unknown>) {
+        const data = JSON.stringify(snapshot, null, 2);
+        const recoveryPath = `mandala-unsaved-${id.view()}.json`;
+        const write = Promise.resolve()
+            .then(() => this.app.vault.adapter.write(recoveryPath, data))
+            .then(() => {
+                new Notice(`未保存的编辑已备份到 ${recoveryPath}`, 0);
+            })
+            .catch((error: unknown) => {
+                this.failedRecoveryCopies.set(recoveryPath, data);
+                logger.error('[mandala-view] recovery copy failed', error);
+                new Notice('无法备份未保存的编辑，请先复制当前内容。', 0);
+            });
+        this.pendingRecoveryWrites.add(write);
+        void write.finally(() => this.pendingRecoveryWrites.delete(write));
+        return write;
     }
 
     private async flushPendingPersistSnapshotsForTransition(
@@ -1934,15 +1909,56 @@ export class MandalaView extends TextFileView {
         }
     }
 
-    private async persistSnapshot(path: string, data: string, base: string) {
+    private async persistSnapshot(
+        path: string,
+        data: string,
+        structuralMutation: StructuralMutation,
+    ) {
         const abstractFile = this.app.vault.getAbstractFileByPath(path);
         if (!(abstractFile instanceof TFile)) throw new Error('文件不存在');
         await this.app.vault.process(abstractFile, (current) => {
-            if (current !== base && current !== data) {
-                throw new Error('文件已被其他视图或程序修改，当前修改尚未保存');
+            if (structuralMutation) {
+                const intended = new MandalaSourceRuntime(
+                    extractFrontmatter(data).body,
+                );
+                if (!intended.index.diagnostics.valid)
+                    throw new Error('无法安全识别待保存的文档结构');
+                const state = defaultDocumentState();
+                for (const section of [
+                    ...structuralMutation.addedSections,
+                    ...structuralMutation.changedSections,
+                ]) {
+                    const content = intended.getContent(section);
+                    if (content === null)
+                        throw new Error(`未找到待保存的 section ${section}`);
+                    state.sections.section_id[section] = section;
+                    state.document.content[section] = { content };
+                }
+                const latest = extractFrontmatter(current);
+                const runtime = new MandalaSourceRuntime(latest.body);
+                return (
+                    latest.frontmatter +
+                    reconcileStructuralMutation(
+                        runtime,
+                        state,
+                        structuralMutation,
+                    )
+                );
             }
-            return data;
+            throw new Error('缺少明确的结构修改范围');
         });
+        this.persistSnapshotErrorKeys.delete(path);
+    }
+
+    private async persistSectionEdits(
+        path: string,
+        edits: SectionContentEdit[],
+    ) {
+        const file = this.app.vault.getAbstractFileByPath(path);
+        if (!(file instanceof TFile)) throw new Error('文件不存在');
+        await this.app.vault.process(file, (markdown) =>
+            patchSectionContents(markdown, edits),
+        );
         this.persistSnapshotErrorKeys.delete(path);
     }
 

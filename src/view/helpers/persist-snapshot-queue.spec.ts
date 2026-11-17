@@ -1,109 +1,146 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
+import type { SectionContentEdit } from 'src/mandala-document/runtime/patch-section-contents';
+
+const edit = (before: string, after: string, sectionId = '1') => ({
+    sectionId,
+    before,
+    after,
+});
 
 describe('PersistSnapshotQueue', () => {
     beforeEach(() => {
         vi.useFakeTimers();
     });
-
     afterEach(() => {
         vi.useRealTimers();
     });
 
-    it('keeps per-file snapshots independent', async () => {
-        const persisted: Array<{ path: string; data: string }> = [];
+    it('keeps per-file edits independent', async () => {
+        const persistSections = vi.fn(async () => {});
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: (path, data) => {
-                persisted.push({ path, data });
-                return Promise.resolve();
-            },
+            persistStructure: async () => {},
+            persistSections,
         });
-
-        queue.queue('a.md', 'alpha', '');
-        queue.queue('b.md', 'beta', '');
-
+        queue.queueSections('a.md', [edit('a', 'alpha')]);
+        queue.queueSections('b.md', [edit('b', 'beta')]);
         await vi.advanceTimersByTimeAsync(2000);
-
-        expect(persisted).toEqual([
-            { path: 'a.md', data: 'alpha' },
-            { path: 'b.md', data: 'beta' },
+        expect(persistSections.mock.calls).toEqual([
+            ['a.md', [edit('a', 'alpha')]],
+            ['b.md', [edit('b', 'beta')]],
         ]);
     });
 
-    it('flushes only the latest snapshot for the same file', async () => {
-        const persisted: Array<{ path: string; data: string }> = [];
+    it('coalesces consecutive edits while retaining the original contents', async () => {
+        const persistSections = vi.fn(
+            async (_path: string, _edits: SectionContentEdit[]) => {},
+        );
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: (path, data) => {
-                persisted.push({ path, data });
-                return Promise.resolve();
-            },
+            persistStructure: async () => {},
+            persistSections,
         });
-
-        queue.queue('a.md', 'alpha-1', 'original');
-        queue.queue('a.md', 'alpha-2', 'alpha-1');
-
-        await vi.advanceTimersByTimeAsync(2000);
-
-        expect(persisted).toEqual([{ path: 'a.md', data: 'alpha-2' }]);
+        queue.queueSections('a.md', [edit('old', 'first')]);
+        queue.queueSections('a.md', [
+            edit('first', 'final'),
+            edit('two', 'changed', '2'),
+        ]);
+        await queue.flush('a.md');
+        expect(persistSections).toHaveBeenCalledOnce();
+        expect(persistSections).toHaveBeenCalledWith('a.md', [
+            edit('old', 'final'),
+            edit('two', 'changed', '2'),
+        ]);
     });
 
-    it('advances the base when a new edit arrives during a write', async () => {
+    it('keeps edits arriving during a write separate', async () => {
         let finish!: () => void;
-        const writes: Array<[string, string]> = [];
+        const writes: SectionContentEdit[][] = [];
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: async (_path, data, base) => {
-                writes.push([data, base]);
-                if (writes.length === 1) {
+            persistStructure: async () => {},
+            persistSections: async (_path, edits) => {
+                writes.push(edits.map((item) => ({ ...item })));
+                if (writes.length === 1)
                     await new Promise<void>((resolve) => {
                         finish = resolve;
                     });
-                }
             },
         });
-        queue.queue('a.md', 'first', 'original');
+        queue.queueSections('a.md', [edit('old', 'first')]);
         const flushing = queue.flush('a.md');
         await Promise.resolve();
         await Promise.resolve();
-        queue.queue('a.md', 'second', 'first');
+        queue.queueSections('a.md', [edit('first', 'second')]);
         finish();
         await flushing;
         expect(writes).toEqual([
-            ['first', 'original'],
-            ['second', 'first'],
+            [edit('old', 'first')],
+            [edit('first', 'second')],
         ]);
     });
 
-    it('keeps failed snapshots queued for retry without blocking other files', async () => {
-        let failA = true;
-        const persisted: Array<{ path: string; data: string }> = [];
+    it('preserves the order of structural and section edits', async () => {
+        const writes: string[] = [];
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
-            persist: (path, data) => {
-                if (path === 'a.md' && failA) {
-                    throw new Error('disk busy');
-                }
-                persisted.push({ path, data });
-                return Promise.resolve();
+            persistStructure: async () => {
+                writes.push('structure');
+            },
+            persistSections: async () => {
+                writes.push('section');
             },
         });
+        queue.queueStructure('a.md', 'new structure', {
+            actionType: 'test',
+            addedSections: ['1.1'],
+            removedSections: [],
+            changedSections: [],
+            beforeContentBySection: {},
+        });
+        queue.queueSections('a.md', [edit('', 'new content', '1.1')]);
+        await queue.flush('a.md');
+        expect(writes).toEqual(['structure', 'section']);
+    });
 
-        queue.queue('a.md', 'alpha', '');
-        queue.queue('b.md', 'beta', '');
+    it('retains conflicting queued edits and reports each after failure', async () => {
+        const onError = vi.fn((_args: { edits?: SectionContentEdit[] }) => {});
+        const queue = new PersistSnapshotQueue({
+            delayMs: 2000,
+            persistStructure: async () => {},
+            persistSections: async () => {
+                throw new Error('conflict');
+            },
+            onError,
+        });
+        queue.queueSections('a.md', [edit('old', 'first')]);
+        queue.queueSections('a.md', [edit('other', 'second')]);
+        await expect(queue.flush('a.md')).rejects.toThrow('conflict');
+        expect(onError.mock.calls.map(([args]) => args.edits)).toEqual([
+            [edit('old', 'first')],
+            [edit('other', 'second')],
+        ]);
+    });
 
+    it('retries failed edits without blocking other files', async () => {
+        let failA = true;
+        const persisted: string[] = [];
+        const queue = new PersistSnapshotQueue({
+            delayMs: 2000,
+            persistStructure: async () => {},
+            persistSections: async (path) => {
+                if (path === 'a.md' && failA) throw new Error('disk busy');
+                persisted.push(path);
+            },
+        });
+        queue.queueSections('a.md', [edit('a', 'alpha')]);
+        queue.queueSections('b.md', [edit('b', 'beta')]);
         await vi.advanceTimersByTimeAsync(2000);
         await expect(queue.flushAll()).rejects.toThrow('disk busy');
-
-        expect(persisted).toEqual([{ path: 'b.md', data: 'beta' }]);
-
+        expect(persisted).toEqual(['b.md']);
         failA = false;
         await queue.flush('a.md');
-
-        expect(persisted).toEqual([
-            { path: 'b.md', data: 'beta' },
-            { path: 'a.md', data: 'alpha' },
-        ]);
+        expect(persisted).toEqual(['b.md', 'a.md']);
     });
 });

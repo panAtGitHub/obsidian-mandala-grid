@@ -11,10 +11,13 @@ import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helpers/is-structural-document-change';
 import { syncSwapSideEffects } from 'src/stores/view/subscriptions/effects/document-sync/sync-swap-side-effects';
+import type { StructuralMutation } from 'src/mandala-document/runtime/reconcile-structural-mutation';
 
 type SaveOptions = {
     mode: 'content-only' | 'structural';
     changedSections?: string[];
+    structuralMutation?: StructuralMutation;
+    recoveryEdits?: Array<{ nodeId: string; content: string }>;
 } | null;
 
 const createSaveOptions = (
@@ -25,23 +28,24 @@ const createSaveOptions = (
     if (action.type === 'document/update-node-content') {
         const sectionId =
             documentState.sections.id_section[action.payload.nodeId];
-        if (sectionId) {
-            return {
-                mode: 'content-only',
-                changedSections: [sectionId],
-            };
-        }
+        return {
+            mode: 'content-only',
+            changedSections: sectionId ? [sectionId] : [],
+            recoveryEdits: [action.payload],
+        };
     }
     if (action.type === 'document/update-multiple-node-content') {
         const sections = action.payload.updates
             .map((update) => documentState.sections.id_section[update.nodeId])
             .filter((section): section is string => Boolean(section));
-        if (sections.length > 0) {
-            return {
-                mode: 'content-only',
-                changedSections: sections,
-            };
-        }
+        return {
+            mode: 'content-only',
+            changedSections:
+                sections.length === action.payload.updates.length
+                    ? sections
+                    : [],
+            recoveryEdits: action.payload.updates,
+        };
     }
     if (action.type === 'document/mandala/swap') {
         const mutation = documentState.meta.mandalaV2.lastMutation;
@@ -49,17 +53,38 @@ const createSaveOptions = (
             if (!mutation.structural && mutation.changedSections.length === 0) {
                 return null;
             }
-            return {
-                mode: mutation.structural ? 'structural' : 'content-only',
-                changedSections: mutation.changedSections,
-            };
+            return mutation.structural
+                ? {
+                      mode: 'structural',
+                      structuralMutation:
+                          documentState.meta.mandalaV2.lastStructuralMutation ??
+                          undefined,
+                  }
+                : {
+                      mode: 'content-only',
+                      changedSections: mutation.changedSections,
+                  };
         }
-        return { mode: 'structural' };
+        return {
+            mode: 'structural',
+            structuralMutation:
+                documentState.meta.mandalaV2.lastStructuralMutation ??
+                undefined,
+        };
     }
     if (action.type === 'document/format-headings') {
-        return { mode: 'structural' };
+        return {
+            mode: 'structural',
+            structuralMutation:
+                documentState.meta.mandalaV2.lastStructuralMutation ??
+                undefined,
+        };
     }
-    return { mode: 'structural' };
+    return {
+        mode: 'structural',
+        structuralMutation:
+            documentState.meta.mandalaV2.lastStructuralMutation ?? undefined,
+    };
 };
 
 export const onDocumentStateUpdate = (
@@ -79,6 +104,7 @@ export const onDocumentStateUpdate = (
     if (type === 'document/file/load-from-disk') {
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
+        view.preserveActiveEditorBeforeReload?.();
         view.inlineEditor.unloadNode(undefined, true);
         loadPinnedNodesToDocument(view);
     }

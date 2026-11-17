@@ -78,6 +78,7 @@ type MockView = {
     inlineEditor: {
         unloadNode: ReturnType<typeof vi.fn>;
     };
+    preserveActiveEditorBeforeReload: ReturnType<typeof vi.fn>;
     saveDocument: ReturnType<typeof vi.fn>;
     plugin: {
         statusBar: {
@@ -131,6 +132,7 @@ const createView = () => {
         inlineEditor: {
             unloadNode: vi.fn(),
         },
+        preserveActiveEditorBeforeReload: vi.fn(),
         saveDocument: vi.fn(() => Promise.resolve()),
         plugin: {
             statusBar: {
@@ -163,13 +165,22 @@ const createPersistenceHarness = (
         view.documentStore.getValue.mockImplementation(() =>
             documentStore.getValue(),
         );
-        const queue = new PersistSnapshotQueue({ delayMs: 2000, persist });
+        const queue = new PersistSnapshotQueue({
+            delayMs: 2000,
+            persistStructure: async () => {},
+            persistSections: async (path, edits) => {
+                for (const edit of edits)
+                    await persist(path, edit.after, edit.before);
+            },
+        });
         let previous =
             documentStore.getValue().document.content['node-1'].content;
         view.saveDocument.mockImplementation(() => {
             const next =
                 documentStore.getValue().document.content['node-1'].content;
-            queue.queue('note.md', next, previous);
+            queue.queueSections('note.md', [
+                { sectionId: '1', before: previous, after: next },
+            ]);
             previous = next;
             return Promise.resolve();
         });
@@ -281,6 +292,7 @@ describe('on-document-state-update', () => {
         expect(view.saveDocument).toHaveBeenCalledWith({
             mode: 'content-only',
             changedSections: ['1'],
+            recoveryEdits: [{ nodeId: 'node-1', content: 'embedded edit' }],
         });
         expect(mocks.focusContainer).not.toHaveBeenCalled();
     });
@@ -392,6 +404,12 @@ describe('on-document-state-update', () => {
         expect(view.inlineEditor.unloadNode).toHaveBeenCalledWith(
             undefined,
             true,
+        );
+        expect(view.preserveActiveEditorBeforeReload).toHaveBeenCalledOnce();
+        expect(
+            view.preserveActiveEditorBeforeReload.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+            view.inlineEditor.unloadNode.mock.invocationCallOrder[0],
         );
         expect(mocks.loadPinnedNodesToDocument).toHaveBeenCalledTimes(1);
     });

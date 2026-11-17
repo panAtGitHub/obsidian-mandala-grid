@@ -58,15 +58,19 @@ it('refreshes the supplied file even if another tab is active, without persistin
     const other = new TFile();
     const markdown =
         '---\nmandala: true\nmandala_day_plan:\n  enabled: true\n  year: 2026\n  date_heading:\n    format: zh-full\n---\n<!--section: 1-->\n## 2026-01-01 四\nKeep body\n';
-    const read = vi.fn().mockResolvedValue(markdown);
-    const modify = vi.fn();
+    let saved = '';
+    const process = vi.fn(
+        async (_file: TFile, update: (current: string) => string) => {
+            saved = update(markdown);
+        },
+    );
     const processFrontMatter = vi.fn();
     const getActiveFile = vi.fn(() => other);
     const plugin = {
         settings: { getValue: DEFAULT_SETTINGS },
         app: {
             workspace: { getActiveFile },
-            vault: { read, modify },
+            vault: { process },
             fileManager: { processFrontMatter },
         },
     } as unknown as MandalaGrid;
@@ -75,10 +79,7 @@ it('refreshes the supplied file even if another tab is active, without persistin
         notify: false,
     });
     expect(getActiveFile).not.toHaveBeenCalled();
-    expect(read).toHaveBeenCalledWith(target);
-    expect(modify).toHaveBeenCalledWith(
-        target,
-        expect.stringContaining('## 2026-01-01 周四\nKeep body'),
-    );
+    expect(process).toHaveBeenCalledWith(target, expect.any(Function));
+    expect(saved).toContain('## 2026-01-01 周四\nKeep body');
     expect(processFrontMatter).not.toHaveBeenCalled();
 });
