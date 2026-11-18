@@ -83,7 +83,10 @@ export const buildMandalaEmbedGrid = async ({
     model: MandalaEmbedGridModel;
     sourcePath: string;
     registerMarkdownChild: RegisterMarkdownChild;
-    onAfterCellMarkdownRender?: (element: HTMLElement) => void;
+    onAfterCellMarkdownRender?: (
+        element: HTMLElement,
+        markdown: string,
+    ) => void;
     isCanceled?: () => boolean;
 }) => {
     const gridEl = createElementInDocument('div');
@@ -136,7 +139,7 @@ export const buildMandalaEmbedGrid = async ({
                         });
 
                         if (isCanceled?.()) return;
-                        onAfterCellMarkdownRender?.(markdownEl);
+                        onAfterCellMarkdownRender?.(markdownEl, cell.markdown);
                     })(),
                 );
             }

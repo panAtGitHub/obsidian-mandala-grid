@@ -1,5 +1,14 @@
 import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
-import { MarkdownRenderChild, MarkdownView, type TFile } from 'obsidian';
+import {
+    MarkdownRenderChild,
+    MarkdownView,
+    Notice,
+    type TFile,
+} from 'obsidian';
+import {
+    getTaskIdentities,
+    toggleEmbeddedTask,
+} from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/toggle-embedded-task';
 import type MandalaGrid from 'src/main';
 import { logger } from 'src/shared/helpers/logger';
 import { isSafeExternalUrl } from 'src/view/helpers/link-utils';
@@ -25,9 +34,6 @@ import {
 } from 'src/obsidian/markdown-post-processors/mandala-embed/helpers/resolve-mandala-embed-model';
 
 const MANDALA_EMBED_MANAGED_ATTR = 'data-mandala-managed';
-const SECTION_COMMENT_BLOCK_RE = /<!--\s*section:\s*(\d+(?:\.\d+)*)\s*-->/gimu;
-const TASK_LINE_RE = /^([ \t]*[-*+]\s*\[)([ xX])(\].*)$/gmu;
-
 type ControllerState =
     | { mode: 'native' }
     | { mode: 'debug'; lines: string[] }
@@ -36,79 +42,6 @@ type ControllerState =
 type MarkdownPreviewScrollSnapshot = {
     view: MarkdownView;
     scroll: ReturnType<MarkdownView['previewMode']['getScroll']>;
-};
-
-const findSectionRange = (markdown: string, section: string) => {
-    const markers = Array.from(markdown.matchAll(SECTION_COMMENT_BLOCK_RE));
-    for (let index = 0; index < markers.length; index += 1) {
-        const marker = markers[index];
-        if (marker[1]?.trim() !== section) continue;
-
-        const start = (marker.index ?? 0) + marker[0].length;
-        const end = markers[index + 1]?.index ?? markdown.length;
-        return { start, end };
-    }
-    return null;
-};
-
-const toggleTaskInSection = (
-    markdown: string,
-    section: string,
-    taskIndex: number,
-    checked: boolean,
-) => {
-    const range = findSectionRange(markdown, section);
-    if (!range) return null;
-
-    const sectionContent = markdown.slice(range.start, range.end);
-    let currentTaskIndex = -1;
-    for (const match of sectionContent.matchAll(TASK_LINE_RE)) {
-        currentTaskIndex += 1;
-        if (currentTaskIndex !== taskIndex) continue;
-
-        const marker = match[1];
-        if (!marker) return null;
-
-        const taskStateIndex = range.start + (match.index ?? 0) + marker.length;
-        const nextTaskState = checked ? 'x' : ' ';
-
-        if (taskStateIndex < 0 || taskStateIndex >= markdown.length)
-            return null;
-        if (markdown[taskStateIndex] === nextTaskState) return markdown;
-
-        return `${markdown.slice(0, taskStateIndex)}${nextTaskState}${markdown.slice(taskStateIndex + 1)}`;
-    }
-
-    return null;
-};
-
-const persistCheckboxToggle = async (
-    plugin: MandalaGrid,
-    sourceFile: TFile,
-    section: string,
-    taskIndex: number,
-    checked: boolean,
-) => {
-    try {
-        await plugin.app.vault.process(sourceFile, (markdown) => {
-            const updated = toggleTaskInSection(
-                markdown,
-                section,
-                taskIndex,
-                checked,
-            );
-            return updated ?? markdown;
-        });
-    } catch (error: unknown) {
-        logger.error('[mandala-embed]', {
-            phase: 'toggle-checkbox-failed',
-            file: sourceFile.path,
-            section,
-            taskIndex,
-            checked,
-            error: error instanceof Error ? error.message : String(error),
-        });
-    }
 };
 
 const enableRenderedCheckboxes = (container: HTMLElement) => {
@@ -194,7 +127,7 @@ export class MandalaEmbedController {
         return this.embed.isConnected;
     }
 
-    async refreshManagedModel() {
+    async refreshManagedModel(force = false) {
         if (this.state.mode !== 'managed') return;
 
         const payload = this.state.payload;
@@ -207,7 +140,12 @@ export class MandalaEmbedController {
             payload.target,
             orientation,
         );
-        if (!this.embed.isConnected) return;
+        if (
+            !this.embed.isConnected ||
+            this.state.mode !== 'managed' ||
+            this.state.payload !== payload
+        )
+            return;
 
         if (!model) {
             this.clear();
@@ -229,7 +167,7 @@ export class MandalaEmbedController {
             },
         };
 
-        if (nextRenderKey === payload.renderKey) {
+        if (!force && nextRenderKey === payload.renderKey) {
             this.pendingPreviewScrollSnapshots = null;
             return;
         }
@@ -298,6 +236,11 @@ export class MandalaEmbedController {
         window.open(href, '_blank', 'noopener,noreferrer');
     }
 
+    private readonly renderedTasks = new WeakMap<
+        HTMLElement,
+        { file: TFile; tasks: string[] }
+    >();
+
     private handleBodyChange(event: Event) {
         if (this.state.mode !== 'managed') return;
 
@@ -315,25 +258,59 @@ export class MandalaEmbedController {
         if (!(cellEl instanceof HTMLElement)) return;
 
         const section = cellEl.dataset.mandalaSection;
-        if (!section) return;
+        const rendered = this.renderedTasks.get(markdownEl);
+        if (
+            !section ||
+            !rendered ||
+            rendered.file !== this.state.payload.target.file
+        )
+            return;
 
         const allItems = Array.from(
             markdownEl.querySelectorAll('.task-list-item'),
         );
         const taskIndex = allItems.indexOf(listItem);
-        if (taskIndex < 0) return;
+        if (taskIndex < 0 || allItems.length !== rendered.tasks.length) return;
 
         listItem.setAttribute('data-task', target.checked ? 'x' : ' ');
         listItem.toggleClass('is-checked', target.checked);
 
-        const sourceFile = this.state.payload.target.file;
-        void persistCheckboxToggle(
-            this.plugin,
-            sourceFile,
+        void this.saveTaskToggle(
+            rendered.file,
             section,
             taskIndex,
+            rendered.tasks,
             target.checked,
-        );
+        ).catch((error: unknown) => logger.error(error));
+    }
+
+    private async saveTaskToggle(
+        file: TFile,
+        section: string,
+        taskIndex: number,
+        tasks: string[],
+        checked: boolean,
+    ) {
+        let stale = false;
+        try {
+            await this.plugin.app.vault.process(file, (markdown) => {
+                const updated = toggleEmbeddedTask(
+                    markdown,
+                    section,
+                    taskIndex,
+                    tasks,
+                    checked,
+                );
+                stale = updated === null;
+                return updated ?? markdown;
+            });
+            if (!stale) return;
+            new Notice('任务列表已变更，预览已刷新，请重新勾选。');
+        } catch (error) {
+            logger.error('[mandala-embed] task toggle failed', error);
+            new Notice('任务勾选保存失败。');
+        }
+        await this.refreshManagedModel(true);
     }
 
     private nextGeneration() {
@@ -428,7 +405,19 @@ export class MandalaEmbedController {
             model: payload.model,
             sourcePath: payload.target.file.path,
             registerMarkdownChild: (child) => renderScope.addChild(child),
-            onAfterCellMarkdownRender: enableRenderedCheckboxes,
+            onAfterCellMarkdownRender: (element, markdown) => {
+                const tasks = getTaskIdentities(markdown);
+                if (
+                    element.querySelectorAll('.task-list-item').length !==
+                    tasks.length
+                )
+                    return;
+                this.renderedTasks.set(element, {
+                    file: payload.target.file,
+                    tasks,
+                });
+                enableRenderedCheckboxes(element);
+            },
             isCanceled: () =>
                 generation !== this.generation ||
                 !this.embed.isConnected ||

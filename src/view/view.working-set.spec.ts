@@ -19,6 +19,7 @@ import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import type { StructuralMutation } from 'src/mandala-document/runtime/reconcile-structural-mutation';
 import type { SectionContentEdit } from 'src/mandala-document/runtime/patch-section-contents';
 import { get } from 'svelte/store';
+import { DocumentPersistence } from 'src/view/helpers/document-persistence';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
 import { Store } from 'src/shared/store/store';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
@@ -194,9 +195,9 @@ describe('view working-set transitions', () => {
             settings: { getValue: DEFAULT_SETTINGS },
         } as never);
         const internal = view as unknown as {
-            persistSnapshotQueue: PersistSnapshotQueue;
+            persistence: DocumentPersistence;
         };
-        internal.persistSnapshotQueue.queueSections('note.md', [
+        internal.persistence.queue.queueSections('note.md', [
             { sectionId: '1', before: 'original', after: 'unsaved draft' },
         ]);
         await expect(view.flushPendingSaves()).rejects.toThrow('write failed');
@@ -213,20 +214,23 @@ describe('view working-set transitions', () => {
         const file = new TFile();
         const first = '<!--section: 1-->first\n<!--section: 2-->two';
         let disk = first;
-        const view = Object.assign(Object.create(MandalaView.prototype), {
-            app: {
-                vault: {
-                    getAbstractFileByPath: () => file,
-                    process: async (
-                        _file: TFile,
-                        update: (current: string) => string,
-                    ) => {
-                        disk = update(disk);
+        const view = Object.assign(
+            Object.create(DocumentPersistence.prototype),
+            {
+                app: {
+                    vault: {
+                        getAbstractFileByPath: () => file,
+                        process: async (
+                            _file: TFile,
+                            update: (current: string) => string,
+                        ) => {
+                            disk = update(disk);
+                        },
                     },
                 },
+                persistSnapshotErrorKeys: new Map(),
             },
-            persistSnapshotErrorKeys: new Map(),
-        }) as {
+        ) as {
             persistSectionEdits: (
                 path: string,
                 edits: SectionContentEdit[],
@@ -250,20 +254,23 @@ describe('view working-set transitions', () => {
         const file = new TFile();
         const original = '<!--section: 1-->original';
         let disk = original;
-        const view = Object.assign(Object.create(MandalaView.prototype), {
-            app: {
-                vault: {
-                    getAbstractFileByPath: () => file,
-                    process: async (
-                        _file: TFile,
-                        update: (current: string) => string,
-                    ) => {
-                        disk = update(disk);
+        const view = Object.assign(
+            Object.create(DocumentPersistence.prototype),
+            {
+                app: {
+                    vault: {
+                        getAbstractFileByPath: () => file,
+                        process: async (
+                            _file: TFile,
+                            update: (current: string) => string,
+                        ) => {
+                            disk = update(disk);
+                        },
                     },
                 },
+                persistSnapshotErrorKeys: new Map(),
             },
-            persistSnapshotErrorKeys: new Map(),
-        }) as {
+        ) as {
             persistSectionEdits: (
                 path: string,
                 edits: SectionContentEdit[],
@@ -286,7 +293,7 @@ describe('view working-set transitions', () => {
         const original = '<!--section: 1-->one\n<!--section: 2-->two';
         let disk = original;
         const makeView = () =>
-            Object.assign(Object.create(MandalaView.prototype), {
+            Object.assign(Object.create(DocumentPersistence.prototype), {
                 app: {
                     vault: {
                         getAbstractFileByPath: () => file,
@@ -331,7 +338,7 @@ describe('view working-set transitions', () => {
         expect(disk).toContain('second');
     });
 
-    it('saves edits from two views sharing a real document store and preserves conflicts', async () => {
+    it('shares saves, preserves conflicts, and releases the writer when its pane closes', async () => {
         const original =
             '<!--section: 1-->one\n<!--section: 2-->two\n<!--section: 3-->three';
         let disk = original;
@@ -362,6 +369,8 @@ describe('view working-set transitions', () => {
         const makeView = () => {
             const view = new MandalaView(new WorkspaceLeaf(), {
                 settings: { getValue: DEFAULT_SETTINGS },
+                app: { workspace: { getLeavesOfType: () => [] } },
+                store: { dispatch: vi.fn() },
             } as never);
             Object.assign(view, {
                 file,
@@ -370,34 +379,45 @@ describe('view working-set transitions', () => {
                 sourceRuntime: new MandalaSourceRuntime(original),
                 fullHydrated: true,
                 container: {},
+                contentEl: { empty: vi.fn() },
+                debouncedLoadDocumentToStore: { cancel: vi.fn() },
+                persistMandalaUiState: vi.fn(),
                 workingSetCooldown: { schedule: vi.fn(), cancel: vi.fn() },
                 recordPerfEvent: vi.fn(),
             });
-            store.subscribe((document, action?: DocumentStoreAction) => {
-                if (action?.type === 'document/mandala/ensure-children') {
-                    view.saveDocument({
-                        mode: 'structural',
-                        structuralMutation:
-                            document.meta.mandalaV2.lastStructuralMutation ??
-                            undefined,
-                    });
-                } else if (action?.type === 'document/update-node-content') {
-                    const section =
-                        document.sections.id_section[action.payload.nodeId];
-                    view.saveDocument({
-                        mode: 'content-only',
-                        changedSections: [section],
-                        recoveryEdits: [action.payload],
-                    });
-                }
-            });
-            (
-                view as unknown as { joinDocumentViews(): void }
-            ).joinDocumentViews();
+            const unsubscribe = store.subscribe(
+                (document, action?: DocumentStoreAction) => {
+                    if (action?.type === 'document/mandala/ensure-children') {
+                        view.saveDocument({
+                            mode: 'structural',
+                            structuralMutation:
+                                document.meta.mandalaV2
+                                    .lastStructuralMutation ?? undefined,
+                        });
+                    } else if (
+                        action?.type === 'document/update-node-content'
+                    ) {
+                        const section =
+                            document.sections.id_section[action.payload.nodeId];
+                        view.saveDocument({
+                            mode: 'content-only',
+                            changedSections: [section],
+                            recoveryEdits: [action.payload],
+                        });
+                    }
+                },
+            );
+            const internals = view as unknown as {
+                joinDocumentViews(): void;
+                onDestroyCallbacks: Set<() => void>;
+            };
+            internals.joinDocumentViews();
+            internals.onDestroyCallbacks.add(unsubscribe);
             return view;
         };
         const first = makeView();
         const second = makeView();
+        const secondPerf = vi.spyOn(second, 'recordPerfEvent');
         store.dispatch({
             type: 'document/mandala/ensure-children',
             payload: { parentNodeId: state.sections.section_id['1'] },
@@ -415,6 +435,10 @@ describe('view working-set transitions', () => {
         expect(disk).toContain('Generated title');
         expect(process).toHaveBeenCalledTimes(2);
         expect(write).not.toHaveBeenCalled();
+        expect(secondPerf).not.toHaveBeenCalledWith(
+            'view.save-document',
+            expect.anything(),
+        );
 
         first.editSession.startSession(
             state.sections.section_id['1'],
@@ -457,6 +481,30 @@ describe('view working-set transitions', () => {
                 content: 'second on three',
             }),
         );
+
+        process.mockRejectedValueOnce(new Error('temporary disk error'));
+        store.dispatch({
+            type: 'document/update-node-content',
+            payload: {
+                nodeId: state.sections.section_id['1'],
+                content: 'save queued before close',
+            },
+            context: { isInSidebar: false },
+        });
+        await first.onUnloadFile();
+        expect(first.documentStore).not.toBe(store);
+        expect(second.documentStore).toBe(store);
+        store.dispatch({
+            type: 'document/update-node-content',
+            payload: {
+                nodeId: state.sections.section_id['2'],
+                content: 'save from remaining pane',
+            },
+            context: { isInSidebar: false },
+        });
+        await second.flushPendingSaves();
+        expect(disk).toContain('save queued before close');
+        expect(disk).toContain('save from remaining pane');
     });
 
     it('applies an explicit structural addition to the latest file', async () => {
@@ -471,20 +519,23 @@ describe('view working-set transitions', () => {
             changedSections: [],
             beforeContentBySection: { '1': 'one', '2': 'two' },
         };
-        const view = Object.assign(Object.create(MandalaView.prototype), {
-            app: {
-                vault: {
-                    getAbstractFileByPath: () => file,
-                    process: async (
-                        _file: TFile,
-                        update: (current: string) => string,
-                    ) => {
-                        disk = update(disk);
+        const view = Object.assign(
+            Object.create(DocumentPersistence.prototype),
+            {
+                app: {
+                    vault: {
+                        getAbstractFileByPath: () => file,
+                        process: async (
+                            _file: TFile,
+                            update: (current: string) => string,
+                        ) => {
+                            disk = update(disk);
+                        },
                     },
                 },
+                persistSnapshotErrorKeys: new Map(),
             },
-            persistSnapshotErrorKeys: new Map(),
-        }) as {
+        ) as {
             persistSnapshot: (
                 path: string,
                 data: string,

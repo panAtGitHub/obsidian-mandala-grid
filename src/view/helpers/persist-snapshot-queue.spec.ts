@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
-import type { SectionContentEdit } from 'src/mandala-document/runtime/patch-section-contents';
+import {
+    SectionSaveConflict,
+    type SectionContentEdit,
+} from 'src/mandala-document/runtime/patch-section-contents';
 
 const edit = (before: string, after: string, sectionId = '1') => ({
     sectionId,
@@ -42,15 +45,12 @@ describe('PersistSnapshotQueue', () => {
             persistSections,
         });
         queue.queueSections('a.md', [edit('old', 'first')]);
-        queue.queueSections('a.md', [
-            edit('first', 'final'),
-            edit('two', 'changed', '2'),
-        ]);
+        queue.queueSections('a.md', [edit('first', 'final')]);
+        queue.queueSections('a.md', [edit('two', 'changed', '2')]);
         await queue.flush('a.md');
-        expect(persistSections).toHaveBeenCalledOnce();
-        expect(persistSections).toHaveBeenCalledWith('a.md', [
-            edit('old', 'final'),
-            edit('two', 'changed', '2'),
+        expect(persistSections.mock.calls).toEqual([
+            ['a.md', [edit('old', 'final')]],
+            ['a.md', [edit('two', 'changed', '2')]],
         ]);
     });
 
@@ -105,7 +105,9 @@ describe('PersistSnapshotQueue', () => {
     });
 
     it('retains conflicting queued edits and reports each after failure', async () => {
-        const onError = vi.fn((_args: { edits?: SectionContentEdit[] }) => {});
+        const onError = vi.fn(
+            (_args: { edits?: SectionContentEdit[] }) => true,
+        );
         const queue = new PersistSnapshotQueue({
             delayMs: 2000,
             persistStructure: async () => {},
@@ -149,5 +151,34 @@ describe('PersistSnapshotQueue', () => {
         failA = false;
         await queue.flush('a.md');
         expect(persisted).toEqual(['b.md', 'a.md']);
+    });
+
+    it('requires a durable conflict backup and then saves independent changes', async () => {
+        const saved: string[] = [];
+        const onError = vi
+            .fn<[{ edits?: SectionContentEdit[] }], boolean>()
+            .mockReturnValueOnce(false)
+            .mockReturnValue(true);
+        const queue = new PersistSnapshotQueue({
+            delayMs: 2000,
+            persistStructure: async () => {},
+            persistSections: async (_path, edits) => {
+                if (edits[0].after === 'first')
+                    throw new SectionSaveConflict('conflict');
+                saved.push(edits[0].after);
+            },
+            onError,
+        });
+        queue.queueSections('a.md', [edit('old', 'first')]);
+        queue.queueSections('a.md', [edit('first', 'dependent', '1.1')]);
+        queue.queueSections('a.md', [edit('two', 'independent', '2')]);
+        await expect(queue.flush('a.md')).rejects.toThrow('conflict');
+        expect(saved).toEqual([]);
+        await expect(queue.flush('a.md')).rejects.toThrow('conflict');
+        expect(saved).toEqual(['independent']);
+        expect(
+            onError.mock.calls.map(([args]) => args.edits?.[0].after),
+        ).toEqual(['first', 'first', 'dependent']);
+        await expect(queue.flush('a.md')).resolves.toBeUndefined();
     });
 });

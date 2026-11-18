@@ -1,5 +1,6 @@
 import type { DocumentState } from 'src/mandala-document/state/document-state-type';
 import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-document-runtime';
+import { SectionSaveConflict } from 'src/mandala-document/runtime/patch-section-contents';
 
 export type StructuralMutation = NonNullable<
     DocumentState['meta']['mandalaV2']['lastStructuralMutation']
@@ -25,12 +26,16 @@ export const reconcileStructuralMutation = (
                 (id) => id.startsWith(`${section}.`) && !removed.has(id),
             )
         ) {
-            throw new Error(`section ${section} 包含未授权删除的子 section`);
+            throw new SectionSaveConflict(
+                `section ${section} 包含未授权删除的子 section`,
+            );
         }
         const current = runtime.getContent(section);
         if (current === null) continue;
         if (current !== mutation.beforeContentBySection[section]) {
-            throw new Error(`section ${section} 已被修改，无法安全删除`);
+            throw new SectionSaveConflict(
+                `section ${section} 已被修改，无法安全删除`,
+            );
         }
         desired.delete(section);
     }
@@ -45,10 +50,12 @@ export const reconcileStructuralMutation = (
         const current = runtime.getContent(section);
         const before = mutation.beforeContentBySection[section];
         if (current !== null && current !== before && current !== next) {
-            throw new Error(`section ${section} 已被修改，无法安全更新`);
+            throw new SectionSaveConflict(
+                `section ${section} 已被修改，无法安全更新`,
+            );
         }
         if (current === null && before !== undefined) {
-            throw new Error(`section ${section} 已不存在`);
+            throw new SectionSaveConflict(`section ${section} 已不存在`);
         }
         desired.set(section, next);
     }

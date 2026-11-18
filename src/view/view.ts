@@ -63,7 +63,7 @@ import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { createWorkingSetCooldown } from 'src/view/helpers/working-set-cooldown';
-import { PersistSnapshotQueue } from 'src/view/helpers/persist-snapshot-queue';
+import { DocumentPersistence } from 'src/view/helpers/document-persistence';
 import {
     ensureCurrentFileCustomLayoutAvailable,
     resolveInitialMandalaDetailSidebarVisible,
@@ -114,10 +114,7 @@ import {
     StaleSourceRevisionError,
 } from 'src/mandala-document/runtime/source-document-runtime';
 import { buildThreeByThreeSectionIds } from 'src/mandala-document/runtime/working-set';
-import {
-    patchSectionContents,
-    type SectionContentEdit,
-} from 'src/mandala-document/runtime/patch-section-contents';
+import { type SectionContentEdit } from 'src/mandala-document/runtime/patch-section-contents';
 import {
     reconcileStructuralMutation,
     type StructuralMutation,
@@ -140,6 +137,10 @@ export const MANDALA_VIEW_TYPE = 'mandala-grid';
 export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
 const projectedDocumentStores = new WeakSet<DocumentStore>();
 const viewsByDocumentStore = new WeakMap<DocumentStore, Set<MandalaView>>();
+const persistenceByDocumentStore = new WeakMap<
+    DocumentStore,
+    DocumentPersistence
+>();
 export type ViewStore = Store<ViewState, ViewStoreAction, MandalaGridDocument>;
 export type SaveDocumentMode = 'content-only' | 'structural';
 export type SaveDocumentOptions = {
@@ -183,10 +184,7 @@ export class MandalaView extends TextFileView {
         payload: Record<string, unknown>;
         startedAt: number;
     } | null = null;
-    private readonly persistSnapshotQueue: PersistSnapshotQueue;
-    private readonly persistSnapshotErrorKeys = new Map<string, string>();
-    private readonly pendingRecoveryWrites = new Set<Promise<void>>();
-    private readonly failedRecoveryCopies = new Map<string, string>();
+    private persistence: DocumentPersistence;
     private readonly mandalaUiStateByPath = new Map<
         string,
         MandalaUiStateSnapshot
@@ -284,7 +282,7 @@ export class MandalaView extends TextFileView {
                     (current !== payload.previousContent &&
                         current !== payload.content)
                 ) {
-                    void this.writeRecoveryCopy({
+                    void this.persistence.writeRecoveryCopy({
                         file: this.activeFilePath ?? this.file?.path ?? null,
                         source: this.data,
                         nodeId: payload.nodeId,
@@ -318,21 +316,7 @@ export class MandalaView extends TextFileView {
         );
         this.documentSearch = new DocumentSearch(this);
         this.alignBranch = new AlignBranch(this);
-        this.persistSnapshotQueue = new PersistSnapshotQueue({
-            delayMs: 2000,
-            persistStructure: (path, data, mutation) =>
-                this.persistSnapshot(path, data, mutation),
-            persistSections: (path, edits) =>
-                this.persistSectionEdits(path, edits),
-            onError: async ({ path, data, edits, error }) => {
-                await this.writeRecoveryCopy(
-                    edits
-                        ? { file: path, edits }
-                        : { file: path, source: data },
-                );
-                this.handlePersistSnapshotError(path, error);
-            },
-        });
+        this.persistence = new DocumentPersistence(this.app);
     }
 
     get isActive() {
@@ -1045,16 +1029,15 @@ export class MandalaView extends TextFileView {
             this.editSession.endSession('unload');
         }
         this.workingSetCooldown.cancel();
-        const flushed =
-            await this.flushPendingPersistSnapshotsForTransition('close-view');
-        if (!flushed) {
-            return;
-        }
+        const flushing =
+            this.flushPendingPersistSnapshotsForTransition('close-view');
+        for (const unsubscribe of this.onDestroyCallbacks) unsubscribe();
+        this.onDestroyCallbacks.clear();
+        this.leaveDocumentViews();
         if (this.component) {
             await unmount(this.component);
             this.component = undefined;
         }
-        this.leaveDocumentViews();
         if (this.file?.path) {
             this.persistMandalaUiState(this.file.path);
         }
@@ -1074,11 +1057,13 @@ export class MandalaView extends TextFileView {
             documentReducer,
             this.onViewStoreError,
         );
-        if (this.inlineEditor) await this.inlineEditor.unloadFile();
-        for (const s of this.onDestroyCallbacks) {
-            s();
+        if (this.inlineEditor) {
+            this.inlineEditor.unloadNode(undefined, true);
+            await this.inlineEditor.unloadFile();
         }
+        this.persistence = new DocumentPersistence(this.app);
         refreshActiveViewOfDocument(this);
+        await flushing;
     }
 
     clear(): void {
@@ -1173,6 +1158,7 @@ export class MandalaView extends TextFileView {
 
     saveDocument = (options: SaveDocumentOptions = {}) => {
         invariant(this.file);
+        if (this.getSaveOwner() !== this) return;
         const mode = options.mode ?? 'structural';
         if (
             mode === 'structural' &&
@@ -1358,8 +1344,16 @@ export class MandalaView extends TextFileView {
             }
             this.lastLoadedBody = parsed.body;
             this.lastLoadedFrontmatter = parsed.frontmatter;
+            for (const peer of viewsByDocumentStore.get(this.documentStore) ??
+                []) {
+                if (peer === this) continue;
+                peer.data = data;
+                peer.sourceRuntime = this.sourceRuntime;
+                peer.lastLoadedBody = parsed.body;
+                peer.lastLoadedFrontmatter = parsed.frontmatter;
+            }
             const persistPath = this.activeFilePath ?? this.file?.path ?? null;
-            if (persistPath && this.getSaveOwner() === this) {
+            if (persistPath) {
                 if (mode === 'content-only') {
                     this.queueSectionEdits(persistPath, sectionEdits);
                 } else {
@@ -1451,6 +1445,13 @@ export class MandalaView extends TextFileView {
             viewsByDocumentStore.get(this.documentStore) ??
             new Set<MandalaView>();
         const [existing] = peers;
+        const persistence = persistenceByDocumentStore.get(this.documentStore);
+        if (persistence) this.persistence = persistence;
+        else
+            persistenceByDocumentStore.set(
+                this.documentStore,
+                this.persistence,
+            );
         peers.add(this);
         viewsByDocumentStore.set(this.documentStore, peers);
         if (!existing) return;
@@ -1861,33 +1862,11 @@ export class MandalaView extends TextFileView {
         data: string,
         mutation: StructuralMutation,
     ) {
-        this.persistSnapshotQueue.queueStructure(path, data, mutation);
+        this.persistence.queue.queueStructure(path, data, mutation);
     }
 
     private queueSectionEdits(path: string, edits: SectionContentEdit[]) {
-        this.persistSnapshotQueue.queueSections(path, edits);
-    }
-
-    private async flushAllPendingPersistSnapshots() {
-        let persistError: unknown;
-        let persistFailed = false;
-        try {
-            await this.persistSnapshotQueue.flushAll();
-        } catch (error) {
-            persistFailed = true;
-            persistError = error;
-        }
-        await Promise.all(this.pendingRecoveryWrites);
-        for (const [path, data] of this.failedRecoveryCopies) {
-            try {
-                await this.app.vault.adapter.write(path, data);
-                this.failedRecoveryCopies.delete(path);
-                new Notice(`未保存的编辑已备份到 ${path}`, 0);
-            } catch {
-                throw new Error('无法备份未保存的编辑');
-            }
-        }
-        if (persistFailed) throw persistError;
+        this.persistence.queue.queueSections(path, edits);
     }
 
     async flushPendingSaves() {
@@ -1897,9 +1876,7 @@ export class MandalaView extends TextFileView {
                 throw new Error('当前 section 存在冲突，无法保存');
             }
         }
-        const owner = this.getSaveOwner();
-        if (owner !== this) await owner.flushAllPendingPersistSnapshots();
-        await this.flushAllPendingPersistSnapshots();
+        await this.persistence.flush();
     }
 
     private preserveBlockedState(
@@ -1914,7 +1891,7 @@ export class MandalaView extends TextFileView {
                 state.document.content[node]?.content ?? '',
             ]),
         );
-        void this.writeRecoveryCopy({
+        void this.persistence.writeRecoveryCopy({
             file: path,
             source: this.data,
             sections,
@@ -1934,7 +1911,7 @@ export class MandalaView extends TextFileView {
         if (content === session.lastCommittedContent) return;
         const path = this.activeFilePath ?? this.file?.path;
         if (!path) return;
-        void this.writeRecoveryCopy({
+        void this.persistence.writeRecoveryCopy({
             file: path,
             source: this.data,
             nodeId: session.activeNodeId,
@@ -1945,24 +1922,6 @@ export class MandalaView extends TextFileView {
         });
     }
 
-    private writeRecoveryCopy(snapshot: Record<string, unknown>) {
-        const data = JSON.stringify(snapshot, null, 2);
-        const recoveryPath = `mandala-unsaved-${id.view()}.json`;
-        const write = Promise.resolve()
-            .then(() => this.app.vault.adapter.write(recoveryPath, data))
-            .then(() => {
-                new Notice(`未保存的编辑已备份到 ${recoveryPath}`, 0);
-            })
-            .catch((error: unknown) => {
-                this.failedRecoveryCopies.set(recoveryPath, data);
-                logger.error('[mandala-view] recovery copy failed', error);
-                new Notice('无法备份未保存的编辑，请先复制当前内容。', 0);
-            });
-        this.pendingRecoveryWrites.add(write);
-        void write.finally(() => this.pendingRecoveryWrites.delete(write));
-        return write;
-    }
-
     private async flushPendingPersistSnapshotsForTransition(
         reason:
             | 'switch-file'
@@ -1971,7 +1930,7 @@ export class MandalaView extends TextFileView {
             | 'close-view',
     ) {
         try {
-            await this.flushAllPendingPersistSnapshots();
+            await this.persistence.flush();
             if (this.lastPersistTransitionNoticeKey?.startsWith(`${reason}:`)) {
                 this.lastPersistTransitionNoticeKey = null;
             }
@@ -1980,75 +1939,6 @@ export class MandalaView extends TextFileView {
             this.handlePersistTransitionError(reason, error);
             return false;
         }
-    }
-
-    private async persistSnapshot(
-        path: string,
-        data: string,
-        structuralMutation: StructuralMutation,
-    ) {
-        const abstractFile = this.app.vault.getAbstractFileByPath(path);
-        if (!(abstractFile instanceof TFile)) throw new Error('文件不存在');
-        await this.app.vault.process(abstractFile, (current) => {
-            if (structuralMutation) {
-                const intended = new MandalaSourceRuntime(
-                    extractFrontmatter(data).body,
-                );
-                if (!intended.index.diagnostics.valid)
-                    throw new Error('无法安全识别待保存的文档结构');
-                const state = defaultDocumentState();
-                for (const section of [
-                    ...structuralMutation.addedSections,
-                    ...structuralMutation.changedSections,
-                ]) {
-                    const content = intended.getContent(section);
-                    if (content === null)
-                        throw new Error(`未找到待保存的 section ${section}`);
-                    state.sections.section_id[section] = section;
-                    state.document.content[section] = { content };
-                }
-                const latest = extractFrontmatter(current);
-                const runtime = new MandalaSourceRuntime(latest.body);
-                return (
-                    latest.frontmatter +
-                    reconcileStructuralMutation(
-                        runtime,
-                        state,
-                        structuralMutation,
-                    )
-                );
-            }
-            throw new Error('缺少明确的结构修改范围');
-        });
-        this.persistSnapshotErrorKeys.delete(path);
-    }
-
-    private async persistSectionEdits(
-        path: string,
-        edits: SectionContentEdit[],
-    ) {
-        const file = this.app.vault.getAbstractFileByPath(path);
-        if (!(file instanceof TFile)) throw new Error('文件不存在');
-        await this.app.vault.process(file, (markdown) =>
-            patchSectionContents(markdown, edits),
-        );
-        this.persistSnapshotErrorKeys.delete(path);
-    }
-
-    private handlePersistSnapshotError(path: string, error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        const errorKey = `${path}:${message}`;
-        if (this.persistSnapshotErrorKeys.get(path) !== errorKey) {
-            this.persistSnapshotErrorKeys.set(path, errorKey);
-            new Notice(
-                `保存失败：${path}。${message}。请先复制当前修改，暂不要关闭或重载视图。`,
-                0,
-            );
-        }
-        logger.error('[mandala-view] persist snapshot failed', {
-            file: path,
-            error: message,
-        });
     }
 
     private handlePersistTransitionError(

@@ -7,6 +7,8 @@ export type SectionContentEdit = {
     after: string;
 };
 
+export class SectionSaveConflict extends Error {}
+
 export const patchSectionContents = (
     markdown: string,
     edits: SectionContentEdit[],
@@ -22,10 +24,13 @@ export const patchSectionContents = (
         if (seen.has(edit.sectionId)) throw new Error('section 重复');
         seen.add(edit.sectionId);
         const current = runtime.getContent(edit.sectionId);
-        if (current === null) throw new Error('未找到对应 section');
+        if (current === null)
+            throw new SectionSaveConflict(`section ${edit.sectionId} 已不存在`);
         if (edit.before === edit.after) continue;
         if (current !== edit.before && current !== edit.after) {
-            throw new Error('section 已被其他视图修改，当前修改尚未保存');
+            throw new SectionSaveConflict(
+                `section ${edit.sectionId} 已被修改，无法安全更新`,
+            );
         }
         if (current !== edit.after) {
             patches.push({ sectionId: edit.sectionId, content: edit.after });
