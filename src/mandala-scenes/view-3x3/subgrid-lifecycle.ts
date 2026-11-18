@@ -16,7 +16,7 @@ import {
 import { createThreeByThreeSubgridPrunePlan } from 'src/mandala-scenes/view-3x3/subgrid-prune';
 import { lang } from 'src/lang/lang';
 import { ensureChildrenForSection } from 'src/mandala-interaction/helpers/ensure-node-for-section';
-import { resolveDraftExit } from 'src/view/edit-session/resolve-draft-exit';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import type { MandalaView } from 'src/view/view';
 
 export const resolveThreeByThreeParentTheme = (
@@ -55,12 +55,7 @@ export const resolveThreeByThreeExitFocusTheme = (
 
 export const enterThreeByThreeSubgrid = (view: MandalaView, nodeId: string) => {
     if (view.mandalaMode !== '3x3') return;
-    if (view.inlineEditor?.nodeId) {
-        void resolveDraftExit(view).then((ok) => {
-            if (ok) enterThreeByThreeSubgrid(view, nodeId);
-        });
-        return;
-    }
+    closeNodeEditor(view);
 
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return;
@@ -164,12 +159,7 @@ export const exitThreeByThreeSubgrid = (view: MandalaView) => {
     const theme = view.viewStore.getValue().ui.mandala.subgridTheme;
     if (!theme) return;
 
-    if (view.inlineEditor?.nodeId) {
-        void resolveDraftExit(view).then((ok) => {
-            if (ok) exitThreeByThreeSubgrid(view);
-        });
-        return;
-    }
+    closeNodeEditor(view);
     view.materializeSubgridForExit?.(theme);
 
     const nextTheme = resolveThreeByThreeParentTheme(theme) ?? '1';

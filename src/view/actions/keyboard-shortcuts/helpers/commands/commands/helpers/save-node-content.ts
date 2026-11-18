@@ -10,7 +10,6 @@ export const closeNodeEditor = (view: MandalaView, modKey = false) => {
             : 'view/editor/disable-main-editor',
         context: { modKey },
     });
-    view.refreshAfterEdit?.();
 };
 
 export const saveNodeContent = async (view: MandalaView, modKey = false) => {

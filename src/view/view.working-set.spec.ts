@@ -149,36 +149,6 @@ describe('view working-set transitions', () => {
         expect(dispatch).not.toHaveBeenCalled();
     });
 
-    it('backs up an active uncommitted editor before an external reload', async () => {
-        const write = vi.fn(async (_path: string, _content: string) => {});
-        Object.assign(TextFileView.prototype, {
-            app: { scope: {}, vault: { adapter: { write } } },
-        });
-        const view = new MandalaView(new WorkspaceLeaf(), {
-            settings: { getValue: DEFAULT_SETTINGS },
-        } as never);
-        Object.assign(view, {
-            file: { path: 'note.md' },
-            data: '<!--section: 1-->original',
-            sourceRuntime: new MandalaSourceRuntime(
-                '<!--section: 1-->original',
-            ),
-            inlineEditor: { getContent: () => 'unfinished' },
-        });
-        const node = (
-            view as unknown as { sourceRuntime: MandalaSourceRuntime }
-        ).sourceRuntime.getNodeId('1')!;
-        view.editSession.startSession(node, false, 'original');
-        await view.preserveActiveEditorBeforeReload();
-        await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
-        expect(JSON.parse(write.mock.calls[0][1])).toMatchObject({
-            file: 'note.md',
-            section: '1',
-            before: 'original',
-            content: 'unfinished',
-        });
-    });
-
     it('writes a recovery copy when persisting a pending snapshot fails', async () => {
         const file = new TFile();
         const write = vi.fn(async (_path: string, _content: string) => {});

@@ -163,6 +163,11 @@ describe('viewHotkeysAction', () => {
         vi.mocked(getUsedHotkeys).mockReturnValue(new Map());
         expect(handler(event)).toBe(false);
         expect(callback).toHaveBeenCalledOnce();
+        expect(view.viewStore.dispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: 'view/editor/disable-main-editor',
+            }),
+        );
         callback.mockClear();
         vi.mocked(getUsedHotkeys).mockReturnValue(
             new Map([['ARROWUPMod', 'Move line up']]),

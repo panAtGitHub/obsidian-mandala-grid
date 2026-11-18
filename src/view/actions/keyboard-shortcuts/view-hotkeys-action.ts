@@ -6,6 +6,7 @@ import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { isEditing } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/is-editing';
 import { KeymapEventHandler } from 'obsidian';
 import { shouldHandleViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/should-handle-view-hotkey';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { getUsedHotkeys } from 'src/obsidian/helpers/get-used-hotkeys';
 
 export const viewHotkeysAction = (
@@ -36,18 +37,25 @@ export const viewHotkeysAction = (
         const hotkey = eventToString(event);
         const command = viewHotkeys.current[hotkey];
         if (command) {
+            const editing = isEditing(view);
             const allow =
                 command.editorState === 'editor-on'
-                    ? isEditing(view)
+                    ? editing
                     : command.editorState === 'editor-off'
-                      ? !isEditing(view)
+                      ? !editing
                       : true;
 
             if (
                 allow &&
-                !(isEditing(view) && getUsedHotkeys(view.plugin).has(hotkey))
+                !(editing && getUsedHotkeys(view.plugin).has(hotkey))
             ) {
                 try {
+                    if (
+                        editing &&
+                        command.name !== 'save_changes_and_exit_card'
+                    ) {
+                        closeNodeEditor(view);
+                    }
                     command.callback(view, event);
                     return true; // 如果执行了命令，直接返回
                 } catch (error) {

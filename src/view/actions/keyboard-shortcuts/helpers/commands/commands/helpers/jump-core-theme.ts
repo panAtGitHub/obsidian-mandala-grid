@@ -1,5 +1,5 @@
 import { Notice } from 'obsidian';
-import { resolveDraftExit } from 'src/view/edit-session/resolve-draft-exit';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import {
     applyDayPlanToCore,
     resolveNextDayPlanDate,
@@ -15,12 +15,7 @@ export const jumpCoreTheme = (
 ) => {
     const startedAt = performance.now();
     if (!view.mandalaMode) return;
-    if (view.inlineEditor?.nodeId) {
-        void resolveDraftExit(view).then((ok) => {
-            if (ok) jumpCoreTheme(view, direction);
-        });
-        return;
-    }
+    closeNodeEditor(view);
 
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return;

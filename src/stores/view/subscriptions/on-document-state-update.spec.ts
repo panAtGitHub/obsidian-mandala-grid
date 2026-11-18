@@ -78,7 +78,6 @@ type MockView = {
     inlineEditor: {
         unloadNode: ReturnType<typeof vi.fn>;
     };
-    preserveActiveEditorBeforeReload: ReturnType<typeof vi.fn>;
     saveDocument: ReturnType<typeof vi.fn>;
     plugin: {
         statusBar: {
@@ -119,7 +118,10 @@ const createView = () => {
             getValue: vi.fn(() => ({
                 search: { query: 'q' },
                 document: {
-                    editing: { activeNodeId: null, isInSidebar: false },
+                    editing: {
+                        activeNodeId: null as string | null,
+                        isInSidebar: false,
+                    },
                 },
             })),
             batch: vi.fn((run: () => void) => run()),
@@ -137,7 +139,6 @@ const createView = () => {
         inlineEditor: {
             unloadNode: vi.fn(),
         },
-        preserveActiveEditorBeforeReload: vi.fn(),
         saveDocument: vi.fn(() => Promise.resolve()),
         plugin: {
             statusBar: {
@@ -392,6 +393,12 @@ describe('on-document-state-update', () => {
 
     it('discards the inline edit buffer before an external document reload', () => {
         const view = createView();
+        vi.mocked(view.viewStore.getValue).mockReturnValue({
+            search: { query: 'q' },
+            document: {
+                editing: { activeNodeId: 'node-1', isInSidebar: false },
+            },
+        });
 
         onDocumentStateUpdate(view as never, {
             type: 'document/file/load-from-disk',
@@ -406,12 +413,12 @@ describe('on-document-state-update', () => {
         });
 
         expect(view.inlineEditor.unloadNode).toHaveBeenCalledWith();
-        expect(view.preserveActiveEditorBeforeReload).toHaveBeenCalledOnce();
-        expect(
-            view.preserveActiveEditorBeforeReload.mock.invocationCallOrder[0],
-        ).toBeLessThan(
-            view.inlineEditor.unloadNode.mock.invocationCallOrder[0],
+        expect(view.viewStore.dispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: 'view/editor/disable-main-editor',
+            }),
         );
+        expect(view.saveDocument).not.toHaveBeenCalled();
         expect(mocks.loadPinnedNodesToDocument).toHaveBeenCalledTimes(1);
     });
 });

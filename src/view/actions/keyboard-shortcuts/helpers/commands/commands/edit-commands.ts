@@ -1,5 +1,7 @@
-import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
-import { cancelChanges } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/cancel-changes';
+import {
+    closeNodeEditor,
+    saveNodeContent,
+} from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { DefaultViewCommand } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { sectionAtCell9x9 } from 'src/mandala-display/logic/mandala-grid';
 import { Platform } from 'obsidian';
@@ -203,7 +205,7 @@ export const editCommands = () => {
         {
             name: 'disable_edit_mode',
             callback: (view) => {
-                cancelChanges(view);
+                closeNodeEditor(view);
             },
             hotkeys: [
                 { key: 'Escape', modifiers: [], editorState: 'editor-on' },

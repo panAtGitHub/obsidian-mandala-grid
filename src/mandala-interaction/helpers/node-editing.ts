@@ -1,3 +1,4 @@
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import type { MandalaView } from 'src/view/view';
 import { openNodeEditor } from 'src/mandala-interaction/helpers/open-node-editor';
 
@@ -6,15 +7,25 @@ export const setActiveMandalaNode = (
     nodeId: string,
     silent = false,
 ) => {
-    const previousNodeId = view.viewStore.getValue().document.activeNode;
+    const { activeNode: previousNodeId, editing } =
+        view.viewStore.getValue().document;
+    if (editing.activeNodeId && editing.activeNodeId !== nodeId) {
+        closeNodeEditor(view);
+    }
     if (previousNodeId && previousNodeId !== nodeId) {
         const startedAt = performance.now();
-        view.recordPerfAfterNextPaint('interaction.active-node.mouse', startedAt, {
-            action_type: silent ? 'view/set-active-node/mouse-silent' : 'view/set-active-node/mouse',
-            from_node_id: previousNodeId,
-            to_node_id: nodeId,
-            silent,
-        });
+        view.recordPerfAfterNextPaint(
+            'interaction.active-node.mouse',
+            startedAt,
+            {
+                action_type: silent
+                    ? 'view/set-active-node/mouse-silent'
+                    : 'view/set-active-node/mouse',
+                from_node_id: previousNodeId,
+                to_node_id: nodeId,
+                silent,
+            },
+        );
     }
     view.viewStore.dispatch({
         type: silent

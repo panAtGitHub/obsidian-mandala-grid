@@ -18,7 +18,7 @@ import Component from 'src/mandala-scenes/shared/shell/main.svelte';
 import { flushSync, mount, unmount } from 'svelte';
 import MandalaGrid from '../main';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
-import { get, Unsubscriber } from 'svelte/store';
+import { Unsubscriber } from 'svelte/store';
 import { OnError, Store } from 'src/shared/store/store';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import {
@@ -63,7 +63,6 @@ import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { createWorkingSetCooldown } from 'src/view/helpers/working-set-cooldown';
-import { resolveDraftExit } from 'src/view/edit-session/resolve-draft-exit';
 import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { DocumentPersistence } from 'src/view/helpers/document-persistence';
 import {
@@ -179,7 +178,6 @@ export class MandalaView extends TextFileView {
         frontmatter: string;
         activation: MandalaProfileActivation;
     } | null = null;
-    private deferredEditorData: string | null = null;
     private lastActivationNotice: string | null = null;
     private lastSaveBlockedNoticeKey: string | null = null;
     private lastPersistTransitionNoticeKey: string | null = null;
@@ -302,7 +300,7 @@ export class MandalaView extends TextFileView {
                     ]);
                 } catch (error) {
                     new Notice(
-                        `格子保存失败，草稿仍在编辑器中：${error instanceof Error ? error.message : String(error)}`,
+                        `格子保存失败：${error instanceof Error ? error.message : String(error)}`,
                         0,
                     );
                     return false;
@@ -861,6 +859,7 @@ export class MandalaView extends TextFileView {
             new Notice('当前 nx9 视图仅支持桌面端的 mandala 文件。');
             return false;
         }
+        if (mode !== this.mandalaMode) closeNodeEditor(this);
         this.prepareMandalaMode(mode, `mode:${mode}`);
         this.viewStore.dispatch({
             type: 'view/mandala/mode/set',
@@ -958,7 +957,6 @@ export class MandalaView extends TextFileView {
 
             if (changingFile) {
                 this.debouncedLoadDocumentToStore.cancel();
-                void this.preserveActiveEditorBeforeReload();
                 closeNodeEditor(this);
                 this.editSession.endSession();
                 if (previousPath) {
@@ -969,10 +967,6 @@ export class MandalaView extends TextFileView {
                 }
             }
 
-            if (!changingFile && this.getEditingPane()) {
-                this.deferredEditorData = data;
-                return;
-            }
             this.data = data;
 
             if (switchedFile) {
@@ -1005,14 +999,7 @@ export class MandalaView extends TextFileView {
         this.cancelFocusMandalaSection();
         this.cancelFirstRenderProbe();
         this.debouncedLoadDocumentToStore.cancel();
-        if (this.inlineEditor?.nodeId) {
-            if (!(await resolveDraftExit(this, true))) {
-                await this.preserveActiveEditorBeforeReload();
-                this.inlineEditor.unloadNode();
-            }
-        } else {
-            this.editSession.endSession();
-        }
+        const saving = this.editSession.waitForSave();
         closeNodeEditor(this);
         this.workingSetCooldown.cancel();
         const flushing =
@@ -1030,7 +1017,6 @@ export class MandalaView extends TextFileView {
         this.activeFilePath = null;
         this.lastLoadedBody = '';
         this.lastLoadedFrontmatter = '';
-        this.deferredEditorData = null;
         this.cachedActivation = null;
         this.lastActivationNotice = null;
         this.sourceRuntime = null;
@@ -1049,16 +1035,12 @@ export class MandalaView extends TextFileView {
         }
         this.persistence = new DocumentPersistence(this.app);
         refreshActiveViewOfDocument(this);
-        await flushing;
+        await Promise.all([saving, flushing]);
     }
 
     clear(): void {
         this.debouncedLoadDocumentToStore.cancel();
-        if (this.inlineEditor) {
-            this.inlineEditor.unloadNode();
-        } else {
-            this.editSession.endSession();
-        }
+        closeNodeEditor(this);
         void this.flushPendingPersistSnapshotsForTransition('clear-view');
         this.workingSetCooldown.cancel();
         this.data = '';
@@ -1416,36 +1398,6 @@ export class MandalaView extends TextFileView {
         return null;
     }
 
-    refreshAfterEdit() {
-        const file = this.file;
-        if (!file || this.getEditingPane()) return;
-        const peers = viewsByDocumentStore.get(this.documentStore) ?? [this];
-        let needsRefresh = false;
-        for (const pane of peers) {
-            if (
-                pane.deferredEditorData !== null &&
-                pane.deferredEditorData !== pane.data
-            )
-                needsRefresh = true;
-            pane.deferredEditorData = null;
-        }
-        if (!needsRefresh) return;
-        void this.app.vault
-            .read(file)
-            .then((latest) => {
-                for (const pane of peers) {
-                    if (pane.file === file && pane.isViewOfFile)
-                        pane.setViewData(latest);
-                }
-            })
-            .catch((error: unknown) =>
-                logger.warn(
-                    '[mandala-view] deferred document reload failed',
-                    error,
-                ),
-            );
-    }
-
     private hasSharedViews() {
         return (viewsByDocumentStore.get(this.documentStore)?.size ?? 0) > 1;
     }
@@ -1535,14 +1487,12 @@ export class MandalaView extends TextFileView {
             updateFrontmatter(this, frontmatter);
         }
 
-        const isEditing = Boolean(this.getEditingPane());
-
         const activationStartMs = performance.now();
         const activation = this.getMandalaProfileActivation(frontmatter);
         const activationCostMs = performance.now() - activationStartMs;
         this.dayPlanHotCores = activation.hotCoreSections;
         const shouldReloadSource =
-            emptyStore || (bodyHasChanged && !isEditing) || !this.sourceRuntime;
+            emptyStore || bodyHasChanged || !this.sourceRuntime;
         if (shouldReloadSource) {
             this.sourceRuntime = new MandalaSourceRuntime(body);
             this.fullHydrated = this.hasSharedViews();
@@ -1613,7 +1563,7 @@ export class MandalaView extends TextFileView {
               })
             : null;
         let loadedFromDisk = false;
-        if (emptyStore || (bodyHasChanged && !isEditing)) {
+        if (emptyStore || bodyHasChanged) {
             const loadStartMs = performance.now();
             const canFastBootstrap =
                 !this.hasSharedViews() &&
@@ -1919,29 +1869,6 @@ export class MandalaView extends TextFileView {
         });
     }
 
-    preserveActiveEditorBeforeReload() {
-        const session = get(this.editSession.stateStore);
-        if (!session.activeNodeId || !this.inlineEditor) return;
-        let content = session.bufferContent;
-        try {
-            content = this.inlineEditor.getContent();
-        } catch (error) {
-            logger.warn('[mandala-view] failed to read active editor', error);
-        }
-        if (content === session.lastCommittedContent) return;
-        const path = this.activeFilePath ?? this.file?.path;
-        if (!path) return;
-        return this.persistence.writeRecoveryCopy({
-            file: path,
-            source: this.data,
-            nodeId: session.activeNodeId,
-            section:
-                this.sourceRuntime?.getSectionId(session.activeNodeId) ?? null,
-            before: session.lastCommittedContent,
-            content,
-        });
-    }
-
     private async flushPendingPersistSnapshotsForTransition(
         reason:
             | 'switch-file'
@@ -2005,12 +1932,6 @@ export class MandalaView extends TextFileView {
     }
 
     focusDayPlanToday(date: Date = new Date()) {
-        if (this.inlineEditor?.nodeId) {
-            void resolveDraftExit(this).then((ok) => {
-                if (ok) this.focusDayPlanToday(date);
-            });
-            return true;
-        }
         const navigation = this.getDayPlanTodayNavigation(date);
         if (!navigation.targetSection) return false;
         if (!navigation.canNavigate) {
@@ -2022,6 +1943,7 @@ export class MandalaView extends TextFileView {
             );
             return false;
         }
+        closeNodeEditor(this);
         this.focusMandalaSection(navigation.targetSection);
         return true;
     }

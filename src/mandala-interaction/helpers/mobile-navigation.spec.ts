@@ -52,6 +52,7 @@ describe('mobile-navigation', () => {
             viewStore: {
                 dispatch: viewDispatch,
                 getValue: () => ({
+                    document: { editing: { activeNodeId: null } },
                     ui: {
                         mandala: {
                             subgridTheme: '1.2',
@@ -108,6 +109,7 @@ describe('mobile-navigation', () => {
             viewStore: {
                 dispatch: viewDispatch,
                 getValue: () => ({
+                    document: { editing: { activeNodeId: null } },
                     ui: {
                         mandala: {
                             subgridTheme: '1',

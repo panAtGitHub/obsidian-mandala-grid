@@ -77,12 +77,7 @@ export const onDocumentStateUpdate = (
     const e = getDocumentEventType(action, documentState);
     view.documentSearch.applyDocumentAction(action, documentState);
     if (type === 'document/file/load-from-disk') {
-        // needed when the file was modified externally
-        // to prevent saving a node with an obsolete node-id
-        void view.preserveActiveEditorBeforeReload?.();
-        if (viewStore.getValue().document.editing?.activeNodeId)
-            closeNodeEditor(view);
-        else view.inlineEditor.unloadNode();
+        closeNodeEditor(view);
         loadPinnedNodesToDocument(view);
     }
 

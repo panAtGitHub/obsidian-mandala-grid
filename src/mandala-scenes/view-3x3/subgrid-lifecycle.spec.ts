@@ -53,6 +53,7 @@ describe('view-3x3/subgrid-lifecycle', () => {
                 },
                 viewStore: {
                     getValue: () => ({
+                        document: { editing: { activeNodeId: null } },
                         ui: { mandala: { subgridTheme: '261' } },
                     }),
                     dispatch,
@@ -72,7 +73,7 @@ describe('view-3x3/subgrid-lifecycle', () => {
         },
     );
 
-    it('flushes the active editor and prunes the current empty nested subgrid on exit', () => {
+    it('discards the active draft and prunes the current empty nested subgrid on exit', () => {
         const documentDispatch = vi.fn();
         const viewDispatch = vi.fn();
         const view = {
@@ -124,7 +125,14 @@ describe('view-3x3/subgrid-lifecycle', () => {
 
         exitThreeByThreeSubgrid(view as never);
 
+        expect(mocks.unloadNode).toHaveBeenCalledOnce();
         expect(viewDispatch.mock.calls).toEqual([
+            [
+                {
+                    type: 'view/editor/disable-main-editor',
+                    context: { modKey: false },
+                },
+            ],
             [
                 {
                     type: 'view/mandala/subgrid/enter',

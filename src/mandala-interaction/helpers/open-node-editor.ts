@@ -1,5 +1,5 @@
 import { Platform } from 'obsidian';
-import { resolveDraftExit } from 'src/view/edit-session/resolve-draft-exit';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import type { MandalaView } from 'src/view/view';
 
 type OpenNodeEditorOptions = {
@@ -20,26 +20,19 @@ export const openNodeEditor = (
         return;
     }
 
-    const open = () =>
-        view.viewStore.dispatch({
-            type: 'view/editor/enable-main-editor',
-            payload: {
-                nodeId,
-                isInSidebar: options.desktopIsInSidebar,
-            },
-        });
-    const editingPane = view.getEditingPane?.();
-    if (!editingPane) {
-        open();
-        return;
-    }
+    const editingPane = view.getEditingPane();
     if (
         editingPane === view &&
         view.viewStore.getValue().document.editing.activeNodeId === nodeId
     )
         return;
-    const file = view.file;
-    void resolveDraftExit(editingPane).then((mayExit) => {
-        if (mayExit && view.file === file && !view.getEditingPane()) open();
+
+    if (editingPane) closeNodeEditor(editingPane);
+    view.viewStore.dispatch({
+        type: 'view/editor/enable-main-editor',
+        payload: {
+            nodeId,
+            isInSidebar: options.desktopIsInSidebar,
+        },
     });
 };

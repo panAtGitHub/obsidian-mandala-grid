@@ -12,6 +12,7 @@ import { getActiveMandalaView } from 'src/obsidian/commands/helpers/get-active-m
 import { openExportModeModalForView } from 'src/mandala-settings/ui/view-options/export-mode-modal-store';
 import { exportPerfSnapshot } from 'src/obsidian/commands/helpers/export-perf-snapshot';
 import { Notice } from 'obsidian';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { openCurrentFileMandalaSettingsModal } from 'src/obsidian/modals/current-file-mandala-settings-modal';
 import { createDayPlanDocument } from 'src/obsidian/commands/helpers/create-day-plan-document';
 
@@ -130,6 +131,10 @@ export const addCommands = (plugin: MandalaGrid) => {
             ...command,
             checkCallback: (checking) => {
                 try {
+                    if (!checking) {
+                        const view = getActiveMandalaView(plugin);
+                        if (view) closeNodeEditor(view);
+                    }
                     return command.checkCallback(checking);
                 } catch (e) {
                     onPluginError(e, 'command', command.name);
