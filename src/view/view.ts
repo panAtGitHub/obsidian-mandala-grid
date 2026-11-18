@@ -139,6 +139,7 @@ export const MANDALA_VIEW_TYPE = 'mandala-grid';
 
 export type DocumentStore = Store<DocumentState, DocumentStoreAction>;
 const projectedDocumentStores = new WeakSet<DocumentStore>();
+const viewsByDocumentStore = new WeakMap<DocumentStore, Set<MandalaView>>();
 export type ViewStore = Store<ViewState, ViewStoreAction, MandalaGridDocument>;
 export type SaveDocumentMode = 'content-only' | 'structural';
 export type SaveDocumentOptions = {
@@ -201,6 +202,7 @@ export class MandalaView extends TextFileView {
     private coolToWorkingSet() {
         if (!this.sourceRuntime || !this.fullHydrated || !this.file)
             return true;
+        if (this.hasSharedViews()) return true;
         const viewState = this.viewStore.getValue();
         if (
             viewState.document.editing.activeNodeId ||
@@ -489,7 +491,8 @@ export class MandalaView extends TextFileView {
     }
 
     materializeSections(sectionIds: Iterable<string>, centerSection?: string) {
-        if (!this.sourceRuntime || this.fullHydrated) return false;
+        if (!this.sourceRuntime || this.fullHydrated || this.hasSharedViews())
+            return false;
         projectedDocumentStores.add(this.documentStore);
         const currentState = this.documentStore.getValue();
         const requestedSectionIds = [...sectionIds];
@@ -950,6 +953,7 @@ export class MandalaView extends TextFileView {
 
     setViewData(data: string, clear = false): void {
         if (!this.activeFilePath && this.file) {
+            this.data = data;
             this.activeFilePath = this.file?.path;
             void this.loadInitialData();
         } else {
@@ -1050,6 +1054,7 @@ export class MandalaView extends TextFileView {
             await unmount(this.component);
             this.component = undefined;
         }
+        this.leaveDocumentViews();
         if (this.file?.path) {
             this.persistMandalaUiState(this.file.path);
         }
@@ -1393,6 +1398,7 @@ export class MandalaView extends TextFileView {
         } else {
             this.createStore();
         }
+        this.joinDocumentViews();
         this.loadDocumentToStore('view-mount');
         if (!this.inlineEditor) {
             this.inlineEditor = new InlineEditor(this);
@@ -1433,6 +1439,64 @@ export class MandalaView extends TextFileView {
             ].documentStore;
     };
 
+    private hasSharedViews() {
+        return (viewsByDocumentStore.get(this.documentStore)?.size ?? 0) > 1;
+    }
+
+    private leaveDocumentViews() {
+        const peers = viewsByDocumentStore.get(this.documentStore);
+        if (peers?.delete(this) && peers.size === 1) {
+            for (const peer of peers) peer.workingSetCooldown.schedule();
+        }
+    }
+
+    private joinDocumentViews() {
+        const peers =
+            viewsByDocumentStore.get(this.documentStore) ??
+            new Set<MandalaView>();
+        const [existing] = peers;
+        peers.add(this);
+        viewsByDocumentStore.set(this.documentStore, peers);
+        if (!existing) return;
+
+        // The live view includes edits that may still be waiting to reach disk.
+        this.data = existing.data;
+        const { body, frontmatter } = extractFrontmatter(this.data);
+        this.sourceRuntime = new MandalaSourceRuntime(body);
+        this.lastLoadedBody = body;
+        this.lastLoadedFrontmatter = frontmatter;
+        for (const peer of peers) {
+            peer.fullHydrated = true;
+            peer.workingSetCooldown.cancel();
+        }
+        if (!projectedDocumentStores.has(this.documentStore)) return;
+
+        const state = this.documentStore.getValue();
+        const runtime = this.sourceRuntime;
+        const workingSet = runtime.materialize(
+            runtime.index.canonicalOrderedIds,
+        );
+        for (const [id, nodeId] of Object.entries(state.sections.section_id)) {
+            const content = state.document.content[nodeId]?.content;
+            if (content === undefined) continue;
+            if (!workingSet.sections.has(id))
+                workingSet.materializedSectionIds.push(id);
+            workingSet.sections.set(id, { id, nodeId, content });
+        }
+        const fullState = projectWorkingSetDocumentState(
+            state,
+            runtime,
+            workingSet,
+            state.file.frontmatter,
+        );
+        projectedDocumentStores.delete(this.documentStore);
+        for (const peer of peers) {
+            peer.viewStore.setContext(fullState.document);
+            peer.documentSearch?.resetAll();
+        }
+        this.documentStore.set(fullState);
+    }
+
     private loadDocumentToStore = (event?: 'view-mount') => {
         const startMs = performance.now();
         const { body, frontmatter } = extractFrontmatter(this.data);
@@ -1460,7 +1524,7 @@ export class MandalaView extends TextFileView {
             emptyStore || (bodyHasChanged && !isEditing) || !this.sourceRuntime;
         if (shouldReloadSource) {
             this.sourceRuntime = new MandalaSourceRuntime(body);
-            this.fullHydrated = false;
+            this.fullHydrated = this.hasSharedViews();
             this.workingSetCenter = null;
         }
         const settings = this.plugin.settings.getValue();
@@ -1531,6 +1595,7 @@ export class MandalaView extends TextFileView {
         if (emptyStore || (bodyHasChanged && !isEditing)) {
             const loadStartMs = performance.now();
             const canFastBootstrap =
+                !this.hasSharedViews() &&
                 (this.mandalaMode === '3x3' ||
                     this.mandalaMode === '9x9' ||
                     this.mandalaMode === 'nx9') &&
@@ -1601,8 +1666,18 @@ export class MandalaView extends TextFileView {
                 });
             } else {
                 projectedDocumentStores.delete(this.documentStore);
-                loadFullDocument(this, body, frontmatter, nextActiveSection);
                 this.fullHydrated = true;
+                loadFullDocument(this, body, frontmatter, nextActiveSection);
+                for (const peer of viewsByDocumentStore.get(
+                    this.documentStore,
+                ) ?? []) {
+                    if (peer === this) continue;
+                    peer.data = this.data;
+                    peer.sourceRuntime = new MandalaSourceRuntime(body);
+                    peer.lastLoadedBody = body;
+                    peer.lastLoadedFrontmatter = frontmatter;
+                    peer.fullHydrated = true;
+                }
                 this.workingSetCenter = null;
                 this.initialBootstrapTarget = null;
             }

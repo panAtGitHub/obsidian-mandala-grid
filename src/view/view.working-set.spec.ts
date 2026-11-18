@@ -69,9 +69,13 @@ const createHost = () => {
         | 'focusDayPlanToday'
         | 'getDayPlanTodayNavigation'
         | 'getSectionLookup'
+        | 'materializeSections'
     > & {
         fullHydrated: boolean;
         coolToWorkingSet: () => boolean;
+        joinDocumentViews: () => void;
+        leaveDocumentViews: () => void;
+        data: string;
     };
     return { view, runtime, viewState, getState: () => state, set };
 };
@@ -520,6 +524,60 @@ describe('view working-set transitions', () => {
         host.view.materializeWorkingSet('1');
         expect(host.getState()).toBe(first);
         expect(host.set).not.toHaveBeenCalled();
+    });
+
+    it('keeps the full shared document for two dates without replacing live edits or node IDs', () => {
+        const first = createHost();
+        const second = createHost();
+        const shared = new Store(first.getState(), documentReducer);
+        const set = vi.spyOn(shared, 'set');
+        first.view.documentStore = second.view.documentStore = shared;
+        const source =
+            '<!--section: 1-->root\n<!--section: 1.1-->child\n<!--section: 2-->other\n<!--section: 2.1-->other child';
+        first.runtime.replaceSourceFromExternal(source);
+        first.view.data = source;
+        first.view.joinDocumentViews();
+        first.view.materializeWorkingSet('1');
+        const editedNode = shared.getValue().sections.section_id['1.1'];
+        shared.dispatch({
+            type: 'document/update-node-content',
+            payload: { nodeId: editedNode, content: 'unsaved edit' },
+            context: { isInSidebar: false },
+        });
+        first.viewState.document.editing.activeNodeId = editedNode;
+
+        second.view.joinDocumentViews();
+        const full = shared.getValue();
+        expect(Object.keys(full.sections.section_id)).toHaveLength(4);
+        expect(full.sections.section_id['1.1']).toBe(editedNode);
+        expect(full.document.content[editedNode].content).toBe('unsaved edit');
+        expect(first.viewState.document.editing.activeNodeId).toBe(editedNode);
+        expect(set).toHaveBeenCalledTimes(2);
+        set.mockClear();
+        for (const [host, theme] of [
+            [first, '1'],
+            [second, '2'],
+        ] as const) {
+            syncThreeByThreeSubgridState({
+                view: host.view as unknown as MandalaView,
+                mode: '3x3',
+                subgridTheme: theme,
+                documentState: full,
+                sectionToNodeId: full.sections.section_id,
+                sectionLookup: host.view.getSectionLookup(),
+                allowSubgridExpansion: false,
+            });
+            expect(host.view.materializeSections([theme])).toBe(false);
+            expect(host.view.coolToWorkingSet()).toBe(true);
+            expect(host.view.isWorkingSetProjection).toBe(false);
+        }
+        expect(set).not.toHaveBeenCalled();
+
+        second.view.leaveDocumentViews();
+        first.viewState.document.editing.activeNodeId = '';
+        full.document.content[editedNode].content = 'child';
+        expect(first.view.coolToWorkingSet()).toBe(true);
+        expect(first.view.isWorkingSetProjection).toBe(true);
     });
     it('refreshes the same working set after an external content change', () => {
         const host = createHost();
