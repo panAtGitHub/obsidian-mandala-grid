@@ -63,6 +63,8 @@ import { logger } from 'src/shared/helpers/logger';
 import { findNodeColumn } from 'src/mandala-document/tree-utils/find/find-node-column';
 import { resolveSubpathJumpNodeId } from 'src/view/helpers/resolve-subpath-jump-node-id';
 import { createWorkingSetCooldown } from 'src/view/helpers/working-set-cooldown';
+import { resolveDraftExit } from 'src/view/edit-session/resolve-draft-exit';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { DocumentPersistence } from 'src/view/helpers/document-persistence';
 import {
     ensureCurrentFileCustomLayoutAvailable,
@@ -148,6 +150,7 @@ export type SaveDocumentOptions = {
     changedSections?: string[];
     structuralMutation?: StructuralMutation;
     recoveryEdits?: Array<{ nodeId: string; content: string }>;
+    alreadyPersisted?: boolean;
 };
 
 export class MandalaView extends TextFileView {
@@ -176,6 +179,7 @@ export class MandalaView extends TextFileView {
         frontmatter: string;
         activation: MandalaProfileActivation;
     } | null = null;
+    private deferredEditorData: string | null = null;
     private lastActivationNotice: string | null = null;
     private lastSaveBlockedNoticeKey: string | null = null;
     private lastPersistTransitionNoticeKey: string | null = null;
@@ -273,44 +277,48 @@ export class MandalaView extends TextFileView {
 
         this.id = id.view();
         this.editSession = new EditSessionService(
-            (payload: EditSessionCommitPayload) => {
-                const documentState = this.documentStore.getValue();
-                const current =
-                    documentState.document.content[payload.nodeId]?.content;
-                if (
-                    current === undefined ||
-                    (current !== payload.previousContent &&
-                        current !== payload.content)
-                ) {
-                    void this.persistence.writeRecoveryCopy({
-                        file: this.activeFilePath ?? this.file?.path ?? null,
-                        source: this.data,
-                        nodeId: payload.nodeId,
-                        section:
-                            documentState.sections.id_section[payload.nodeId] ??
-                            this.sourceRuntime?.getSectionId(payload.nodeId) ??
-                            null,
-                        before: payload.previousContent,
-                        content: payload.content,
-                    });
+            async (payload: EditSessionCommitPayload) => {
+                const file = this.file;
+                const store = this.documentStore;
+                const sectionId =
+                    store.getValue().sections.id_section[payload.nodeId];
+                if (!file || !sectionId) {
+                    new Notice('找不到正在编辑的格子，草稿未保存。');
+                    return false;
+                }
+                const persistence = this.persistence;
+                try {
+                    await persistence.flush();
+                    if (
+                        this.app.vault.getAbstractFileByPath(file.path) !== file
+                    )
+                        throw new Error('目标文件已移动或不存在');
+                    await persistence.persistSectionEdits(file.path, [
+                        {
+                            sectionId,
+                            before: payload.previousContent,
+                            after: payload.content,
+                        },
+                    ]);
+                } catch (error) {
                     new Notice(
-                        '保存已中止：当前 section 已被其他编辑修改，正在备份你的内容。',
+                        `格子保存失败，草稿仍在编辑器中：${error instanceof Error ? error.message : String(error)}`,
                         0,
                     );
                     return false;
                 }
-                this.documentStore.dispatch({
-                    type: 'document/update-node-content',
-                    payload: {
-                        nodeId: payload.nodeId,
-                        content: payload.content,
-                    },
-                    context: {
-                        isInSidebar: payload.isInSidebar,
-                        commitReason: payload.reason,
-                        suppressRefocus: payload.suppressRefocus,
-                    },
-                });
+                const nodeId = store.getValue().sections.section_id[sectionId];
+                if (nodeId) {
+                    store.dispatch({
+                        type: 'document/update-node-content',
+                        payload: { nodeId, content: payload.content },
+                        context: {
+                            isInSidebar: payload.isInSidebar,
+                            alreadyPersisted: true,
+                            suppressRefocus: true,
+                        },
+                    });
+                }
                 return true;
             },
         );
@@ -950,15 +958,9 @@ export class MandalaView extends TextFileView {
 
             if (changingFile) {
                 this.debouncedLoadDocumentToStore.cancel();
-                if (this.inlineEditor) {
-                    this.inlineEditor.unloadNodeWithReason(
-                        undefined,
-                        false,
-                        'unload',
-                    );
-                } else {
-                    this.editSession.endSession('unload');
-                }
+                void this.preserveActiveEditorBeforeReload();
+                closeNodeEditor(this);
+                this.editSession.endSession();
                 if (previousPath) {
                     void this.flushPendingPersistSnapshotsForTransition(
                         switchedFile ? 'switch-file' : 'replace-view-data',
@@ -967,30 +969,10 @@ export class MandalaView extends TextFileView {
                 }
             }
 
-            const incomingBody = extractFrontmatter(data).body;
-            const currentBody = extractFrontmatter(this.data).body;
-            const editingState = this.viewStore.getValue().document.editing;
-            if (
-                !changingFile &&
-                incomingBody !== currentBody &&
-                editingState.activeNodeId
-            ) {
-                if (this.inlineEditor) {
-                    this.inlineEditor.unloadNodeWithReason(
-                        undefined,
-                        false,
-                        'unload',
-                    );
-                } else {
-                    this.editSession.endSession('unload');
-                }
-                this.viewStore.dispatch({
-                    type: editingState.isInSidebar
-                        ? 'view/editor/disable-sidebar-editor'
-                        : 'view/editor/disable-main-editor',
-                });
+            if (!changingFile && this.getEditingPane()) {
+                this.deferredEditorData = data;
+                return;
             }
-
             this.data = data;
 
             if (switchedFile) {
@@ -1023,11 +1005,15 @@ export class MandalaView extends TextFileView {
         this.cancelFocusMandalaSection();
         this.cancelFirstRenderProbe();
         this.debouncedLoadDocumentToStore.cancel();
-        if (this.inlineEditor) {
-            this.inlineEditor.unloadNodeWithReason(undefined, false, 'unload');
+        if (this.inlineEditor?.nodeId) {
+            if (!(await resolveDraftExit(this, true))) {
+                await this.preserveActiveEditorBeforeReload();
+                this.inlineEditor.unloadNode();
+            }
         } else {
-            this.editSession.endSession('unload');
+            this.editSession.endSession();
         }
+        closeNodeEditor(this);
         this.workingSetCooldown.cancel();
         const flushing =
             this.flushPendingPersistSnapshotsForTransition('close-view');
@@ -1044,6 +1030,7 @@ export class MandalaView extends TextFileView {
         this.activeFilePath = null;
         this.lastLoadedBody = '';
         this.lastLoadedFrontmatter = '';
+        this.deferredEditorData = null;
         this.cachedActivation = null;
         this.lastActivationNotice = null;
         this.sourceRuntime = null;
@@ -1058,7 +1045,6 @@ export class MandalaView extends TextFileView {
             this.onViewStoreError,
         );
         if (this.inlineEditor) {
-            this.inlineEditor.unloadNode(undefined, true);
             await this.inlineEditor.unloadFile();
         }
         this.persistence = new DocumentPersistence(this.app);
@@ -1069,9 +1055,9 @@ export class MandalaView extends TextFileView {
     clear(): void {
         this.debouncedLoadDocumentToStore.cancel();
         if (this.inlineEditor) {
-            this.inlineEditor.unloadNodeWithReason(undefined, false, 'unload');
+            this.inlineEditor.unloadNode();
         } else {
-            this.editSession.endSession('unload');
+            this.editSession.endSession();
         }
         void this.flushPendingPersistSnapshotsForTransition('clear-view');
         this.workingSetCooldown.cancel();
@@ -1353,7 +1339,7 @@ export class MandalaView extends TextFileView {
                 peer.lastLoadedFrontmatter = parsed.frontmatter;
             }
             const persistPath = this.activeFilePath ?? this.file?.path ?? null;
-            if (persistPath) {
+            if (persistPath && !options.alreadyPersisted) {
                 if (mode === 'content-only') {
                     this.queueSectionEdits(persistPath, sectionEdits);
                 } else {
@@ -1420,6 +1406,45 @@ export class MandalaView extends TextFileView {
                 this.file.path
             ].documentStore;
     };
+
+    getEditingPane() {
+        const views = viewsByDocumentStore.get(this.documentStore) ?? [this];
+        for (const view of views) {
+            if (view.viewStore.getValue().document.editing.activeNodeId)
+                return view;
+        }
+        return null;
+    }
+
+    refreshAfterEdit() {
+        const file = this.file;
+        if (!file || this.getEditingPane()) return;
+        const peers = viewsByDocumentStore.get(this.documentStore) ?? [this];
+        let needsRefresh = false;
+        for (const pane of peers) {
+            if (
+                pane.deferredEditorData !== null &&
+                pane.deferredEditorData !== pane.data
+            )
+                needsRefresh = true;
+            pane.deferredEditorData = null;
+        }
+        if (!needsRefresh) return;
+        void this.app.vault
+            .read(file)
+            .then((latest) => {
+                for (const pane of peers) {
+                    if (pane.file === file && pane.isViewOfFile)
+                        pane.setViewData(latest);
+                }
+            })
+            .catch((error: unknown) =>
+                logger.warn(
+                    '[mandala-view] deferred document reload failed',
+                    error,
+                ),
+            );
+    }
 
     private hasSharedViews() {
         return (viewsByDocumentStore.get(this.documentStore)?.size ?? 0) > 1;
@@ -1499,7 +1524,6 @@ export class MandalaView extends TextFileView {
         const { body, frontmatter } = extractFrontmatter(this.data);
 
         const documentState = this.documentStore.getValue();
-        const viewState = this.viewStore.getValue();
         const emptyStore = documentState.document.columns.length === 0;
         const bodyHasChanged = body !== this.lastLoadedBody;
         const frontmatterHasChanged =
@@ -1511,7 +1535,7 @@ export class MandalaView extends TextFileView {
             updateFrontmatter(this, frontmatter);
         }
 
-        const isEditing = Boolean(viewState.document.editing.activeNodeId);
+        const isEditing = Boolean(this.getEditingPane());
 
         const activationStartMs = performance.now();
         const activation = this.getMandalaProfileActivation(frontmatter);
@@ -1870,12 +1894,8 @@ export class MandalaView extends TextFileView {
     }
 
     async flushPendingSaves() {
-        if (this.inlineEditor?.nodeId) {
-            this.editSession.updateBuffer(this.inlineEditor.getContent());
-            if (!this.editSession.commit('save')) {
-                throw new Error('当前 section 存在冲突，无法保存');
-            }
-        }
+        if (!(await this.editSession.waitForSave()))
+            throw new Error('格子保存尚未完成');
         await this.persistence.flush();
     }
 
@@ -1911,7 +1931,7 @@ export class MandalaView extends TextFileView {
         if (content === session.lastCommittedContent) return;
         const path = this.activeFilePath ?? this.file?.path;
         if (!path) return;
-        void this.persistence.writeRecoveryCopy({
+        return this.persistence.writeRecoveryCopy({
             file: path,
             source: this.data,
             nodeId: session.activeNodeId,
@@ -1985,6 +2005,12 @@ export class MandalaView extends TextFileView {
     }
 
     focusDayPlanToday(date: Date = new Date()) {
+        if (this.inlineEditor?.nodeId) {
+            void resolveDraftExit(this).then((ok) => {
+                if (ok) this.focusDayPlanToday(date);
+            });
+            return true;
+        }
         const navigation = this.getDayPlanTodayNavigation(date);
         if (!navigation.targetSection) return false;
         if (!navigation.canNavigate) {

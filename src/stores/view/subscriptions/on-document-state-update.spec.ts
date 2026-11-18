@@ -116,7 +116,12 @@ const createView = () => {
         },
         viewStore: {
             setContext: vi.fn(),
-            getValue: vi.fn(() => ({ search: { query: 'q' } })),
+            getValue: vi.fn(() => ({
+                search: { query: 'q' },
+                document: {
+                    editing: { activeNodeId: null, isInSidebar: false },
+                },
+            })),
             batch: vi.fn((run: () => void) => run()),
             dispatch: vi.fn(),
         },
@@ -329,7 +334,7 @@ describe('on-document-state-update', () => {
         expect(view.saveDocument).not.toHaveBeenCalled();
     });
 
-    it('persists blur commits but does not refocus when suppressRefocus is true', () => {
+    it('does not refocus when suppressRefocus is true', () => {
         const view = createView();
 
         onDocumentStateUpdate(view as never, {
@@ -340,7 +345,6 @@ describe('on-document-state-update', () => {
             },
             context: {
                 isInSidebar: false,
-                commitReason: 'blur',
                 suppressRefocus: true,
             },
         });
@@ -401,10 +405,7 @@ describe('on-document-state-update', () => {
             },
         });
 
-        expect(view.inlineEditor.unloadNode).toHaveBeenCalledWith(
-            undefined,
-            true,
-        );
+        expect(view.inlineEditor.unloadNode).toHaveBeenCalledWith();
         expect(view.preserveActiveEditorBeforeReload).toHaveBeenCalledOnce();
         expect(
             view.preserveActiveEditorBeforeReload.mock.invocationCallOrder[0],

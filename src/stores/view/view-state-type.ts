@@ -12,7 +12,6 @@ export type ActiveNodesOfColumn = {
 };
 
 export type PendingDocumentConfirmation = {
-    disableEdit: string | null;
     deleteNode: Set<string>;
 };
 

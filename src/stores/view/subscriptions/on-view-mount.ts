@@ -41,7 +41,11 @@ export const onViewMount = (view: MandalaView) => {
     // actions
     if (!view.file) return subscriptions;
     setInitialActiveNode(view);
-    if (view.isActive && isEmptyDocument(documentState.document.content)) {
+    if (
+        view.isActive &&
+        !view.getEditingPane?.() &&
+        isEmptyDocument(documentState.document.content)
+    ) {
         enableEditMode(viewStore, documentState);
     }
     view.plugin.statusBar.updateAll(view);

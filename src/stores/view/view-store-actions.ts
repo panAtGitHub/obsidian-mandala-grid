@@ -120,9 +120,6 @@ export type ViewDocumentAction =
     | ToggleEditModeAction
     | UpdateActiveBranchAction
     | {
-          type: 'view/editor/disable/reset-confirmation';
-      }
-    | {
           type: 'view/delete-node/reset-confirmation';
       }
     | {
@@ -130,12 +127,6 @@ export type ViewDocumentAction =
           payload: {
               id: string;
               includeSelection?: boolean;
-          };
-      }
-    | {
-          type: 'view/editor/disable/confirm';
-          payload: {
-              id: string;
           };
       }
     | { type: 'view/selection/clear-selection' };

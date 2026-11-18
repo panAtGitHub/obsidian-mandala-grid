@@ -4,7 +4,6 @@ export const resetPendingConfirmation = (
     state: Pick<DocumentViewState, 'pendingConfirmation'>,
 ) => {
     state.pendingConfirmation = {
-        disableEdit: null,
         deleteNode: new Set(),
     };
 };

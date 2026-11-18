@@ -4,6 +4,8 @@ import {
     isNodeAlive,
     resolveSafeActiveNode,
 } from 'src/stores/view/reducers/document/helpers/active-node-safety';
+import { defaultViewState } from 'src/stores/view/default-view-state';
+import { updateActiveNode } from 'src/stores/view/reducers/document/helpers/update-active-node';
 import { Column } from 'src/mandala-document/state/document-state-type';
 
 const columns: Column[] = [
@@ -28,6 +30,19 @@ const columns: Column[] = [
 ];
 
 describe('active-node-safety', () => {
+    it('keeps the editing target when selecting another card', () => {
+        const state = defaultViewState('3x3', false).document;
+        state.activeNode = 'n-1';
+        state.editing = {
+            ...state.editing,
+            activeNodeId: 'n-1',
+            isInSidebar: true,
+        };
+        updateActiveNode(state, 'n-2', columns);
+        expect(state.activeNode).toBe('n-2');
+        expect(state.editing.activeNodeId).toBe('n-1');
+    });
+
     it('isNodeAlive should return true only for nodes present in columns', () => {
         expect(isNodeAlive(columns, 'n-1')).toBe(true);
         expect(isNodeAlive(columns, 'missing')).toBe(false);

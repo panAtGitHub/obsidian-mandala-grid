@@ -31,22 +31,18 @@ export type PreviewDialogSnapshot = {
 type NodeAction<T = string> = (
     element: HTMLElement,
     value: T,
-) =>
-    | void
-    | {
-          update?: (value: string) => void;
-          destroy?: () => void;
-      };
+) => void | {
+    update?: (value: string) => void;
+    destroy?: () => void;
+};
 
 type BooleanAction = (
     element: HTMLElement,
     value?: boolean,
-) =>
-    | void
-    | {
-          update?: (value: boolean) => void;
-          destroy?: () => void;
-      };
+) => void | {
+    update?: (value: boolean) => void;
+    destroy?: () => void;
+};
 
 export type CellRuntimeContext = {
     showDetailSidebar: Readable<boolean>;
@@ -108,10 +104,7 @@ export const createCellRuntimeContext = (
 
     const enableMainSplitEdit = (nodeId: string) => {
         const editing = view.viewStore.getValue().document.editing;
-        if (
-            editing.activeNodeId === nodeId &&
-            !editing.isInSidebar
-        ) {
+        if (editing.activeNodeId === nodeId && !editing.isInSidebar) {
             return;
         }
         openNodeEditor(view, nodeId, {
@@ -136,11 +129,7 @@ export const createCellRuntimeContext = (
         } as never) as InlineMarkdownView;
 
         markdownView.mandalaSetViewData = (data, clear) => {
-            MarkdownView.prototype.setViewData.call(
-                markdownView,
-                data,
-                clear,
-            );
+            MarkdownView.prototype.setViewData.call(markdownView, data, clear);
         };
         markdownView.setViewData = function (
             this: void,
@@ -161,7 +150,10 @@ export const createCellRuntimeContext = (
         showDetailSidebar: ShowMandalaDetailSidebarStore(view),
         showHiddenCardInfo: ShowHiddenCardInfoStore(view),
         swapState: derived(view.viewStore, (state) => state.ui.mandala.swap),
-        previewDialog: derived(view.viewStore, (state) => state.ui.previewDialog),
+        previewDialog: derived(
+            view.viewStore,
+            (state) => state.ui.previewDialog,
+        ),
         idToSection: derived(
             view.documentStore,
             (state) => state.sections.id_section,
@@ -192,15 +184,13 @@ export const createCellRuntimeContext = (
             hasActiveFile: () => Boolean(view.file),
             loadNode: (target: HTMLElement, nodeId: string) =>
                 view.inlineEditor.loadNode(target, nodeId),
-            unloadNode: (nodeId?: string, discardChanges?: boolean) =>
-                view.inlineEditor.unloadNode(nodeId, discardChanges),
+            unloadNode: (nodeId?: string) =>
+                view.inlineEditor.unloadNode(nodeId),
         }),
         expandableTextareaAction: createExpandableTextareaAction({
             shouldLimitCardHeight: () => {
                 return Boolean(
-                    view.plugin.settings
-                        .getValue()
-                        .view.limitPreviewHeight,
+                    view.plugin.settings.getValue().view.limitPreviewHeight,
                 );
             },
             isEditingInSidebar: () =>

@@ -8,7 +8,6 @@ import { MandalaView } from 'src/view/view';
 import { vimEnterInsertMode } from 'src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode';
 import { fixVimCursorWhenZooming } from 'src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming';
 import { lockFile } from 'src/obsidian/helpers/inline-editor/helpers/lock-file';
-import { unlockFile } from 'src/obsidian/helpers/inline-editor/helpers/unlock-file';
 
 const noopSave = async function (
     this: void,
@@ -29,7 +28,6 @@ export class InlineEditor {
     private containerEl!: HTMLElement;
     #nodeId: string | null = null;
     target: HTMLElement | null = null;
-    private onChangeSubscriptions: Set<() => void> = new Set();
     #mounting: Promise<void> = Promise.resolve();
     private subscriptions: Set<() => void> = new Set();
     private cursorPositions: Map<string, EditorPosition> = new Map();
@@ -166,17 +164,8 @@ export class InlineEditor {
         });
 
         if (currentNodeId && currentNodeId !== nodeId) {
-            this.view.editSession.updateBuffer(this.getContent());
-            if (
-                this.view.editSession.switchNode(
-                    nodeId,
-                    isInSidebar,
-                    content,
-                ) === false
-            ) {
-                resolve();
-                return;
-            }
+            this.view.editSession.endSession();
+            this.view.editSession.startSession(nodeId, isInSidebar, content);
             const cursor = this.getCursor();
             this.cursorPositions.set(currentNodeId, cursor);
             this.detachTarget();
@@ -194,7 +183,6 @@ export class InlineEditor {
         this.target = target;
         target.append(this.containerEl);
         this.target.addEventListener('focusin', this.setActiveEditor);
-        this.target.addEventListener('focusout', this.handleEditorFocusOut);
         this.target.addEventListener(
             'compositionstart',
             this.handleCompositionStart,
@@ -264,38 +252,19 @@ export class InlineEditor {
         });
     };
 
-    unloadNode(nodeId?: string, discardChanges = false) {
-        this.unloadNodeWithReason(nodeId, discardChanges, 'disable-edit');
-    }
-
-    unloadNodeWithReason(
-        nodeId: string | undefined,
-        discardChanges: boolean,
-        reason: 'disable-edit' | 'unload',
-    ) {
-        if (
-            this.pendingLoadNode &&
-            (!nodeId || this.pendingLoadNode.nodeId === nodeId)
-        ) {
+    unloadNode(nodeId?: string) {
+        if (!nodeId || this.pendingLoadNode?.nodeId === nodeId) {
             this.pendingLoadNode = null;
         }
         const currentNodeId = this.nodeId;
-        if (nodeId && nodeId !== currentNodeId) return;
-        if (currentNodeId && discardChanges) {
-            this.view.editSession.cancel();
-        } else if (currentNodeId) {
-            this.view.editSession.updateBuffer(this.getContent());
-            if (this.view.editSession.endSession(reason) === false) return;
-            const cursor = this.getCursor();
-            this.cursorPositions.set(currentNodeId, cursor);
-        }
+        if (!currentNodeId || (nodeId && nodeId !== currentNodeId)) return;
+        this.cursorPositions.set(currentNodeId, this.getCursor());
+        this.view.editSession.endSession();
         this.nodeId = null;
         this.currentInitialPlacement = null;
         this.detachTarget();
-        for (const subscription of this.subscriptions) {
-            subscription();
-            this.subscriptions.delete(subscription);
-        }
+        for (const subscription of this.subscriptions) subscription();
+        this.subscriptions.clear();
         this.unlockFile();
     }
 
@@ -328,13 +297,6 @@ export class InlineEditor {
                 { history: false },
             );
         }
-    }
-
-    onNextChange(subscription: () => void) {
-        this.onChangeSubscriptions.add(subscription);
-        return () => {
-            this.onChangeSubscriptions.delete(subscription);
-        };
     }
 
     async loadFile(file: TFile) {
@@ -370,20 +332,11 @@ export class InlineEditor {
         workspace._activeEditor = this.inlineView;
     };
 
-    private invokeAndDeleteOnChangeSubscriptions = () => {
-        if (this.onChangeSubscriptions.size > 0)
-            for (const subscription of this.onChangeSubscriptions) {
-                subscription();
-                this.onChangeSubscriptions.delete(subscription);
-            }
-    };
-
     private handleRequestSave = (_clear?: boolean): void => {
         if (!this.nodeId || this.suppressEditorEvents) return;
         // Obsidian calls this for ordinary typing as well as autosave.
-        // Explicit saves use requestSave(); typing stays on the idle timer.
+        // Typing and host autosave only update the local draft.
         this.view.editSession.updateBuffer(this.getContent());
-        this.invokeAndDeleteOnChangeSubscriptions();
     };
 
     private handleCompositionStart = () => {
@@ -396,32 +349,25 @@ export class InlineEditor {
         this.view.editSession.setComposing(false);
     };
 
-    private handleEditorFocusOut = (event: FocusEvent) => {
-        if (!this.target || !this.nodeId) return;
-        const nextTarget = event.relatedTarget as Node | null;
-        if (nextTarget && this.target.contains(nextTarget)) return;
-        this.view.editSession.updateBuffer(this.getContent());
-        this.view.editSession.requestBlurCommit();
-    };
-
     private setCursor(cursor: EditorPosition) {
         this.inlineView.editor.setCursor(cursor);
     }
 
-    /* prevents obsidian from replacing file.data with card.data when the card editor and file editor share the same file*/
+    private releaseFileLock: (() => void) | undefined;
+
     private lockFile() {
-        lockFile(this.view);
+        this.releaseFileLock ??= lockFile(this.view);
     }
 
     private unlockFile() {
-        unlockFile(this.view);
+        this.releaseFileLock?.();
+        this.releaseFileLock = undefined;
     }
 
-    requestSave() {
-        if (!this.nodeId || this.suppressEditorEvents) return;
+    async requestSave() {
+        if (!this.nodeId || this.suppressEditorEvents) return false;
         this.view.editSession.updateBuffer(this.getContent());
-        this.view.editSession.requestSave();
-        this.invokeAndDeleteOnChangeSubscriptions();
+        return this.view.editSession.requestSave();
     }
 
     private detachTarget() {
@@ -437,7 +383,6 @@ export class InlineEditor {
             workspace._activeEditor = null;
         }
         this.target.removeEventListener('focusin', this.setActiveEditor);
-        this.target.removeEventListener('focusout', this.handleEditorFocusOut);
         this.target.removeEventListener(
             'compositionstart',
             this.handleCompositionStart,

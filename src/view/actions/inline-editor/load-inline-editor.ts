@@ -1,7 +1,7 @@
 type InlineEditorLoaderRuntime = {
     hasActiveFile: () => boolean;
     loadNode: (target: HTMLElement, nodeId: string) => void;
-    unloadNode: (nodeId?: string, discardChanges?: boolean) => void;
+    unloadNode: (nodeId?: string) => void;
 };
 
 export const createLoadInlineEditorAction = (

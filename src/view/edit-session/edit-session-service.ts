@@ -3,7 +3,6 @@ import { createTrailingTimer } from 'src/view/edit-session/edit-session-timers';
 import type {
     EditSessionProjectionSnapshot,
     EditSessionCommitPayload,
-    EditSessionCommitReason,
     EditSessionState,
 } from 'src/view/edit-session/edit-session-types';
 
@@ -14,7 +13,6 @@ const createDefaultState = (): EditSessionState => ({
     projectionContent: '',
     dirty: false,
     projectionRevision: 0,
-    commitRevision: 0,
     lastCommittedContent: '',
 });
 
@@ -22,24 +20,22 @@ export class EditSessionService {
     private composing = false;
     private readonly state = writable<EditSessionState>(createDefaultState());
     private readonly projectionTimer: ReturnType<typeof createTrailingTimer>;
-    private readonly commitTimer: ReturnType<typeof createTrailingTimer>;
+    private saving: Promise<boolean> | null = null;
+    private sessionVersion = 0;
     readonly stateStore: Readable<EditSessionState>;
     readonly projectionStore: Readable<EditSessionProjectionSnapshot | null>;
 
     constructor(
         private readonly onCommit: (
             payload: EditSessionCommitPayload,
-        ) => boolean | void,
+        ) => Promise<boolean> | boolean | void,
         {
             projectionDelayMs = 150,
-            commitDelayMs = 600,
         }: {
             projectionDelayMs?: number;
-            commitDelayMs?: number;
         } = {},
     ) {
         this.projectionTimer = createTrailingTimer(projectionDelayMs);
-        this.commitTimer = createTrailingTimer(commitDelayMs);
         this.stateStore = {
             subscribe: this.state.subscribe,
         };
@@ -64,8 +60,8 @@ export class EditSessionService {
             return;
         }
         this.projectionTimer.cancel();
-        this.commitTimer.cancel();
         this.composing = false;
+        this.sessionVersion += 1;
         this.state.set({
             activeNodeId: nodeId,
             isInSidebar,
@@ -73,7 +69,6 @@ export class EditSessionService {
             projectionContent: initialContent,
             dirty: false,
             projectionRevision: current.projectionRevision,
-            commitRevision: current.commitRevision,
             lastCommittedContent: initialContent,
         });
     }
@@ -91,7 +86,6 @@ export class EditSessionService {
 
         if (!dirty) {
             this.projectionTimer.cancel();
-            this.commitTimer.cancel();
             this.state.update((state) => ({
                 ...state,
                 projectionContent: state.lastCommittedContent,
@@ -101,7 +95,6 @@ export class EditSessionService {
 
         if (!this.composing) {
             this.projectionTimer.schedule(() => this.flushProjection());
-            this.commitTimer.schedule(() => this.commit('idle'));
         }
     }
 
@@ -109,7 +102,6 @@ export class EditSessionService {
         if (this.composing === composing) return;
         this.composing = composing;
         this.projectionTimer.cancel();
-        this.commitTimer.cancel();
         if (!composing) {
             const current = get(this.state);
             if (current.activeNodeId && current.dirty)
@@ -118,30 +110,38 @@ export class EditSessionService {
     }
 
     requestSave() {
-        this.commit('save');
+        if (this.saving) return this.saving;
+        const draft = get(this.state);
+        if (!draft.activeNodeId || !draft.dirty) return Promise.resolve(true);
+        if (this.composing) return Promise.resolve(false);
+        const version = this.sessionVersion;
+        const saving = Promise.resolve(
+            this.onCommit({
+                nodeId: draft.activeNodeId,
+                content: draft.bufferContent,
+                previousContent: draft.lastCommittedContent,
+                isInSidebar: draft.isInSidebar,
+            }),
+        )
+            .then((accepted) => {
+                if (accepted === false || version !== this.sessionVersion)
+                    return false;
+                this.state.update((state) => ({
+                    ...state,
+                    lastCommittedContent: draft.bufferContent,
+                    dirty: state.bufferContent !== draft.bufferContent,
+                }));
+                return !get(this.state).dirty;
+            })
+            .finally(() => {
+                this.saving = null;
+            });
+        this.saving = saving;
+        return saving;
     }
 
-    requestBlurCommit() {
-        this.commit('blur');
-    }
-
-    switchNode(
-        nextNodeId: string,
-        isInSidebar: boolean,
-        initialContent: string,
-    ) {
-        const current = get(this.state);
-        if (
-            current.activeNodeId === nextNodeId &&
-            current.isInSidebar === isInSidebar
-        ) {
-            return;
-        }
-        if (current.activeNodeId && current.dirty) {
-            if (!this.commit('switch-node')) return false;
-        }
-        this.startSession(nextNodeId, isInSidebar, initialContent);
-        return true;
+    waitForSave() {
+        return this.saving ?? Promise.resolve(true);
     }
 
     flushProjection() {
@@ -155,70 +155,11 @@ export class EditSessionService {
         }));
     }
 
-    commit(reason: EditSessionCommitReason) {
-        const current = get(this.state);
-        if (!current.activeNodeId) {
-            this.projectionTimer.cancel();
-            this.commitTimer.cancel();
-            return true;
-        }
-
-        this.projectionTimer.flush();
-        this.commitTimer.cancel();
-        const latest = get(this.state);
-        if (!latest.dirty) return true;
-        const activeNodeId = latest.activeNodeId;
-        if (!activeNodeId) return true;
-
-        const accepted = this.onCommit({
-            nodeId: activeNodeId,
-            content: latest.bufferContent,
-            previousContent: latest.lastCommittedContent,
-            isInSidebar: latest.isInSidebar,
-            reason,
-            suppressRefocus: reason === 'blur',
-        });
-        if (accepted === false) return false;
-        this.state.update((state) => ({
-            ...state,
-            dirty: false,
-            projectionContent: state.bufferContent,
-            lastCommittedContent: state.bufferContent,
-            commitRevision: state.commitRevision + 1,
-        }));
-        return true;
-    }
-
-    cancel() {
-        const current = get(this.state);
+    endSession() {
         this.projectionTimer.cancel();
-        this.commitTimer.cancel();
-        if (!current.activeNodeId) return;
-        this.state.update((state) => ({
-            ...state,
-            bufferContent: state.lastCommittedContent,
-            projectionContent: state.lastCommittedContent,
-            dirty: false,
-        }));
-    }
-
-    endSession(reason: EditSessionCommitReason) {
         this.composing = false;
-        if (reason === 'disable-edit' || reason === 'unload') {
-            if (!this.commit(reason)) return false;
-        }
-        this.projectionTimer.cancel();
-        this.commitTimer.cancel();
-        this.state.update((state) => ({
-            ...state,
-            activeNodeId: null,
-            isInSidebar: false,
-            bufferContent: '',
-            projectionContent: '',
-            dirty: false,
-            lastCommittedContent: '',
-        }));
-        return true;
+        this.sessionVersion += 1;
+        this.state.set(createDefaultState());
     }
 
     getProjectionSnapshot() {

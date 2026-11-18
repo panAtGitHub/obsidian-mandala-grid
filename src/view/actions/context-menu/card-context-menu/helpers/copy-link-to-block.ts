@@ -1,7 +1,6 @@
 import { MandalaView } from 'src/view/view';
 import { insertBlockId } from 'src/view/actions/context-menu/card-context-menu/helpers/insert-block-id';
 import { Notice } from 'obsidian';
-import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { formatWikiLink } from 'src/view/actions/context-menu/card-context-menu/helpers/format-wiki-link';
 
 type CopyLinkToBlockOptions = {
@@ -25,15 +24,6 @@ export const copyLinkToBlock = async (
     const activeNode = isInSidebar
         ? viewState.pinnedNodes.activeNode
         : viewState.document.activeNode;
-
-    const isEditing = Boolean(viewState.document.editing.activeNodeId);
-    if (isEditing) {
-        saveNodeContent(view);
-        window.setTimeout(() => {
-            void copyLinkToBlock(view, isInSidebar, options);
-        }, 100);
-        return;
-    }
 
     const documentState = view.documentStore.getValue();
     const content = documentState.document.content[activeNode];

@@ -77,7 +77,8 @@ export const editCommands = () => {
                             view.documentStore.getValue().file.frontmatter,
                         anchorDate: view.mandalaWeekAnchorDate,
                         weekStart:
-                            view.getEffectiveMandalaSettings().general.weekStart,
+                            view.getEffectiveMandalaSettings().general
+                                .weekStart,
                     });
                     const section = weekContext.sectionForCell(
                         view.mandalaActiveCellNx9.row,
@@ -110,7 +111,8 @@ export const editCommands = () => {
                             ] ?? null,
                         activeCell: view.mandalaActiveCellNx9,
                         coreSectionMax:
-                            view.getEffectiveMandalaSettings().view.coreSectionMax,
+                            view.getEffectiveMandalaSettings().view
+                                .coreSectionMax,
                     });
                     const section = context.sectionForCell(
                         view.mandalaActiveCellNx9.row,
@@ -187,7 +189,7 @@ export const editCommands = () => {
         {
             name: 'save_changes_and_exit_card',
             callback: (view) => {
-                saveNodeContent(view);
+                void saveNodeContent(view);
             },
             hotkeys: [
                 {

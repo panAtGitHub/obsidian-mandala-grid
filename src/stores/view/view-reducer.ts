@@ -42,8 +42,7 @@ const syncSceneCellCachesFromFocusTarget = (state: ViewState) => {
               }
             : null;
     state.ui.mandala.sceneState.nx9.activeCell =
-        focusTarget?.kind === 'cell' &&
-        focusTarget.viewKind === 'nx9'
+        focusTarget?.kind === 'cell' && focusTarget.viewKind === 'nx9'
             ? {
                   row: focusTarget.row,
                   col: focusTarget.col,
@@ -261,11 +260,7 @@ const handlers: Record<string, ViewActionHandler> = {
         if (Platform.isMobile) return;
         if (action.context.activeSidebarTab === 'pinned-cards') {
             if (state.pinnedNodes.activeNode !== action.payload.id) {
-                setActivePinnedNode(
-                    state.document,
-                    state.pinnedNodes,
-                    action.payload.id,
-                );
+                setActivePinnedNode(state.pinnedNodes, action.payload.id);
             }
         }
         enableEditMode(state.document, action.payload.id, true);
@@ -273,10 +268,6 @@ const handlers: Record<string, ViewActionHandler> = {
             kind: 'node',
             nodeId: action.payload.id,
         });
-    },
-    'view/editor/disable/reset-confirmation': (state, action) => {
-        if (action.type !== 'view/editor/disable/reset-confirmation') return;
-        resetPendingConfirmation(state.document);
     },
     'view/delete-node/reset-confirmation': (state, action) => {
         if (action.type !== 'view/delete-node/reset-confirmation') return;
@@ -291,13 +282,6 @@ const handlers: Record<string, ViewActionHandler> = {
                 state.document.selectedNodes.size > 1
                     ? new Set(state.document.selectedNodes)
                     : new Set([action.payload.id]),
-        };
-    },
-    'view/editor/disable/confirm': (state, action) => {
-        if (action.type !== 'view/editor/disable/confirm') return;
-        state.document.pendingConfirmation = {
-            ...state.document.pendingConfirmation,
-            disableEdit: action.payload.id,
         };
     },
     'view/editor/disable-main-editor': (state, action) => {
@@ -335,11 +319,7 @@ const handlers: Record<string, ViewActionHandler> = {
     },
     'view/pinned-nodes/set-active-node': (state, action) => {
         if (action.type !== 'view/pinned-nodes/set-active-node') return;
-        setActivePinnedNode(
-            state.document,
-            state.pinnedNodes,
-            action.payload.id,
-        );
+        setActivePinnedNode(state.pinnedNodes, action.payload.id);
         setFocusTarget(state, {
             kind: 'node',
             nodeId: action.payload.id,

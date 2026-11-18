@@ -1,6 +1,5 @@
 import { Notice } from 'obsidian';
 import { MandalaView } from 'src/view/view';
-import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { formatWikiLink } from 'src/view/actions/context-menu/card-context-menu/helpers/format-wiki-link';
 
 const ATX_HEADING_PATTERN = /^(#{1,6})\s+(.+)$/;
@@ -42,16 +41,6 @@ export const copyLinkToHeading = async (
 ) => {
     const file = view.file;
     if (!file) return;
-
-    const viewState = view.viewStore.getValue();
-    const isEditing = Boolean(viewState.document.editing.activeNodeId);
-    if (isEditing) {
-        saveNodeContent(view);
-        window.setTimeout(() => {
-            void copyLinkToHeading(view, activeNode, options);
-        }, 100);
-        return;
-    }
 
     const text =
         view.documentStore.getValue().document.content[activeNode]?.content ??

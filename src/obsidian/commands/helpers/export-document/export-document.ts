@@ -3,7 +3,6 @@ import { openFile } from 'src/obsidian/events/workspace/effects/open-file';
 import { onPluginError } from 'src/shared/store/on-plugin-error';
 import { mapDocumentToText } from 'src/obsidian/commands/helpers/export-document/map-document-to-text';
 import { MandalaView } from 'src/view/view';
-import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 
 export const exportDocument = async (view: MandalaView) => {
     try {
@@ -11,15 +10,7 @@ export const exportDocument = async (view: MandalaView) => {
         if (!file) return;
         if (!file.parent) return;
 
-        const viewState = view.viewStore.getValue();
-        const isEditing = Boolean(viewState.document.editing.activeNodeId);
-        if (isEditing) {
-            saveNodeContent(view);
-            window.setTimeout(() => {
-                void exportDocument(view);
-            }, 100);
-            return;
-        }
+        await view.flushPendingSaves();
         const fileData = await view.plugin.app.vault.read(file);
         const output = mapDocumentToText(fileData);
         const newFile = await createNewFile(

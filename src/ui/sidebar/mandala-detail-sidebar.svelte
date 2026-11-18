@@ -109,10 +109,11 @@
 
     let editorContainer: HTMLElement;
 
-    $: isEditingInSidebar =
-        !Platform.isMobile &&
-        $editingState.activeNodeId === $activeNodeId &&
-        $editingState.isInSidebar;
+    $: editingSidebarNode =
+        !Platform.isMobile && $editingState.isInSidebar
+            ? $editingState.activeNodeId
+            : null;
+    $: sidebarNodeId = editingSidebarNode || $activeNodeId;
 
     const unsub = showSidebarStore.subscribe((show) => {
         // 在移动端正方形布局下，侧边栏主要通过 flex: 1 填充
@@ -216,15 +217,15 @@
     <div class="resizer" on:mousedown={onStartResize}></div>
     {#if shouldRenderSidebarContent}
         <div class="sidebar-content">
-            {#if $activeNodeId}
+            {#if sidebarNodeId}
                 <div class="editor-wrapper">
-                    {#key $activeNodeId}
-                        {#if isEditingInSidebar}
+                    {#key sidebarNodeId}
+                        {#if editingSidebarNode}
                             <div
                                 bind:this={editorContainer}
                                 class="sidebar-editor-container"
                             >
-                                <InlineEditor nodeId={$activeNodeId} />
+                                <InlineEditor nodeId={sidebarNodeId} />
                             </div>
                         {:else if $detailSidebarPreviewMode === 'source'}
                             <SourcePreview

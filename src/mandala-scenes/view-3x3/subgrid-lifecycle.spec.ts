@@ -124,9 +124,7 @@ describe('view-3x3/subgrid-lifecycle', () => {
 
         exitThreeByThreeSubgrid(view as never);
 
-        expect(mocks.unloadNode).toHaveBeenCalledWith('node-1-2-4', false);
         expect(viewDispatch.mock.calls).toEqual([
-            [{ type: 'view/editor/disable-main-editor' }],
             [
                 {
                     type: 'view/mandala/subgrid/enter',

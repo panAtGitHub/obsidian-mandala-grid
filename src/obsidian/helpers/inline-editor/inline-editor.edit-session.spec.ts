@@ -20,9 +20,6 @@ vi.mock(
 vi.mock('src/obsidian/helpers/inline-editor/helpers/lock-file', () => ({
     lockFile: vi.fn(),
 }));
-vi.mock('src/obsidian/helpers/inline-editor/helpers/unlock-file', () => ({
-    unlockFile: vi.fn(),
-}));
 
 import type { EditSessionCommitPayload } from 'src/view/edit-session/edit-session-types';
 import { EditSessionService } from 'src/view/edit-session/edit-session-service';
@@ -60,11 +57,9 @@ type InlineEditorTestView = {
     };
     editSession: {
         startSession: ReturnType<typeof vi.fn>;
-        switchNode: ReturnType<typeof vi.fn>;
         updateBuffer: ReturnType<typeof vi.fn>;
         setComposing: ReturnType<typeof vi.fn>;
         requestSave: ReturnType<typeof vi.fn>;
-        requestBlurCommit: ReturnType<typeof vi.fn>;
         endSession: ReturnType<typeof vi.fn>;
         cancel: ReturnType<typeof vi.fn>;
     };
@@ -105,11 +100,9 @@ const createTestView = (): InlineEditorTestView => ({
     },
     editSession: {
         startSession: vi.fn(),
-        switchNode: vi.fn(),
         updateBuffer: vi.fn(),
         setComposing: vi.fn(),
         requestSave: vi.fn(),
-        requestBlurCommit: vi.fn(),
         endSession: vi.fn(),
         cancel: vi.fn(),
     },
@@ -183,13 +176,13 @@ describe('inline-editor edit-session integration', () => {
         vi.unstubAllGlobals();
     });
 
-    it('routes save requests to editSession.requestSave without ending session', () => {
+    it('routes save requests to editSession.requestSave without ending session', async () => {
         const view = createTestView();
         const editor = new InlineEditor(view as never);
         attachEditorInternals(editor, 'saved');
         editor.nodeId = 'node-1';
 
-        editor.requestSave();
+        await editor.requestSave();
 
         expect(view.editSession.updateBuffer).toHaveBeenCalledWith('saved');
         expect(view.editSession.requestSave).toHaveBeenCalledTimes(1);
@@ -209,62 +202,30 @@ describe('inline-editor edit-session integration', () => {
         expect(view.editSession.requestSave).not.toHaveBeenCalled();
     });
 
-    it('merges a typing burst into one commit and flushes a later change on blur', () => {
-        const onCommit = vi.fn<[EditSessionCommitPayload], void>();
+    it('keeps typing local through a pause and saves only on request', async () => {
+        const onCommit = vi.fn<[EditSessionCommitPayload], boolean>(() => true);
         const service = new EditSessionService(onCommit);
-        const view = { ...createTestView(), editSession: service };
-        const editor = new InlineEditor(view as never);
+        const editor = new InlineEditor({
+            ...createTestView(),
+            editSession: service,
+        } as never);
         const api = attachEditorInternals(editor);
         editor.nodeId = 'node-1';
         service.startSession('node-1', false, '');
         const internals = editor as unknown as {
             handleRequestSave: () => void;
-            handleEditorFocusOut: (event: FocusEvent) => void;
-            target: MockElement;
         };
-        internals.target = createMockElement();
-        for (let i = 0; i < 10; i++) {
-            api.getValue.mockReturnValue(`input-${i}`);
-            internals.handleRequestSave();
-            vi.advanceTimersByTime(100);
-        }
-        expect(onCommit).not.toHaveBeenCalled();
-        vi.advanceTimersByTime(500);
-        expect(onCommit).toHaveBeenCalledTimes(1);
-        expect(onCommit.mock.calls[0][0].content).toBe('input-9');
-        api.getValue.mockReturnValue('last change');
+        api.getValue.mockReturnValue('draft');
         internals.handleRequestSave();
-        internals.handleEditorFocusOut({ relatedTarget: {} } as FocusEvent);
-        expect(onCommit).toHaveBeenCalledTimes(2);
-        expect(onCommit.mock.calls[1][0]).toMatchObject({
-            content: 'last change',
-            reason: 'blur',
-        });
-        service.endSession('unload');
+        vi.advanceTimersByTime(5000);
+        expect(onCommit).not.toHaveBeenCalled();
+        await expect(editor.requestSave()).resolves.toBe(true);
+        expect(onCommit).toHaveBeenCalledWith(
+            expect.objectContaining({ content: 'draft' }),
+        );
     });
 
-    it('commits on blur via requestBlurCommit and keeps session alive', () => {
-        const view = createTestView();
-        const editor = new InlineEditor(view as never);
-        attachEditorInternals(editor, 'blurred');
-        const target = createMockElement();
-        (editor as unknown as { target: MockElement | null }).target = target;
-        editor.nodeId = 'node-1';
-
-        (
-            editor as unknown as {
-                handleEditorFocusOut: (event: FocusEvent) => void;
-            }
-        ).handleEditorFocusOut({
-            relatedTarget: {},
-        } as FocusEvent);
-
-        expect(view.editSession.updateBuffer).toHaveBeenCalledWith('blurred');
-        expect(view.editSession.requestBlurCommit).toHaveBeenCalledTimes(1);
-        expect(editor.nodeId).toBe('node-1');
-    });
-
-    it('switches node through editSession.switchNode instead of disable-edit unload', () => {
+    it('switches node without submitting the old buffer', () => {
         const view = createTestView();
         const editor = new InlineEditor(view as never);
         attachEditorInternals(editor, 'before-switch', { line: 2, ch: 1 });
@@ -296,15 +257,13 @@ describe('inline-editor edit-session integration', () => {
 
         editor.loadNode(nextTarget as unknown as HTMLElement, 'node-2');
 
-        expect(view.editSession.updateBuffer).toHaveBeenCalledWith(
-            'before-switch',
-        );
-        expect(view.editSession.switchNode).toHaveBeenCalledWith(
+        expect(view.editSession.requestSave).not.toHaveBeenCalled();
+        expect(view.editSession.endSession).toHaveBeenCalledOnce();
+        expect(view.editSession.startSession).toHaveBeenCalledWith(
             'node-2',
             false,
             'next-content',
         );
-        expect(view.editSession.endSession).not.toHaveBeenCalled();
         expect(editor.nodeId).toBe('node-2');
     });
 
@@ -415,25 +374,14 @@ describe('inline-editor edit-session integration', () => {
         expect(editorApi.setCursor).toHaveBeenCalledWith({ line: 1, ch: 2 });
     });
 
-    it('cancels session on discard unload and commits unload reason otherwise', () => {
+    it('discards the draft when the editor unmounts without saving', () => {
         const view = createTestView();
         const editor = new InlineEditor(view as never);
         attachEditorInternals(editor, 'dirty');
-        const target = createMockElement();
-        (editor as unknown as { target: MockElement | null }).target = target;
-
         editor.nodeId = 'node-1';
-        editor.unloadNode(undefined, true);
-        expect(view.editSession.cancel).toHaveBeenCalledTimes(1);
-        expect(view.editSession.endSession).not.toHaveBeenCalled();
-
-        (editor as unknown as { target: MockElement | null }).target =
-            createMockElement();
-        editor.nodeId = 'node-1';
-        editor.unloadNodeWithReason(undefined, false, 'unload');
-
-        expect(view.editSession.updateBuffer).toHaveBeenCalledWith('dirty');
-        expect(view.editSession.endSession).toHaveBeenCalledWith('unload');
+        editor.unloadNode();
+        expect(view.editSession.endSession).toHaveBeenCalledOnce();
+        expect(view.editSession.requestSave).not.toHaveBeenCalled();
     });
 
     it('does not clear a newer workspace editor while detaching an old target', () => {
@@ -447,7 +395,7 @@ describe('inline-editor edit-session integration', () => {
         (editor as unknown as { target: MockElement | null }).target = target;
         editor.nodeId = 'node-1';
 
-        editor.unloadNode(undefined, true);
+        editor.unloadNode();
 
         expect(view.plugin.app.workspace.activeEditor).toBe(newerEditor);
         expect(view.plugin.app.workspace._activeEditor).toBe(newerEditor);
@@ -465,7 +413,7 @@ describe('inline-editor edit-session integration', () => {
         const target = createMockElement();
 
         editor.loadNode(target as unknown as HTMLElement, 'node-1');
-        editor.unloadNode(undefined, true);
+        editor.unloadNode();
         frame.current?.();
 
         expect(editorApi.focus).toHaveBeenCalledTimes(1);

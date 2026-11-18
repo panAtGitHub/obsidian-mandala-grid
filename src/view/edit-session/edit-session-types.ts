@@ -1,11 +1,3 @@
-export type EditSessionCommitReason =
-    | 'idle'
-    | 'save'
-    | 'blur'
-    | 'switch-node'
-    | 'unload'
-    | 'disable-edit';
-
 export type EditSessionProjectionSnapshot = {
     nodeId: string;
     content: string;
@@ -21,7 +13,6 @@ export type EditSessionState = {
     projectionContent: string;
     dirty: boolean;
     projectionRevision: number;
-    commitRevision: number;
     lastCommittedContent: string;
 };
 
@@ -30,6 +21,4 @@ export type EditSessionCommitPayload = {
     content: string;
     previousContent: string;
     isInSidebar: boolean;
-    reason: EditSessionCommitReason;
-    suppressRefocus: boolean;
 };

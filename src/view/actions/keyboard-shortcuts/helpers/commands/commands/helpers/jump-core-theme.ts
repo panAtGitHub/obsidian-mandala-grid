@@ -1,4 +1,5 @@
 import { Notice } from 'obsidian';
+import { resolveDraftExit } from 'src/view/edit-session/resolve-draft-exit';
 import {
     applyDayPlanToCore,
     resolveNextDayPlanDate,
@@ -14,7 +15,12 @@ export const jumpCoreTheme = (
 ) => {
     const startedAt = performance.now();
     if (!view.mandalaMode) return;
-    view.inlineEditor?.requestSave();
+    if (view.inlineEditor?.nodeId) {
+        void resolveDraftExit(view).then((ok) => {
+            if (ok) jumpCoreTheme(view, direction);
+        });
+        return;
+    }
 
     const docState = view.documentStore.getValue();
     if (!docState.meta.isMandala) return;

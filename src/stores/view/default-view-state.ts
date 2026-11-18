@@ -65,7 +65,6 @@ export const defaultViewState = (
         selectedNodes: new Set<string>(),
         selectedNodesStamp: '',
         pendingConfirmation: {
-            disableEdit: null,
             deleteNode: new Set<string>(),
         },
     },

@@ -1,4 +1,5 @@
 import { MandalaView, type SaveDocumentOptions } from 'src/view/view';
+import { closeNodeEditor } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { setActiveNode } from 'src/stores/view/subscriptions/actions/set-active-node';
@@ -24,6 +25,9 @@ const createSaveOptions = (
             mode: 'content-only',
             changedSections: sectionId ? [sectionId] : [],
             recoveryEdits: [action.payload],
+            ...(action.context.alreadyPersisted
+                ? { alreadyPersisted: true }
+                : {}),
         };
     }
     if (action.type === 'document/update-multiple-node-content') {
@@ -75,8 +79,10 @@ export const onDocumentStateUpdate = (
     if (type === 'document/file/load-from-disk') {
         // needed when the file was modified externally
         // to prevent saving a node with an obsolete node-id
-        view.preserveActiveEditorBeforeReload?.();
-        view.inlineEditor.unloadNode(undefined, true);
+        void view.preserveActiveEditorBeforeReload?.();
+        if (viewStore.getValue().document.editing?.activeNodeId)
+            closeNodeEditor(view);
+        else view.inlineEditor.unloadNode();
         loadPinnedNodesToDocument(view);
     }
 

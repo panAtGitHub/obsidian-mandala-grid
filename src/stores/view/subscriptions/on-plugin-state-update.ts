@@ -1,6 +1,5 @@
 import { MandalaView } from 'src/view/view';
 import { PluginStoreActions } from 'src/stores/plugin/plugin-store-actions';
-import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { focusContainer } from 'src/stores/view/subscriptions/effects/focus-container';
 
 export const onPluginStateUpdate = (
@@ -9,9 +8,6 @@ export const onPluginStateUpdate = (
 ) => {
     if (!view.container) return;
     if (action.type === 'plugin/echo/workspace/active-leaf-change') {
-        if (view.viewStore.getValue().document.editing.activeNodeId) {
-            saveNodeContent(view);
-        }
         if (view.isActive && view.isViewOfFile) {
             view.ensureCompatibleMandalaMode();
         }

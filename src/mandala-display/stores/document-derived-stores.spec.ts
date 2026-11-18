@@ -65,7 +65,7 @@ describe('document-derived-stores contentStore', () => {
         unsubscribe();
     });
 
-    it('falls back to committed content once the draft is committed', () => {
+    it('falls back to committed content once the draft is committed', async () => {
         const documentStore = new Store(
             {
                 document: {
@@ -95,7 +95,7 @@ describe('document-derived-stores contentStore', () => {
 
         editSession.startSession('node-1', false, 'hello');
         editSession.updateBuffer('hello world');
-        vi.advanceTimersByTime(600);
+        await editSession.requestSave();
 
         expect(values.at(-1)).toBe('hello world');
         expect(editSession.getProjectionSnapshot()).toBe(null);

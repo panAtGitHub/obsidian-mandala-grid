@@ -1,194 +1,87 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { EditSessionService } from 'src/view/edit-session/edit-session-service';
+import { EditSessionService } from './edit-session-service';
 
-describe('edit-session-service', () => {
+describe('desktop edit session', () => {
     beforeEach(() => {
         vi.useFakeTimers();
     });
-
-    it('keeps typing local until the projection debounce elapses', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', true, 'hello');
-        service.updateBuffer('hello world');
-
-        expect(get(service.projectionStore)).toEqual({
-            nodeId: 'node-1',
-            content: 'hello',
-            revision: 0,
-        });
-        vi.advanceTimersByTime(150);
-
-        expect(get(service.projectionStore)).toEqual({
-            nodeId: 'node-1',
-            content: 'hello world',
-            revision: 1,
-        });
-        expect(onCommit).not.toHaveBeenCalled();
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
-    it('commits after the idle debounce', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.updateBuffer('hello world');
-        vi.advanceTimersByTime(600);
-
-        expect(onCommit).toHaveBeenCalledWith({
-            nodeId: 'node-1',
-            content: 'hello world',
-            previousContent: 'hello',
-            isInSidebar: false,
-            reason: 'idle',
-            suppressRefocus: false,
-        });
-        expect(get(service.projectionStore)).toBe(null);
+    it('projects typing locally without committing, even after a pause', () => {
+        const commit = vi.fn();
+        const session = new EditSessionService(commit);
+        session.startSession('one', false, 'before');
+        session.updateBuffer('draft');
+        expect(get(session.projectionStore)?.content).toBe('before');
+        vi.advanceTimersByTime(5000);
+        expect(get(session.projectionStore)?.content).toBe('draft');
+        expect(commit).not.toHaveBeenCalled();
+        session.endSession();
+        expect(get(session.projectionStore)).toBeNull();
+        expect(commit).not.toHaveBeenCalled();
     });
 
-    it('waits for IME composition to finish before projecting or committing', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-        service.startSession('node-1', false, '');
-        service.setComposing(true);
-        service.updateBuffer('拼');
+    it('projects composed text and saves only on an explicit request', async () => {
+        const commit = vi.fn(() => true);
+        const session = new EditSessionService(commit);
+        session.startSession('one', true, '');
+        session.setComposing(true);
+        session.updateBuffer('拼');
         vi.advanceTimersByTime(1000);
-        expect(onCommit).not.toHaveBeenCalled();
-        expect(get(service.stateStore).projectionContent).toBe('');
-        service.updateBuffer('拼音');
-        service.setComposing(false);
-        vi.advanceTimersByTime(600);
-        expect(onCommit).toHaveBeenCalledTimes(1);
-        expect(onCommit).toHaveBeenCalledWith(
-            expect.objectContaining({ content: '拼音', reason: 'idle' }),
-        );
-    });
-
-    it('commits immediately when save is requested explicitly', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', true, 'hello');
-        service.updateBuffer('hello world');
-        service.requestSave();
-
-        expect(onCommit).toHaveBeenCalledWith({
-            nodeId: 'node-1',
-            content: 'hello world',
-            previousContent: 'hello',
+        expect(get(session.projectionStore)?.content).toBe('');
+        await expect(session.requestSave()).resolves.toBe(false);
+        session.updateBuffer('拼音');
+        session.setComposing(false);
+        await expect(session.requestSave()).resolves.toBe(true);
+        expect(commit).toHaveBeenCalledOnce();
+        expect(commit).toHaveBeenCalledWith({
+            nodeId: 'one',
+            previousContent: '',
+            content: '拼音',
             isInSidebar: true,
-            reason: 'save',
-            suppressRefocus: false,
         });
+        expect(get(session.stateStore).dirty).toBe(false);
     });
 
-    it('keeps the buffer dirty when the document rejects a conflicting edit', () => {
-        const onCommit = vi.fn(() => false);
-        const service = new EditSessionService(onCommit);
-        service.startSession('node-1', false, 'original');
-        service.updateBuffer('my edit');
-        service.requestSave();
-        expect(get(service.stateStore)).toMatchObject({
+    it('keeps a rejected draft and its original baseline for retry', async () => {
+        const commit = vi.fn(() => false);
+        const session = new EditSessionService(commit);
+        session.startSession('one', false, 'before');
+        session.updateBuffer('draft');
+        await expect(session.requestSave()).resolves.toBe(false);
+        expect(get(session.stateStore)).toMatchObject({
+            activeNodeId: 'one',
             dirty: true,
-            bufferContent: 'my edit',
-            lastCommittedContent: 'original',
+            bufferContent: 'draft',
+            lastCommittedContent: 'before',
         });
-        expect(service.switchNode('node-2', false, 'next')).toBe(false);
-        expect(service.endSession('unload')).toBe(false);
-        expect(get(service.stateStore)).toMatchObject({
-            activeNodeId: 'node-1',
-            bufferContent: 'my edit',
+    });
+
+    it('keeps newer typing and shares the in-flight save result', async () => {
+        let finish!: (value: boolean) => void;
+        const commit = vi.fn(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    finish = resolve;
+                }),
+        );
+        const session = new EditSessionService(commit);
+        session.startSession('one', false, 'before');
+        session.updateBuffer('sent');
+        const saving = session.requestSave();
+        expect(session.requestSave()).toBe(saving);
+        session.updateBuffer('newer draft');
+        finish(true);
+        await expect(saving).resolves.toBe(false);
+        expect(get(session.stateStore)).toMatchObject({
+            activeNodeId: 'one',
             dirty: true,
+            lastCommittedContent: 'sent',
+            bufferContent: 'newer draft',
         });
-    });
-
-    it('commits immediately on blur and keeps session active', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.updateBuffer('hello world');
-        service.requestBlurCommit();
-
-        expect(onCommit).toHaveBeenCalledWith({
-            nodeId: 'node-1',
-            content: 'hello world',
-            previousContent: 'hello',
-            isInSidebar: false,
-            reason: 'blur',
-            suppressRefocus: true,
-        });
-        expect(get(service.stateStore).activeNodeId).toBe('node-1');
-    });
-
-    it('commits old node and starts new session on switchNode', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.updateBuffer('hello world');
-        service.switchNode('node-2', true, 'next');
-
-        expect(onCommit).toHaveBeenCalledWith({
-            nodeId: 'node-1',
-            content: 'hello world',
-            previousContent: 'hello',
-            isInSidebar: false,
-            reason: 'switch-node',
-            suppressRefocus: false,
-        });
-        expect(get(service.stateStore).activeNodeId).toBe('node-2');
-        expect(get(service.stateStore).isInSidebar).toBe(true);
-        expect(get(service.stateStore).bufferContent).toBe('next');
-    });
-
-    it('drops dirty changes on cancel', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.updateBuffer('hello world');
-        service.cancel();
-
-        expect(get(service.stateStore).bufferContent).toBe('hello');
-        expect(get(service.projectionStore)).toBe(null);
-        expect(onCommit).not.toHaveBeenCalled();
-    });
-
-    it('ends the session and clears the active node', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.updateBuffer('hello world');
-        service.endSession('disable-edit');
-
-        expect(onCommit).toHaveBeenCalledTimes(1);
-        expect(get(service.stateStore).activeNodeId).toBe(null);
-        expect(get(service.projectionStore)).toBe(null);
-    });
-
-    it('does not dispatch commit when endSession called on clean state', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.endSession('disable-edit');
-
-        expect(onCommit).not.toHaveBeenCalled();
-    });
-
-    it('does not dispatch when commit is called repeatedly after clean commit', () => {
-        const onCommit = vi.fn();
-        const service = new EditSessionService(onCommit);
-
-        service.startSession('node-1', false, 'hello');
-        service.updateBuffer('hello world');
-        service.commit('save');
-        service.commit('save');
-
-        expect(onCommit).toHaveBeenCalledTimes(1);
+        expect(commit).toHaveBeenCalledTimes(1);
     });
 });

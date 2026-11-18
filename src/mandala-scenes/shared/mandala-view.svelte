@@ -30,13 +30,18 @@
     import { SectionColorBySectionStore } from 'src/mandala-display/stores/section-colors-store';
     import { PinnedSectionsSnapshotStore } from 'src/mandala-display/stores/document-derived-stores';
     import { selectedNodesSnapshotStore } from 'src/stores/view/derived/selected-nodes-store';
-    import { getMandalaActiveCellNx9, getMandalaWeekAnchorDate } from 'src/mandala-scenes/shared/scene-runtime';
+    import {
+        getMandalaActiveCellNx9,
+        getMandalaWeekAnchorDate,
+    } from 'src/mandala-scenes/shared/scene-runtime';
     import RootShell from 'src/mandala-scenes/shared/root-shell.svelte';
     import { createSceneRootController } from 'src/mandala-scenes/shared/root-controller';
     import { mobilePopupFontSizeStore } from 'src/stores/ui/mobile-popup-font-store';
 
     const view = getView();
     const layout = createLayoutStore();
+    import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
+
     const search = searchStore(view);
     const rootController = createSceneRootController(view);
     const DEFAULT_THEME_SNAPSHOT: MandalaThemeSnapshot = {
@@ -104,12 +109,7 @@
     let sceneProjection: ReturnType<typeof rootController.resolveProjection>;
 
     const handleSave = () => {
-        if ($editingState.activeNodeId) {
-            view.inlineEditor.requestSave();
-            view.viewStore.dispatch({
-                type: 'view/editor/disable-main-editor',
-            });
-        }
+        void saveNodeContent(view);
     };
 
     const handleIncreaseFontSize = () => {

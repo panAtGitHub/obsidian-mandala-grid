@@ -5,7 +5,6 @@ import {
 } from 'src/obsidian/context-menu/render-context-menu';
 import { lang } from 'src/lang/lang';
 import { exportDocument } from 'src/obsidian/commands/helpers/export-document/export-document';
-import { saveNodeContent } from 'src/view/actions/keyboard-shortcuts/helpers/commands/commands/helpers/save-node-content';
 import { hasNHeadings } from 'src/shared/lib/format-detection/has-n-headings';
 import { ejectDocument } from 'src/obsidian/commands/helpers/export-document/eject-document';
 import { createCoreJumpMenuItems } from 'src/view/actions/context-menu/helpers/create-core-jump-menu-items';
@@ -29,7 +28,6 @@ export const showViewContextMenu = (
             title: lang.cm_format_headings,
             icon: 'heading-1',
             action: () => {
-                saveNodeContent(view);
                 view.ensureFullHydrated?.('format-headings');
                 view.documentStore.dispatch({
                     type: 'document/format-headings',

@@ -86,10 +86,23 @@ describe('view working-set transitions', () => {
         vi.useRealTimers();
     });
 
-    it('backs up a conflicting active editor without replacing the other view edit', async () => {
-        const write = vi.fn(async (_path: string, _content: string) => {});
+    it('keeps edit drafts out of flush and publishes only a confirmed write', async () => {
+        const file = Object.assign(new TFile(), { path: 'note.md' });
+        let disk = '<!--section: 1-->original\n<!--section: 2-->other';
+        const process = vi.fn(
+            async (_file: TFile, transform: (data: string) => string) => {
+                disk = transform(disk);
+                return disk;
+            },
+        );
         Object.assign(TextFileView.prototype, {
-            app: { scope: {}, vault: { adapter: { write } } },
+            app: {
+                scope: {},
+                vault: {
+                    getAbstractFileByPath: () => file,
+                    process,
+                },
+            },
         });
         const view = new MandalaView(new WorkspaceLeaf(), {
             settings: { getValue: DEFAULT_SETTINGS },
@@ -97,53 +110,43 @@ describe('view working-set transitions', () => {
         const state = defaultDocumentState();
         state.sections.section_id['1'] = 'node';
         state.sections.id_section.node = '1';
-        state.document.content.node = { content: 'original' };
-        Object.assign(view, {
-            file: { path: 'note.md' },
-            data: '<!--section: 1-->original',
-            documentStore: { getValue: () => state, dispatch: vi.fn() },
-        });
-        view.editSession.startSession('node', false, 'original');
-        view.editSession.updateBuffer('my edit');
-        state.document.content.node.content = 'other edit';
-        view.editSession.requestSave();
-        await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
-        const backup: unknown = JSON.parse(write.mock.calls[0][1]);
-        expect(backup).toMatchObject({
-            file: 'note.md',
-            section: '1',
-            before: 'original',
-            content: 'my edit',
-        });
-        expect(state.document.content.node.content).toBe('other edit');
-        expect(get(view.editSession.stateStore).dirty).toBe(true);
-    });
-
-    it('commits the active editor before flushing pending saves', async () => {
-        Object.assign(TextFileView.prototype, {
-            app: { scope: {}, vault: { adapter: { write: vi.fn() } } },
-        });
-        const view = new MandalaView(new WorkspaceLeaf(), {
-            settings: { getValue: DEFAULT_SETTINGS },
-        } as never);
-        const state = defaultDocumentState();
-        state.sections.section_id['1'] = 'node';
-        state.sections.id_section.node = '1';
-        state.document.content.node = { content: 'original' };
         const dispatch = vi.fn();
         Object.assign(view, {
-            file: { path: 'note.md' },
+            file,
             inlineEditor: { nodeId: 'node', getContent: () => 'unfinished' },
             documentStore: { getValue: () => state, dispatch },
         });
         view.editSession.startSession('node', false, 'original');
+        view.editSession.updateBuffer('draft');
         await view.flushPendingSaves();
+        expect(process).not.toHaveBeenCalled();
+        expect(dispatch).not.toHaveBeenCalled();
+        disk = disk.replace('other', 'external change in another section');
+        await expect(view.editSession.requestSave()).resolves.toBe(true);
+        expect(disk).toBe(
+            '<!--section: 1-->\ndraft\n<!--section: 2-->external change in another section',
+        );
         expect(dispatch).toHaveBeenCalledWith(
             expect.objectContaining({
                 type: 'document/update-node-content',
-                payload: { nodeId: 'node', content: 'unfinished' },
+                payload: { nodeId: 'node', content: 'draft' },
+                context: {
+                    alreadyPersisted: true,
+                    isInSidebar: false,
+                    suppressRefocus: true,
+                },
             }),
         );
+        disk = disk.replace('draft', 'conflicting change');
+        view.editSession.updateBuffer('another draft');
+        dispatch.mockClear();
+        await expect(view.editSession.requestSave()).resolves.toBe(false);
+        expect(get(view.editSession.stateStore)).toMatchObject({
+            dirty: true,
+            bufferContent: 'another draft',
+        });
+        expect(disk).toContain('conflicting change');
+        expect(dispatch).not.toHaveBeenCalled();
     });
 
     it('backs up an active uncommitted editor before an external reload', async () => {
@@ -166,7 +169,7 @@ describe('view working-set transitions', () => {
             view as unknown as { sourceRuntime: MandalaSourceRuntime }
         ).sourceRuntime.getNodeId('1')!;
         view.editSession.startSession(node, false, 'original');
-        view.preserveActiveEditorBeforeReload();
+        await view.preserveActiveEditorBeforeReload();
         await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
         expect(JSON.parse(write.mock.calls[0][1])).toMatchObject({
             file: 'note.md',
@@ -403,6 +406,7 @@ describe('view working-set transitions', () => {
                             mode: 'content-only',
                             changedSections: [section],
                             recoveryEdits: [action.payload],
+                            alreadyPersisted: action.context.alreadyPersisted,
                         });
                     }
                 },
@@ -452,8 +456,8 @@ describe('view working-set transitions', () => {
         );
         first.editSession.updateBuffer('first edit');
         second.editSession.updateBuffer('second edit');
-        first.editSession.requestSave();
-        second.editSession.requestSave();
+        await first.editSession.requestSave();
+        await second.editSession.requestSave();
         await first.flushPendingSaves();
         await second.flushPendingSaves();
         expect(disk).toContain('first edit');
@@ -465,22 +469,13 @@ describe('view working-set transitions', () => {
         second.editSession.startSession(node, false, 'three');
         first.editSession.updateBuffer('first on three');
         second.editSession.updateBuffer('second on three');
-        first.editSession.requestSave();
-        second.editSession.requestSave();
-        await vi.waitFor(() => expect(write).toHaveBeenCalled());
+        await first.editSession.requestSave();
+        await second.editSession.requestSave();
         await first.flushPendingSaves();
         await second.flushPendingSaves();
         expect(disk).toContain('first on three');
         expect(disk).not.toContain('second on three');
-        const copies = write.mock.calls.map((call): unknown =>
-            JSON.parse(call[1]),
-        );
-        expect(copies).toContainEqual(
-            expect.objectContaining({
-                section: '3',
-                content: 'second on three',
-            }),
-        );
+        expect(get(second.editSession.stateStore).dirty).toBe(true);
 
         process.mockRejectedValueOnce(new Error('temporary disk error'));
         store.dispatch({
