@@ -121,6 +121,13 @@ describe('PersistSnapshotQueue', () => {
             [edit('old', 'first')],
             [edit('other', 'second')],
         ]);
+        onError.mockClear();
+        queue.queueSections('a.md', [edit('second', 'new draft')]);
+        await expect(queue.flush('a.md')).rejects.toThrow('conflict');
+        await expect(queue.flush('a.md')).rejects.toThrow('conflict');
+        expect(onError.mock.calls.map(([args]) => args.edits)).toEqual([
+            [edit('second', 'new draft')],
+        ]);
     });
 
     it('retries failed edits without blocking other files', async () => {

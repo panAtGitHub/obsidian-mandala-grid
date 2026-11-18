@@ -28,6 +28,7 @@ export class PersistSnapshotQueue {
     private readonly pendingSnapshots = new Map<string, PendingSave[]>();
     private readonly timers = new Map<string, number>();
     private readonly inflightFlushes = new Map<string, Promise<void>>();
+    private readonly reportedFailures = new WeakSet<PendingSave>();
 
     constructor(private readonly options: PersistSnapshotQueueOptions) {}
 
@@ -45,6 +46,7 @@ export class PersistSnapshotQueue {
         const canMerge =
             last?.kind === 'sections' &&
             !this.inflightFlushes.has(path) &&
+            !this.reportedFailures.has(last) &&
             edits.every((edit) => {
                 const previous = last.edits.find(
                     (item) => item.sectionId === edit.sectionId,
@@ -109,6 +111,8 @@ export class PersistSnapshotQueue {
                     } catch (error) {
                         if (this.options.onError) {
                             for (const unsaved of pending) {
+                                if (this.reportedFailures.has(unsaved))
+                                    continue;
                                 await this.options.onError({
                                     path,
                                     data:
@@ -121,6 +125,7 @@ export class PersistSnapshotQueue {
                                             : undefined,
                                     error,
                                 });
+                                this.reportedFailures.add(unsaved);
                             }
                         }
                         throw error;

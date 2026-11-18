@@ -337,15 +337,15 @@ describe('view working-set transitions', () => {
         let disk = original;
         const file = Object.assign(new TFile(), { path: 'note.md' });
         const write = vi.fn(async (_path: string, _content: string) => {});
-        const vault = {
-            getAbstractFileByPath: () => file,
-            process: async (
-                _file: TFile,
-                update: (current: string) => string,
-            ) => {
+        const process = vi.fn(
+            async (_file: TFile, update: (current: string) => string) => {
                 disk = update(disk);
                 return disk;
             },
+        );
+        const vault = {
+            getAbstractFileByPath: () => file,
+            process,
             adapter: { write },
         };
         Object.assign(TextFileView.prototype, { app: { scope: {}, vault } });
@@ -369,11 +369,19 @@ describe('view working-set transitions', () => {
                 documentStore: store,
                 sourceRuntime: new MandalaSourceRuntime(original),
                 fullHydrated: true,
+                container: {},
                 workingSetCooldown: { schedule: vi.fn(), cancel: vi.fn() },
                 recordPerfEvent: vi.fn(),
             });
             store.subscribe((document, action?: DocumentStoreAction) => {
-                if (action?.type === 'document/update-node-content') {
+                if (action?.type === 'document/mandala/ensure-children') {
+                    view.saveDocument({
+                        mode: 'structural',
+                        structuralMutation:
+                            document.meta.mandalaV2.lastStructuralMutation ??
+                            undefined,
+                    });
+                } else if (action?.type === 'document/update-node-content') {
                     const section =
                         document.sections.id_section[action.payload.nodeId];
                     view.saveDocument({
@@ -383,10 +391,31 @@ describe('view working-set transitions', () => {
                     });
                 }
             });
+            (
+                view as unknown as { joinDocumentViews(): void }
+            ).joinDocumentViews();
             return view;
         };
         const first = makeView();
         const second = makeView();
+        store.dispatch({
+            type: 'document/mandala/ensure-children',
+            payload: { parentNodeId: state.sections.section_id['1'] },
+        });
+        store.dispatch({
+            type: 'document/update-node-content',
+            payload: {
+                nodeId: store.getValue().sections.section_id['1.1'],
+                content: 'Generated title',
+            },
+            context: { isInSidebar: false },
+        });
+        await second.flushPendingSaves();
+        await first.flushPendingSaves();
+        expect(disk).toContain('Generated title');
+        expect(process).toHaveBeenCalledTimes(2);
+        expect(write).not.toHaveBeenCalled();
+
         first.editSession.startSession(
             state.sections.section_id['1'],
             false,

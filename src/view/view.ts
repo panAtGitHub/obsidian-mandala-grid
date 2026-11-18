@@ -1371,7 +1371,7 @@ export class MandalaView extends TextFileView {
             this.lastLoadedBody = parsed.body;
             this.lastLoadedFrontmatter = parsed.frontmatter;
             const persistPath = this.activeFilePath ?? this.file?.path ?? null;
-            if (persistPath) {
+            if (persistPath && this.getSaveOwner() === this) {
                 if (mode === 'content-only') {
                     this.queueSectionEdits(persistPath, sectionEdits);
                 } else {
@@ -1441,6 +1441,14 @@ export class MandalaView extends TextFileView {
 
     private hasSharedViews() {
         return (viewsByDocumentStore.get(this.documentStore)?.size ?? 0) > 1;
+    }
+
+    private getSaveOwner() {
+        // Every pane receives the same document action. Only one queues it.
+        for (const peer of viewsByDocumentStore.get(this.documentStore) ?? []) {
+            if (peer.container) return peer;
+        }
+        return this;
     }
 
     private leaveDocumentViews() {
@@ -1901,6 +1909,8 @@ export class MandalaView extends TextFileView {
                 throw new Error('当前 section 存在冲突，无法保存');
             }
         }
+        const owner = this.getSaveOwner();
+        if (owner !== this) await owner.flushAllPendingPersistSnapshots();
         await this.flushAllPendingPersistSnapshots();
     }
 
