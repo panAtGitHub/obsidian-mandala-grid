@@ -1230,13 +1230,8 @@ export class MandalaView extends TextFileView {
             return;
         }
         let body = '';
-        let usedFastPath = false;
-        const prepareMs = 0;
+        let contentPatched = false;
         let patchMs = 0;
-        const serializeMs = 0;
-        const droppedSectionCount = 0;
-        const prunedParentCount = 0;
-        const blockedParentCount = 0;
 
         let sectionEdits: SectionContentEdit[] = [];
         if (mode === 'content-only' && changedSections.length > 0) {
@@ -1272,7 +1267,7 @@ export class MandalaView extends TextFileView {
                 )
                     throw new Error('无法安全更新 section');
                 body = result.source;
-                usedFastPath = true;
+                contentPatched = true;
                 this.lastSaveBlockedNoticeKey = null;
                 this.recordPerfEvent('document.source-patch', {
                     changed_section_count: result.changedSections.length,
@@ -1293,7 +1288,7 @@ export class MandalaView extends TextFileView {
             patchMs += Number((performance.now() - patchStartedMs).toFixed(2));
         }
 
-        if (mode === 'content-only' && !usedFastPath) {
+        if (mode === 'content-only' && !contentPatched) {
             this.preserveBlockedState(state, options.recoveryEdits);
             const message = tx(
                 '保存已中止：无法安全更新指定 section，请保留当前编辑。',
@@ -1306,7 +1301,7 @@ export class MandalaView extends TextFileView {
             return;
         }
 
-        if (!usedFastPath && mode === 'structural') {
+        if (mode === 'structural') {
             const patchStartedMs = performance.now();
             try {
                 if (!this.sourceRuntime || !options.structuralMutation) {
@@ -1321,7 +1316,6 @@ export class MandalaView extends TextFileView {
                     state,
                     options.structuralMutation,
                 );
-                usedFastPath = true;
             } catch (error) {
                 this.preserveBlockedState(state);
                 logger.warn(
@@ -1342,13 +1336,7 @@ export class MandalaView extends TextFileView {
         const savePerfPayload = {
             file: this.file.path,
             mode,
-            used_fast_path: usedFastPath,
-            save_prepare_ms: prepareMs,
             save_patch_ms: patchMs,
-            save_serialize_ms: serializeMs,
-            save_dropped_sections: droppedSectionCount,
-            save_pruned_parents: prunedParentCount,
-            save_blocked_count: blockedParentCount,
             save_total_ms: Number(
                 (performance.now() - saveStartedMs).toFixed(2),
             ),

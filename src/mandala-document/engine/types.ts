@@ -1,4 +1,7 @@
-import { Column, Content } from 'src/mandala-document/state/document-state-type';
+import {
+    Column,
+    Content,
+} from 'src/mandala-document/state/document-state-type';
 
 export type MandalaSectionId = string;
 
@@ -31,24 +34,16 @@ export type MandalaSectionValidationError = {
 export type MandalaDocumentV2 = {
     columns: Column[];
     content: Content;
-    contentBySection: Record<MandalaSectionId, string>;
     sectionToNode: Record<MandalaSectionId, string>;
     nodeToSection: Record<string, MandalaSectionId>;
-    parentToChildrenSlots: Record<MandalaSectionId, Partial<Record<number, MandalaSectionId>>>;
+    parentToChildrenSlots: Record<
+        MandalaSectionId,
+        Partial<Record<number, MandalaSectionId>>
+    >;
     orderedSections: MandalaSectionId[];
     rootGroupId: string;
 };
 
 export type BuildMandalaDocumentV2Props = {
     sections: ParsedMandalaSection[];
-};
-
-export type MandalaEngineV2 = {
-    parse: (markdown: string) => ParsedMandalaSections;
-    validate: (sections: ParsedMandalaSection[]) => MandalaSectionValidationError[];
-    buildState: (props: BuildMandalaDocumentV2Props) => MandalaDocumentV2;
-    serialize: (sections: {
-        sectionId: MandalaSectionId;
-        content: string;
-    }[]) => string;
 };

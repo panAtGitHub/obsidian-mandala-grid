@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { prepareSaveSections } from 'src/mandala-document/engine/prepare-save-sections';
+import { serializeSections } from 'src/mandala-document/engine/serialize-sections';
+import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-document-runtime';
+import { reconcileStructuralMutation } from 'src/mandala-document/runtime/reconcile-structural-mutation';
 import { defaultDocumentState } from 'src/mandala-document/state/default-document-state';
 import { documentReducer } from 'src/mandala-document/state/document-reducer';
 
@@ -271,6 +273,15 @@ describe('document/mandala/clear-empty-subgrids', () => {
             n2: { content: 'Keep' },
         };
 
+        const source = serializeSections(
+            Object.entries(state.sections.section_id).map(
+                ([sectionId, node]) => ({
+                    sectionId,
+                    content: state.document.content[node].content,
+                }),
+            ),
+        );
+
         documentReducer(state, {
             type: 'document/mandala/clear-empty-subgrids',
             payload: {
@@ -280,18 +291,19 @@ describe('document/mandala/clear-empty-subgrids', () => {
             },
         });
 
-        const prepared = prepareSaveSections(state.document, state.sections);
+        const runtime = new MandalaSourceRuntime(source);
+        reconcileStructuralMutation(
+            runtime,
+            state,
+            state.meta.mandalaV2.lastStructuralMutation!,
+        );
 
         expect(state.sections.section_id['1.2.1']).toBeUndefined();
         expect(state.sections.section_id['1.2.8']).toBeUndefined();
         expect(state.sections.section_id['1.2']).toBe('n12');
         expect(state.document.content.n121).toBeUndefined();
         expect(state.document.columns[2]?.groups).toEqual([]);
-        expect(prepared.sections.map((section) => section.sectionId)).toEqual([
-            '1',
-            '1.2',
-            '2',
-        ]);
+        expect(runtime.index.sourceOrderedIds).toEqual(['1', '1.2', '2']);
     });
 
     it('repairs missing child section mappings for an already materialized subgrid', () => {

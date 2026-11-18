@@ -1,7 +1,5 @@
-import {
-    compareSectionIds,
-    serializeSections,
-} from 'src/mandala-document/engine/serialize-sections';
+import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
+import { serializeSections } from 'src/mandala-document/engine/serialize-sections';
 import {
     MandalaGridDocument,
     Sections,
@@ -21,8 +19,13 @@ export const mapBranchesToText = (
     const selectedSections = getSortedUniqueSectionsFromNodes(sections, nodes);
     const rootSections = collapseToRootSections(selectedSections);
     if (rootSections.length === 0) return '';
-    const orderedSections = Object.keys(sections.section_id).sort(compareSectionIds);
-    const subtreeSections = collectSubtreeSections(orderedSections, rootSections);
+    const orderedSections = Object.keys(sections.section_id).sort(
+        compareSectionIds,
+    );
+    const subtreeSections = collectSubtreeSections(
+        orderedSections,
+        rootSections,
+    );
 
     const serializableSections = subtreeSections.map((sectionId) => {
         const nodeId = sections.section_id[sectionId];
@@ -43,7 +46,9 @@ export const mapBranchesToText = (
         return serializeSections(serializableSections);
     }
     if (format === 'unformatted-text') {
-        return serializableSections.map((section) => section.content).join('\n\n');
+        return serializableSections
+            .map((section) => section.content)
+            .join('\n\n');
     }
     throw new Error('Invalid format');
 };

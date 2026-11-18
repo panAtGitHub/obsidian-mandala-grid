@@ -2,7 +2,7 @@ import {
     MandalaGridDocument,
     Sections,
 } from 'src/mandala-document/state/document-state-type';
-import { compareSectionIds } from 'src/mandala-document/engine/serialize-sections';
+import { compareSectionIds } from 'src/mandala-document/engine/section-utils';
 import {
     collectSubtreeSections,
     collapseToRootSections,
@@ -28,12 +28,20 @@ export const getSearchResultsFromDocument = (
     document: MandalaGridDocument,
     sections: Sections,
 ) => {
-    const selectedSections = getSortedUniqueSectionsFromNodes(sections, results);
+    const selectedSections = getSortedUniqueSectionsFromNodes(
+        sections,
+        results,
+    );
     const rootSections = collapseToRootSections(selectedSections);
     if (rootSections.length === 0) return '';
 
-    const orderedSections = Object.keys(sections.section_id).sort(compareSectionIds);
-    const subtreeSections = collectSubtreeSections(orderedSections, rootSections);
+    const orderedSections = Object.keys(sections.section_id).sort(
+        compareSectionIds,
+    );
+    const subtreeSections = collectSubtreeSections(
+        orderedSections,
+        rootSections,
+    );
 
     const isSingleNodeWithoutSubtree =
         rootSections.length === 1 &&

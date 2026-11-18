@@ -120,7 +120,6 @@ export const buildMandalaDocumentV2 = (
 ): MandalaDocumentV2 => {
     const parsed = toParsedParts(props.sections);
     const content: MandalaDocumentV2['content'] = {};
-    const contentBySection: MandalaDocumentV2['contentBySection'] = {};
     const sectionToNode: Record<string, string> = {};
     const nodeToSection: Record<string, string> = {};
     const parentToChildrenSlots: Record<
@@ -142,7 +141,6 @@ export const buildMandalaDocumentV2 = (
         content[nodeId] = {
             content: section.content,
         };
-        contentBySection[section.id] = section.content;
 
         if (parentSection) {
             if (!parentToChildrenSlots[parentSection]) {
@@ -163,7 +161,6 @@ export const buildMandalaDocumentV2 = (
     return {
         columns,
         content,
-        contentBySection,
         sectionToNode,
         nodeToSection,
         parentToChildrenSlots,

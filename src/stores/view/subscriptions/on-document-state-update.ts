@@ -1,4 +1,4 @@
-import { MandalaView } from 'src/view/view';
+import { MandalaView, type SaveDocumentOptions } from 'src/view/view';
 import { DocumentStoreAction } from 'src/mandala-document/state/document-store-actions';
 import { getDocumentEventType } from 'src/stores/view/helpers/get-document-event-type';
 import { setActiveNode } from 'src/stores/view/subscriptions/actions/set-active-node';
@@ -11,19 +11,11 @@ import { loadPinnedNodesToDocument } from 'src/stores/view/subscriptions/actions
 import { updateSearchResults } from 'src/stores/view/subscriptions/actions/update-search-results';
 import { isStructuralDocumentChange } from 'src/stores/view/subscriptions/helpers/is-structural-document-change';
 import { syncSwapSideEffects } from 'src/stores/view/subscriptions/effects/document-sync/sync-swap-side-effects';
-import type { StructuralMutation } from 'src/mandala-document/runtime/reconcile-structural-mutation';
-
-type SaveOptions = {
-    mode: 'content-only' | 'structural';
-    changedSections?: string[];
-    structuralMutation?: StructuralMutation;
-    recoveryEdits?: Array<{ nodeId: string; content: string }>;
-} | null;
 
 const createSaveOptions = (
     view: MandalaView,
     action: DocumentStoreAction,
-): SaveOptions => {
+): SaveDocumentOptions | null => {
     const documentState = view.documentStore.getValue();
     if (action.type === 'document/update-node-content') {
         const sectionId =
@@ -49,36 +41,15 @@ const createSaveOptions = (
     }
     if (action.type === 'document/mandala/swap') {
         const mutation = documentState.meta.mandalaV2.lastMutation;
-        if (mutation?.actionType === action.type) {
-            if (!mutation.structural && mutation.changedSections.length === 0) {
+        if (mutation?.actionType === action.type && !mutation.structural) {
+            if (mutation.changedSections.length === 0) {
                 return null;
             }
-            return mutation.structural
-                ? {
-                      mode: 'structural',
-                      structuralMutation:
-                          documentState.meta.mandalaV2.lastStructuralMutation ??
-                          undefined,
-                  }
-                : {
-                      mode: 'content-only',
-                      changedSections: mutation.changedSections,
-                  };
+            return {
+                mode: 'content-only',
+                changedSections: mutation.changedSections,
+            };
         }
-        return {
-            mode: 'structural',
-            structuralMutation:
-                documentState.meta.mandalaV2.lastStructuralMutation ??
-                undefined,
-        };
-    }
-    if (action.type === 'document/format-headings') {
-        return {
-            mode: 'structural',
-            structuralMutation:
-                documentState.meta.mandalaV2.lastStructuralMutation ??
-                undefined,
-        };
     }
     return {
         mode: 'structural',
