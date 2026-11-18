@@ -1436,17 +1436,20 @@ export class MandalaView extends TextFileView {
         // The live view includes edits that may still be waiting to reach disk.
         this.data = existing.data;
         const { body, frontmatter } = extractFrontmatter(this.data);
-        this.sourceRuntime = new MandalaSourceRuntime(body);
+        const runtime =
+            existing.sourceRuntime?.source === body
+                ? existing.sourceRuntime
+                : new MandalaSourceRuntime(body);
         this.lastLoadedBody = body;
         this.lastLoadedFrontmatter = frontmatter;
         for (const peer of peers) {
+            peer.sourceRuntime = runtime;
             peer.fullHydrated = true;
             peer.workingSetCooldown.cancel();
         }
         if (!projectedDocumentStores.has(this.documentStore)) return;
 
         const state = this.documentStore.getValue();
-        const runtime = this.sourceRuntime;
         const workingSet = runtime.materialize(
             runtime.index.canonicalOrderedIds,
         );
@@ -1644,7 +1647,7 @@ export class MandalaView extends TextFileView {
                 ) ?? []) {
                     if (peer === this) continue;
                     peer.data = this.data;
-                    peer.sourceRuntime = new MandalaSourceRuntime(body);
+                    peer.sourceRuntime = this.sourceRuntime;
                     peer.lastLoadedBody = body;
                     peer.lastLoadedFrontmatter = frontmatter;
                     peer.fullHydrated = true;

@@ -73,6 +73,7 @@ const createHost = () => {
         | 'materializeSections'
     > & {
         fullHydrated: boolean;
+        sourceRuntime: MandalaSourceRuntime;
         coolToWorkingSet: () => boolean;
         joinDocumentViews: () => void;
         leaveDocumentViews: () => void;
@@ -590,8 +591,10 @@ describe('view working-set transitions', () => {
             context: { isInSidebar: false },
         });
         first.viewState.document.editing.activeNodeId = editedNode;
+        second.viewState.ui.mandala.subgridTheme = '2';
 
         second.view.joinDocumentViews();
+        expect(second.view.sourceRuntime).toBe(first.runtime);
         const full = shared.getValue();
         expect(Object.keys(full.sections.section_id)).toHaveLength(4);
         expect(full.sections.section_id['1.1']).toBe(editedNode);
@@ -612,6 +615,7 @@ describe('view working-set transitions', () => {
                 sectionLookup: host.view.getSectionLookup(),
                 allowSubgridExpansion: false,
             });
+            expect(host.viewState.ui.mandala.subgridTheme).toBe(theme);
             expect(host.view.materializeSections([theme])).toBe(false);
             expect(host.view.coolToWorkingSet()).toBe(true);
             expect(host.view.isWorkingSetProjection).toBe(false);
@@ -624,6 +628,40 @@ describe('view working-set transitions', () => {
         expect(first.view.coolToWorkingSet()).toBe(true);
         expect(first.view.isWorkingSetProjection).toBe(true);
     });
+    it('reuses one rebuilt source index across panes after a disk reload', () => {
+        Object.assign(TextFileView.prototype, { app: { scope: {} } });
+        const first = createHost();
+        const shared = new Store(first.getState(), documentReducer);
+        first.view.documentStore = shared;
+        first.view.joinDocumentViews();
+        const second = new MandalaView(new WorkspaceLeaf(), {
+            app: { workspace: { getActiveViewOfType: () => null } },
+            settings: { getValue: DEFAULT_SETTINGS },
+        } as never);
+        const internals = second as unknown as {
+            joinDocumentViews(): void;
+            loadDocumentToStore(): void;
+            sourceRuntime: MandalaSourceRuntime;
+        };
+        Object.assign(second, {
+            documentStore: shared,
+            restoreMandalaUiState: vi.fn(),
+            scheduleFirstRenderProbe: vi.fn(),
+            recordPerfEvent: vi.fn(),
+        });
+        internals.joinDocumentViews();
+        const updated = first.runtime.source.replace('other', 'from disk');
+        Object.assign(second, { data: updated });
+
+        internals.loadDocumentToStore();
+
+        expect(internals.sourceRuntime).not.toBe(first.runtime);
+        expect(first.view.sourceRuntime).toBe(internals.sourceRuntime);
+        expect(first.view.sourceRuntime.getContent('2')?.trim()).toBe(
+            'from disk',
+        );
+    });
+
     it('refreshes the same working set after an external content change', () => {
         const host = createHost();
         host.view.materializeWorkingSet('1');
