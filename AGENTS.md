@@ -6,6 +6,12 @@ TypeScript + Svelte 的 Obsidian 插件。
 -   单元测试：Vitest（`src/**/*.spec.ts`）
 -   路径别名：`src/*`（见 `tsconfig.json` 与 `vite.config.mjs`）
 
+## 设计约定
+
+阅读、审查或修改代码前，先读 [使用场景与数据规则](docs/design-guide.md)，
+尤其是涉及格子编辑、Markdown 写入、模板和多窗格时。用文档中的实际工作流判断
+行为是否符合设计。文档未覆盖的场景，先与维护者确认预期。
+
 ## 包管理器
 
 -   使用 **npm**（仓库中有 `package-lock.json`）
