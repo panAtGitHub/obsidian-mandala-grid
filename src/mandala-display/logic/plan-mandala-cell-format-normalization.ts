@@ -7,7 +7,11 @@ import {
 } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 import type { SectionRangeLimit } from 'src/mandala-settings/state/settings-type';
 import { readDayPlanConfiguration } from 'src/mandala-display/logic/day-plan';
-import { normalizeMandalaCellFormatContent } from 'src/mandala-display/logic/normalize-mandala-cell-format';
+import { getDayPlanTitlePrefix } from 'src/mandala-display/logic/day-plan-body';
+import {
+    normalizeDayPlanBody,
+    normalizeMandalaCellFormatContent,
+} from 'src/mandala-display/logic/normalize-mandala-cell-format';
 
 export type MandalaCellFormatNormalizationEdit = {
     sectionId: string;
@@ -28,6 +32,7 @@ const hasHeading = (content: string) =>
 const stableConfig = (config: MandalaCellFormatConfig) =>
     JSON.stringify({
         enabled: config.enabled,
+        dayPlanBody: config.dayPlanBody,
         levels: Object.fromEntries(
             Object.entries(config.levels).sort(
                 ([a], [b]) => Number(a) - Number(b),
@@ -52,7 +57,8 @@ export const planMandalaCellFormatNormalization = (
         throw new Error('无法安全识别文件中的 section');
     }
 
-    const dayPlan = !!readDayPlanConfiguration(frontmatter).config;
+    const { config: dayPlan, error } = readDayPlanConfiguration(frontmatter);
+    if (error) throw new Error(error);
     const edits: MandalaCellFormatNormalizationEdit[] = [];
     let skippedCount = 0;
     let removedHeadingCount = 0;
@@ -61,15 +67,22 @@ export const planMandalaCellFormatNormalization = (
         const content = runtime.getContent(sectionId);
         if (content === null) continue;
         const depth = parseSectionParts(sectionId).length;
-        if (dayPlan && depth === 1) continue;
+        if (dayPlan && !dayPlan.enabled) continue;
         const rule = getMandalaCellFormatRule(config, depth, maxDepth);
-        const result = normalizeMandalaCellFormatContent(content, rule);
+        const result = dayPlan
+            ? normalizeDayPlanBody(
+                  content,
+                  getDayPlanTitlePrefix(dayPlan, sectionId, content),
+                  config.dayPlanBody ??
+                      getMandalaCellFormatRule(config, 2).body,
+              )
+            : normalizeMandalaCellFormatContent(content, rule);
         if (result.skipped) {
             skippedCount += 1;
             continue;
         }
         if (!result.changed) continue;
-        if (rule.heading === 'none' && hasHeading(content)) {
+        if (!dayPlan && rule.heading === 'none' && hasHeading(content)) {
             removedHeadingCount += 1;
         }
         edits.push({

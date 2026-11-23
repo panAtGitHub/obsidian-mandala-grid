@@ -7,9 +7,39 @@ import {
     removeMandalaCellFormat,
     readMandalaCellFormat,
     writeMandalaCellFormat,
+    writeDayPlanBodyFormat,
 } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 
 describe('mandala cell format frontmatter', () => {
+    it('reads daily body preferences without rewriting the old layer rules', () => {
+        const yaml =
+            'mandala_cell_format:\n  enabled: true\n  levels: {"2": {heading: 4, body: ordered-list}}';
+        expect(readMandalaCellFormat(yaml, true).config.dayPlanBody).toBe(
+            'ordered-list',
+        );
+        expect(
+            readMandalaCellFormat(yaml + '\n  dayPlanBody: paragraph', true)
+                .config.dayPlanBody,
+        ).toBe('paragraph');
+        expect(readMandalaCellFormat('', true).config.enabled).toBe(false);
+        expect(
+            readMandalaCellFormat(yaml + '\n  dayPlanBody: invalid', true)
+                .valid,
+        ).toBe(false);
+        const record = {
+            mandala_cell_format: {
+                levels: { '2': { heading: 4 } },
+                extra: 'keep',
+            },
+        };
+        writeDayPlanBodyFormat(record, 'paragraph');
+        expect(record.mandala_cell_format).toEqual({
+            levels: { '2': { heading: 4 } },
+            extra: 'keep',
+            enabled: true,
+            dayPlanBody: 'paragraph',
+        });
+    });
     it('uses the first three levels and a shared deeper rule by default', () => {
         const config = createDefaultMandalaCellFormat();
 

@@ -1,8 +1,104 @@
 import { describe, expect, it } from 'vitest';
 import {
+    resolveFileEditorPlacement,
     resolveNodeEditorCommitContent,
     resolveNodeEditorInitialPlacement,
 } from 'src/mandala-interaction/helpers/resolve-node-editor-initial-placement';
+
+describe('daily body drafts', () => {
+    const frontmatter = [
+        'mandala_day_plan:',
+        '  enabled: true',
+        '  year: 2026',
+        '  slots: {"1": 阅读}',
+        'mandala_cell_format:',
+        '  enabled: true',
+    ].join('\n');
+    const open = (section: string, content: string, yaml: string) =>
+        resolveFileEditorPlacement(
+            { content, isDayPlanScene: false },
+            yaml,
+            section,
+            () => 2,
+        );
+
+    it.each([
+        ['paragraph', ''],
+        ['unordered-list', '- '],
+        ['ordered-list', '1. '],
+    ])('opens and commits all three kinds of cell as %s', (body, marker) => {
+        for (const [section, heading] of [
+            ['1', '## 2026-01-01 周四'],
+            ['1.1', '### 阅读'],
+            ['1.8', ''],
+        ]) {
+            const draft = open(
+                section,
+                heading,
+                frontmatter + '\n  dayPlanBody: ' + body,
+            );
+            const prefix = heading ? heading + '\n' : '';
+            expect(draft.content).toBe(prefix + marker);
+            expect(draft.cursor).toEqual({
+                line: heading ? 1 : 0,
+                ch: marker.length,
+            });
+            const commit = (currentContent: string) =>
+                resolveNodeEditorCommitContent({
+                    currentContent,
+                    originalContent: heading,
+                    preparedContent: draft.content,
+                    generatedCellFormat: draft.generatedCellFormat,
+                });
+            expect(commit(draft.content)).toBe(heading);
+            expect(commit(draft.content + '\n')).toBe(heading);
+            expect(commit(draft.content + '读书')).toBe(
+                prefix + marker + '读书',
+            );
+            expect(commit(prefix + '手写段落')).toBe(prefix + '手写段落');
+        }
+    });
+
+    it('preserves the exact heading and trailing whitespace on a no-op edit', () => {
+        const content = '\r\n  ### 阅读  \r\n\r\n';
+        const draft = open('1.1', content, frontmatter);
+        expect(draft.content).toBe('\r\n  ### 阅读  \r\n- \r\n');
+        expect(
+            resolveNodeEditorCommitContent({
+                originalContent: content,
+                currentContent: draft.content.replace(/\r/g, ''),
+                preparedContent: draft.content,
+                generatedCellFormat: draft.generatedCellFormat,
+            }),
+        ).toBe(content);
+    });
+
+    it.each([
+        ['1', '## 2026-01-02'],
+        ['1.1', '### 旧模板'],
+        ['1.8', '### 自定义'],
+        ['1.1', '### 阅读\n- [ ] 一章'],
+        ['1.8', '- '],
+        ['366', ''],
+        ['1.9', ''],
+        ['1.2.1', ''],
+    ])(
+        'leaves existing or unrecognised content alone (%s %s)',
+        (section, content) => {
+            expect(open(section, content, frontmatter).content).toBe(content);
+        },
+    );
+
+    it('does not seed a paused or malformed day plan or an invalid format', () => {
+        for (const yaml of [
+            frontmatter.replace('true', 'false'),
+            frontmatter.replace('2026', 'broken'),
+            frontmatter + '\n  dayPlanBody: invalid',
+        ]) {
+            expect(open('1.8', '', yaml).content).toBe('');
+        }
+    });
+});
 
 describe('resolveNodeEditorInitialPlacement', () => {
     it('prepares a heading and unordered-list prefix for an empty cell', () => {

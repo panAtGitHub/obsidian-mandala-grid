@@ -26,6 +26,7 @@ import {
     createDefaultMandalaCellFormat,
     readMandalaCellFormat,
     removeMandalaCellFormat,
+    writeDayPlanBodyFormat,
     writeMandalaCellFormat,
     type MandalaCellFormatConfig,
 } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
@@ -62,8 +63,10 @@ type LocalFileSettings = EffectiveMandalaSettings & {
 
 const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
     const effective = view.getEffectiveMandalaSettings();
+    const frontmatter = view.documentStore.getValue().file.frontmatter;
     const parsedCellFormat = readMandalaCellFormat(
-        view.documentStore.getValue().file.frontmatter,
+        frontmatter,
+        !!readDayPlanConfiguration(frontmatter).config,
     );
     return {
         view: {
@@ -83,11 +86,7 @@ const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
                 effective.general.dayPlanDateHeadingCustomTemplate,
         },
         cellFormat: parsedCellFormat.present
-            ? {
-                  enabled: parsedCellFormat.config.enabled,
-                  levels: { ...parsedCellFormat.config.levels },
-                  deeper: { ...parsedCellFormat.config.deeper },
-              }
+            ? parsedCellFormat.config
             : createDefaultMandalaCellFormat(
                   effective.view.subgridMaxDepth,
                   false,
@@ -106,6 +105,7 @@ export const openCurrentFileMandalaSettingsModal = (view: MandalaView) => {
 class CurrentFileMandalaSettingsModal extends Modal {
     private state: LocalFileSettings;
     private readonly targetFile: MandalaView['file'];
+    private readonly initialGeneral: LocalFileSettings['general'];
     private readonly initialViewSettings: LocalFileSettings['view'];
     private readonly initialCellFormatMaxDepth: EffectiveMandalaSettings['view']['subgridMaxDepth'];
     private dismissedTemplateMismatchCore: string | null = null;
@@ -120,6 +120,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
         super(view.plugin.app);
         this.state = createInitialLocalState(view);
         this.targetFile = view.file;
+        this.initialGeneral = { ...this.state.general };
         this.initialViewSettings = { ...this.state.view };
         this.initialCellFormatMaxDepth = this.state.view.subgridMaxDepth;
     }
@@ -161,9 +162,18 @@ class CurrentFileMandalaSettingsModal extends Modal {
 
     private hasUnsavedCellFormatScopeChanges() {
         return (
+            this.dayPlanSettingsChanged() ||
             this.state.cellFormatDirty ||
             this.state.view.subgridMaxDepth !== this.initialCellFormatMaxDepth
         );
+    }
+
+    private dayPlanSettingsChanged() {
+        return (
+            Object.keys(
+                this.initialGeneral,
+            ) as (keyof LocalFileSettings['general'])[]
+        ).some((key) => this.state.general[key] !== this.initialGeneral[key]);
     }
 
     private hasViewSettingsChanges() {
@@ -186,6 +196,13 @@ class CurrentFileMandalaSettingsModal extends Modal {
         const dayPlan = readDayPlanConfiguration(
             this.view.documentStore.getValue().file.frontmatter,
         );
+        if (dayPlan.error) {
+            contentEl.createDiv({
+                cls: 'mandala-cell-format-settings__warning',
+                text: dayPlan.error,
+            });
+            return;
+        }
         const isDayPlanDedicated = !!dayPlan.config;
         const templateMismatch = isDayPlanDedicated
             ? getCurrentCoreDayPlanTemplateMismatch(this.view)
@@ -430,6 +447,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
         });
 
         renderMandalaCellFormatSettings({
+            dayPlan: isDayPlanDedicated,
             parentEl: contentEl,
             state: {
                 config: this.state.cellFormat,
@@ -452,10 +470,14 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     .addButton((button) =>
                         button
                             .setButtonText(
-                                lang.settings_cell_format_normalize_button,
+                                isDayPlanDedicated
+                                    ? tx('统一已有记录的正文格式…')
+                                    : lang.settings_cell_format_normalize_button,
                             )
                             .setDisabled(
-                                !this.state.cellFormatPresent ||
+                                (isDayPlanDedicated &&
+                                    !this.state.general.dayPlanEnabled) ||
+                                    !this.state.cellFormatPresent ||
                                     !this.state.cellFormatValid ||
                                     !this.state.cellFormat.enabled ||
                                     this.hasUnsavedCellFormatScopeChanges(),
@@ -518,6 +540,27 @@ class CurrentFileMandalaSettingsModal extends Modal {
             const originalMarkdown = await this.view.app.vault.read(
                 this.view.file,
             );
+            const previewFrontmatter =
+                extractFrontmatter(originalMarkdown).frontmatter;
+            const previewDayPlan = readDayPlanConfiguration(previewFrontmatter);
+            const previewFormat = readMandalaCellFormat(
+                previewFrontmatter,
+                !!previewDayPlan.config,
+            );
+            if (
+                previewDayPlan.error ||
+                previewDayPlan.config?.enabled === false ||
+                !previewFormat.valid ||
+                !isSameMandalaCellFormatConfig(
+                    previewFormat.config,
+                    this.state.cellFormat,
+                )
+            ) {
+                new Notice(
+                    tx('文件内容或书写预设已变化，请重新预览后再统一格式。'),
+                );
+                return;
+            }
             const plan = planMandalaCellFormatNormalization(
                 originalMarkdown,
                 this.state.cellFormat,
@@ -560,7 +603,12 @@ class CurrentFileMandalaSettingsModal extends Modal {
             await this.view.app.vault.process(this.view.file, (latest) => {
                 const latestFrontmatter =
                     extractFrontmatter(latest).frontmatter;
-                const latestParsed = readMandalaCellFormat(latestFrontmatter);
+                const latestDayPlan =
+                    readDayPlanConfiguration(latestFrontmatter);
+                const latestParsed = readMandalaCellFormat(
+                    latestFrontmatter,
+                    !!latestDayPlan.config,
+                );
                 const latestSettings = resolveEffectiveMandalaSettings(
                     this.view.plugin.settings.getValue(),
                     latestFrontmatter,
@@ -569,6 +617,9 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     extractFrontmatter(latest).body,
                 );
                 if (
+                    latestDayPlan.error ||
+                    JSON.stringify(latestDayPlan.config) !==
+                        JSON.stringify(previewDayPlan.config) ||
                     !latestParsed.valid ||
                     !latestParsed.config.enabled ||
                     !isSameMandalaCellFormatConfig(
@@ -652,7 +703,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                         subgridMaxDepth: this.state.view.subgridMaxDepth,
                     },
                 };
-                if (isDayPlanDedicated) {
+                if (isDayPlanDedicated && this.dayPlanSettingsChanged()) {
                     const current = readDayPlanConfigurationFromRecord(record);
                     if (!current.config || current.error)
                         throw new Error(
@@ -675,7 +726,17 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 }
                 if (this.state.cellFormatDirty) {
                     if (this.state.cellFormat.enabled) {
-                        writeMandalaCellFormat(record, this.state.cellFormat);
+                        if (isDayPlanDedicated)
+                            writeDayPlanBodyFormat(
+                                record,
+                                this.state.cellFormat.dayPlanBody ??
+                                    'unordered-list',
+                            );
+                        else
+                            writeMandalaCellFormat(
+                                record,
+                                this.state.cellFormat,
+                            );
                     } else {
                         removeMandalaCellFormat(record);
                     }
@@ -690,7 +751,14 @@ class CurrentFileMandalaSettingsModal extends Modal {
         updateFrontmatter(this.view, frontmatter);
         this.view.ensureCompatibleMandalaMode(frontmatter);
 
-        if (isDayPlanDedicated && this.state.general.dayPlanEnabled) {
+        const general = this.state.general;
+        const dateFormatChanged =
+            general.dayPlanDateHeadingFormat !==
+                this.initialGeneral.dayPlanDateHeadingFormat ||
+            (general.dayPlanDateHeadingFormat === 'custom' &&
+                general.dayPlanDateHeadingCustomTemplate !==
+                    this.initialGeneral.dayPlanDateHeadingCustomTemplate);
+        if (isDayPlanDedicated && general.dayPlanEnabled && dateFormatChanged) {
             await refreshCurrentDayPlanDateHeadings(this.view.plugin, {
                 notify: false,
                 file: this.view.file,

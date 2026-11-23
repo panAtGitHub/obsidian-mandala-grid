@@ -19,7 +19,8 @@ import {
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import {
     buildNewFileMandalaCellFormat,
-    writeMandalaCellFormat,
+    writeDayPlanBodyFormat,
+    getMandalaCellFormatRule,
 } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 import {
     allSlotsFilled,
@@ -168,13 +169,11 @@ const createYearPlanBodyAsync = async (
         for (const section of children) {
             lines.push(`<!--section: ${section}-->`);
             const previous = existingSections.get(section)?.join('\n') ?? '';
+            const slot = slots[Number(section.split('.')[1]) - 1];
             lines.push(
-                previous.trim()
+                previous.trim() || !slot?.trim()
                     ? previous
-                    : upsertSlotHeading(
-                          '',
-                          slots[Number(section.split('.')[1]) - 1] ?? '',
-                      ),
+                    : upsertSlotHeading('', slot),
             );
             existingSections.delete(section);
         }
@@ -458,11 +457,17 @@ export const setupDayPlanMandalaFormat = async (
                 subgridMaxDepth: 2,
             },
         };
-        const cellFormat = buildNewFileMandalaCellFormat(
-            plugin.settings.getValue(),
-            2,
-        );
-        if (cellFormat) writeMandalaCellFormat(record, cellFormat);
+        if (firstRun) {
+            const cellFormat = buildNewFileMandalaCellFormat(
+                plugin.settings.getValue(),
+                2,
+            );
+            if (cellFormat)
+                writeDayPlanBodyFormat(
+                    record,
+                    getMandalaCellFormatRule(cellFormat, 2).body,
+                );
+        }
         writeDayPlanConfiguration(
             record,
             withDayPlanDisplaySettings(

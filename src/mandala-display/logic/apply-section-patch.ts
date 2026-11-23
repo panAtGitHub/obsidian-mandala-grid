@@ -37,7 +37,11 @@ export const getSectionContentBySection = (
     const range = findSectionRange(markdown, section);
     if (!range) return null;
     const lines = markdown.split('\n');
-    return lines.slice(range.markerLine + 1, range.nextMarkerLine).join('\n');
+    const marker = lines[range.markerLine];
+    const inline = marker.slice(marker.indexOf('-->') + 3);
+    const body = lines.slice(range.markerLine + 1, range.nextMarkerLine);
+    if (inline.trim()) body.unshift(inline);
+    return body.join('\n');
 };
 
 export const applySectionPatch = (
@@ -51,14 +55,18 @@ export const applySectionPatch = (
     const lines = markdown.split('\n');
     const replacementLines =
         replacement.length > 0 ? replacement.split('\n') : [];
+    const marker = lines[range.markerLine];
+    const end = marker.indexOf('-->') + 3;
+    const inline = !!marker.slice(end).trim();
     const patched = [
-        ...lines.slice(0, range.markerLine + 1),
-        ...replacementLines,
+        ...lines.slice(0, range.markerLine),
+        inline ? marker.slice(0, end) + (replacementLines[0] ?? '') : marker,
+        ...(inline ? replacementLines.slice(1) : replacementLines),
         ...lines.slice(range.nextMarkerLine),
     ];
     const lineForJump =
         replacementLines.length > 0
-            ? range.markerLine + replacementLines.length
+            ? range.markerLine + replacementLines.length - Number(inline)
             : range.markerLine;
 
     return {

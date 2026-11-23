@@ -5,7 +5,8 @@ import { setViewType } from 'src/mandala-settings/state/actions/set-view-type';
 import { MANDALA_VIEW_TYPE, type MandalaView } from 'src/view/view';
 import {
     resolveNodeEditorCommitContent,
-    resolveNodeEditorInitialPlacement,
+    resolveFileEditorPlacement,
+    type NodeEditorInitialPlacement,
 } from 'src/mandala-interaction/helpers/resolve-node-editor-initial-placement';
 import {
     applySectionPatch,
@@ -16,11 +17,6 @@ import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-docume
 import { patchSectionContents } from 'src/mandala-document/runtime/patch-section-contents';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { id } from 'src/shared/helpers/id';
-import {
-    getMandalaCellFormatRule,
-    readMandalaCellFormat,
-} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
-import { parseSectionParts } from 'src/mandala-document/engine/section-utils';
 
 type SectionEditSession = {
     tempFilePath: string;
@@ -29,10 +25,7 @@ type SectionEditSession = {
     originalContent: string;
     originalSourceContent: string;
     preparedContent: string;
-    generatedCellFormat?: {
-        headingPrefix: string | null;
-        bodyPrefix: string | null;
-    };
+    generatedCellFormat?: NodeEditorInitialPlacement['generatedCellFormat'];
     bodyAnchorLine: number | null;
     cursorKey: string;
 };
@@ -90,7 +83,9 @@ const removeSessionFolderIfEmpty = async (view: MandalaView) => {
 };
 
 const getSectionByNodeId = (view: MandalaView, nodeId: string): string | null =>
-    view.documentStore.getValue().sections.id_section[nodeId] ?? null;
+    view.getSectionLookup?.().getSectionId(nodeId) ??
+    view.documentStore.getValue().sections.id_section[nodeId] ??
+    null;
 
 const getFileByPath = (view: MandalaView, path: string): TFile | null => {
     const file = view.app.vault.getAbstractFileByPath(path);
@@ -488,28 +483,18 @@ export const startSectionNativeEditorSession = async (
         const safeSection = String(section).replace(/\./g, '-');
         const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}-${id.view()}.md`;
         const isDayPlanScene = view.getMandalaSceneKey().variant === 'day-plan';
-        const parsedCellFormat = readMandalaCellFormat(
+        const initialPlacement = resolveFileEditorPlacement(
+            {
+                content: sectionContent,
+                isDayPlanScene,
+                historyCursor: cursorBySectionKey.get(
+                    getSectionCursorKey(sourceFile.path, section),
+                ),
+            },
             extractFrontmatter(sourceMarkdown).frontmatter,
+            section,
+            () => view.getEffectiveMandalaSettings().view.subgridMaxDepth,
         );
-        const cellFormat =
-            !isDayPlanScene || parseSectionParts(section).length !== 1
-                ? parsedCellFormat.valid && parsedCellFormat.config.enabled
-                    ? getMandalaCellFormatRule(
-                          parsedCellFormat.config,
-                          parseSectionParts(section).length,
-                          view.getEffectiveMandalaSettings().view
-                              .subgridMaxDepth,
-                      )
-                    : undefined
-                : undefined;
-        const initialPlacement = resolveNodeEditorInitialPlacement({
-            content: sectionContent,
-            isDayPlanScene,
-            historyCursor: cursorBySectionKey.get(
-                getSectionCursorKey(sourceFile.path, section),
-            ),
-            cellFormat,
-        });
         const nativeContent = prepareNativeEditorContent(
             initialPlacement.content,
             initialPlacement.cursor,

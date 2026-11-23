@@ -1,3 +1,11 @@
+import { readDayPlanConfiguration } from 'src/mandala-display/logic/day-plan';
+import { getDayPlanTitlePrefix } from 'src/mandala-display/logic/day-plan-body';
+import {
+    getMandalaCellFormatRule,
+    readMandalaCellFormat,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
+import type { SectionRangeLimit } from 'src/mandala-settings/state/settings-type';
+
 export type NodeEditorCursorPosition = {
     line: number;
     ch: number;
@@ -9,6 +17,7 @@ export type NodeEditorInitialPlacement = {
     generatedCellFormat?: {
         headingPrefix: string | null;
         bodyPrefix: string | null;
+        dayPlanBodyLine?: number;
     };
 };
 
@@ -197,6 +206,49 @@ export const resolveNodeEditorInitialPlacement = ({
     };
 };
 
+export const resolveFileEditorPlacement = (
+    options: Parameters<typeof resolveNodeEditorInitialPlacement>[0],
+    frontmatter: string,
+    section: string | undefined,
+    maxDepth: () => SectionRangeLimit,
+) => {
+    const original = () => resolveNodeEditorInitialPlacement(options);
+    if (!section) return original();
+    const plan = readDayPlanConfiguration(frontmatter);
+    if (plan.error) return original();
+    const format = readMandalaCellFormat(frontmatter, !!plan.config);
+    if (!format.valid || !format.config.enabled) return original();
+    if (!plan.config) {
+        return resolveNodeEditorInitialPlacement({
+            ...options,
+            cellFormat: getMandalaCellFormatRule(
+                format.config,
+                section.split('.').length,
+                maxDepth(),
+            ),
+        });
+    }
+    if (!plan.config.enabled) return original();
+    const prefix = getDayPlanTitlePrefix(plan.config, section, options.content);
+    if (prefix === null || options.content.slice(prefix.length).trim())
+        return original();
+    const eol = options.content.includes('\r\n') ? '\r\n' : '\n';
+    const header = prefix && !prefix.endsWith('\n') ? prefix + eol : prefix;
+    const marker =
+        getBodyPrefix(format.config.dayPlanBody ?? 'unordered-list') ?? '';
+    const body = options.content.slice(prefix.length);
+    const line = header.split('\n').length - 1;
+    return {
+        content: header + marker + body,
+        cursor: { line, ch: marker.length },
+        generatedCellFormat: {
+            headingPrefix: null,
+            bodyPrefix: marker,
+            dayPlanBodyLine: line,
+        },
+    };
+};
+
 export const resolveNodeEditorCommitContent = ({
     currentContent,
     originalContent,
@@ -208,6 +260,26 @@ export const resolveNodeEditorCommitContent = ({
     preparedContent: string;
     generatedCellFormat?: NodeEditorInitialPlacement['generatedCellFormat'];
 }) => {
+    if (currentContent === preparedContent) return originalContent;
+    const bodyLine = generatedCellFormat?.dayPlanBodyLine;
+    if (bodyLine !== undefined) {
+        const lines = splitLines(currentContent);
+        const marker = generatedCellFormat?.bodyPrefix ?? '';
+        const first = lines[bodyLine] ?? '';
+        const hasMarker = marker && first.startsWith(marker);
+        if (
+            (hasMarker ? first.slice(marker.length) : first).trim() ||
+            lines.slice(bodyLine + 1).some((line) => line.trim())
+        )
+            return currentContent;
+        const heading = lines.slice(0, bodyLine);
+        const original = splitLines(originalContent);
+        if (heading.join('\n') === original.slice(0, bodyLine).join('\n'))
+            return originalContent;
+        return [...heading, ...original.slice(bodyLine)].join(
+            currentContent.includes('\r\n') ? '\r\n' : '\n',
+        );
+    }
     const normalizedContent = generatedCellFormat
         ? normalizeGeneratedCellFormatContent(
               currentContent,

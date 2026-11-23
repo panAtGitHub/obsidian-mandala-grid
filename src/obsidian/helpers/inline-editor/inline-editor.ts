@@ -1,18 +1,15 @@
 import { createElementInDocument } from 'src/obsidian/helpers/create-element-in-document';
 import { Editor, EditorPosition, MarkdownView, TFile } from 'obsidian';
 import {
+    resolveFileEditorPlacement,
     resolveNodeEditorCommitContent,
     resolveNodeEditorInitialPlacement,
+    type NodeEditorInitialPlacement,
 } from 'src/mandala-interaction/helpers/resolve-node-editor-initial-placement';
 import { MandalaView } from 'src/view/view';
 import { vimEnterInsertMode } from 'src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode';
 import { fixVimCursorWhenZooming } from 'src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming';
 import { lockFile } from 'src/obsidian/helpers/inline-editor/helpers/lock-file';
-import {
-    getMandalaCellFormatRule,
-    readMandalaCellFormat,
-} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
-import { parseSectionParts } from 'src/mandala-document/engine/section-utils';
 
 const noopSave = async function (
     this: void,
@@ -41,10 +38,7 @@ export class InlineEditor {
         originalContent: string;
         preparedContent: string;
         initialCursor: EditorPosition;
-        generatedCellFormat?: {
-            headingPrefix: string | null;
-            bodyPrefix: string | null;
-        };
+        generatedCellFormat?: NodeEditorInitialPlacement['generatedCellFormat'];
     } | null = null;
     private suppressEditorEvents = false;
     private readyPromise: Promise<void> | null = null;
@@ -56,21 +50,6 @@ export class InlineEditor {
     } | null = null;
 
     constructor(private view: MandalaView) {}
-
-    private resolveCellFormatRule(nodeId: string, isDayPlanScene: boolean) {
-        const state = this.view.documentStore.getValue();
-        const section = state.sections?.id_section?.[nodeId];
-        if (!section) return undefined;
-        const depth = parseSectionParts(section).length;
-        if (isDayPlanScene && depth === 1) return undefined;
-        const parsed = readMandalaCellFormat(state.file?.frontmatter ?? '');
-        if (!parsed.valid || !parsed.config.enabled) return undefined;
-        return getMandalaCellFormatRule(
-            parsed.config,
-            depth,
-            this.view.getEffectiveMandalaSettings().view.subgridMaxDepth,
-        );
-    }
 
     private ensureReady(file: TFile) {
         if (!this.readyPromise || this.readyFile !== file) {
@@ -175,21 +154,34 @@ export class InlineEditor {
             resolve = _resolve;
         });
 
+        const state = this.view.documentStore.getValue();
+        const lookup = this.view.getSectionLookup?.();
+        const section =
+            lookup?.getSectionId(nodeId) ??
+            state.sections?.id_section?.[nodeId];
         const content =
-            this.view.getContentForNode?.(nodeId) ??
-            this.view.documentStore.getValue().document.content[nodeId]
-                ?.content ??
-            '';
+            state.document.content[nodeId]?.content ??
+            (section && this.view.isWorkingSetProjection
+                ? lookup?.getContent(section)
+                : undefined);
+        if (content == null) {
+            resolve();
+            return;
+        }
         const isInSidebar =
             this.view.viewStore.getValue().document.editing.isInSidebar;
         const isDayPlanScene =
             this.view.getMandalaSceneKey().variant === 'day-plan';
-        const initialPlacement = resolveNodeEditorInitialPlacement({
-            content,
-            isDayPlanScene,
-            historyCursor: this.cursorPositions.get(nodeId),
-            cellFormat: this.resolveCellFormatRule(nodeId, isDayPlanScene),
-        });
+        const initialPlacement = resolveFileEditorPlacement(
+            {
+                content,
+                isDayPlanScene,
+                historyCursor: this.cursorPositions.get(nodeId),
+            },
+            state.file?.frontmatter ?? '',
+            section,
+            () => this.view.getEffectiveMandalaSettings().view.subgridMaxDepth,
+        );
 
         if (currentNodeId && currentNodeId !== nodeId) {
             this.view.editSession.endSession();

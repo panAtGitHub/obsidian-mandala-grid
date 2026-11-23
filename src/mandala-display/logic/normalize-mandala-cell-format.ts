@@ -154,6 +154,46 @@ const getHeadingAndBody = (
     };
 };
 
+export const normalizeDayPlanBody = (
+    content: string,
+    prefix: string | null,
+    body: MandalaCellFormatBody,
+): CellFormatNormalizationResult => {
+    const skip = {
+        content,
+        changed: false,
+        skipped: true,
+        reason: '无法安全识别日计划正文',
+    } as const;
+    if (prefix === null) return skip;
+    const original = content.slice(prefix.length);
+    if (!original.trim()) return { content, changed: false, skipped: false };
+    const lines = original.split(/\r?\n/);
+    // Indented, thematic-break and setext lines can change block structure when a marker is removed.
+    const unsafe = (line: string) =>
+        /^(?:[ \t]+\S|\s*(?:[-*_][\s*_-]*|=+|\[[^\]]+\]:.*)\s*$)/.test(line);
+    if (lines.some(unsafe)) return skip;
+    const parsed = parseSimpleBody(lines);
+    if (!parsed) return skip;
+    if (parsed.kind === body)
+        return { content, changed: false, skipped: false };
+    if (
+        parsed.items.some(
+            (item) =>
+                unsafe(item) ||
+                isComplexLine(item) ||
+                /^\[[^\]]\](?:\s|$)/.test(item),
+        )
+    )
+        return skip;
+    const eol = content.includes('\r\n') ? '\r\n' : '\n';
+    const result =
+        body === 'ordered-list'
+            ? parsed.items.map((item, i) => `${i + 1}. ${item}`).join(eol)
+            : renderBody(parsed, body).replace(/\n/g, eol);
+    return { content: prefix + result, changed: true, skipped: false };
+};
+
 export const normalizeMandalaCellFormatContent = (
     content: string,
     rule: MandalaCellFormatRule,

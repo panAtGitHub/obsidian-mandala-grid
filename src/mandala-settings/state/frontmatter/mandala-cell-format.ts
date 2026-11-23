@@ -18,6 +18,7 @@ export type MandalaCellFormatRule = {
 };
 
 export type MandalaCellFormatConfig = {
+    dayPlanBody?: MandalaCellFormatBody;
     enabled: boolean;
     levels: Record<string, MandalaCellFormatRule>;
     deeper: MandalaCellFormatRule;
@@ -140,6 +141,7 @@ const parseRule = (
 
 export const readMandalaCellFormat = (
     frontmatter: string,
+    dayPlan = false,
 ): MandalaCellFormatReadResult => {
     if (!frontmatter.trim()) {
         return {
@@ -181,6 +183,26 @@ export const readMandalaCellFormat = (
     let valid = typeof rawConfig.enabled === 'boolean';
     const levels: Record<string, MandalaCellFormatRule> = {};
     const rawLevels = toRecord(rawConfig.levels);
+    if (dayPlan) {
+        const legacyBody = toRecord(rawLevels?.['2'])?.body;
+        const body =
+            rawConfig.dayPlanBody === undefined
+                ? isBody(legacyBody)
+                    ? legacyBody
+                    : 'unordered-list'
+                : rawConfig.dayPlanBody;
+        return {
+            present: true,
+            valid: valid && isBody(body),
+            config: {
+                ...createDefaultMandalaCellFormat(
+                    'unlimited',
+                    rawConfig.enabled === true,
+                ),
+                dayPlanBody: isBody(body) ? body : 'unordered-list',
+            },
+        };
+    }
     if (rawLevels) {
         for (const [depth, rawRule] of Object.entries(rawLevels)) {
             if (!/^\d+$/.test(depth) || Number(depth) < 1) {
@@ -212,6 +234,17 @@ export const readMandalaCellFormat = (
             deeper: parsedDeeper.rule,
         },
         valid,
+    };
+};
+
+export const writeDayPlanBodyFormat = (
+    record: Record<string, unknown>,
+    body: MandalaCellFormatBody,
+) => {
+    record[MANDALA_CELL_FORMAT_FRONTMATTER_KEY] = {
+        ...toRecord(record[MANDALA_CELL_FORMAT_FRONTMATTER_KEY]),
+        enabled: true,
+        dayPlanBody: body,
     };
 };
 

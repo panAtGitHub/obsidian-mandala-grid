@@ -23,6 +23,7 @@ type RenderOptions = {
     showDescription?: boolean;
     showEnabledToggle?: boolean;
     showReset?: boolean;
+    dayPlan?: boolean;
     createGroupContainer: (
         parentEl: HTMLElement,
         title: string,
@@ -84,6 +85,7 @@ export const renderMandalaCellFormatSettings = ({
     showDescription = true,
     showEnabledToggle = true,
     showReset = true,
+    dayPlan = false,
     createGroupContainer,
     onChanged,
     renderFooter,
@@ -96,7 +98,9 @@ export const renderMandalaCellFormatSettings = ({
     if (showDescription) {
         const description = container.createDiv({
             cls: 'mandala-cell-format-settings__description',
-            text: lang.settings_cell_format_description,
+            text: dayPlan
+                ? tx('当天九格共用此格式。打开正文为空的格子时生效。')
+                : lang.settings_cell_format_description,
         });
         applyCssProps(description, {
             color: 'var(--text-muted)',
@@ -121,13 +125,32 @@ export const renderMandalaCellFormatSettings = ({
     if (showEnabledToggle) {
         new Setting(container)
             .setName(lang.settings_cell_format_enabled)
-            .setDesc(lang.settings_cell_format_enabled_desc)
+            .setDesc(dayPlan ? '' : lang.settings_cell_format_enabled_desc)
             .addToggle((toggle) => {
                 toggle.setValue(state.config.enabled).onChange((enabled) => {
                     state.config.enabled = enabled;
                     onChanged();
                 });
             });
+    }
+
+    if (dayPlan) {
+        if (state.config.enabled) {
+            new Setting(container)
+                .setName(tx('默认正文形式'))
+                .addDropdown((dropdown) =>
+                    dropdown
+                        .addOptions(bodyOptions)
+                        .setValue(state.config.dayPlanBody ?? 'unordered-list')
+                        .onChange((value) => {
+                            state.config.dayPlanBody =
+                                value as MandalaCellFormatBody;
+                            onChanged();
+                        }),
+                );
+        }
+        renderFooter?.(container);
+        return;
     }
 
     const ensureRule = (depth: number) => {

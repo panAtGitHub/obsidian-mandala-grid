@@ -138,6 +138,8 @@ vi.mock('src/obsidian/settings/fit-settings-label', () => ({
 import { Setting } from 'obsidian';
 import type { SettingDefinition, SettingDefinitionItem } from 'obsidian';
 import { MandalaGridSettingTab } from 'src/obsidian/settings/mandala-grid-setting-tab';
+import { renderMandalaCellFormatSettings } from './render-mandala-cell-format-settings';
+import { createDefaultMandalaCellFormat } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import { settingsReducer } from 'src/mandala-settings/state/settings-reducer';
 import { setInterfaceLanguage } from 'src/lang/interface-language';
@@ -189,6 +191,31 @@ beforeEach(() => {
 });
 
 describe('declarative plugin settings', () => {
+    it('shows a single shared body selector only when the daily file preset is enabled', () => {
+        const { tab } = setup();
+        const config = createDefaultMandalaCellFormat(2);
+        const render = () => {
+            tab.containerEl.replaceChildren();
+            renderMandalaCellFormatSettings({
+                parentEl: tab.containerEl,
+                state: { maxDepth: 2, config },
+                dayPlan: true,
+                createGroupContainer: (el) => el,
+                onChanged: vi.fn(),
+            });
+            return tab.containerEl.querySelectorAll('select');
+        };
+        expect(render()).toHaveLength(0);
+        config.enabled = true;
+        const selects = render();
+        expect(selects).toHaveLength(1);
+        expect(selects[0].value).toBe('unordered-list');
+        expect(Array.from(selects[0].options, (opt) => opt.value)).toEqual([
+            'paragraph',
+            'unordered-list',
+            'ordered-list',
+        ]);
+    });
     it('indexes every setting without rendering or saving', () => {
         const { tab, plugin } = setup();
         const names = flatten(tab.getSettingDefinitions()).map(

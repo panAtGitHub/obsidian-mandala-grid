@@ -35,7 +35,7 @@ vi.mock('src/obsidian/events/workspace/helpers/get-leaf-of-file', () => ({
     getLeafOfFile: mocks.leaf,
 }));
 
-const fixture = (initial: string) => {
+const fixture = (initial: string, templateMarkdown?: string) => {
     let markdown = initial;
     const file = Object.assign(new TFile(), {
         path: 'plan.md',
@@ -49,12 +49,25 @@ const fixture = (initial: string) => {
     );
     const modify = vi.fn();
     const settings = DEFAULT_SETTINGS();
+    const templateFile = Object.assign(new TFile(), { path: 'templates.md' });
+    if (templateMarkdown)
+        settings.general.mandalaTemplatesFilePath = templateFile.path;
     const plugin = {
         settings: { getValue: () => settings },
-        app: { vault: { read: vi.fn(async () => markdown), process, modify } },
+        app: {
+            vault: {
+                read: vi.fn(async (target: TFile) =>
+                    target === templateFile ? templateMarkdown : markdown,
+                ),
+                getAbstractFileByPath: () => templateFile,
+                process,
+                modify,
+            },
+        },
     } as unknown as MandalaGrid;
     return {
         plugin,
+        settings,
         file,
         process,
         modify,
@@ -115,11 +128,30 @@ describe('day-plan setup persistence', () => {
         expect(f.markdown()).not.toContain('mandala_plan:');
         expect(f.markdown()).not.toContain('dayPlanEnabled:');
         expect(f.markdown()).not.toContain('center_date_h2:');
+        expect(f.markdown()).not.toContain('mandala_cell_format:');
         expect(f.markdown()).toContain('<!--section: 365-->\n## 2026-12-31 四');
         expect(f.markdown()).toContain(
             '<!--section: 1.1-->\n### 接收太阳的能量，开心一天',
         );
         expect(f.process).toHaveBeenCalledTimes(1);
+    });
+    it('copies only the second-level body preference on creation and leaves empty template slots blank', async () => {
+        const f = fixture('', '## 模板：部分标题\n1: 阅读\n');
+        f.settings.view.enableCellFormatPreset = true;
+        f.settings.view.newFileCellFormat.levels['2'] = {
+            heading: 5,
+            body: 'ordered-list',
+        };
+        mocks.daily.mockResolvedValue({
+            action: 'next',
+            value: { slotsSource: 'template', templateIndex: 0 },
+        });
+        expect(await setupDayPlanMandalaFormat(f.plugin, f.file)).toBe(true);
+        expect(f.markdown()).toContain('dayPlanBody: ordered-list');
+        expect(f.markdown()).not.toMatch(/^###\s*$/m);
+        f.settings.view.newFileCellFormat.levels['2'].body = 'paragraph';
+        expect(await setupDayPlanMandalaFormat(f.plugin, f.file)).toBe(true);
+        expect(f.markdown()).toContain('dayPlanBody: ordered-list');
     });
     it('does not convert or write an existing file when the wizard is canceled', async () => {
         const f = fixture('# Ordinary note\nUser content');
