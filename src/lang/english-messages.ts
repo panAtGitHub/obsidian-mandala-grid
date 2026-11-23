@@ -165,7 +165,10 @@ export const englishMessages = {
         'Creating sections beyond the limit is blocked with a range-limit notice.',
     为新建文件启用格子书写预设: 'Enable cell writing presets for new files',
     '开启后，新建的九宫格 md 文件会写入默认的标题和正文格式；已有文件不受影响。':
-        'New Mandala Grid notes will include default heading and body formats. Existing notes are unchanged.',
+        'When enabled, set the heading and body formats for new files below. Existing notes are unchanged.',
+    新建文件默认格子格式: 'Default cell format for new files',
+    '下面的格式只会复制到新建文件的 YAML；已有文件不受影响。':
+        "The format below is copied only into new files' YAML. Existing notes are unchanged.",
     格子书写预设: 'Cell writing presets',
     '只影响空格的新建内容。标题级别按 section 层级选择，已有格子不会自动改变。':
         'Only new content in empty cells is affected. Heading levels follow section depth, and existing cells are unchanged.',

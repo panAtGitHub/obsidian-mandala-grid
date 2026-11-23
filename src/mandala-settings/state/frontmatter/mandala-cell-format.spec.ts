@@ -152,6 +152,25 @@ describe('mandala cell format frontmatter', () => {
         expect(built?.levels['1']?.heading).toBe(2);
     });
 
+    it('copies the configured global defaults into each new file', () => {
+        const settings = DEFAULT_SETTINGS();
+        settings.view.enableCellFormatPreset = true;
+        settings.view.newFileCellFormat.levels['1'] = {
+            heading: 4,
+            body: 'ordered-list',
+        };
+
+        const built = buildNewFileMandalaCellFormat(settings);
+
+        expect(built?.levels['1']).toEqual({
+            heading: 4,
+            body: 'ordered-list',
+        });
+        if (!built) throw new Error('Expected a new-file cell format');
+        built.levels['1'].heading = 6;
+        expect(settings.view.newFileCellFormat.levels['1']?.heading).toBe(4);
+    });
+
     it('writes and removes only the dedicated frontmatter key', () => {
         const record: Record<string, unknown> = { keep: 'value' };
         writeMandalaCellFormat(

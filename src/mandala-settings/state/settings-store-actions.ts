@@ -14,6 +14,7 @@ import {
     ViewType,
     WeekStart,
 } from 'src/mandala-settings/state/settings-type';
+import type { MandalaCellFormatConfig } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 import { ChangeZoomLevelAction } from 'src/mandala-settings/state/reducers/change-zoom-level';
 import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
 import { CommandName } from 'src/lang/hotkey-groups';
@@ -365,6 +366,10 @@ export type SettingsActions =
       }
     | {
           type: 'settings/view/toggle-cell-format-preset';
+      }
+    | {
+          type: 'settings/view/set-new-file-cell-format';
+          payload: { config: MandalaCellFormatConfig };
       }
     | {
           type: 'settings/view/toggle-9x9-view';

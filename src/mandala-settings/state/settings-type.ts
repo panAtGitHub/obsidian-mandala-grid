@@ -1,6 +1,7 @@
 import { CommandName } from 'src/lang/hotkey-groups';
 import { PersistedViewHotkey } from 'src/view/actions/keyboard-shortcuts/helpers/commands/default-view-hotkeys';
 import { ToolbarButton } from 'src/ui/toolbar/vertical/config/vertical-toolbar-buttons';
+import type { MandalaCellFormatConfig } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 
 export type CustomHotkeys = {
     [command in CommandName]?: {
@@ -169,6 +170,7 @@ export type Settings = {
         coreSectionMax: SectionRangeLimit;
         subgridMaxDepth: SectionRangeLimit;
         enableCellFormatPreset: boolean;
+        newFileCellFormat: MandalaCellFormatConfig;
     };
     general: {
         interfaceLanguage: import('src/lang/interface-language').InterfaceLanguage;

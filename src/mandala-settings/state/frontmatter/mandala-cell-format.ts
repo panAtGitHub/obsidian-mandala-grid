@@ -67,6 +67,19 @@ const cloneRule = (rule: MandalaCellFormatRule): MandalaCellFormatRule => ({
     body: rule.body,
 });
 
+export const cloneMandalaCellFormatConfig = (
+    config: MandalaCellFormatConfig,
+): MandalaCellFormatConfig => ({
+    enabled: config.enabled,
+    levels: Object.fromEntries(
+        Object.entries(config.levels).map(([depth, rule]) => [
+            depth,
+            cloneRule(rule),
+        ]),
+    ),
+    deeper: cloneRule(config.deeper),
+});
+
 export const createDefaultMandalaCellFormat = (
     maxDepth: SectionRangeLimit = 'unlimited',
     enabled = false,
@@ -226,5 +239,9 @@ export const buildNewFileMandalaCellFormat = (
     maxDepth: SectionRangeLimit = settings.view.subgridMaxDepth,
 ): MandalaCellFormatConfig | null => {
     if (!settings.view.enableCellFormatPreset) return null;
-    return createDefaultMandalaCellFormat(maxDepth, true);
+    return cloneMandalaCellFormatConfig({
+        ...(settings.view.newFileCellFormat ??
+            createDefaultMandalaCellFormat(maxDepth, true)),
+        enabled: true,
+    });
 };

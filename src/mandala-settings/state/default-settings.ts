@@ -1,5 +1,6 @@
 import { Settings } from './settings-type';
 import { DEFAULT_CONTEXT_MENU_COPY_LINK_VISIBILITY } from 'src/mandala-settings/state/helpers/context-menu-copy-link-visibility';
+import { createDefaultMandalaCellFormat } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 
 export const DEFAULT_CARD_WIDTH = 550;
 export const DEFAULT_CARDS_GAP = 6;
@@ -130,6 +131,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         coreSectionMax: 'unlimited',
         subgridMaxDepth: 'unlimited',
         enableCellFormatPreset: false,
+        newFileCellFormat: createDefaultMandalaCellFormat('unlimited', true),
     },
     general: {
         interfaceLanguage: 'auto',

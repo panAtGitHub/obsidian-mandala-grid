@@ -627,6 +627,18 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/toggle-cell-format-preset') return;
         store.view.enableCellFormatPreset = !store.view.enableCellFormatPreset;
     },
+    'settings/view/set-new-file-cell-format': (store, action) => {
+        if (action.type !== 'settings/view/set-new-file-cell-format') return;
+        store.view.newFileCellFormat = {
+            enabled: action.payload.config.enabled,
+            levels: Object.fromEntries(
+                Object.entries(action.payload.config.levels).map(
+                    ([depth, rule]) => [depth, { ...rule }],
+                ),
+            ),
+            deeper: { ...action.payload.config.deeper },
+        };
+    },
     'settings/view/toggle-9x9-view': (store, action) => {
         if (action.type !== 'settings/view/toggle-9x9-view') return;
         store.view.enable9x9View = !(store.view.enable9x9View ?? true);

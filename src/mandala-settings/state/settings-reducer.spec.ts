@@ -1,8 +1,29 @@
 import { describe, expect, test } from 'vitest';
 import { DEFAULT_SETTINGS } from 'src/mandala-settings/state/default-settings';
 import { settingsReducer } from 'src/mandala-settings/state/settings-reducer';
+import type { MandalaCellFormatConfig } from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 
 describe('settingsReducer custom grid layouts', () => {
+    test('stores new-file cell format defaults without sharing nested objects', () => {
+        const settings = DEFAULT_SETTINGS();
+        const config: MandalaCellFormatConfig = {
+            enabled: true,
+            levels: {
+                '1': { heading: 4, body: 'ordered-list' },
+            },
+            deeper: { heading: 'none', body: 'paragraph' },
+        };
+
+        settingsReducer(settings, {
+            type: 'settings/view/set-new-file-cell-format',
+            payload: { config },
+        });
+
+        expect(settings.view.newFileCellFormat).toEqual(config);
+        config.levels['1'].heading = 2;
+        expect(settings.view.newFileCellFormat.levels['1']?.heading).toBe(4);
+    });
+
     test('selects clockwise through layout and orientation actions', () => {
         const settings = DEFAULT_SETTINGS();
         settingsReducer(settings, {

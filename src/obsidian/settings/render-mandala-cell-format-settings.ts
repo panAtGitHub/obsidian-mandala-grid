@@ -20,6 +20,9 @@ type RenderOptions = {
     parentEl: HTMLElement;
     state: MandalaCellFormatSettingsState;
     validationMessage?: string;
+    showDescription?: boolean;
+    showEnabledToggle?: boolean;
+    showReset?: boolean;
     createGroupContainer: (
         parentEl: HTMLElement,
         title: string,
@@ -78,6 +81,9 @@ export const renderMandalaCellFormatSettings = ({
     parentEl,
     state,
     validationMessage,
+    showDescription = true,
+    showEnabledToggle = true,
+    showReset = true,
     createGroupContainer,
     onChanged,
     renderFooter,
@@ -87,16 +93,18 @@ export const renderMandalaCellFormatSettings = ({
         lang.settings_cell_format_section,
         'cell-format',
     );
-    const description = container.createDiv({
-        cls: 'mandala-cell-format-settings__description',
-        text: lang.settings_cell_format_description,
-    });
-    applyCssProps(description, {
-        color: 'var(--text-muted)',
-        'font-size': 'var(--font-ui-smaller)',
-        'line-height': '1.45',
-        'margin-bottom': '8px',
-    });
+    if (showDescription) {
+        const description = container.createDiv({
+            cls: 'mandala-cell-format-settings__description',
+            text: lang.settings_cell_format_description,
+        });
+        applyCssProps(description, {
+            color: 'var(--text-muted)',
+            'font-size': 'var(--font-ui-smaller)',
+            'line-height': '1.45',
+            'margin-bottom': '8px',
+        });
+    }
     if (validationMessage) {
         const warning = container.createDiv({
             cls: 'mandala-cell-format-settings__warning',
@@ -110,15 +118,17 @@ export const renderMandalaCellFormatSettings = ({
     }
 
     const controls: Array<{ setDisabled: (disabled: boolean) => unknown }> = [];
-    new Setting(container)
-        .setName(lang.settings_cell_format_enabled)
-        .setDesc(lang.settings_cell_format_enabled_desc)
-        .addToggle((toggle) => {
-            toggle.setValue(state.config.enabled).onChange((enabled) => {
-                state.config.enabled = enabled;
-                onChanged();
+    if (showEnabledToggle) {
+        new Setting(container)
+            .setName(lang.settings_cell_format_enabled)
+            .setDesc(lang.settings_cell_format_enabled_desc)
+            .addToggle((toggle) => {
+                toggle.setValue(state.config.enabled).onChange((enabled) => {
+                    state.config.enabled = enabled;
+                    onChanged();
+                });
             });
-        });
+    }
 
     const ensureRule = (depth: number) => {
         const key = String(depth);
@@ -204,17 +214,21 @@ export const renderMandalaCellFormatSettings = ({
         controls.push(addSetting);
     }
 
-    new Setting(container).addButton((button) =>
-        button.setButtonText(lang.settings_cell_format_reset).onClick(() => {
-            const defaults = createDefaultMandalaCellFormat(
-                state.maxDepth,
-                state.config.enabled,
-            );
-            state.config.levels = defaults.levels;
-            state.config.deeper = defaults.deeper;
-            onChanged();
-        }),
-    );
+    if (showReset) {
+        new Setting(container).addButton((button) =>
+            button
+                .setButtonText(lang.settings_cell_format_reset)
+                .onClick(() => {
+                    const defaults = createDefaultMandalaCellFormat(
+                        state.maxDepth,
+                        state.config.enabled,
+                    );
+                    state.config.levels = defaults.levels;
+                    state.config.deeper = defaults.deeper;
+                    onChanged();
+                }),
+        );
+    }
 
     controls.forEach((control) => control.setDisabled(!state.config.enabled));
     renderFooter?.(container);

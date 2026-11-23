@@ -53,8 +53,59 @@ vi.mock('obsidian', () => {
                 parent.appendChild(this.settingEl);
                 this.descEl = this.settingEl.createDiv({});
             }
+            setName(name: string) {
+                this.settingEl.createDiv({ text: name });
+                return this;
+            }
             setDesc(desc: string) {
                 this.descEl.textContent = desc;
+                return this;
+            }
+            setDisabled(_disabled: boolean) {
+                return this;
+            }
+            addToggle(callback: (toggle: unknown) => void) {
+                const toggle = {
+                    setValue: (_value: boolean) => toggle,
+                    onChange: (_handler: (value: boolean) => void) => toggle,
+                };
+                callback(toggle);
+                return this;
+            }
+            addDropdown(callback: (dropdown: unknown) => void) {
+                const select = document.createElement('select');
+                this.settingEl.appendChild(select);
+                const dropdown = {
+                    addOptions: (options: Record<string, string>) => {
+                        for (const [value, label] of Object.entries(options)) {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.textContent = label;
+                            select.appendChild(option);
+                        }
+                        return dropdown;
+                    },
+                    setValue: (value: string) => {
+                        select.value = value;
+                        return dropdown;
+                    },
+                    onChange: (_handler: (value: string) => void) => dropdown,
+                };
+                callback(dropdown);
+                return this;
+            }
+            addButton(callback: (button: unknown) => void) {
+                const button = document.createElement('button');
+                this.settingEl.appendChild(button);
+                const component = {
+                    setButtonText: (text: string) => {
+                        button.textContent = text;
+                        return component;
+                    },
+                    setDisabled: (_disabled: boolean) => component,
+                    onClick: (_handler: () => void) => component,
+                };
+                callback(component);
                 return this;
             }
             addText(callback: (text: unknown) => void) {
@@ -152,6 +203,7 @@ describe('declarative plugin settings', () => {
             'Maximum subgrid depth (including core level)',
             'Current range overview',
             'Enable cell writing presets for new files',
+            'Default cell format for new files',
             'Enable time plans (day and week)',
         ]);
         expect(tab.containerEl.childElementCount).toBe(0);
@@ -221,6 +273,50 @@ describe('declarative plugin settings', () => {
         ).toContain('repeat(3, minmax(0, 1fr))');
         cleanup?.();
         expect(mocks.cleanup).toHaveBeenCalledTimes(6);
+    });
+
+    it('does not duplicate preset buttons when a custom row is rendered again', () => {
+        const { tab, render, find } = setup();
+        const definition = find('Preset');
+        const { setting } = render('Preset');
+
+        definition.render?.(setting, {} as never);
+
+        expect(
+            setting.settingEl.querySelectorAll(
+                '.mandala-settings-view-presets__grid',
+            ),
+        ).toHaveLength(1);
+        expect(
+            setting.settingEl.querySelectorAll(
+                '.mandala-settings-preset-label',
+            ),
+        ).toHaveLength(6);
+        tab.containerEl.remove();
+    });
+    it('shows default cell format controls only when the global switch is on', async () => {
+        const { tab, settings, render, find } = setup();
+        const definition = find('Default cell format for new files');
+
+        if (typeof definition.visible !== 'function')
+            throw new Error('Expected a visibility predicate');
+        expect(definition.visible()).toBe(false);
+        await tab.setControlValue('enableCellFormatPreset', true);
+        expect(definition.visible()).toBe(true);
+
+        const { setting, cleanup } = render(
+            'Default cell format for new files',
+        );
+        definition.render?.(setting, {} as never);
+        expect(
+            setting.settingEl.querySelectorAll(
+                '.mandala-settings-new-file-cell-format',
+            ),
+        ).toHaveLength(1);
+        expect(setting.settingEl.querySelectorAll('select')).toHaveLength(8);
+        expect(settings.view.newFileCellFormat.enabled).toBe(true);
+        cleanup?.();
+        tab.containerEl.remove();
     });
     it('validates ranges and refreshes previews without redrawing the focused input', async () => {
         const { settings, plugin, render } = setup();

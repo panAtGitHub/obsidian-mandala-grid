@@ -18,10 +18,23 @@ import {
     parsePositiveIntegerInput,
     resolveMaxSectionExample,
 } from 'src/mandala-settings/state/helpers/section-range';
+import {
+    cloneMandalaCellFormatConfig,
+    createDefaultMandalaCellFormat,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
+import { renderMandalaCellFormatSettings } from 'src/obsidian/settings/render-mandala-cell-format-settings';
 
 export class MandalaGridSettingTab extends PluginSettingTab {
     plugin: MandalaGrid;
     private readonly rangeRefreshers = new Set<() => void>();
+    private readonly presetRenderCleanups = new WeakMap<
+        HTMLElement,
+        () => void
+    >();
+    private readonly newFileCellFormatRenderCleanups = new WeakMap<
+        HTMLElement,
+        () => void
+    >();
 
     constructor(app: MandalaGrid['app'], plugin: MandalaGrid) {
         super(app, plugin);
@@ -138,6 +151,10 @@ export class MandalaGridSettingTab extends PluginSettingTab {
             ),
             aliases: GLOBAL_VIEW_PRESETS.map((preset) => tx(preset.label)),
             render: (setting) => {
+                this.presetRenderCleanups.get(setting.settingEl)?.();
+                setting.settingEl
+                    .querySelectorAll('.mandala-settings-view-presets__grid')
+                    .forEach((grid) => grid.remove());
                 const cleanups: (() => void)[] = [];
                 const grid = setting.settingEl.createDiv({
                     cls: 'mandala-settings-view-presets__grid',
@@ -218,10 +235,99 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                 const refresh = () => buttons.forEach((update) => update());
                 refresh();
                 this.rangeRefreshers.add(refresh);
-                return () => {
+                let disposed = false;
+                const cleanup = () => {
+                    if (disposed) return;
+                    disposed = true;
                     this.rangeRefreshers.delete(refresh);
                     cleanups.forEach((cleanup) => cleanup());
+                    if (
+                        this.presetRenderCleanups.get(setting.settingEl) ===
+                        cleanup
+                    )
+                        this.presetRenderCleanups.delete(setting.settingEl);
                 };
+                this.presetRenderCleanups.set(setting.settingEl, cleanup);
+                return cleanup;
+            },
+        };
+    }
+
+    private createNewFileCellFormatDefinition(): SettingDefinition {
+        return {
+            name: lang.settings_global_new_file_cell_format,
+            desc: lang.settings_global_new_file_cell_format_desc,
+            visible: () =>
+                this.plugin.settings.getValue().view.enableCellFormatPreset,
+            render: (setting) => {
+                this.newFileCellFormatRenderCleanups.get(setting.settingEl)?.();
+                setting.settingEl
+                    .querySelectorAll('.mandala-settings-new-file-cell-format')
+                    .forEach((container) => container.remove());
+                applyCssProps(setting.settingEl, { display: 'block' });
+                const container = setting.settingEl.createDiv({
+                    cls: 'mandala-settings-new-file-cell-format',
+                });
+                let renderedDepth =
+                    this.plugin.settings.getValue().view.subgridMaxDepth;
+
+                const render = () => {
+                    container.replaceChildren();
+                    const settings = this.plugin.settings.getValue();
+                    const config = cloneMandalaCellFormatConfig(
+                        settings.view.newFileCellFormat ??
+                            createDefaultMandalaCellFormat(
+                                settings.view.subgridMaxDepth,
+                                true,
+                            ),
+                    );
+                    config.enabled = true;
+                    renderMandalaCellFormatSettings({
+                        parentEl: container,
+                        state: {
+                            config,
+                            maxDepth: settings.view.subgridMaxDepth,
+                        },
+                        showDescription: false,
+                        showEnabledToggle: false,
+                        createGroupContainer: (parentEl) => parentEl,
+                        onChanged: () => {
+                            this.plugin.settings.dispatch({
+                                type: 'settings/view/set-new-file-cell-format',
+                                payload: { config },
+                            });
+                            void this.saveAndUpdate();
+                        },
+                    });
+                    renderedDepth = settings.view.subgridMaxDepth;
+                };
+                render();
+                const refresh = () => {
+                    const nextDepth =
+                        this.plugin.settings.getValue().view.subgridMaxDepth;
+                    if (nextDepth !== renderedDepth) render();
+                };
+                this.rangeRefreshers.add(refresh);
+                let disposed = false;
+                const cleanup = () => {
+                    if (disposed) return;
+                    disposed = true;
+                    this.rangeRefreshers.delete(refresh);
+                    container.remove();
+                    if (
+                        this.newFileCellFormatRenderCleanups.get(
+                            setting.settingEl,
+                        ) === cleanup
+                    )
+                        this.newFileCellFormatRenderCleanups.delete(
+                            setting.settingEl,
+                        );
+                };
+                this.newFileCellFormatRenderCleanups.set(
+                    setting.settingEl,
+                    cleanup,
+                );
+                return cleanup;
             },
         };
     }
@@ -362,6 +468,7 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                             key: 'enableCellFormatPreset',
                         },
                     },
+                    this.createNewFileCellFormatDefinition(),
                 ],
             },
             {

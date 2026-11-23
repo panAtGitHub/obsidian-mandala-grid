@@ -341,7 +341,10 @@ export const chineseMessages = {
         '超限行为：阻止创建并提示“已达到你设定的范围上限”。',
     settings_global_enable_cell_format_preset: '为新建文件启用格子书写预设',
     settings_global_enable_cell_format_preset_desc:
-        '开启后，新建的九宫格 md 文件会写入默认的标题和正文格式；已有文件不受影响。',
+        '开启后，下方可设置新建文件的标题和正文格式；已有文件不受影响。',
+    settings_global_new_file_cell_format: '新建文件默认格子格式',
+    settings_global_new_file_cell_format_desc:
+        '下面的格式只会复制到新建文件的 YAML；已有文件不受影响。',
     settings_cell_format_section: '格子书写预设',
     settings_cell_format_description:
         '只影响空格的新建内容。标题级别按 section 层级选择，已有格子不会自动改变。',
