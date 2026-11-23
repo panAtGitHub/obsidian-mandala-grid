@@ -623,6 +623,10 @@ const settingsHandlers: Record<string, SettingsActionHandler> = {
         if (action.type !== 'settings/view/set-subgrid-max-depth') return;
         store.view.subgridMaxDepth = action.payload.depth;
     },
+    'settings/view/toggle-cell-format-preset': (store, action) => {
+        if (action.type !== 'settings/view/toggle-cell-format-preset') return;
+        store.view.enableCellFormatPreset = !store.view.enableCellFormatPreset;
+    },
     'settings/view/toggle-9x9-view': (store, action) => {
         if (action.type !== 'settings/view/toggle-9x9-view') return;
         store.view.enable9x9View = !(store.view.enable9x9View ?? true);

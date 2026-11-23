@@ -10,6 +10,10 @@ import {
     buildNewFileMandalaFrontmatterSettings,
     MANDALA_FRONTMATTER_SETTINGS_KEY,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import {
+    buildNewFileMandalaCellFormat,
+    writeMandalaCellFormat,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 
 export const createMandalaGridFileInFolder = async (
     plugin: MandalaGrid,
@@ -27,11 +31,13 @@ export const createMandalaGridFileInFolder = async (
                 newFile,
                 (frontmatter) => {
                     const record = frontmatter as Record<string, unknown>;
+                    const settings = plugin.settings.getValue();
                     record[MANDALA_FRONTMATTER_SETTINGS_KEY] =
-                        buildNewFileMandalaFrontmatterSettings(
-                            plugin.settings.getValue(),
-                            { dayPlan: false },
-                        );
+                        buildNewFileMandalaFrontmatterSettings(settings, {
+                            dayPlan: false,
+                        });
+                    const cellFormat = buildNewFileMandalaCellFormat(settings);
+                    if (cellFormat) writeMandalaCellFormat(record, cellFormat);
                 },
             );
             plugin.settings.dispatch(

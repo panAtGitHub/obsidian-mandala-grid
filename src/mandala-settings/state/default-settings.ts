@@ -129,6 +129,7 @@ export const DEFAULT_SETTINGS = (): Settings => ({
         hiddenVerticalToolbarButtons: [],
         coreSectionMax: 'unlimited',
         subgridMaxDepth: 'unlimited',
+        enableCellFormatPreset: false,
     },
     general: {
         interfaceLanguage: 'auto',

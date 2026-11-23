@@ -364,6 +364,9 @@ export type SettingsActions =
           payload: { depth: SectionRangeLimit };
       }
     | {
+          type: 'settings/view/toggle-cell-format-preset';
+      }
+    | {
           type: 'settings/view/toggle-9x9-view';
       }
     | {

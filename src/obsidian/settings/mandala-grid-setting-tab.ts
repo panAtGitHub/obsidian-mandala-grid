@@ -55,6 +55,8 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                 return settings.view.enable9x9View;
             case 'enableNx9View':
                 return settings.view.enableNx9View;
+            case 'enableCellFormatPreset':
+                return settings.view.enableCellFormatPreset;
             case 'timePlanEnabled':
                 return (
                     settings.general.dayPlanEnabled &&
@@ -93,6 +95,17 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                                 : 'settings/view/toggle-nx9-view',
                     });
                     this.syncActiveViewModeWithGlobalSwitches();
+                }
+                break;
+            case 'enableCellFormatPreset':
+                if (typeof value !== 'boolean') return;
+                if (
+                    this.plugin.settings.getValue().view
+                        .enableCellFormatPreset !== value
+                ) {
+                    this.plugin.settings.dispatch({
+                        type: 'settings/view/toggle-cell-format-preset',
+                    });
                 }
                 break;
             case 'timePlanEnabled':
@@ -339,6 +352,14 @@ export class MandalaGridSettingTab extends PluginSettingTab {
                             });
                             this.rangeRefreshers.add(refresh);
                             return () => this.rangeRefreshers.delete(refresh);
+                        },
+                    },
+                    {
+                        name: lang.settings_global_enable_cell_format_preset,
+                        desc: lang.settings_global_enable_cell_format_preset_desc,
+                        control: {
+                            type: 'toggle',
+                            key: 'enableCellFormatPreset',
                         },
                     },
                 ],

@@ -339,6 +339,23 @@ export const chineseMessages = {
     settings_global_range_preview_title: '当前范围总览（实时）',
     settings_global_range_preview_limit_behavior:
         '超限行为：阻止创建并提示“已达到你设定的范围上限”。',
+    settings_global_enable_cell_format_preset: '为新建文件启用格子书写预设',
+    settings_global_enable_cell_format_preset_desc:
+        '开启后，新建的九宫格 md 文件会写入默认的标题和正文格式；已有文件不受影响。',
+    settings_cell_format_section: '格子书写预设',
+    settings_cell_format_description:
+        '只影响空格的新建内容。标题级别按 section 层级选择，已有格子不会自动改变。',
+    settings_cell_format_invalid:
+        '当前文件的 mandala_cell_format 无法完整读取，请修改后保存以修正。',
+    settings_cell_format_enabled: '启用当前文件的格子书写预设',
+    settings_cell_format_enabled_desc:
+        '开启后，空格编辑会按下面的标题和正文形式起笔。',
+    settings_cell_format_deeper_desc: '这一层及之后共用当前规则。',
+    settings_cell_format_reset: '恢复默认格式',
+    settings_cell_format_normalize: '统一当前文件的已有格子',
+    settings_cell_format_normalize_desc:
+        '按已保存的 YAML 预设整理已有内容。复杂 Markdown 会跳过。',
+    settings_cell_format_normalize_button: '统一格式…',
 
     // general settings
     settings_general_link_split: 'Open in new split',

@@ -18,6 +18,10 @@ import {
     resolveEffectiveMandalaSettings,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
 import {
+    buildNewFileMandalaCellFormat,
+    writeMandalaCellFormat,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
+import {
     allSlotsFilled,
     buildCenterDateHeading,
     dateFromDayOfYear,
@@ -454,6 +458,11 @@ export const setupDayPlanMandalaFormat = async (
                 subgridMaxDepth: 2,
             },
         };
+        const cellFormat = buildNewFileMandalaCellFormat(
+            plugin.settings.getValue(),
+            2,
+        );
+        if (cellFormat) writeMandalaCellFormat(record, cellFormat);
         writeDayPlanConfiguration(
             record,
             withDayPlanDisplaySettings(

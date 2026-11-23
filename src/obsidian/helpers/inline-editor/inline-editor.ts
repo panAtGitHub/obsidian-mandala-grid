@@ -8,6 +8,11 @@ import { MandalaView } from 'src/view/view';
 import { vimEnterInsertMode } from 'src/obsidian/helpers/inline-editor/helpers/vim-enter-insert-mode';
 import { fixVimCursorWhenZooming } from 'src/obsidian/helpers/inline-editor/helpers/fix-vim-cursor-when-zooming';
 import { lockFile } from 'src/obsidian/helpers/inline-editor/helpers/lock-file';
+import {
+    getMandalaCellFormatRule,
+    readMandalaCellFormat,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
+import { parseSectionParts } from 'src/mandala-document/engine/section-utils';
 
 const noopSave = async function (
     this: void,
@@ -35,6 +40,11 @@ export class InlineEditor {
         nodeId: string;
         originalContent: string;
         preparedContent: string;
+        initialCursor: EditorPosition;
+        generatedCellFormat?: {
+            headingPrefix: string | null;
+            bodyPrefix: string | null;
+        };
     } | null = null;
     private suppressEditorEvents = false;
     private readyPromise: Promise<void> | null = null;
@@ -46,6 +56,21 @@ export class InlineEditor {
     } | null = null;
 
     constructor(private view: MandalaView) {}
+
+    private resolveCellFormatRule(nodeId: string, isDayPlanScene: boolean) {
+        const state = this.view.documentStore.getValue();
+        const section = state.sections?.id_section?.[nodeId];
+        if (!section) return undefined;
+        const depth = parseSectionParts(section).length;
+        if (isDayPlanScene && depth === 1) return undefined;
+        const parsed = readMandalaCellFormat(state.file?.frontmatter ?? '');
+        if (!parsed.valid || !parsed.config.enabled) return undefined;
+        return getMandalaCellFormatRule(
+            parsed.config,
+            depth,
+            this.view.getEffectiveMandalaSettings().view.subgridMaxDepth,
+        );
+    }
 
     private ensureReady(file: TFile) {
         if (!this.readyPromise || this.readyFile !== file) {
@@ -81,6 +106,7 @@ export class InlineEditor {
             currentContent,
             originalContent: placement.originalContent,
             preparedContent: placement.preparedContent,
+            generatedCellFormat: placement.generatedCellFormat,
         });
     }
 
@@ -156,11 +182,13 @@ export class InlineEditor {
             '';
         const isInSidebar =
             this.view.viewStore.getValue().document.editing.isInSidebar;
+        const isDayPlanScene =
+            this.view.getMandalaSceneKey().variant === 'day-plan';
         const initialPlacement = resolveNodeEditorInitialPlacement({
             content,
-            isDayPlanScene:
-                this.view.getMandalaSceneKey().variant === 'day-plan',
+            isDayPlanScene,
             historyCursor: this.cursorPositions.get(nodeId),
+            cellFormat: this.resolveCellFormatRule(nodeId, isDayPlanScene),
         });
 
         if (currentNodeId && currentNodeId !== nodeId) {
@@ -177,6 +205,8 @@ export class InlineEditor {
             nodeId,
             originalContent: content,
             preparedContent: initialPlacement.content,
+            initialCursor: initialPlacement.cursor,
+            generatedCellFormat: initialPlacement.generatedCellFormat,
         };
 
         this.nodeId = nodeId;
@@ -233,6 +263,15 @@ export class InlineEditor {
         return isLineInRange && isChInRange;
     };
     restoreCursor = () => {
+        const currentPlacement = this.currentInitialPlacement;
+        if (
+            currentPlacement?.nodeId === this.nodeId &&
+            currentPlacement.preparedContent ===
+                this.inlineView.editor.getValue()
+        ) {
+            this.setCursor(currentPlacement.initialCursor);
+            return;
+        }
         const placement = resolveNodeEditorInitialPlacement({
             content: this.inlineView.editor.getValue(),
             isDayPlanScene:

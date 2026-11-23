@@ -163,6 +163,30 @@ export const englishMessages = {
     '当前范围总览（实时）': 'Current range overview',
     '超限行为：阻止创建并提示“已达到你设定的范围上限”。':
         'Creating sections beyond the limit is blocked with a range-limit notice.',
+    为新建文件启用格子书写预设: 'Enable cell writing presets for new files',
+    '开启后，新建的九宫格 md 文件会写入默认的标题和正文格式；已有文件不受影响。':
+        'New Mandala Grid notes will include default heading and body formats. Existing notes are unchanged.',
+    格子书写预设: 'Cell writing presets',
+    '只影响空格的新建内容。标题级别按 section 层级选择，已有格子不会自动改变。':
+        'Only new content in empty cells is affected. Heading levels follow section depth, and existing cells are unchanged.',
+    '当前文件的 mandala_cell_format 无法完整读取，请修改后保存以修正。':
+        'The file mandala_cell_format is invalid. Adjust the controls and save to repair it.',
+    启用当前文件的格子书写预设: 'Enable cell writing presets for this file',
+    '开启后，空格编辑会按下面的标题和正文形式起笔。':
+        'Empty-cell editing starts with the heading and body formats below.',
+    '这一层及之后共用当前规则。':
+        'This level and all deeper levels share the current rule.',
+    恢复默认格式: 'Restore default formats',
+    统一当前文件的已有格子: 'Normalize existing cells in this file',
+    '按已保存的 YAML 预设整理已有内容。复杂 Markdown 会跳过。':
+        'Normalize existing content using the saved YAML preset. Complex Markdown is skipped.',
+    '统一格式…': 'Normalize formats…',
+    关闭标题: 'No heading',
+    普通段落: 'Paragraph',
+    无序列表: 'Unordered list',
+    有序列表: 'Ordered list',
+    示例标题: 'Example title',
+    示例内容: 'Example content',
     'Mandala Grid 设置': 'Mandala Grid settings',
     '启用「日计划」功能': 'Enable day plans',
     '关闭后，会移除命令面板中所有与「日计划」相关的命令。':

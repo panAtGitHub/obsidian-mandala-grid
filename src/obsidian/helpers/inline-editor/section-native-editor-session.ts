@@ -16,6 +16,11 @@ import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-docume
 import { patchSectionContents } from 'src/mandala-document/runtime/patch-section-contents';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { id } from 'src/shared/helpers/id';
+import {
+    getMandalaCellFormatRule,
+    readMandalaCellFormat,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
+import { parseSectionParts } from 'src/mandala-document/engine/section-utils';
 
 type SectionEditSession = {
     tempFilePath: string;
@@ -24,6 +29,10 @@ type SectionEditSession = {
     originalContent: string;
     originalSourceContent: string;
     preparedContent: string;
+    generatedCellFormat?: {
+        headingPrefix: string | null;
+        bodyPrefix: string | null;
+    };
     bodyAnchorLine: number | null;
     cursorKey: string;
 };
@@ -150,6 +159,7 @@ const resolveSessionReplacement = (
         currentContent: stripSessionBodyAnchor(session, currentContent),
         originalContent: session.originalContent,
         preparedContent: session.preparedContent,
+        generatedCellFormat: session.generatedCellFormat,
     });
 
 const normalizeSessionCursor = (
@@ -478,12 +488,27 @@ export const startSectionNativeEditorSession = async (
         const safeSection = String(section).replace(/\./g, '-');
         const tempPath = `${SESSION_FOLDER}/${Date.now()}-${safeSection}-${id.view()}.md`;
         const isDayPlanScene = view.getMandalaSceneKey().variant === 'day-plan';
+        const parsedCellFormat = readMandalaCellFormat(
+            extractFrontmatter(sourceMarkdown).frontmatter,
+        );
+        const cellFormat =
+            !isDayPlanScene || parseSectionParts(section).length !== 1
+                ? parsedCellFormat.valid && parsedCellFormat.config.enabled
+                    ? getMandalaCellFormatRule(
+                          parsedCellFormat.config,
+                          parseSectionParts(section).length,
+                          view.getEffectiveMandalaSettings().view
+                              .subgridMaxDepth,
+                      )
+                    : undefined
+                : undefined;
         const initialPlacement = resolveNodeEditorInitialPlacement({
             content: sectionContent,
             isDayPlanScene,
             historyCursor: cursorBySectionKey.get(
                 getSectionCursorKey(sourceFile.path, section),
             ),
+            cellFormat,
         });
         const nativeContent = prepareNativeEditorContent(
             initialPlacement.content,
@@ -514,6 +539,7 @@ export const startSectionNativeEditorSession = async (
             originalContent: sectionContent,
             originalSourceContent,
             preparedContent: initialPlacement.content,
+            generatedCellFormat: initialPlacement.generatedCellFormat,
             bodyAnchorLine: nativeContent.bodyAnchorLine,
             cursorKey,
         });

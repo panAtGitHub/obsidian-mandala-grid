@@ -151,6 +151,7 @@ describe('declarative plugin settings', () => {
             'Core section range (1–n)',
             'Maximum subgrid depth (including core level)',
             'Current range overview',
+            'Enable cell writing presets for new files',
             'Enable time plans (day and week)',
         ]);
         expect(tab.containerEl.childElementCount).toBe(0);

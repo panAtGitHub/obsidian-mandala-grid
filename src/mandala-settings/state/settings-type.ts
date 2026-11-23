@@ -168,6 +168,7 @@ export type Settings = {
         hiddenVerticalToolbarButtons: ToolbarButton[];
         coreSectionMax: SectionRangeLimit;
         subgridMaxDepth: SectionRangeLimit;
+        enableCellFormatPreset: boolean;
     };
     general: {
         interfaceLanguage: import('src/lang/interface-language').InterfaceLanguage;

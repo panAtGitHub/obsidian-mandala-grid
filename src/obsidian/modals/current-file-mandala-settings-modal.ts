@@ -13,13 +13,22 @@ import {
     slotsRecordToArray,
 } from 'src/mandala-display/logic/day-plan';
 import { tx } from 'src/lang/translate';
+import { lang } from 'src/lang/lang';
 import { Modal, Notice } from 'obsidian';
 import type { MandalaView } from 'src/view/view';
 import {
     type EffectiveMandalaSettings,
     MANDALA_FRONTMATTER_SETTINGS_KEY,
+    resolveEffectiveMandalaSettings,
     withDayPlanDisplaySettings,
 } from 'src/mandala-settings/state/frontmatter/mandala-frontmatter-settings';
+import {
+    createDefaultMandalaCellFormat,
+    readMandalaCellFormat,
+    removeMandalaCellFormat,
+    writeMandalaCellFormat,
+    type MandalaCellFormatConfig,
+} from 'src/mandala-settings/state/frontmatter/mandala-cell-format';
 import { extractFrontmatter } from 'src/view/helpers/extract-frontmatter';
 import { updateFrontmatter } from 'src/stores/view/subscriptions/actions/document/update-frontmatter';
 import { renderMandalaCoreSettings } from 'src/obsidian/settings/render-mandala-core-settings';
@@ -35,11 +44,27 @@ import {
     isValidDayPlanDateTemplate,
 } from 'src/mandala-display/logic/day-plan';
 import { createSettingsFoldCard } from 'src/obsidian/settings/create-settings-fold-card';
+import { renderMandalaCellFormatSettings } from 'src/obsidian/settings/render-mandala-cell-format-settings';
+import { openMandalaConversionModal } from 'src/obsidian/modals/mandala-conversion-modal';
+import {
+    isSameMandalaCellFormatConfig,
+    planMandalaCellFormatNormalization,
+} from 'src/mandala-display/logic/plan-mandala-cell-format-normalization';
+import { MandalaSourceRuntime } from 'src/mandala-document/runtime/source-document-runtime';
+import { patchSectionContents } from 'src/mandala-document/runtime/patch-section-contents';
 
-type LocalFileSettings = EffectiveMandalaSettings;
+type LocalFileSettings = EffectiveMandalaSettings & {
+    cellFormat: MandalaCellFormatConfig;
+    cellFormatPresent: boolean;
+    cellFormatValid: boolean;
+    cellFormatDirty: boolean;
+};
 
 const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
     const effective = view.getEffectiveMandalaSettings();
+    const parsedCellFormat = readMandalaCellFormat(
+        view.documentStore.getValue().file.frontmatter,
+    );
     return {
         view: {
             enable9x9View: effective.view.enable9x9View,
@@ -57,6 +82,19 @@ const createInitialLocalState = (view: MandalaView): LocalFileSettings => {
             dayPlanDateHeadingCustomTemplate:
                 effective.general.dayPlanDateHeadingCustomTemplate,
         },
+        cellFormat: parsedCellFormat.present
+            ? {
+                  enabled: parsedCellFormat.config.enabled,
+                  levels: { ...parsedCellFormat.config.levels },
+                  deeper: { ...parsedCellFormat.config.deeper },
+              }
+            : createDefaultMandalaCellFormat(
+                  effective.view.subgridMaxDepth,
+                  false,
+              ),
+        cellFormatPresent: parsedCellFormat.present,
+        cellFormatValid: parsedCellFormat.valid,
+        cellFormatDirty: false,
     };
 };
 
@@ -68,16 +106,22 @@ export const openCurrentFileMandalaSettingsModal = (view: MandalaView) => {
 class CurrentFileMandalaSettingsModal extends Modal {
     private state: LocalFileSettings;
     private readonly targetFile: MandalaView['file'];
+    private readonly initialViewSettings: LocalFileSettings['view'];
+    private readonly initialCellFormatMaxDepth: EffectiveMandalaSettings['view']['subgridMaxDepth'];
     private dismissedTemplateMismatchCore: string | null = null;
+    private normalizingCellFormat = false;
     private readonly groupOpenState = new Map<string, boolean>([
         ['global-view', true],
         ['time-plan', true],
+        ['cell-format', true],
     ]);
 
     constructor(private readonly view: MandalaView) {
         super(view.plugin.app);
         this.state = createInitialLocalState(view);
         this.targetFile = view.file;
+        this.initialViewSettings = { ...this.state.view };
+        this.initialCellFormatMaxDepth = this.state.view.subgridMaxDepth;
     }
 
     onOpen() {
@@ -115,6 +159,23 @@ class CurrentFileMandalaSettingsModal extends Modal {
         }).contentEl;
     }
 
+    private hasUnsavedCellFormatScopeChanges() {
+        return (
+            this.state.cellFormatDirty ||
+            this.state.view.subgridMaxDepth !== this.initialCellFormatMaxDepth
+        );
+    }
+
+    private hasViewSettingsChanges() {
+        return Object.entries(this.state.view).some(
+            ([key, value]) =>
+                value !==
+                this.initialViewSettings[
+                    key as keyof LocalFileSettings['view']
+                ],
+        );
+    }
+
     private render({
         preserveScroll = false,
     }: { preserveScroll?: boolean } = {}) {
@@ -140,9 +201,11 @@ class CurrentFileMandalaSettingsModal extends Modal {
             cls: 'mandala-file-settings__note',
             text: isDayPlanDedicated
                 ? tx(
-                      '仅影响当前 md 文件。视图设置保存到 mandala_settings；日计划设置及每日模板保存到 mandala_day_plan。',
+                      '仅影响当前 md 文件。视图设置保存到 mandala_settings；书写预设保存到 mandala_cell_format；日计划设置及每日模板保存到 mandala_day_plan。',
                   )
-                : tx('仅影响当前 md 文件，保存到 YAML 的 mandala_settings。'),
+                : tx(
+                      '仅影响当前 md 文件，视图设置保存到 mandala_settings，书写预设保存到 mandala_cell_format。',
+                  ),
         });
 
         renderMandalaCoreSettings({
@@ -350,6 +413,7 @@ class CurrentFileMandalaSettingsModal extends Modal {
                 },
                 setSubgridMaxDepth: (depth) => {
                     this.state.view.subgridMaxDepth = depth;
+                    this.render({ preserveScroll: true });
                 },
                 setWeekStart: (weekStart) => {
                     this.state.general.weekStart = weekStart;
@@ -362,6 +426,51 @@ class CurrentFileMandalaSettingsModal extends Modal {
                     this.state.general.dayPlanDateHeadingCustomTemplate =
                         template;
                 },
+            },
+        });
+
+        renderMandalaCellFormatSettings({
+            parentEl: contentEl,
+            state: {
+                config: this.state.cellFormat,
+                maxDepth: this.state.view.subgridMaxDepth,
+            },
+            validationMessage: this.state.cellFormatValid
+                ? undefined
+                : lang.settings_cell_format_invalid,
+            createGroupContainer: (parentEl, title) =>
+                this.createFoldCard(parentEl, title, 'cell-format'),
+            onChanged: () => {
+                this.state.cellFormatDirty = true;
+                this.state.cellFormatValid = true;
+                this.render({ preserveScroll: true });
+            },
+            renderFooter: (container) => {
+                new Setting(container)
+                    .setName(lang.settings_cell_format_normalize)
+                    .setDesc(lang.settings_cell_format_normalize_desc)
+                    .addButton((button) =>
+                        button
+                            .setButtonText(
+                                lang.settings_cell_format_normalize_button,
+                            )
+                            .setDisabled(
+                                !this.state.cellFormatPresent ||
+                                    !this.state.cellFormatValid ||
+                                    !this.state.cellFormat.enabled ||
+                                    this.hasUnsavedCellFormatScopeChanges(),
+                            )
+                            .onClick(() => {
+                                void this.normalizeCurrentFileCellFormat().catch(
+                                    (error) =>
+                                        onPluginError(
+                                            error,
+                                            'command',
+                                            'normalize-current-cell-format',
+                                        ),
+                                );
+                            }),
+                    );
             },
         });
 
@@ -388,6 +497,120 @@ class CurrentFileMandalaSettingsModal extends Modal {
             window.requestAnimationFrame(() => {
                 this.getScrollContainer().scrollTop = scrollTop;
             });
+        }
+    }
+
+    private async normalizeCurrentFileCellFormat() {
+        if (
+            this.normalizingCellFormat ||
+            !this.view.file ||
+            this.view.file !== this.targetFile ||
+            this.hasUnsavedCellFormatScopeChanges() ||
+            !this.state.cellFormatPresent ||
+            !this.state.cellFormatValid ||
+            !this.state.cellFormat.enabled
+        ) {
+            return;
+        }
+
+        this.normalizingCellFormat = true;
+        try {
+            const originalMarkdown = await this.view.app.vault.read(
+                this.view.file,
+            );
+            const plan = planMandalaCellFormatNormalization(
+                originalMarkdown,
+                this.state.cellFormat,
+                this.state.view.subgridMaxDepth,
+            );
+            if (plan.edits.length === 0) {
+                new Notice(
+                    tx(
+                        '当前文件没有可统一格式的格子，复杂内容跳过 {0} 个。',
+                        plan.skippedCount,
+                    ),
+                );
+                return;
+            }
+
+            const warning = plan.removedHeadingCount
+                ? tx(
+                      '将统一 {0} 个格子，跳过 {1} 个复杂格子。{2} 个格子的标题会改为正文，指向这些标题的链接可能失效。',
+                      plan.edits.length,
+                      plan.skippedCount,
+                      plan.removedHeadingCount,
+                  )
+                : tx(
+                      '将统一 {0} 个格子，跳过 {1} 个复杂格子。此操作会修改已有 Markdown。',
+                      plan.edits.length,
+                      plan.skippedCount,
+                  );
+            const choice = await openMandalaConversionModal(this.view.plugin, {
+                title: tx('统一当前文件格子格式'),
+                message: warning,
+                confirmText: tx('统一格式'),
+            });
+            if (choice !== 'convert') return;
+            if (this.view.file !== this.targetFile) {
+                new Notice(tx('目标文件已切换，请重新打开设置。'));
+                return;
+            }
+
+            let conflict = false;
+            await this.view.app.vault.process(this.view.file, (latest) => {
+                const latestFrontmatter =
+                    extractFrontmatter(latest).frontmatter;
+                const latestParsed = readMandalaCellFormat(latestFrontmatter);
+                const latestSettings = resolveEffectiveMandalaSettings(
+                    this.view.plugin.settings.getValue(),
+                    latestFrontmatter,
+                );
+                const latestRuntime = new MandalaSourceRuntime(
+                    extractFrontmatter(latest).body,
+                );
+                if (
+                    !latestParsed.valid ||
+                    !latestParsed.config.enabled ||
+                    !isSameMandalaCellFormatConfig(
+                        latestParsed.config,
+                        this.state.cellFormat,
+                    ) ||
+                    latestSettings.view.subgridMaxDepth !==
+                        this.state.view.subgridMaxDepth ||
+                    !latestRuntime.index.diagnostics.valid ||
+                    latestRuntime.index.sourceOrderedIds.join('|') !==
+                        plan.sectionIds.join('|')
+                ) {
+                    conflict = true;
+                    return latest;
+                }
+                try {
+                    return patchSectionContents(latest, plan.edits);
+                } catch {
+                    conflict = true;
+                    return latest;
+                }
+            });
+            if (conflict) {
+                new Notice(
+                    tx('文件内容或书写预设已变化，请重新预览后再统一格式。'),
+                );
+                return;
+            }
+            const latest = await this.view.app.vault.cachedRead(this.view.file);
+            updateFrontmatter(
+                this.view,
+                extractFrontmatter(latest).frontmatter,
+            );
+            new Notice(
+                tx(
+                    '已统一 {0} 个格子，跳过 {1} 个复杂格子。',
+                    plan.edits.length,
+                    plan.skippedCount,
+                ),
+            );
+        } finally {
+            this.normalizingCellFormat = false;
         }
     }
 
@@ -447,7 +670,16 @@ class CurrentFileMandalaSettingsModal extends Modal {
                         ),
                     );
                 }
-                record[MANDALA_FRONTMATTER_SETTINGS_KEY] = nextSettings;
+                if (this.hasViewSettingsChanges()) {
+                    record[MANDALA_FRONTMATTER_SETTINGS_KEY] = nextSettings;
+                }
+                if (this.state.cellFormatDirty) {
+                    if (this.state.cellFormat.enabled) {
+                        writeMandalaCellFormat(record, this.state.cellFormat);
+                    } else {
+                        removeMandalaCellFormat(record);
+                    }
+                }
             },
         );
 
