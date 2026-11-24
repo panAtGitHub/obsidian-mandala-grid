@@ -164,6 +164,8 @@ export const englishMessages = {
     '超限行为：阻止创建并提示“已达到你设定的范围上限”。':
         'Creating sections beyond the limit is blocked with a range-limit notice.',
     为新建文件启用格子书写预设: 'Enable cell writing presets for new files',
+    '开启后，下方可设置新建文件的标题和正文格式；已有文件不受影响。':
+        'When enabled, set the heading and body formats for new files below. Existing notes are unchanged.',
     '开启后，新建的九宫格 md 文件会写入默认的标题和正文格式；已有文件不受影响。':
         'When enabled, set the heading and body formats for new files below. Existing notes are unchanged.',
     新建文件默认格子格式: 'Default cell format for new files',
